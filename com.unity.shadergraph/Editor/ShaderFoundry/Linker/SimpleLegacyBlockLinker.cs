@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderFoundry
 
                 // Add all blocks that correspond to this customization point
                 currentGroup.BlockDescriptors.Add(templateBlockDesc);
-                var cpDesc = customizationPointDescriptors.Find((cpd) => (cpd.CustomizationPoint.Name == customizationPoint.Name));
+                var cpDesc = customizationPointDescriptors.Find((cpd) => (cpd.CustomizationPoint == customizationPoint));
                 if (cpDesc.IsValid)
                 {
                     foreach (var blockDesc in cpDesc.BlockDescriptors)

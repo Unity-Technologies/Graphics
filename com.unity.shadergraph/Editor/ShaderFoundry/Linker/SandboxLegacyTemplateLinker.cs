@@ -274,7 +274,7 @@ namespace UnityEditor.ShaderFoundry
                 if (typeGroups.Count == 0)
                     typeGroups.Add((type.ParentBlock, new List<ShaderType>()));
                 var currentContext = typeGroups[typeGroups.Count - 1];
-                if (currentContext.Block.Name != type.ParentBlock.Name)
+                if (currentContext.Block != type.ParentBlock)
                 {
                     typeGroups.Add((type.ParentBlock, new List<ShaderType>()));
                     currentContext = typeGroups[typeGroups.Count - 1];
@@ -288,7 +288,7 @@ namespace UnityEditor.ShaderFoundry
                 if (functionGroups.Count == 0)
                     functionGroups.Add((function.ParentBlock, new List<ShaderFunction>()));
                 var currentContext = functionGroups[functionGroups.Count - 1];
-                if (currentContext.Block.Name != function.ParentBlock.Name)
+                if (currentContext.Block != function.ParentBlock)
                 {
                     functionGroups.Add((function.ParentBlock, new List<ShaderFunction>()));
                     currentContext = functionGroups[functionGroups.Count - 1];
@@ -302,12 +302,12 @@ namespace UnityEditor.ShaderFoundry
             void DeclareTypes(ShaderBuilder builder, IEnumerable<ShaderType> types)
             {
                 foreach (var type in types)
-                    type.AddTypeDeclarationString(builder);
+                    builder.AddTypeDeclarationString(type);
             }
             void DeclareFunctions(ShaderBuilder builder, IEnumerable<ShaderFunction> functions)
             {
                 foreach (var function in functions)
-                    function.AddDeclarationString(builder);
+                    builder.AddDeclarationString(function);
             }
 
             BuildTypeAndFunctionGroups(blockDesc.Block, visitedRegistry, out var typeGroups, out var functionGroups);
@@ -318,7 +318,9 @@ namespace UnityEditor.ShaderFoundry
                     DeclareTypes(builder, groupContext.Types);
                     continue;
                 }
-                builder.AppendLine($"namespace {groupContext.Block.GetScopeName()}");
+                builder.Add($"namespace ");
+                builder.AppendScopeName(groupContext.Block);
+                builder.NewLine();
                 using (var s = builder.BlockScope())
                 {
                     DeclareTypes(builder, groupContext.Types);
@@ -332,7 +334,9 @@ namespace UnityEditor.ShaderFoundry
                     DeclareFunctions(builder, groupContext.Functions);
                     continue;
                 }
-                builder.AppendLine($"namespace {groupContext.Block.GetScopeName()}");
+                builder.Add($"namespace ");
+                builder.AppendScopeName(groupContext.Block);
+                builder.NewLine();
                 using (var s = builder.BlockScope())
                 {
                     DeclareFunctions(builder, groupContext.Functions);
@@ -433,12 +437,9 @@ namespace UnityEditor.ShaderFoundry
             {
                 if (blockDescriptor.IsValid)
                 {
-                    var builderNew = new ShaderBuilder();
-                    GenerateBlockLinkSpliceCode(builderNew, blockDescriptor, visitedRegistry);
-                    var builderOld = new ShaderStringBuilder();
-                    builderOld.Append(builderNew.ToString());
-                    builderOld.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString());
-                    code = builderOld.ToCodeBlock();
+                    var blockBuilder = new ShaderBuilder();
+                    GenerateBlockLinkSpliceCode(blockBuilder, blockDescriptor, visitedRegistry);
+                    code = blockBuilder.ToString();
 
                     var block = blockDescriptor.Block;
                     shaderProperties = shaderProperties.Concat(block.Properties);
