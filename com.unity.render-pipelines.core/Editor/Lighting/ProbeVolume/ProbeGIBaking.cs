@@ -384,6 +384,29 @@ namespace UnityEngine.Experimental.Rendering
             var bakedProbeOctahedralDepth = new NativeArray<float>(numUniqueProbes * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
             bool validBakedProbes = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_BakingBatch.index, sh, validity, bakedProbeOctahedralDepth);
+            Debug.Log($"Results from big bake -- bright  -- {sh[indexBright][0, 0]} {sh[indexBright][1, 0]} {sh[indexBright][2, 0]} ");
+            Debug.Log($"Results from big bake -- dark {sh[indexDark][0, 0]} {sh[indexDark][1, 0]} {sh[indexDark][2, 0]} ");
+
+
+            {
+                var sh2 = new NativeArray<SphericalHarmonicsL2>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                var validity2 = new NativeArray<float>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                var bakedProbeOctahedralDepth2 = new NativeArray<float>(numUniqueProbes * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+                bool validBakedProbes2 = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(9322, sh2, validity2, bakedProbeOctahedralDepth2);
+                Debug.Log($"Results from big bake 2 -- bright  -- {sh2[indexBright][0, 0]} {sh2[indexBright][1, 0]} {sh2[indexBright][2, 0]} ");
+                Debug.Log($"Results from big bake 2 -- dark {sh2[indexDark][0, 0]} {sh2[indexDark][1, 0]} {sh2[indexDark][2, 0]} ");
+            }
+
+            var testSHs = new NativeArray<SphericalHarmonicsL2>(2, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var testValidity = new NativeArray<float>(2, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var testBakedProbeOctahedral = new NativeArray<float>(2 * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(9321, testSHs, testValidity, testBakedProbeOctahedral);
+
+            Debug.Log($"Results from small bake -- bright {testSHs[0][0, 0]} {testSHs[0][1, 0]} {testSHs[0][2, 0]} ");
+            Debug.Log($"Results from small bake -- dark {testSHs[1][0, 0]} {testSHs[1][1, 0]} {testSHs[1][2, 0]} ");
+
+
 
             if (!validBakedProbes)
             {
@@ -423,13 +446,17 @@ namespace UnityEngine.Experimental.Rendering
 
                     if (Vector3.Distance(cell.probePositions[i], new Vector3(0.0f, 88.5f, 2.5f)) < 0.05f) // Bright
                     {
-                        Debug.Log($"Bright L0 (pos {cell.probePositions[i]}), baking cell {c}, {j}, is {shv[0, 0]} {shv[1, 0]} {shv[2, 0]} ");
+                        SphericalHarmonicsL2 testSH = sh[indexBright];
+                        Debug.Assert(indexBright == j);
+                        Debug.Log($"Results retrieved in APV loop -- Bright L0 (pos {cell.probePositions[i]}), index {j}, is {testSH[0, 0]} {testSH[1, 0]} {testSH[2, 0]} ");
                     }
 
 
                     if (Vector3.Distance(cell.probePositions[i], new Vector3(0.5f, 88.5f, 2.5f)) < 0.05f) // Dark
                     {
-                        Debug.Log($"Dark L0 (pos {cell.probePositions[i]}), baking cell {c}, {j}, is {shv[0, 0]} {shv[1, 0]} {shv[2, 0]} ");
+                        SphericalHarmonicsL2 testSH = sh[indexDark];
+                        Debug.Assert(indexDark == j);
+                        Debug.Log($"Results retrieved in APV loop -- Dark L0 (pos {cell.probePositions[i]}), index {j}, is {testSH[0, 0]} {testSH[1, 0]} {testSH[2, 0]} ");
                     }
 
                     int brickIdx = i / 64;
@@ -758,6 +785,8 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        static int indexBright = -1;
+        static int indexDark = -1;
         public static void ApplySubdivisionResults(ProbeSubdivisionResult results, Matrix4x4 refToWS)
         {
             int index = 0;
@@ -799,17 +828,23 @@ namespace UnityEngine.Experimental.Rendering
             // Move positions before sending them
             var positions = m_BakingBatch.uniquePositions.Keys.ToArray();
             VirtualOffsetSettings voSettings = m_BakingSettings.virtualOffsetSettings;
+            Vector3[] testPos = new Vector3[2];
+
 
             for (int i = 0; i < positions.Length; ++i)
             {
                 if (Vector3.Distance(positions[i], new Vector3(0.0f, 88.5f, 2.5f)) < 0.05f) // Bright
                 {
+                    indexBright = i;
+                    testPos[0] = positions[i];
                     Debug.Log($"Bright enqueing with index  {i} at position {positions[i]}");
                 }
 
 
                 if (Vector3.Distance(positions[i], new Vector3(0.5f, 88.5f, 2.5f)) < 0.05f) // Dark
                 {
+                    indexDark = i;
+                    testPos[1] = positions[i];
                     Debug.Log($"Dark enqueing with index  {i} at position {positions[i]}");
                 }
             }
@@ -825,19 +860,12 @@ namespace UnityEngine.Experimental.Rendering
 
                     float scaleForSearchDist = voSettings.searchMultiplier;
                     positions[i] = PushPositionOutOfGeometry(positions[i], scaleForSearchDist * searchDistance, voSettings.outOfGeoOffset);
-
-                    if (Vector3.Distance(positions[i], new Vector3(0.0f, 88.5f, 2.5f)) < 0.05f) // Bright
-                    {
-                        Debug.Log($"Bright enqueing with index  {i} at position {positions[i]}");
-                    }
-
-
-                    if (Vector3.Distance(positions[i], new Vector3(0.5f, 88.5f, 2.5f)) < 0.05f) // Dark
-                    {
-                        Debug.Log($"Dark enqueing with index  {i} at position {positions[i]}");
-                    }
                 }
             }
+
+
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(9321, testPos);
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(9322, positions);
 
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, positions);
         }
