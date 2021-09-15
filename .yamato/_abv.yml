@@ -46,6 +46,8 @@ all_project_ci_nightly_2021.2:
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_2021.2
          rerun: on_new_revision
+      -  path: .yamato/_templates.yml#all_template_ci_2021.2
+         rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_2021.2
          rerun: on_new_revision
 General_Checks_2021.2:
@@ -137,6 +139,8 @@ all_project_ci_nightly_CUSTOM-REVISION:
       -  path: .yamato/all-urp.yml#Nightly_URP_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/_templates.yml#all_template_ci_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision
