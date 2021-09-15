@@ -29,6 +29,7 @@ namespace UnityEngine.Experimental.Rendering
                         if (!mr.gameObject.GetComponent<MeshCollider>())
                         {
                             mr.gameObject.AddComponent<MeshCollider>();
+                            mr.GetComponent<MeshCollider>().hideFlags |= (HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild);
                             addedOccluders.Add(mr);
                         }
                     }
