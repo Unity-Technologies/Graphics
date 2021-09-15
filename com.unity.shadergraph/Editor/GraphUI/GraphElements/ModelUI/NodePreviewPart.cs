@@ -41,7 +41,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
             m_PreviewImage = m_Root.Q<Image>("preview");
             if (m_PreviewImage != null)
             {
-                m_PreviewImage.image = Texture2D.whiteTexture;
+                var defaultTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.shadergraph/Editor/GraphUI/GraphElements/Stylesheets/Icons/PreviewDefault.png");
+                m_PreviewImage.image = defaultTexture;
             }
 
             m_CollapseButton = m_Root.Q<VisualElement>("collapse");
