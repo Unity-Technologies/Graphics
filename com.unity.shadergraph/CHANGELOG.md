@@ -15,6 +15,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
  - Fixed an incorrect direction transform from view to world space [1362034] (https://issuetracker.unity3d.com/product/unity/issues/guid/1362034/)
+ - Fixed the appearance (wrong text color, and not wrapped) of a warning in Node Settings [1356725] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356725/)
 
 ## [12.0.0] - 2021-01-11
 
