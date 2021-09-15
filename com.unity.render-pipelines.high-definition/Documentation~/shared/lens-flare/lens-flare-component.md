@@ -1,12 +1,10 @@
-[comment]: # "If you modify this file make sure you modify the copy/paste file: com.unity.render-pipelines.high-definition and com.unity.render-pipelines.core\Documentation~\Common\lens-flare-component.md"
-
 # Lens Flare (SRP) component
 
-![](images/lighting/lens-flare-header.png)
+![](../../images/shared/lens-flare/lens-flare-header.png)
 
 Unity’s Scriptable Render Pipeline (SRP) includes the Lens Flare (SRP) component which renders a lens flare in your scene. This is the SRP equivalent of the Built-in Render Pipeline's [Lens Flare](https://docs.unity3d.com/Manual/class-LensFlare.html) component, which is incompatible with SRPs. You can attach a Lens Flare (SRP) component to any GameObject, but some properties only appear when you attach a Lens Flare (SRP) component to a light.
 
-![](images/lighting/lens-flare-comp.png)
+![](../../images/shared/lens-flare/lens-flare-comp.png)
 
 ## Creating lens flares in SRP
 

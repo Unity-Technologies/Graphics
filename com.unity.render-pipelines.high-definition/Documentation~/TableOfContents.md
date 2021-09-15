@@ -184,6 +184,7 @@
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug.md)
 * Components
   * [Decal Projector](Decal-Projector.md)
+  * [Lens Flare](shared/lens-flare/lens-flare-component.md)
 * Tools
   * [Look Dev](Look-Dev.md)
   * [Compositor](Compositor-Main.md)

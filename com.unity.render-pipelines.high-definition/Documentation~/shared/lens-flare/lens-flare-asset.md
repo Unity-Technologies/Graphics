@@ -1,5 +1,3 @@
-[comment]: # "If you modify this file make sure you modify the copy/paste file: com.unity.render-pipelines.universal and com.unity.render-pipelines.core\Documentation~\Common\lens-flare-asset.md"
-
 # Lens Flare (SRP) Data Asset
 
 Unity’s [Scriptable Render Pipeline (SRP)](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html) includes the **Lens Flare Data** asset. You can use this asset to control the appearance of [Lens Flares](lens-flare-component.md) in your scene. This is the SRP equivalent of the Built-in Render Pipeline's [Flare](https://docs.unity3d.com/Manual/class-Flare.html) asset, which is incompatible with SRPs.
@@ -34,7 +32,7 @@ The Lens Flare Element asset has the following properties:
 
 #### Image
 
-![](images/lighting/lens-flare-shape-image.png)
+![](../../images/shared/lens-flare/lens-flare-shape-image.png)
 
 | **Property**          | **Description**                                              |
 | --------------------- | ------------------------------------------------------------ |
@@ -45,7 +43,7 @@ The Lens Flare Element asset has the following properties:
 
 #### Circle
 
-![](images/lighting/lens-flare-shape-circle.png)
+![](../../images/shared/lens-flare/lens-flare-shape-circle.png)
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
@@ -57,7 +55,7 @@ The Lens Flare Element asset has the following properties:
 
 #### Polygon
 
-![](images/lighting/lens-flare-shape-polygon.png)
+![](../../images/shared/lens-flare/lens-flare-shape-polygon.png)
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
@@ -71,7 +69,7 @@ The Lens Flare Element asset has the following properties:
 
 ## Color
 
-![](images/lighting/lens-flare-Color.png)
+![](../../images/shared/lens-flare/lens-flare-Color.png)
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
@@ -84,7 +82,7 @@ The Lens Flare Element asset has the following properties:
 
 ## Transform
 
-![](images/lighting/lens-flare-Transform.png)
+![](../../images/shared/lens-flare/lens-flare-Transform.png)
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
@@ -99,7 +97,7 @@ The Lens Flare Element asset has the following properties:
 
 ## AxisTransform
 
-![](images/lighting/lens-flare-axis-transform.png)
+![](../../images/shared/lens-flare/lens-flare-axis-transform.png)
 
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
@@ -111,7 +109,7 @@ The Lens Flare Element asset has the following properties:
 
 ## Distortion
 
-![](images/lighting/lens-flare-radial-distortion.png)
+![](../../images/shared/lens-flare/lens-flare-radial-distortion.png)
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
@@ -133,7 +131,7 @@ The Lens Flare Element asset has the following properties:
 | Relative To Center | If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position. |
 
 ### Uniform
-![](images/lighting/lens-flare-multiple-elements-uniform.png)
+![](../../images/shared/lens-flare/lens-flare-multiple-elements-uniform.png)
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
@@ -144,7 +142,7 @@ The Lens Flare Element asset has the following properties:
 
 ### Curve
 
-![](images/lighting/lens-flare-multiple-elements-curve.png)
+![](../../images/shared/lens-flare/lens-flare-multiple-elements-curve.png)
 
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |
@@ -157,7 +155,7 @@ The Lens Flare Element asset has the following properties:
 
 ### Random
 
-![](images/lighting/lens-flare-multiple-elements-random.png)
+![](../../images/shared/lens-flare/lens-flare-multiple-elements-random.png)
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |
