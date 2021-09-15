@@ -417,8 +417,20 @@ namespace UnityEngine.Experimental.Rendering
 
                 for (int i = 0; i < numProbes; ++i)
                 {
+
                     int j = bakingCells[c].probeIndices[i];
                     SphericalHarmonicsL2 shv = sh[j];
+
+                    if (Vector3.Distance(cell.probePositions[i], new Vector3(0.0f, 88.5f, 2.5f)) < 0.05f) // Bright
+                    {
+                        Debug.Log($"Bright L0 (pos {cell.probePositions[i]}), baking cell {c}, {j}, is {shv[0, 0]} {shv[1, 0]} {shv[2, 0]} ");
+                    }
+
+
+                    if (Vector3.Distance(cell.probePositions[i], new Vector3(0.5f, 88.5f, 2.5f)) < 0.05f) // Dark
+                    {
+                        Debug.Log($"Dark L0 (pos {cell.probePositions[i]}), baking cell {c}, {j}, is {shv[0, 0]} {shv[1, 0]} {shv[2, 0]} ");
+                    }
 
                     int brickIdx = i / 64;
                     cell.minSubdiv = Mathf.Min(cell.minSubdiv, cell.bricks[brickIdx].subdivisionLevel);
@@ -787,6 +799,21 @@ namespace UnityEngine.Experimental.Rendering
             // Move positions before sending them
             var positions = m_BakingBatch.uniquePositions.Keys.ToArray();
             VirtualOffsetSettings voSettings = m_BakingSettings.virtualOffsetSettings;
+
+            for (int i = 0; i < positions.Length; ++i)
+            {
+                if (Vector3.Distance(positions[i], new Vector3(0.0f, 88.5f, 2.5f)) < 0.05f) // Bright
+                {
+                    Debug.Log($"Bright enqueing with index  {i} at position {positions[i]}");
+                }
+
+
+                if (Vector3.Distance(positions[i], new Vector3(0.5f, 88.5f, 2.5f)) < 0.05f) // Dark
+                {
+                    Debug.Log($"Dark enqueing with index  {i} at position {positions[i]}");
+                }
+            }
+
             if (voSettings.useVirtualOffset)
             {
                 for (int i = 0; i < positions.Length; ++i)
@@ -798,6 +825,17 @@ namespace UnityEngine.Experimental.Rendering
 
                     float scaleForSearchDist = voSettings.searchMultiplier;
                     positions[i] = PushPositionOutOfGeometry(positions[i], scaleForSearchDist * searchDistance, voSettings.outOfGeoOffset);
+
+                    if (Vector3.Distance(positions[i], new Vector3(0.0f, 88.5f, 2.5f)) < 0.05f) // Bright
+                    {
+                        Debug.Log($"Bright enqueing with index  {i} at position {positions[i]}");
+                    }
+
+
+                    if (Vector3.Distance(positions[i], new Vector3(0.5f, 88.5f, 2.5f)) < 0.05f) // Dark
+                    {
+                        Debug.Log($"Dark enqueing with index  {i} at position {positions[i]}");
+                    }
                 }
             }
 

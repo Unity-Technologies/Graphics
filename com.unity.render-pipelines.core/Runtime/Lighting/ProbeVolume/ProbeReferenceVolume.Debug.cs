@@ -254,6 +254,7 @@ namespace UnityEngine.Experimental.Rendering
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
                 List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
                 CellChunkInfo chunks;
+                // We don't have valid chunks for this cell (likely because it has been unloaded/cleared)
                 if (!m_ChunkInfo.TryGetValue(cell.index, out chunks))
                     continue;
 
