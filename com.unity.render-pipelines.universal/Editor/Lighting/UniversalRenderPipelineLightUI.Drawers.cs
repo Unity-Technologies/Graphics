@@ -67,11 +67,7 @@ namespace UnityEditor.Rendering.Universal
             CED.FoldoutGroup(LightUI.Styles.shadowHeader,
                 Expandable.Shadows,
                 k_ExpandedState,
-                DrawShadowsContent),
-            CED.FoldoutGroup(Styles.lightCookieHeader,
-                Expandable.LightCookie,
-                k_ExpandedState,
-                DrawLightCookieContent)
+                DrawShadowsContent)
         );
 
         static Func<int> s_SetGizmosDirty = SetGizmosDirty();
@@ -289,6 +285,8 @@ namespace UnityEditor.Rendering.Universal
 #endif
                 }
             }
+
+            DrawLightCookieContent(serializedLight, owner);
         }
 
         static void DrawRenderingContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)

@@ -10,7 +10,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - URP global setting for stripping off shader variants.
 
 ### Changed
+- Removed experimental tile deferred code.
 - VFX: New shadergraph support directly on Universal target.
+
+### Fixed
+- URP asset can now use multi-edit. [case 1364966](https://issuetracker.unity3d.com/issues/urp-universalrenderpipelineasset-does-not-support-multi-edit)
 
 ## [12.0.0] - 2021-01-11
 ### Added
