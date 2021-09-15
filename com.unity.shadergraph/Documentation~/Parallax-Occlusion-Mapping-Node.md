@@ -14,14 +14,14 @@ When you assign the same Texture2D to a POM node and a Sample Texture 2D node, y
 | --- | --- | --- | --- |
 | **Heightmap** | Input | Texture2D | The Texture that specifies the depth of the displacement. |
 | **Heightmap Sampler** | Input | Sampler State | The Sampler to sample **Heightmap** with. |
-| **Amplitude** | Input | Float | A multiplier to apply to the height of the Heightmap (in centimeters). |
+| **Amplitude** | Input | Float | A multiplier to apply to the height of the **Heightmap** (in centimeters). |
 | **Steps** | Input | Float | The number of steps that the linear search of the algorithm performs. |
 | **UVs** | Input | Vector2 | The UVs that the sampler uses to sample the Texture. |
 | **Tiling** | Input | Vector2 | The tiling to apply to the input UVs. |
 | **Offset**| Input | Vector2 | The offset to apply to the input UVs. |
 | **Primitive Size** | Vector2 | Float | Size of the UV space in object space. For example, a Unity built-in Plane mesh has a primitive size of (10,10). |
-| **Lod** | Input | Float | The level of detail to use to sample the Heightmap. |
-| **Lod Threshold** | Input | Float | The Heightmap mip level where the Parallax Occlusion Mapping effect begins to fade out. This is equivalent to the **Fading Mip Level Start** property in the High Definition Render Pipeline's (HDRP) [Lit Material](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Lit-Shader.html). |
+| **Lod** | Input | Float | The level of detail to use to sample the **Heightmap**. |
+| **Lod Threshold** | Input | Float | The **Heightmap** mip level where the Parallax Occlusion Mapping effect begins to fade out. This is equivalent to the **Fading Mip Level Start** property in the High Definition Render Pipeline's (HDRP) [Lit Material](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Lit-Shader.html). |
 | **Pixel Depth Offset** | Output |Float | The offset to apply to the depth buffer to produce the illusion of depth. Connect this output to the **Depth Offset** on the Master Node to enable effects that rely on the depth buffer, such as shadows and screen space ambient occlusion. |
 | **Parallax UVs** | Output| Vector2 | UVs that you have added the parallax offset to. |
 
