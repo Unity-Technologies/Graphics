@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Unity.Collections;
+using System.Collections.Generic;
 
 
 namespace UnityEngine.Rendering.Universal
@@ -13,6 +14,33 @@ namespace UnityEngine.Rendering.Universal
         const int k_MinimumEdges = 3;
 
         static public int debugVert = 0;
+
+        private class EdgeComparer : IEqualityComparer<ShadowEdge>
+        {
+            public bool Equals(ShadowEdge edge0, ShadowEdge edge1)
+            {
+                return (edge0.v0 == edge1.v0 && edge0.v1 == edge1.v1) || (edge0.v1 == edge1.v0 && edge0.v0 == edge1.v1);
+            }
+
+            public int GetHashCode(ShadowEdge edge)
+            {
+                int v0 = edge.v0;
+                int v1 = edge.v1;
+
+                if (edge.v1 < edge.v0)
+                {
+                    v0 = edge.v1;
+                    v1 = edge.v0;
+                }
+
+                int hashCode = v0 << 15 | v1;
+                return hashCode.GetHashCode();
+            }
+        }
+
+
+        static private Dictionary<ShadowEdge, int> m_EdgeDictionary = new Dictionary<ShadowEdge, int>(new EdgeComparer());  // This is done so we don't create garbage allocating and deallocating a dictionary object
+
 
         [StructLayout(LayoutKind.Sequential)]
         struct ShadowMeshVertex
@@ -27,6 +55,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+
         static VertexAttributeDescriptor[] m_VertexLayout = new VertexAttributeDescriptor[]
         {
             new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
@@ -34,7 +63,7 @@ namespace UnityEngine.Rendering.Universal
         };
 
 
-        static void CalculateTangents(NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, NativeArray<Vector3> contractionDirection, ref NativeArray<Vector4> outTangents)
+        static void CalculateTangents(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<Vector3> contractionDirection, ref NativeArray<Vector4> outTangents)
         {
             for (int i = 0; i < inEdges.Length; i++)
             {
@@ -55,7 +84,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, NativeArray<Vector4> inTangents, NativeArray<int> inShapeStartingIndices, ref NativeArray<Vector3> outContractionDirection)
+        static void CalculateContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<Vector4> inTangents, NativeArray<int> inShapeStartingIndices, ref NativeArray<Vector3> outContractionDirection)
         {
             for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
             {
@@ -92,7 +121,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void ApplyContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, NativeArray<Vector3> inContractionDirection, float inContractionDistance, ref NativeArray<Vector3> outVertices)
+        static void ApplyContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<Vector3> inContractionDirection, float inContractionDistance, ref NativeArray<Vector3> outVertices)
         {
             for(int i=0;i<inEdges.Length;i++)
             {
@@ -101,7 +130,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateVertices(NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, NativeArray<Vector4> inTangents, ref NativeArray<ShadowMeshVertex> outMeshVertices)
+        static void CalculateVertices(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<Vector4> inTangents, ref NativeArray<ShadowMeshVertex> outMeshVertices)
         {
             for (int i = 0; i < inEdges.Length; i++)
             {
@@ -126,7 +155,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateTriangles(NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices, ref NativeArray<int> outMeshIndices)
+        static void CalculateTriangles(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, ref NativeArray<int> outMeshIndices)
         {
             for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
             {
@@ -203,7 +232,7 @@ namespace UnityEngine.Rendering.Universal
 
 
         // inEdges is expected to be contiguous
-        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices)
+        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices)
         {
             Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
 
@@ -263,5 +292,260 @@ namespace UnityEngine.Rendering.Universal
             meshVertices.Dispose();
         }
 
+        static public int GetFirstUnusedIndex(NativeArray<bool> usedValues)
+        {
+            for (int i = 0; i < usedValues.Length; i++)
+            {
+                if (!usedValues[i])
+                    return i;
+            }
+
+            return -1;
+        }
+
+        static public void SortEdges(NativeArray<ShadowEdge> unsortedEdges, out NativeArray<ShadowEdge> sortedEdges, out NativeArray<int> shapeStartingIndices)
+        {
+            sortedEdges = new NativeArray<ShadowEdge>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            shapeStartingIndices = new NativeArray<int>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            NativeArray<int> edgeMap = new NativeArray<int>(unsortedEdges.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            NativeArray<bool> usedEdges = new NativeArray<bool>(unsortedEdges.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+            for (int i = 0; i < unsortedEdges.Length; i++)
+            {
+                edgeMap[unsortedEdges[i].v0] = i;
+                usedEdges[i] = false;
+                shapeStartingIndices[i] = -1;
+            }
+
+            int currentShape = 0;
+            bool findStartingEdge = true;
+            int edgeIndex = -1;
+            int startingEdge = 0;
+            for (int i = 0; i < unsortedEdges.Length; i++)
+            {
+                if (findStartingEdge)
+                {
+                    edgeIndex = GetFirstUnusedIndex(usedEdges);
+                    startingEdge = edgeIndex;
+                    shapeStartingIndices[currentShape++] = edgeIndex;
+                    findStartingEdge = false;
+                }
+
+                usedEdges[edgeIndex] = true;
+                sortedEdges[i] = unsortedEdges[edgeIndex];
+                int nextVertex = unsortedEdges[edgeIndex].v1;
+                edgeIndex = edgeMap[nextVertex];
+
+                if (edgeIndex == startingEdge)
+                    findStartingEdge = true;
+            }
+
+            usedEdges.Dispose();
+            edgeMap.Dispose();
+        }
+
+        static public void CalculateEdgesFromLines(NativeArray<int> indices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices)
+        {
+            int numOfIndices = indices.Length;
+            NativeArray<ShadowEdge> unsortedEdges = new NativeArray<ShadowEdge>(numOfIndices, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < indices.Length; i++)
+            {
+                int v0Index = indices[i];
+                int v1Index = indices[i + 1];
+
+                ShadowEdge edge0 = new ShadowEdge(v0Index, v1Index);
+
+            }
+
+            SortEdges(unsortedEdges, out outEdges, out outShapeStartingIndices);
+            unsortedEdges.Dispose();
+        }
+
+        static public void CalculateEdgesFromLineStrip(NativeArray<int> indices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices)
+        {
+            int numOfIndices = indices.Length;
+            int lastIndex = indices[numOfIndices - 1];
+
+            NativeArray<ShadowEdge> unsortedEdges = new NativeArray<ShadowEdge>(numOfIndices, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < numOfIndices; i++)
+            {
+                int curIndex = indices[i];
+                unsortedEdges[i] = new ShadowEdge(lastIndex, curIndex); ;
+                lastIndex = curIndex;
+            }
+
+            SortEdges(unsortedEdges, out outEdges, out outShapeStartingIndices);
+            unsortedEdges.Dispose();
+        }
+
+
+        static public void CalculateEdgesForSimpleLineStrip(int numOfIndices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices)
+        {
+            outShapeStartingIndices = new NativeArray<int>(1, Allocator.Persistent);
+            outShapeStartingIndices[0] = 0;
+
+            int lastIndex = numOfIndices - 1;
+            outEdges = new NativeArray<ShadowEdge>(numOfIndices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < numOfIndices; i++)
+            {
+                outEdges[i] = new ShadowEdge(lastIndex, i); ;
+                lastIndex = i;
+            }
+        }
+
+        static public int CreateEdgeDictionaryFromTriangles(NativeArray<int> indices)
+        {
+            m_EdgeDictionary.Clear();
+            for (int i = 0; i < indices.Length; i += 3)
+            {
+                int v0Index = indices[i];
+                int v1Index = indices[i + 1];
+                int v2Index = indices[i + 2];
+
+                ShadowEdge edge0 = new ShadowEdge(v0Index, v1Index);
+                ShadowEdge edge1 = new ShadowEdge(v1Index, v2Index);
+                ShadowEdge edge2 = new ShadowEdge(v2Index, v0Index);
+
+                // When a key comparison is made edges (A, B) and (B, A) are equal (see EdgeComparer)
+                if (m_EdgeDictionary.ContainsKey(edge0))
+                    m_EdgeDictionary[edge0] = m_EdgeDictionary[edge0] + 1;
+                else
+                    m_EdgeDictionary.Add(edge0, 1);
+
+                if (m_EdgeDictionary.ContainsKey(edge1))
+                    m_EdgeDictionary[edge1] = m_EdgeDictionary[edge1] + 1;
+                else
+                    m_EdgeDictionary.Add(edge1, 1);
+
+                if (m_EdgeDictionary.ContainsKey(edge2))
+                    m_EdgeDictionary[edge2] = m_EdgeDictionary[edge2] + 1;
+                else
+                    m_EdgeDictionary.Add(edge2, 1);
+            }
+
+
+            // Count the outside edges
+            int outsideEdges = 0;
+            foreach (KeyValuePair<ShadowEdge, int> keyValuePair in m_EdgeDictionary)
+            {
+                if (keyValuePair.Value == 1)
+                    outsideEdges++;
+            }
+
+            return outsideEdges;
+        }
+
+
+
+        static public void RemapEdges(NativeArray<ShadowEdge> edges, NativeArray<int> map)
+        {
+            for (int i = 0; i < edges.Length; i++)
+            {
+                ShadowEdge edge = edges[i];
+                edge.v0 = map[edge.v0];
+                edge.v1 = map[edge.v1];
+                edges[i] = edge;
+            }
+        }
+
+        static public void CalculateEdgesFromTriangles(NativeArray<Vector3> vertices, NativeArray<int> indices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices)
+        {
+            // Add our edges to an edge list
+            int outsideEdges = CreateEdgeDictionaryFromTriangles(indices);
+
+            // Create unsorted edges array
+            int edgeCount = 0;
+            NativeArray<ShadowEdge> unsortedEdges = new NativeArray<ShadowEdge>(outsideEdges, Allocator.Temp);
+            foreach (KeyValuePair<ShadowEdge, int> keyValuePair in m_EdgeDictionary)
+            {
+                if (keyValuePair.Value == 1)
+                {
+                    unsortedEdges[edgeCount++] = keyValuePair.Key;
+                }
+            }
+
+            // Create vertex remapping arrays
+            NativeArray<int> originalToSubsetMap = new NativeArray<int>(vertices.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            NativeArray<int> subsetToOriginalMap = new NativeArray<int>(vertices.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+            for (int i = 0; i < vertices.Length; i++)
+                originalToSubsetMap[i] = -1;
+
+            for (int i = 0; i < unsortedEdges.Length; i++)
+            {
+                originalToSubsetMap[unsortedEdges[i].v0] = i;
+                subsetToOriginalMap[i] = unsortedEdges[i].v0;
+            }
+
+            // Sort edges so they are in order
+            RemapEdges(unsortedEdges, originalToSubsetMap);
+            SortEdges(unsortedEdges, out outEdges, out outShapeStartingIndices);
+            RemapEdges(outEdges, subsetToOriginalMap);
+
+            // Cleanup
+            originalToSubsetMap.Dispose();
+            subsetToOriginalMap.Dispose();
+            unsortedEdges.Dispose();
+        }
+
+        static public void CalculateEdgesFromLines(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<int> shapeStartingIndices, out NativeArray<ShadowEdge> outEdges)
+        {
+            // Create unsorted edges array
+            int edgeCount = indices.Length >> 1;
+            outEdges = new NativeArray<ShadowEdge>(edgeCount, Allocator.Temp);
+
+            for (int i = 0; i < edgeCount; i += 2)
+            {
+                int index = i << 1;
+                outEdges[i] = new ShadowEdge(indices[index], indices[index + 1]);
+            }
+        }
+
+        static public void FixWindingOrder(NativeArray<Vector3> inVertices, NativeArray<int> inShapeStartingIndices, NativeArray<ShadowEdge> inOutSortedEdges)
+        {
+            for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
+            {
+                int startingIndex = inShapeStartingIndices[shapeIndex];
+                if (startingIndex < 0)
+                    return;
+
+                int endIndex = inShapeStartingIndices.Length;
+                if ((shapeIndex + 1) < inShapeStartingIndices.Length && inShapeStartingIndices[shapeIndex + 1] > -1)
+                    endIndex = inShapeStartingIndices[shapeIndex + 1];
+
+                // Determine if the shape needs to have its winding order fixed..
+                float sum0 = 0;
+                float sum1 = 0;
+                for (int i = startingIndex; i < endIndex; i++)
+                {
+                    int v0 = inOutSortedEdges[i].v0;
+                    int v1 = inOutSortedEdges[i].v1;
+
+                    sum0 += (inVertices[v0].x * inVertices[v1].y);
+                    sum1 += (inVertices[v0].y * inVertices[v1].x);
+                }
+
+                // If the edges are backward, reverse them...
+                float twoTimesSignedArea = sum1 - sum0;
+                if (twoTimesSignedArea < 0)
+                {
+                    int count = (endIndex - startingIndex);
+                    for (int i = 0; i < (count >> 1); i++)
+                    {
+                        int edgeAIndex = startingIndex + i;
+                        int edgeBIndex = startingIndex + count - 1 - i;
+
+                        ShadowEdge edgeA = inOutSortedEdges[edgeAIndex];
+                        ShadowEdge edgeB = inOutSortedEdges[edgeBIndex];
+                        edgeA.Reverse();
+                        edgeB.Reverse();
+
+                        inOutSortedEdges[edgeAIndex] = edgeB;
+                        inOutSortedEdges[edgeBIndex] = edgeA;
+                    }
+                }
+            }
+        }
     }
 }
