@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Interface for determining what kind of debug settings are currently active.
