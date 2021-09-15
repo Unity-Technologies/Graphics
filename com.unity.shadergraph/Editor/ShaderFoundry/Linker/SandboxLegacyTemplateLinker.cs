@@ -140,13 +140,16 @@ namespace UnityEditor.ShaderFoundry
             targetActiveFields.baseInstance.Add(Fields.GraphPixel);
             GenerationUtils.AddRequiredFields(legacyPass.requiredFields, targetActiveFields.baseInstance);
 
+            // Make sure to track custom interpolants so they aren't declared multiple times
+            HashSet<string> customInterpolants = new HashSet<string>();
             void AddFieldFromProperty(ActiveFields activeFields, BlockVariable prop, Dictionary<string, FieldDescriptor> lookups)
             {
                 FieldDescriptor activeField;
                 if (lookups.TryGetValue(prop.ReferenceName, out activeField))
                     activeFields.baseInstance.Add(activeField);
-                else if (prop.Attributes.FindFirst(CommonShaderAttributes.Varying).IsValid)
+                else if (prop.Attributes.FindFirst(CommonShaderAttributes.Varying).IsValid && !customInterpolants.Contains(prop.ReferenceName))
                 {
+                    customInterpolants.Add(prop.ReferenceName);
                     // Create the interpolant field descriptor to handle the varying
                     var customInterpolatorField = new FieldDescriptor("", prop.ReferenceName, "", ShaderValueTypeFrom((int)prop.Type.VectorDimension), subscriptOptions: StructFieldOptions.Generated);
                     activeFields.baseInstance.Add(customInterpolatorField);
