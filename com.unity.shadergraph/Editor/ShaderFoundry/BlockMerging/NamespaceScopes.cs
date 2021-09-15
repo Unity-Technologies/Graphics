@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderFoundry
                 internal void Set(BlockVariableLinkInstance variable)
                 {
                     // Only keep one instance in the list. Setting the value moves it to the end
-                    var index = variables.FindIndex((v) => (v.Type.Name == variable.Type.Name));
+                    var index = variables.FindIndex((v) => (v.Type == variable.Type));
                     if (index != -1)
                         variables.RemoveAt(index);
                     variables.Add(variable);
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderFoundry
 
                 internal BlockVariableLinkInstance FindExact(ShaderType type)
                 {
-                    return variables.Find((v) => (v.Type.Equals(type)));
+                    return variables.Find((v) => (v.Type == type));
                 }
 
                 internal BlockVariableLinkInstance FindMostRecent()
