@@ -185,6 +185,7 @@
 * Components
   * [Decal Projector](Decal-Projector.md)
   * [Lens Flare](shared/lens-flare/lens-flare-component.md)
+    * [Lens Flare asset](shared/lens-flare/lens-flare-asset.md)
 * Tools
   * [Look Dev](Look-Dev.md)
   * [Compositor](Compositor-Main.md)
