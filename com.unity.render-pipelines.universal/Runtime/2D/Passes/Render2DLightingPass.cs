@@ -400,6 +400,10 @@ namespace UnityEngine.Rendering.Universal
                                 IShadowShape2DProvider provider = shadowCaster.shadowShape2DProvider;
                                 if(provider != null)
                                     provider.OnBeforeRender(shadowCaster.m_ShadowMesh, cameraLightFrustum);
+                                else
+                                {
+                                    shadowCaster.m_ShadowMesh.mesh.Clear();
+                                }
                             }
                         }
                     }
