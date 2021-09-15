@@ -10,6 +10,7 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ### Added
+ - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
 
 ### Changed
 
