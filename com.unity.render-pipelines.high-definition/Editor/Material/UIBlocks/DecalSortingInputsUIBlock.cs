@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         protected override void OnGUIOpen()
         {
-            materialEditor.ShaderProperty(drawOrder, Styles.drawOrderText);
+            materialEditor.IntShaderProperty(drawOrder, Styles.drawOrderText);
             materialEditor.ShaderProperty(decalMeshBiasType, Styles.meshDecalBiasType);
             if ((int)decalMeshBiasType.floatValue == (int)DecalMeshDepthBiasType.DepthBias)
             {
