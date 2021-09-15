@@ -6,7 +6,7 @@ You can use the Parallax Occlusion Mapping (POM) node to create a parallax effec
 
 If you experience texture sampling errors while using this node in a graph that includes Custom Function Nodes or Sub Graphs, it might be possible to resolve these errors by upgrading to Shader Graph version 10.3 or later.
 
-When you assign the same Texture2D to a POM node and a Sample Texture 2D node, you need to avoid transforming the UV coordinates twice. To prevent this, connect the Split Texture Transform node’s **Texture Only** port to the Sample Texture 2D Node’s UV port.
+When you assign the same Texture2D to a POM node and a Sample Texture 2D node, you need to avoid transforming the UV coordinates twice. To prevent this, connect the Split Texture Transform node’s **Texture Only** port to the Sample Texture 2D Node’s **UV** port.
 
 ## Ports
 
