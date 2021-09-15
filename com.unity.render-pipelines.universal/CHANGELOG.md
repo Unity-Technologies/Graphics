@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue where 2D Renderer was generating garbage in editor.
-
+- Fixed multi-edit for UniversalRenderPipelineAsset.
 
 ## [7.7.0] - 2021-04-28
 
