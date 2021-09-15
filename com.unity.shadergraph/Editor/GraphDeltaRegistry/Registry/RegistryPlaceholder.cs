@@ -97,13 +97,15 @@ namespace UnityEditor.ShaderGraph.Registry
 
                 var builder = new ShaderFoundry.ShaderFunction.Builder(container, funcName);
                 string body = "";
+                bool firstOperand = true;
                 foreach (var port in data.GetPorts())
                 {
                     var name = port.GetName();
                     if (port.IsInput())
                     {
                         builder.AddInput(shaderType, name);
-                        body += body == "" ? name : $" {Op} {name}";
+                        body += body == "" || firstOperand ? name : $" {Op} {name}";
+                        firstOperand = false;
                     }
                     else
                     {
@@ -164,7 +166,7 @@ namespace UnityEditor.ShaderGraph.Registry
 
                 // ensure that enough subfield values exist to represent userdata's current data.
                 for (int i = 0; i < length * height; ++i)
-                    typeWriter.SetField<float>($"c{i}", 0);
+                    typeWriter.SetField<float>($"c{i}.0f", 0);
             }
 
             public string GetInitializerList(IFieldReader data, Registry registry)
