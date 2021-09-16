@@ -97,12 +97,12 @@ For light intensity units, directional Lights use [Lux](Physical-Light-Units.md#
 
 To set up lighting in your HDRP Project:
 
-1. Add the default sky [Volume](Volumes.md) to your Scene to set up ambient lighting (menu **GameObject > Volume > Sky and Fog Volume**).
+1. Add the default sky [Volume](Volumes.md) to your Scene to set up ambient lighting (menu **GameObject > Volume > Sky and Fog Global Volume**).
 2. Set the [Environment Lighting](Environment-Lighting.md) to use this new sky:
 
     1. Open the Lighting window (menu: **Window > Rendering > Lighting Settings**).
 
-    2. For the **Profile** property, select the same [Volume Profile](Volume-Profile.md) that the Sky and Fog Volume uses.
+    2. For the **Profile** property, select the same [Volume Profile](Volume-Profile.md) that the Sky and Fog Global Volume uses.
 
     3. For the **Static Lighting Sky** property, select **PhysicallyBasedSky**.
 

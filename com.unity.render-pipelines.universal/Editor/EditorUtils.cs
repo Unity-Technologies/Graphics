@@ -1,7 +1,3 @@
-using System;
-using UnityEngine;
-using UnityEngine.Rendering;
-
 namespace UnityEditor.Rendering.Universal.Internal
 {
     /// <summary>
@@ -20,11 +16,6 @@ namespace UnityEditor.Rendering.Universal
 {
     static partial class EditorUtils
     {
-        // Each group is separate in the menu by a menu bar
-        public const int lwrpAssetCreateMenuPriorityGroup1 = CoreUtils.assetCreateMenuPriority1;
-        public const int lwrpAssetCreateMenuPriorityGroup2 = CoreUtils.assetCreateMenuPriority1 + 50;
-        public const int lwrpAssetCreateMenuPriorityGroup3 = lwrpAssetCreateMenuPriorityGroup2 + 50;
-
         internal enum Unit { Metric, Percent }
 
         internal class Styles

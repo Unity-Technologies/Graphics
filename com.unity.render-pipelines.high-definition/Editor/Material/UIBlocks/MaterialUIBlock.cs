@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -11,15 +9,20 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public abstract class MaterialUIBlock
     {
+        ///<summary>The <see cref="ExpandableBit"/> to store the state of the block</summary>
+        public ExpandableBit expandableBit { get; }
+        ///<summary>The <see cref="GUIContent"/> used as header of the block</summary>
+        public GUIContent header { get; }
+
         /// <summary>The current material editor.</summary>
-        protected MaterialEditor        materialEditor;
+        protected MaterialEditor materialEditor;
         /// <summary>The list of selected materials to edit.</summary>
-        protected Material[]            materials;
+        protected Material[] materials;
         /// <summary>The list of available properties in the selected materials.</summary>
-        protected MaterialProperty[]    properties;
+        protected MaterialProperty[] properties;
 
         /// <summary>Parent of the UI block.</summary>
-        protected MaterialUIBlockList   parent;
+        protected MaterialUIBlockList parent;
 
         /// <summary>Bit index used to store a foldout state in the editor preferences.</summary>
         [Flags]
@@ -133,17 +136,34 @@ namespace UnityEditor.Rendering.HighDefinition
             User19 = 1 << 30,
         }
 
-        internal void         Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
+        /// <summary>
+        /// Default Constructor, you must override the method OnGUI
+        /// </summary>
+        protected MaterialUIBlock()
+        {
+        }
+
+        /// <summary>
+        /// Constructor to auto generate the foldout section, override the method OnGUIOpen
+        /// </summary>
+        /// <param name="expandableBit"><see cref="ExpandableBit"/> used to store the state (open/closed) for this section</param>
+        /// <param name="header"><see cref="GUIContent"/>The title of this section</param>
+        internal MaterialUIBlock(ExpandableBit expandableBit, GUIContent header)
+        {
+            this.expandableBit = expandableBit;
+            this.header = header;
+        }
+
+        internal void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
         {
             this.materialEditor = materialEditor;
             this.parent = parent;
-            materials = materialEditor.targets.Select(target => target as Material).ToArray();
-
-            // We should always register the key used to keep collapsable state
-            materialEditor.InitExpandableState();
+            materials = materialEditor.targets
+                .Select(target => target as Material)
+                .ToArray();
         }
 
-        internal void         UpdateMaterialProperties(MaterialProperty[] properties)
+        internal void UpdateMaterialProperties(MaterialProperty[] properties)
         {
             this.properties = properties;
             LoadMaterialProperties();
@@ -183,7 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // If the layerCount is 1, then it means that the property we're fetching is not from a layered material
             // thus it doesn't have a prefix
-            string[] prefixes = (layerCount > 1) ? new[] {"0", "1", "2", "3"} : new[] {""};
+            string[] prefixes = (layerCount > 1) ? new[] { "0", "1", "2", "3" } : new[] { "" };
 
             for (int i = 0; i < layerCount; i++)
             {
@@ -201,6 +221,34 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Renders the properties in the block.
         /// </summary>
-        public abstract void OnGUI();
+        public virtual void OnGUI()
+        {
+            if (!showSection)
+                return;
+
+            using var scope = new MaterialHeaderScope(header, (uint)expandableBit, materialEditor, subHeader: isSubHeader);
+            if (scope.expanded)
+            {
+                OnGUIOpen();
+            }
+        }
+
+        /// <summary>
+        /// Property that specifies if the scope is a subheader
+        /// </summary>
+        protected virtual bool isSubHeader => false;
+
+        /// <summary>
+        /// If the section should be shown
+        /// </summary>
+        protected virtual bool showSection => true;
+
+        /// <summary>
+        /// GUI callback when the header is open
+        /// </summary>
+        protected virtual void OnGUIOpen()
+        {
+            throw new NotImplementedException($"You must implement {nameof(OnGUIOpen)} if you are not overriding {nameof(OnGUI)}");
+        }
     }
 }

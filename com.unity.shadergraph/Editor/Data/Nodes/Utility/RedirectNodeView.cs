@@ -163,6 +163,10 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
+        public void UpdateDropdownEntries()
+        {
+        }
+
         #endregion
     }
 }

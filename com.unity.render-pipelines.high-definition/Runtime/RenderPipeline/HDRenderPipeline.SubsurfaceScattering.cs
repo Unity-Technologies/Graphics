@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateCurrentDiffusionProfileSettings(HDCamera hdCamera)
         {
-            var currentDiffusionProfiles = HDRenderPipeline.defaultAsset.diffusionProfileSettingsList;
+            var currentDiffusionProfiles = m_GlobalSettings.diffusionProfileSettingsList;
             var diffusionProfileOverride = hdCamera.volumeStack.GetComponent<DiffusionProfileOverride>();
 
             // If there is a diffusion profile volume override, we merge diffusion profiles that are overwritten
@@ -155,13 +155,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return (SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation4 &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5 &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne &&
-                SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12);
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12 &&
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxOne &&
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxSeries);
         }
 
         // Albedo + SSS Profile and mask / Specular occlusion (when no SSS)
         // This will be used during GBuffer and/or forward passes.
-        TextureHandle CreateSSSBuffer(RenderGraph renderGraph, bool msaa)
+        TextureHandle CreateSSSBuffer(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSamples)
         {
+            bool msaa = msaaSamples != MSAASamples.None;
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc fastMemDesc;
             fastMemDesc.inFastMemory = true;
@@ -174,8 +177,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 colorFormat = GraphicsFormat.R8G8B8A8_SRGB,
                 enableRandomWrite = !msaa,
                 bindTextureMS = msaa,
-                enableMSAA = msaa,
-                clearBuffer = NeedClearGBuffer(),
+                msaaSamples = msaaSamples,
+                clearBuffer = NeedClearGBuffer(hdCamera),
                 clearColor = Color.clear,
                 name = msaa ? "SSSBufferMSAA" : "SSSBuffer"
 #if UNITY_2020_2_OR_NEWER
@@ -214,15 +217,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<SubsurfaceScaterringPassData>("Subsurface Scattering", out var passData, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
             {
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
-                {
-                    m_SubsurfaceScatteringCS.EnableKeyword("ENABLE_MSAA");
-                }
+                CoreUtils.SetKeyword(m_SubsurfaceScatteringCS, "ENABLE_MSAA", hdCamera.msaaEnabled);
 
                 passData.subsurfaceScatteringCS = m_SubsurfaceScatteringCS;
-                passData.subsurfaceScatteringCS.shaderKeywords = null;
                 passData.subsurfaceScatteringCSKernel = m_SubsurfaceScatteringKernel;
-                passData.needTemporaryBuffer = NeedTemporarySubsurfaceBuffer() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                passData.needTemporaryBuffer = NeedTemporarySubsurfaceBuffer() || hdCamera.msaaEnabled;
                 passData.copyStencilForSplitLighting = m_SSSCopyStencilForSplitLighting;
                 passData.combineLighting = m_CombineLightingPass;
                 passData.numTilesX = ((int)hdCamera.screenSize.x + 15) / 16;

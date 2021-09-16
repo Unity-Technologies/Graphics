@@ -17,6 +17,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override bool IsActive() => false;
+        internal override bool ignoreCustomInterpolators => false;
 
         public override void Setup(ref TargetSetupContext context)
         {
@@ -111,6 +112,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     StructFields.Varyings.positionCS,
                     StructFields.Varyings.positionWS,
+                    StructFields.Varyings.positionPredisplacementWS,
                     StructFields.Varyings.normalWS,
                     StructFields.Varyings.tangentWS,
                     StructFields.Varyings.texCoord0,

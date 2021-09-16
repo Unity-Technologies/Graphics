@@ -1,11 +1,11 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
+namespace UnityEditor.Rendering.Universal.Path2D.GUIFramework
 {
     internal class GUIState : IGUIState
     {
-        private Handles.CapFunction nullCap = (int c, Vector3 p , Quaternion r, float s, EventType ev) => {};
+        private Handles.CapFunction nullCap = (int c, Vector3 p, Quaternion r, float s, EventType ev) => { };
 
         public Vector2 mousePosition
         {

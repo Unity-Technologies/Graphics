@@ -96,6 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>Light Layers.</summary>
+    [Flags]
     public enum LightLayerEnum
     {
         /// <summary>The light will no affect any object.</summary>
@@ -324,6 +325,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 legacyLight.lightmapBakeType = LightmapBakeType.Baked;
 #endif
             }
+            else if (areaLightShape == AreaLightShape.Tube)
+            {
+#if UNITY_EDITOR
+                legacyLight.lightmapBakeType = LightmapBakeType.Realtime;
+#endif
+            }
             else
             {
                 legacyLight.type = LightType.Point;
@@ -380,8 +387,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             switch (type)
             {
-                case HDLightType.Directional:   return HDLightTypeAndShape.Directional;
-                case HDLightType.Point:         return HDLightTypeAndShape.Point;
+                case HDLightType.Directional: return HDLightTypeAndShape.Directional;
+                case HDLightType.Point: return HDLightTypeAndShape.Point;
                 case HDLightType.Spot:
                     switch (spotLightShape)
                     {

@@ -18,12 +18,21 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Tooltip("When enabled, the axisZ attribute is used to orient the strip instead of facing the Camera.")]
         private bool UseCustomZAxis = false;
 
-        protected VFXQuadStripOutput() : base(true) {}
-        public override string name { get { return "Output ParticleStrip Quad"; } }
+        protected VFXQuadStripOutput() : base(true) { }
+
+        public override string name
+        {
+            get
+            {
+                if (shaderName != string.Empty)
+                    return $"Output ParticleStrip {shaderName} Quad";
+                return "Output ParticleStrip Quad";
+            }
+        }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
-
         public override bool supportsUV { get { return true; } }
+        public override bool implementsMotionVector { get { return true; } }
 
         protected IEnumerable<VFXPropertyWithValue> optionalInputProperties
         {

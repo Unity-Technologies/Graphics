@@ -1,4 +1,4 @@
-Shader "Renderers/CustomPassRenderersUtils"
+Shader "Hidden/HDRP/CustomPassRenderersUtils"
 {
     Properties
     {
@@ -7,7 +7,7 @@ Shader "Renderers/CustomPassRenderersUtils"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     // #pragma enable_d3d11_debug_symbols
 
@@ -51,7 +51,7 @@ Shader "Renderers/CustomPassRenderersUtils"
             void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 viewDirection, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
             {
                 // Write back the data to the output structures
-                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+                ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
                 builtinData.opacity = 1;
                 builtinData.emissiveColor = 0;
 
@@ -83,7 +83,7 @@ Shader "Renderers/CustomPassRenderersUtils"
             void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 viewDirection, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
             {
                 // Write back the data to the output structures
-                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+                ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
                 builtinData.opacity = 1;
                 builtinData.emissiveColor = 0;
                 surfaceData.color = 0;
@@ -112,7 +112,7 @@ Shader "Renderers/CustomPassRenderersUtils"
             void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 viewDirection, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
             {
                 // Write back the data to the output structures
-                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+                ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
                 builtinData.opacity = 1;
                 builtinData.emissiveColor = 0;
                 surfaceData.color = fragInputs.tangentToWorld[2].xyz;
@@ -141,7 +141,7 @@ Shader "Renderers/CustomPassRenderersUtils"
             void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 viewDirection, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
             {
                 // Write back the data to the output structures
-                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+                ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
                 builtinData.opacity = 1;
                 builtinData.emissiveColor = 0;
                 surfaceData.color = fragInputs.tangentToWorld[0].xyz;

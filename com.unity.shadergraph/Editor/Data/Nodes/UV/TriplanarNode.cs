@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph
         public TriplanarNode()
         {
             name = "Triplanar";
+            synonyms = new string[] { "project" };
             m_PreviewMode = PreviewMode.Preview3D;
             UpdateNodeAfterDeserialization();
         }
@@ -68,7 +69,7 @@ namespace UnityEditor.ShaderGraph
         {
             base.Setup();
             var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputId);
-            textureSlot.defaultType = (textureType == TextureType.Normal ? Texture2DShaderProperty.DefaultType.Bump : Texture2DShaderProperty.DefaultType.White);
+            textureSlot.defaultType = (textureType == TextureType.Normal ? Texture2DShaderProperty.DefaultType.NormalMap : Texture2DShaderProperty.DefaultType.White);
         }
 
         // Node generations

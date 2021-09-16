@@ -2,7 +2,7 @@
 
 Menu Path : **Position > Set Position (Shape : Cone)**
 
-The **Set Position (Shape : Cone)** block calculatesa position based on an input [ArcCone ](Type-ArcCone .md) and stores the result in the [position attribute](Reference-Attributes.md), based on composition.
+The **Set Position (Shape : Cone)** Block calculatesa position based on an input [ArcCone ](Type-ArcCone .md) and stores the result in the [position attribute](Reference-Attributes.md), based on composition.
 
 The ArcCone shape adds an arc property to the cone to determine its arc angle, in radians. setting an arc value of pi creates a half-cone.
 

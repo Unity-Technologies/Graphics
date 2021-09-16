@@ -7,6 +7,7 @@ namespace UnityEditor.ShaderGraph
     internal enum IncludeLocation
     {
         Pregraph,
+        Graph,
         Postgraph
     }
 }

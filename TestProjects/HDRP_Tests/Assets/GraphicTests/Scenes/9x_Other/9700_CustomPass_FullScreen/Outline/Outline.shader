@@ -1,11 +1,11 @@
-﻿Shader "Hidden/Outline"
+Shader "Hidden/Outline"
 {
     HLSLINCLUDE
 
     #pragma vertex Vert
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
 
@@ -17,7 +17,7 @@
     #define c45 0.707107
     #define c225 0.9238795
     #define s225 0.3826834
-    
+
     #define MAXSAMPLES 8
     // Neighbour pixel positions
     static float2 samplingPositions[MAXSAMPLES] =

@@ -260,6 +260,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_IndexByGameObject.Add(gameObject, index);
             m_Entries.Insert(index, entry);
+            for (int i = index + 1; i < m_Entries.Count; ++i)
+            {
+                // Upon insertion, all index by game object entries after the insertion point need their index updated.
+                m_IndexByGameObject[m_Entries[i].gameObject] = i;
+            }
             return m_Entries[index].id;
         }
 

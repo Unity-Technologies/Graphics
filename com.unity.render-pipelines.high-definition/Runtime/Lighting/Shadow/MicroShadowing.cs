@@ -5,8 +5,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Micro Shadows effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Shadowing/Micro Shadows")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Micro-Shadows" + Documentation.endURL)]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Shadowing/Micro Shadows", typeof(HDRenderPipeline))]
+    [HDRPHelpURLAttribute("Override-Micro-Shadows")]
     public class MicroShadowing : VolumeComponent
     {
         /// <summary>

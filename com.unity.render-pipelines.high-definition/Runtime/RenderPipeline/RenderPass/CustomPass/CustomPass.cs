@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAsAttribute("name")]
         string m_Name = "Custom Pass";
 
-        internal ProfilingSampler   profilingSampler
+        internal ProfilingSampler profilingSampler
         {
             get
             {
@@ -35,38 +35,36 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_ProfilingSampler;
             }
         }
-        ProfilingSampler            m_ProfilingSampler;
+        ProfilingSampler m_ProfilingSampler;
 
         /// <summary>
         /// Is the custom pass enabled or not
         /// </summary>
-        public bool             enabled = true;
+        public bool enabled = true;
 
         /// <summary>
         /// Target color buffer (Camera or Custom)
         /// </summary>
-        public TargetBuffer     targetColorBuffer;
+        public TargetBuffer targetColorBuffer;
 
         /// <summary>
         /// Target depth buffer (camera or custom)
         /// </summary>
-        public TargetBuffer     targetDepthBuffer;
+        public TargetBuffer targetDepthBuffer;
 
         /// <summary>
         /// What clear to apply when the color and depth buffer are bound
         /// </summary>
-        public ClearFlag        clearFlags;
+        public ClearFlag clearFlags;
 
         [SerializeField]
-        bool                passFoldout;
+        bool passFoldout;
         [System.NonSerialized]
-        bool                isSetup = false;
-        bool                isExecuting = false;
-        RenderTargets       currentRenderTarget;
-        CustomPassVolume    owner;
-        HDCamera            currentHDCamera;
-
-        MaterialPropertyBlock userMaterialPropertyBlock;
+        bool isSetup = false;
+        bool isExecuting = false;
+        RenderTargets currentRenderTarget;
+        CustomPassVolume owner;
+        HDCamera currentHDCamera;
 
         // TODO RENDERGRAPH: Remove this when we move things to render graph completely.
         MaterialPropertyBlock m_MSAAResolveMPB = null;
@@ -140,8 +138,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Lazy<RTHandle> customColorBuffer;
             public Lazy<RTHandle> customDepthBuffer;
 
-            // Render graph specific
-            // TODO RENDERGRAPH cleanup the other ones when we only have the render graph path.
             public TextureHandle colorBufferRG;
             public TextureHandle nonMSAAColorBufferRG;
             public TextureHandle depthBufferRG;
@@ -155,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        Version     m_Version = MigrationDescription.LastVersion<Version>();
+        Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version
         {
             get => m_Version;
@@ -242,9 +238,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             customPass.Setup(ctx.renderContext, ctx.cmd);
                             customPass.isSetup = true;
-                            // TODO RENDERGRAPH: We still need to allocate this otherwise it would be null when switching off render graph (because isSetup stays true).
-                            // We can remove the member altogether when we remove the non render graph code path.
-                            customPass.userMaterialPropertyBlock = new MaterialPropertyBlock();
                         }
 
                         customPass.SetCustomPassTarget(ctx.cmd);
@@ -258,6 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             outputColorBuffer,
                             customPass.currentRenderTarget.depthBufferRG,
                             customPass.currentRenderTarget.normalBufferRG,
+                            customPass.currentRenderTarget.motionVectorBufferRG,
                             customPass.currentRenderTarget.customColorBuffer,
                             customPass.currentRenderTarget.customDepthBuffer,
                             ctx.renderGraphPool.GetTempMaterialPropertyBlock()
@@ -294,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool IsMSAAEnabled(HDCamera hdCamera)
         {
             // if MSAA is enabled and the current injection point is before transparent.
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool msaa = hdCamera.msaaEnabled;
             msaa &= injectionPoint == CustomPassInjectionPoint.BeforePreRefraction
                 || injectionPoint == CustomPassInjectionPoint.BeforeTransparent
                 || injectionPoint == CustomPassInjectionPoint.AfterOpaqueDepthAndNormal;
@@ -326,7 +320,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="cullingParameters">Aggregate the parameters in this property (use |= for masks fields, etc.)</param>
         /// <param name="hdCamera">The camera where the culling is being done</param>
-        protected virtual void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera) {}
+        protected virtual void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera) { }
 
         /// <summary>
         /// Called when your pass needs to be executed by a camera
@@ -336,7 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="hdCamera"></param>
         /// <param name="cullingResult"></param>
         [Obsolete("This Execute signature is obsolete and will be removed in the future. Please use Execute(CustomPassContext) instead")]
-        protected virtual void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult) {}
+        protected virtual void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult) { }
 
         /// <summary>
         /// Called when your pass needs to be executed by a camera
@@ -356,13 +350,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="renderContext">The render context</param>
         /// <param name="cmd">Current command buffer of the frame</param>
-        protected virtual void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd) {}
+        protected virtual void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd) { }
 
         /// <summary>
         /// Called when HDRP is destroyed.
         /// Allow you to free custom buffers.
         /// </summary>
-        protected virtual void Cleanup() {}
+        protected virtual void Cleanup() { }
 
         /// <summary>
         /// Bind the camera color buffer as the current render target

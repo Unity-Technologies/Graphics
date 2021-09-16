@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -12,12 +9,10 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal class Styles
         {
-            public const string header = "Surface Inputs";
+            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Surface Inputs");
 
             public static GUIContent colorText = new GUIContent("Color", " Albedo (RGB) and Transparency (A).");
         }
-
-        ExpandableBit  m_ExpandableBit;
 
         MaterialProperty color = null;
         const string kColor = "_UnlitColor";
@@ -29,8 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="expandableBit">Bit index used to store the foldout state.</param>
         public UnlitSurfaceInputsUIBlock(ExpandableBit expandableBit)
+            : base(expandableBit, Styles.header)
         {
-            m_ExpandableBit = expandableBit;
         }
 
         /// <summary>
@@ -45,16 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Renders the properties in the block.
         /// </summary>
-        public override void OnGUI()
-        {
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
-            {
-                if (header.expanded)
-                    DrawSurfaceInputsGUI();
-            }
-        }
-
-        void DrawSurfaceInputsGUI()
+        protected override void OnGUIOpen()
         {
             materialEditor.TexturePropertySingleLine(Styles.colorText, colorMap, color);
             materialEditor.TextureScaleOffsetProperty(colorMap);

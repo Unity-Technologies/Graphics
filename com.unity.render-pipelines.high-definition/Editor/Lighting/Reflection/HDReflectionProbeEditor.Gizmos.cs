@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (sphere == null)
                 sphere = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
             if (material == null)
-                material = new Material(Shader.Find("Debug/ReflectionProbePreview"));
+                material = new Material(Shader.Find("Hidden/Debug/ReflectionProbePreview"));
             var probe = target.GetComponent<HDAdditionalReflectionData>();
             var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, null);
             HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(

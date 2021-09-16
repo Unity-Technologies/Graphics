@@ -78,10 +78,13 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
     half3 normalWS = input.normal; // Already calculated in world space. Can probably get rid of the world space transform in GetVertexPositionInputs too.
 
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
-    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+    half fogFactor = 0.0;
+#if !defined(_FOG_FRAGMENT)
+    fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+#endif
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
     #ifdef EFFECT_BUMP
         real sign = input.tangent.w * GetOddNegativeScale();
         output.normalWS.xyz = TransformObjectToWorldNormal(input.normal);

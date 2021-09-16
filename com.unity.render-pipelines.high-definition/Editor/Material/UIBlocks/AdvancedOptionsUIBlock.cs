@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -19,42 +18,41 @@ namespace UnityEditor.Rendering.HighDefinition
         public enum Features
         {
             /// <summary>Hide all the fields in the block.</summary>
-            None                    = 0,
+            None = 0,
             /// <summary>Display the instancing field.</summary>
-            Instancing              = 1 << 0,
+            Instancing = 1 << 0,
             /// <summary>Display the specular occlusion field.</summary>
-            SpecularOcclusion       = 1 << 1,
+            SpecularOcclusion = 1 << 1,
             /// <summary>Display the add precomputed velocity field.</summary>
-            AddPrecomputedVelocity  = 1 << 2,
+            AddPrecomputedVelocity = 1 << 2,
             /// <summary>Display the double sided GI field.</summary>
-            DoubleSidedGI           = 1 << 3,
+            DoubleSidedGI = 1 << 3,
             /// <summary>Display the emission GI field.</summary>
-            EmissionGI              = 1 << 4,
+            EmissionGI = 1 << 4,
             /// <summary>Display the motion vector field.</summary>
-            MotionVector            = 1 << 5,
+            MotionVector = 1 << 5,
             /// <summary>Display the fields for the shaders.</summary>
-            StandardLit             = Instancing | SpecularOcclusion | AddPrecomputedVelocity,
+            StandardLit = Instancing | SpecularOcclusion | AddPrecomputedVelocity,
             /// <summary>Display all the field.</summary>
-            All                     = ~0
+            All = ~0
         }
 
         internal class Styles
         {
-            public const string header = "Advanced Options";
-            public static GUIContent specularOcclusionModeText = new GUIContent("Specular Occlusion Mode", "Determines the mode used to compute specular occlusion");
-            public static GUIContent addPrecomputedVelocityText = new GUIContent("Add Precomputed Velocity", "Requires additional per vertex velocity info");
-            public static GUIContent bakedEmission = new GUIContent("Baked Emission", "");
-            public static readonly GUIContent motionVectorForVertexAnimationText = new GUIContent("Motion Vector For Vertex Animation", "When enabled, HDRP will correctly handle velocity for vertex animated object. Only enable if there is vertex animation in the ShaderGraph.");
+            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Advanced Options");
+            public static GUIContent specularOcclusionModeText { get; } = EditorGUIUtility.TrTextContent("Specular Occlusion Mode", "Determines the mode used to compute specular occlusion");
+            public static GUIContent addPrecomputedVelocityText { get; } = EditorGUIUtility.TrTextContent("Add Precomputed Velocity", "Requires additional per vertex velocity info");
+            public static GUIContent motionVectorForVertexAnimationText { get; } = EditorGUIUtility.TrTextContent("Motion Vector For Vertex Animation", "When enabled, HDRP will correctly handle velocity for vertex animated object. Only enable if there is vertex animation in the ShaderGraph.");
+            public static GUIContent bakedEmission = EditorGUIUtility.TrTextContent("Baked Emission", "");
         }
 
         MaterialProperty specularOcclusionMode = null;
-        MaterialProperty addPrecomputedVelocity = null;
-
         const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
+
+        MaterialProperty addPrecomputedVelocity = null;
         const string kAddPrecomputedVelocity = HDMaterialProperties.kAddPrecomputedVelocity;
 
-        ExpandableBit  m_ExpandableBit;
-        Features    m_Features;
+        Features m_Features;
 
         /// <summary>
         /// Constructs the AdvancedOptionsUIBlock based on the parameters.
@@ -62,8 +60,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="expandableBit">Bit index used to store the foldout state.</param>
         /// <param name="features">Features of the block.</param>
         public AdvancedOptionsUIBlock(ExpandableBit expandableBit, Features features = Features.All)
+            : base(expandableBit, Styles.header)
         {
-            m_ExpandableBit = expandableBit;
             m_Features = features;
         }
 
@@ -90,19 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Renders the properties in the block.
         /// </summary>
-        public override void OnGUI()
-        {
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
-            {
-                if (header.expanded)
-                    DrawAdvancedOptionsGUI();
-            }
-        }
-
-        /// <summary>
-        /// Renders the advanced options in the advanced option foldout
-        /// </summary>
-        protected virtual void DrawAdvancedOptionsGUI()
+        protected override void OnGUIOpen()
         {
             if ((m_Features & Features.Instancing) != 0)
                 materialEditor.EnableInstancingField();

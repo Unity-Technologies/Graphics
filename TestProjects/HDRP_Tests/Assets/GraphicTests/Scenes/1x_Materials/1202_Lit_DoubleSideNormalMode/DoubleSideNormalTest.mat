@@ -19,11 +19,11 @@ Material:
   - DistortionVectors
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
+  - ForwardEmissiveForDeferred
   - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
   - RayTracingPrepass
-  - ForwardEmissiveForDeferred
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -175,6 +175,7 @@ Material:
     - _DistortionVectorBias: -1
     - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 1
+    - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 2
     - _Drag: 1
     - _DstBlend: 0

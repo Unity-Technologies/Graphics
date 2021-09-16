@@ -34,11 +34,15 @@ namespace UnityEngine.Rendering.HighDefinition
         // should this be combined into common class shared with Lit.cs???
         static public int GetMaterialDBufferCount() { return (int)DBufferMaterial.Count; }
 
-        static GraphicsFormat[] m_RTFormat = { GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8_UNorm};
+        static GraphicsFormat[] m_RTFormat = { GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8_UNorm };
+        static GraphicsFormat[] m_RTFormatHP = { GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8_UNorm };
 
         static public void GetMaterialDBufferDescription(out GraphicsFormat[] RTFormat)
         {
-            RTFormat = m_RTFormat;
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            bool hp = hdPipeline.currentPlatformRenderPipelineSettings.supportSurfaceGradient &&
+                hdPipeline.currentPlatformRenderPipelineSettings.decalNormalBufferHP;
+            RTFormat = hp ? m_RTFormatHP : m_RTFormat;
         }
     }
 

@@ -8,18 +8,16 @@ All operations related to `RTHandles` require an instance of the `RTHandleSystem
 
 ```c#
 RTHandleSystem m_RTHandleSystem = new RTHandleSystem();
-m_RTHandleSystem.Initialize(Screen.width, Screen.height, scaledRTsupportsMSAA: true, scaledRTMSAASamples: MSAASamples.MSAA4x);
+m_RTHandleSystem.Initialize(Screen.width, Screen.height);
 ```
 When you initialize the system, you must supply the starting resolution. The above code example uses the width and height of the screen. Because the RTHandle system only reallocates render textures when a Camera requires a resolution larger than the current maximum size, the internal `RTHandle` resolution can only increase from the value you pass in here. It is good practice to initialize this resolution to be the resolution of the main display. This means the system does not need to unnecessarily reallocate the render textures (and cause unwanted memory spikes) at the beginning of the application.
-
-If you want to use multi-sample anti-aliasing (MSAA), you must declare the MSAA sample mode during initialization. In the example code above, the RTHandle system supports MSAA and uses the MSAA4x mode. The RTHandle system allocates all textures with the same number of samples. You can change the sample mode later, but this changes the sample mode for all automatically resized textures.
 
 You must only call the `Initialize` function once at the beginning of the application. After this, you can use the initialized instance to allocate textures.
 
 Because you allocate the majority of `RTHandles` from the same `RTHandleSystem` instance, the RTHandle system also provides a default global instance through the `RTHandles` static class. Rather than maintain your own instance of `RTHandleSystem`, this allows you to use the same API that you get with an instance, but not worry about the lifetime of the instance. Using the static instance, the initialization becomes this:
 
 ```c#
-RTHandles.Initialize(Screen.width, Screen.height, scaledRTsupportsMSAA: true, scaledRTMSAASamples: MSAASamples.MSAA4x);
+RTHandles.Initialize(Screen.width, Screen.height);
 ```
 
 The code examples in the rest of this page use the default global instance.
@@ -29,7 +27,7 @@ The code examples in the rest of this page use the default global instance.
 Before rendering with a Camera, you need to set the resolution the RTHandle system uses as a reference size. To do so, call the `SetReferenceSize` function.
 
 ```c#
-RTHandles.SetReferenceSize(width, hight, msaaSamples);
+RTHandles.SetReferenceSize(width, height);
 ```
 
 Calling this function has two effects:
@@ -166,7 +164,7 @@ public void ReleaseBuffer(int bufferId);
 In the same way that you provide the reference size for regular `RTHandleSystems`, you must do this for each instance of `BufferedRTHandleSystem`.
 
 ```c#
-public void SwapAndSetReferenceSize(int width, int height, MSAASamples msaaSamples);
+public void SwapAndSetReferenceSize(int width, int height);
 ```
 
 This works the same way as regular RTHandleSystem but it also swaps the buffers internally so that the 0 index for `GetFrameRT` still references the current frame buffer. This slightly different way of handling Camera-specific buffers also has implications when you write shader code.

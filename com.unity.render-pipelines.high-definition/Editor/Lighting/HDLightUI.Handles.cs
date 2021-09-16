@@ -187,9 +187,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (shadowPlaneDistance > 0)
             {
-                var shadowDiscRadius = shadowPlaneDistance * Mathf.Sin(outerAngle * Mathf.Deg2Rad * 0.5f);
-                var shadowDiscDistance = Mathf.Cos(Mathf.Deg2Rad * outerAngle / 2) * shadowPlaneDistance;
-                Handles.DrawWireDisc(Vector3.forward * shadowDiscDistance, Vector3.forward, shadowDiscRadius);
+                var shadowDiscRadius = shadowPlaneDistance * Mathf.Tan(outerAngle * Mathf.Deg2Rad * 0.5f);
+                Handles.DrawWireDisc(Vector3.forward * shadowPlaneDistance, Vector3.forward, shadowDiscRadius);
             }
         }
 
@@ -656,7 +655,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                 Handles.color = handleColorAbove;
                                 widthHeight = DrawAreaLightHandle(widthHeight, withYAxis);
-                                widthHeight = Vector2.Max(Vector2.one * k_MinLightSize, widthHeight);
+                                widthHeight = Vector2.Max(Vector2.one * HDAdditionalLightData.k_MinLightSize, widthHeight);
                                 if (EditorGUI.EndChangeCheck())
                                 {
                                     Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Tube Light");

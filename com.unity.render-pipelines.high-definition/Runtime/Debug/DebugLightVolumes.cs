@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void InitData(RenderPipelineResources renderPipelineResources)
+        public void InitData(HDRenderPipelineRuntimeResources renderPipelineResources)
         {
             m_DebugLightVolumeMaterial = CoreUtils.CreateEngineMaterial(renderPipelineResources.shaders.debugLightVolumePS);
             m_DebugLightVolumeCompute = renderPipelineResources.shaders.debugLightVolumeCS;
@@ -42,12 +42,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugLightVolumeColorsKernel = m_DebugLightVolumeCompute.FindKernel("LightVolumeColors");
             m_ColorGradientTexture = renderPipelineResources.textures.colorGradient;
 
-            m_Blit = CoreUtils.CreateEngineMaterial(renderPipelineResources.shaders.blitPS);
+            m_Blit = Blitter.GetBlitMaterial(TextureDimension.Tex2D);
         }
 
         public void ReleaseData()
         {
-            CoreUtils.Destroy(m_Blit);
             CoreUtils.Destroy(m_DebugLightVolumeMaterial);
         }
 
@@ -91,11 +90,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.colorGradientTexture = m_ColorGradientTexture;
                 passData.lightOverlapEnabled = lightOverlapEnabled;
                 passData.lightCountBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, name = "LightVolumeCount" });
+                { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, name = "LightVolumeCount" });
                 passData.colorAccumulationBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.black, name = "LightVolumeColorAccumulation" });
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.black, name = "LightVolumeColorAccumulation" });
                 passData.debugLightVolumesTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.black, enableRandomWrite = true, name = "LightVolumeDebugLightVolumesTexture" });
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.black, enableRandomWrite = true, name = "LightVolumeDebugLightVolumesTexture" });
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
                 passData.destination = builder.WriteTexture(destination);
 

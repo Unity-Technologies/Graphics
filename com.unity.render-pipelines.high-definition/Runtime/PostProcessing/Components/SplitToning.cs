@@ -5,8 +5,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Split Toning effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Split Toning")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Split-Toning" + Documentation.endURL)]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Split Toning", typeof(HDRenderPipeline))]
+    [HDRPHelpURLAttribute("Post-Processing-Split-Toning")]
     public sealed class SplitToning : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

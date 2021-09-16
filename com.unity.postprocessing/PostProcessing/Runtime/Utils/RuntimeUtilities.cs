@@ -381,6 +381,11 @@ namespace UnityEngine.Rendering.PostProcessing
             }
         }
 
+        internal static bool isValidResources()
+        {
+            return s_Resources != null;
+        }
+
         internal static void UpdateResources(PostProcessResources resources)
         {
             Destroy(s_CopyMaterial);
@@ -411,11 +416,11 @@ namespace UnityEngine.Rendering.PostProcessing
         /// </remarks>
         public static void SetRenderTargetWithLoadStoreAction(this CommandBuffer cmd, RenderTargetIdentifier rt, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction)
         {
-            #if UNITY_2018_2_OR_NEWER
+#if UNITY_2018_2_OR_NEWER
             cmd.SetRenderTarget(rt, loadAction, storeAction);
-            #else
+#else
             cmd.SetRenderTarget(rt);
-            #endif
+#endif
         }
 
         /// <summary>
@@ -434,11 +439,11 @@ namespace UnityEngine.Rendering.PostProcessing
             RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction,
             RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction)
         {
-            #if UNITY_2018_2_OR_NEWER
+#if UNITY_2018_2_OR_NEWER
             cmd.SetRenderTarget(rt, loadAction, storeAction, depthLoadAction, depthStoreAction);
-            #else
+#else
             cmd.SetRenderTarget(rt);
-            #endif
+#endif
         }
 
         /// <summary>
@@ -455,11 +460,11 @@ namespace UnityEngine.Rendering.PostProcessing
             RenderTargetIdentifier color, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
             RenderTargetIdentifier depth, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction)
         {
-            #if UNITY_2018_2_OR_NEWER
+#if UNITY_2018_2_OR_NEWER
             cmd.SetRenderTarget(color, colorLoadAction, colorStoreAction, depth, depthLoadAction, depthStoreAction);
-            #else
+#else
             cmd.SetRenderTarget(color, depth);
-            #endif
+#endif
         }
 
         /// <summary>
@@ -500,13 +505,13 @@ namespace UnityEngine.Rendering.PostProcessing
         public static void BlitFullscreenTriangle(this CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, PropertySheet propertySheet, int pass, RenderBufferLoadAction loadAction, Rect? viewport = null, bool preserveDepth = false)
         {
             cmd.SetGlobalTexture(ShaderIDs.MainTex, source);
-            #if UNITY_2018_2_OR_NEWER
+#if UNITY_2018_2_OR_NEWER
             bool clear = (loadAction == LoadAction.Clear);
             if (clear)
                 loadAction = LoadAction.DontCare;
-            #else
+#else
             bool clear = false;
-            #endif
+#endif
             if (viewport != null)
                 loadAction = LoadAction.Load;
 
@@ -534,9 +539,9 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <param name="preserveDepth">Should the depth buffer be preserved?</param>
         public static void BlitFullscreenTriangle(this CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, PropertySheet propertySheet, int pass, bool clear = false, Rect? viewport = null, bool preserveDepth = false)
         {
-            #if UNITY_2018_2_OR_NEWER
+#if UNITY_2018_2_OR_NEWER
             cmd.BlitFullscreenTriangle(source, destination, propertySheet, pass, clear ? LoadAction.Clear : LoadAction.DontCare, viewport, preserveDepth);
-            #else
+#else
             cmd.SetGlobalTexture(ShaderIDs.MainTex, source);
             var loadAction = viewport == null ? LoadAction.DontCare : LoadAction.Load;
             cmd.SetRenderTargetWithLoadStoreAction(destination, loadAction, StoreAction.Store, preserveDepth ? LoadAction.Load : loadAction, StoreAction.Store);
@@ -548,7 +553,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 cmd.ClearRenderTarget(true, true, Color.clear);
 
             cmd.DrawMesh(fullscreenTriangle, Matrix4x4.identity, propertySheet.material, 0, pass, propertySheet.properties);
-            #endif
+#endif
         }
 
         /// <summary>
@@ -699,10 +704,10 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <param name="destination">The destination render target</param>
         public static void BuiltinBlit(this CommandBuffer cmd, Rendering.RenderTargetIdentifier source, RenderTargetIdentifier destination)
         {
-            #if UNITY_2018_2_OR_NEWER
+#if UNITY_2018_2_OR_NEWER
             cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             destination = BuiltinRenderTextureType.CurrentActive;
-            #endif
+#endif
             cmd.Blit(source, destination);
         }
 
@@ -716,10 +721,10 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <param name="pass">The pass from the material to use</param>
         public static void BuiltinBlit(this CommandBuffer cmd, Rendering.RenderTargetIdentifier source, RenderTargetIdentifier destination, Material mat, int pass = 0)
         {
-            #if UNITY_2018_2_OR_NEWER
+#if UNITY_2018_2_OR_NEWER
             cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             destination = BuiltinRenderTextureType.CurrentActive;
-            #endif
+#endif
             cmd.Blit(source, destination, mat, pass);
         }
 
@@ -926,7 +931,15 @@ namespace UnityEngine.Rendering.PostProcessing
             // TODO: Is there more proper way to determine this? What about SRPs?
             var gtype = SystemInfo.graphicsDeviceType;
             return camera.actualRenderingPath == RenderingPath.DeferredShading &&
-                (gtype == GraphicsDeviceType.Direct3D11 || gtype == GraphicsDeviceType.Direct3D12 || gtype == GraphicsDeviceType.XboxOne);
+                (gtype == GraphicsDeviceType.Direct3D11
+                    || gtype == GraphicsDeviceType.Direct3D12
+#if UNITY_GAMECORE
+                    || gtype == GraphicsDeviceType.GameCoreXboxSeries
+                    || gtype == GraphicsDeviceType.GameCoreXboxOne
+#endif
+                    || gtype == GraphicsDeviceType.XboxOne
+                    || gtype == GraphicsDeviceType.XboxOneD3D12
+                );
         }
 
         /// <summary>
@@ -1149,7 +1162,7 @@ namespace UnityEngine.Rendering.PostProcessing
                         {
                             innerTypes = t.GetTypes();
                         }
-                        catch {}
+                        catch { }
                         return innerTypes;
                     });
             }

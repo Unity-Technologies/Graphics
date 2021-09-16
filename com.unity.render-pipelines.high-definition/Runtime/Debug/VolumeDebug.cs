@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Type of the current component to debug.</summary>
-        public Type     selectedComponentType
+        public Type selectedComponentType
         {
             get { return componentTypes[selectedComponent - 1]; }
             set
@@ -130,8 +130,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (s_ComponentTypes == null)
                 {
-                    s_ComponentTypes = VolumeManager.instance.baseComponentTypes
-                        .Where(t => !t.IsDefined(typeof(VolumeComponentDeprecated), false))
+                    s_ComponentTypes = VolumeManager.instance.baseComponentTypeArray
+                        .Where(t => !t.IsDefined(typeof(HideInInspector), false))
+                        .Where(t => !t.IsDefined(typeof(ObsoleteAttribute), false))
                         .OrderBy(t => ComponentDisplayName(t))
                         .ToList();
                 }
@@ -139,18 +140,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        /// <summary>Returns the name of a component from its VolumeComponentMenu.</summary>
+        /// <summary>Returns the name of a component from its VolumeComponentMenuForRenderPipeline.</summary>
         /// <param name="component">A volume component.</param>
         /// <returns>The component display name.</returns>
-        static public string ComponentDisplayName(Type component)
+        public static string ComponentDisplayName(Type component)
         {
-            Attribute attrib = component.GetCustomAttribute(typeof(VolumeComponentMenu), false);
-            if (attrib != null)
-                return (attrib as VolumeComponentMenu).menu;
+            if (component.GetCustomAttribute(typeof(VolumeComponentMenuForRenderPipeline), false) is VolumeComponentMenuForRenderPipeline volumeComponentMenuForRenderPipeline)
+                return volumeComponentMenuForRenderPipeline.menu;
+
+            if (component.GetCustomAttribute(typeof(VolumeComponentMenu), false) is VolumeComponentMenuForRenderPipeline volumeComponentMenu)
+                return volumeComponentMenu.menu;
+
             return component.Name;
         }
 
-        internal static List<HDAdditionalCameraData> cameras {get; private set; } = new List<HDAdditionalCameraData>();
+        internal static List<HDAdditionalCameraData> cameras { get; private set; } = new List<HDAdditionalCameraData>();
 
         internal static void RegisterCamera(HDAdditionalCameraData camera)
         {
@@ -251,7 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int j = 0; j < fields.Length; j++)
                 {
-                    var param = GetParameter(component, fields[j]);;
+                    var param = GetParameter(component, fields[j]); ;
                     states[i, j] = param.overrideState ? param : null;
                 }
             }

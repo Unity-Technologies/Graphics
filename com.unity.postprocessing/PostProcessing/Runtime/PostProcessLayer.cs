@@ -519,7 +519,7 @@ namespace UnityEngine.Rendering.PostProcessing
         void BuildCommandBuffers()
         {
             var context = m_CurrentContext;
-            var sourceFormat = m_Camera.allowHDR ? RuntimeUtilities.defaultHDRRenderTextureFormat : RenderTextureFormat.Default;
+            var sourceFormat = m_Camera.targetTexture ? m_Camera.targetTexture.format : (m_Camera.allowHDR ? RuntimeUtilities.defaultHDRRenderTextureFormat : RenderTextureFormat.Default);
 
             if (!RuntimeUtilities.isFloatingPointFormat(sourceFormat))
                 m_NaNKilled = true;
@@ -607,7 +607,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
                 if (isScreenSpaceReflectionsActive)
                 {
-                    ssrRenderer.Render(context);
+                    ssrRenderer.RenderOrLog(context);
                     opaqueOnlyEffects--;
                     UpdateSrcDstForOpaqueOnly(ref srcTarget, ref dstTarget, context, cameraTarget, opaqueOnlyEffects);
                 }
@@ -856,7 +856,10 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             // Juggling required when a scene with post processing is loaded from an asset bundle
             // See #1148230
-            if (m_OldResources != m_Resources)
+            // Additional !RuntimeUtilities.isValidResources() to fix #1262826
+            // The static member s_Resources is unset by addressable. The code is ill formed as it
+            // is not made to handle multiple scene.
+            if (m_OldResources != m_Resources || !RuntimeUtilities.isValidResources())
             {
                 RuntimeUtilities.UpdateResources(m_Resources);
                 m_OldResources = m_Resources;
@@ -1122,7 +1125,7 @@ namespace UnityEngine.Rendering.PostProcessing
             // If there's only one active effect, we can simply execute it and skip the rest
             if (count == 1)
             {
-                m_ActiveEffects[0].Render(context);
+                m_ActiveEffects[0].RenderOrLog(context);
             }
             else
             {
@@ -1147,7 +1150,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 {
                     context.source = m_Targets[i];
                     context.destination = m_Targets[i + 1];
-                    m_ActiveEffects[i].Render(context);
+                    m_ActiveEffects[i].RenderOrLog(context);
                 }
 
                 cmd.ReleaseTemporaryRT(tempTarget1);
@@ -1370,7 +1373,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
             if (!useTempTarget)
             {
-                effect.renderer.Render(context);
+                effect.renderer.RenderOrLog(context);
                 return -1;
             }
 
@@ -1378,7 +1381,7 @@ namespace UnityEngine.Rendering.PostProcessing
             var tempTarget = m_TargetPool.Get();
             context.GetScreenSpaceTemporaryRT(context.command, tempTarget, 0, context.sourceFormat);
             context.destination = tempTarget;
-            effect.renderer.Render(context);
+            effect.renderer.RenderOrLog(context);
             context.source = tempTarget;
             context.destination = finalDestination;
             return tempTarget;

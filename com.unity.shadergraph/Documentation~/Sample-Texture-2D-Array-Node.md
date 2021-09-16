@@ -22,6 +22,14 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** shader stage.
 | B     | Output    | Float     | None  | blue (z) component of RGBA output |
 | A     |   Output  | Float     | None | alpha (w) component of RGBA output |
 
+
+## Controls
+
+| Name                     | Type     | Options         | Description |
+|:------------------------ |:---------|:----------------|:-------------------------|
+|  Enable Global Mip Bias | Toggle   | On, Off         | Enables the global mipmap bias that Unity automatically imposes at runtime. Unity sets this bias during certain dynamic resolution scaling algorithms to improve detail reconstruction. |
+
+
 ## Generated Code Example
 
 The following example code represents one possible outcome of this node.

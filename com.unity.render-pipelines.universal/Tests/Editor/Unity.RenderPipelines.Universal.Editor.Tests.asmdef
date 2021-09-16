@@ -1,5 +1,6 @@
 {
     "name": "Unity.RenderPipelines.Universal.Editor.Tests",
+    "rootNamespace": "",
     "references": [
         "GUID:15fc0a57446b3144c949da3e2b9737a9",
         "GUID:c579267770062bf448e75eb160330b7f",
@@ -20,5 +21,6 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": []
+    "versionDefines": [],
+    "noEngineReferences": false
 }

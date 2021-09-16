@@ -1,0 +1,12 @@
+{
+	"FilenameValidation":
+	{
+		"Filenames":
+		[
+			{
+				"Filename": "Documentation~/Operator-Switch.md",
+				"Targets": "+Switch"
+			}
+		]
+	}
+}

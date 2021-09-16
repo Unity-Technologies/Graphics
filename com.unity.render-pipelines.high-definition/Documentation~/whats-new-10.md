@@ -10,6 +10,10 @@ The following is a list of features Unity added to version 10 of the High Defini
 
 This version of HDRP includes support for the Playstation 5 platform. For more information, see [building for consoles](Building-For-Consoles.md).
 
+### Added support for the Game Core Xbox Series platform and Game Core Xbox One
+
+This version of HDRP includes support for the Game Core Xbox Series platform as well as support for Game Core for Xbox One. For more information, see [building for consoles](Building-For-Consoles.md).
+
 ### IES Profiles and light cookies
 
 ![](Images/HDRPFeatures-IESProfiles.png)
@@ -34,7 +38,7 @@ For more information about this feature, see [Exposure](Override-Exposure.md).
 
 HDRP now includes new debug modes that can help you to set the correct exposure for your Scene.
 
-For more information about the debug modes, see [Exposure](Override-Exposure.md) and [Render Pipeline Debug](Render-Pipeline-Debug-Window.md).
+For more information about the debug modes, see [Exposure](Override-Exposure.md) and [Rendering Debugger](Render-Pipeline-Debug-Window.md).
 
 
 ### Scalability settings
@@ -74,12 +78,12 @@ To help you to debug lighting in your Scene, HDRP now includes various lighting 
 
 HDRP now includes a new [light layer](Light-Layers.md) debug mode which can display the light layers assigned to each GameObject or can highlight GameObjects which match the light layers of a specific Light.
 
-For more information, see the Lighting panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md).
+For more information, see the Lighting panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md).
 
 #### Volume debug mode
 ![](Images/VolumeDebugMode.png)
 
-The Render Pipeline Debug window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md#VolumePanel).
+The Rendering Debugger window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md#VolumePanel).
 
 #### Quad Overdraw and Vertex Density
 
@@ -182,7 +186,7 @@ Note that the graph should not contain nodes that rely on screen-space different
 
 ## Improvements
 
-The following is a list of improvements Unity made to the High Definition Render Pipeline in version 10.0. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
+The following is a list of improvements Unity made to the High Definition Render Pipeline in version 10. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
 
 
 ### Scene view Camera properties
@@ -194,6 +198,13 @@ For information on HDRP's Scene view Camera properties, see [Scene view Camera](
 ### Shadow caching system
 
 This version of HDRP improves on shadow atlas and shadow caching management. You can now stagger cascade shadows which means you can update each cascade independently. Cached shadows (those that use **OnEnable**) render everything they can see independently of the main view. This version also introduces more API which you can use to more finely control cached shadows. For more information, see [Shadows](Shadows-in-HDRP.md).
+
+### Volumetric fog control modes
+
+Version 10.2 of HDRP introduces the concept of volumetric fog control modes to help you set up volumetric fog in a Scene. The control modes are:
+
+* **Balance**: Uses a performance-oriented approach to define the quality of the volumetric fog.
+* **Manual**: Gives you access to the internal set of properties which directly control the effect. This mode is equivalent to the behavior before this update.
 
 ### Custom post-processing: new injection point
 

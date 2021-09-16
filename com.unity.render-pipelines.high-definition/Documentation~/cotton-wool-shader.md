@@ -66,7 +66,3 @@ New Materials in HDRP use the [Lit shader](Lit-Shader.md) by default. To create 
 | **Fuzz Strength**                     | Sets the strength of the Fuzz Color added to the Base Color. |
 
 [!include[](snippets/shader-properties/advanced-options/lit-advanced-options.md)]
-
-## Limitations
-
-[!include[](snippets/area-light-material-support-disclaimer.md)]

@@ -107,12 +107,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return requestFallBack && writeCount == 0;
         }
 
-        public virtual void CreatePooledGraphicsResource() {}
-        public virtual void CreateGraphicsResource(string name = "") {}
-        public virtual void ReleasePooledGraphicsResource(int frameIndex) {}
-        public virtual void ReleaseGraphicsResource() {}
-        public virtual void LogCreation(RenderGraphLogger logger) {}
-        public virtual void LogRelease(RenderGraphLogger logger) {}
+        public virtual void CreatePooledGraphicsResource() { }
+        public virtual void CreateGraphicsResource(string name = "") { }
+        public virtual void ReleasePooledGraphicsResource(int frameIndex) { }
+        public virtual void ReleaseGraphicsResource() { }
+        public virtual void LogCreation(RenderGraphLogger logger) { }
+        public virtual void LogRelease(RenderGraphLogger logger) { }
+        public virtual int GetSortIndex() { return 0; }
     }
 
     [DebuggerDisplay("Resource ({GetType().Name}:{GetName()})")]

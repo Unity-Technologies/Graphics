@@ -5,7 +5,7 @@ Shader "Hidden/HDRP/CustomPassUtils"
     #pragma vertex Vert
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
     // #pragma enable_d3d11_debug_symbols
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
@@ -39,6 +39,15 @@ Shader "Hidden/HDRP/CustomPassUtils"
         float2 uv = uv01 * _SourceScaleBias.xy + _SourceScaleBias.zw;
 
         return LOAD_TEXTURE2D_X_LOD(_Source, uv * _SourceSize.xy, _SourceMip);
+    }
+
+    void CopyDepth(Varyings varyings, out float depth : SV_Depth)
+    {
+        float2 uv01 = (varyings.positionCS.xy * _ViewPortSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
+        // Apply scale and bias
+        float2 uv = uv01 * _SourceScaleBias.xy + _SourceScaleBias.zw;
+
+        depth = LOAD_TEXTURE2D_X_LOD(_Source, uv * _SourceSize.xy, _SourceMip).x;
     }
 
     // We need to clamp the UVs to avoid bleeding from bigger render tragets (when we have multiple cameras)
@@ -103,6 +112,21 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
             HLSLPROGRAM
                 #pragma fragment Copy
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "CopyDepth"
+
+            ZWrite On
+            ZTest Always
+            Blend Off
+            Cull Off
+            ColorMask 0
+
+            HLSLPROGRAM
+                #pragma fragment CopyDepth
             ENDHLSL
         }
 
