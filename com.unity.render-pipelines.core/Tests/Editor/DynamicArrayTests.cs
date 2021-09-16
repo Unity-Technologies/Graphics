@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.Tests
             m_DynamicArray.Add(1);
             m_DynamicArray.Add(12);
 
-            DynamicArray<int>.QuickSort(m_DynamicArray);
+            m_DynamicArray.QuickSort();
 
             Assert.AreEqual(1, m_DynamicArray[0]);
             Assert.AreEqual(3, m_DynamicArray[1]);

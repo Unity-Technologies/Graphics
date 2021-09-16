@@ -238,64 +238,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static int Partition<U>(U[] data, int left, int right) where U : IComparable<U>, new()
-        {
-            var pivot = data[left];
-
-            --left;
-            ++right;
-            while (true)
-            {
-                var c = 0;
-                var lvalue = default(U);
-                do
-                {
-                    ++left;
-                    lvalue = data[left];
-                    c = lvalue.CompareTo(pivot);
-                }
-                while (c < 0);
-
-                var rvalue = default(U);
-                do
-                {
-                    --right;
-                    rvalue = data[right];
-                    c = rvalue.CompareTo(pivot);
-                }
-                while (c > 0);
-
-                if (left < right)
-                {
-                    data[right] = lvalue;
-                    data[left] = rvalue;
-                }
-                else
-                {
-                    return right;
-                }
-            }
-        }
-
-        static void QuickSort<U>(U[] data, int left, int right) where U : IComparable<U>, new()
-        {
-            if (left < right)
-            {
-                int pivot = Partition(data, left, right);
-
-                if (pivot >= 1)
-                    QuickSort(data, left, pivot);
-
-                if (pivot + 1 < right)
-                    QuickSort(data, pivot + 1, right);
-            }
-        }
-
-        public static void QuickSort<U>(DynamicArray<U> array) where U : IComparable<U>, new()
-        {
-            QuickSort<U>(array, 0, array.size - 1);
-        }
-
         /// <summary>
         /// ref access to an element.
         /// </summary>
@@ -319,5 +261,74 @@ namespace UnityEngine.Rendering
         /// <param name="array">Input DynamicArray.</param>
         /// <returns>The internal array.</returns>
         public static implicit operator T[](DynamicArray<T> array) => array.m_Array;
+    }
+
+    /// <summary>
+    /// Extension class for DynamicArray
+    /// </summary>
+    public static class DynamicArrayExtensions
+    {
+        static int Partition<T>(T[] data, int left, int right) where T : IComparable<T>, new()
+        {
+            var pivot = data[left];
+
+            --left;
+            ++right;
+            while (true)
+            {
+                var c = 0;
+                var lvalue = default(T);
+                do
+                {
+                    ++left;
+                    lvalue = data[left];
+                    c = lvalue.CompareTo(pivot);
+                }
+                while (c < 0);
+
+                var rvalue = default(T);
+                do
+                {
+                    --right;
+                    rvalue = data[right];
+                    c = rvalue.CompareTo(pivot);
+                }
+                while (c > 0);
+
+                if (left < right)
+                {
+                    data[right] = lvalue;
+                    data[left] = rvalue;
+                }
+                else
+                {
+                    return right;
+                }
+            }
+        }
+
+        static void QuickSort<T>(T[] data, int left, int right) where T : IComparable<T>, new()
+        {
+            if (left < right)
+            {
+                int pivot = Partition(data, left, right);
+
+                if (pivot >= 1)
+                    QuickSort(data, left, pivot);
+
+                if (pivot + 1 < right)
+                    QuickSort(data, pivot + 1, right);
+            }
+        }
+
+        /// <summary>
+        /// Perform a quick sort on the DynamicArray
+        /// </summary>
+        /// <typeparam name="T">Type of the array.</typeparam>
+        /// <param name="array">Array on which to perform the quick sort.</param>
+        public static void QuickSort<T>(this DynamicArray<T> array) where T : IComparable<T>, new()
+        {
+            QuickSort<T>(array, 0, array.size - 1);
+        }
     }
 }
