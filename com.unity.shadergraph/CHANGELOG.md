@@ -14,6 +14,7 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 
 ### Fixed
+ - Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
  - Fixed an incorrect direction transform from view to world space [1362034] (https://issuetracker.unity3d.com/product/unity/issues/guid/1362034/)
  - Fixed ShaderGraph HDRP master preview disappearing for a few seconds when graph is modified  [1330289] (https://issuetracker.unity3d.com/issues/shadergraph-hdrp-main-preview-is-invisible-until-moved)
  - Fixed noise nodes to use a deterministic integer hash, instead of platform dependent floating point hashes [1156544]
