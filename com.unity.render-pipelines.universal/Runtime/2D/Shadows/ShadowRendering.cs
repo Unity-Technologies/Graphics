@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                     {
-                        if (shadowCaster.shadowCastingSource != ShadowCaster2D.ShadowCastingSources.None)
+                        if (shadowCaster.shadowCastingSource != ShadowCaster2D.ShadowCastingSources.None && shadowCaster.mesh != null)
                         {
                             SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
                             cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, pass);

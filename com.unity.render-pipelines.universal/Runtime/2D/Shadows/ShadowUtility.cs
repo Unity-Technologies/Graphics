@@ -252,12 +252,9 @@ namespace UnityEngine.Rendering.Universal
         // inEdges is expected to be contiguous
         static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeIsClosedArray, bool allowContraction, IShadowShape2DProvider.OutlineTopology topology)
         {
-            //Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
-
             // Setup our buffers
             int meshVertexCount = inVertices.Length + 2 * inEdges.Length;                       // Each vertex will have a duplicate that can be extruded.
             int meshIndexCount = inEdges.Length * k_VerticesPerTriangle * k_TrianglesPerEdge;  // There are two triangles per edge making a degenerate rectangle (0 area)
-
             
             NativeArray<Vector4> meshTangents = new NativeArray<Vector4>(meshVertexCount, Allocator.Temp);
             NativeArray<int> meshIndices = new NativeArray<int>(meshIndexCount, Allocator.Temp);
