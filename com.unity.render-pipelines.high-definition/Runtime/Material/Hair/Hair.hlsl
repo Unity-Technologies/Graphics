@@ -25,13 +25,6 @@
 // #define HAIR_DISPLAY_REFERENCE_BSDF
 // #define HAIR_DISPLAY_REFERENCE_IBL
 
-#if _USE_ADVANCED_MULTIPLE_SCATTERING
-
-// Temporary until we introduce spline bias toward light.
-#define LIGHT_EVALUATION_NO_SHADOWS
-
-#endif
-
 // Extra material feature flag we utilize to compile different versions of BSDF evaluation (for pre-integration, etc.)
 #define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R            (1 << 16)
 #define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT           (1 << 17)
@@ -88,12 +81,13 @@ float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
 
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
-#if _USE_LIGHT_FACING_NORMAL
-    // TODO: should probably bias towards the light for splines...
     return bsdfData.geomNormalWS;
-#else
-    return bsdfData.geomNormalWS;
-#endif
+}
+
+float3 GetNormalForShadowBiasSpline(BSDFData bsdfData, float3 L)
+{
+    // TODO: Can strand count be useful here? (Would require decoding for the light twice).
+    return L * bsdfData.strandShadowBias;
 }
 
 float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
@@ -721,6 +715,12 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
 // Hair used precomputed transmittance, no thick transmittance required
 #define MATERIAL_INCLUDE_PRECOMPUTED_TRANSMISSION
+
+#if _USE_ADVANCED_MULTIPLE_SCATTERING
+// Hair requires shadow biasing toward light for splines while in advanced scattering mode.
+#define LIGHT_EVALUATION_SPLINE_SHADOW_BIAS
+#endif
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SurfaceShading.hlsl"
