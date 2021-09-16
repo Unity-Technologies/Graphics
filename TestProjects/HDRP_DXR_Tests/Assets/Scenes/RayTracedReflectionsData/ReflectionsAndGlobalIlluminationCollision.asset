@@ -20,7 +20,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
   skyAmbientMode:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   windOrientation:
     m_OverrideState: 0
@@ -197,6 +197,9 @@ MonoBehaviour:
   depthBufferThickness:
     m_OverrideState: 0
     m_Value: 0.01
+  fullResolutionSS:
+    m_OverrideState: 0
+    m_Value: 1
   m_MaxRaySteps:
     m_OverrideState: 0
     m_Value: 32
@@ -315,7 +318,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value:
       serializedVersion: 2
-      m_Bits: 4294967295
+      m_Bits: 1847
   textureLodBias:
     m_OverrideState: 0
     m_Value: 1

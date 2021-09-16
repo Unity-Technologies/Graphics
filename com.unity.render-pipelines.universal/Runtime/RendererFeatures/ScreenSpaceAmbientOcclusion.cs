@@ -51,6 +51,8 @@ namespace UnityEngine.Rendering.Universal
         private const string k_SourceDepthKeyword = "_SOURCE_DEPTH";
         private const string k_SourceDepthNormalsKeyword = "_SOURCE_DEPTH_NORMALS";
 
+        internal bool afterOpaque => m_Settings.AfterOpaque;
+
         /// <inheritdoc/>
         public override void Create()
         {
