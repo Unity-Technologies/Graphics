@@ -209,15 +209,6 @@
       "source": "local",
       "dependencies": {}
     },
-    "com.unity.textmeshpro": {
-      "version": "3.0.0-preview.1",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.ugui": "1.0.0"
-      },
-      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
-    },
     "com.unity.ugui": {
       "version": "1.0.0",
       "depth": 0,
