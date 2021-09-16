@@ -12,7 +12,7 @@ The Lens Flare (SRP) component controls where the lens flare is as well as prope
 
 To create a lens flare in a scene:
 
-1. Create or select a GameObject to attach the lens flare too.
+1. Create or select a GameObject to attach the lens flare to.
 2. In the Inspector, click **Add Component**.
 3. Select **Rendering** > **Lens Flare (SRP)**. Currently, the lens flare doesn't render in the scene because the component doesn't reference a Lens Flare (SRP) Data asset in its **Lens Flare Data** property.
 4. Create a new Lens Flare (SRP) Data asset (menu: **Assets** > **Create** > **Lens Flare (SRP)**).
