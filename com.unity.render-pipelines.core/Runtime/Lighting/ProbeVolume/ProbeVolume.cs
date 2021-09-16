@@ -170,22 +170,28 @@ namespace UnityEngine.Experimental.Rendering
 
         internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))
         {
-            var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
-            if (profile == null)
-                return true;
+            var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
+            var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
+            if (debugDisplay.realtimeSubdivision)
+            {
+                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
+                if (profile == null)
+                    return true;
+                cellSizeInMeters = profile.cellSizeInMeters;
+            }
 
             var cameraTransform = SceneView.lastActiveSceneView.camera.transform;
 
-            Vector3 cellCenterWS = cellPosition * profile.cellSizeInMeters + originWS + Vector3.one * (profile.cellSizeInMeters / 2.0f);
+            Vector3 cellCenterWS = cellPosition * cellSizeInMeters + originWS + Vector3.one * (cellSizeInMeters / 2.0f);
 
             // Round down to cell size distance
-            float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / profile.cellSizeInMeters) * profile.cellSizeInMeters;
+            float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / cellSizeInMeters) * cellSizeInMeters;
 
             if (roundedDownDist > ProbeReferenceVolume.instance.debugDisplay.subdivisionViewCullingDistance)
                 return true;
 
             var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
-            var volumeAABB = new Bounds(cellCenterWS, profile.cellSizeInMeters * Vector3.one);
+            var volumeAABB = new Bounds(cellCenterWS, cellSizeInMeters * Vector3.one);
 
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
@@ -198,11 +204,17 @@ namespace UnityEngine.Experimental.Rendering
             if (!prv.isInitialized || !IsResponsibleToDrawGizmo() || prv.sceneData == null)
                 return;
 
-            var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
-            if (profile == null)
-                return;
-
             var debugDisplay = prv.debugDisplay;
+
+            var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
+            if (debugDisplay.realtimeSubdivision)
+            {
+                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
+                if (profile == null)
+                    return;
+                cellSizeInMeters = profile.cellSizeInMeters;
+            }
+
 
             if (m_MeshGizmo == null)
                 m_MeshGizmo = new MeshGizmo((int)(Mathf.Pow(3, ProbeBrickIndex.kMaxSubdivisionLevels) * 12), prv.cells.Count * 12); // 12 lines and 12 triangles per cube
@@ -282,6 +294,10 @@ namespace UnityEngine.Experimental.Rendering
                             if (ShouldCullCell(cell.position, prv.GetTransform().posWS))
                                 continue;
 
+                            var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
+                            var center = positionF * profile.cellSizeInMeters + profile.cellSizeInMeters * 0.5f * Vector3.one;
+                            var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
+                            var center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector3.one;
                             var positionF = new Vector4(cell.position.x, cell.position.y, cell.position.z, 0.0f);
                             var center = positionF * profile.cellSizeInMeters + profile.cellSizeInMeters * 0.5f * Vector4.one;
                             center.w = cellInfo.loaded ? 1.0f : 0.0f;
@@ -292,6 +308,10 @@ namespace UnityEngine.Experimental.Rendering
 
                 foreach (var center in GetVisibleCellCentersAndState())
                 {
+                    Gizmos.DrawCube(center, Vector3.one * profile.cellSizeInMeters);
+                    cellGizmo.AddWireCube(center, Vector3.one * profile.cellSizeInMeters, new Color(0, 1, 0.5f, 1));
+                    Gizmos.DrawCube(center, Vector3.one * cellSizeInMeters);
+                    cellGizmo.AddWireCube(center, Vector3.one * cellSizeInMeters, new Color(0, 1, 0.5f, 1));
                     bool loaded = center.w == 1.0f;
                     m_MeshGizmo.AddWireCube(center, Vector3.one * profile.cellSizeInMeters, loaded ? new Color(0, 1, 0.5f, 1) : new Color(1, 0.0f, 0.0f, 1));
                     m_MeshGizmo.AddCube(center, Vector3.one * profile.cellSizeInMeters, loaded ? new Color(0, 1, 0.5f, 0.2f) : new Color(1, 0.0f, 0.0f, 0.2f));
