@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderFoundry
 
             // Find user custom varyings from the interface between the vertex/fragment stage
             List<VaryingVariable> customVaryings = new List<VaryingVariable>();
-            FindVaryings(vertexDesc, fragmentDesc, customVaryings);
+            FindVaryings(vertexDesc, fragmentDesc, vertexGroup.Context.Outputs, customVaryings);
 
             // Make new block variables for the varyings
             List<BlockVariable> varyingBlockVariables = new List<BlockVariable>();
@@ -198,8 +198,12 @@ namespace UnityEditor.ShaderFoundry
             };
         }
 
-        void FindVaryings(BlockDescriptor block0Desc, BlockDescriptor block1Desc, List<VaryingVariable> customInterpolants)
+        void FindVaryings(BlockDescriptor block0Desc, BlockDescriptor block1Desc, IEnumerable<BlockVariable> existingOutputs, List<VaryingVariable> customInterpolants)
         {
+            var existingOutputNames = new HashSet<string>();
+            foreach (var output in existingOutputs)
+                existingOutputNames.Add(output.ReferenceName);
+
             var outputOverrides = new VariableOverrideSet();
             outputOverrides.BuildOutputOverrides(block0Desc.OutputOverrides);
             var inputOverrides = new VariableOverrideSet();
@@ -212,7 +216,11 @@ namespace UnityEditor.ShaderFoundry
                 // Make sure to check all name output overrides
                 var overrides = outputOverrides.FindVariableOverrides(output.ReferenceName);
                 foreach (var varOverride in overrides)
-                    availableOutputs[varOverride.Name] = output;
+                {
+                    // If this is already an available output ignore this as a custom interpolant (already part of the api)
+                    if(!existingOutputNames.Contains(varOverride.Name))
+                        availableOutputs[varOverride.Name] = output;
+                }
             }
             foreach (var input in block1Desc.Block.Inputs)
             {
