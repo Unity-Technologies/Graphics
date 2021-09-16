@@ -158,6 +158,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     lightingBuffers.screenspaceShadowBuffer = RenderScreenSpaceShadows(m_RenderGraph, hdCamera, prepassOutput, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.motionVectorsBuffer, historyValidationTexture, rayCountTexture);
 
+                    if (ExposureNeedsIlluminance(hdCamera))
+                    {
+                        lightingBuffers.illuminanceBuffer = CreateIlluminanceBuffer(m_RenderGraph, hdCamera.msaaSamples);
+                        Shader.EnableKeyword("OUTPUT_PIXEL_ILLUMINANCE");
+                    }
+                    else
+                        Shader.DisableKeyword("OUTPUT_PIXEL_ILLUMINANCE");
+
                     var maxZMask = GenerateMaxZPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, hdCamera.depthBufferMipChainInfo);
 
                     var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
@@ -186,7 +194,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // No need for old stencil values here since from transparent on different features are tagged
                     ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
 
-                    colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
+                    colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, lightingBuffers.illuminanceBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
+                    if (lightingBuffers.illuminanceBuffer.IsValid())
+                        lightingBuffers.illuminanceBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, lightingBuffers.illuminanceBuffer);
 
                     if (NeedMotionVectorForTransparent(hdCamera.frameSettings))
                     {
@@ -283,6 +293,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         prepassOutput.depthPyramidTexture,
                         colorPickerTexture,
                         rayCountTexture,
+                        lightingBuffers.illuminanceBuffer,
                         gpuLightListOutput,
                         shadowResult,
                         cullingResults,
@@ -754,6 +765,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
                 builder.UseColorBuffer(vtFeedbackBuffer, index++);
 #endif
+
+                if (lightingBuffers.illuminanceBuffer.IsValid())
+                    builder.UseColorBuffer(lightingBuffers.illuminanceBuffer, index++);
+
                 // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 {
@@ -819,6 +834,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle normalBuffer,
             in PrepassOutput prepassOutput,
             TextureHandle vtFeedbackBuffer,
+            TextureHandle illuminanceBuffer,
             TextureHandle volumetricLighting,
             TextureHandle ssrLighting,
             TextureHandle? colorPyramid,
@@ -862,14 +878,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int index = 0;
                 builder.UseColorBuffer(colorBuffer, index++);
-#if ENABLE_VIRTUALTEXTURES
-                builder.UseColorBuffer(vtFeedbackBuffer, index++);
-#endif
-
                 if (passData.renderMotionVecForTransparent)
-                {
                     builder.UseColorBuffer(prepassOutput.motionVectorsBuffer, index++);
-                }
                 else
                 {
                     bool msaa = hdCamera.msaaEnabled;
@@ -880,6 +890,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseColorBuffer(builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, msaaSamples = hdCamera.msaaSamples, name = "Transparency Velocity Dummy" }), index++);
                 }
+
+#if ENABLE_VIRTUALTEXTURES
+                builder.UseColorBuffer(vtFeedbackBuffer, index++);
+#endif
+
+                if (illuminanceBuffer.IsValid())
+                    builder.UseColorBuffer(illuminanceBuffer, index++);
+
                 builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
 
                 if (colorPyramid != null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) && !preRefractionPass)
@@ -1105,6 +1123,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle colorBuffer,
             TextureHandle normalBuffer,
             TextureHandle vtFeedbackBuffer,
+            TextureHandle illuminanceBuffer,
             TextureHandle currentColorPyramid,
             TextureHandle volumetricLighting,
             TextureHandle rayCountTexture,
@@ -1136,7 +1155,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Render pre-refraction objects
             ApplyCameraMipBias(hdCamera);
 
-            RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, null, lightLists, shadowResult, cullingResults, true);
+            RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, illuminanceBuffer, volumetricLighting, ssrLightingBuffer, null, lightLists, shadowResult, cullingResults, true);
 
             ResetCameraMipBias(hdCamera);
 
@@ -1151,7 +1170,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
             ApplyCameraMipBias(hdCamera);
-            RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, currentColorPyramid, lightLists, shadowResult, cullingResults, false);
+            RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, illuminanceBuffer, volumetricLighting, ssrLightingBuffer, currentColorPyramid, lightLists, shadowResult, cullingResults, false);
             ResetCameraMipBias(hdCamera);
 
             colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);

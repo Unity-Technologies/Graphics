@@ -127,6 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 pass.keywords.Add(CoreKeywordDescriptors.Shadow);
                 pass.keywords.Add(CoreKeywordDescriptors.ScreenSpaceShadow);
+                pass.keywords.Add(CoreKeywordDescriptors.OutputIlluminance);
 
                 if (pass.lightMode == HDShaderPassNames.s_TransparentBackfaceStr)
                     pass.defines.Add(CoreKeywordDescriptors.LightList, 1);

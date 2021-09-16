@@ -890,7 +890,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer histogramBuffer;
         }
 
-        TextureHandle RenderExposureDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
+        TextureHandle RenderExposureDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle lightingBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<DebugExposureData>("Debug Exposure", out var passData))
             {
@@ -899,7 +899,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
                 passData.hdCamera = hdCamera;
                 passData.debugExposureMaterial = m_DebugExposure;
-                passData.colorBuffer = builder.ReadTexture(colorBuffer);
+                passData.colorBuffer = builder.ReadTexture(ExposureNeedsIlluminance(hdCamera) ? lightingBuffer : colorBuffer);
                 passData.debugFullScreenTexture = builder.ReadTexture(m_DebugFullScreenTexture);
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "ExposureDebug" }));
@@ -1005,6 +1005,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle depthPyramidTexture,
             TextureHandle colorPickerDebugTexture,
             TextureHandle rayCountTexture,
+            TextureHandle lightingBuffer,
             in BuildGPULightListOutput lightLists,
             in ShadowResult shadowResult,
             CullingResults cullResults,
@@ -1029,7 +1030,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             if (NeedExposureDebugMode(m_CurrentDebugDisplaySettings))
-                output = RenderExposureDebug(renderGraph, hdCamera, colorBuffer);
+                output = RenderExposureDebug(renderGraph, hdCamera, colorBuffer, lightingBuffer);
 
             if (NeedColorPickerDebug(m_CurrentDebugDisplaySettings))
                 output = ResolveColorPickerDebug(renderGraph, colorPickerDebugTexture, hdCamera, colorFormat);

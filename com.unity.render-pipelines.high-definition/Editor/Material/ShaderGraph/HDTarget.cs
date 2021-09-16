@@ -1277,6 +1277,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static KeywordDescriptor OutputIlluminance = new KeywordDescriptor
+        {
+            displayName = "Output Illuminance",
+            referenceName = "OUTPUT_PIXEL_ILLUMINANCE",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
         public static KeywordDescriptor SurfaceTypeTransparent = new KeywordDescriptor()
         {
             displayName = "Surface Type Transparent",

@@ -846,6 +846,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         ;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool ExposureNeedsIlluminance(HDCamera camera) => m_Exposure.luminanceSource == LuminanceSource.LightingBuffer && !IsExposureFixed(camera);
+
         //if exposure comes from the parent camera, it means we dont have to calculate / force it.
         //Its already been done in the parent camera.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

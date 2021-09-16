@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle ssgiLightingBuffer;
             public TextureHandle contactShadowsBuffer;
             public TextureHandle screenspaceShadowBuffer;
+            public TextureHandle illuminanceBuffer;
         }
 
         static LightingBuffers ReadLightingBuffers(in LightingBuffers buffers, RenderGraphBuilder builder)
@@ -715,6 +716,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 clearBuffer = true,
                 clearColor = Color.clear,
                 name = msaa ? "CameraSSSDiffuseLightingMSAA" : "CameraSSSDiffuseLighting"
+            });
+        }
+
+        TextureHandle CreateIlluminanceBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
+        {
+            bool msaa = msaaSamples != MSAASamples.None;
+            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+            {
+                colorFormat = GraphicsFormat.R32_SFloat,
+                enableRandomWrite = !msaa,
+                bindTextureMS = msaa,
+                msaaSamples = msaaSamples,
+                clearBuffer = true,
+                clearColor = Color.black,
+                name = msaa ? "LightingIlluminanceMSAA" : "LightingIlluminance"
             });
         }
 

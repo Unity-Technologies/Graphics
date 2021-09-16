@@ -74,29 +74,69 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
 #endif
 
-#ifdef UNITY_VIRTUAL_TEXTURING
-#define VT_BUFFER_TARGET SV_Target1
-#define EXTRA_BUFFER_TARGET SV_Target2
+
+#ifdef OUTPUT_SPLIT_LIGHTING
+    #ifdef UNITY_VIRTUAL_TEXTURING
+        #define VT_BUFFER_TARGET SV_Target1
+        #ifdef OUTPUT_PIXEL_ILLUMINANCE
+            #define LUX_BUFFER_TARGET SV_Target2
+            #define DIFFUSE_LIGHTING_TARGET SV_Target3
+            #define SSS_BUFFER_TARGET SV_Target4
+        #else
+            #define DIFFUSE_LIGHTING_TARGET SV_Target2
+            #define SSS_BUFFER_TARGET SV_Target3
+        #endif
+    #else
+        #ifdef OUTPUT_PIXEL_ILLUMINANCE
+            #define LUX_BUFFER_TARGET SV_Target1
+            #define DIFFUSE_LIGHTING_TARGET SV_Target2
+            #define SSS_BUFFER_TARGET SV_Target3
+        #else
+            #define DIFFUSE_LIGHTING_TARGET SV_Target1
+            #define SSS_BUFFER_TARGET SV_Target2
+        #endif
+    #endif
 #else
-#define EXTRA_BUFFER_TARGET SV_Target1
+    #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
+        #define MOTION_VECTOR_TARGET SV_Target1
+        #ifdef UNITY_VIRTUAL_TEXTURING
+            #define VT_BUFFER_TARGET SV_Target2
+            #define LUX_BUFFER_TARGET SV_Target3
+        #else
+            #define LUX_BUFFER_TARGET SV_Target2
+        #endif
+    #else
+        #ifdef UNITY_VIRTUAL_TEXTURING
+            #define VT_BUFFER_TARGET SV_Target1
+            #define LUX_BUFFER_TARGET SV_Target2
+        #else
+            #define LUX_BUFFER_TARGET SV_Target1
+        #endif
+    #endif
 #endif
 
-void Frag(PackedVaryingsToPS packedInput,
+void Frag(PackedVaryingsToPS packedInput
         #ifdef OUTPUT_SPLIT_LIGHTING
-            out float4 outColor : SV_Target0,  // outSpecularLighting
+            , out float4 outColor : SV_Target0  // outSpecularLighting
             #ifdef UNITY_VIRTUAL_TEXTURING
-                out float4 outVTFeedback : VT_BUFFER_TARGET,
+                , out float4 outVTFeedback : VT_BUFFER_TARGET
             #endif
-            out float4 outDiffuseLighting : EXTRA_BUFFER_TARGET,
-            OUTPUT_SSSBUFFER(outSSSBuffer)
+            #ifdef OUTPUT_PIXEL_ILLUMINANCE
+                , out float outIlluminance : LUX_BUFFER_TARGET
+            #endif
+            , out float4 outDiffuseLighting : DIFFUSE_LIGHTING_TARGET
+            , OUTPUT_SSSBUFFER(outSSSBuffer) : SSS_BUFFER_TARGET
         #else
-            out float4 outColor : SV_Target0
-            #ifdef UNITY_VIRTUAL_TEXTURING
-                ,out float4 outVTFeedback : VT_BUFFER_TARGET
+            , out float4 outColor : SV_Target0
+            #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
+                , out float4 outMotionVec : MOTION_VECTOR_TARGET
             #endif
-        #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
-          , out float4 outMotionVec : EXTRA_BUFFER_TARGET
-        #endif // _WRITE_TRANSPARENT_MOTION_VECTOR
+            #ifdef UNITY_VIRTUAL_TEXTURING
+                , out float4 outVTFeedback : VT_BUFFER_TARGET
+            #endif
+            #ifdef OUTPUT_PIXEL_ILLUMINANCE
+                , out float outIlluminance : LUX_BUFFER_TARGET
+            #endif
         #endif // OUTPUT_SPLIT_LIGHTING
         #ifdef _DEPTHOFFSET_ON
             , out float outputDepth : DEPTH_OFFSET_SEMANTIC
@@ -222,6 +262,10 @@ void Frag(PackedVaryingsToPS packedInput,
 
             diffuseLighting *= GetCurrentExposureMultiplier();
             specularLighting *= GetCurrentExposureMultiplier();
+
+#ifdef OUTPUT_PIXEL_ILLUMINANCE
+            outIlluminance = lightLoopOutput.illuminance * GetCurrentExposureMultiplier();
+#endif
 
 #ifdef OUTPUT_SPLIT_LIGHTING
             if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))
