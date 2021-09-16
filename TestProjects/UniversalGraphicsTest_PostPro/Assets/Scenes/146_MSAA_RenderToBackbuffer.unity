@@ -608,7 +608,7 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
-    AverageCorrectnessThreshold: 0
+    AverageCorrectnessThreshold: 0.0025
     IncorrectPixelsThreshold: 0.000003814697
     UseHDR: 0
     UseBackBuffer: 1
