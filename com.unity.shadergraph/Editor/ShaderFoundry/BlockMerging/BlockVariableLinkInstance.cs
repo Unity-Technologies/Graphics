@@ -72,6 +72,11 @@ namespace UnityEditor.ShaderFoundry
             fields.Add(field);
         }
 
+        internal BlockVariableLinkInstance FindField(string name)
+        {
+            return fields.Find((f) => (f.ReferenceName == name));
+        }
+
         internal void AddResolvedField(string name, ResolvedFieldMatch resolvedMatch)
         {
             resolvedFieldMatches[name] = resolvedMatch;

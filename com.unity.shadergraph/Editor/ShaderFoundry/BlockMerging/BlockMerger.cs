@@ -49,8 +49,13 @@ namespace UnityEditor.ShaderFoundry
                 {
                     // Make the new field name unique
                     var name = $"{input.ReferenceName}_{block.Name}";
-                    matchingField = BlockVariableLinkInstance.Construct(input, name, mergedInputInstance);
-                    mergedInputInstance.AddField(matchingField);
+                    // If this field already exists (duplicate blocks) use the existing field, otherwise create a new one
+                    matchingField = mergedInputInstance.FindField(name);
+                    if(matchingField == null)
+                    {
+                        matchingField = BlockVariableLinkInstance.Construct(input, name, mergedInputInstance);
+                        mergedInputInstance.AddField(matchingField);
+                    }
                     // Add the original name override so we can keep track of how to resolve this when linking later
                     mergedInputInstance.AddOverride(matchingField.ReferenceName, inputNameData);
 
@@ -81,8 +86,13 @@ namespace UnityEditor.ShaderFoundry
             {
                 // Always create an output on the merged block since anyone could use the output later.
                 var name = $"{output.ReferenceName}_{block.Name}";
-                var availableOutput = BlockVariableLinkInstance.Construct(output, name, mergedOutputInstance);
-                mergedOutputInstance.AddField(availableOutput);
+                // If this field already exists (duplicate blocks) use the existing field, otherwise create a new one
+                var availableOutput = mergedOutputInstance.FindField(name);
+                if(availableOutput == null)
+                {
+                    availableOutput = BlockVariableLinkInstance.Construct(output, name, mergedOutputInstance);
+                    mergedOutputInstance.AddField(availableOutput);
+                }
 
                 // Link the new output to the block's output
                 var match = new ResolvedFieldMatch
@@ -135,10 +145,29 @@ namespace UnityEditor.ShaderFoundry
 
             scopes.PopScope();
 
+            // Handle duplicate blocks by renaming the in/out struct if necessary
+            var usedInstanceNames = new HashSet<string>();
+            usedInstanceNames.Add(mergedInputInstance.ReferenceName);
+            usedInstanceNames.Add(mergedOutputInstance.ReferenceName);
+            void FixInstanceName(ref string name)
+            {
+                int count = 0;
+                string testName = name;
+                while(usedInstanceNames.Contains(testName))
+                {
+                    ++count;
+                    testName = name + count;
+                }
+                usedInstanceNames.Add(testName);
+                name = testName;
+            }
+
             // Link all of the blocks
             foreach (var blockDesc in context.blockDescriptors)
             {
                 var blockLinkInstance = new BlockLinkInstance(Container, blockDesc);
+                FixInstanceName(ref blockLinkInstance.InputInstance.ReferenceName);
+                FixInstanceName(ref blockLinkInstance.OutputInstance.ReferenceName);
                 blockLinkInstances.Add(blockLinkInstance);
                 LinkBlock(blockDesc, scopes, mergedBlockLinkInstance, blockLinkInstance);
             }
