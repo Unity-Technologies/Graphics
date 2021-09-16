@@ -418,8 +418,10 @@ namespace UnityEngine.Rendering
 
                 Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
                 Vector3 screenPosZ = WorldToViewport(isCameraRelative, viewProjMatrix, cam.transform.position, positionWS + dir * comp.occlusionOffset);
+
+                float adjustedOcclusionRadius = isDirLight ? comp.celestialProjectedOcclusionRadius(cam) : comp.occlusionRadius;
                 Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)viewportPos;
-                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)WorldToViewport(isCameraRelative, viewProjMatrix, cam.transform.position, positionWS + cam.transform.up * comp.occlusionRadius);
+                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)WorldToViewport(isCameraRelative, viewProjMatrix, cam.transform.position, positionWS + cam.transform.up * adjustedOcclusionRadius);
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
