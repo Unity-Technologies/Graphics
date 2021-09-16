@@ -504,6 +504,7 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
+    #pragma shader_feature_local_fragment _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
