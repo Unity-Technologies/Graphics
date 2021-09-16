@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support of directional light coloring from physical sky in path tracing.
 - Fixed disabled menu item for volume additional properties.
 - Fixed Shader advanced options for lit shaders.
+- Fixed Dof, would sometimes get corrupted when DLSS was on caused by TAA logic accidentally being on for DOF (1357722)
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
