@@ -30,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public static AdditionalGIBakeRequestsManager instance { get { return s_Instance; } }
 
-        private AdditionalGIBakeRequestsManager()
+        internal void Init()
         {
             SubscribeOnBakeStarted();
         }
@@ -632,6 +632,8 @@ namespace UnityEngine.Experimental.Rendering
             }
 #endif
             m_EnabledBySRP = true;
+
+            AdditionalGIBakeRequestsManager.instance.Init();
         }
 
         /// <summary>
