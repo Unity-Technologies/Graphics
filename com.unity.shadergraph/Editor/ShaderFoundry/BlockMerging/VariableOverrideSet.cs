@@ -39,6 +39,18 @@ namespace UnityEditor.ShaderFoundry
             overrides[key].Add(new VariableNameOverride { Name = name, Namespace = namespaceName, Swizzle = swizzle });
         }
 
+        internal void BuildInputOverrides(IEnumerable<BlockVariableNameOverride> inputOverrides)
+        {
+            foreach (var varOverride in inputOverrides)
+                Add(varOverride.DestinationName, varOverride.SourceNamespace, varOverride.SourceName, varOverride.SourceSwizzle);
+        }
+
+        internal void BuildOutputOverrides(IEnumerable<BlockVariableNameOverride> outputOverrides)
+        {
+            foreach (var varOverride in outputOverrides)
+                Add(varOverride.SourceName, varOverride.DestinationNamespace, varOverride.DestinationName, varOverride.DestinationSwizzle);
+        }
+
         internal VariableNameOverride FindLastVariableOverride(BlockVariableLinkInstance varInstance)
         {
             return FindLastVariableOverride(varInstance.ReferenceName);

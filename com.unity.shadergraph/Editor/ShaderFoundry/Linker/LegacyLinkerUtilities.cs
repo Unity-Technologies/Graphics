@@ -224,10 +224,17 @@ namespace UnityEditor.ShaderFoundry
         internal const string SurfaceEntryPointOutputName = "SurfaceDescription";
     }
 
+    internal class VaryingVariable
+    {
+        internal ShaderType Type;
+        internal string Name;
+    }
+
     internal class LegacyEntryPoints
     {
         internal BlockDescriptor vertexDescBlockDesc;
         internal BlockDescriptor fragmentDescBlockDesc;
+        internal List<VaryingVariable> customInterpolants = new List<VaryingVariable>();
     }
 
     internal static class TypeUtilities

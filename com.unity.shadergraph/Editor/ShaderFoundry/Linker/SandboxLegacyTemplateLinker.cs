@@ -140,21 +140,11 @@ namespace UnityEditor.ShaderFoundry
             targetActiveFields.baseInstance.Add(Fields.GraphPixel);
             GenerationUtils.AddRequiredFields(legacyPass.requiredFields, targetActiveFields.baseInstance);
 
-            // Make sure to track custom interpolants so they aren't declared multiple times
-            HashSet<string> customInterpolants = new HashSet<string>();
             void AddFieldFromProperty(ActiveFields activeFields, BlockVariable prop, Dictionary<string, FieldDescriptor> lookups)
             {
                 FieldDescriptor activeField;
                 if (lookups.TryGetValue(prop.ReferenceName, out activeField))
                     activeFields.baseInstance.Add(activeField);
-                else if (prop.Attributes.FindFirst(CommonShaderAttributes.Varying).IsValid && !customInterpolants.Contains(prop.ReferenceName))
-                {
-                    customInterpolants.Add(prop.ReferenceName);
-                    // Create the interpolant field descriptor to handle the varying
-                    var customInterpolatorField = new FieldDescriptor("", prop.ReferenceName, "", ShaderValueTypeFrom((int)prop.Type.VectorDimension), subscriptOptions: StructFieldOptions.Generated);
-                    activeFields.baseInstance.Add(customInterpolatorField);
-                    customInterpolatorFields.Add(customInterpolatorField);
-                }
             }
 
             void AddFieldProperties(BlockDescriptor blockDesc, ActiveFields activeFields, Dictionary<string, FieldDescriptor> inputLookups, Dictionary<string, FieldDescriptor> outputLookups)
@@ -171,6 +161,13 @@ namespace UnityEditor.ShaderFoundry
             shaderGraphActiveFields = new ActiveFields();
             AddFieldProperties(legacyEntryPoints.vertexDescBlockDesc, shaderGraphActiveFields, vertexInLookup, vertexOutLookup);
             AddFieldProperties(legacyEntryPoints.fragmentDescBlockDesc, shaderGraphActiveFields, fragmentInLookup, fragmentOutLookup);
+
+            foreach (var customInterpolant in legacyEntryPoints.customInterpolants)
+            {
+                var customInterpolatorField = new FieldDescriptor("", customInterpolant.Name, "", ShaderValueTypeFrom((int)customInterpolant.Type.VectorDimension), subscriptOptions: StructFieldOptions.Generated);
+                shaderGraphActiveFields.baseInstance.Add(customInterpolatorField);
+                customInterpolatorFields.Add(customInterpolatorField);
+            }
         }
 
         void BuildLookups(UnityEditor.ShaderGraph.PassDescriptor legacyPass, out Dictionary<string, FieldDescriptor> vertexInLookups, out Dictionary<string, FieldDescriptor> vertexOutLookups, out Dictionary<string, FieldDescriptor> fragmentInLookups, out Dictionary<string, FieldDescriptor> fragmentOutLookups)
