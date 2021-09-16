@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Once render graph move is implemented, we can probably remove the branch and this.
                 ShadowResult shadowResult = new ShadowResult();
                 BuildGPULightListOutput gpuLightListOutput = new BuildGPULightListOutput();
-                TextureHandle uiBuffer = TextureHandle.nullHandle;
+                TextureHandle uiBuffer = m_RenderGraph.defaultResources.blackTextureXR;
 
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
                 {
@@ -196,7 +196,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
 
                     colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput,
-                        shadowResult, cullingResults, customPassCullingResults, uiCullingResult, aovRequest, aovCustomPassBuffers, out uiBuffer);
+                        shadowResult, cullingResults, customPassCullingResults, uiCullingResult, aovRequest, aovCustomPassBuffers);
+
+                    // TODO_FCC: TMP, MOVE FROM HERE. ALSO CONSIDER THAT FOR V1 WE MIGHT WANT TO ONLY SEPARATE OVERLAYS?
+                    uiBuffer = RenderTransparentUI(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, uiCullingResult);
 
                     if (NeedMotionVectorForTransparent(hdCamera.frameSettings))
                     {
@@ -1163,8 +1166,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CullingResults customPassCullingResults,
             CullingResults uiCullingResult,
             AOVRequestData aovRequest,
-            List<RTHandle> aovCustomPassBuffers,
-            out TextureHandle uiBuffer)
+            List<RTHandle> aovCustomPassBuffers)
         {
             // Transparent (non recursive) objects that are rendered in front of transparent (recursive) require the recursive rendering to be executed for that pixel.
             // This means our flagging process needs to happen before the transparent depth prepass as we use the depth to discriminate pixels that do not need recursive rendering.
@@ -1202,9 +1204,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ApplyCameraMipBias(hdCamera);
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, currentColorPyramid, lightLists, shadowResult, cullingResults, false);
             ResetCameraMipBias(hdCamera);
-
-            // TODO_FCC: TMP, MOVE FROM HERE. ALSO CONSIDER THAT FOR V1 WE MIGHT WANT TO ONLY SEPARATE OVERLAYS?
-            uiBuffer = RenderTransparentUI(renderGraph, hdCamera, prepassOutput.depthBuffer, uiCullingResult);
 
             colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
 
