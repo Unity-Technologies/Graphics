@@ -35,6 +35,8 @@ LightMapper_Linux_OpenGlCore_editmode_mono_Linear_trunk:
          retries: 2
       -  command: sudo apt-get install -y ocl-icd-opencl-dev
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/LightMapper/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/LightMapper --zero-tests-are-ok=1
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -62,6 +64,8 @@ LightMapper_Linux_OpenGlCore_Standalone_mono_Linear_trunk:
       -  command: chmod +x utr
       -  command: sudo apt-get install -y ocl-icd-opencl-dev
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/LightMapper/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -99,6 +103,8 @@ Build_LightMapper_Linux_OpenGlCore_Standalone_mono_Linear_trunk:
          retries: 2
       -  command: sudo apt-get install -y ocl-icd-opencl-dev
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/LightMapper/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/LightMapper --timeout=1200
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -137,6 +143,8 @@ LightMapper_Linux_OpenGlCore_editmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: sudo apt-get install -y ocl-icd-opencl-dev
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/LightMapper/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/LightMapper --zero-tests-are-ok=1
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -164,6 +172,8 @@ LightMapper_Linux_OpenGlCore_Standalone_mono_Linear_CUSTOM-REVISION:
       -  command: chmod +x utr
       -  command: sudo apt-get install -y ocl-icd-opencl-dev
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/LightMapper/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -201,6 +211,8 @@ Build_LightMapper_Linux_OpenGlCore_Standalone_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: sudo apt-get install -y ocl-icd-opencl-dev
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/LightMapper/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/LightMapper --timeout=1200
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:

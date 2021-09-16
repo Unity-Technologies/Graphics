@@ -27,6 +27,8 @@ VikingVillage_URP_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
          retries: 2
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -88,6 +90,8 @@ Build_VikingVillage_URP_Linux_Vulkan_performance_playmode_runtime_mono_Linear_tr
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -150,6 +154,8 @@ VikingVillage_URP_Linux_Vulkan_performance_playmode_editor_mono_Linear_trunk:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_URP --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -209,6 +215,8 @@ VikingVillage_URP_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_URP --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -236,6 +244,8 @@ VikingVillage_URP_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-R
          retries: 2
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -297,6 +307,8 @@ Build_VikingVillage_URP_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CU
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -359,6 +371,8 @@ VikingVillage_URP_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTOM-RE
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_URP --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -418,6 +432,8 @@ VikingVillage_URP_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REV
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_URP --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
+    after:
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
