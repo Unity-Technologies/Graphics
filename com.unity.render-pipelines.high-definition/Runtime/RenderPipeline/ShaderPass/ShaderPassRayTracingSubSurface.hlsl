@@ -30,7 +30,8 @@ void ClosestSubSurface(inout RayIntersectionSubSurface rayIntersection : SV_RayP
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, -incidentDirection, posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, isVisible);
 
-    // make sure we output the normal and the indirect diffuse lighting value
+    // make sure we output the normal
     rayIntersection.outNormal = fragInput.tangentToWorld[2];
-    rayIntersection.outIndirectDiffuse = builtinData.bakeDiffuseLighting;
+    // Make sure to output the indirect diffuse lighting value and the emissive value
+    rayIntersection.outIndirectDiffuse = builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
 }

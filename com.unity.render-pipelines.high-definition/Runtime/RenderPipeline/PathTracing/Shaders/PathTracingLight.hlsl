@@ -262,15 +262,37 @@ float3 GetPunctualEmission(LightData lightData, float3 outgoingDir, float dist)
     return emission;
 }
 
-float3 GetDirectionalEmission(DirectionalLightData lightData, float3 outgoingVec)
+float3 GetDirectionalEmission(DirectionalLightData lightData, float3 position)
 {
     float3 emission = lightData.color;
+
+#if SHADEROPTIONS_PRECOMPUTED_ATMOSPHERIC_ATTENUATION
+    // Nothing to do here
+#else
+    // Physical sky emission color code, adapted from EvaluateLight_Directional()
+    if (asint(lightData.distanceFromCamera) >= 0)
+    {
+        float r        = distance(position, _PlanetCenterPosition.xyz);
+        float cosHoriz = ComputeCosineOfHorizonAngle(r);
+        float cosTheta = dot(_PlanetCenterPosition.xyz - position, lightData.forward) * rcp(r); // Normalize
+
+        if (cosTheta < cosHoriz) // Below horizon
+            return 0.0;
+
+        float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+        float3 transm  = TransmittanceFromOpticalDepth(oDepth);
+        float3 opacity = 1.0 - transm;
+
+        emission.rgb *= 1.0 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
+    }
+#endif
 
 #ifndef LIGHT_EVALUATION_NO_COOKIE
     if (lightData.cookieMode != COOKIEMODE_NONE)
     {
         LightLoopContext context;
-        emission *= EvaluateCookie_Directional(context, lightData, -outgoingVec);
+        float3 lightToSample = position - lightData.positionRWS;
+        emission *= EvaluateCookie_Directional(context, lightData, lightToSample);
     }
 #endif
 
@@ -384,19 +406,16 @@ bool SampleLights(LightList lightList,
         // Pick a distant light from the list
         DirectionalLightData lightData = GetDistantLightData(lightList, inputSample.z);
 
-        // The position-to-light unnormalized vector is used for cookie evaluation
-        float3 OutgoingVec = lightData.positionRWS - position;
-
         if (lightData.angularDiameter > 0.0)
         {
             SampleCone(inputSample.xy, cos(lightData.angularDiameter * 0.5), outgoingDir, pdf); // computes rcpPdf
-            value = GetDirectionalEmission(lightData, OutgoingVec) / pdf;
+            value = GetDirectionalEmission(lightData, position) / pdf;
             pdf = GetDistantLightWeight(lightList) / pdf;
             outgoingDir = normalize(outgoingDir.x * normalize(lightData.right) + outgoingDir.y * normalize(lightData.up) - outgoingDir.z * lightData.forward);
         }
         else
         {
-            value = GetDirectionalEmission(lightData, OutgoingVec) * DELTA_PDF;
+            value = GetDirectionalEmission(lightData, position) * DELTA_PDF;
             pdf = GetDistantLightWeight(lightList) * DELTA_PDF;
             outgoingDir = -lightData.forward;
         }

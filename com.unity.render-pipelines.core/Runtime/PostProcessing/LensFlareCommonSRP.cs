@@ -272,7 +272,19 @@ namespace UnityEngine.Rendering
                 globalSin0 * rayOff.x + globalCos0 * rayOff.y);
         }
 
-        static Vector3 WorldToViewport(bool isCameraRelative, Matrix4x4 viewProjMatrix, Vector3 cameraPosWS, Vector3 positionWS)
+        static Vector3 WorldToViewport(Camera camera, bool isLocalLight, bool isCameraRelative, Matrix4x4 viewProjMatrix, Vector3 positionWS)
+        {
+            if (isLocalLight)
+            {
+                return WorldToViewportLocal(isCameraRelative, viewProjMatrix, camera.transform.position, positionWS);
+            }
+            else
+            {
+                return WorldToViewportDistance(camera, positionWS);
+            }
+        }
+
+        static Vector3 WorldToViewportLocal(bool isCameraRelative, Matrix4x4 viewProjMatrix, Vector3 cameraPosWS, Vector3 positionWS)
         {
             Vector3 localPositionWS = positionWS;
             if (isCameraRelative)
@@ -286,7 +298,18 @@ namespace UnityEngine.Rendering
             viewportPos.y = viewportPos.y * 0.5f + 0.5f;
             viewportPos.y = 1.0f - viewportPos.y;
             viewportPos.z = viewportPos4.w;
+            return viewportPos;
+        }
 
+        static Vector3 WorldToViewportDistance(Camera cam, Vector3 positionWS)
+        {
+            Vector4 camPos = cam.worldToCameraMatrix * positionWS;
+            Vector4 viewportPos4 = cam.projectionMatrix * camPos;
+            Vector3 viewportPos = new Vector3(viewportPos4.x, viewportPos4.y, 0f);
+            viewportPos /= viewportPos4.w;
+            viewportPos.x = viewportPos.x * 0.5f + 0.5f;
+            viewportPos.y = viewportPos.y * 0.5f + 0.5f;
+            viewportPos.z = viewportPos4.w;
             return viewportPos;
         }
 
@@ -386,7 +409,7 @@ namespace UnityEngine.Rendering
                     positionWS = comp.transform.position;
                 }
 
-                viewportPos = WorldToViewport(isCameraRelative, viewProjMatrix, cam.transform.position, positionWS);
+                viewportPos = WorldToViewport(cam, !isDirLight, isCameraRelative, viewProjMatrix, positionWS);
 
                 if (usePanini && cam == Camera.main)
                 {
@@ -421,9 +444,11 @@ namespace UnityEngine.Rendering
                 globalColorModulation *= distanceAttenuation;
 
                 Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
-                Vector3 screenPosZ = WorldToViewport(isCameraRelative, viewProjMatrix, cam.transform.position, positionWS + dir * comp.occlusionOffset);
+                Vector3 screenPosZ = WorldToViewport(cam, !isDirLight, isCameraRelative, viewProjMatrix, positionWS + dir * comp.occlusionOffset);
+
+                float adjustedOcclusionRadius = isDirLight ? comp.celestialProjectedOcclusionRadius(cam) : comp.occlusionRadius;
                 Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)viewportPos;
-                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)WorldToViewport(isCameraRelative, viewProjMatrix, cam.transform.position, positionWS + cam.transform.up * comp.occlusionRadius);
+                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)WorldToViewport(cam, !isDirLight, isCameraRelative, viewProjMatrix, positionWS + cam.transform.up * adjustedOcclusionRadius);
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
