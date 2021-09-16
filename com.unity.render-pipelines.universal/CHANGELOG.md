@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - URP Asset Inspector - `General` section has been renamed to `Rendering`.
 - Refactored some of the array resizing code around decal projector rendering to use new APIs in render core
 - UniversalRendererData and ForwardRendererData GUIDs have been reversed so that users coming from 2019LTS, 2020LTS and 2021.1 have a smooth upgrade path, you may encounter issues coming from 2021.2 Alpha/Beta versions and are recommended to start with a fresh library if initial upgrade fails.
+- VFX: New shadergraph support directly on Universal target.
 
 ### Fixed
 - Fixed an issue in PostProcessPass causing OnGUI draws to not show on screen. [case 1346650]
