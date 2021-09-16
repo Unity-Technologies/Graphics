@@ -34,7 +34,7 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed, SerializeField, Tooltip("Specifies an offset applied to the material render queue.")]
         protected int materialOffset = 0;
 
-        public int GetMaterialOffset()
+        public virtual int GetMaterialOffset()
         {
             return materialOffset;
         }
