@@ -409,6 +409,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed disabled menu item for volume additional properties.
 - Fixed Shader advanced options for lit shaders.
 - Fixed custom pass custom buffer not bound after being created inside a custom pass.
+- Fixed Dof, would sometimes get corrupted when DLSS was on caused by TAA logic accidentally being on for DOF (1357722)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
