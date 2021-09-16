@@ -37,23 +37,49 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns true if any of the debug settings are currently active.
         /// </summary>
-        public bool AreAnySettingsActive => materialSettings.AreAnySettingsActive ||
-        lightingSettings.AreAnySettingsActive ||
-        renderingSettings.AreAnySettingsActive;
+        public bool AreAnySettingsActive
+        {
+            get
+            {
+                foreach (IDebugDisplaySettingsData setting in m_Settings)
+                {
+                    if (setting.AreAnySettingsActive)
+                        return true;
+                }
 
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Attempts to get the color that should be used to clear the screen according to current debug settings.
+        /// </summary>
+        /// <param name="color">A reference to the screen clear color to use.</param>
+        /// <returns>True if the color reference was updated, and false otherwise.</returns>
         public bool TryGetScreenClearColor(ref Color color)
         {
-            return materialSettings.TryGetScreenClearColor(ref color) ||
-                renderingSettings.TryGetScreenClearColor(ref color) ||
-                lightingSettings.TryGetScreenClearColor(ref color);
+            foreach (IDebugDisplaySettingsData setting in m_Settings)
+            {
+                if (setting.TryGetScreenClearColor(ref color))
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>
         /// Returns true if lighting is active for current state of debug settings.
         /// </summary>
-        public bool IsLightingActive => materialSettings.IsLightingActive &&
-        renderingSettings.IsLightingActive &&
-        lightingSettings.IsLightingActive;
+        public bool IsLightingActive
+        {
+            get
+            {
+                bool lightingActive = true;
+                foreach (IDebugDisplaySettingsData setting in m_Settings)
+                    lightingActive &= setting.IsLightingActive;
+                return lightingActive;
+            }
+        }
 
         /// <summary>
         /// Returns true if the current state of debug settings allows post-processing.
@@ -73,10 +99,11 @@ namespace UnityEngine.Rendering.Universal
 
                     case DebugPostProcessingMode.Auto:
                     {
-                        // Only enable post-processing if we aren't using certain debug-views...
-                        return materialSettings.IsPostProcessingAllowed &&
-                            renderingSettings.IsPostProcessingAllowed &&
-                            lightingSettings.IsPostProcessingAllowed;
+                        // Only enable post-processing if we aren't using certain debug-views.
+                        bool postProcessingAllowed = true;
+                        foreach (IDebugDisplaySettingsData setting in m_Settings)
+                            postProcessingAllowed &= setting.IsPostProcessingAllowed;
+                        return postProcessingAllowed;
                     }
 
                     case DebugPostProcessingMode.Enabled:

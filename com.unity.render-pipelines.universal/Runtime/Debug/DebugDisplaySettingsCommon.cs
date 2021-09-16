@@ -82,10 +82,12 @@ namespace UnityEngine.Rendering.Universal
 
         #region IDebugDisplaySettingsData
 
-        public bool AreAnySettingsActive => DebugDisplaySettings.Instance.AreAnySettingsActive;
-        public bool IsPostProcessingAllowed => DebugDisplaySettings.Instance.IsPostProcessingAllowed;
-        public bool IsLightingActive => DebugDisplaySettings.Instance.IsLightingActive;
-        public bool TryGetScreenClearColor(ref Color color) => DebugDisplaySettings.Instance.TryGetScreenClearColor(ref color);
+        // All common settings are owned by another panel, so they are treated as inactive here.
+
+        public bool AreAnySettingsActive => false;
+        public bool IsPostProcessingAllowed => true;
+        public bool IsLightingActive => true;
+        public bool TryGetScreenClearColor(ref Color _) => false;
 
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
