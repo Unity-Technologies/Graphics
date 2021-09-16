@@ -1,10 +1,10 @@
 {
-    "name": "Unity.RenderPipelines.Universal.2D.Shadows.Tests",
+    "name": "Unity.RenderPipelines.Universal.2D.ShadowProvider.Runtime",
     "rootNamespace": "",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,

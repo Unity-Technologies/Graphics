@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
 
         public ShadowCastingSources shadowCastingSource { get { return m_ShadowCastingSource; } set { m_ShadowCastingSource = value; } }
 
-        internal IShadowShape2DProvider shadowShape2DProvider { get { return m_ShadowShapeProvider as IShadowShape2DProvider; } set { m_ShadowShapeProvider = value as Component; } }
+        internal Component shadowShape2DProvider { get { return m_ShadowShapeProvider; } set { m_ShadowShapeProvider = value; } }
 
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;
@@ -170,18 +170,15 @@ namespace UnityEngine.Rendering.Universal
                     nativeIndices[startingIndex + 1] = i;
                     lastIndex = i;
                 }
+                
+                m_ShadowMesh.SetShapeWithLines(nativePath, nativeIndices);
 
-                m_ShadowMesh.SetShape(nativePath, nativeIndices, IShadowShape2DProvider.OutlineTopology.Lines);
                 nativePath.Dispose();
                 nativeIndices.Dispose();
             }
             if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider)
             {
-                IShadowShape2DProvider shapeProvider = m_ShadowShapeProvider as IShadowShape2DProvider;
-                if(shapeProvider != null)
-                {
-                    shapeProvider.OnPersistantDataCreated(m_ShadowMesh);
-                }
+                ShadowUtility.PersistantDataCreated(m_ShadowShapeProvider, m_ShadowMesh);
             }
         }
 

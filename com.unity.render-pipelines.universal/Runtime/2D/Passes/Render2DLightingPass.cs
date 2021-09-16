@@ -397,15 +397,7 @@ namespace UnityEngine.Rendering.Universal
                             ShadowCaster2D shadowCaster = shadowCasters[shadowCasterIndex];
                             if (shadowCaster != null && shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider)
                             {
-                                IShadowShape2DProvider provider = shadowCaster.shadowShape2DProvider;
-                                if (provider != null)
-                                {
-                                    provider.OnBeforeRender(shadowCaster.m_ShadowMesh, cameraLightFrustum);
-                                }
-                                else if (shadowCaster.m_ShadowMesh != null && shadowCaster.m_ShadowMesh.mesh != null)
-                                {
-                                    shadowCaster.m_ShadowMesh.mesh.Clear();
-                                }
+                                ShadowUtility.CallOnBeforeRender(shadowCaster.shadowShape2DProvider, shadowCaster.m_ShadowMesh, cameraLightFrustum);
                             }
                         }
                     }

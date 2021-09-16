@@ -247,8 +247,6 @@ namespace UnityEngine.Rendering.Universal
             return new BoundingSphere(origin, radius);
         }
 
-
-
         // inEdges is expected to be contiguous
         static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeIsClosedArray, bool allowContraction, IShadowShape2DProvider.OutlineTopology topology)
         {
@@ -606,6 +604,29 @@ namespace UnityEngine.Rendering.Universal
                         inOutSortedEdges[edgeBIndex] = edgeA;
                     }
                 }
+            }
+        }
+
+        static public void CallOnBeforeRender(Component component, ShadowMesh2D shadowMesh, Matrix4x4 cameraLightFrustum)
+        {
+            IShadowShape2DProvider provider = component as IShadowShape2DProvider;
+            if (provider != null)
+            {
+                provider.OnBeforeRender(shadowMesh, cameraLightFrustum);
+            }
+            else if (shadowMesh != null && shadowMesh.mesh != null)
+            {
+                shadowMesh.mesh.Clear();
+            }
+
+        }
+
+        static public void PersistantDataCreated(Component component, ShadowMesh2D shadowMesh)
+        {
+            IShadowShape2DProvider shapeProvider = component as IShadowShape2DProvider;
+            if (shapeProvider != null)
+            {
+                shapeProvider.OnPersistantDataCreated(shadowMesh);
             }
         }
     }

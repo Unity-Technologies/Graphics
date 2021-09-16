@@ -42,6 +42,11 @@ namespace UnityEngine.Rendering.Universal
             shapeStartingIndices.Dispose();
         }
 
+        public void SetShapeWithLines(NativeArray<Vector3> vertices, NativeArray<int> indices)
+        {
+            SetShape(vertices, indices, IShadowShape2DProvider.OutlineTopology.Lines);
+        }
+
         public override void UpdateVertices(NativeArray<Vector3> vertices)
         {
             ShadowUtility.UpdateShadowMeshVertices(m_Mesh, vertices);
