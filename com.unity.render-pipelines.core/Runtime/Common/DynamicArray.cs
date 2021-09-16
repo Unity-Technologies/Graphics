@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="value">Element to add to the array.</param>
         /// <returns>The index of the element.</returns>
-        public int Add(T value)
+        public int Add(in T value)
         {
             int index = size;
 
