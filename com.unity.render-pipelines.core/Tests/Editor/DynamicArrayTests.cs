@@ -268,5 +268,27 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(256, m_DynamicArray.capacity);
             Assert.AreEqual(size, m_DynamicArray.size);
         }
+
+        [Test]
+        public void TestQuickSort()
+        {
+            m_DynamicArray.Add(8);
+            m_DynamicArray.Add(4);
+            m_DynamicArray.Add(3);
+            m_DynamicArray.Add(4);
+            m_DynamicArray.Add(5);
+            m_DynamicArray.Add(1);
+            m_DynamicArray.Add(12);
+
+            DynamicArray<int>.QuickSort(m_DynamicArray);
+
+            Assert.AreEqual(1, m_DynamicArray[0]);
+            Assert.AreEqual(3, m_DynamicArray[1]);
+            Assert.AreEqual(4, m_DynamicArray[2]);
+            Assert.AreEqual(4, m_DynamicArray[3]);
+            Assert.AreEqual(5, m_DynamicArray[4]);
+            Assert.AreEqual(8, m_DynamicArray[5]);
+            Assert.AreEqual(12, m_DynamicArray[6]);
+        }
     }
 }

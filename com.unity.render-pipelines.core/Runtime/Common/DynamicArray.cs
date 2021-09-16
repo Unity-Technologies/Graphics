@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static int Partition(T[] data, int left, int right)
+        static int Partition<U>(U[] data, int left, int right) where U : IComparable<U>, new()
         {
             var pivot = data[left];
 
@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering
             while (true)
             {
                 var c = 0;
-                var lvalue = default(T);
+                var lvalue = default(U);
                 do
                 {
                     ++left;
@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering
                 }
                 while (c < 0);
 
-                var rvalue = default(T);
+                var rvalue = default(U);
                 do
                 {
                     --right;
@@ -277,7 +277,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        void QuickSort(T[] data, int left, int right)
+        static void QuickSort<U>(U[] data, int left, int right) where U : IComparable<U>, new()
         {
             if (left < right)
             {
@@ -291,9 +291,9 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public void QuickSort()
+        public static void QuickSort<U>(DynamicArray<U> array) where U : IComparable<U>, new()
         {
-            QuickSort(m_Array, 0, size - 1);
+            QuickSort<U>(array, 0, array.size - 1);
         }
 
         /// <summary>
