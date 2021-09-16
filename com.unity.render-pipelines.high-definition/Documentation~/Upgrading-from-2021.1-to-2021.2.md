@@ -96,4 +96,6 @@ From 2021.2, Bilinear and Lanczos upscale filters have been removed as they are 
 
 ## Ambient Mode
 
-In order to offer a better first experience to users, the Ambient Mode parameter in the Visual Environment volume component now defaults to Dynamic. This may impact existing projects where no default volume profile overriding this parameter exists. In order to return to the former behavior, you need to add a Visual Environment component to the default volume profile and override the Ambient Mode to static.
+From version 12.0 HDRP sets the **Ambient Mode** parameter in the **Visual Environment** volume component to **Dynamic** by default. This might impact existing projects where no default volume profile overrides the **Ambient Mode** parameter. To change this behavior:
+1. Add a **Visual Environment** component to the default volume profile.
+2. Change the **Ambient Mode** to **Static**.
