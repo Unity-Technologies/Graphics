@@ -12,6 +12,15 @@ EditorBuildSettings:
     path: Assets/Scenes/038_Shader_TerrainBlend.unity
     guid: 5578c9d8b0329024d8020e3094f70302
   - enabled: 1
+    path: Assets/Scenes/041_Shader_TerrainBlend_Opacity_As_Density_BaseMap.unity
+    guid: 802401076727724479b252af78298a45
+  - enabled: 1
+    path: Assets/Scenes/040_Shader_TerrainBlend_Opacity_As_Density.unity
+    guid: e8a367fa3f01f184ebec18b0689f406d
+  - enabled: 1
+    path: Assets/Scenes/039_Shader_TerrainBlend_BaseMap.unity
+    guid: 8a4ad2ff3f0300e49908c77e1af1a8f3
+  - enabled: 1
     path: Assets/Scenes/057_SpeedTree_V7.unity
     guid: ef200bbb51f946647ac204267d52a9bd
   - enabled: 1
