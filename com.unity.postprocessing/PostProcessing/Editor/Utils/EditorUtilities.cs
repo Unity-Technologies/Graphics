@@ -370,16 +370,16 @@ namespace UnityEditor.Rendering.PostProcessing
             get
             {
 #if ENABLE_VR_MODULE && ENABLE_VR
-  #if !UNITY_2020_1_OR_NEWER
+#if !UNITY_2020_1_OR_NEWER
                 return UnityEditorInternal.VR.VREditor.GetVREnabledOnTargetGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
-  #elif UNITY_2020_1_OR_NEWER && ENABLE_XR_MODULE && XR_MANAGEMENT_4_0_1_OR_NEWER
+#elif UNITY_2020_1_OR_NEWER && ENABLE_XR_MODULE && XR_MANAGEMENT_4_0_1_OR_NEWER
                 var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
                 return (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null &&
                         buildTargetSettings.AssignedSettings.activeLoaders.Count > 0);
-  #else
+#else
                 // If we reach this code-path, it means we can't really detect if VR/XR is active in the Editor, so return false
                 return false;
-  #endif
+#endif
 #else
                 return false;
 #endif
