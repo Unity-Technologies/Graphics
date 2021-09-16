@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering
             SubscribeOnBakeStarted();
         }
 
-        ~AdditionalGIBakeRequestsManager()
+        internal void Cleanup()
         {
             UnsubscribeOnBakeStarted();
         }
@@ -660,6 +660,8 @@ namespace UnityEngine.Experimental.Rendering
         public void Cleanup()
         {
             if (!m_ProbeReferenceVolumeInit) return;
+
+            AdditionalGIBakeRequestsManager.instance.Cleanup();
 
             if (!m_IsInitialized)
             {
