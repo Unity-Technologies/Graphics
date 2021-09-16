@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering
         {
             Reserve(size + array.size);
             for (int i = 0; i < array.size; ++i)
-                Add(array[i]);
+                m_Array[size++] = array[i];
         }
 
         /// <summary>
