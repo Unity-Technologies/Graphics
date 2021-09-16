@@ -7,4 +7,4 @@ The High Definition Render Pipeline (HDRP) includes two cloud solutions that you
 
 You can use both solutions together. In this case, you can use Volumetric Clouds for closer, interactable (receives fog and volumetric light) clouds, and Cloud Layer for distant clouds that are part of the skybox.
 
-__Note:__ Neither Cloud Layer or Volumetric Clouds support Planet Center Position.
+__Note:__ Cloud Layer and Volumetric Clouds do not support Planet Center Position.
