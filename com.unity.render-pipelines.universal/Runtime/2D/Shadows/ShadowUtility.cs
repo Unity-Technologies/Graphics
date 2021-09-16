@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.Universal
     {
         const int k_AdditionalVerticesPerVertex = 2;
         const int k_VerticesPerTriangle = 3;
+        //const int k_TrianglesPerEdge = 2;
         const int k_TrianglesPerEdge = 3;
         const int k_MinimumEdges = 3;
 
@@ -142,6 +143,14 @@ namespace UnityEngine.Rendering.Universal
 
         static void CalculateVertices(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<Vector4> inTangents, ref NativeArray<ShadowMeshVertex> outMeshVertices)
         {
+            for(int i=0; i < inVertices.Length; i++)
+            {
+                Vector4 pt0 = inVertices[i];
+                pt0.z = 1;
+                ShadowMeshVertex originalShadowMesh = new ShadowMeshVertex(pt0, inTangents[i]);
+                outMeshVertices[i] = originalShadowMesh;
+            }
+
             for (int i = 0; i < inEdges.Length; i++)
             {
                 int v0 = inEdges[i].v0;
@@ -149,10 +158,6 @@ namespace UnityEngine.Rendering.Universal
 
                 Vector4 pt0 = inVertices[v0];
                 Vector4 pt1 = inVertices[v1];
-
-                pt0.z = 1;  // for the original mesh this value is one as it cannot be stretched
-                ShadowMeshVertex originalShadowMesh = new ShadowMeshVertex(pt0, inTangents[v0]);
-                outMeshVertices[v0] = originalShadowMesh;
 
                 pt0.z = 0;
                 pt1.z = 0;
@@ -165,7 +170,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateTriangles(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, ref NativeArray<int> outMeshIndices)
+        static void CalculateTriangles(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeIsClosedArray, ref NativeArray<int> outMeshIndices)
         {
             for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
             {
@@ -183,7 +188,6 @@ namespace UnityEngine.Rendering.Universal
                     int v0 = inEdges[i].v0;
                     int v1 = inEdges[i].v1;
 
-
                     int additionalVerticesStart = k_AdditionalVerticesPerVertex * i + inVertices.Length;
 
                     int startingMeshIndex = k_VerticesPerTriangle * k_TrianglesPerEdge * i;
@@ -195,11 +199,14 @@ namespace UnityEngine.Rendering.Universal
                     outMeshIndices[startingMeshIndex + 4] = (ushort)v1;
                     outMeshIndices[startingMeshIndex + 5] = (ushort)v0;
 
-                    // Add a triangle to connect that rectangle to the neighboring rectangle so we have a seamless mesh
-                    int prevAdditionalVertex = k_AdditionalVerticesPerVertex * prevEdge + inVertices.Length;
-                    outMeshIndices[startingMeshIndex + 6] = (ushort)(additionalVerticesStart);
-                    outMeshIndices[startingMeshIndex + 7] = (ushort)v0;
-                    outMeshIndices[startingMeshIndex + 8] = (ushort)prevAdditionalVertex;
+                    if (inShapeIsClosedArray[shapeIndex] || i > startingIndex)
+                    {
+                        //// Add a triangle to connect that rectangle to the neighboring rectangle so we have a seamless mesh
+                        int prevAdditionalVertex = k_AdditionalVerticesPerVertex * prevEdge + inVertices.Length;
+                        outMeshIndices[startingMeshIndex + 6] = (ushort)(additionalVerticesStart);
+                        outMeshIndices[startingMeshIndex + 7] = (ushort)v0;
+                        outMeshIndices[startingMeshIndex + 8] = (ushort)prevAdditionalVertex;
+                    }
 
                     prevEdge = i;
                 }
@@ -245,7 +252,7 @@ namespace UnityEngine.Rendering.Universal
         // inEdges is expected to be contiguous
         static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeIsClosedArray, bool allowContraction, IShadowShape2DProvider.OutlineTopology topology)
         {
-            Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
+            //Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
 
             // Setup our buffers
             int meshVertexCount = inVertices.Length + 2 * inEdges.Length;                       // Each vertex will have a duplicate that can be extruded.
@@ -260,7 +267,7 @@ namespace UnityEngine.Rendering.Universal
             CalculateContraction(inVertices, inEdges, inShapeStartingIndices, inShapeIsClosedArray, allowContraction, ref contractionDirection);
             CalculateTangents(inVertices, inEdges, contractionDirection, ref meshTangents);                            // meshVertices contain a normal component
             CalculateVertices(inVertices, inEdges, meshTangents, ref meshFinalVertices);
-            CalculateTriangles(inVertices, inEdges, inShapeStartingIndices, ref meshIndices);
+            CalculateTriangles(inVertices, inEdges, inShapeStartingIndices, inShapeIsClosedArray, ref meshIndices);
 
             // Set the mesh data
             mesh.SetVertexBufferParams(meshVertexCount, m_VertexLayout);
@@ -363,6 +370,8 @@ namespace UnityEngine.Rendering.Universal
                 outShapeIsClosedArray[i] = true;
         }
 
+
+
         static public void CalculateEdgesFromLines(NativeArray<int> indices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices, out NativeArray<bool> outShapeIsClosedArray)
         {
             int numOfEdges = indices.Length >> 1;
@@ -382,7 +391,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     shapeStart = indices[i];
                     tempShapeIsClosedArray[shapeCount] = true;
-                    tempShapeStartIndices[shapeCount++] = i;
+                    tempShapeStartIndices[++shapeCount] = i >> 1;
                     closedShapeFound = false;
                 }
 
@@ -390,7 +399,7 @@ namespace UnityEngine.Rendering.Universal
                 if (indices[i] != lastIndex)
                 {
                     tempShapeIsClosedArray[shapeCount] = false;
-                    tempShapeStartIndices[++shapeCount] = i;
+                    tempShapeStartIndices[++shapeCount] = i >> 1;
                     shapeStart = indices[i];
                 }
 
