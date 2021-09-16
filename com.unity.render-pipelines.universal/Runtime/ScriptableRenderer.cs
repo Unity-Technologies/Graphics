@@ -105,6 +105,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 XRBuiltinShaderConstants.Update(cameraData.xr, cmd, false);
+                cameraData.xrUniversal.MarkShaderProperties(cmd, false);
                 return;
             }
 #endif
@@ -728,7 +729,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 // Late latching is not supported after this point in the frame
                 if (cameraData.xr.enabled)
-                    cameraData.xr.canMarkLateLatch = false;
+                    cameraData.xrUniversal.canMarkLateLatch = false;
 #endif
 
                 // Draw Gizmos...
@@ -962,8 +963,11 @@ namespace UnityEngine.Rendering.Universal
             else
                 renderPass.Execute(context, ref renderingData);
 
+#if ENABLE_VR && ENABLE_XR_MODULE
             // Inform the late latching system for XR once we're done with a render pass
-            XRBuiltinShaderConstants.UnmarkLateLatchShaderProperties(cameraData.xr, cmd);
+            if (cameraData.xr.enabled)
+                cameraData.xrUniversal.UnmarkShaderProperties(cmd);
+#endif
         }
 
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
@@ -1090,7 +1094,9 @@ namespace UnityEngine.Rendering.Universal
                             // SetRenderTarget might alter the internal device state(winding order).
                             // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
                             int xrTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, cameraData.xr.renderTarget);
-                            XRBuiltinShaderConstants.Update(cameraData.xr, cmd, xrTargetIndex == -1);
+                            bool renderIntoTexture = xrTargetIndex == -1;
+                            XRBuiltinShaderConstants.Update(cameraData.xr, cmd, renderIntoTexture);
+                            cameraData.xrUniversal.MarkShaderProperties(cmd, renderIntoTexture);
                         }
 #endif
                     }
@@ -1185,7 +1191,9 @@ namespace UnityEngine.Rendering.Universal
                         {
                             // SetRenderTarget might alter the internal device state(winding order).
                             // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                            XRBuiltinShaderConstants.Update(cameraData.xr, cmd, passColorAttachment != cameraData.xr.renderTarget);
+                            bool renderIntoTexture = passColorAttachment != cameraData.xr.renderTarget;
+                            XRBuiltinShaderConstants.Update(cameraData.xr, cmd, renderIntoTexture);
+                            cameraData.xrUniversal.MarkShaderProperties(cmd, renderIntoTexture);
                         }
 #endif
                     }
@@ -1198,8 +1206,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                if (cameraData.xr.isLateLatchEnabled)
-                    cameraData.xr.canMarkLateLatch = true;
+                if (cameraData.xrUniversal.isLateLatchEnabled)
+                    cameraData.xrUniversal.canMarkLateLatch = true;
 
                 cameraData.xr.StartSinglePass(cmd);
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);

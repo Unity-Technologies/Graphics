@@ -4,7 +4,10 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    internal struct XRPassCreateInfo
+    /// <summary>
+    /// Set of data used to create a XRPass object.
+    /// </summary>
+    public struct XRPassCreateInfo
     {
         public RenderTargetIdentifier renderTarget;
         public RenderTextureDescriptor renderTargetDesc;
@@ -13,6 +16,10 @@ namespace UnityEngine.Experimental.Rendering
         public int multipassId;
         public int cullingPassId;
         public bool copyDepth;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+        public UnityEngine.XR.XRDisplaySubsystem.XRRenderPass xrSdkRenderPass;
+#endif
     }
 
     /// <summary>
@@ -34,6 +41,24 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_Views = new List<XRView>(2);
             m_OcclusionMesh = new XROcclusionMesh(this);
+        }
+
+        /// <summary>
+        /// Default allocator method for XRPass.
+        /// </summary>
+        public static XRPass CreateDefault(XRPassCreateInfo createInfo)
+        {
+            XRPass pass = GenericPool<XRPass>.Get();
+            pass.InitBase(createInfo);
+            return pass;
+        }
+
+        /// <summary>
+        /// Default release method. Can be overridden by render pipelines.
+        /// </summary>
+        virtual public void Release()
+        {
+            GenericPool<XRPass>.Release(this);
         }
 
         /// <summary>
@@ -204,21 +229,6 @@ namespace UnityEngine.Experimental.Rendering
             m_OcclusionMesh.RenderOcclusionMesh(cmd);
         }
 
-        /// <summary>
-        /// If true, late latching mechanism is available for the frame.
-        /// </summary>
-        public bool isLateLatchEnabled { get; internal set; }
-
-        /// <summary>
-        /// Used by the render pipeline to control the granularity of late latching.
-        /// </summary>
-        public bool canMarkLateLatch { get; set; }
-
-        /// <summary>
-        /// Track the state of the late latching system.
-        /// </summary>
-        internal bool hasMarkedLateLatch { get; set; }
-
         internal void AssignView(int viewId, XRView xrView)
         {
             if (viewId < 0 || viewId >= m_Views.Count)
@@ -241,26 +251,16 @@ namespace UnityEngine.Experimental.Rendering
             m_OcclusionMesh.UpdateCombinedMesh();
         }
 
-        internal static XRPass Create(XRPassCreateInfo createInfo)
+        public void InitBase(XRPassCreateInfo createInfo)
         {
-            XRPass pass = GenericPool<XRPass>.Get();
-
-            pass.m_Views.Clear();
-            pass.multipassId = createInfo.multipassId;
-            pass.cullingPassId = createInfo.cullingPassId;
-            pass.cullingParams = createInfo.cullingParameters;
-            pass.copyDepth = createInfo.copyDepth;
-            pass.renderTarget = new RenderTargetIdentifier(createInfo.renderTarget, 0, CubemapFace.Unknown, -1);
-            pass.renderTargetDesc = createInfo.renderTargetDesc;
-
-            pass.m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
-
-            return pass;
-        }
-
-        internal static void Release(XRPass xrPass)
-        {
-            GenericPool<XRPass>.Release(xrPass);
+            m_Views.Clear();
+            multipassId = createInfo.multipassId;
+            cullingPassId = createInfo.cullingPassId;
+            cullingParams = createInfo.cullingParameters;
+            copyDepth = createInfo.copyDepth;
+            renderTarget = new RenderTargetIdentifier(createInfo.renderTarget, 0, CubemapFace.Unknown, -1);
+            renderTargetDesc = createInfo.renderTargetDesc;
+            m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
         }
 
         internal void AddView(XRView xrView)

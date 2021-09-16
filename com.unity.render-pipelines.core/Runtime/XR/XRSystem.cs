@@ -16,9 +16,20 @@ namespace UnityEngine.Experimental.Rendering
         // Keep track of only one XR layout
         static XRLayout s_Layout = new XRLayout();
 
+        // Delegate allocations of XRPass to the render pipeline
+        static Func<XRPassCreateInfo, XRPass> s_PassAllocator = null;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
         static List<XRDisplaySubsystem> s_DisplayList = new List<XRDisplaySubsystem>();
         static XRDisplaySubsystem s_Display;
+
+        /// <summary>
+        /// Returns the active XR display.
+        /// </summary>
+        static public XRDisplaySubsystem GetActiveDisplay()
+        {
+            return s_Display;
+        }
 #endif
 
         // MSAA level (number of samples per pixel) shared by all XR displays
@@ -63,8 +74,13 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         /// <param name="occlusionMeshPS"></param>
         /// <param name="mirrorViewPS"></param>
-        public static void Initialize(Shader occlusionMeshPS, Shader mirrorViewPS)
+        public static void Initialize(Func<XRPassCreateInfo, XRPass> passAllocator, Shader occlusionMeshPS, Shader mirrorViewPS)
         {
+            if (passAllocator == null)
+                throw new ArgumentNullException("passCreator");
+
+            s_PassAllocator = passAllocator;
+
             RefreshDeviceInfo();
 
             if (occlusionMeshPS != null)
@@ -167,35 +183,6 @@ namespace UnityEngine.Experimental.Rendering
             CoreUtils.Destroy(s_MirrorViewMaterial);
         }
 
-        /// <summary>
-        /// Used by the render pipeline to begin late lacthing mechanism.
-        /// </summary>
-        public static void BeginLateLatching(Camera camera, XRPass xrPass)
-        {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            // Only support late latching for multiview
-            if (s_Display != null && xrPass.viewCount == 2)
-            {
-                s_Display.BeginRecordingIfLateLatched(camera);
-                xrPass.isLateLatchEnabled = true;
-            }
-#endif
-        }
-
-        /// <summary>
-        /// Used by the render pipeline to end late lacthing mechanism.
-        /// </summary>
-        public static void EndLateLatching(Camera camera, XRPass xrPass)
-        {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (s_Display != null && xrPass.isLateLatchEnabled)
-            {
-                s_Display.EndRecordingIfLateLatched(camera);
-                xrPass.isLateLatchEnabled = false;
-            }
-#endif
-        }
-
         // Used by the render pipeline to communicate to the XR device the range of the depth buffer.
         internal static void SetDisplayZRange(float zNear, float zFar)
         {
@@ -285,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 if (CanUseSinglePass(camera, renderPass))
                 {
-                    var xrPass = XRPass.Create(BuildPass(renderPass, cullingParams));
+                    var xrPass = s_PassAllocator(BuildPass(renderPass, cullingParams));
 
                     for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
                     {
@@ -301,7 +288,7 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
 
-                        var xrPass = XRPass.Create(BuildPass(renderPass, cullingParams));
+                        var xrPass = s_PassAllocator(BuildPass(renderPass, cullingParams));
                         xrPass.AddView(BuildView(renderPass, renderParam));
 
                         s_Layout.AddPass(camera, xrPass);
@@ -396,7 +383,8 @@ namespace UnityEngine.Experimental.Rendering
                 occlusionMeshMaterial   = s_OcclusionMeshMaterial,
                 multipassId             = s_Layout.GetActivePasses().Count,
                 cullingPassId           = xrRenderPass.cullingPassIndex,
-                copyDepth               = xrRenderPass.shouldFillOutDepth
+                copyDepth               = xrRenderPass.shouldFillOutDepth,
+                xrSdkRenderPass         = xrRenderPass
             };
 
             return passInfo;

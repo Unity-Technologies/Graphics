@@ -70,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering
             foreach ((Camera _, XRPass xrPass) in m_ActivePasses)
             {
                 if (xrPass != XRSystem.emptyPass)
-                    XRPass.Release(xrPass);
+                    xrPass.Release();
             }
 
             m_ActivePasses.Clear();

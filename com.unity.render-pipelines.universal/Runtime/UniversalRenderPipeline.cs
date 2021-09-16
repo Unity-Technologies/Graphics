@@ -528,7 +528,7 @@ namespace UnityEngine.Rendering.Universal
                     UpdateCameraData(ref baseCameraData, baseCameraData.xr);
 
                     // Initialize late latching
-                    XRSystem.BeginLateLatching(baseCamera, xrPass);
+                    baseCameraData.xrUniversal.BeginLateLatching(baseCamera);
                 }
 #endif
 
@@ -547,7 +547,8 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Late latching is not supported after this point
-                XRSystem.EndLateLatching(baseCamera, xrPass);
+                if (baseCameraData.xr.enabled)
+                    baseCameraData.xrUniversal.EndLateLatching(baseCamera);
 
                 if (isStackedRendering)
                 {

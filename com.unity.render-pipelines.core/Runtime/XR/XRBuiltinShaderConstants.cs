@@ -8,15 +8,15 @@ namespace UnityEngine.Experimental.Rendering
     public static class XRBuiltinShaderConstants
     {
         // References to builtin shader constants
-        static readonly int k_StereoCameraProjection = Shader.PropertyToID("unity_StereoCameraProjection");
-        static readonly int k_StereoCameraInvProjection = Shader.PropertyToID("unity_StereoCameraInvProjection");
-        static readonly int k_StereoMatrixV = Shader.PropertyToID("unity_StereoMatrixV");
-        static readonly int k_StereoMatrixInvV = Shader.PropertyToID("unity_StereoMatrixInvV");
-        static readonly int k_StereoMatrixP = Shader.PropertyToID("unity_StereoMatrixP");
-        static readonly int k_StereoMatrixInvP = Shader.PropertyToID("unity_StereoMatrixInvP");
-        static readonly int k_StereoMatrixVP = Shader.PropertyToID("unity_StereoMatrixVP");
-        static readonly int k_StereoMatrixInvVP = Shader.PropertyToID("unity_StereoMatrixInvVP");
-        static readonly int k_StereoWorldSpaceCameraPos = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
+        static public readonly int unity_StereoCameraProjection = Shader.PropertyToID("unity_StereoCameraProjection");
+        static public readonly int unity_StereoCameraInvProjection = Shader.PropertyToID("unity_StereoCameraInvProjection");
+        static public readonly int unity_StereoMatrixV = Shader.PropertyToID("unity_StereoMatrixV");
+        static public readonly int unity_StereoMatrixInvV = Shader.PropertyToID("unity_StereoMatrixInvV");
+        static public readonly int unity_StereoMatrixP = Shader.PropertyToID("unity_StereoMatrixP");
+        static public readonly int unity_StereoMatrixInvP = Shader.PropertyToID("unity_StereoMatrixInvP");
+        static public readonly int unity_StereoMatrixVP = Shader.PropertyToID("unity_StereoMatrixVP");
+        static public readonly int unity_StereoMatrixInvVP = Shader.PropertyToID("unity_StereoMatrixInvVP");
+        static public readonly int unity_StereoWorldSpaceCameraPos = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
 
         // Pre-allocate arrays to avoid GC
         static Matrix4x4[] s_cameraProjMatrix = new Matrix4x4[2];
@@ -59,57 +59,16 @@ namespace UnityEngine.Experimental.Rendering
                         s_worldSpaceCameraPos[viewIndex]  = s_invViewMatrix[viewIndex].GetColumn(3);
                     }
 
-                    cmd.SetGlobalMatrixArray(k_StereoCameraProjection, s_cameraProjMatrix);
-                    cmd.SetGlobalMatrixArray(k_StereoCameraInvProjection, s_invCameraProjMatrix);
-                    cmd.SetGlobalMatrixArray(k_StereoMatrixV, s_viewMatrix);
-                    cmd.SetGlobalMatrixArray(k_StereoMatrixInvV, s_invViewMatrix);
-                    cmd.SetGlobalMatrixArray(k_StereoMatrixP, s_projMatrix);
-                    cmd.SetGlobalMatrixArray(k_StereoMatrixInvP, s_invProjMatrix);
-                    cmd.SetGlobalMatrixArray(k_StereoMatrixVP, s_viewProjMatrix);
-                    cmd.SetGlobalMatrixArray(k_StereoMatrixInvVP, s_invViewProjMatrix);
-                    cmd.SetGlobalVectorArray(k_StereoWorldSpaceCameraPos, s_worldSpaceCameraPos);
+                    cmd.SetGlobalMatrixArray(unity_StereoCameraProjection, s_cameraProjMatrix);
+                    cmd.SetGlobalMatrixArray(unity_StereoCameraInvProjection, s_invCameraProjMatrix);
+                    cmd.SetGlobalMatrixArray(unity_StereoMatrixV, s_viewMatrix);
+                    cmd.SetGlobalMatrixArray(unity_StereoMatrixInvV, s_invViewMatrix);
+                    cmd.SetGlobalMatrixArray(unity_StereoMatrixP, s_projMatrix);
+                    cmd.SetGlobalMatrixArray(unity_StereoMatrixInvP, s_invProjMatrix);
+                    cmd.SetGlobalMatrixArray(unity_StereoMatrixVP, s_viewProjMatrix);
+                    cmd.SetGlobalMatrixArray(unity_StereoMatrixInvVP, s_invViewProjMatrix);
+                    cmd.SetGlobalVectorArray(unity_StereoWorldSpaceCameraPos, s_worldSpaceCameraPos);
                 }
-
-                MarkLateLatchShaderProperties(xrPass, cmd);
-            }
-#endif
-        }
-
-        /// <summary>
-        /// Used by the render pipeline to mark shader properties for late latching.
-        /// </summary>
-        /// <param name="xrPass"></param>
-        /// <param name="cmd"></param>
-        public static void MarkLateLatchShaderProperties(XRPass xrPass, CommandBuffer cmd)
-        {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (xrPass.enabled && xrPass.canMarkLateLatch)
-            {
-                cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.View, k_StereoMatrixV);
-                cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.InverseView, k_StereoMatrixInvV);
-                cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.ViewProjection, k_StereoMatrixVP);
-                cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.InverseViewProjection, k_StereoMatrixInvVP);
-                cmd.SetLateLatchProjectionMatrices(s_projMatrix);
-                xrPass.hasMarkedLateLatch = true;
-            }
-#endif
-        }
-
-        /// <summary>
-        /// Used by the render pipeline to unmark shader properties for late latching.
-        /// </summary>
-        /// <param name="xrPass"></param>
-        /// <param name="cmd"></param>
-        public static void UnmarkLateLatchShaderProperties(XRPass xrPass, CommandBuffer cmd)
-        {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (xrPass.enabled && xrPass.hasMarkedLateLatch)
-            {
-                cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.View);
-                cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.InverseView);
-                cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.ViewProjection);
-                cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.InverseViewProjection);
-                xrPass.hasMarkedLateLatch = false;
             }
 #endif
         }
