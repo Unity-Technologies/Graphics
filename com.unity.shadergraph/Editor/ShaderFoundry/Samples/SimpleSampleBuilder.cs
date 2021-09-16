@@ -7,7 +7,13 @@ namespace UnityEditor.ShaderFoundry
 {
     internal static class SimpleSampleBuilder
     {
-        internal delegate void BuildCallback(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointDescriptor vertexCPDesc, out CustomizationPointDescriptor surfaceCPDesc);  
+        internal delegate void BuildCallback(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointDescriptor vertexCPDesc, out CustomizationPointDescriptor surfaceCPDesc);
+
+        internal static void Build(ShaderContainer container, string shaderName, BuildCallback buildCallback, ShaderBuilder shaderBuilder)
+        {
+            var target = GetTarget();
+            Build(container, target, shaderName, buildCallback, shaderBuilder);
+        }
 
         internal static void Build(ShaderContainer container, Target target, string shaderName, BuildCallback buildCallback, ShaderBuilder shaderBuilder)
         {

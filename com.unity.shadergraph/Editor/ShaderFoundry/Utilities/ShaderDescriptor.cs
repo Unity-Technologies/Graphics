@@ -11,6 +11,8 @@ namespace UnityEditor.ShaderFoundry
         public string Name => m_Name;
         public IEnumerable<TemplateDescriptor> TemplateDescriptors => m_TemplateDescriptors;
         public string FallbackShader => m_FallbackShader;
+        public bool IsValid => !string.IsNullOrEmpty(m_Name);
+        public static ShaderDescriptor Invalid => new ShaderDescriptor(null, null, null);
 
         internal ShaderDescriptor(string name, List<TemplateDescriptor> templateDescriptors, string fallbackShader)
         {
