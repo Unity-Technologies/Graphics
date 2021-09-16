@@ -39,7 +39,7 @@ For detailed steps on how to create custom clouds in your scene, see [creating c
 
 HDRP 12.0 includes a new Lens Flare system. You can attach a Lens Flare (SRP) component to any GameObject.
 
-Some Lens Flare properties only appear when you attach a Lens Flare (SRP) component to a light. Each Lens Flare has optional multiple elements that you can control individually. HDRP also provides a [new lens flare asset](lens-flare-data-driven-asset.md) and a [new lens flare component](lens-flare-data-driven-component.md) that you can attach to any GameObject.
+Some Lens Flare properties only appear when you attach a Lens Flare (SRP) component to a light. Each Lens Flare has optional multiple elements that you can control individually. HDRP also provides a [new lens flare asset](shared/lens-flare/lens-flare-asset.md) and a [new lens flare component](shared/lens-flare/lens-flare-component.md) that you can attach to any GameObject.
 
 ### Light Anchor
 
