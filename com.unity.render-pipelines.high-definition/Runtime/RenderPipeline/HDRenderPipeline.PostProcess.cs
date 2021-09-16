@@ -4812,6 +4812,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
                 passData.alphaTexture = builder.ReadTexture(alphaTexture);
                 passData.destination = builder.WriteTexture(finalRT);
+                passData.uiBuffer = builder.ReadTexture(uiBuffer);
 
                 builder.SetRenderFunc(
                     (FinalPassData data, RenderGraphContext ctx) =>
@@ -4900,15 +4901,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             finalPassMaterial.DisableKeyword("ENABLE_ALPHA");
 
-                        //if (TEST_HDR())
-                        //{
-                        //    finalPassMaterial.EnableKeyword("HDR_OUTPUT");
-                        //}
-                        //else
-                        //{
-                        //    finalPassMaterial.DisableKeyword("HDR_OUTPUT");
-                        //}
-                        finalPassMaterial.SetTexture(HDShaderIDs._UITexture, uiBuffer);
+                        if (TEST_HDR())
+                        {
+                            finalPassMaterial.EnableKeyword("HDR_OUTPUT");
+                        }
+                        else
+                        {
+                            finalPassMaterial.DisableKeyword("HDR_OUTPUT");
+                        }
+                        finalPassMaterial.SetTexture(HDShaderIDs._UITexture, data.uiBuffer);
 
                         finalPassMaterial.SetVector(HDShaderIDs._UVTransform,
                             data.flipY

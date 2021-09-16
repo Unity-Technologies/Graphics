@@ -839,8 +839,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<RenderOffscreenUIData>("UI Rendering", out var passData, ProfilingSampler.Get(HDProfileId.OffscreenUIRendering)))
                 {
-                    builder.AllowPassCulling(false);
-
                     output = builder.UseColorBuffer(CreateOffscreenUIBuffer(renderGraph, hdCamera.msaaSamples), 0);
                     builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
@@ -851,8 +849,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     builder.SetRenderFunc((RenderOffscreenUIData data, RenderGraphContext context) =>
                     {
-                        // For V1 we only render screen space overlays offscreen. MAKE IT AN OPTION LATER?
-                        //  RenderForwardRendererList(data.frameSettings, data.rendererList, false, context.renderContext, context.cmd);
+                        // Do we want only overlays? If not do we want to disable TAA for this? How do we do?
+                        // How do we handle exposure etc? For now disabled. But it works as a concept.
+                        //RenderForwardRendererList(data.frameSettings, data.rendererList, false, context.renderContext, context.cmd);
                         context.renderContext.ExecuteCommandBuffer(context.cmd);
                         context.cmd.Clear();
                         context.renderContext.DrawUIOverlay(data.camera);

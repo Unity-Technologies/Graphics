@@ -160,7 +160,7 @@ Shader "Hidden/HDRP/FinalPass"
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
             #endif
 
-#if 1
+#if HDR_OUTPUT
             float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
             outColor = uiValue.rgb + outColor * (1.0f - uiValue.a);
 #endif
