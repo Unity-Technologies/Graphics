@@ -195,6 +195,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.shadowContext    = InitShadowContext();
     context.shadowValue      = 1;
     context.sampleReflection = 0;
+    context.splineVisibility = -1;
 
     // With XR single-pass and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
     // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
@@ -230,11 +231,18 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     float3 positionWS = posInput.positionWS;
 
 #ifdef LIGHT_EVALUATION_SPLINE_SHADOW_BIAS
-                    positionWS += GetNormalForShadowBiasSpline(bsdfData, L);
+                    positionWS += L * GetSplineOffsetForShadowBias(bsdfData);
 #endif
                     context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
                                                                           posInput.positionSS, positionWS, GetNormalForShadowBias(bsdfData),
                                                                           light.shadowIndex, L);
+
+#ifdef LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
+                    // Tap the shadow a second time for strand visibility term.
+                    context.splineVisibility = GetDirectionalShadowAttenuation(context.shadowContext,
+                                                                               posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
+                                                                               light.shadowIndex, L);
+#endif
                 }
             }
         }

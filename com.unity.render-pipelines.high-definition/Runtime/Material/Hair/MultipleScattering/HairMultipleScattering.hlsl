@@ -31,6 +31,13 @@ float DecodeHairStrandCount(float3 L, float4 strandCountProbe)
     return dot(strandCountProbe, Ylm);
 }
 
+float GetDirectFraction(BSDFData bsdfData, float strandCount)
+{
+    // Defer to the higher quality spline visibility for this light, if any.
+    // Otherwise fall back to the coarse approximation from the spherical harmonic.
+    return bsdfData.splineVisibility > -1 ? bsdfData.splineVisibility : 1 - saturate(strandCount);
+}
+
 // TODO: Currently the dual scattering approximation is assuming to be used for hair fibers, but it can be used for other
 // fiber materials (ie Fabric). It would be good to eventually generalize this and move it out of hair material evaluation.
 HairScatteringData GetHairScatteringData(BSDFData bsdfData, float3 alpha, float3 beta, float sinThetaI)
@@ -97,8 +104,6 @@ float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3
     // Fetch the various preintegrated data.
     HairScatteringData hairScatteringData = GetHairScatteringData(bsdfData, alpha, beta, sinThetaI);
 
-    beta = clamp(0.2, 0.4, beta);
-
     // Solve for multiple scattering in a volume of hair fibers with concepts from:
     // "Dual Scattering Approximation for Fast Multiple Scattering in Hair" (Zinke et. al)
     // "Efficient Implementation of the Dual Scattering Model in RenderMan" (Sadeghi et. al)
@@ -129,7 +134,7 @@ float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3
     // Approximate the accumulated variance, by assuming strands all have the same average roughness and inclination. ( Eq. 7 Disney )
     float3 sigmaF = Bf2 * n;
 
-    const float directFraction = 1 - saturate(n);
+    const float directFraction = GetDirectFraction(bsdfData, n);
     Tf     = lerp(Tf,     1, directFraction);
     sigmaF = lerp(sigmaF, 0, directFraction);
 

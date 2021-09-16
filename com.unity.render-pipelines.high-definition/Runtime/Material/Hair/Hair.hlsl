@@ -84,10 +84,10 @@ float3 GetNormalForShadowBias(BSDFData bsdfData)
     return bsdfData.geomNormalWS;
 }
 
-float3 GetNormalForShadowBiasSpline(BSDFData bsdfData, float3 L)
+float GetSplineOffsetForShadowBias(BSDFData bsdfData)
 {
     // TODO: Can strand count be useful here? (Would require decoding for the light twice).
-    return L * bsdfData.strandShadowBias;
+    return bsdfData.strandShadowBias;
 }
 
 float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
@@ -258,6 +258,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     #if _USE_ADVANCED_MULTIPLE_SCATTERING
         bsdfData.strandCountProbe = surfaceData.strandCountProbe;
         bsdfData.strandShadowBias = surfaceData.strandShadowBias;
+        bsdfData.splineVisibility = -1;
     #endif
     }
 
@@ -717,8 +718,14 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 #define MATERIAL_INCLUDE_PRECOMPUTED_TRANSMISSION
 
 #if _USE_ADVANCED_MULTIPLE_SCATTERING
+// Disable the contact shadow in case of multiple scattering.
+#define LIGHT_EVALUATION_NO_CONTACT_SHADOWS
+
 // Hair requires shadow biasing toward light for splines while in advanced scattering mode.
 #define LIGHT_EVALUATION_SPLINE_SHADOW_BIAS
+
+// Secondary shadow tap that can provide a higher quality occlusion information for the multiple scattering.
+#define LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"

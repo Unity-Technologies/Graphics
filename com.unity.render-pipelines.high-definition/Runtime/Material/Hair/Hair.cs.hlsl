@@ -74,6 +74,7 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_RADIAL (1483)
 #define DEBUGVIEW_HAIR_BSDFDATA_STRAND_COUNT_PROBE (1484)
 #define DEBUGVIEW_HAIR_BSDFDATA_STRAND_SHADOW_BIAS (1485)
+#define DEBUGVIEW_HAIR_BSDFDATA_SPLINE_VISIBILITY (1486)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Hair+SurfaceData
 // PackingRules = Exact
@@ -138,6 +139,7 @@ struct BSDFData
     float roughnessRadial;
     float4 strandCountProbe;
     float strandShadowBias;
+    float splineVisibility;
 };
 
 //
@@ -331,6 +333,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_STRAND_SHADOW_BIAS:
             result = bsdfdata.strandShadowBias.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_SPLINE_VISIBILITY:
+            result = bsdfdata.splineVisibility.xxx;
             break;
     }
 }

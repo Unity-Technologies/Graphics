@@ -154,6 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Global Scattering
             public Vector4 strandCountProbe;
             public float strandShadowBias;
+            public float splineVisibility;
         };
 
 
