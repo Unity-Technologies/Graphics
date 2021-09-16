@@ -64,7 +64,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
     float depth = LoadCameraDepth(input.positionSS.xy);
 #if (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) && UNITY_REVERSED_Z
-    // There seems to be some issue with depth derivatives (use in the context of Emissive for lit shader to select mips correctly)
+    // There seems to be some issue with depth derivatives (use in the context of Emissive for lit shader to select mips correctly (see DecalData.hlsl)
     // that required clamping the device depth to a small but larger-than-0 value in shader, which was showing artifacts in sphere silhouette against sky background
     depth = max(0.0001f, depth);
 #endif
