@@ -263,6 +263,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     #if _USE_ADVANCED_MULTIPLE_SCATTERING
         bsdfData.strandCountProbe = surfaceData.strandCountProbe;
+        bsdfData.strandShadowBias = surfaceData.strandShadowBias;
     #endif
     }
 

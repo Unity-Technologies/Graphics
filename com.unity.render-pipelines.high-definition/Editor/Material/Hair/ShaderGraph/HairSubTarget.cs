@@ -114,8 +114,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Right now, the Marschner model implicitly assumes a human hair IOR of 1.55.
 
                 // Dual Scattering Inputs (Global Scattering)
-                // Right now these inputs are provided by the demo team hair package.
                 context.AddBlock(HDBlockFields.SurfaceDescription.StrandCountProbe, useAdvancedMultipleScattering);
+                context.AddBlock(HDBlockFields.SurfaceDescription.StrandShadowBias, useAdvancedMultipleScattering);
             }
         }
 
