@@ -608,7 +608,7 @@ namespace UnityEngine.Rendering.Universal
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
-            bool drawGizmos = DebugDisplaySettings.Instance.RenderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None;
+            bool drawGizmos = DebugDisplaySettings.Instance.renderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None;
 
             m_IsPipelineExecuting = true;
             ref CameraData cameraData = ref renderingData.cameraData;

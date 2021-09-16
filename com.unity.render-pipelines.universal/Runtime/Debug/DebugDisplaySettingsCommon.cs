@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel()
             {
-                var materialSettingsData = DebugDisplaySettings.Instance.MaterialSettings;
+                var materialSettingsData = DebugDisplaySettings.Instance.materialSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Filters",
@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                var lightingSettingsData = DebugDisplaySettings.Instance.LightingSettings;
+                var lightingSettingsData = DebugDisplaySettings.Instance.lightingSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Lighting Debug Modes",
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                var renderingSettingsData = DebugDisplaySettings.Instance.RenderingSettings;
+                var renderingSettingsData = DebugDisplaySettings.Instance.renderingSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Rendering Debug",

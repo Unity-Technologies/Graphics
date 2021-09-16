@@ -57,9 +57,9 @@ namespace UnityEngine.Rendering.Universal
 
         readonly DebugDisplaySettings m_DebugDisplaySettings;
 
-        DebugDisplaySettingsLighting LightingSettings => m_DebugDisplaySettings.LightingSettings;
-        DebugDisplaySettingsMaterial MaterialSettings => m_DebugDisplaySettings.MaterialSettings;
-        DebugDisplaySettingsRendering RenderingSettings => m_DebugDisplaySettings.RenderingSettings;
+        DebugDisplaySettingsLighting LightingSettings => m_DebugDisplaySettings.lightingSettings;
+        DebugDisplaySettingsMaterial MaterialSettings => m_DebugDisplaySettings.materialSettings;
+        DebugDisplaySettingsRendering RenderingSettings => m_DebugDisplaySettings.renderingSettings;
 
         #region IDebugDisplaySettingsQuery
 
@@ -69,12 +69,12 @@ namespace UnityEngine.Rendering.Universal
 
         // These modes would require putting custom data into gbuffer, so instead we just disable deferred mode.
         internal bool IsActiveModeUnsupportedForDeferred =>
-            m_DebugDisplaySettings.LightingSettings.lightingDebugMode != DebugLightingMode.None ||
-            m_DebugDisplaySettings.LightingSettings.lightingFeatureFlags != DebugLightingFeatureFlags.None ||
-            m_DebugDisplaySettings.RenderingSettings.sceneOverrideMode != DebugSceneOverrideMode.None ||
-            m_DebugDisplaySettings.MaterialSettings.materialDebugMode != DebugMaterialMode.None ||
-            m_DebugDisplaySettings.MaterialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None ||
-            m_DebugDisplaySettings.MaterialSettings.materialValidationMode != DebugMaterialValidationMode.None;
+            m_DebugDisplaySettings.lightingSettings.lightingDebugMode != DebugLightingMode.None ||
+            m_DebugDisplaySettings.lightingSettings.lightingFeatureFlags != DebugLightingFeatureFlags.None ||
+            m_DebugDisplaySettings.renderingSettings.sceneOverrideMode != DebugSceneOverrideMode.None ||
+            m_DebugDisplaySettings.materialSettings.materialDebugMode != DebugMaterialMode.None ||
+            m_DebugDisplaySettings.materialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None ||
+            m_DebugDisplaySettings.materialSettings.materialValidationMode != DebugMaterialValidationMode.None;
 
         public bool TryGetScreenClearColor(ref Color color)
         {
@@ -236,7 +236,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalInteger(k_DebugRenderTargetSupportsStereo, m_DebugRenderTargetSupportsStereo ? 1 : 0);
             }
 
-            var renderingSettings = m_DebugDisplaySettings.RenderingSettings;
+            var renderingSettings = m_DebugDisplaySettings.renderingSettings;
             if (renderingSettings.validationMode == DebugValidationMode.HighlightOutsideOfRange)
             {
                 cmd.SetGlobalInteger(k_ValidationChannelsId, (int)renderingSettings.validationChannels);
@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering.Universal
 
                 public Enumerator(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer)
                 {
-                    DebugSceneOverrideMode sceneOverrideMode = debugHandler.DebugDisplaySettings.RenderingSettings.sceneOverrideMode;
+                    DebugSceneOverrideMode sceneOverrideMode = debugHandler.DebugDisplaySettings.renderingSettings.sceneOverrideMode;
 
                     m_DebugHandler = debugHandler;
                     m_Context = context;

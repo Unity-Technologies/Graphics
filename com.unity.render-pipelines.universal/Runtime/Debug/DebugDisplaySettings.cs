@@ -15,45 +15,45 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public static DebugDisplaySettings Instance => s_Instance.Value;
 
-        DebugDisplaySettingsCommon CommonSettings { get; set; }
+        DebugDisplaySettingsCommon commonSettings { get; set; }
 
         /// <summary>
         /// Material-related Rendering Debugger settings.
         /// </summary>
-        public DebugDisplaySettingsMaterial MaterialSettings { get; private set; }
+        public DebugDisplaySettingsMaterial materialSettings { get; private set; }
 
         /// <summary>
         /// Rendering-related Rendering Debugger settings.
         /// </summary>
-        public DebugDisplaySettingsRendering RenderingSettings { get; private set; }
+        public DebugDisplaySettingsRendering renderingSettings { get; private set; }
 
         /// <summary>
         /// Lighting-related Rendering Debugger settings.
         /// </summary>
-        public DebugDisplaySettingsLighting LightingSettings { get; private set; }
+        public DebugDisplaySettingsLighting lightingSettings { get; private set; }
 
         #region IDebugDisplaySettingsQuery
 
         /// <summary>
         /// Returns true if any of the debug settings are currently active.
         /// </summary>
-        public bool AreAnySettingsActive => MaterialSettings.AreAnySettingsActive ||
-        LightingSettings.AreAnySettingsActive ||
-        RenderingSettings.AreAnySettingsActive;
+        public bool AreAnySettingsActive => materialSettings.AreAnySettingsActive ||
+        lightingSettings.AreAnySettingsActive ||
+        renderingSettings.AreAnySettingsActive;
 
         public bool TryGetScreenClearColor(ref Color color)
         {
-            return MaterialSettings.TryGetScreenClearColor(ref color) ||
-                RenderingSettings.TryGetScreenClearColor(ref color) ||
-                LightingSettings.TryGetScreenClearColor(ref color);
+            return materialSettings.TryGetScreenClearColor(ref color) ||
+                renderingSettings.TryGetScreenClearColor(ref color) ||
+                lightingSettings.TryGetScreenClearColor(ref color);
         }
 
         /// <summary>
         /// Returns true if lighting is active for current state of debug settings.
         /// </summary>
-        public bool IsLightingActive => MaterialSettings.IsLightingActive &&
-        RenderingSettings.IsLightingActive &&
-        LightingSettings.IsLightingActive;
+        public bool IsLightingActive => materialSettings.IsLightingActive &&
+        renderingSettings.IsLightingActive &&
+        lightingSettings.IsLightingActive;
 
         /// <summary>
         /// Returns true if the current state of debug settings allows post-processing.
@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                DebugPostProcessingMode debugPostProcessingMode = RenderingSettings.postProcessingDebugMode;
+                DebugPostProcessingMode debugPostProcessingMode = renderingSettings.postProcessingDebugMode;
 
                 switch (debugPostProcessingMode)
                 {
@@ -74,9 +74,9 @@ namespace UnityEngine.Rendering.Universal
                     case DebugPostProcessingMode.Auto:
                     {
                         // Only enable post-processing if we aren't using certain debug-views...
-                        return MaterialSettings.IsPostProcessingAllowed &&
-                            RenderingSettings.IsPostProcessingAllowed &&
-                            LightingSettings.IsPostProcessingAllowed;
+                        return materialSettings.IsPostProcessingAllowed &&
+                            renderingSettings.IsPostProcessingAllowed &&
+                            lightingSettings.IsPostProcessingAllowed;
                     }
 
                     case DebugPostProcessingMode.Enabled:
@@ -111,10 +111,10 @@ namespace UnityEngine.Rendering.Universal
         {
             m_Settings.Clear();
 
-            CommonSettings = Add(new DebugDisplaySettingsCommon());
-            MaterialSettings = Add(new DebugDisplaySettingsMaterial());
-            LightingSettings = Add(new DebugDisplaySettingsLighting());
-            RenderingSettings = Add(new DebugDisplaySettingsRendering());
+            commonSettings = Add(new DebugDisplaySettingsCommon());
+            materialSettings = Add(new DebugDisplaySettingsMaterial());
+            lightingSettings = Add(new DebugDisplaySettingsLighting());
+            renderingSettings = Add(new DebugDisplaySettingsRendering());
         }
 
         internal void ForEach(Action<IDebugDisplaySettingsData> onExecute)
