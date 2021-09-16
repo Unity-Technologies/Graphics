@@ -154,7 +154,7 @@ namespace UnityEditor.VFX.UI
         void DisconnectController()
         {
             if (controller.model && controller.graph)
-                controller.graph.SetCompilationMode(VFXCompilationMode.Runtime);
+                controller.graph.SetCompilationMode(VFXViewPreference.forceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
 
 
             m_Controller.UnregisterHandler(this);
@@ -582,8 +582,8 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<KeyDownEvent>(OnKeyDownEvent);
 
             graphViewChanged = VFXGraphViewChanged;
-
             elementResized = VFXElementResized;
+            canPasteSerializedData = VFXCanPaste;
 
             viewDataKey = "VFXView";
 
@@ -1562,7 +1562,10 @@ namespace UnityEditor.VFX.UI
             foreach (var graph in graphToSave)
             {
                 if (EditorUtility.IsDirty(graph) || UnityEngine.Object.ReferenceEquals(graph, controller.graph))
+                {
+                    graph.UpdateSubAssets();
                     graph.GetResource().WriteAsset();
+                }
             }
         }
 
@@ -2134,6 +2137,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        private bool VFXCanPaste(string data)
+        {
+            return VFXPaste.CanPaste(this, data);
+        }
+
         public void UnserializeAndPasteElements(string operationName, string data)
         {
             Profiler.BeginSample("VFXPaste.VFXPaste.UnserializeAndPasteElements");
@@ -2399,6 +2407,16 @@ namespace UnityEditor.VFX.UI
             {
                 evt.menu.AppendSeparator();
                 evt.menu.AppendAction("Duplicate %d", OnDuplicateBlackBoardCategory, e => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+            }
+
+            if (evt.target is GraphView || evt.target is Node)
+            {
+                var copyMenu = evt.menu.MenuItems().OfType<DropdownMenuAction>().SingleOrDefault(x => x.name == "Copy");
+                if (copyMenu != null)
+                {
+                    var index = evt.menu.MenuItems().IndexOf(copyMenu);
+                    evt.menu.InsertAction(index + 1, "Paste", (a) => { PasteCallback(); }, (a) => { return canPaste ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
+                }
             }
         }
 
