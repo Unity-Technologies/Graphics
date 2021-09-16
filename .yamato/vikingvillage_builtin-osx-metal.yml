@@ -60,9 +60,6 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_runtime_mono_Linear_trunk:
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf
                 exit $UTR_RESULT
-    after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -123,9 +120,6 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_editor_mono_Linear_trunk:
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf
                 exit $UTR_RESULT
-    after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -186,9 +180,6 @@ VikingVillage_BuiltIn_OSX_Metal_performance_build_editmode_mono_Linear_trunk:
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf
                 exit $UTR_RESULT
-    after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -249,9 +240,6 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf
                 exit $UTR_RESULT
-    after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -312,9 +300,6 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-R
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf
                 exit $UTR_RESULT
-    after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -375,9 +360,6 @@ VikingVillage_BuiltIn_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-RE
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf
                 exit $UTR_RESULT
-    after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
