@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the emissive being overriden by ray traced sub-surface scattering (case 1364456).
 - Fixed support of directional light coloring from physical sky in path tracing.
 - Fixed disabled menu item for volume additional properties.
+- Fixed Shader advanced options for lit shaders.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
