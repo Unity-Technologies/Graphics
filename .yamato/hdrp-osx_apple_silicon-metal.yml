@@ -22,6 +22,8 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -52,6 +54,8 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -82,6 +86,8 @@ HDRP_OSX_Apple_Silicon_Metal_editmode_XR_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -112,6 +118,8 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
@@ -140,6 +148,8 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -173,6 +183,8 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
@@ -201,6 +213,8 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -234,6 +248,8 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -264,6 +280,8 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -294,6 +312,8 @@ HDRP_OSX_Apple_Silicon_Metal_editmode_XR_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -324,6 +344,8 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
@@ -352,6 +374,8 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -385,6 +409,8 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
@@ -413,6 +439,8 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
