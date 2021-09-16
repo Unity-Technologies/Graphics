@@ -99,15 +99,15 @@ namespace UnityEngine.Rendering.Universal
                     || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f);
 
-                m_CreateDepthTexture = !cameraData.resolveFinalTarget && m_UseDepthStencilBuffer;
+                m_CreateDepthTexture = (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer) || createColorTexture;
 
                 colorTargetHandle = m_CreateColorTexture ? k_ColorTextureHandle : RenderTargetHandle.CameraTarget;
-                depthTargetHandle = m_CreateDepthTexture ? k_DepthTextureHandle : colorTargetHandle;
+                depthTargetHandle = m_CreateDepthTexture ? k_DepthTextureHandle : RenderTargetHandle.CameraTarget;
 
                 if (m_CreateColorTexture)
                 {
                     var colorDescriptor = cameraTargetDescriptor;
-                    colorDescriptor.depthBufferBits = m_CreateDepthTexture || !m_UseDepthStencilBuffer ? 0 : 32;
+                    colorDescriptor.depthBufferBits = 0;
                     cmd.GetTemporaryRT(k_ColorTextureHandle.id, colorDescriptor, colorTextureFilterMode);
                 }
 
@@ -116,7 +116,8 @@ namespace UnityEngine.Rendering.Universal
                     var depthDescriptor = cameraTargetDescriptor;
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                     depthDescriptor.depthBufferBits = 32;
-                    depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
+                    if (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer)
+                        depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
                     cmd.GetTemporaryRT(k_DepthTextureHandle.id, depthDescriptor, FilterMode.Point);
                 }
             }
