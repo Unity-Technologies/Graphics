@@ -11,8 +11,9 @@
 VFX_URP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
     name: VFX_URP on OSX_Apple_Silicon_Metal_Standalone_mono_Linear on version trunk
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -71,8 +72,9 @@ Build_VFX_URP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
 VFX_URP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_trunk:
     name: VFX_URP on OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear on version trunk
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -131,8 +133,9 @@ Build_VFX_URP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_tr
 VFX_URP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
     name: VFX_URP on OSX_Apple_Silicon_Metal_playmode_mono_Linear on version trunk
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -160,8 +163,9 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
 VFX_URP_OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear_trunk:
     name: VFX_URP on OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear on version trunk
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -189,8 +193,9 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear_trunk:
 VFX_URP_OSX_Apple_Silicon_Metal_editmode_mono_Linear_trunk:
     name: VFX_URP on OSX_Apple_Silicon_Metal_editmode_mono_Linear on version trunk
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -218,8 +223,9 @@ VFX_URP_OSX_Apple_Silicon_Metal_editmode_mono_Linear_trunk:
 VFX_URP_OSX_Apple_Silicon_Metal_editmode_PerformanceTests_mono_Linear_trunk:
     name: VFX_URP on OSX_Apple_Silicon_Metal_editmode_PerformanceTests_mono_Linear on version trunk
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -247,8 +253,9 @@ VFX_URP_OSX_Apple_Silicon_Metal_editmode_PerformanceTests_mono_Linear_trunk:
 VFX_URP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Apple_Silicon_Metal_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -307,8 +314,9 @@ Build_VFX_URP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
 VFX_URP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -367,8 +375,9 @@ Build_VFX_URP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_CU
 VFX_URP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Apple_Silicon_Metal_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -396,8 +405,9 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
 VFX_URP_OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -425,8 +435,9 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear_CUSTOM-REV
 VFX_URP_OSX_Apple_Silicon_Metal_editmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Apple_Silicon_Metal_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -454,8 +465,9 @@ VFX_URP_OSX_Apple_Silicon_Metal_editmode_mono_Linear_CUSTOM-REVISION:
 VFX_URP_OSX_Apple_Silicon_Metal_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Apple_Silicon_Metal_editmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates

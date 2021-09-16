@@ -11,8 +11,9 @@
 HDRP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
     name: HDRP on OSX_Apple_Silicon_Metal_playmode_mono_Linear on version trunk
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -40,8 +41,9 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
 HDRP_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_trunk:
     name: HDRP on OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear on version trunk
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -69,8 +71,9 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_trunk:
 HDRP_OSX_Apple_Silicon_Metal_editmode_XR_mono_Linear_trunk:
     name: HDRP on OSX_Apple_Silicon_Metal_editmode_XR_mono_Linear on version trunk
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -98,8 +101,9 @@ HDRP_OSX_Apple_Silicon_Metal_editmode_XR_mono_Linear_trunk:
 HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
     name: HDRP on OSX_Apple_Silicon_Metal_Standalone_mono_Linear on version trunk
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -158,8 +162,9 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
 HDRP_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_trunk:
     name: HDRP on OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear on version trunk
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -218,8 +223,9 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_trunk:
 HDRP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on OSX_Apple_Silicon_Metal_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -247,8 +253,9 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
 HDRP_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
     name: HDRP on OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -276,8 +283,9 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
 HDRP_OSX_Apple_Silicon_Metal_editmode_XR_mono_Linear_CUSTOM-REVISION:
     name: HDRP on OSX_Apple_Silicon_Metal_editmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -305,8 +313,9 @@ HDRP_OSX_Apple_Silicon_Metal_editmode_XR_mono_Linear_CUSTOM-REVISION:
 HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     name: HDRP on OSX_Apple_Silicon_Metal_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -365,8 +374,9 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
 HDRP_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_CUSTOM-REVISION:
     name: HDRP on OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates

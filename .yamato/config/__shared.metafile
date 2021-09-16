@@ -347,8 +347,9 @@ platforms:
       - il2cpp
     agents_project_Metal:
       default:
-        type: Unity::metal::devkit
+        type: Unity::metal::macmini
         image: slough-ops/macos-10.15-base:stable
+        model: M1
         flavor: m1.mac
       standalone_build:
         type: Unity::VM::osx
