@@ -630,10 +630,9 @@ namespace UnityEngine.Experimental.Rendering
             {
                 UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.OnSceneSaved;
             }
+            AdditionalGIBakeRequestsManager.instance.Init();
 #endif
             m_EnabledBySRP = true;
-
-            AdditionalGIBakeRequestsManager.instance.Init();
         }
 
         /// <summary>
@@ -663,7 +662,9 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (!m_ProbeReferenceVolumeInit) return;
 
+#if UNITY_EDITOR
             AdditionalGIBakeRequestsManager.instance.Cleanup();
+#endif
 
             if (!m_IsInitialized)
             {
