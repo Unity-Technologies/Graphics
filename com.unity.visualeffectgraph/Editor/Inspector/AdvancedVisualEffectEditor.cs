@@ -766,7 +766,7 @@ namespace UnityEditor.VFX
             if (EditorWindow.HasOpenInstances<VFXViewWindow>())
             {
                 VFXViewWindow window = EditorWindow.GetWindowDontShow<VFXViewWindow>();
-                window.graphView.DetachIfDeleted();
+                window.graphView?.DetachIfDeleted();
             }
         }
     }
