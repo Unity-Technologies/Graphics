@@ -249,8 +249,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.roughnessRadial = PerceptualSmoothnessToRoughness(surfaceData.perceptualRadialSmoothness);
     #else
         // Need to provide some sensible default in case of no roughened azimuthal scattering, since currently our
-        // absorption is dependent on it.
-        bsdfData.roughnessRadial = 0.3;
+        // absorption is dependent on it. 0.3 is generally a good default for hair, but 0.8 seems to get us closer
+        // to an absorption that better matches the Kajiya diffuse component.
+        bsdfData.roughnessRadial = 0.8;
     #endif
 
         // Absorption
@@ -518,7 +519,7 @@ void GetMarschnerAngle(float3 T, float3 V, float3 L,
     // Projection onto the normal plane, and since phi is the relative angle, we take the cosine in this projection.
     float3 LProj = L - sinThetaI * T;
     float3 VProj = V - sinThetaR * T;
-    cosPhi = dot(LProj, VProj) * rsqrt(dot(LProj, LProj) * dot(VProj, VProj) + 0.0001); // Small epsilon to combat potential nans
+    cosPhi = dot(LProj, VProj) * rsqrt(dot(LProj, LProj) * dot(VProj, VProj) + 0.0001); // zero-div guard
 }
 
 CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
@@ -633,6 +634,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         }
 
         // Solve the first three lobes (R, TT, TRT).
+        // TODO: Residual TRRT+ Lobe. (accounts for ~15% energy otherwise lost by the first three lobes).
 
         // R
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R))
@@ -668,13 +670,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // TRT
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT))
         {
-            // TODO: Move this out of the BSDF evaluation.
-        #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
             // This lobe's distribution is determined by Frostbite's improvement over Karis' TRT approximation (maintaining Azimuthal Roughness).
-            float scaleFactor = saturate(1.5 * (1 - bsdfData.roughnessRadial));
-        #else
-            float scaleFactor = 1;
-        #endif
+            const float scaleFactor = saturate(1.5 * (1 - bsdfData.roughnessRadial));
             D = scaleFactor * exp(scaleFactor * (17.0 * cosPhi - 16.78));
 
             // Attenutation (Simplified for H = √3/2)

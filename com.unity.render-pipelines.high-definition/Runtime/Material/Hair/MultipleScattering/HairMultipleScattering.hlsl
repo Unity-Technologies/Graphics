@@ -15,9 +15,10 @@ struct HairScatteringData
     float3x3 NG;
 };
 
-#define HALF_SQRT_INV_PI    0.5 * 0.56418958354775628694
-#define HALF_SQRT_3_DIV_PI  0.5 * 0.97720502380583984317
+#define HALF_SQRT_INV_PI    0.28209479177387814347
+#define HALF_SQRT_3_DIV_PI  0.48860251190291992158
 
+// Returns the approximate strand count in direction L from an L1 band spherical harmonic.
 float DecodeHairStrandCount(float3 L, float4 strandCountProbe)
 {
     float4 Ylm = float4(
@@ -178,18 +179,21 @@ float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3
     // sigmaB  = Sq(sigmaB);
 
     // Computes the average back scattering spread ( Eq. 15 ).
-    float3 Sb = D_LongitudinalScatteringGaussian(thetaH - deltaB, sigmaB);
+    // float3 Sb = D_LongitudinalScatteringGaussian(thetaH - deltaB, sigmaB);
 
-    // Resolve the overall local scattering term ( Eq. 9 & 10 ).
-    float3 fsBack  = db * 2 * Ab * Sb;
+    // Resolve the overall local scattering term ( Eq. 19 & 20 Disney ).
+    float3 fsBackDirect  = db * 2 * Ab * D_LongitudinalScatteringGaussian(thetaH - deltaB, sigmaB);
+    float3 fsBackScatter = db * 2 * Ab * D_LongitudinalScatteringGaussian(thetaH - deltaB, sigmaB + sigmaF);
 
     // Resolve the approximated multiple scattering. (Approximate Eq. 22)
     // ------------------------------------------------------------------------------------
     const float3 MG = D_LongitudinalScatteringGaussian(thetaH - alpha, beta + sigmaF);
     const float3 fsScatter = mul(MG, NG);
 
-    const float3 Fdirect   = directFraction * (Fs + fsBack);
-    const float3 Fscatter  = (Tf - directFraction) * df * (fsScatter + PI * fsBack);
+    const float3 Fdirect   = directFraction * (Fs + fsBackDirect);
+    const float3 Fscatter  = (Tf - directFraction) * df * (fsScatter + PI * fsBackScatter);
+    const float3 F         = (Fdirect + Fscatter) * sqrt(1 - Sq(sinThetaI));
 
-    return max(Fdirect + Fscatter, 0);
+    return max(F, 0);
+
 }
