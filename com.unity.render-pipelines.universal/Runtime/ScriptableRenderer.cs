@@ -1184,18 +1184,37 @@ namespace UnityEngine.Rendering.Universal
 
                         if (!IsRenderPassEnabled(renderPass) || !cameraData.isRenderPassSupportedCamera)
                         {
-                            var depthAttachment = m_CameraDepthTarget.nameID;
-
-                            if (renderPass.overrideCameraTarget)
+                            if (renderPass.m_UsesRTHandles)
                             {
-                                depthAttachment = renderPass.depthAttachment;
+                                var depthAttachment = m_CameraDepthTarget.handle;
+
+                                if (renderPass.overrideCameraTarget)
+                                {
+                                    depthAttachment = renderPass.depthAttachmentHandle;
+                                }
+                                else
+                                {
+                                    m_FirstTimeCameraDepthTargetIsBound = false;
+                                }
+
+                                // Only one RTHandle is necessary to set the viewport in dynamic scaling, use depth
+                                SetRenderTarget(cmd, trimmedAttachments, depthAttachment, finalClearFlag, renderPass.clearColor);
                             }
                             else
                             {
-                                m_FirstTimeCameraDepthTargetIsBound = false;
-                            }
+                                var depthAttachment = m_CameraDepthTarget.nameID;
 
-                            SetRenderTarget(cmd, trimmedAttachments, depthAttachment, finalClearFlag, renderPass.clearColor);
+                                if (renderPass.overrideCameraTarget)
+                                {
+                                    depthAttachment = renderPass.depthAttachment;
+                                }
+                                else
+                                {
+                                    m_FirstTimeCameraDepthTargetIsBound = false;
+                                }
+
+                                SetRenderTarget(cmd, trimmedAttachments, depthAttachment, finalClearFlag, renderPass.clearColor);
+                            }
                         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -1554,6 +1573,36 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveDepthAttachment = depthAttachment;
 
             CoreUtils.SetRenderTarget(cmd, colorAttachments, depthAttachment, clearFlag, clearColor);
+        }
+
+        static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorAttachments, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
+        {
+            m_ActiveColorAttachments = colorAttachments;
+            m_ActiveDepthAttachment = depthAttachment.nameID;
+
+            CoreUtils.SetRenderTarget(cmd, m_ActiveColorAttachments, depthAttachment, clearFlag, clearColor);
+            CoreUtils.SetViewport(cmd, depthAttachment);
+        }
+
+        static void SetRenderTarget(CommandBuffer cmd, RTHandle[] colorAttachments, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
+        {
+            if (m_ActiveColorAttachments.Length != colorAttachments.Length)
+            {
+                m_ActiveColorAttachments = new RenderTargetIdentifier[colorAttachments.Length];
+            }
+
+            for (int i = 0; i < colorAttachments.Length; ++i)
+            {
+                m_ActiveColorAttachments[i] = colorAttachments[i].nameID;
+            }
+            m_ActiveDepthAttachment = depthAttachment.nameID;
+
+            CoreUtils.SetRenderTarget(cmd, m_ActiveColorAttachments, depthAttachment, clearFlag, clearColor);
+            foreach (var attachment in colorAttachments)
+            {
+                CoreUtils.SetViewport(cmd, attachment);
+            }
+            CoreUtils.SetViewport(cmd, depthAttachment);
         }
 
         internal virtual void SwapColorBuffer(CommandBuffer cmd) { }
