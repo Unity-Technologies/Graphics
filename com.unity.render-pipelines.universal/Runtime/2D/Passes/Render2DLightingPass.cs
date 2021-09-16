@@ -333,49 +333,51 @@ namespace UnityEngine.Rendering.Universal
             return batchesDrawn;
         }
 
-        private void UpdateCorners(Vector3 point, ref Vector3 minCorner, ref Vector3 maxCorner)
-        {
-            if (point.x < minCorner.x)
-                minCorner.x = point.x;
-            if (point.y < minCorner.y)
-                minCorner.y = point.y;
-            if (point.z < minCorner.z)
-                minCorner.z = point.z;
+        //private void UpdateCorners(Vector3 point, ref Vector3 minCorner, ref Vector3 maxCorner)
+        //{
+        //    if (point.x < minCorner.x)
+        //        minCorner.x = point.x;
+        //    if (point.y < minCorner.y)
+        //        minCorner.y = point.y;
+        //    if (point.z < minCorner.z)
+        //        minCorner.z = point.z;
 
-            if (point.x > maxCorner.x)
-                maxCorner.x = point.x;
-            if (point.y > maxCorner.y)
-                maxCorner.y = point.y;
-            if (point.z > maxCorner.z)
-                maxCorner.z = point.z;
-        }
+        //    if (point.x > maxCorner.x)
+        //        maxCorner.x = point.x;
+        //    if (point.y > maxCorner.y)
+        //        maxCorner.y = point.y;
+        //    if (point.z > maxCorner.z)
+        //        maxCorner.z = point.z;
+        //}
 
-        private Matrix4x4 CalculateCameraLightFrustum(Camera camera, ILight2DCullResult cullResult)
-        {
-            const int k_Corners = 4;
-            Vector2 planeSize = camera.GetFrustumPlaneSizeAt(camera.nearClipPlane);
+        //private Matrix4x4 CalculateCameraLightFrustum(Camera camera, ILight2DCullResult cullResult)
+        //{
+        //    //ShadowUtility.GetCameraFrustumCorners(camera, nearCorners, farCorners);
 
-            Vector3[] nearCorners = new Vector3[k_Corners];
-            Vector3[] farCorners = new Vector3[k_Corners];
-            camera.CalculateFrustumCorners(camera.rect, camera.nearClipPlane, camera.stereoActiveEye, nearCorners);
-            camera.CalculateFrustumCorners(camera.rect, camera.farClipPlane, camera.stereoActiveEye, nearCorners);
+        //    const int k_Corners = 4;
+        //    Vector2 planeSize = camera.GetFrustumPlaneSizeAt(camera.nearClipPlane);
 
-            Vector3 minCorner = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-            Vector3 maxCorner = new Vector3(float.MinValue, float.MinValue, float.MinValue);
-            for (int i=0;i < k_Corners; i++)
-            {
-                UpdateCorners(nearCorners[i], ref minCorner, ref maxCorner);
-                UpdateCorners(farCorners[i], ref minCorner, ref maxCorner);
-            }
+        //    Vector3[] nearCorners = new Vector3[k_Corners];
+        //    Vector3[] farCorners = new Vector3[k_Corners];
+        //    camera.CalculateFrustumCorners(camera.rect, camera.nearClipPlane, camera.stereoActiveEye, nearCorners);
+        //    camera.CalculateFrustumCorners(camera.rect, camera.farClipPlane, camera.stereoActiveEye, nearCorners);
 
-            List<Light2D> visibleLights = cullResult.visibleLights;
-            for(int i=0;i<visibleLights.Count;i++)
-                UpdateCorners(camera.transform.InverseTransformPoint(visibleLights[i].transform.position), ref minCorner, ref maxCorner);
+        //    Vector3 minCorner = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+        //    Vector3 maxCorner = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+        //    for (int i=0;i < k_Corners; i++)
+        //    {
+        //        UpdateCorners(nearCorners[i], ref minCorner, ref maxCorner);
+        //        UpdateCorners(farCorners[i], ref minCorner, ref maxCorner);
+        //    }
+
+        //    List<Light2D> visibleLights = cullResult.visibleLights;
+        //    for(int i=0;i<visibleLights.Count;i++)
+        //        UpdateCorners(camera.transform.InverseTransformPoint(visibleLights[i].transform.position), ref minCorner, ref maxCorner);
 
             
-            Matrix4x4 cameraLightFrustum = Matrix4x4.Ortho(minCorner.x, maxCorner.x, minCorner.y, maxCorner.y, minCorner.z, maxCorner.z);
-            return cameraLightFrustum;
-        }
+        //    Matrix4x4 cameraLightFrustum = Matrix4x4.Ortho(minCorner.x, maxCorner.x, minCorner.y, maxCorner.y, minCorner.z, maxCorner.z);
+        //    return cameraLightFrustum;
+        //}
 
         private void CallOnBeforeRender(Camera camera, ILight2DCullResult cullResult)
         {
