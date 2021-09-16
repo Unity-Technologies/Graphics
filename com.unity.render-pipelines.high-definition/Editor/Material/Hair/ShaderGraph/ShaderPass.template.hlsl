@@ -46,7 +46,6 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.CuticleAngle:                surfaceData.cuticleAngle =                   surfaceDescription.CuticleAngle;
 
     $SurfaceDescription.StrandCountProbe:            surfaceData.strandCountProbe =               surfaceDescription.StrandCountProbe;
-    $SurfaceDescription.SplineShadowBias:            surfaceData.splineShadowBias =               surfaceDescription.SplineShadowBias;
 
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = 0;

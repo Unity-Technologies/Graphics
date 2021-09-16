@@ -217,7 +217,7 @@ void GetAmbientOcclusionFactor(float3 indirectAmbientOcclusion, float3 indirectS
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
-float3 GetNormalForShadowBias(float3 L, BSDFData bsdfData)
+float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     return bsdfData.geomNormalWS;
 }

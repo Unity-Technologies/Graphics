@@ -28,7 +28,7 @@ float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
     return float4(bsdfData.diffuseColor, 0.0);
 }
 
-float3 GetNormalForShadowBias(float3 L, BSDFData bsdfData)
+float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     return bsdfData.geomNormalWS;
 }

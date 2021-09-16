@@ -33,7 +33,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             !ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex))
         {
             int shadowSplitIndex;
-            context.shadowValue = EvalShadow_CascadedDepth_Dither_SplitIndex(context.shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(L, bsdfData), light.shadowIndex, L, shadowSplitIndex);
+            context.shadowValue = EvalShadow_CascadedDepth_Dither_SplitIndex(context.shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData), light.shadowIndex, L, shadowSplitIndex);
             if (shadowSplitIndex < 0.0)
             {
                  context.shadowValue = _DirectionalShadowFallbackIntensity;

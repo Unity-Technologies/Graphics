@@ -132,8 +132,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(3f), ShaderStage.Fragment);
             public static BlockFieldDescriptor StrandCountProbe = new BlockFieldDescriptor(SurfaceDescription.name, "StrandCountProbe", "Strand Count Probe", "SURFACEDESCRIPTION_STRANDCOUNTPROBE",
                 new Vector4Control(Vector4.zero), ShaderStage.Fragment);
-            public static BlockFieldDescriptor SplineShadowBias = new BlockFieldDescriptor(SurfaceDescription.name, "SplineShadowBias", "Spline Shadow Bias", "SURFACEDESCRIPTION_SPLINESHADOWBIAS",
-                new FloatControl(0f), ShaderStage.Fragment);
 
             // --------------------------------------------------
             // StackLit
