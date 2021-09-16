@@ -20,17 +20,17 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Material-related Rendering Debugger settings.
         /// </summary>
-        internal DebugDisplaySettingsMaterial MaterialSettings { get; private set; }
+        public DebugDisplaySettingsMaterial MaterialSettings { get; private set; }
 
         /// <summary>
         /// Rendering-related Rendering Debugger settings.
         /// </summary>
-        internal DebugDisplaySettingsRendering RenderingSettings { get; private set; }
+        public DebugDisplaySettingsRendering RenderingSettings { get; private set; }
 
         /// <summary>
         /// Lighting-related Rendering Debugger settings.
         /// </summary>
-        internal DebugDisplaySettingsLighting LightingSettings { get; private set; }
+        public DebugDisplaySettingsLighting LightingSettings { get; private set; }
 
         #region IDebugDisplaySettingsQuery
 
@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                DebugPostProcessingMode debugPostProcessingMode = RenderingSettings.debugPostProcessingMode;
+                DebugPostProcessingMode debugPostProcessingMode = RenderingSettings.postProcessingDebugMode;
 
                 switch (debugPostProcessingMode)
                 {
@@ -104,7 +104,10 @@ namespace UnityEngine.Rendering.Universal
             Reset();
         }
 
-        internal void Reset()
+        /// <summary>
+        /// Reset current debug data to default values.
+        /// </summary>
+        public void Reset()
         {
             m_Settings.Clear();
 
