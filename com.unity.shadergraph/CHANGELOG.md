@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed "Create Node" action in ShaderGraph stack separator context menu to "Add Block Node" and added it to main stack context menu
 
 ### Fixed
+- Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
 - Fixed an issue where fog node density was incorrectly calculated.
 - Fixed inspector property header styling
 - Added padding to the blackboard window to prevent overlapping of resize region and scrollbars interfering with user interaction
