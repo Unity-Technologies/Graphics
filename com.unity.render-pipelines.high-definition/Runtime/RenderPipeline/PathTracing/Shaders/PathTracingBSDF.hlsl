@@ -607,6 +607,16 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
         result.exitNormal = intersection.value;
     }
 
+// if the material is transmissive, pick a side for the normal randomly to properly handle thin surfaces (case 1329403)
+#ifdef _MATERIAL_FEATURE_TRANSMISSION
+    // 108 is the next available dimension after the screen space sub-pixel sampling
+    if (GetSample(pixelCoord, _RaytracingSampleIndex, 108) < 0.5)
+    {
+        result.exitNormal = -result.exitNormal;
+    }
+    result.throughput *= 2.0;
+#endif
+
     return true;
 }
 

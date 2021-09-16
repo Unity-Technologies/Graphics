@@ -2,11 +2,11 @@ namespace UnityEditor.ShaderGraph
 {
     enum ScreenSpaceType
     {
-        Default,
-        Raw,
-        Center,
-        Tiled,
-        Pixel
+        Default,        // screenpos.xy / w ==>  [0, 1] across screen
+        Raw,            // screenpos.xyzw ==> scales on distance, requires divide by w
+        Center,         // Default, but remapped to [-1, 1]
+        Tiled,          // frac(Center)
+        Pixel           // Default * _ScreenParams.xy;   [0 .. width-1, 0.. height-1]
     };
 
     static class ScreenSpaceTypeExtensions

@@ -19,40 +19,15 @@ real3 EvaluateAmbientProbe(real3 normalWS)
     return SampleSH9(SHCoefficients, normalWS);
 }
 
+// Alias to make code less confusing as the same code is used to evaluate Ambient Probe and also to evaluate builtin light probe (which include ambient probe + local lights)
+#define EvaluateLightProbe EvaluateAmbientProbe
+
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
-
-// y channel is reserved for potential payload information to carry alongside the unintialized flag.
-#define UNINITIALIZED_GI float3((1 << 11), 1, (1 << 10))
-
-bool IsUninitializedGI(float3 bakedGI)
-{
-    const float3 unitializedGI = UNINITIALIZED_GI;
-    return all(bakedGI.xz == unitializedGI.xz);
-}
-
-
-void SetAsUninitializedGI(out float3 bakedGI)
-{
-    bakedGI = UNINITIALIZED_GI;
-}
-
-float ExtractPayloadFromUninitializedGI(float3 inputBakedGI)
-{
-    float payload = 1.0f;
-    if (IsUninitializedGI(inputBakedGI))
-        payload = inputBakedGI.y;
-
-    return payload;
-}
-
-void EncodePayloadWithUninitGI(float payload, inout float3 bakedGI)
-{
-    bakedGI.y = payload;
-}
 #endif
 
 // Return camera relative probe volume world to object transformation
+ // Note: Probe volume here refer to LPPV not APV
 float4x4 GetProbeVolumeWorldToObject()
 {
     return ApplyCameraTranslationToInverseMatrix(unity_ProbeVolumeWorldToObject);
@@ -123,11 +98,12 @@ void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backN
 {
     if (unity_ProbeVolumeParams.x == 0.0)
     {
-        bakeDiffuseLighting += EvaluateAmbientProbe(normalWS);
-        backBakeDiffuseLighting += EvaluateAmbientProbe(backNormalWS);
+        bakeDiffuseLighting += EvaluateLightProbe(normalWS);
+        backBakeDiffuseLighting += EvaluateLightProbe(backNormalWS);
     }
     else
     {
+        // Note: Probe volume here refer to LPPV not APV
         SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, backNormalWS, GetProbeVolumeWorldToObject(),
             unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz, bakeDiffuseLighting, backBakeDiffuseLighting);
     }
@@ -147,44 +123,23 @@ void SampleBakedGI(
     bakeDiffuseLighting = float3(0, 0, 0);
     backBakeDiffuseLighting = float3(0, 0, 0);
 
-    // Check if we are RTGI in which case we don't want to read GI at all (We rely fully on the raytrace effect)
+    // Check if we have SSGI/RTGI/Mixed enabled in which case we don't want to read Lightmaps/Lightprobe at all.
+    // This behavior only apply to opaque Materials as Transparent one don't receive SSGI/RTGI/Mixed lighting.
     // The check need to be here to work with both regular shader and shader graph
-    // Note: with Probe volume it will prevent to add the UNINITIALIZED_GI tag and
-    // the ProbeVolume will not be evaluate in the lightloop which is the desired behavior
-    // Also this code only needs to be executed in the rasterization pipeline, otherwise it will lead to udnefined behaviors in ray tracing
+    // Note: With Probe volume the code is skip in the lightloop if any of those effects is enabled
+    // We prevent to read GI only if we are not raytrace pass that are used to fill the RTGI/Mixed buffer need to be executed normaly
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT) && (SHADERPASS != SHADERPASS_RAYTRACING_GBUFFER)
-    if (_IndirectDiffuseMode == INDIRECTDIFFUSEMODE_RAYTRACE)
+    if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
         return;
 #endif
 
     float3 positionRWS = posInputs.positionWS;
 
-#define SAMPLE_LIGHTMAP (defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON))
-#define SAMPLE_PROBEVOLUME_BUILTIN (!SAMPLE_LIGHTMAP)
-
-#if SAMPLE_LIGHTMAP
+#if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
     EvaluateLightmap(positionRWS, normalWS, backNormalWS, uvStaticLightmap, uvDynamicLightmap, bakeDiffuseLighting, backBakeDiffuseLighting);
-#endif
-
-#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
-    // If probe volumes are evaluated in the lightloop, we place a sentinel value to detect that no lightmap data is present at the current pixel,
-    // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
-#if !SAMPLE_LIGHTMAP
-    if (_EnableProbeVolumes)
-        SetAsUninitializedGI(bakeDiffuseLighting);
-    else
-        EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
-    return;
-#endif
-
-#elif SAMPLE_PROBEVOLUME_BUILTIN // SAMPLE_PROBEVOLUME_BUILTIN && !(defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-
+#elif !(defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)) // With APV if we aren't a lightmap we do nothing. We will default to Ambient Probe in lightloop code if APV is disabled
     EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
-
 #endif
-
-#undef SAMPLE_LIGHTMAP
-#undef SAMPLE_PROBEVOLUME_BUILTIN
 }
 
 // Function signature exposed in a shader graph node, to keep
