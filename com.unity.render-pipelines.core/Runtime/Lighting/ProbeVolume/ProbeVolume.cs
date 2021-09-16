@@ -294,12 +294,8 @@ namespace UnityEngine.Experimental.Rendering
                             if (ShouldCullCell(cell.position, prv.GetTransform().posWS))
                                 continue;
 
-                            var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
-                            var center = positionF * profile.cellSizeInMeters + profile.cellSizeInMeters * 0.5f * Vector3.one;
-                            var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
-                            var center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector3.one;
                             var positionF = new Vector4(cell.position.x, cell.position.y, cell.position.z, 0.0f);
-                            var center = positionF * profile.cellSizeInMeters + profile.cellSizeInMeters * 0.5f * Vector4.one;
+                            var center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector4.one;
                             center.w = cellInfo.loaded ? 1.0f : 0.0f;
                             yield return center;
                         }
@@ -308,13 +304,9 @@ namespace UnityEngine.Experimental.Rendering
 
                 foreach (var center in GetVisibleCellCentersAndState())
                 {
-                    Gizmos.DrawCube(center, Vector3.one * profile.cellSizeInMeters);
-                    cellGizmo.AddWireCube(center, Vector3.one * profile.cellSizeInMeters, new Color(0, 1, 0.5f, 1));
-                    Gizmos.DrawCube(center, Vector3.one * cellSizeInMeters);
-                    cellGizmo.AddWireCube(center, Vector3.one * cellSizeInMeters, new Color(0, 1, 0.5f, 1));
                     bool loaded = center.w == 1.0f;
-                    m_MeshGizmo.AddWireCube(center, Vector3.one * profile.cellSizeInMeters, loaded ? new Color(0, 1, 0.5f, 1) : new Color(1, 0.0f, 0.0f, 1));
-                    m_MeshGizmo.AddCube(center, Vector3.one * profile.cellSizeInMeters, loaded ? new Color(0, 1, 0.5f, 0.2f) : new Color(1, 0.0f, 0.0f, 0.2f));
+                    m_MeshGizmo.AddWireCube(center, Vector3.one * cellSizeInMeters, loaded ? new Color(0, 1, 0.5f, 1) : new Color(1, 0.0f, 0.0f, 1));
+                    m_MeshGizmo.AddCube(center, Vector3.one * cellSizeInMeters, loaded ? new Color(0, 1, 0.5f, 0.2f) : new Color(1, 0.0f, 0.0f, 0.2f));
                 }
             }
 
