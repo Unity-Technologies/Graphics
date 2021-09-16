@@ -84,6 +84,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed Lens Flare 'radialScreenAttenuationCurve invisible'
 - Fixed Lens Flare rotation for Curve Distribution
 - Fixed potentially conflicting runtime Rendering Debugger UI command by adding an option to disable runtime UI altogether (1345783).
+- Fixed Lens Flare position for celestial at very far camera distances. It now locks correctly into the celestial position regardless of camera distance (1363291)
+- Fixed issues caused by automatically added EventSystem component, required to support Rendering Debugger Runtime UI input. (1361901)
 
 ### Changed
 - Improved the warning messages for Volumes and their Colliders.
@@ -108,6 +110,7 @@ The version number for this package has increased due to a version update of a r
 - Improved IntegrateLDCharlie() to use uniform stratified sampling for faster convergence towards the ground truth
 - DynamicResolutionHandler.GetScaledSize function now clamps, and never allows to return a size greater than its input.
 - Removed DYNAMIC_RESOLUTION snippet on lens flare common shader. Its not necessary any more on HDRP, which simplifies the shader.
+- Made occlusion Radius for lens flares in directional lights, be independant of the camera's far plane.
 
 ## [11.0.0] - 2020-10-21
 

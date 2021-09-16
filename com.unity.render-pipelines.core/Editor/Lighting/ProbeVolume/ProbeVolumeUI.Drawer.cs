@@ -111,7 +111,7 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
         {
-            if (!ProbeReferenceVolume.instance.isInitialized)
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
                 var renderPipelineAsset = UnityEngine.Rendering.RenderPipelineManager.currentPipeline;
                 if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipeline")
@@ -192,7 +192,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.indentLevel--;
 
             if (hasProfile)
-                EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdivInVolume)}m and {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(minSubdivInVolume)}m", MessageType.Info);
+                EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - maxSubdivInVolume)}m and {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - minSubdivInVolume)}m", MessageType.Info);
 
             EditorGUI.EndDisabledGroup();
 

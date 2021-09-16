@@ -23,11 +23,7 @@ namespace UnityEditor.Rendering.Universal
                 Expandable.Emission,
                 k_ExpandedStatePreset,
                 CED.Group(DrawerColor,
-                    DrawEmissionContent)),
-            CED.FoldoutGroup(Styles.lightCookieHeader,
-                Expandable.LightCookie,
-                k_ExpandedState,
-                DrawLightCookieContent)
+                    DrawEmissionContent))
         );
     }
 }
