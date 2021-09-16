@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - URP global setting for stripping post processing shader variants.
 - URP global setting for stripping off shader variants.
+- Exposed public API for DebugDisplaySettings.
 
 ### Changed
 - Removed experimental tile deferred code.
