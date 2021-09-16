@@ -35,6 +35,9 @@ URP_PostPro_Android_Vulkan_Standalone_il2cpp_Linear_2021.2:
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -71,6 +74,9 @@ Build_URP_PostPro_Android_Vulkan_Standalone_il2cpp_Linear_2021.2:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=3000
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -109,6 +115,9 @@ URP_PostPro_Android_Vulkan_Standalone_XR_il2cpp_Linear_2021.2:
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --extra-editor-arg="-xr-reuse-tests" --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -145,6 +154,9 @@ Build_URP_PostPro_Android_Vulkan_Standalone_XR_il2cpp_Linear_2021.2:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-xr-reuse-tests" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=3000
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -183,6 +195,9 @@ URP_PostPro_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -219,6 +234,9 @@ Build_URP_PostPro_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=3000
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -257,6 +275,9 @@ URP_PostPro_Android_Vulkan_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --extra-editor-arg="-xr-reuse-tests" --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -293,6 +314,9 @@ Build_URP_PostPro_Android_Vulkan_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-xr-reuse-tests" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=3000
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:

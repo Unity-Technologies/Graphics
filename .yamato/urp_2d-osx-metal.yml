@@ -38,6 +38,9 @@ URP_2D_OSX_Metal_Standalone_mono_Linear_2021.2:
                 mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -76,6 +79,9 @@ URP_2D_OSX_Metal_playmode_mono_Linear_2021.2:
                 mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -114,6 +120,9 @@ URP_2D_OSX_Metal_playmode_XR_mono_Linear_2021.2:
                 mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -152,6 +161,9 @@ URP_2D_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -190,6 +202,9 @@ URP_2D_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -228,6 +243,9 @@ URP_2D_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
