@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with fading in SSR applying fade factor twice, resulting in darkening of the image in the transition areas.
 - Fixed error when disabling opaque objects on a camera with MSAA.
 - Fixed sorting for mesh decals.
+- Fixed AxF debug output in certain configurations (case 1333780).
 
 ## [10.6.0] - 2021-04-29
 
