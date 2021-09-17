@@ -1,13 +1,12 @@
 using System;
 using System.Reflection;
 
-using UnityEngine;
 using UnityEngine.Search;
 
 
 namespace UnityEditor.VFX.UI
 {
-    static class TexturePicker
+    static class CustomObjectPicker
     {
         internal static void Pick(Type textureType, Action<UnityEngine.Object, bool> selectHandler)
         {
@@ -17,7 +16,7 @@ namespace UnityEditor.VFX.UI
                 null,
                 textureType.Name,
                 textureType);
-            view.itemIconSize = 3f;
+            view.itemIconSize = 5f;
 
             // Until the "viewState" API is made public (should be in 2022.1) we use reflection to remove the inspector button
             var quickSearchType = typeof(Search.SearchService).Assembly.GetType("UnityEditor.Search.QuickSearch");

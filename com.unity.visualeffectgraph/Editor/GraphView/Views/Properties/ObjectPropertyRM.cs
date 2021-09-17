@@ -7,18 +7,14 @@ namespace UnityEditor.VFX.UI
 {
     class ObjectPropertyRM : PropertyRM<UnityObject>
     {
-        readonly VisualElement m_Container;
         readonly TextField m_TextField;
         readonly Image m_ValueIcon;
 
         public ObjectPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            m_Container = new VisualElement();
-            m_Container.styleSheets.Add(VFXView.LoadStyleSheet("ObjectPropertyRM"));
+            styleSheets.Add(VFXView.LoadStyleSheet("ObjectPropertyRM"));
 
-            m_Container.style.flexDirection = FlexDirection.Row;
-
-            m_TextField = new TextField { name = "PickLabel", isReadOnly = true, value = m_Value?.name ?? "None (Texture)"};
+            m_TextField = new TextField { name = "PickLabel", isReadOnly = true };
             var button = new Button { name = "PickButton" };
             var icon  = new VisualElement { name = "PickIcon" };
             m_ValueIcon = new Image { name = "TextureIcon" };
@@ -27,9 +23,7 @@ namespace UnityEditor.VFX.UI
             button.Add(icon);
             m_TextField.Add(m_ValueIcon);
             m_TextField.Add(button);
-            m_Container.Add(m_TextField);
-
-            Add(m_Container);
+            Add(m_TextField);
         }
 
         public override float GetPreferredControlWidth() => 120;
@@ -54,7 +48,7 @@ namespace UnityEditor.VFX.UI
             }
             catch (System.Exception)
             {
-                Debug.Log("Error Trying to convert" + (obj != null ? obj.GetType().Name : "null") + " to " + typeof(UnityObject).Name);
+                Debug.Log($"Error Trying to convert {obj?.GetType().Name ?? "null"} to {nameof(Object)}");
             }
 
             UpdateGUI(!object.ReferenceEquals(m_Value, obj));
@@ -62,11 +56,11 @@ namespace UnityEditor.VFX.UI
 
         public override bool showsEverything => true;
 
-        protected override void UpdateEnabled() => m_Container.SetEnabled(propertyEnabled);
+        protected override void UpdateEnabled() => SetEnabled(propertyEnabled);
 
-        protected override void UpdateIndeterminate() => m_Container.visible = !indeterminate;
+        protected override void UpdateIndeterminate() => visible = !indeterminate;
 
-        void OnPickObject() => TexturePicker.Pick(m_Provider.portType, SelectHandler);
+        void OnPickObject() => CustomObjectPicker.Pick(m_Provider.portType, SelectHandler);
 
         void SelectHandler(Object obj, bool isCanceled)
         {

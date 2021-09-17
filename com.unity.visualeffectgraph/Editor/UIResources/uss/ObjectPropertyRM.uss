@@ -23,6 +23,8 @@
 #PickLabel
 {
     flex-grow: 1;
+    flex-shrink: 1;
+    margin: 1px 0;
 }
 
 
@@ -39,14 +41,4 @@
 {
     margin-right: 4px;
     padding: 0 22px 0 18px;
-}
-
-#VFXIcon
-{
-    margin-left: 2px;
-    position: absolute;
-    align-self: center;
-    width: 12px;
-    height: 12px;
-    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/vfx_graph_icon_gray_dark.png");
 }
