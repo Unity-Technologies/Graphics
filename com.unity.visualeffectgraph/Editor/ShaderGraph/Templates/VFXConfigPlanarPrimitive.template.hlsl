@@ -8,7 +8,7 @@
 
 #define HAVE_VFX_PLANAR_PRIMITIVE
 
-bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement element)
+bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElement element)
 {
     uint id = input.vertexID;
 
