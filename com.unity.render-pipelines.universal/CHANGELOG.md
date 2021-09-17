@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added support for controlling Volume Framework Update Frequency in UI on Cameras and URP Asset as well as through scripting.
+- XR: Added Late Latching support to reduce VR latency (Quest).
 
 ### Fixed
 - Fixed terrain hole shadowing [case 1349305]
