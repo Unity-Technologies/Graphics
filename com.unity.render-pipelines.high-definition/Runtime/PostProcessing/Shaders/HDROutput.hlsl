@@ -267,7 +267,7 @@ float3 HDRRangeReduction(float3 Rec2020Input, float minNit, float maxNit)
     // As mentioned by BT2390, we need to adjust saturation
     float saturationScale = min(intensityReduced / ICtCp.x, ICtCp.x / intensityReduced);
 
-    float3 newICtCp = float3(intensityReduced, ICtCp.xy * saturationScale);
+    float3 newICtCp = float3(intensityReduced, ICtCp.yz * saturationScale);
 
     // 3) ICtCp to PQ -> PQ to LMS -> LMS to Rec 2020
     PQLMS = ICtCpToPQLMS(newICtCp);
