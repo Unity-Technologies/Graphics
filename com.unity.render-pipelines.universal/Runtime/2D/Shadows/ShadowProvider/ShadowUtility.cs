@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.Universal
             for(int i=0; i < inVertices.Length; i++)
             {
                 Vector4 pt0 = inVertices[i];
-                pt0.z = 1;
+                pt0.z = float.MinValue;
                 ShadowMeshVertex originalShadowMesh = new ShadowMeshVertex(pt0, inTangents[i]);
                 outMeshVertices[i] = originalShadowMesh;
             }
