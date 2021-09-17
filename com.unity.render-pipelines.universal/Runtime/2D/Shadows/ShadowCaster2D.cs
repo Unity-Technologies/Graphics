@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-
+    [DefaultExecutionOrder(2)]
     [AddComponentMenu("Rendering/2D/Shadow Caster 2D")]
     [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
 
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int[] m_ApplyToSortingLayers = null;
         [SerializeField] Vector3[] m_ShapePath = null;
         [SerializeField] int  m_ShapePathHash = 0;
-        
+
         [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShapeProvider;
         [SerializeField] float m_ShadowShapeContract;
@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
         internal ShadowCasterGroup2D  m_PreviousShadowCasterGroup = null;
         internal int                  m_PreviousShadowCastingSource;
         internal Component            m_PreviousShadowShapeProvider = null;
-        
+
         public Mesh mesh => m_ShadowMesh.mesh;
         public BoundingSphere boundingSphere => m_ShadowMesh.boundingSphere;
 
@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.Universal
                     nativeIndices[startingIndex + 1] = i;
                     lastIndex = i;
                 }
-                
+
                 m_ShadowMesh.SetShapeWithLines(nativePath, nativeIndices);
 
                 nativePath.Dispose();
