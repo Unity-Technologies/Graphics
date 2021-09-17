@@ -101,6 +101,14 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
 
     AlphaDiscard(alpha, _Cutoff);
 
+#if defined(_ALPHAMODULATE_ON)
+    // Fake alpha for multiply blend by lerping albedo to 1.
+    // Manual adjustment for less multiply effect (sort of "premultiplied alpha" version)
+    // would be painting whiter pixels in the texture.
+    // This emulates that procedure by whitening the base color automatically using the alpha value.
+    color = lerp(1, color, alpha);
+#endif
+
     InputData inputData;
     InitializeInputData(input, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
@@ -129,11 +137,6 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
     half fogFactor = input.fogCoord;
 #endif
     finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
-
-#if defined(_ALPHAMODULATE_ON)
-    // Fake alpha by lerping to 1 for multiply blend
-    finalColor.rgb = lerp(1, finalColor.rgb, finalColor.a);
-#endif
 
     return finalColor;
 }
