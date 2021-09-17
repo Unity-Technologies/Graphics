@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(28, Extension, -905)]
+    [ScriptedImporter(29, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -295,6 +295,9 @@ namespace UnityEditor.ShaderGraph
                     orderedProperties.Add(prop);
                 }
             }
+
+            // If we are importing an older file that has not had categories generated for it yet, include those now.
+            orderedProperties.AddRange(graph.properties.Except(orderedProperties));
 
             // provide top level subgraph function
             // NOTE: actual concrete precision here shouldn't matter, it's irrelevant when building the subgraph asset
