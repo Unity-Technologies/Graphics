@@ -9,15 +9,15 @@ namespace UnityEditor.VFX.UI
 {
     static class TexturePicker
     {
-        internal static void Pick(Type textureType, Action<Texture, bool> selectHandler)
+        internal static void Pick(Type textureType, Action<UnityEngine.Object, bool> selectHandler)
         {
             var view = Search.SearchService.ShowObjectPicker(
-                (x, y) => selectHandler(x as Texture, y),
+                selectHandler,
                 null,
                 null,
-                "Texture",
+                textureType.Name,
                 textureType);
-            view.itemIconSize = 1f;
+            view.itemIconSize = 3f;
 
             // Until the "viewState" API is made public (should be in 2022.1) we use reflection to remove the inspector button
             var quickSearchType = typeof(Search.SearchService).Assembly.GetType("UnityEditor.Search.QuickSearch");
