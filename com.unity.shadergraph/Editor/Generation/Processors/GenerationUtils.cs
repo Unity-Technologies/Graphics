@@ -561,11 +561,28 @@ namespace UnityEditor.ShaderGraph
 
             switch (convertToType)
             {
+                case ConcreteSlotValueType.Boolean:
+                    switch (convertFromType)
+                    {
+                        case ConcreteSlotValueType.Vector1:
+                            return string.Format("((bool) {0})", rawOutput);
+                        case ConcreteSlotValueType.Vector2:
+                        case ConcreteSlotValueType.Vector3:
+                        case ConcreteSlotValueType.Vector4:
+                            return string.Format("((bool) {0}.x)", rawOutput);
+                        default:
+                            return kErrorString;
+                    }
                 case ConcreteSlotValueType.Vector1:
-                    return string.Format("({0}).x", rawOutput);
+                    if (convertFromType == ConcreteSlotValueType.Boolean)
+                        return string.Format("(($precision) {0})", rawOutput);
+                    else
+                        return string.Format("({0}).x", rawOutput);
                 case ConcreteSlotValueType.Vector2:
                     switch (convertFromType)
                     {
+                        case ConcreteSlotValueType.Boolean:
+                            return string.Format("((($precision) {0}).xx)", rawOutput);
                         case ConcreteSlotValueType.Vector1:
                             return string.Format("({0}.xx)", rawOutput);
                         case ConcreteSlotValueType.Vector3:
@@ -577,6 +594,8 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Vector3:
                     switch (convertFromType)
                     {
+                        case ConcreteSlotValueType.Boolean:
+                            return string.Format("((($precision) {0}).xxx)", rawOutput);
                         case ConcreteSlotValueType.Vector1:
                             return string.Format("({0}.xxx)", rawOutput);
                         case ConcreteSlotValueType.Vector2:
@@ -589,6 +608,8 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Vector4:
                     switch (convertFromType)
                     {
+                        case ConcreteSlotValueType.Boolean:
+                            return string.Format("((($precision) {0}).xxxx)", rawOutput);
                         case ConcreteSlotValueType.Vector1:
                             return string.Format("({0}.xxxx)", rawOutput);
                         case ConcreteSlotValueType.Vector2:
