@@ -197,6 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int specularLightingUAV = Shader.PropertyToID("specularLightingUAV");
         public static readonly int diffuseLightingUAV = Shader.PropertyToID("diffuseLightingUAV");
+        public static readonly int illuminanceUAV = Shader.PropertyToID("illuminanceUAV");
         public static readonly int _SssSampleBudget = Shader.PropertyToID("_SssSampleBudget");
         public static readonly int _MaterialID = Shader.PropertyToID("_MaterialID");
 

@@ -36,6 +36,7 @@ Shader "Hidden/HDRP/Deferred"
 
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile_fragment _ OUTPUT_SPLIT_LIGHTING
+            #pragma multi_compile_fragment _ OUTPUT_PIXEL_ILLUMINANCE
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
@@ -106,8 +107,14 @@ Shader "Hidden/HDRP/Deferred"
             #ifdef OUTPUT_SPLIT_LIGHTING
                 float4 specularLighting : SV_Target0;
                 float3 diffuseLighting  : SV_Target1;
+                #ifdef OUTPUT_PIXEL_ILLUMINANCE
+                    float illuminance : SV_Target2;
+                #endif
             #else
                 float4 combinedLighting : SV_Target0;
+                #ifdef OUTPUT_PIXEL_ILLUMINANCE
+                    float illuminance : SV_Target1;
+                #endif
             #endif
             };
 
@@ -149,6 +156,10 @@ Shader "Hidden/HDRP/Deferred"
                 specularLighting *= GetCurrentExposureMultiplier();
 
                 Outputs outputs;
+
+                #ifdef OUTPUT_PIXEL_ILLUMINANCE
+                outputs.illuminance = lightLoopOutput.illuminance * GetCurrentExposureMultiplier();
+                #endif
 
             #ifdef OUTPUT_SPLIT_LIGHTING
                 if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))

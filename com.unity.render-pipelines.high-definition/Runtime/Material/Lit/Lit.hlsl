@@ -960,6 +960,11 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         else
         {
             builtinData.bakeDiffuseLighting = gbuffer3;
+            // Only correct when there is no AO and no emissive
+            // Also because of ModifyBakedDiffuseLighting, the bake lighting takes into account color, transmittance, or else depending on material
+            // We divide by the diffuseColor but it's not perfect
+            float3 rawLighting = builtinData.bakeDiffuseLighting / max(bsdfData.diffuseColor, 0.01f);
+            builtinData.bakeIlluminance = Luminance(rawLighting) * PI;
         }
     }
 

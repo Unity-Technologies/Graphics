@@ -139,7 +139,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _VolumetricFilteringEnabled;
         public Vector2 _HeightFogExponents; // { 1/H, H }
         public int _FogDirectionalOnly;
-        public float _Pad1;
+
+        public float _EnableOutputIlluminance;
 
         // VBuffer
         public Vector4 _VBufferViewportSize;           // { w, h, 1/w, 1/h }

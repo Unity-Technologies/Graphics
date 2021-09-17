@@ -67,7 +67,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _VolumetricFilteringEnabled;
     float2 _HeightFogExponents;
     int _FogDirectionalOnly;
-    float _Pad1;
+    float _EnableOutputIlluminance;
     float4 _VBufferViewportSize;
     float4 _VBufferLightingViewportScale;
     float4 _VBufferLightingViewportLimit;

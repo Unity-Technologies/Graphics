@@ -96,6 +96,7 @@ CBUFFER_END
 TEXTURE2D_X_UINT2(_StencilTexture);
 RW_TEXTURE2D_X(float3, diffuseLightingUAV);
 RW_TEXTURE2D_X(float4, specularLightingUAV);
+RW_TEXTURE2D_X(float, illuminanceUAV);
 
 #define GROUP_SIZE (TILE_SIZE_FPTL / 2) // 4x 8x8 groups per a 16x16 tile
 
@@ -185,4 +186,6 @@ void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     {
         specularLightingUAV[COORD_TEXTURE2D_X(pixelCoord)] = float4(diffuseLighting + specularLighting, 1.0);
     }
+    if (_EnableOutputIlluminance != 0)
+        illuminanceUAV[COORD_TEXTURE2D_X(pixelCoord)] = lightLoopOutput.illuminance * GetCurrentExposureMultiplier();
 }

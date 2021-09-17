@@ -885,6 +885,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesGlobalCB._RaytracingFrameIndex = RayTracingFrameIndex(hdCamera);
             m_ShaderVariablesGlobalCB._IndirectDiffuseMode = (int)GetIndirectDiffuseMode(hdCamera);
 
+            Exposure exposureSettings = hdCamera.volumeStack.GetComponent<Exposure>();
+            m_ShaderVariablesGlobalCB._EnableOutputIlluminance = ExposureNeedsIlluminance(hdCamera) ? 1.0f : 0.0f;
+
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
                 // Check if recursive rendering is enabled or not. This will control the cull of primitive
