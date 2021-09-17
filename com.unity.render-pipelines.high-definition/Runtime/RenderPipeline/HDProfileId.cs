@@ -207,6 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldGatherNear,
         DepthOfFieldPreCombine,
         DepthOfFieldCombine,
+        LensFlareComputeOcclusionDataDriven,
         LensFlareDataDriven,
         MotionBlur,
         MotionBlurMotionVecPrep,

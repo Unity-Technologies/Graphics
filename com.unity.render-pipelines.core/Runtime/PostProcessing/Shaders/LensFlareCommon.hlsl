@@ -40,6 +40,10 @@ float4 _FlarePreviewData;
 #define _ScreenRatio    _FlarePreviewData.z;
 #endif
 
+float4 _FlareOcclusionIndex;
+
+#define _FlareOcclusionIdx      _FlareOcclusionIndex.x
+
 #define _FlareColor             _FlareColorValue
 
 #define _LocalCos0              _FlareData0.x
@@ -70,7 +74,7 @@ float2 Rotate(float2 v, float cos0, float sin0)
                   v.x * sin0 + v.y * cos0);
 }
 
-#if FLARE_OCCLUSION
+#if defined(FLARE_OCCLUSION) || defined(FLARE_COMPUTE_OCCLUSION)
 float GetLinearDepthValue(float2 uv)
 {
 #if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
@@ -120,6 +124,55 @@ float GetOcclusion(float ratio)
 }
 #endif
 
+#if defined(FLARE_COMPUTE_OCCLUSION)
+VaryingsLensFlare vertOcclusion(AttributesLensFlare input, uint instanceID : SV_InstanceID)
+{
+    VaryingsLensFlare output;
+
+#ifndef FLARE_PREVIEW
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+#endif
+
+#if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
+    float screenRatio = _ScreenRatio;
+#else
+    float2 screenParam = GetScaledScreenParams().xy;
+    float screenRatio = screenParam.y / screenParam.x;
+#endif
+
+#if SHADER_API_GLES
+    float4 posPreScale = input.positionCS;
+    float2 uv = input.uv;
+    output.positionCS.xy = local + _ScreenPos + _PositionTranslate;
+#else
+    float4 quadPos = GetQuadVertexPosition(input.vertexID);
+    float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * quadPos - float4(1.0f, 1.0f, 0.0f, 0.0);
+    float2 uv = GetQuadTexCoord(input.vertexID);
+    uv.x = 1.0f - uv.x;
+    output.positionCS.xy = quadPos;
+#endif
+
+    output.texcoord.xy = uv;
+
+    output.positionCS.z = 1.0f;
+    output.positionCS.w = 1.0f;
+
+#if FLARE_OCCLUSION
+    float occlusion = GetOcclusion(screenRatio);
+
+    if (_OcclusionOffscreen < 0.0f && // No lens flare off screen
+        (any(_ScreenPos.xy < -1) || any(_ScreenPos.xy >= 1)))
+        occlusion = 0.0f;
+#else
+    float occlusion = 1.0f;
+#endif
+
+    output.occlusion = occlusion;
+
+    return output;
+}
+#else
 VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceID)
 {
     VaryingsLensFlare output;
@@ -170,6 +223,7 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
 
     return output;
 }
+#endif
 
 float InverseGradient(float x)
 {
@@ -244,6 +298,10 @@ float4 frag(VaryingsLensFlare input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 #endif
 
+#if defined(FLARE_COMPUTE_OCCLUSION)
+    return input.occlusion.xxxx;
+#else
     float4 col = GetFlareShape(input.texcoord);
     return col * _FlareColor * input.occlusion;
+#endif
 }

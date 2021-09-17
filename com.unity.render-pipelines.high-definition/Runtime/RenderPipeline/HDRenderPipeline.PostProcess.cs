@@ -466,6 +466,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_PostProcessEnabled || m_AntialiasingFS)
             {
+                TextureHandle occlusion = LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer);
+
                 source = StopNaNsPass(renderGraph, hdCamera, source);
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
@@ -513,7 +515,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // HDRP to reduce the amount of resolution lost at the center of the screen
                 source = PaniniProjectionPass(renderGraph, hdCamera, source);
 
-                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source);
+                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBuffer);
 
                 TextureHandle bloomTexture = BloomPass(renderGraph, hdCamera, source);
                 TextureHandle logLutOutput = ColorGradingPass(renderGraph, hdCamera);
@@ -3061,11 +3063,57 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public LensFlareParameters parameters;
             public TextureHandle source;
+            public TextureHandle depthBuffer;
             public HDCamera hdCamera;
             public Vector2Int viewport;
         }
 
-        TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        TextureHandle LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer)
+        {
+            if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
+            {
+                TextureHandle lensFlareOcclusion = renderGraph.CreateTexture(
+                    new TextureDesc(new Vector2(LensFlareCommonSRP.MaxLensFlareWithOcclusion, 1), false, true) { colorFormat = GraphicsFormat.R16_SFloat, name = "Lens Flare Occlusion" });
+
+                using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareComputeOcclusionDataDriven)))
+                {
+                    passData.source = builder.WriteTexture(lensFlareOcclusion);
+                    passData.parameters = PrepareLensFlareParameters(hdCamera);
+                    passData.viewport = postProcessViewportSize;
+                    passData.hdCamera = hdCamera;
+                    passData.depthBuffer = depthBuffer;
+                    TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Lens Flare Destination");
+
+                    builder.SetRenderFunc(
+                        (LensFlareData data, RenderGraphContext ctx) =>
+                        {
+                            float width = (float)data.viewport.x;
+                            float height = (float)data.viewport.y;
+
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
+
+                            LensFlareCommonSRP.ComputeOcclusion(
+                                data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera,
+                                width, height,
+                                data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit, ShaderConfig.s_CameraRelativeRendering != 0,
+                                data.hdCamera.mainViewConstants.worldSpaceCameraPos, data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
+                                //data.hdCamera.mainViewConstants.viewProjMatrix,
+                                ctx.cmd, data.source,
+                                HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
+                                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4,
+                                HDShaderIDs._FlareOcclusionIndex);
+                        });
+                }
+
+                return lensFlareOcclusion;
+            }
+            else
+            {
+                return TextureHandle.nullHandle;
+            }
+        }
+
+        TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer)
         {
             if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
@@ -3075,6 +3123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
                     passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
+                    passData.depthBuffer = depthBuffer;
                     TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Lens Flare Destination");
 
                     builder.SetRenderFunc(
@@ -3082,6 +3131,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             float width = (float)data.viewport.x;
                             float height = (float)data.viewport.y;
+
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
 
                             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
                                 data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, width, height,
