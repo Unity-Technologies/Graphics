@@ -471,20 +471,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         void InitializeAllActiveConverters(ClickEvent evt)
         {
-            Scene currentScene = SceneManager.GetActiveScene();
-            if (currentScene.isDirty)
-            {
-                if (EditorUtility.DisplayDialog("Scene is not saved.",
-                    "Current scene is not saved. Please save the scene before continuing.", "Save and Continue",
-                    "Cancel"))
-                {
-                    EditorSceneManager.SaveScene(currentScene);
-                }
-                else
-                {
-                    return;
-                }
-            }
+            if (!SaveCurrentSceneAndContinue()) return;
 
             // If we use search index, go async
             if (ShouldCreateSearchIndex())
@@ -577,6 +564,26 @@ namespace UnityEditor.Rendering.Universal.Converters
             }
         }
 
+        private bool SaveCurrentSceneAndContinue()
+        {
+            Scene currentScene = SceneManager.GetActiveScene();
+            if (currentScene.isDirty)
+            {
+                if (EditorUtility.DisplayDialog("Scene is not saved.",
+                    "Current scene is not saved. Please save the scene before continuing.", "Save and Continue",
+                    "Cancel"))
+                {
+                    EditorSceneManager.SaveScene(currentScene);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         bool ShouldCreateSearchIndex()
         {
             for (int i = 0; i < m_ConverterStates.Count; ++i)
@@ -632,21 +639,8 @@ namespace UnityEditor.Rendering.Universal.Converters
         void Convert(ClickEvent evt)
         {
             // Ask to save save the current open scene and after the conversion is done reload the same scene.
-            Scene currentScene = SceneManager.GetActiveScene();
-            string currentScenePath = currentScene.path;
-            if (currentScene.isDirty)
-            {
-                if (EditorUtility.DisplayDialog("Scene is not saved.",
-                    "Current scene is not saved. Please save the scene before continuing.", "Save and Continue",
-                    "Cancel"))
-                {
-                    EditorSceneManager.SaveScene(currentScene);
-                }
-                else
-                {
-                    return;
-                }
-            }
+            if (!SaveCurrentSceneAndContinue()) return;
+            string currentScenePath = SceneManager.GetActiveScene().path;
 
             List<ConverterState> activeConverterStates = new List<ConverterState>();
             // Get the names of the converters
