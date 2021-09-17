@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Added
+- New `IVolumeDebugSettings` interface and `VolumeDebugSettings<T>` class that stores the information for the Volumes Debug Panel.
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -51,6 +54,7 @@ The version number for this package has increased due to a version update of a r
 - Added UNITY_PREV_MATRIX_M and UNITY_PREV_MATRIX_I_M shader macros to support instanced motion vector rendering
 - Added new API to customize the rtHandleProperties of a particular RTHandle. This is a temporary work around to assist with viewport setup of Custom post process when dealing with DLSS or TAAU
 - Added `IAdditionalData` interface to identify the additional datas on the core package.
+- Added new API to draw color temperature for Lights.
 
 ### Fixed
 - Help boxes with fix buttons do not crop the label.
