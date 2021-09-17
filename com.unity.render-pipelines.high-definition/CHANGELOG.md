@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Shader advanced options for lit shaders.
 - Fixed Dof, would sometimes get corrupted when DLSS was on caused by TAA logic accidentally being on for DOF (1357722)
 - Fixed shadowmask editable when not supported.
+- Fixed sorting for mesh decals.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
