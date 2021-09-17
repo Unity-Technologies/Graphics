@@ -22,8 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         static string[] passTemplateMaterialDirectories = new string[]
         {
-            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Hair/ShaderGraph/",
-            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Hair/ShaderGraph/"
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;

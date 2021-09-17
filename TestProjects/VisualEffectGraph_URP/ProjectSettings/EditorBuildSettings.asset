@@ -92,4 +92,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicsTests/103_LitDeferredAccurate.unity
     guid: b5d2bc0df9db8664aadc9b8fa26308fb
+  - enabled: 1
+    path: Assets/GraphicsTests/104_ShaderGraphGenerationFTP.unity
+    guid: febb29da98ad14a4d89b7679f8e53848
   m_configObjects: {}

@@ -219,7 +219,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 
             // Shadows
             asset.shadowDistance = settings.ShadowDistance;
-            asset.shadowCascadeCount = m_GraphicsTierSettings.CascadeShadows ? settings.ShadowCascadeCount : 0;
+            asset.shadowCascadeCount = m_GraphicsTierSettings.CascadeShadows ? settings.ShadowCascadeCount : 1;
             asset.cascade2Split = settings.CascadeSplit2;
             asset.cascade4Split = settings.CascadeSplit4;
             asset.supportsSoftShadows = settings.Shadows == ShadowQuality.All;
