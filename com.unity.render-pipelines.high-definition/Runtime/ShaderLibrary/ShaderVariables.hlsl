@@ -475,6 +475,8 @@ float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
 // Undef the matrix error macros so that the DOTS instancing macro works
 #undef unity_ObjectToWorld
 #undef unity_WorldToObject
+#undef unity_MatrixPreviousM
+#undef unity_MatrixPreviousMI
 UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_ObjectToWorld)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_WorldToObject)
@@ -511,8 +513,6 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadataunity_SHBb)
 #define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadataunity_SHC)
 #define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadataunity_ProbesOcclusion)
-#define unity_MatrixPreviousM       LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadataunity_MatrixPreviousM))
-#define unity_MatrixPreviousMI      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadataunity_MatrixPreviousMI))
 
 #endif
 

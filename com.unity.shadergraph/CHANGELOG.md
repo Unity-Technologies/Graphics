@@ -133,6 +133,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation problems on preview shader when using hybrid renderer v2 and property desc override Hybrid Per Instance
 - Fixed a serialization bug wrt PVT property flags when using subgraphs. This fixes SRP batcher compatibility.
 - Fixed an incorrect direction transform from view to world space [1365186]
+- Fixed the appearance (wrong text color, and not wrapped) of a warning in Node Settings [1365780]
 - Fixed the ordering of inputs on a SubGraph node to match the properties on the blackboard of the subgraph itself [1366052]
 
 ## [11.0.0] - 2020-10-21
