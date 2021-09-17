@@ -182,6 +182,11 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);
 
+#if defined(_ALPHAMODULATE_ON)
+    // Fake alpha by lerping to 1 for multiply blend
+    color.rgb = lerp(1, color.rgb, color.a);
+#endif
+
     return color;
 }
 

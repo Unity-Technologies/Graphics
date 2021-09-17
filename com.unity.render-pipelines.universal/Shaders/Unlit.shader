@@ -14,7 +14,10 @@ Shader "Universal Render Pipeline/Unlit"
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector] _SrcBlendA("__srcA", Float) = 1.0
+        [HideInInspector] _DstBlendA("__dstA", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
+        [HideInInspector] _PreserveSpecular("__preserve_specular", Float) = 1.0
 
         // Editmode props
         _QueueOffset("Queue offset", Float) = 0.0
@@ -30,7 +33,7 @@ Shader "Universal Render Pipeline/Unlit"
         Tags {"RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="4.5"}
         LOD 100
 
-        Blend [_SrcBlend][_DstBlend]
+        Blend [_SrcBlend][_DstBlend], [_SrcBlendA][_DstBlendA]
         ZWrite [_ZWrite]
         Cull [_Cull]
 
@@ -44,7 +47,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHAMODULATE_ON
 
             // -------------------------------------
             // Unity defined keywords
@@ -151,7 +154,7 @@ Shader "Universal Render Pipeline/Unlit"
         Tags {"RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="2.0"}
         LOD 100
 
-        Blend [_SrcBlend][_DstBlend]
+        Blend [_SrcBlend][_DstBlend], [_SrcBlendA][_DstBlendA]
         ZWrite [_ZWrite]
         Cull [_Cull]
 
@@ -165,7 +168,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHAMODULATE_ON
 
             // -------------------------------------
             // Unity defined keywords

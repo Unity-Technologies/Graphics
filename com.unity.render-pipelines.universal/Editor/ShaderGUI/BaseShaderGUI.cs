@@ -88,6 +88,9 @@ namespace UnityEditor
             public static readonly GUIContent blendingMode = EditorGUIUtility.TrTextContent("Blending Mode",
                 "Controls how the color of the Transparent surface blends with the Material color in the background.");
 
+            public static readonly GUIContent preserveSpecularText = EditorGUIUtility.TrTextContent("Preserve Specular Lighting",
+                "Preserves specular lighting intensity and size by focusing blending to diffuse (transmitted) parts in transparent objects.");
+
             public static readonly GUIContent cullingText = EditorGUIUtility.TrTextContent("Render Face",
                 "Specifies which faces to cull from your geometry. Front culls front faces. Back culls backfaces. None means that both sides are rendered.");
 
@@ -142,6 +145,7 @@ namespace UnityEditor
         protected MaterialProperty surfaceTypeProp { get; set; }
 
         protected MaterialProperty blendModeProp { get; set; }
+        protected MaterialProperty preserveSpecProp { get; set; }
 
         protected MaterialProperty cullingProp { get; set; }
 
@@ -199,6 +203,7 @@ namespace UnityEditor
 
             surfaceTypeProp = FindProperty(Property.SurfaceType, properties, false);
             blendModeProp = FindProperty(Property.BlendMode, properties, false);
+            preserveSpecProp = FindProperty(Property.BlendModePreserveSpecular, properties, false);  // Separate blend for diffuse and specular.
             cullingProp = FindProperty(Property.CullMode, properties, false);
             zwriteProp = FindProperty(Property.ZWriteControl, properties, false);
             ztestProp = FindProperty(Property.ZTest, properties, false);
@@ -297,8 +302,24 @@ namespace UnityEditor
         {
             DoPopup(Styles.surfaceType, surfaceTypeProp, Styles.surfaceTypeNames);
             if ((surfaceTypeProp != null) && ((SurfaceType)surfaceTypeProp.floatValue == SurfaceType.Transparent))
+            {
                 DoPopup(Styles.blendingMode, blendModeProp, Styles.blendModeNames);
 
+                if (material.HasProperty(Property.BlendModePreserveSpecular))
+                {
+                    BlendMode blendMode = (BlendMode)material.GetFloat(Property.BlendMode);
+                    var isDisabled = blendMode == BlendMode.Multiply || blendMode == BlendMode.Premultiply;
+
+                    EditorGUI.BeginDisabledGroup(isDisabled);
+                    EditorGUI.indentLevel += 2;
+                    EditorGUI.BeginChangeCheck();
+                    var preserveSpecEnabled = EditorGUILayout.Toggle(Styles.preserveSpecularText, preserveSpecProp.floatValue == 1);
+                    if (EditorGUI.EndChangeCheck())
+                        preserveSpecProp.floatValue = preserveSpecEnabled ? 1 : 0;
+                    EditorGUI.indentLevel -= 2;
+                    EditorGUI.EndDisabledGroup();
+                }
+            }
             DoPopup(Styles.cullingText, cullingProp, Styles.renderFaceNames);
             DoPopup(Styles.zwriteText, zwriteProp, Styles.zwriteNames);
 
@@ -592,40 +613,89 @@ namespace UnityEditor
                     zwrite = true;
                     material.DisableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
                     material.DisableKeyword(ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT);
+                    material.DisableKeyword(ShaderKeywordStrings._ALPHAMODULATE_ON);
                 }
                 else // SurfaceType Transparent
                 {
                     BlendMode blendMode = (BlendMode)material.GetFloat(Property.BlendMode);
 
+                    // Clear blend keyword state.
+                    material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                    material.DisableKeyword("_ALPHAMODULATE_ON");
+
+                    var srcBlendRGB = UnityEngine.Rendering.BlendMode.One;
+                    var dstBlendRGB = UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha;
+                    var srcBlendA = UnityEngine.Rendering.BlendMode.One;
+                    var dstBlendA = UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha;
+
                     // Specific Transparent Mode Settings
                     switch (blendMode)
                     {
+                        // srcRGB * srcAlpha + dstRGB * (1 - srcAlpha)
+                        // preserve spec:
+                        // srcRGB * (<in shader> ? 1 : srcAlpha) + dstRGB * (1 - srcAlpha)
                         case BlendMode.Alpha:
-                            SetMaterialSrcDstBlendProperties(material,
-                                UnityEngine.Rendering.BlendMode.SrcAlpha,
-                                UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                            material.DisableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
+                            srcBlendRGB = UnityEngine.Rendering.BlendMode.SrcAlpha;
+                            dstBlendRGB = UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha;
+                            srcBlendA = UnityEngine.Rendering.BlendMode.One;
+                            dstBlendA = dstBlendRGB;
                             break;
+
+                        // srcRGB < srcAlpha, (alpha multiplied in asset)
+                        // srcRGB * 1 + dstRGB * (1 - srcAlpha)
                         case BlendMode.Premultiply:
-                            SetMaterialSrcDstBlendProperties(material,
-                                UnityEngine.Rendering.BlendMode.One,
-                                UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                            material.EnableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
+                            srcBlendRGB = UnityEngine.Rendering.BlendMode.One;
+                            dstBlendRGB = UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha;
+                            srcBlendA = srcBlendRGB;
+                            dstBlendA = dstBlendRGB;
                             break;
+
+                        // srcRGB * srcAlpha + dstRGB * 1, (alpha controls amount of addition)
+                        // preserve spec:
+                        // srcRGB * (<in shader> ? 1 : srcAlpha) + dstRGB * (1 - srcAlpha)
                         case BlendMode.Additive:
-                            SetMaterialSrcDstBlendProperties(material,
-                                UnityEngine.Rendering.BlendMode.SrcAlpha,
-                                UnityEngine.Rendering.BlendMode.One);
-                            material.DisableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
+                            srcBlendRGB = UnityEngine.Rendering.BlendMode.SrcAlpha;
+                            dstBlendRGB = UnityEngine.Rendering.BlendMode.One;
+                            srcBlendA = srcBlendRGB;
+                            dstBlendA = dstBlendRGB;
                             break;
+
+                        // srcRGB * 0 + dstRGB * srcRGB
+                        // in shader alpha controls amount of multiplication, lerp(1, srcRGB, srcAlpha)
                         case BlendMode.Multiply:
-                            SetMaterialSrcDstBlendProperties(material,
-                                UnityEngine.Rendering.BlendMode.DstColor,
-                                UnityEngine.Rendering.BlendMode.Zero);
-                            material.DisableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
-                            material.EnableKeyword(ShaderKeywordStrings._ALPHAMODULATE_ON);
+                            srcBlendRGB = UnityEngine.Rendering.BlendMode.Zero;
+                            dstBlendRGB = UnityEngine.Rendering.BlendMode.SrcColor;
+                            srcBlendA = srcBlendRGB;
+                            dstBlendA = UnityEngine.Rendering.BlendMode.SrcColor;
+
+                            material.EnableKeyword("_ALPHAMODULATE_ON");
                             break;
                     }
+
+                    // Lift alpha multiply from ROP to shader by setting pre-multiplied _SrcBlend mode.
+                    // The intent is to do different blending for diffuse and specular in shader.
+                    // ref: http://advances.realtimerendering.com/other/2016/naughty_dog/NaughtyDog_TechArt_Final.pdf
+                    bool preserveSpecular = (material.HasProperty(Property.BlendModePreserveSpecular) &&
+                                             material.GetFloat(Property.BlendModePreserveSpecular) > 0) &&
+                                            blendMode != BlendMode.Multiply && blendMode != BlendMode.Premultiply;
+                    if (preserveSpecular)
+                    {
+                        srcBlendRGB = UnityEngine.Rendering.BlendMode.One;
+                        material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+                    }
+
+                    // When doing off-screen transparency accumulation, we change blend factors as described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+                    bool offScreenAccumulateAlpha = false;    // TODO:
+                    if (offScreenAccumulateAlpha)
+                        srcBlendA = UnityEngine.Rendering.BlendMode.Zero; // TODO:
+
+                    // RGB
+                    material.SetInt("_SrcBlend", (int)srcBlendRGB);
+                    material.SetInt("_DstBlend", (int)dstBlendRGB);
+
+                    // Alpha
+                    material.SetInt("_SrcBlendA", (int)srcBlendA);
+                    material.SetInt("_DstBlendA", (int)dstBlendA);
 
                     // General Transparent Material Settings
                     material.SetOverrideTag("RenderType", "Transparent");
