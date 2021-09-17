@@ -2,7 +2,7 @@
 
 Dynamic resolution reduces the workload on the GPU and maintains a stable target frame rate. The High Definition Render Pipeline (HDRP) uses dynamic resolution to lower the resolution of the render targets that the main rendering passes use.
 
-HDRP uses hardware dynamic resolution automatically if your platform supports it. Otherwise, HDRP uses software dynamic resolution. Hardware dynamic resolution treats the render targets, up until the back buffer, as if they are all the scaled size. This means HDRP clears the render targets faster.
+HDRP uses hardware dynamic resolution by default. If hardware dynamic resolution is not available on your platform, HDRP uses software dynamic resolution. Hardware dynamic resolution treats the render targets, up until the back buffer, as if they are all the scaled size. This means HDRP clears the render targets faster.
 
 Hardware dynamic resolution is supported on the following platforms:
 
@@ -103,8 +103,8 @@ HDRP provides the following upscale filter methods:
 | ------------------------------------ | ------------------------------------------------------------ |
 | Catmull-Rom                          | Catmull-Rom uses four bilinear samples. This uses the least resources, but it can cause blurry images after HDRP performs the upscaling step.<br/><br/> Catmull-Rom has no dependencies and runs at the end of the post-processing pipeline. |
 | Contrast Adaptive Sharpen (CAS)      | Contrast Adaptive Sharpen (CAS) uses **FidelityFX (CAS) AMD™**. This method produces a sharp image with an aggressive sharpening step. Do not use this option when the dynamic resolution screen percentage is less than 50%. For information about FidelityFX and Contrast Adaptive Sharpening, see[ AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).<br/><br/> Contrast Adaptive Sharpen (CAS) has no dependencies and runs at the end of the post-processing pipeline. |
-| FidelityFX Super Resolution 1.0      | FidelityFX Super Resolution 1.0 uses a spatial super-resolution method that balances quality and performance. For more information, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).<br/><br/> FidelityFX Super Resolution 1.0 has no dependencies and runs at the end of the post-processing pipeline.<br />FidelityFX Super Resolution 1.0also runs when at 100% resolution as it can have beneficial sharpening effects. |
-| Temporal Anti-Aliasing (TAA) Upscale | Temporal Anti-Aliasing (TAA) Upscale uses temporal integration to produce a sharp image. Unity performs this method alongside the normal anti-aliasing to optimise performance.<br />HDRP executes this upscale filter before post processing and at the same time as the TAA step. This means you can only use the TAA anti-aliasing method. This filter is not compatible with other anti-aliasing methods. <br /><br/>Temporal Anti-Aliasing (TAA) Upscale performs antialiasing on each frame. This means that it also runs when you enable Dynamic Resolution, even when the screen percentage is at 100% resolution. <br />For more information, see the section [Notes on TAA Upscale](Dynamic-Resolution.md#Notes). |
+| FidelityFX Super Resolution 1.0      | FidelityFX Super Resolution 1.0 uses a spatial super-resolution method that balances quality and performance. For more information, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).<br/><br/> FidelityFX Super Resolution 1.0 has no dependencies and runs at the end of the post-processing pipeline.<br />FidelityFX Super Resolution 1.0 also runs when at 100% resolution as it can have beneficial sharpening effects. |
+| Temporal Anti-Aliasing (TAA) Upscale | Temporal Anti-Aliasing (TAA) Upscale uses temporal integration to produce a sharp image. Unity performs this method alongside the normal anti-aliasing.<br />HDRP executes this upscale filter before post processing and at the same time as the TAA step. This means you can only use the TAA anti-aliasing method. This filter is not compatible with other anti-aliasing methods. <br /><br/>Temporal Anti-Aliasing (TAA) Upscale performs antialiasing on each frame. This means that it also runs when you enable Dynamic Resolution, even when the screen percentage is at 100% resolution. <br />For more information, see the section [Notes on TAA Upscale](Dynamic-Resolution.md#Notes). |
 
 ## Overriding upscale options with code
 
@@ -112,16 +112,17 @@ You can also override the upscale options in the HDRP Asset for each Camera in y
 
 <a name="TAA_Notes"></a>
 
-## Notes on Temporal Anti-Aliasing (TAA) Upscaling
+## Notes on Temporal Anti-Aliasing (TAA) Upscale
 
 When you enable **Temporal Anti-Aliasing (TAA) Upscaling**, it replaces Temporal Anti-Aliasing in the pipeline. This means:
 
-- When TAA Upscaling is active, it is the only anti-aliasing method. No other post-process anti-aliasing option will work.
-- Before HDRP applies TAA Upscaling, the pipeline uses a downscaled resolution. This gives a more precise post-processing result, but also uses more GPU resources.
+- When Temporal Anti-Aliasing (TAA) is active, it is the only anti-aliasing method. No other post-process or anti-aliasing option will work.
+- When TAA Upscale is active, Post-processing uses more GPU resources. This is because TAA Upscale upscales a down-sampled texture before HDRP applies post-processing. Post-processing then runs at final resolution which gives a more precise result.
 
 TAA Upscaling sets the [Camera's](HDRP-Camera.md) **TAA Quality Preset** to **High Quality**. When you enable the Temporal Anti-Aliasing (TAA) Upscaling, you cannot change this preset.
 
 Any option that can control TAA also controls TAA Upscaling. However, the source of the current frame is lower resolution than the final image/history buffer. For best results, take the following into account:
 
 - Speed rejection can produce an image that appears to have a low resolution at lower screen percentages. This is because the speed rejection threshold can reduce the influence of the history buffer in favor of the current frame.
-- You can set the [Camera's](HDRP-Camera.md) **TAA Sharpen Strength** setting to higher values to compensate for low resolution source data.
+
+- You can compensate for this low resolution source image by setting the [Camera's](HDRP-Camera.md) **TAA Sharpen Strength** setting to higher values.
