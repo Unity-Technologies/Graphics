@@ -122,8 +122,8 @@ void CSMain(uint3 groupId          : SV_GroupID,
         #endif
 #endif
 
-		Attributes attributes = (Attributes)0;
-		SourceAttributes sourceAttributes = (SourceAttributes)0;
+		VFXAttributes attributes = (VFXAttributes)0;
+		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 		
         ${VFXLoadAttributes}
 #if VFX_USE_PARTICLEID_CURRENT
