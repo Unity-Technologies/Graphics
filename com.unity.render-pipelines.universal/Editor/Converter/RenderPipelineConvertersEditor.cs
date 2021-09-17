@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEditor.Search;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEngine.Assertions;
+using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Rendering.Universal.Converters
 {
@@ -469,6 +471,21 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         void InitializeAllActiveConverters(ClickEvent evt)
         {
+            Scene currentScene = SceneManager.GetActiveScene();
+            if (currentScene.isDirty)
+            {
+                if (EditorUtility.DisplayDialog("Scene is not saved.",
+                    "Current scene is not saved. Please save the scene before continuing.", "Save and Continue",
+                    "Cancel"))
+                {
+                    EditorSceneManager.SaveScene(currentScene);
+                }
+                else
+                {
+                    return;
+                }
+            }
+
             // If we use search index, go async
             if (ShouldCreateSearchIndex())
             {
@@ -614,6 +631,23 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         void Convert(ClickEvent evt)
         {
+            // Ask to save save the current open scene and after the conversion is done reload the same scene.
+            Scene currentScene = SceneManager.GetActiveScene();
+            string currentScenePath = currentScene.path;
+            if (currentScene.isDirty)
+            {
+                if (EditorUtility.DisplayDialog("Scene is not saved.",
+                    "Current scene is not saved. Please save the scene before continuing.", "Save and Continue",
+                    "Cancel"))
+                {
+                    EditorSceneManager.SaveScene(currentScene);
+                }
+                else
+                {
+                    return;
+                }
+            }
+
             List<ConverterState> activeConverterStates = new List<ConverterState>();
             // Get the names of the converters
             // Get the amount of them
@@ -654,6 +688,12 @@ namespace UnityEditor.Rendering.Universal.Converters
                 AssetDatabase.SaveAssets();
                 AssetDatabase.StopAssetEditing();
                 EditorUtility.ClearProgressBar();
+            }
+
+            // Checking if we have changed current scene. If we have we reload the old scene we started from
+            if (currentScenePath != SceneManager.GetActiveScene().path)
+            {
+                EditorSceneManager.OpenScene(currentScenePath);
             }
         }
 
