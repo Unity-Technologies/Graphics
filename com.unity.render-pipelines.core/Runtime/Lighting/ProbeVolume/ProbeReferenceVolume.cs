@@ -301,7 +301,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         [DebuggerDisplay("Index = {cell.index} Loaded = {loaded}")]
-        internal class CellInfo
+        internal class CellInfo : IComparable<CellInfo>
         {
             public Cell cell;
             public List<Chunk> chunkList = new List<Chunk>();
@@ -310,6 +310,16 @@ namespace UnityEngine.Experimental.Rendering
             public ProbeBrickIndex.CellIndexUpdateInfo updateInfo;
             public int sourceAssetInstanceID;
             public float streamingScore;
+
+            public int CompareTo(CellInfo other)
+            {
+                if (streamingScore < other.streamingScore)
+                    return -1;
+                else if (streamingScore > other.streamingScore)
+                    return 1;
+                else
+                    return 0;
+            }
         }
 
         internal struct Volume : IEquatable<Volume>
@@ -796,12 +806,12 @@ namespace UnityEngine.Experimental.Rendering
 
             // Remove all cells from the asset from streaming structures
             int assetInstanceID = asset.GetInstanceID();
-            for (int i = m_LoadedCells.Count - 1; i >= 0; i--)
+            for (int i = m_LoadedCells.size - 1; i >= 0; i--)
             {
                 if (m_LoadedCells[i].sourceAssetInstanceID == assetInstanceID)
                     m_LoadedCells.RemoveAt(i);
             }
-            for (int i = m_UnloadedCells.Count - 1; i >= 0; i--)
+            for (int i = m_UnloadedCells.size - 1; i >= 0; i--)
             {
                 if (m_UnloadedCells[i].sourceAssetInstanceID == assetInstanceID)
                     m_UnloadedCells.RemoveAt(i);

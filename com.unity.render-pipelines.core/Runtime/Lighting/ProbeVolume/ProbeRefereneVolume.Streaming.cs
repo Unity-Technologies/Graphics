@@ -1,29 +1,16 @@
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
     public partial class ProbeReferenceVolume
     {
-        CellInfoSorter m_CellInfoSorter = new CellInfoSorter();
-        List<CellInfo> m_LoadedCells = new List<CellInfo>();
-        List<CellInfo> m_UnloadedCells = new List<CellInfo>();
-        List<CellInfo> m_TempCellToLoadList = new List<CellInfo>();
-        List<CellInfo> m_TempCellToUnloadList = new List<CellInfo>();
+        DynamicArray<CellInfo> m_LoadedCells = new DynamicArray<CellInfo>();
+        DynamicArray<CellInfo> m_UnloadedCells = new DynamicArray<CellInfo>();
+        DynamicArray<CellInfo> m_TempCellToLoadList = new DynamicArray<CellInfo>();
+        DynamicArray<CellInfo> m_TempCellToUnloadList = new DynamicArray<CellInfo>();
 
         public Vector3 m_FrozenCameraPosition;
-
-        class CellInfoSorter : IComparer<CellInfo>
-        {
-            public int Compare(CellInfo x, CellInfo y)
-            {
-                if (x.streamingScore > y.streamingScore)
-                    return 1;
-                else if (x.streamingScore < y.streamingScore)
-                    return -1;
-                else
-                    return 0;
-            }
-        }
 
         /// <summary>
         /// Set the number of cells that are loaded per frame when needed.
@@ -34,10 +21,11 @@ namespace UnityEngine.Experimental.Rendering
             m_NumberOfCellsLoadedPerFrame = Mathf.Max(1, numberOfCells);
         }
 
-        void ComputeCellCameraDistance(Vector3 cameraPosition, List<CellInfo> cells)
+        void ComputeCellCameraDistance(Vector3 cameraPosition, DynamicArray<CellInfo> cells)
         {
-            foreach (var cellInfo in cells)
+            for (int i = 0; i < cells.size; ++i)
             {
+                var cellInfo = cells[i];
                 // For now streaming score is only distance based.
                 cellInfo.streamingScore = Vector3.Distance(cameraPosition, cellInfo.cell.position);
             }
@@ -56,8 +44,9 @@ namespace UnityEngine.Experimental.Rendering
 
             ComputeCellCameraDistance(cameraPositionCellSpace, m_UnloadedCells);
             ComputeCellCameraDistance(cameraPositionCellSpace, m_LoadedCells);
-            m_UnloadedCells.Sort(m_CellInfoSorter);
-            m_LoadedCells.Sort(m_CellInfoSorter);
+
+            m_UnloadedCells.QuickSort();
+            m_LoadedCells.QuickSort();
 
             bool budgetReached = false;
             int pendingLoadCount = 0;
@@ -67,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering
             int indexChunkBudget = m_Index.GetRemainingChunkCount();
             int shChunkBudget = m_Pool.GetRemainingChunkCount();
 
-            while (pendingLoadCount < m_NumberOfCellsLoadedPerFrame && pendingLoadCount < m_UnloadedCells.Count && !budgetReached)
+            while (pendingLoadCount < m_NumberOfCellsLoadedPerFrame && pendingLoadCount < m_UnloadedCells.size && !budgetReached)
             {
                 // Enough memory, we can safely load the cell.
                 var cellInfo = m_UnloadedCells[pendingLoadCount];
@@ -100,15 +89,15 @@ namespace UnityEngine.Experimental.Rendering
             {
                 int pendingUnloadCount = 0;
                 bool canUnloadCell = true;
-                while (canUnloadCell && pendingLoadCount < m_NumberOfCellsLoadedPerFrame && pendingLoadCount < m_UnloadedCells.Count)
+                while (canUnloadCell && pendingLoadCount < m_NumberOfCellsLoadedPerFrame && pendingLoadCount < m_UnloadedCells.size)
                 {
-                    if (m_LoadedCells.Count - pendingUnloadCount == 0)
+                    if (m_LoadedCells.size - pendingUnloadCount == 0)
                     {
                         canUnloadCell = false;
                         break;
                     }
 
-                    var furthestLoadedCell = m_LoadedCells[m_LoadedCells.Count - pendingUnloadCount - 1];
+                    var furthestLoadedCell = m_LoadedCells[m_LoadedCells.size - pendingUnloadCount - 1];
                     var closestUnloadedCell = m_UnloadedCells[pendingLoadCount];
 
                     // Redundant work. Maybe store during first sort pass?
@@ -146,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 if (pendingUnloadCount > 0)
-                    m_LoadedCells.RemoveRange(m_LoadedCells.Count - pendingUnloadCount, pendingUnloadCount);
+                    m_LoadedCells.RemoveRange(m_LoadedCells.size - pendingUnloadCount, pendingUnloadCount);
             }
 
             // Remove the cells we successfully loaded.
