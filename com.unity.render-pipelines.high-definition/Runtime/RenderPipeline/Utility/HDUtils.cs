@@ -550,6 +550,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static string GetCorePath()
             => "Packages/com.unity.render-pipelines.core/";
 
+        internal static string GetVFXPath()
+            => "Packages/com.unity.visualeffectgraph/";
+
         // It returns the previously set RenderPipelineAsset, assetWasFromQuality is true if the current asset was set through the quality settings
         internal static RenderPipelineAsset SwitchToBuiltinRenderPipeline(out bool assetWasFromQuality)
         {

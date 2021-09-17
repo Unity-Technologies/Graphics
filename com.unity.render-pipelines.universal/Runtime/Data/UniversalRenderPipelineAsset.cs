@@ -198,6 +198,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
+        [SerializeField] bool m_ConservativeEnclosingSphere = false;
+        [SerializeField] int m_NumIterationsEnclosingSphere = 64;
 
         // Light Cookie Settings
         [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
@@ -259,6 +261,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
+
+            // Only enable for new URP assets by default
+            instance.m_ConservativeEnclosingSphere = true;
 
             return instance;
         }
@@ -911,6 +916,18 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseAdaptivePerformance; }
             set { m_UseAdaptivePerformance = value; }
+        }
+
+        public bool conservativeEnclosingSphere
+        {
+            get { return m_ConservativeEnclosingSphere; }
+            set { m_ConservativeEnclosingSphere = value; }
+        }
+
+        public int numItertionsEnclosingSphere
+        {
+            get { return m_NumIterationsEnclosingSphere; }
+            set { m_NumIterationsEnclosingSphere = value; }
         }
 
         public override Material defaultMaterial
