@@ -690,15 +690,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            if (selectable != this)
-                Inspector.InspectorView.forceNodeView = true;
-
             var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
             materialGraphView?.AddToSelection(selectable);
-
-            if (materialGraphView.selection.OfType<SGBlackboardCategory>().Any())
-                // Turns off the inspector being forced to trigger so user can still use Graph Settings tab if they want, on category selection
-                Inspector.InspectorView.forceNodeView = false;
         }
 
         public void RemoveFromSelection(ISelectable selectable)
