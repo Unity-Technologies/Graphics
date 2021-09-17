@@ -40,7 +40,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 	{
 		uint index = inputBuffer[id];
 		
-		Attributes attributes = (Attributes)0;
+		VFXAttributes attributes = (VFXAttributes)0;
 		${VFXLoadAttributes:{position}}
 		
 #if VFX_LOCAL_SPACE
