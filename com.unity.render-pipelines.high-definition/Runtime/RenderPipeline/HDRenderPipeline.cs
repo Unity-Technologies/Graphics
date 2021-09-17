@@ -4009,7 +4009,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var desc = new RendererListDesc(m_MeshDecalsPassNames, cullingResults, hdCamera.camera)
             {
-                sortingCriteria = SortingCriteria.CommonOpaque,
+                sortingCriteria = SortingCriteria.CommonOpaque | SortingCriteria.RendererPriority,
                 rendererConfiguration = PerObjectData.None,
                 renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
             };
