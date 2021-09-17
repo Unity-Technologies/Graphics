@@ -28,7 +28,7 @@ float DecodeHairStrandCount(float3 L, float4 strandCountProbe)
         HALF_SQRT_3_DIV_PI * L.x
     );
 
-    return dot(strandCountProbe, Ylm);
+    return abs(dot(strandCountProbe, Ylm));
 }
 
 float GetDirectFraction(BSDFData bsdfData, float strandCount)
