@@ -1136,9 +1136,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (serialized.settings.isMixed)
                 {
-					bool enabled = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportShadowMask;
-					if (Lightmapping.TryGetLightingSettings(out var settings))
-						enabled &= settings.mixedBakeMode == MixedLightingMode.Shadowmask;
+                    bool enabled = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportShadowMask;
+                    if (Lightmapping.TryGetLightingSettings(out var settings))
+                        enabled &= settings.mixedBakeMode == MixedLightingMode.Shadowmask;
                     using (new EditorGUI.DisabledScope(!enabled))
                     {
                         Rect nonLightmappedOnlyRect = EditorGUILayout.GetControlRect();
