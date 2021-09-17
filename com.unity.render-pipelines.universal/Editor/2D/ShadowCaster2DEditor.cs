@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_CastingSourceDropDown.OnCastingSource(serializedObject, targets, Styles.castingSourcePrefixLabel, null);
 
-            if (m_ShadowShapeProvider.intValue == (int)ShadowCaster2D.ShadowCastingSources.ShapeProvider)
+            if (m_CastingSource.intValue == (int)ShadowCaster2D.ShadowCastingSources.ShapeProvider)
             {
                 EditorGUILayout.PropertyField(m_ShadowShapeContract, Styles.shadowShapeContract);
                 if (m_ShadowShapeContract.floatValue < 0)
