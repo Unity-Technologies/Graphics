@@ -6,17 +6,28 @@ using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEditor.Rendering.BuiltIn;
 using UnityEditor.Rendering.BuiltIn.ShaderGraph;
 using BlendMode = UnityEngine.Rendering.BlendMode;
 using BlendOp = UnityEditor.ShaderGraph.BlendOp;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 {
-    sealed class FullscreenTarget : Target, IHasMetadata
+    sealed class FullscreenTarget : Target, IHasMetadata, IMaySupportVFX
     {
+        [GenerateBlocks]
+        public struct Blocks
+        {
+            // TODO: add optional depth write block
+            public static BlockFieldDescriptor Color = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "Color", "Color",
+                "SURFACEDESCRIPTION_COLOR", new ColorRGBAControl(UnityEngine.Color.grey), ShaderStage.Fragment);
+            public static BlockFieldDescriptor Depth = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "Depth", "Depth",
+                "SURFACEDESCRIPTION_DEPTH", new FloatControl(0), ShaderStage.Fragment);
+
+        }
+
         public enum MaterialType
         {
             Blit,
@@ -32,6 +43,41 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             Additive,
             Multiply,
             Custom,
+        }
+
+        public static class Uniforms
+        {
+            public static readonly string srcColorBlendProperty = "_Fullscreen_SrcColorBlend";
+            public static readonly string dstColorBlendProperty = "_Fullscreen_DstColorBlend";
+            public static readonly string srcAlphaBlendProperty = "_Fullscreen_SrcAlphaBlend";
+            public static readonly string dstAlphaBlendProperty = "_Fullscreen_DstAlphaBlend";
+            public static readonly string colorBlendOperationProperty = "_Fullscreen_ColorBlendOperation";
+            public static readonly string alphaBlendOperationProperty = "_Fullscreen_AlphaBlendOperation";
+            public static readonly string depthWriteProperty = "_Fullscreen_DepthWrite";
+            public static readonly string depthTestProperty = "_Fullscreen_DepthTest";
+            public static readonly string stencilReferenceProperty = "_Fullscreen_StencilReference";
+            public static readonly string stencilReadMaskProperty = "_Fullscreen_StencilReadMask";
+            public static readonly string stencilWriteMaskProperty = "_Fullscreen_StencilWriteMask";
+            public static readonly string stencilComparisonProperty = "_Fullscreen_StencilComparison";
+            public static readonly string stencilPassProperty = "_Fullscreen_StencilPass";
+            public static readonly string stencilFailProperty = "_Fullscreen_StencilFail";
+            public static readonly string stencilDepthFailProperty = "_Fullscreen_StencilDepthFail";
+
+            public static readonly string srcColorBlend = "[" + srcColorBlendProperty + "]";
+            public static readonly string dstColorBlend = "[" + dstColorBlendProperty + "]";
+            public static readonly string srcAlphaBlend = "[" + srcAlphaBlendProperty + "]";
+            public static readonly string dstAlphaBlend = "[" + dstAlphaBlendProperty + "]";
+            public static readonly string colorBlendOperation = "[" + colorBlendOperationProperty + "]";
+            public static readonly string alphaBlendOperation = "[" + alphaBlendOperationProperty + "]";
+            public static readonly string depthWrite = "[" + depthWriteProperty + "]";
+            public static readonly string depthTest = "[" + depthTestProperty + "]";
+            public static readonly string stencilReference = "[" + stencilReferenceProperty + "]";
+            public static readonly string stencilReadMask = "[" + stencilReadMaskProperty + "]";
+            public static readonly string stencilWriteMask = "[" + stencilWriteMaskProperty + "]";
+            public static readonly string stencilComparison = "[" + stencilComparisonProperty + "]";
+            public static readonly string stencilPass = "[" + stencilPassProperty + "]";
+            public static readonly string stencilFail = "[" + stencilFailProperty + "]";
+            public static readonly string stencilDepthFail = "[" + stencilDepthFailProperty + "]";
         }
 
         public override int latestVersion => 0;
@@ -61,16 +107,16 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         FullscreenBlendMode m_BlendMode = FullscreenBlendMode.Disabled;
 
         [SerializeField]
-        BlendMode m_SrcColorBlendMode = BlendMode.Zero;
+        Blend m_SrcColorBlendMode = Blend.Zero;
         [SerializeField]
-        BlendMode m_DstColorBlendMode = BlendMode.One;
+        Blend m_DstColorBlendMode = Blend.One;
         [SerializeField]
         BlendOp m_ColorBlendOperation = BlendOp.Add;
 
         [SerializeField]
-        BlendMode m_SrcAlphaBlendMode = BlendMode.Zero;
+        Blend m_SrcAlphaBlendMode = Blend.Zero;
         [SerializeField]
-        BlendMode m_DstAlphaBlendMode = BlendMode.One;
+        Blend m_DstAlphaBlendMode = Blend.One;
         [SerializeField]
         BlendOp m_AlphaBlendOperation = BlendOp.Add;
 
@@ -105,7 +151,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
         public FullscreenTarget()
         {
-            displayName = "Full-screen";
+            displayName = "Fullscreen";
             m_SubTargets = TargetUtils.GetSubTargets(this);
             m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
@@ -117,13 +163,13 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             set => m_BlendMode = value;
         }
 
-        public BlendMode srcColorBlendMode
+        public Blend srcColorBlendMode
         {
             get => m_SrcColorBlendMode;
             set => m_SrcColorBlendMode = value;
         }
 
-        public BlendMode dstColorBlendMode
+        public Blend dstColorBlendMode
         {
             get => m_DstColorBlendMode;
             set => m_DstColorBlendMode = value;
@@ -135,13 +181,13 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             set => m_ColorBlendOperation = value;
         }
 
-        public BlendMode srcAlphaBlendMode
+        public Blend srcAlphaBlendMode
         {
             get => m_SrcAlphaBlendMode;
             set => m_SrcAlphaBlendMode = value;
         }
 
-        public BlendMode dstAlphaBlendMode
+        public Blend dstAlphaBlendMode
         {
             get => m_DstAlphaBlendMode;
             set => m_DstAlphaBlendMode = value;
@@ -268,8 +314,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
             // Core fields
-            // Always force vertex as the shim between built-in cginc files and hlsl files requires this
-            context.AddField(Fields.GraphVertex);
+            // context.AddField(Fields.GraphVertex); // We don't support custom vertex functions for now
             context.AddField(Fields.GraphPixel);
 
             // SubTarget fields
@@ -279,10 +324,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             // Core blocks
-            context.AddBlock(BlockFields.VertexDescription.Position);
-            context.AddBlock(BlockFields.VertexDescription.Normal);
-            context.AddBlock(BlockFields.VertexDescription.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+            context.AddBlock(Blocks.Color);
+            context.AddBlock(Blocks.Depth, depthWrite);
 
             // SubTarget blocks
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
@@ -292,9 +335,29 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         {
             base.CollectShaderProperties(collector, generationMode);
             activeSubTarget.CollectShaderProperties(collector, generationMode);
-            // collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
-            // collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
-            // collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
+        }
+
+        public void CollectRenderStateShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+
+            if (generationMode == GenerationMode.Preview || allowMaterialOverride)
+            {
+                collector.AddEnumProperty(Uniforms.srcColorBlendProperty, srcColorBlendMode);
+                collector.AddEnumProperty(Uniforms.dstColorBlendProperty, dstColorBlendMode);
+                collector.AddEnumProperty(Uniforms.srcAlphaBlendProperty, srcAlphaBlendMode);
+                collector.AddEnumProperty(Uniforms.dstAlphaBlendProperty, dstAlphaBlendMode);
+                collector.AddEnumProperty(Uniforms.colorBlendOperationProperty, colorBlendOperation);
+                collector.AddEnumProperty(Uniforms.alphaBlendOperationProperty, alphaBlendOperation);
+                collector.AddFloatProperty(Uniforms.depthWriteProperty, depthWrite ? 1 : 0);
+                collector.AddFloatProperty(Uniforms.depthTestProperty, (float)depthTestMode);
+                collector.AddIntProperty(Uniforms.stencilReferenceProperty, stencilReference);
+                collector.AddIntProperty(Uniforms.stencilReadMaskProperty, stencilReadMask);
+                collector.AddIntProperty(Uniforms.stencilWriteMaskProperty, stencilWriteMask);
+                collector.AddEnumProperty(Uniforms.stencilComparisonProperty, stencilCompareFunction);
+                collector.AddEnumProperty(Uniforms.stencilPassProperty, stencilPassOperation);
+                collector.AddEnumProperty(Uniforms.stencilFailProperty, stencilFailOperation);
+                collector.AddEnumProperty(Uniforms.stencilDepthFailProperty, stencilDepthTestFailOperation);
+            }
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -308,18 +371,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         {
             if (m_ActiveSubTarget.value == null)
                 return;
-
-            // Core properties
-            // m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
-            // context.AddProperty("Material", m_SubTargetField, (evt) =>
-            // {
-            //     if (Equals(activeSubTargetIndex, m_SubTargetField.index))
-            //         return;
-
-            //     registerUndo("Change Material");
-            //     m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
-            //     onChange();
-            // });
 
             context.AddProperty("Allow Material Override", new Toggle() { value = allowMaterialOverride }, (evt) =>
             {
@@ -374,7 +425,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                         return;
 
                     registerUndo("Change Blend Mode");
-                    srcColorBlendMode = (BlendMode)evt.newValue;
+                    srcColorBlendMode = (Blend)evt.newValue;
                     onChange();
                 });
                 context.AddProperty("Dst Color", new EnumField(dstColorBlendMode) { value = dstColorBlendMode }, (evt) =>
@@ -383,7 +434,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                         return;
 
                     registerUndo("Change Blend Mode");
-                    dstColorBlendMode = (BlendMode)evt.newValue;
+                    dstColorBlendMode = (Blend)evt.newValue;
                     onChange();
                 });
                 context.AddProperty("Color Operation", new EnumField(colorBlendOperation) { value = colorBlendOperation }, (evt) =>
@@ -405,7 +456,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                         return;
 
                     registerUndo("Change Blend Mode");
-                    srcAlphaBlendMode = (BlendMode)evt.newValue;
+                    srcAlphaBlendMode = (Blend)evt.newValue;
                     onChange();
                 });
                 context.AddProperty("Dst", new EnumField(dstAlphaBlendMode) { value = dstAlphaBlendMode }, (evt) =>
@@ -414,7 +465,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                         return;
 
                     registerUndo("Change Blend Mode");
-                    dstAlphaBlendMode = (BlendMode)evt.newValue;
+                    dstAlphaBlendMode = (Blend)evt.newValue;
                     onChange();
                 });
                 context.AddProperty("Blend Operation Alpha", new EnumField(alphaBlendOperation) { value = alphaBlendOperation }, (evt) =>
@@ -569,7 +620,9 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             }
         }
 
-        #region Metadata
+        public bool SupportsVFX() => false;
+        public bool CanSupportVFX() => false;
+
         string IHasMetadata.identifier
         {
             get
@@ -589,802 +642,142 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             return null;
         }
 
-        #endregion
-    }
-
-    #region Passes
-    static class CorePasses
-    {
-        internal static void AddSurfaceTypeControlToPass(ref PassDescriptor pass, FullscreenTarget target)
+        public static StructDescriptor Varyings = new StructDescriptor()
         {
-            // if (target.allowMaterialOverride)
-            // {
-            //     pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
-            // }
-            // else if (target.surfaceType == SurfaceType.Transparent)
-            // {
-            //     pass.defines.Add(CoreKeywordDescriptors.SurfaceTypeTransparent, 1);
-            // }
-        }
-
-        internal static void AddAlphaPremultiplyControlToPass(ref PassDescriptor pass, FullscreenTarget target)
-        {
-            // if (target.allowMaterialOverride)
-            // {
-            //     pass.keywords.Add(CoreKeywordDescriptors.AlphaPremultiplyOn);
-            // }
-            // else if (target.alphaMode == AlphaMode.Premultiply)
-            // {
-            //     pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
-            // }
-        }
-
-        internal static void AddAlphaClipControlToPass(ref PassDescriptor pass, FullscreenTarget target)
-        {
-            // if (target.allowMaterialOverride)
-            // {
-            //     pass.keywords.Add(CoreKeywordDescriptors.AlphaClip);
-            //     pass.keywords.Add(CoreKeywordDescriptors.AlphaTestOn);
-            // }
-            // else if (target.alphaClip)
-            // {
-            //     pass.defines.Add(CoreKeywordDescriptors.AlphaClip, 1);
-            //     pass.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
-            // }
-        }
-
-        // public static PassDescriptor DepthOnly(FullscreenTarget target)
-        // {
-        //     var result = new PassDescriptor()
-        //     {
-        //         // Definition
-        //         displayName = "DepthOnly",
-        //         referenceName = "SHADERPASS_DEPTHONLY",
-        //         lightMode = "DepthOnly",
-        //         useInPreview = true,
-
-        //         // Template
-        //         passTemplatePath = FullscreenTarget.kTemplatePath,
-        //         sharedTemplateDirectories = FullscreenTarget.kSharedTemplateDirectories,
-
-        //         // Port Mask
-        //         validVertexBlocks = CoreBlockMasks.Vertex,
-        //         validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
-
-        //         // Fields
-        //         structs = CoreStructCollections.Default,
-        //         fieldDependencies = CoreFieldDependencies.Default,
-
-        //         // Conditional State
-        //         renderStates = CoreRenderStates.DepthOnly(target),
-        //         pragmas = CorePragmas.Instanced,
-        //         defines = new DefineCollection() { CoreDefines.BuiltInTargetAPI },
-        //         keywords = new KeywordCollection(),
-        //         includes = CoreIncludes.DepthOnly,
-
-        //         // Custom Interpolator Support
-        //         customInterpolators = CoreCustomInterpDescriptors.Common
-        //     };
-
-        //     AddAlphaClipControlToPass(ref result, target);
-
-        //     return result;
-        // }
-
-        // public static PassDescriptor ShadowCaster(FullscreenTarget target)
-        // {
-        //     var result = new PassDescriptor()
-        //     {
-        //         // Definition
-        //         displayName = "ShadowCaster",
-        //         referenceName = "SHADERPASS_SHADOWCASTER",
-        //         lightMode = "ShadowCaster",
-
-        //         // Template
-        //         passTemplatePath = FullscreenTarget.kTemplatePath,
-        //         sharedTemplateDirectories = FullscreenTarget.kSharedTemplateDirectories,
-
-        //         // Port Mask
-        //         validVertexBlocks = CoreBlockMasks.Vertex,
-        //         validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
-
-        //         // Fields
-        //         structs = CoreStructCollections.Default,
-        //         requiredFields = CoreRequiredFields.ShadowCaster,
-        //         fieldDependencies = CoreFieldDependencies.Default,
-
-        //         // Conditional State
-        //         renderStates = CoreRenderStates.ShadowCaster(target),
-        //         pragmas = CorePragmas.ShadowCaster,
-        //         defines = new DefineCollection() { CoreDefines.BuiltInTargetAPI },
-        //         keywords = new KeywordCollection { CoreKeywords.ShadowCaster },
-        //         includes = CoreIncludes.ShadowCaster,
-
-        //         // Custom Interpolator Support
-        //         customInterpolators = CoreCustomInterpDescriptors.Common
-        //     };
-
-        //     AddCommonPassSurfaceControlsToPass(ref result, target);
-
-        //     return result;
-        // }
-
-        // public static PassDescriptor SceneSelection(FullscreenTarget target)
-        // {
-        //     var result = new PassDescriptor()
-        //     {
-        //         // Definition
-        //         displayName = "SceneSelectionPass",
-        //         referenceName = "SceneSelectionPass",
-        //         lightMode = "SceneSelectionPass",
-        //         useInPreview = true,
-
-        //         // Template
-        //         passTemplatePath = FullscreenTarget.kTemplatePath,
-        //         sharedTemplateDirectories = FullscreenTarget.kSharedTemplateDirectories,
-
-        //         // Port Mask
-        //         validVertexBlocks = CoreBlockMasks.Vertex,
-        //         validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
-
-        //         // Fields
-        //         structs = CoreStructCollections.Default,
-        //         fieldDependencies = CoreFieldDependencies.Default,
-
-        //         // Conditional State
-        //         renderStates = CoreRenderStates.SceneSelection(target),
-        //         pragmas = CorePragmas.Instanced,
-        //         defines = new DefineCollection { CoreDefines.SceneSelection },
-        //         keywords = new KeywordCollection(),
-        //         includes = CoreIncludes.SceneSelection,
-
-        //         // Custom Interpolator Support
-        //         customInterpolators = CoreCustomInterpDescriptors.Common
-        //     };
-
-        //     AddCommonPassSurfaceControlsToPass(ref result, target);
-
-        //     return result;
-        // }
-
-        // public static PassDescriptor ScenePicking(FullscreenTarget target)
-        // {
-        //     var result = new PassDescriptor()
-        //     {
-        //         // Definition
-        //         displayName = "ScenePickingPass",
-        //         referenceName = "ScenePickingPass",
-        //         lightMode = "Picking",
-        //         useInPreview = true,
-
-        //         // Template
-        //         passTemplatePath = FullscreenTarget.kTemplatePath,
-        //         sharedTemplateDirectories = FullscreenTarget.kSharedTemplateDirectories,
-
-        //         // Port Mask
-        //         validVertexBlocks = CoreBlockMasks.Vertex,
-        //         validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
-
-        //         // Fields
-        //         structs = CoreStructCollections.Default,
-        //         fieldDependencies = CoreFieldDependencies.Default,
-
-        //         // Conditional State
-        //         renderStates = CoreRenderStates.ScenePicking(target),
-        //         pragmas = CorePragmas.Instanced,
-        //         defines = new DefineCollection { CoreDefines.ScenePicking },
-        //         keywords = new KeywordCollection(),
-        //         includes = CoreIncludes.ScenePicking,
-
-        //         // Custom Interpolator Support
-        //         customInterpolators = CoreCustomInterpDescriptors.Common
-        //     };
-
-        //     AddCommonPassSurfaceControlsToPass(ref result, target);
-
-        //     return result;
-        // }
-    }
-    #endregion
-
-    #region FieldDependencies
-    static class CoreFieldDependencies
-    {
-        public static readonly DependencyCollection Default = new DependencyCollection()
-        {
-            { FieldDependencies.Default },
-            // TODO: VR support
-            // new FieldDependency(BuiltInStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,    StructFields.Attributes.instanceID),
-            // new FieldDependency(BuiltInStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,     StructFields.Attributes.instanceID),
+            name = "Varyings",
+            packFields = true,
+            populateWithCustomInterpolators = false,
+            fields = new FieldDescriptor[]
+            {
+                StructFields.Varyings.positionCS,
+                StructFields.Varyings.texCoord0,
+                StructFields.Varyings.instanceID,
+                BuiltInStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,
+                BuiltInStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,
+            }
         };
-    }
-    #endregion
-
-    #region RenderStates
-    static class CoreRenderStates
-    {
-        public static class Uniforms
-        {
-            public static readonly string srcBlend = "[" + Property.SG_SrcBlend + "]";
-            public static readonly string dstBlend = "[" + Property.SG_DstBlend + "]";
-            public static readonly string cullMode = "[" + Property.SG_Cull + "]";
-            public static readonly string zWrite = "[" + Property.SG_ZWrite + "]";
-            public static readonly string zTest = "[" + Property.SG_ZTest + "]";
-        }
-
-        public static Cull RenderFaceToCull(RenderFace renderFace)
-        {
-            switch (renderFace)
-            {
-                case RenderFace.Back:
-                    return Cull.Front;
-                case RenderFace.Front:
-                    return Cull.Back;
-                case RenderFace.Both:
-                    return Cull.Off;
-            }
-            return Cull.Back;
-        }
-
-        public static void AddUberSwitchedZTest(FullscreenTarget target, RenderStateCollection renderStates)
-        {
-            if (target.allowMaterialOverride)
-                renderStates.Add(RenderState.ZTest(Uniforms.zTest));
-            else
-                renderStates.Add(RenderState.ZTest(target.depthTestMode.ToString()));
-        }
-
-        public static void AddUberSwitchedZWrite(FullscreenTarget target, RenderStateCollection renderStates)
-        {
-            if (target.allowMaterialOverride)
-                renderStates.Add(RenderState.ZWrite(Uniforms.zWrite));
-            // TODO
-            // else
-            // renderStates.Add(RenderState.ZWrite(ZWriteControlToZWrite(target.zWriteControl, target.surfaceType)));
-        }
-
-        public static void AddUberSwitchedCull(FullscreenTarget target, RenderStateCollection renderStates)
-        {
-            // TODO
-            // renderStates.Add(RenderState.Cull());
-        }
-
-        public static void AddUberSwitchedBlend(FullscreenTarget target, RenderStateCollection renderStates)
-        {
-            if (target.allowMaterialOverride)
-            {
-                renderStates.Add(RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend));
-            }
-            else
-            {
-                // TODO
-                // if (target.alphaMode == AlphaMode.Alpha)
-                //     renderStates.Add(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
-                // else if (target.alphaMode == AlphaMode.Premultiply)
-                //     renderStates.Add(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
-                // else if (target.alphaMode == AlphaMode.Additive)
-                //     renderStates.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One));
-                // else if (target.alphaMode == AlphaMode.Multiply)
-                //     renderStates.Add(RenderState.Blend(Blend.DstColor, Blend.Zero));
-            }
-        }
 
         public static readonly RenderStateCollection MaterialControlledDefault = new RenderStateCollection
         {
-            { RenderState.ZTest(Uniforms.zTest) },
-            { RenderState.ZWrite(Uniforms.zWrite) },
-            { RenderState.Cull(Uniforms.cullMode) },
-            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) },
+            { RenderState.ZTest(Uniforms.depthTest) },
+            { RenderState.ZWrite(Uniforms.depthWrite) },
+            { RenderState.Blend(Uniforms.srcColorBlend, Uniforms.dstColorBlend, Uniforms.srcAlphaBlend, Uniforms.dstAlphaBlend) },
+            { RenderState.BlendOp(Uniforms.colorBlendOperation, Uniforms.alphaBlendOperation) },
+            // TODO: Add stencil read mask!
+            { RenderState.Stencil(new StencilDescriptor{ Ref = Uniforms.stencilReference, WriteMask = Uniforms.stencilWriteMask, Comp = Uniforms.stencilComparison, ZFail = Uniforms.stencilDepthFail, Fail = Uniforms.stencilFail, Pass = Uniforms.stencilPass}) }
         };
 
-        public static RenderStateCollection Default(FullscreenTarget target)
+        public RenderStateCollection GetRenderState()
         {
-            if (target.allowMaterialOverride)
+            if (allowMaterialOverride)
                 return MaterialControlledDefault;
             else
             {
                 var result = new RenderStateCollection();
-                AddUberSwitchedZTest(target, result);
-                AddUberSwitchedZWrite(target, result);
-                AddUberSwitchedCull(target, result);
-                AddUberSwitchedBlend(target, result);
-                // TODO: option?
-                // result.Add(RenderState.ColorMask("ColorMask RGBA"));
+                result.Add(RenderState.ZTest(depthTestMode.ToString()));
+                result.Add(RenderState.ZWrite(depthWrite.ToString()));
+
+                // Blend mode
+                if (blendMode == FullscreenBlendMode.Alpha)
+                    result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
+                else if (blendMode == FullscreenBlendMode.Premultiply)
+                    result.Add(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
+                else if (blendMode == FullscreenBlendMode.Additive)
+                    result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One));
+                else if (blendMode == FullscreenBlendMode.Multiply)
+                    result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero));
+                else
+                {
+                    result.Add(RenderState.Blend(srcColorBlendMode, dstColorBlendMode, srcAlphaBlendMode, dstAlphaBlendMode));
+                    result.Add(RenderState.BlendOp(colorBlendOperation, alphaBlendOperation));
+                }
+
+                result.Add(RenderState.Stencil(new StencilDescriptor
+                {
+                    Ref = stencilReference.ToString(),
+                    WriteMask = stencilWriteMask.ToString(),
+                    Comp = stencilCompareFunction.ToString(),
+                    ZFail = stencilDepthTestFailOperation.ToString(),
+                    Fail = stencilFailOperation.ToString(),
+                    Pass = stencilPassOperation.ToString(),
+                }));
                 return result;
             }
         }
-
-        // public static RenderStateCollection ForwardAdd(FullscreenTarget target)
-        // {
-        //     var result = new RenderStateCollection();
-
-        //     result.Add(RenderState.ZWrite(ZWrite.Off));
-        //     if (target.surfaceType != SurfaceType.Opaque)
-        //     {
-        //         result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One));
-        //         result.Add(RenderState.ColorMask("ColorMask RGB"));
-        //     }
-        //     else
-        //     {
-        //         result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One));
-        //     }
-        //     return result;
-        // }
-
-        // public static readonly RenderStateCollection Meta = new RenderStateCollection
-        // {
-        //     { RenderState.Cull(Cull.Off) },
-        // };
-
-        // public static RenderStateCollection ShadowCaster(FullscreenTarget target)
-        // {
-        //     var result = new RenderStateCollection();
-        //     result.Add(RenderState.ZTest(ZTest.LEqual));
-        //     result.Add(RenderState.ZWrite(ZWrite.On));
-        //     AddUberSwitchedCull(target, result);
-        //     AddUberSwitchedBlend(target, result);
-        //     result.Add(RenderState.ColorMask("ColorMask 0"));
-        //     return result;
-        // }
-
-        // public static RenderStateCollection DepthOnly(FullscreenTarget target)
-        // {
-        //     var result = new RenderStateCollection();
-        //     result.Add(RenderState.ZTest(ZTest.LEqual));
-        //     result.Add(RenderState.ZWrite(ZWrite.On));
-        //     AddUberSwitchedCull(target, result);
-        //     AddUberSwitchedBlend(target, result);
-        //     result.Add(RenderState.ColorMask("ColorMask 0"));
-        //     return result;
-        // }
-
-        // public static RenderStateCollection SceneSelection(FullscreenTarget target)
-        // {
-        //     var result = new RenderStateCollection()
-        //     {
-        //         { RenderState.Cull(Cull.Off) }
-        //     };
-        //     return result;
-        // }
-
-        // public static RenderStateCollection ScenePicking(FullscreenTarget target)
-        // {
-        //     var result = new RenderStateCollection();
-        //     AddUberSwitchedCull(target, result);
-        //     return result;
-        // }
     }
-    #endregion
-
-    #region Pragmas
-
-    static class CorePragmas
-    {
-        public static readonly PragmaCollection Default = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target30) },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
-
-        // public static readonly PragmaCollection Instanced = new PragmaCollection
-        // {
-        //     { Pragma.Target(ShaderModel.Target30) },
-        //     { Pragma.MultiCompileInstancing },
-        //     { Pragma.Vertex("vert") },
-        //     { Pragma.Fragment("frag") },
-        // };
-
-        // public static readonly PragmaCollection Forward = new PragmaCollection
-        // {
-        //     { Pragma.Target(ShaderModel.Target30) },
-        //     { Pragma.MultiCompileInstancing },
-        //     { Pragma.MultiCompileFog },
-        //     { Pragma.MultiCompileForwardBase },
-        //     { Pragma.Vertex("vert") },
-        //     { Pragma.Fragment("frag") },
-        // };
-
-        // public static readonly PragmaCollection ForwardAdd = new PragmaCollection
-        // {
-        //     { Pragma.Target(ShaderModel.Target30) },
-        //     { Pragma.MultiCompileInstancing },
-        //     { Pragma.MultiCompileFog },
-        //     { Pragma.MultiCompileForwardAddFullShadowsBase },
-        //     { Pragma.Vertex("vert") },
-        //     { Pragma.Fragment("frag") },
-        // };
-
-        // public static readonly PragmaCollection Deferred = new PragmaCollection
-        // {
-        //     { Pragma.Target(ShaderModel.Target45) },
-        //     { Pragma.MultiCompileInstancing },
-        //     { new PragmaDescriptor { value = "exclude_renderers nomrt" } },
-        //     { Pragma.MultiCompilePrePassFinal },
-        //     { Pragma.SkipVariants(new[] {"FOG_LINEAR", "FOG_EXP", "FOG_EXP2" }) },
-        //     { Pragma.Vertex("vert") },
-        //     { Pragma.Fragment("frag") },
-        // };
-
-        // public static readonly PragmaCollection ShadowCaster = new PragmaCollection
-        // {
-        //     { Pragma.Target(ShaderModel.Target30) },
-        //     { Pragma.MultiCompileShadowCaster },
-        //     { Pragma.Vertex("vert") },
-        //     { Pragma.Fragment("frag") },
-        // };
-    }
-    #endregion
 
     #region Includes
     static class CoreIncludes
     {
         const string kColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
         const string kTexture = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl";
-        const string kCore = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl";
-        const string kLighting = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Lighting.hlsl";
-        const string kGraphFunctions = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/ShaderGraphFunctions.hlsl";
-        const string kVaryings = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/Varyings.hlsl";
-        const string kShaderPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
-        const string kDepthOnlyPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
-        const string kShadowCasterPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
+        // TODO: Add shadergraph functions support (replace functions.hlsl by SGFunctions)
+        const string kFunctions = "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl";
+        const string kCommon = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl";
+        const string kInstancing = "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl";
+        // const string kCore = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl";
+        // const string kLighting = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Lighting.hlsl";
+        // const string kGraphFunctions = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/ShaderGraphFunctions.hlsl";
+        // const string kVaryings = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/Varyings.hlsl";
+        // const string kShaderPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
+        // const string kDepthOnlyPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
+        // const string kShadowCasterPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
 
-        const string kShims = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shim/Shims.hlsl";
-        const string kLegacySurfaceVertex = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/LegacySurfaceVertex.hlsl";
+        // TODO: support SH
+        // const string kShims = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shim/Shims.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
-            { kShims, IncludeLocation.Pregraph },
+            // { kShims, IncludeLocation.Pregraph },
             { kColor, IncludeLocation.Pregraph },
-            { kCore, IncludeLocation.Pregraph },
+            // { kCore, IncludeLocation.Pregraph },
             { kTexture, IncludeLocation.Pregraph },
-            { kLighting, IncludeLocation.Pregraph },
-            { kLegacySurfaceVertex, IncludeLocation.Pregraph },
+            { kFunctions, IncludeLocation.Pregraph },
+            { kCommon, IncludeLocation.Pregraph },
+            { kInstancing, IncludeLocation.Pregraph }, // For VR
         };
 
         public static readonly IncludeCollection ShaderGraphPregraph = new IncludeCollection
         {
-            { kGraphFunctions, IncludeLocation.Pregraph },
+            // { kGraphFunctions, IncludeLocation.Pregraph },
         };
 
-        public static readonly IncludeCollection CorePostgraph = new IncludeCollection
-        {
-            { kShaderPass, IncludeLocation.Postgraph },
-            { kVaryings, IncludeLocation.Postgraph },
-        };
-
-        public static readonly IncludeCollection DepthOnly = new IncludeCollection
-        {
-            // Pre-graph
-            { CorePregraph },
-            { ShaderGraphPregraph },
-
-            // Post-graph
-            { CorePostgraph },
-            { kDepthOnlyPass, IncludeLocation.Postgraph },
-        };
-
-        public static readonly IncludeCollection ShadowCaster = new IncludeCollection
-        {
-            // Pre-graph
-            { CorePregraph },
-            { ShaderGraphPregraph },
-
-            // Post-graph
-            { CorePostgraph },
-            { kShadowCasterPass, IncludeLocation.Postgraph },
-        };
-
-        public static readonly IncludeCollection SceneSelection = new IncludeCollection
-        {
-            // Pre-graph
-            { CorePregraph },
-            { ShaderGraphPregraph },
-
-            // Post-graph
-            { CorePostgraph },
-            { kDepthOnlyPass, IncludeLocation.Postgraph },
-        };
-
-        public static readonly IncludeCollection ScenePicking = new IncludeCollection
-        {
-            // Pre-graph
-            { CorePregraph },
-            { ShaderGraphPregraph },
-
-            // Post-graph
-            { CorePostgraph },
-            { kDepthOnlyPass, IncludeLocation.Postgraph },
-        };
+        // public static readonly IncludeCollection CorePostgraph = new IncludeCollection
+        // {
+        //     { kVaryings, IncludeLocation.Postgraph },
+        // };
     }
     #endregion
 
-    #region Defines
-    // static class CoreDefines
-    // {
-    //     public static readonly DefineCollection UseLegacySpriteBlocks = new DefineCollection
-    //     {
-    //         { CoreKeywordDescriptors.UseLegacySpriteBlocks, 1, new FieldCondition(CoreFields.UseLegacySpriteBlocks, true) },
-    //     };
-    //     public static readonly DefineCollection BuiltInTargetAPI = new DefineCollection
-    //     {
-    //         { CoreKeywordDescriptors.BuiltInTargetAPI, 1 },
-    //     };
-    //     public static readonly DefineCollection SceneSelection = new DefineCollection
-    //     {
-    //         { CoreKeywordDescriptors.BuiltInTargetAPI, 1 },
-    //         { CoreKeywordDescriptors.SceneSelectionPass, 1 },
-    //     };
-    //     public static readonly DefineCollection ScenePicking = new DefineCollection
-    //     {
-    //         { CoreKeywordDescriptors.BuiltInTargetAPI, 1 },
-    //         { CoreKeywordDescriptors.ScenePickingPass, 1 },
-    //     };
-    // }
-    #endregion
-
-    #region KeywordDescriptors
-
-    static class CoreKeywordDescriptors
+    internal static class FullscreenPropertyCollectorExtension
     {
-        // TODO: cleanup!
-        // public static readonly KeywordDescriptor Lightmap = new KeywordDescriptor()
-        // {
-        //     displayName = "Lightmap",
-        //     referenceName = "LIGHTMAP_ON",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor DirectionalLightmapCombined = new KeywordDescriptor()
-        // {
-        //     displayName = "Directional Lightmap Combined",
-        //     referenceName = "DIRLIGHTMAP_COMBINED",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor SampleGI = new KeywordDescriptor()
-        // {
-        //     displayName = "Sample GI",
-        //     referenceName = "_SAMPLE_GI",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.ShaderFeature,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor AlphaTestOn = new KeywordDescriptor()
-        // {
-        //     displayName = Keyword.SG_AlphaTestOn,
-        //     referenceName = Keyword.SG_AlphaTestOn,
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.ShaderFeature,
-        //     scope = KeywordScope.Local,
-        //     stages = KeywordShaderStage.Fragment,
-        // };
-
-        // public static readonly KeywordDescriptor AlphaClip = new KeywordDescriptor()
-        // {
-        //     displayName = "Alpha Clipping",
-        //     referenceName = Keyword.SG_AlphaClip,
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.ShaderFeature,
-        //     scope = KeywordScope.Local,
-        //     stages = KeywordShaderStage.Fragment,
-        // };
-
-        // public static readonly KeywordDescriptor SurfaceTypeTransparent = new KeywordDescriptor()
-        // {
-        //     displayName = Keyword.SG_SurfaceTypeTransparent,
-        //     referenceName = Keyword.SG_SurfaceTypeTransparent,
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.ShaderFeature,
-        //     scope = KeywordScope.Local,
-        //     stages = KeywordShaderStage.Fragment,
-        // };
-
-        // public static readonly KeywordDescriptor AlphaPremultiplyOn = new KeywordDescriptor()
-        // {
-        //     displayName = Keyword.SG_AlphaPremultiplyOn,
-        //     referenceName = Keyword.SG_AlphaPremultiplyOn,
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.ShaderFeature,
-        //     scope = KeywordScope.Local,
-        //     stages = KeywordShaderStage.Fragment,
-        // };
-
-        // public static readonly KeywordDescriptor MainLightShadows = new KeywordDescriptor()
-        // {
-        //     displayName = "Main Light Shadows",
-        //     referenceName = "",
-        //     type = KeywordType.Enum,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        //     entries = new KeywordEntry[]
-        //     {
-        //         new KeywordEntry() { displayName = "Off", referenceName = "" },
-        //         new KeywordEntry() { displayName = "No Cascade", referenceName = "MAIN_LIGHT_SHADOWS" },
-        //         new KeywordEntry() { displayName = "Cascade", referenceName = "MAIN_LIGHT_SHADOWS_CASCADE" },
-        //         new KeywordEntry() { displayName = "Screen", referenceName = "MAIN_LIGHT_SHADOWS_SCREEN" },
-        //     }
-        // };
-
-        // public static readonly KeywordDescriptor CastingPunctualLightShadow = new KeywordDescriptor()
-        // {
-        //     displayName = "Casting Punctual Light Shadow",
-        //     referenceName = "_CASTING_PUNCTUAL_LIGHT_SHADOW",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor AdditionalLights = new KeywordDescriptor()
-        // {
-        //     displayName = "Additional Lights",
-        //     referenceName = "_ADDITIONAL",
-        //     type = KeywordType.Enum,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        //     entries = new KeywordEntry[]
-        //     {
-        //         new KeywordEntry() { displayName = "Vertex", referenceName = "LIGHTS_VERTEX" },
-        //         new KeywordEntry() { displayName = "Fragment", referenceName = "LIGHTS" },
-        //         new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
-        //     }
-        // };
-
-        // public static readonly KeywordDescriptor AdditionalLightShadows = new KeywordDescriptor()
-        // {
-        //     displayName = "Additional Light Shadows",
-        //     referenceName = "_ADDITIONAL_LIGHT_SHADOWS",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor ShadowsSoft = new KeywordDescriptor()
-        // {
-        //     displayName = "Shadows Soft",
-        //     referenceName = "_SHADOWS_SOFT",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor MixedLightingSubtractive = new KeywordDescriptor()
-        // {
-        //     displayName = "Mixed Lighting Subtractive",
-        //     referenceName = "_MIXED_LIGHTING_SUBTRACTIVE",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor LightmapShadowMixing = new KeywordDescriptor()
-        // {
-        //     displayName = "Lightmap Shadow Mixing",
-        //     referenceName = "LIGHTMAP_SHADOW_MIXING",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor ShadowsShadowmask = new KeywordDescriptor()
-        // {
-        //     displayName = "Shadows Shadowmask",
-        //     referenceName = "SHADOWS_SHADOWMASK",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor SmoothnessChannel = new KeywordDescriptor()
-        // {
-        //     displayName = "Smoothness Channel",
-        //     referenceName = "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.ShaderFeature,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor ShapeLightType0 = new KeywordDescriptor()
-        // {
-        //     displayName = "Shape Light Type 0",
-        //     referenceName = "USE_SHAPE_LIGHT_TYPE_0",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor ShapeLightType1 = new KeywordDescriptor()
-        // {
-        //     displayName = "Shape Light Type 1",
-        //     referenceName = "USE_SHAPE_LIGHT_TYPE_1",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor ShapeLightType2 = new KeywordDescriptor()
-        // {
-        //     displayName = "Shape Light Type 2",
-        //     referenceName = "USE_SHAPE_LIGHT_TYPE_2",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor ShapeLightType3 = new KeywordDescriptor()
-        // {
-        //     displayName = "Shape Light Type 3",
-        //     referenceName = "USE_SHAPE_LIGHT_TYPE_3",
-        //     type = KeywordType.Boolean,
-        //     definition = KeywordDefinition.MultiCompile,
-        //     scope = KeywordScope.Global,
-        // };
-
-        // public static readonly KeywordDescriptor UseLegacySpriteBlocks = new KeywordDescriptor()
-        // {
-        //     displayName = "UseLegacySpriteBlocks",
-        //     referenceName = "USELEGACYSPRITEBLOCKS",
-        //     type = KeywordType.Boolean,
-        // };
-
-        // public static readonly KeywordDescriptor BuiltInTargetAPI = new KeywordDescriptor()
-        // {
-        //     displayName = "BuiltInTargetAPI",
-        //     referenceName = "BUILTIN_TARGET_API",
-        //     type = KeywordType.Boolean,
-        // };
-
-        // public static readonly KeywordDescriptor SceneSelectionPass = new KeywordDescriptor()
-        // {
-        //     displayName = "Scene Selection Pass",
-        //     referenceName = "SCENESELECTIONPASS",
-        //     type = KeywordType.Boolean,
-        // };
-
-        // public static readonly KeywordDescriptor ScenePickingPass = new KeywordDescriptor()
-        // {
-        //     displayName = "Scene Picking Pass",
-        //     referenceName = "SCENEPICKINGPASS",
-        //     type = KeywordType.Boolean,
-        // };
-    }
-    #endregion
-
-    // #region Keywords
-    // static class CoreKeywords
-    // {
-    //     public static readonly KeywordCollection ShadowCaster = new KeywordCollection
-    //     {
-    //         { CoreKeywordDescriptors.CastingPunctualLightShadow },
-    //     };
-    // }
-    // #endregion
-
-    #region FieldDescriptors
-    static class CoreFields
-    {
-        public static readonly FieldDescriptor UseLegacySpriteBlocks = new FieldDescriptor("BuiltIn", "UseLegacySpriteBlocks", "BUILTIN_USELEGACYSPRITEBLOCKS");
-    }
-    #endregion
-
-    #region CustomInterpolators
-    static class CoreCustomInterpDescriptors
-    {
-        public static readonly CustomInterpSubGen.Collection Common = new CustomInterpSubGen.Collection
+        public static void AddEnumProperty<T>(this PropertyCollector collector, string prop, T value, HLSLDeclaration hlslDeclaration = HLSLDeclaration.DoNotDeclare) where T : Enum
         {
-            // Custom interpolators are not explicitly defined in the SurfaceDescriptionInputs template.
-            // This entry point will let us generate a block of pass-through assignments for each field.
-            CustomInterpSubGen.Descriptor.MakeBlock(CustomInterpSubGen.Splice.k_spliceCopyToSDI, "output", "input"),
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                floatType = FloatType.Enum,
+                enumType = EnumType.Enum,
+                cSharpEnumType = typeof(T),
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = hlslDeclaration,
+                value = Convert.ToInt32(value),
+                overrideReferenceName = prop,
+            });
+        }
 
-            // sgci_PassThroughFunc is called from BuildVaryings in Varyings.hlsl to copy custom interpolators from vertex descriptions.
-            // this entry point allows for the function to be defined before it is used.
-            CustomInterpSubGen.Descriptor.MakeFunc(CustomInterpSubGen.Splice.k_splicePreSurface, "CustomInterpolatorPassThroughFunc", "Varyings", "VertexDescription", "CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC", "FEATURES_GRAPH_VERTEX")
-        };
+        public static void AddIntProperty(this PropertyCollector collector, string prop, int value, HLSLDeclaration hlslDeclaration = HLSLDeclaration.DoNotDeclare)
+        {
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                floatType = FloatType.Integer,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = hlslDeclaration,
+                value = value,
+                overrideReferenceName = prop,
+            });
+        }
     }
-    #endregion
+
 }

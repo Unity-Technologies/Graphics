@@ -3,8 +3,6 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     SurfaceDescriptionInputs output;
     ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
-    $splice(CustomInterpolatorCopyToSDI)
-
     $SurfaceDescriptionInputs.WorldSpaceNormal:                         // must use interpolated tangent, bitangent and normal before they are normalized in the pixel shader.
     $SurfaceDescriptionInputs.WorldSpaceNormal:                         float3 unnormalizedNormalWS = input.normalWS;
     $SurfaceDescriptionInputs.WorldSpaceNormal:                         const float renormFactor = 1.0 / length(unnormalizedNormalWS);
@@ -61,64 +59,4 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
 #undef BUILD_SURFACE_DESCRIPTION_INPUTS_OUTPUT_FACESIGN
 
         return output;
-}
-
-void BuildAppDataFull(Attributes attributes, VertexDescription vertexDescription, inout appdata_full result)
-{
-    $Attributes.positionOS:      result.vertex     = float4(attributes.positionOS, 1);
-    $Attributes.tangentOS:       result.tangent    = attributes.tangentOS;
-    $Attributes.normalOS:        result.normal     = attributes.normalOS;
-    $Attributes.uv0:             result.texcoord   = attributes.uv0;
-    $Attributes.uv1:             result.texcoord1  = attributes.uv1;
-    $Attributes.uv2:             result.texcoord2  = attributes.uv2;
-    $Attributes.uv3:             result.texcoord3  = attributes.uv3;
-    $Attributes.color:           result.color      = attributes.color;
-    $VertexDescription.Position: result.vertex     = float4(vertexDescription.Position, 1);
-    $VertexDescription.Normal:   result.normal     = vertexDescription.Normal;
-    $VertexDescription.Tangent:  result.tangent    = float4(vertexDescription.Tangent, 0);
-    #if UNITY_ANY_INSTANCING_ENABLED
-    $Attributes.instanceID:      result.instanceID = attributes.instanceID;
-    #endif
-}
-
-void VaryingsToSurfaceVertex(Varyings varyings, inout v2f_surf result)
-{
-    result.pos = varyings.positionCS;
-    $Varyings.positionWS:       result.worldPos = varyings.positionWS;
-    $Varyings.normalWS:         result.worldNormal = varyings.normalWS;
-    $Varyings.viewDirectionWS:  result.viewDir = varyings.viewDirectionWS;
-    // World Tangent isn't an available input on v2f_surf
-
-    #if UNITY_ANY_INSTANCING_ENABLED
-    $Varyings.instanceID:       UNITY_TRANSFER_INSTANCE_ID(varyings, result);
-    #endif
-    #if UNITY_SHOULD_SAMPLE_SH
-    $Varyings.sh:               result.sh = varyings.sh;
-    #endif
-    #if defined(LIGHTMAP_ON)
-    $Varyings.lightmapUV:       result.lmap.xy = varyings.lightmapUV;
-    #endif
-
-    DEFAULT_UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(varyings, result);
-}
-
-void SurfaceVertexToVaryings(v2f_surf surfVertex, inout Varyings result)
-{
-    result.positionCS = surfVertex.pos;
-    $Varyings.positionWS:       result.positionWS = surfVertex.worldPos;
-    $Varyings.normalWS:         result.normalWS = surfVertex.worldNormal;
-    // viewDirectionWS is never filled out in the legacy pass' function. Always use the value computed by SRP
-    // World Tangent isn't an available input on v2f_surf
-
-    #if UNITY_ANY_INSTANCING_ENABLED
-    $Varyings.instanceID:       UNITY_TRANSFER_INSTANCE_ID(surfVertex, result);
-    #endif
-    #if UNITY_SHOULD_SAMPLE_SH
-    $Varyings.sh:               result.sh = surfVertex.sh;
-    #endif
-    #if defined(LIGHTMAP_ON)
-    $Varyings.lightmapUV:       result.lightmapUV = surfVertex.lmap.xy;
-    #endif
-
-    DEFAULT_UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(surfVertex, result);
 }

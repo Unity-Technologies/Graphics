@@ -5,7 +5,7 @@ using UnityEditor.Rendering.BuiltIn;
 namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 {
     [Serializable]
-    sealed class FullscreenMetadata : ScriptableObject
+    sealed class FullscreenMetaData : ScriptableObject
     {
         [SerializeField]
         FullscreenTarget.MaterialType m_MaterialType;

@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             //     context.customEditorForRenderPipelines.Add((typeof(BuiltInUnlitGUI).FullName, ""));
 
             // Process SubShaders
-            context.AddSubShader(SubShaders.Unlit(target));
+            context.AddSubShader(SubShaders.FullscreenBlit(target));
         }
 
         protected FullscreenTarget.MaterialType materialType { get; }
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         public virtual string identifier => GetType().Name;
         public virtual ScriptableObject GetMetadataObject()
         {
-            var bultInMetadata = ScriptableObject.CreateInstance<FullscreenMetadata>();
+            var bultInMetadata = ScriptableObject.CreateInstance<FullscreenMetaData>();
             bultInMetadata.materialType = materialType;
             return bultInMetadata;
         }
@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
         public FullscreenSubTarget()
         {
-            displayName = "FullScreen";
+            displayName = "Fullscreen";
         }
 
         public override bool IsActive() => true;
@@ -74,7 +74,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            context.AddBlock(BlockFields.SurfaceDescription.BaseColor, target.allowMaterialOverride);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -82,6 +81,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             if (target.allowMaterialOverride)
             {
                 base.CollectShaderProperties(collector, generationMode);
+
+                target.CollectRenderStateShaderProperties(collector, generationMode);
 
                 // setup properties using the defaults
                 // TODO
@@ -108,7 +109,9 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor Unlit(FullscreenTarget target)
+            const string kFullscreenInclude = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenBlit.hlsl";
+
+            public static SubShaderDescriptor FullscreenBlit(FullscreenTarget target)
             {
                 var result = new SubShaderDescriptor()
                 {
@@ -116,19 +119,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     passes = new PassCollection()
                 };
 
-                result.passes.Add(UnlitPasses.Unlit(target));
-
-                return result;
-            }
-        }
-        #endregion
-
-        #region Pass
-        static class UnlitPasses
-        {
-            public static PassDescriptor Unlit(FullscreenTarget target)
-            {
-                var result = new PassDescriptor
+                result.passes.Add(new PassDescriptor
                 {
                     // Definition
                     displayName = "Fullscreen",
@@ -140,10 +131,13 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     sharedTemplateDirectories = FullscreenTarget.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = new BlockFieldDescriptor[] { }, // No vertex blocks for fullscreen shaders
+                    validVertexBlocks = new BlockFieldDescriptor[]
+                    {
+                        BlockFields.VertexDescription.Position
+                    },
                     validPixelBlocks = new BlockFieldDescriptor[]
                     {
-                        Color,
+                        FullscreenTarget.Blocks.Color,
                     },
 
                     // Fields
@@ -151,56 +145,40 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     {
                         { Structs.Attributes },
                         { Structs.SurfaceDescriptionInputs },
+                        { FullscreenTarget.Varyings },
                         { Structs.VertexDescriptionInputs },
                     },
-                    fieldDependencies = CoreFieldDependencies.Default,
+                    fieldDependencies = FieldDependencies.Default,
+                    requiredFields = new FieldCollection
+                    {
+                        StructFields.Attributes.uv0, // Always need uv0 to calculate the other properties in fullscreen node code
+                        StructFields.Attributes.vertexID, // Need the vertex Id for the DrawProcedural case
+                    },
 
                     // Conditional State
-                    renderStates = CoreRenderStates.Default(target),
-                    pragmas = CorePragmas.Default,
+                    renderStates = target.GetRenderState(),
+                    pragmas = new PragmaCollection
+                    {
+                        { Pragma.Target(ShaderModel.Target30) },
+                        { Pragma.Vertex("vert") },
+                        { Pragma.Fragment("frag") },
+                    },
                     defines = new DefineCollection(),
                     keywords = new KeywordCollection(),
-                    includes = UnlitIncludes.Unlit,
-                };
-                return result;
-            }
+                    includes = new IncludeCollection
+                    {
+                        // Pre-graph
+                        { CoreIncludes.CorePregraph },
+                        { CoreIncludes.ShaderGraphPregraph },
 
-            public static BlockFieldDescriptor Color = new BlockFieldDescriptor("SurfaceDescription", "Color", "Color", "SURFACEDESCRIPTION_COLOR", new ColorControl(UnityEngine.Color.grey, true), ShaderStage.Fragment);
-        }
-        #endregion
-
-        #region Keywords
-        static class UnlitKeywords
-        {
-            public static KeywordCollection Unlit(FullscreenTarget target)
-            {
-                var result = new KeywordCollection
-                {
-                    // { CoreKeywordDescriptors.Lightmap },
-                    // { CoreKeywordDescriptors.DirectionalLightmapCombined },
-                    // { CoreKeywordDescriptors.SampleGI },
-                };
+                        // Post-graph
+                        // { CoreIncludes.CorePostgraph },
+                        { kFullscreenInclude, IncludeLocation.Postgraph },
+                    },
+                });
 
                 return result;
             }
-        }
-        #endregion
-
-        #region Includes
-        static class UnlitIncludes
-        {
-            const string kUnlitPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
-
-            public static IncludeCollection Unlit = new IncludeCollection
-            {
-                // Pre-graph
-                { CoreIncludes.CorePregraph },
-                { CoreIncludes.ShaderGraphPregraph },
-
-                // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kUnlitPass, IncludeLocation.Postgraph },
-            };
         }
         #endregion
     }
