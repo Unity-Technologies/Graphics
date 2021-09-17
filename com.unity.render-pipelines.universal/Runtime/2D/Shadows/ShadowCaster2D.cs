@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
 using Unity.Collections;
@@ -30,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
 
         public enum ShadowCastingSources
         {
-            None,
+            None = 0,
             ShapeEditor,
             ShapeProvider
         }
@@ -46,13 +47,15 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShapeProvider;
         [SerializeField] float m_ShadowShapeContract;
-        [SerializeField] ShadowCastingSources m_ShadowCastingSource = ShadowCastingSources.ShapeEditor;
+        [SerializeField] ShadowCastingSources m_ShadowCastingSource = (ShadowCastingSources)( - 1);
 
         [SerializeField] internal ShadowMesh2D  m_ShadowMesh;
+
         internal ShadowCasterGroup2D  m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D  m_PreviousShadowCasterGroup = null;
         internal int                  m_PreviousShadowCastingSource;
         internal Component            m_PreviousShadowShapeProvider = null;
+
         
         public Mesh mesh => m_ShadowMesh.mesh;
         public BoundingSphere boundingSphere => m_ShadowMesh.boundingSphere;
@@ -188,6 +191,20 @@ namespace UnityEngine.Rendering.Universal
                 m_ApplyToSortingLayers = SetDefaultSortingLayers();
 
             Bounds bounds = new Bounds(transform.position, Vector3.one);
+
+            if (m_ShadowCastingSource < 0)
+            {
+                Component component = ShadowUtility.GetDefaultShadowCastingSource(gameObject);
+                if (component != null)
+                {
+                    m_ShadowShapeProvider = component;
+                    m_ShadowCastingSource = ShadowCastingSources.ShapeProvider;
+                }
+                else
+                {
+                    m_ShadowCastingSource = ShadowCastingSources.ShapeEditor;
+                }
+            }
 
             Renderer renderer = GetComponent<Renderer>();
             if (renderer != null)

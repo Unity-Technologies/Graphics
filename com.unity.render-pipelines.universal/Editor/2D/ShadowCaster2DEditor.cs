@@ -52,6 +52,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent shadowMode = EditorGUIUtility.TrTextContent("Use Renderer Silhouette", "When this and Self Shadows are enabled, the Renderer's silhouette is considered part of the shadow. When this is enabled and Self Shadows disabled, the Renderer's silhouette is excluded from the shadow.");
             public static GUIContent selfShadows = EditorGUIUtility.TrTextContent("Self Shadows", "When enabled, the Renderer casts shadows on itself.");
             public static GUIContent castsShadows = EditorGUIUtility.TrTextContent("Casts Shadows", "Specifies if this renderer will cast shadows");
+            public static GUIContent castingSourcePrefixLabel = EditorGUIUtility.TrTextContent("Casting Source", "Specifies the source used for projected shadows");
             public static GUIContent sortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply shadows to the specified sorting layers.");
             public static GUIContent shadowShapeProvider = EditorGUIUtility.TrTextContent("Shape Provider", "This allows a selected component provide a different shape from the Shadow Caster 2D shape. This component must implement IShadowShape2DProvider");
             public static GUIContent shadowShapeContract = EditorGUIUtility.TrTextContent("Contract Edge", "This contracts the edge of the shape given by the shape provider by the specified amount");
@@ -67,6 +68,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_CastingSource;
 
         SortingLayerDropDown m_SortingLayerDropDown;
+        CastingSourceDropDown m_CastingSourceDropDown;
+
 
 
         public void OnEnable()
@@ -81,7 +84,7 @@ namespace UnityEditor.Rendering.Universal
             m_SortingLayerDropDown = new SortingLayerDropDown();
             m_SortingLayerDropDown.OnEnable(serializedObject, "m_ApplyToSortingLayers");
 
-            
+            m_CastingSourceDropDown = new CastingSourceDropDown();
         }
 
         public void ShadowCaster2DSceneGUI()
@@ -125,27 +128,29 @@ namespace UnityEditor.Rendering.Universal
         {
             serializedObject.Update();
 
+            m_CastingSourceDropDown.OnCastingSource(serializedObject, targets, Styles.castingSourcePrefixLabel, null);
+
+            if (m_ShadowShapeProvider.intValue == (int)ShadowCaster2D.ShadowCastingSources.ShapeProvider)
+            {
+                EditorGUILayout.PropertyField(m_ShadowShapeContract, Styles.shadowShapeContract);
+                if (m_ShadowShapeContract.floatValue < 0)
+                    m_ShadowShapeContract.floatValue = 0;
+            }
+
+
             using (new EditorGUI.DisabledScope(!HasRenderer()))  // Done to support multiedit
             {
                 EditorGUILayout.PropertyField(m_UseRendererSilhouette, Styles.shadowMode);
             }
 
-            EditorGUILayout.PropertyField(m_CastingSource, Styles.castingSource);
             EditorGUILayout.PropertyField(m_SelfShadows, Styles.selfShadows);
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel, null);
 
-            if ((ShadowCaster2D.ShadowCastingSources)m_CastingSource.intValue == ShadowCaster2D.ShadowCastingSources.ShapeProvider)
-            {
-                EditorGUILayout.PropertyField(m_ShadowShapeProvider, Styles.shadowShapeProvider);
-                EditorGUILayout.PropertyField(m_ShadowShapeContract, Styles.shadowShapeContract);
-                if (m_ShadowShapeContract.floatValue < 0)
-                    m_ShadowShapeContract.floatValue = 0;
-
-                ToolManager.RestorePreviousTool();
-            }
-            else if ((ShadowCaster2D.ShadowCastingSources)m_CastingSource.intValue == ShadowCaster2D.ShadowCastingSources.ShapeEditor)
+            if ((ShadowCaster2D.ShadowCastingSources)m_CastingSource.intValue == ShadowCaster2D.ShadowCastingSources.ShapeEditor)
                 ShadowCaster2DInspectorGUI<ShadowCaster2DShadowCasterShapeTool>();
+            else
+                ToolManager.RestorePreviousTool();
 
             serializedObject.ApplyModifiedProperties();
         }
