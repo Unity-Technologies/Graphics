@@ -644,7 +644,7 @@ namespace UnityEditor.Rendering.Universal
             Profiler.BeginSample(k_ProcessShaderTag);
 #endif
 
-            UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            UniversalRenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
             if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
 
