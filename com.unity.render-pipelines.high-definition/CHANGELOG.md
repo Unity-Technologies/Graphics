@@ -413,6 +413,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadowmask editable when not supported.
 - Fixed sorting for mesh decals.
 - Fixed a warning when enabling tile/cluster debug.
+- Fix recursive rendering transmittance over the sky (case 1323945).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
