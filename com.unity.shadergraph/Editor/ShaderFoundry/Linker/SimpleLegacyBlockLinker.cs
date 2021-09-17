@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderFoundry
 
             // Find user custom varyings from the interface between the vertex/fragment stage
             List<VaryingVariable> customVaryings = new List<VaryingVariable>();
-            FindVaryings(vertexDesc, fragmentDesc, vertexGroup.Context.Outputs, customVaryings);
+            FindVaryings(vertexDesc, fragmentDesc, vertexGroup.Context.Outputs, fragmentGroup.Context.Inputs, customVaryings);
 
             // Make new block variables for the varyings
             List<BlockVariable> varyingBlockVariables = new List<BlockVariable>();
@@ -198,11 +198,14 @@ namespace UnityEditor.ShaderFoundry
             };
         }
 
-        void FindVaryings(BlockDescriptor block0Desc, BlockDescriptor block1Desc, IEnumerable<BlockVariable> existingOutputs, List<VaryingVariable> customInterpolants)
+        void FindVaryings(BlockDescriptor block0Desc, BlockDescriptor block1Desc, IEnumerable<BlockVariable> existingOutputs,  IEnumerable<BlockVariable> existingInputs, List<VaryingVariable> customInterpolants)
         {
             var existingOutputNames = new HashSet<string>();
             foreach (var output in existingOutputs)
                 existingOutputNames.Add(output.ReferenceName);
+            var existingInputNames = new HashSet<string>();
+            foreach (var input in existingInputs)
+                existingInputNames.Add(input.ReferenceName);
 
             var outputOverrides = new VariableOverrideSet();
             outputOverrides.BuildOutputOverrides(block0Desc.OutputOverrides);
@@ -226,7 +229,7 @@ namespace UnityEditor.ShaderFoundry
             {
                 var varOverride = inputOverrides.FindLastVariableOverride(input.ReferenceName);
                 string name = varOverride.Name;
-                if (availableOutputs.TryGetValue(name, out var matchingOutput))
+                if (!existingInputNames.Contains(name) && availableOutputs.TryGetValue(name, out var matchingOutput))
                     customInterpolants.Add(new VaryingVariable { Type = input.Type, Name = name });
             }
         }
