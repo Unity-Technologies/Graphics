@@ -22,7 +22,7 @@ To use dynamic resolution in your Project, you must enable dynamic resolution in
 1. In the Inspector for your HDRP Asset, go to **Rendering** **> Dynamic Resolution** and enable the **Enable** checkbox. For information on how to customize the rest of the HDRP Asset’s global dynamic resolution properties, see the dynamic resolution section of the [HDRP Asset documentation](HDRP-Asset.md#DynamicResolution).
 2. For every [Camera](HDRP-Camera.md) you want to perform dynamic resolution, go to the **General** section and enable **Allow Dynamic Resolution**.
 
-HDRP does not use dynamic resolution automatically. To use dynamic resolution in your scene, call the following function:
+HDRP does not scale dynamic resolution automatically. To use dynamic resolution with scaling in your scene, call the following function:
 
 ```DynamicResolutionHandler.SetDynamicResScaler(PerformDynamicRes scaler, DynamicResScalePolicyType scalerType)```
 
@@ -33,11 +33,10 @@ This function can use one of the following policy types:
 
 HDRP supports values from 5% to 100% and clamps anything above 100%. It is best practice to keep the screen percentage above 50%.
 
-The example below demonstrates how to call this function. During development, call this function depending on the performance of your application.
+The simple example below demonstrates how to call `DynamicResolutionHandler`. If you use this function in development, call it based on the performance of your application.
 
 
 ```c#
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
