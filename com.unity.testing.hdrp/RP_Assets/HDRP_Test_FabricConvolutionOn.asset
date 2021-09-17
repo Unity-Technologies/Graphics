@@ -266,10 +266,10 @@ MonoBehaviour:
   diffusionProfileSettings: {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8,
     type: 2}
   virtualTexturingSettings:
-    streamingCpuCacheSizeInMegaBytes: 256
+    streamingCpuCacheSizeInMegaBytes: 80
     streamingGpuCacheSettings:
     - format: 0
-      sizeInMegaBytes: 128
+      sizeInMegaBytes: 32
   m_UseRenderGraph: 1
   m_Version: 20
   m_ObsoleteFrameSettings:
