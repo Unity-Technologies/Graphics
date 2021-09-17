@@ -54,6 +54,11 @@
       "displayName": "Local Volumetric 3D Texture Samples",
       "description": "Adds a set of 3D mask textures to your project. These texture can be used for the Density Mask Texture input of the Local Volumetric Fog.",
       "path": "Samples~/LocalVolumetricFogMasks"
+    },
+    {
+      "displayName": "Transparency Setup Samples",
+      "description": "Adds Transparency Setup Sample to your project. Open the Transparency scenes to see how transparent materials should be correctly setup.",
+      "path": "Samples~/TransparencySamples"
     }
   ]
 }
