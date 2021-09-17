@@ -49,7 +49,27 @@ namespace UnityEditor.Rendering.Universal
             int lastIndex = type.LastIndexOf('.');
             string compactTypeName = lastIndex < 0 ? type : type.Substring(lastIndex + 1);
 
-            return compactTypeName;
+            bool addSpace = false;
+            string outName = "";
+            for(int i=0;i<compactTypeName.Length;i++)
+            {
+                if (char.IsUpper(compactTypeName[i]))
+                {
+                    if(addSpace)
+                        outName = outName + " " + compactTypeName[i];
+                    else
+                        outName = outName + compactTypeName[i];
+
+                     addSpace = false;
+                }
+                else
+                {
+                    outName = outName + compactTypeName[i];
+                    addSpace = true;
+                }
+            }
+
+            return outName;
         }
 
         public void OnCastingSource(SerializedObject serializedObject, Object[] targets, GUIContent labelContent, System.Action<SerializedObject> selectionChangedCallback)
