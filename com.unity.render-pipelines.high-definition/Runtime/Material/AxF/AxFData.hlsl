@@ -542,7 +542,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // - An extra sampler is used for mat cap
     // - The auto-generated debug code can visualize all texture properties so nothing is stripped out (unlike the non-debug case)
     // To save sampler states in Debug, we reuse the sampler state of the color map for some other maps too.
-    surfaceData.fresnel0 = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_FresnelMap, sampler_SVBRDF_DiffuseColorMap, uvMapping).x;
+    surfaceData.fresnelF0 = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_FresnelMap, sampler_SVBRDF_DiffuseColorMap, uvMapping).x;
     surfaceData.height_mm = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_HeightMap, sampler_SVBRDF_DiffuseColorMap, uvMapping).x * _SVBRDF_HeightMapMaxMM;
 #endif
     // Our importer range remaps the [-HALF_PI, HALF_PI) range to [0,1). We map back here:
