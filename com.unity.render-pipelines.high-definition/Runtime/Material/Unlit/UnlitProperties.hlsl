@@ -51,8 +51,8 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float , _AlphaCutoff);
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
-#define _UnlitColor     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__UnlitColor)
-#define _EmissiveColor  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float3, Metadata__EmissiveColor)
-#define _AlphaCutoff    UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AlphaCutoff)
+#define _UnlitColor     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata_UnlitColor)
+#define _EmissiveColor  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float3, Metadata_EmissiveColor)
+#define _AlphaCutoff    UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata_AlphaCutoff)
 
 #endif
