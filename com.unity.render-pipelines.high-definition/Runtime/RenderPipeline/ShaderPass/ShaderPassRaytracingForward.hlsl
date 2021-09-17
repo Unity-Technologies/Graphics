@@ -81,7 +81,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
             transmittedIntersection.color = float3(0.0, 0.0, 0.0);
             transmittedIntersection.incidentDirection = transmittedRay.Direction;
             transmittedIntersection.origin = transmittedRay.Origin;
-            transmittedIntersection.t = 0.0f;
+            transmittedIntersection.t = _RaytracingRayMaxLength;
             transmittedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
             transmittedIntersection.rayCount = 1;
             transmittedIntersection.pixelCoord = rayIntersection.pixelCoord;

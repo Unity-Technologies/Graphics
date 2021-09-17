@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sorting for mesh decals.
 - Fixed AxF debug output in certain configurations (case 1333780).
 - Fixed a warning when enabling tile/cluster debug.
+- Fix recursive rendering transmittance over the sky (case 1323945).
 
 ## [10.6.0] - 2021-04-29
 
