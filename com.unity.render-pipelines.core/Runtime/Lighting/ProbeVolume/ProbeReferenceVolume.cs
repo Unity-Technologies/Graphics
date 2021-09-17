@@ -320,6 +320,17 @@ namespace UnityEngine.Experimental.Rendering
                 else
                     return 0;
             }
+
+            public void Clear()
+            {
+                cell = null;
+                chunkList.Clear();
+                flatIdxInCellIndices = -1;
+                loaded = false;
+                updateInfo = default(ProbeBrickIndex.CellIndexUpdateInfo);
+                sourceAssetInstanceID = -1;
+                streamingScore = 0;
+            }
         }
 
         internal struct Volume : IEquatable<Volume>
@@ -480,6 +491,7 @@ namespace UnityEngine.Experimental.Rendering
         Bounds m_CurrGlobalBounds = new Bounds();
 
         internal Dictionary<int, CellInfo> cells = new Dictionary<int, CellInfo>();
+        ObjectPool<CellInfo> m_CellInfoPool = new ObjectPool<CellInfo>(x => x.Clear(), null, false);
 
         internal ProbeVolumeSceneData sceneData;
 
@@ -643,6 +655,8 @@ namespace UnityEngine.Experimental.Rendering
                 cells.Remove(cell.index);
 
                 UnloadCell(cellInfo);
+
+                m_CellInfoPool.Release(cellInfo);
             }
         }
 
@@ -670,8 +684,7 @@ namespace UnityEngine.Experimental.Rendering
             // TODO: Check perf if relevant?
             if (!cells.ContainsKey(cell.index))
             {
-                // TODO: Consider pooling this
-                var cellInfo = new CellInfo();
+                var cellInfo = m_CellInfoPool.Get();
                 cellInfo.cell = cell;
                 cellInfo.flatIdxInCellIndices = m_CellIndices.GetFlatIdxForCell(cell.position);
                 cellInfo.sourceAssetInstanceID = assetInstanceID;
