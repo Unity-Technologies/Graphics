@@ -1,11 +1,19 @@
 # Editing shader properties at runtime
 
-For High Definition Render Pipeline (HDRP) non-Shader Graph shaders, such as the [Lit](Lit-Shader.md), [Unlit](Unlit-Shader.md) shaders, changing a property at runtime, in some cases, does not have any effect. This is because if the property is not enabled before runtime, the specific shader variant associated with this property is not included in the shader (and is also not included when bulding a player). To include the shader variant, the proper keywords need to be enabled on the material before editing. 
+Each combination of shader feature [Keyword](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants.html) used in a shader produce a different shader code to compile. This is called a shader variant. Unity tries to reduce the number of shader variants to compile by only considering the sets of kewords used in a material. Until a specific shader feature is used on a material, the corresponding shader variant does not exist. 
 
-For example, to assign an emissive texture in an already blank emissive [Lit](Lit-Shader.md) shader at runtime, before setting the texture, this specific keyword needs to be [enabled](https://docs.unity3d.com/ScriptReference/Material.EnableKeyword.html) for the emissive color map variant to be included. 
+As a result, if one tries to edit a material at runtime and change properties that affects which keywords is enabled, Unity will not be able to find the shader variant and the rendering of this shader feature will fail. 
+This is because Unity cannot find the corresponding shader variant since the correct keywords are not enabled in the shader. 
+
+In the editor, enabling the correct keywords will allow Unity to compile the corresponding shader variant on the fly. 
+When building a player, only the shader variants corresponding to the keywords used on the project materials are compiled. Enabling the correct keywords in a player will allow Unity to find the corresponding shader variant but only if it already exists. If not, the rendering of this shader feature will fail.
+
+For example, to assign a Normal Map texture in a blank [Lit](Lit-Shader.md) shader material at runtime in Editor, a specific keyword needs to be [enabled](https://docs.unity3d.com/ScriptReference/Material.EnableKeyword.html) for the normal map shader variant to be compiled on the fly. 
 
 ```
-this.GetComponent<Renderer>().material.EnableKeyword("_EMISSIVE_COLOR_MAP");
+this.GetComponent<Renderer>().material.EnableKeyword("_NORMALMAP");
 ```
 
-The list of the keywords can be found by right-clicking on the shader itself (in the material inspector header) and select "Edit Shader".
+In a player, the keyword also needs to be enabled and the shader variant needs to exist because it cannot be compiled on the fly.
+
+For High Definition Render Pipeline (HDRP), the list of keywords can be found by right-clicking on the shader itself (in the material inspector header), selecting "Edit Shader" and looking for lines starting with "#pragma shader_feature_local".
