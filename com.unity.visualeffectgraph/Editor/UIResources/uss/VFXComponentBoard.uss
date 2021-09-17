@@ -346,8 +346,6 @@ VFXComponentBoardEventUI #event-name
     height: 16px;
     flex-grow: 1;
     -unity-text-align: lower-left;
-    margin-right: 4px;
-    overflow: hidden;
 }
 
 #subTitle-icon
