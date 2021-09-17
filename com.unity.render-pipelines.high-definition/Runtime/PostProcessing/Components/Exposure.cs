@@ -17,10 +17,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public ExposureModeParameter mode = new ExposureModeParameter(ExposureMode.Fixed);
 
         /// <summary>
-        /// Specifies the metering method that HDRP uses the filter the luminance source.
+        /// Specifies the metering method that HDRP uses to filter the luminance source.
         /// </summary>
         /// <seealso cref="MeteringMode"/>
-        [Tooltip("Specifies the metering method that HDRP uses the filter the luminance source.")]
+        [Tooltip("Specifies the metering method that HDRP uses to filter the luminance source.")]
         public MeteringModeParameter meteringMode = new MeteringModeParameter(MeteringMode.CenterWeighted);
 
         /// <summary>
@@ -258,9 +258,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Uses the lighting data only.
         /// </summary>
-        /// <remarks>
-        /// This mode is not implemented yet.
-        /// </remarks>
         LightingBuffer,
 
         /// <summary>

@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
                 }
 
-                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, cullingResults, hdCamera);
+                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, lightingBuffers.illuminanceBuffer, backBuffer, cullingResults, hdCamera);
 
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
                 PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest, fullScreenDebugFormat);

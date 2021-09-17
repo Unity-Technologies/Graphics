@@ -97,16 +97,18 @@ float WeightSample(uint2 pixel, float2 sourceSize, float luminance)
 
 float SampleLuminance(float2 uv)
 {
+    float prevExposure = ConvertEV100ToExposure(GetPreviousExposureEV100(), LensImperfectionExposureScale);
     if (ParamSourceBuffer == 1)
     {
         // Color buffer
-        float prevExposure = ConvertEV100ToExposure(GetPreviousExposureEV100(), LensImperfectionExposureScale);
         float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
-        return Luminance(color / prevExposure);
+        return Luminance(color) / prevExposure;
     }
     else
     {
-        return 1.0f;
+        float illuminance = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, uv, 0.0).x;
+        // Get back luminance by assuming lambert shading
+        return illuminance * INV_PI / prevExposure;
     }
 }
 

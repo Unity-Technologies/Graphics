@@ -435,6 +435,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderPostProcess(RenderGraph renderGraph,
             in PrepassOutput prepassOutput,
             TextureHandle inputColor,
+            TextureHandle inputLighting,
             TextureHandle backBuffer,
             CullingResults cullResults,
             HDCamera hdCamera)
@@ -478,7 +479,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = StopNaNsPass(renderGraph, hdCamera, source);
 
-                source = DynamicExposurePass(renderGraph, hdCamera, source);
+                source = DynamicExposurePass(renderGraph, hdCamera, source, inputLighting);
 
                 if (m_DLSSPassEnabled && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
                 {
@@ -1032,7 +1033,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ExposureCurveTexture.Apply();
         }
 
-        void PrepareExposurePassData(RenderGraph renderGraph, RenderGraphBuilder builder, HDCamera hdCamera, TextureHandle source, DynamicExposureData passData)
+        void PrepareExposurePassData(RenderGraph renderGraph, RenderGraphBuilder builder, HDCamera hdCamera, TextureHandle source, TextureHandle inputLighting, DynamicExposureData passData)
         {
             passData.exposureCS = defaultResources.shaders.exposureCS;
             passData.histogramExposureCS = defaultResources.shaders.histogramExposureCS;
@@ -1048,7 +1049,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 adaptationMode = AdaptationMode.Fixed;
 
             passData.exposureVariants = m_ExposureVariants;
-            passData.exposureVariants[0] = 1; // (int)exposureSettings.luminanceSource.value;
+            passData.exposureVariants[0] = (int)m_Exposure.luminanceSource.value;
             passData.exposureVariants[1] = (int)m_Exposure.meteringMode.value;
             passData.exposureVariants[2] = (int)adaptationMode;
             passData.exposureVariants[3] = 0;
@@ -1112,7 +1113,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             GrabExposureRequiredTextures(hdCamera, out var prevExposure, out var nextExposure);
 
-            passData.source = builder.ReadTexture(source);
+            passData.source = builder.ReadTexture(ExposureNeedsIlluminance(hdCamera) ? inputLighting : source);
             passData.prevExposure = builder.ReadTexture(renderGraph.ImportTexture(prevExposure));
             passData.nextExposure = builder.WriteTexture(renderGraph.ImportTexture(nextExposure));
         }
@@ -1276,7 +1277,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle prevExposure;
         }
 
-        TextureHandle DynamicExposurePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        TextureHandle DynamicExposurePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle inputLighting)
         {
             // Dynamic exposure - will be applied in the next frame
             // Not considered as a post-process so it's not affected by its enabled state
@@ -1286,7 +1287,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<DynamicExposureData>("Dynamic Exposure", out var passData, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
                 {
-                    PrepareExposurePassData(renderGraph, builder, hdCamera, source, passData);
+                    PrepareExposurePassData(renderGraph, builder, hdCamera, source, inputLighting, passData);
 
                     if (m_Exposure.mode.value == ExposureMode.AutomaticHistogram)
                     {

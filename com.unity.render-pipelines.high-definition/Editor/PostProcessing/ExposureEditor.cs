@@ -128,11 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.Space();
                 }
 
-                // Temporary hiding the field since we don't support anything but color buffer for now.
-                //PropertyField(m_LuminanceSource);
-
-                //if (m_LuminanceSource.value.intValue == (int)LuminanceSource.LightingBuffer)
-                //    EditorGUILayout.HelpBox("Luminance source buffer isn't supported yet.", MessageType.Warning);
+                PropertyField(m_LuminanceSource);
 
                 if (mode == (int)ExposureMode.CurveMapping)
                 {
