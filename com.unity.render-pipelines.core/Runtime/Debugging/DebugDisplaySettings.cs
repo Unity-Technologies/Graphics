@@ -21,9 +21,39 @@ namespace UnityEngine.Rendering
         public static T Instance => s_Instance.Value;
 
         #region IDebugDisplaySettingsQuery
-        public abstract bool AreAnySettingsActive { get; }
-        public abstract bool IsPostProcessingAllowed { get; }
-        public abstract bool IsLightingActive { get; }
+
+        /// <summary>
+        /// Returns true if any of the debug settings are currently active.
+        /// </summary>
+        public virtual bool AreAnySettingsActive
+        {
+            get
+            {
+                foreach (IDebugDisplaySettingsData setting in m_Settings)
+                {
+                    if (setting.AreAnySettingsActive)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        public virtual bool IsPostProcessingAllowed { get; }
+
+        /// <summary>
+        /// Returns true if lighting is active for current state of debug settings.
+        /// </summary>
+        public virtual bool IsLightingActive
+        {
+            get
+            {
+                bool lightingActive = true;
+                foreach (IDebugDisplaySettingsData setting in m_Settings)
+                    lightingActive &= setting.IsLightingActive;
+                return lightingActive;
+            }
+        }
         #endregion
 
         protected TData Add<TData>(TData newData) where TData : IDebugDisplaySettingsData
@@ -45,6 +75,20 @@ namespace UnityEngine.Rendering
             m_Settings.Clear();
         }
 
-        public abstract bool TryGetScreenClearColor(ref Color color);
+        /// <summary>
+        /// Attempts to get the color that should be used to clear the screen according to current debug settings.
+        /// </summary>
+        /// <param name="color">A reference to the screen clear color to use.</param>
+        /// <returns>True if the color reference was updated, and false otherwise.</returns>
+        public virtual bool TryGetScreenClearColor(ref Color color)
+        {
+            foreach (IDebugDisplaySettingsData setting in m_Settings)
+            {
+                if (setting.TryGetScreenClearColor(ref color))
+                    return true;
+            }
+
+            return false;
+        }
     }
 }

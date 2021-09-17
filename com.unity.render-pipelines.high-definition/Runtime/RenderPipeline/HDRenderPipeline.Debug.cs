@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_VTDebugBlit;
 #endif
 
+        private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
         DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
 
         /// <summary>
