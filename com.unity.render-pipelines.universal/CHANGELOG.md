@@ -178,6 +178,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed graphical artefact when terrain height map is used with rendering layer mask for lighting.
 - Fixed an issue where _AfterPostProcessTexture was no longer being assigned in UniversalRenderer.
 - Fixed UniversalRenderPipelineAsset now being able to use multiedit
+- Fixed shadowCascadeBlendCullingFactor to be 1.0
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
