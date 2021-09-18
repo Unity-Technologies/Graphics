@@ -66,9 +66,7 @@ namespace UnityEditor.Rendering.Universal
         public void OnCastingSource(SerializedObject serializedObject, Object[] targets, GUIContent labelContent)
         {
             Rect totalPosition = EditorGUILayout.GetControlRect();
-            //GUIContent actualLabel = EditorGUI.BeginProperty(totalPosition, labelContent, m_ApplyToSortingLayers);
             Rect position = EditorGUI.PrefixLabel(totalPosition, labelContent);
-
             if (targets.Length <= 1)
             {
                 ShadowCaster2D shadowCaster = targets[0] as ShadowCaster2D;
@@ -104,8 +102,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUI.DropdownButton(position, new GUIContent(""), FocusType.Keyboard, EditorStyles.popup);
             }
-            
-            //EditorGUI.EndProperty();
         }
     }
 }
