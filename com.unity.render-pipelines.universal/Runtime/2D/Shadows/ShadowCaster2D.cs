@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_ShadowCastingSource < 0)
             {
                 Component component = ShapeProviderUtility.GetDefaultShadowCastingSource(gameObject);
-                if (component != null)
+                if (component != null && shapePath == null)
                 {
                     m_ShadowShapeProvider = component;
                     m_ShadowCastingSource = ShadowCastingSources.ShapeProvider;

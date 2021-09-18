@@ -31,10 +31,11 @@ namespace UnityEngine.Rendering.Universal
                 return hashCode.GetHashCode();
             }
         }
-
         public NativeArray<ShadowEdge> GetOutsideEdges(NativeArray<Vector3> vertices, NativeArray<int> indices)
         {
             m_EdgeDictionary.Clear();
+            m_EdgeDictionary.EnsureCapacity(indices.Length);
+
             for (int i = 0; i < indices.Length; i += 3)
             {
                 int v0Index = indices[i];
