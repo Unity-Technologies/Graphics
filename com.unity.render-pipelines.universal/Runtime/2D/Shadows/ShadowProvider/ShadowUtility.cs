@@ -10,7 +10,6 @@ namespace UnityEngine.Rendering.Universal
     {
         const int k_AdditionalVerticesPerVertex = 2;
         const int k_VerticesPerTriangle = 3;
-        //const int k_TrianglesPerEdge = 2;
         const int k_TrianglesPerEdge = 3;
         const int k_MinimumEdges = 3;
 
@@ -341,7 +340,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
-
         static public void CalculateEdgesFromLines(NativeArray<int> indices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices, out NativeArray<bool> outShapeIsClosedArray)
         {
             int numOfEdges = indices.Length >> 1;
@@ -484,8 +482,7 @@ namespace UnityEngine.Rendering.Universal
             InitializeShapeIsClosedArray(outShapeStartingIndices, out outShapeIsClosedArray);
         }
 
-
-        static public void FixWindingOrder(NativeArray<Vector3> inVertices, NativeArray<int> inShapeStartingIndices, NativeArray<ShadowEdge> inOutSortedEdges)
+        static public void ReverseWindingOrder(NativeArray<Vector3> inVertices, NativeArray<int> inShapeStartingIndices, NativeArray<ShadowEdge> inOutSortedEdges)
         {
             for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
             {
@@ -497,36 +494,20 @@ namespace UnityEngine.Rendering.Universal
                 if ((shapeIndex + 1) < inShapeStartingIndices.Length && inShapeStartingIndices[shapeIndex + 1] > -1)
                     endIndex = inShapeStartingIndices[shapeIndex + 1];
 
-                // Determine if the shape needs to have its winding order fixed..
-                float sum0 = 0;
-                float sum1 = 0;
-                for (int i = startingIndex; i < endIndex; i++)
+                // Reverse the winding order
+                int count = (endIndex - startingIndex);
+                for (int i = 0; i < (count >> 1); i++)
                 {
-                    int v0 = inOutSortedEdges[i].v0;
-                    int v1 = inOutSortedEdges[i].v1;
+                    int edgeAIndex = startingIndex + i;
+                    int edgeBIndex = startingIndex + count - 1 - i;
 
-                    sum0 += (inVertices[v0].x * inVertices[v1].y);
-                    sum1 += (inVertices[v0].y * inVertices[v1].x);
-                }
+                    ShadowEdge edgeA = inOutSortedEdges[edgeAIndex];
+                    ShadowEdge edgeB = inOutSortedEdges[edgeBIndex];
+                    edgeA.Reverse();
+                    edgeB.Reverse();
 
-                // If the edges are backward, reverse them...
-                float twoTimesSignedArea = sum1 - sum0;
-                if (twoTimesSignedArea < 0)
-                {
-                    int count = (endIndex - startingIndex);
-                    for (int i = 0; i < (count >> 1); i++)
-                    {
-                        int edgeAIndex = startingIndex + i;
-                        int edgeBIndex = startingIndex + count - 1 - i;
-
-                        ShadowEdge edgeA = inOutSortedEdges[edgeAIndex];
-                        ShadowEdge edgeB = inOutSortedEdges[edgeBIndex];
-                        edgeA.Reverse();
-                        edgeB.Reverse();
-
-                        inOutSortedEdges[edgeAIndex] = edgeB;
-                        inOutSortedEdges[edgeBIndex] = edgeA;
-                    }
+                    inOutSortedEdges[edgeAIndex] = edgeB;
+                    inOutSortedEdges[edgeBIndex] = edgeA;
                 }
             }
         }
