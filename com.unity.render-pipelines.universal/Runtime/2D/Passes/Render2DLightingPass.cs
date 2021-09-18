@@ -399,7 +399,7 @@ namespace UnityEngine.Rendering.Universal
                             ShadowCaster2D shadowCaster = shadowCasters[shadowCasterIndex];
                             if (shadowCaster != null && shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider)
                             {
-                                ShadowUtility.CallOnBeforeRender(shadowCaster.shadowShape2DProvider, shadowCaster.m_ShadowMesh, cameraLightFrustum);
+                                ShapeProviderUtility.CallOnBeforeRender(shadowCaster.shadowShape2DProvider, shadowCaster.m_ShadowMesh, cameraLightFrustum);
                             }
                         }
                     }

@@ -78,7 +78,6 @@ namespace UnityEditor.Rendering.Universal
                 else if (shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider && shadowCaster.shadowShape2DProvider != null)
                     selected = new GUIContent(GetCompactTypeName(shadowCaster.shadowShape2DProvider));
 
-
                 // Draw the drop down menu
                 if (EditorGUI.DropdownButton(position, selected, FocusType.Keyboard, EditorStyles.popup))
                 {
@@ -88,7 +87,7 @@ namespace UnityEditor.Rendering.Universal
                     menu.AddItem(new GUIContent("None"), false, OnMenuOptionSelected, new SelectionData((int)ShadowCaster2D.ShadowCastingSources.None, null, serializedObject));
                     menu.AddItem(new GUIContent("Shape Editor"), false, OnMenuOptionSelected, new SelectionData((int)ShadowCaster2D.ShadowCastingSources.ShapeEditor, null, serializedObject));
 
-                    List<Component> castingSources = ShadowUtility.GetShadowCastingSources(shadowCaster.gameObject);
+                    List<Component> castingSources = ShapeProviderUtility.GetShadowShapeProviders(shadowCaster.gameObject);
                     for (int i = 0; i < castingSources.Count; i++)
                     {
                         menu.AddItem(new GUIContent(GetCompactTypeName(castingSources[i])), false, OnMenuOptionSelected, new SelectionData((int)ShadowCaster2D.ShadowCastingSources.ShapeProvider, castingSources[i], serializedObject));

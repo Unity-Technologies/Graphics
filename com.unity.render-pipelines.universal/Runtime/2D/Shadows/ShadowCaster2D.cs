@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
             }
             if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider)
             {
-                ShadowUtility.PersistantDataCreated(m_ShadowShapeProvider, m_ShadowMesh);
+                ShapeProviderUtility.PersistantDataCreated(m_ShadowShapeProvider, m_ShadowMesh);
             }
         }
 
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_ShadowCastingSource < 0)
             {
-                Component component = ShadowUtility.GetDefaultShadowCastingSource(gameObject);
+                Component component = ShapeProviderUtility.GetDefaultShadowCastingSource(gameObject);
                 if (component != null)
                 {
                     m_ShadowShapeProvider = component;
