@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering.Universal
         {
             serializedObject.Update();
 
-            m_CastingSourceDropDown.OnCastingSource(serializedObject, targets, Styles.castingSourcePrefixLabel, null);
+            m_CastingSourceDropDown.OnCastingSource(serializedObject, targets, Styles.castingSourcePrefixLabel);
 
             if (m_CastingSource.intValue == (int)ShadowCaster2D.ShadowCastingSources.ShapeProvider)
             {
