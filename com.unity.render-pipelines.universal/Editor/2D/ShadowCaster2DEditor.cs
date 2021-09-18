@@ -149,7 +149,7 @@ namespace UnityEditor.Rendering.Universal
 
             if ((ShadowCaster2D.ShadowCastingSources)m_CastingSource.intValue == ShadowCaster2D.ShadowCastingSources.ShapeEditor)
                 ShadowCaster2DInspectorGUI<ShadowCaster2DShadowCasterShapeTool>();
-            else
+            else if(EditorToolManager.IsActiveTool<ShadowCaster2DShadowCasterShapeTool>())
                 ToolManager.RestorePreviousTool();
 
             serializedObject.ApplyModifiedProperties();
