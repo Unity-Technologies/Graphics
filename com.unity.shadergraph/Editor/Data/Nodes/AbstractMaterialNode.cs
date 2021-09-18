@@ -501,14 +501,22 @@ namespace UnityEditor.ShaderGraph
                     return ConcreteSlotValueType.Vector1;
                 case 1:
                     if (SlotValueHelper.AreCompatible(SlotValueType.DynamicVector, inputTypesDistinct.First()))
+                    {
+                        if (inputTypesDistinct.First() == ConcreteSlotValueType.Boolean)
+                            return ConcreteSlotValueType.Vector1;
                         return inputTypesDistinct.First();
+                    }
                     break;
                 default:
                     // find the 'minumum' channel width excluding 1 as it can promote
                     inputTypesDistinct.RemoveAll(x => x == ConcreteSlotValueType.Vector1);
                     var ordered = inputTypesDistinct.OrderByDescending(x => x);
                     if (ordered.Any())
-                        return ordered.FirstOrDefault();
+                    {
+                        var first = ordered.FirstOrDefault();
+                        if (first == ConcreteSlotValueType.Boolean)
+                            return ConcreteSlotValueType.Vector1;
+                    }
                     break;
             }
             return ConcreteSlotValueType.Vector1;
