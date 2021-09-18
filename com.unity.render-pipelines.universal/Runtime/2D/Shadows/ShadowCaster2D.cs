@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         internal void DrawPreviewOutline()
         {
-            if (mesh != null)
+            if (mesh != null && m_ShadowCastingSource != ShadowCastingSources.None)
             {
                 Vector3[] vertices = mesh.vertices;
                 int[] triangles = mesh.triangles;
