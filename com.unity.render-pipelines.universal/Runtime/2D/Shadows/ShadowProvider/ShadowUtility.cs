@@ -16,32 +16,6 @@ namespace UnityEngine.Rendering.Universal
 
         static public int debugVert = 0;
 
-        private class EdgeComparer : IEqualityComparer<ShadowEdge>
-        {
-            public bool Equals(ShadowEdge edge0, ShadowEdge edge1)
-            {
-                return (edge0.v0 == edge1.v0 && edge0.v1 == edge1.v1) || (edge0.v1 == edge1.v0 && edge0.v0 == edge1.v1);
-            }
-
-            public int GetHashCode(ShadowEdge edge)
-            {
-                int v0 = edge.v0;
-                int v1 = edge.v1;
-
-                if (edge.v1 < edge.v0)
-                {
-                    v0 = edge.v1;
-                    v1 = edge.v0;
-                }
-
-                int hashCode = v0 << 15 | v1;
-                return hashCode.GetHashCode();
-            }
-        }
-
-
-        static private Dictionary<ShadowEdge, int> m_EdgeDictionary = new Dictionary<ShadowEdge, int>(new EdgeComparer());  // This is done so we don't create garbage allocating and deallocating a dictionary object
-
 
         [StructLayout(LayoutKind.Sequential)]
         struct ShadowMeshVertex
@@ -215,7 +189,8 @@ namespace UnityEngine.Rendering.Universal
 
         static BoundingSphere CalculateBoundingSphere(NativeArray<Vector3> inVertices)
         {
-            Debug.AssertFormat(inVertices.Length > 0, "At least one vertex is required to calculate a bounding sphere");
+            if (inVertices.Length <= 0)
+                return new BoundingSphere(Vector3.zero, 0);
 
             float minX = float.MaxValue;
             float maxX = float.MinValue;
@@ -465,47 +440,6 @@ namespace UnityEngine.Rendering.Universal
             InitializeShapeIsClosedArray(outShapeStartingIndices, out outShapeIsClosedArray);
         }
 
-        static public int CreateEdgeDictionaryFromTriangles(NativeArray<int> indices)
-        {
-            m_EdgeDictionary.Clear();
-            for (int i = 0; i < indices.Length; i += 3)
-            {
-                int v0Index = indices[i];
-                int v1Index = indices[i + 1];
-                int v2Index = indices[i + 2];
-
-                ShadowEdge edge0 = new ShadowEdge(v0Index, v1Index);
-                ShadowEdge edge1 = new ShadowEdge(v1Index, v2Index);
-                ShadowEdge edge2 = new ShadowEdge(v2Index, v0Index);
-
-                // When a key comparison is made edges (A, B) and (B, A) are equal (see EdgeComparer)
-                if (m_EdgeDictionary.ContainsKey(edge0))
-                    m_EdgeDictionary[edge0] = m_EdgeDictionary[edge0] + 1;
-                else
-                    m_EdgeDictionary.Add(edge0, 1);
-
-                if (m_EdgeDictionary.ContainsKey(edge1))
-                    m_EdgeDictionary[edge1] = m_EdgeDictionary[edge1] + 1;
-                else
-                    m_EdgeDictionary.Add(edge1, 1);
-
-                if (m_EdgeDictionary.ContainsKey(edge2))
-                    m_EdgeDictionary[edge2] = m_EdgeDictionary[edge2] + 1;
-                else
-                    m_EdgeDictionary.Add(edge2, 1);
-            }
-
-
-            // Count the outside edges
-            int outsideEdges = 0;
-            foreach (KeyValuePair<ShadowEdge, int> keyValuePair in m_EdgeDictionary)
-            {
-                if (keyValuePair.Value == 1)
-                    outsideEdges++;
-            }
-
-            return outsideEdges;
-        }
 
         static public void RemapEdges(NativeArray<ShadowEdge> edges, NativeArray<int> map)
         {
@@ -521,18 +455,8 @@ namespace UnityEngine.Rendering.Universal
         static public void CalculateEdgesFromTriangles(NativeArray<Vector3> vertices, NativeArray<int> indices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices, out NativeArray<bool> outShapeIsClosedArray)
         {
             // Add our edges to an edge list
-            int outsideEdges = CreateEdgeDictionaryFromTriangles(indices);
-
-            // Create unsorted edges array
-            int edgeCount = 0;
-            NativeArray<ShadowEdge> unsortedEdges = new NativeArray<ShadowEdge>(outsideEdges, Allocator.Temp);
-            foreach (KeyValuePair<ShadowEdge, int> keyValuePair in m_EdgeDictionary)
-            {
-                if (keyValuePair.Value == 1)
-                {
-                    unsortedEdges[edgeCount++] = keyValuePair.Key;
-                }
-            }
+            EdgeDictionary edgeDictionary = new EdgeDictionary();
+            NativeArray<ShadowEdge> unsortedEdges = edgeDictionary.GetOutsideEdges(vertices, indices);
 
             // Create vertex remapping arrays
             NativeArray<int> originalToSubsetMap = new NativeArray<int>(vertices.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -606,66 +530,5 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
         }
-
-        static public void CallOnBeforeRender(Component component, ShadowMesh2D shadowMesh, Matrix4x4 cameraLightFrustum)
-        {
-            IShadowShape2DProvider provider = component as IShadowShape2DProvider;
-            if (provider != null)
-            {
-                provider.OnBeforeRender(shadowMesh, cameraLightFrustum);
-            }
-            else if (shadowMesh != null && shadowMesh.mesh != null)
-            {
-                shadowMesh.mesh.Clear();
-            }
-
-        }
-
-        static public void PersistantDataCreated(Component component, ShadowMesh2D shadowMesh)
-        {
-            IShadowShape2DProvider shapeProvider = component as IShadowShape2DProvider;
-            if (shapeProvider != null)
-            {
-                shapeProvider.OnPersistantDataCreated(shadowMesh);
-            }
-        }
-
-        static public List<Component> GetShadowCastingSources(GameObject go)
-        {
-            Component[] components = go.GetComponents<Component>();
-
-            List<Component> retList = new List<Component>();
-            for (int i = 0; i < components.Length; i++)
-            {
-                Component component = components[i];
-                if (components[i] as IShadowShape2DProvider != null)
-                {
-                    retList.Add(component);
-                }
-            }
-
-            return retList;
-        }
-
-        static public Component GetDefaultShadowCastingSource(GameObject go)
-        {
-            Component[] components = go.GetComponents<Component>();
-
-            Component defaultComponent = null;
-            for (int i = 0; i < components.Length; i++)
-            {
-                Component component = components[i];
-                if (components[i] as IShadowShape2DProvider != null)
-                {
-                    if (component as Renderer) // There can only be one renderer
-                        defaultComponent = component;
-                    else if (defaultComponent == null) // Renderer takes priority
-                        defaultComponent = component;
-                }
-            }
-
-            return defaultComponent;
-        }
-
     }
 }
