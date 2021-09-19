@@ -56,6 +56,37 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override void DisplayWarnings()
+        {
+            base.DisplayWarnings();
+            if (m_MaterialEditor != null && m_MaterialEditor.target != null && VFXLibrary.currentSRPBinder != null)
+            {
+                var shaderGraphParticleOutput = (VFXShaderGraphParticleOutput)target;
+                var shaderGraph = shaderGraphParticleOutput.GetOrRefreshShaderGraphObject();
+                var materialShadowOverride = VFXLibrary.currentSRPBinder.TryGetCastShadowFromMaterial(shaderGraph, shaderGraphParticleOutput.materialSettings, out var castShadow);
+                var materialQueueOffsetOverride = VFXLibrary.currentSRPBinder.TryGetQueueOffset(shaderGraph, shaderGraphParticleOutput.materialSettings, out var queueOffset) && shaderGraphParticleOutput.subOutput.supportsMaterialOffset;
+
+                // Indicate material override from shaderGraph which is hiding output properties.
+                if (materialShadowOverride || materialQueueOffsetOverride)
+                {
+                    var msg = "The ShaderGraph material is overriding some settings:";
+                    if (materialShadowOverride)
+                        msg += string.Format("\n - castShadow = {0}", castShadow ? "true" : "false");
+                    if (materialQueueOffsetOverride)
+                        msg += string.Format("\n - materialOffset = {0}", queueOffset);
+                    EditorGUILayout.HelpBox(msg, MessageType.Info);
+                }
+
+                // Indicate caution to the user if transparent motion vectors are disabled and motion vectors are enabled.
+                if (shaderGraphParticleOutput.hasMotionVector &&
+                    (shaderGraphParticleOutput.GetMaterialBlendMode() != VFXAbstractRenderedOutput.BlendMode.Opaque &&
+                    !VFXLibrary.currentSRPBinder.TransparentMotionVectorEnabled(m_MaterialEditor.target as Material)))
+                {
+                    EditorGUILayout.HelpBox("Transparent Motion Vectors pass is disabled. Consider disabling Generate Motion Vector to improve performance.", MessageType.Warning);
+                }
+            }
+        }
+
         public override void OnInspectorGUI()
         {
             if (targets.OfType<VFXShaderGraphParticleOutput>().Any(context => context.GetOrRefreshShaderGraphObject() == null))
@@ -96,15 +127,6 @@ namespace UnityEditor.VFX
                     m_MaterialEditor.OnInspectorGUI();
 
                     materialChanged = EditorGUI.EndChangeCheck();
-                }
-
-                // Indicate caution to the user if transparent motion vectors are disabled and motion vectors are enabled.
-                if ((m_MaterialEditor.target != null) &&
-                    ((VFXAbstractParticleOutput)target).hasMotionVector &&
-                    ((VFXShaderGraphParticleOutput)target).GetMaterialBlendMode() != VFXAbstractRenderedOutput.BlendMode.Opaque &&
-                    !VFXLibrary.currentSRPBinder.TransparentMotionVectorEnabled(m_MaterialEditor.target as Material))
-                {
-                    EditorGUILayout.HelpBox("Transparent Motion Vectors pass is disabled. Consider disabling Generate Motion Vector to improve performance.", MessageType.Warning);
                 }
             }
 
@@ -163,6 +185,35 @@ namespace UnityEditor.VFX
             return shaderGraph;
         }
 
+        public override bool hasShadowCasting
+        {
+            get
+            {
+                var shaderGraph = GetOrRefreshShaderGraphObject();
+                if (shaderGraph != null && shaderGraph.generatesWithShaderGraph && VFXLibrary.currentSRPBinder != null)
+                {
+                    if (VFXLibrary.currentSRPBinder.TryGetCastShadowFromMaterial(shaderGraph, materialSettings, out var castShadows))
+                    {
+                        return castShadows;
+                    }
+                }
+                return base.hasShadowCasting;
+            }
+        }
+
+        public override int GetMaterialOffset()
+        {
+            var shaderGraph = GetOrRefreshShaderGraphObject();
+            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph && VFXLibrary.currentSRPBinder != null)
+            {
+                if (VFXLibrary.currentSRPBinder.TryGetQueueOffset(shaderGraph, materialSettings, out var queueOffset))
+                {
+                    return queueOffset;
+                }
+            }
+            return base.materialOffset;
+        }
+
         public BlendMode GetMaterialBlendMode()
         {
             var blendMode = BlendMode.Opaque;
@@ -173,7 +224,7 @@ namespace UnityEditor.VFX
                 // VFX Blend Mode state configures important systems like sorting and indirect buffer.
                 // In the case of SG Generation path, we need to know the blend mode state of the SRP
                 // Material to configure the VFX blend mode.
-                blendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(materialSettings);
+                blendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(shaderGraph, materialSettings);
             }
 
             return blendMode;
@@ -182,7 +233,6 @@ namespace UnityEditor.VFX
         public override void SetupMaterial(Material material)
         {
             var shaderGraph = GetOrRefreshShaderGraphObject();
-
             if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
             {
                 // In certain scenarios the context might not be configured with any serialized material information
@@ -342,6 +392,15 @@ namespace UnityEditor.VFX
                     {
                         foreach (var builtinSetting in FilterOutBuiltinSettings())
                             yield return builtinSetting;
+
+                        if (VFXLibrary.currentSRPBinder != null)
+                        {
+                            if (VFXLibrary.currentSRPBinder.TryGetCastShadowFromMaterial(shaderGraph, materialSettings, out var castShadow))
+                                yield return nameof(castShadows);
+
+                            if (VFXLibrary.currentSRPBinder.TryGetQueueOffset(shaderGraph, materialSettings, out var queueOffset))
+                                yield return nameof(materialOffset);
+                        }
                     }
                 }
                 if (!VFXViewPreference.displayExperimentalOperator)
