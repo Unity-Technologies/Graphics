@@ -321,9 +321,10 @@ axisY = cross(axisZ, axisX);
                 /* Slot of type position has changed from undefined VFXSlot to VFXSlotPosition*/
                 if (GetNbInputSlots() > 0 && !(GetInputSlot(0) is VFXSlotPosition))
                 {
-                    var oldValue = GetInputSlot(0).value;
-                    RemoveSlot(GetInputSlot(0));
-                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(Position), "Position"), VFXSlot.Direction.kInput, oldValue));
+                    VFXSlot oldSlot = GetInputSlot(0);
+                    var oldValue = oldSlot.value;
+                    VFXSlot newSlot = VFXSlot.Create(new VFXProperty(typeof(Position), "Position"), VFXSlot.Direction.kInput, oldValue);
+                    ReplaceSlot(oldSlot, newSlot);
                 }
             }
             base.Sanitize(version);
