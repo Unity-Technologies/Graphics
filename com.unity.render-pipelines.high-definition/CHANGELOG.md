@@ -419,6 +419,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed black pixel issue in AMD FidelityFX RCAS implementation
 - Fixed specular anti aliasing for layeredlit shader.
 - Fixed lens flare occlusion issues with transparent depth. It had the wrong depth bound (1365098)
+- Fixed double contribution from the clear coat when having SSR or RTR on the Lit and StackLit shaders (case 1352424).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
