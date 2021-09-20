@@ -45,7 +45,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sorting for mesh decals.
 - Fixed a warning when enabling tile/cluster debug.
 - Fix recursive rendering transmittance over the sky (case 1323945).
-
+- Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
+- 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
 - Surface ReflectionTypeLoadExceptions in HDUtils.GetRenderPipelineMaterialList(). Without surfacing these exceptions, developers cannot act on any underlying reflection errors in the HDRP assembly.
@@ -429,7 +430,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ThreadMapDetail to saturate AO & smoothness strength inputs to prevent out-of-bounds values set by users (1357740)
 - Allow negative wind speed parameter.
 - Fixed custom pass custom buffer not bound after being created inside a custom pass.
-- Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
