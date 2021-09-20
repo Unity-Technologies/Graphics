@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Templated class for <see cref="IDebugDisplaySettings"/>
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public abstract class DebugDisplaySettings<T> : IDebugDisplaySettings
         where T : IDebugDisplaySettings, new()
     {
@@ -39,6 +43,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Checks whether the current state of these settings allows post-processing.
+        /// </summary>
         public virtual bool IsPostProcessingAllowed { get; }
 
         /// <summary>
@@ -62,6 +69,10 @@ namespace UnityEngine.Rendering
             return newData;
         }
 
+        /// <summary>
+        /// Executes an action for each element
+        /// </summary>
+        /// <param name="onExecute"></param>
         public void ForEach(Action<IDebugDisplaySettingsData> onExecute)
         {
             foreach (IDebugDisplaySettingsData setting in m_Settings)
@@ -70,6 +81,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Reset the stored debug settings
+        /// </summary>
         public virtual void Reset()
         {
             m_Settings.Clear();
