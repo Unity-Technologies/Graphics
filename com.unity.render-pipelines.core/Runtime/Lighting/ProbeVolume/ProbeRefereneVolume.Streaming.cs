@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering
         DynamicArray<CellInfo> m_TempCellToLoadList = new DynamicArray<CellInfo>();
         DynamicArray<CellInfo> m_TempCellToUnloadList = new DynamicArray<CellInfo>();
 
-        public Vector3 m_FrozenCameraPosition;
+        Vector3 m_FrozenCameraPosition;
 
         /// <summary>
         /// Set the number of cells that are loaded per frame when needed.

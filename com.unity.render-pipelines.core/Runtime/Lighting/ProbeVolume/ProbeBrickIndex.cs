@@ -96,8 +96,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             switch (memoryBudget)
             {
-                case ProbeVolumeTextureMemoryBudget.MemoryBudgetTiny:
-                    return 16000000; // 1600;
                 case ProbeVolumeTextureMemoryBudget.MemoryBudgetLow:
                     // 16 MB - 4 million of bricks worth of space. At full resolution and a distance of 1 meter between probes, this is roughly 474 * 474 * 474 meters worth of bricks. If 0.25x on Y axis, this is equivalent to 948 * 118 * 948 meters
                     return 16000000;

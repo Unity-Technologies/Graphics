@@ -258,7 +258,6 @@ namespace UnityEngine.Experimental.Rendering
     [Serializable]
     public enum ProbeVolumeTextureMemoryBudget
     {
-        MemoryBudgetTiny = 256,
         /// <summary>Low Budget</summary>
         MemoryBudgetLow = 512,
         /// <summary>Medium Budget</summary>
@@ -583,8 +582,7 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
-            m_MemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetTiny;// parameters.memoryBudget;
-            //m_MemoryBudget = parameters.memoryBudget;
+            m_MemoryBudget = parameters.memoryBudget;
             m_SHBands = parameters.shBands;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
             InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
@@ -1106,6 +1104,7 @@ namespace UnityEngine.Experimental.Rendering
             if (!m_Pool.Allocate(brickChunksCount, cellInfo.chunkList))
                 return false;
 
+            // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
             int chunkIndex = 0;
             while (chunkIndex < cellInfo.chunkList.Count)
             {

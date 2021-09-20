@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeBrickPool
     {
-        const int kProbeIndexPoolAllocationSize = 64; // 128;
+        const int kProbeIndexPoolAllocationSize = 128;
 
         [DebuggerDisplay("Chunk ({x}, {y}, {z})")]
         public struct BrickChunkAlloc

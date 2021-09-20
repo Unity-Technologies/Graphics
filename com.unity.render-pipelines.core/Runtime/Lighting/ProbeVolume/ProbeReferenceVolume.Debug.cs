@@ -138,16 +138,6 @@ namespace UnityEngine.Experimental.Rendering
                 subdivContainer.children.Add(new DebugUI.FloatField { displayName = "Culling Distance", getter = () => debugDisplay.subdivisionViewCullingDistance, setter = value => debugDisplay.subdivisionViewCullingDistance = value, min = () => 0.0f });
             }
 
-            subdivContainer.children.Add(new DebugUI.IntField { displayName = "Test Cell Loading", getter = () => debugDisplay.loadingTestCellIndex, setter = value => debugDisplay.loadingTestCellIndex = value, min = () => 0, max = () => cellCount - 1 });
-            subdivContainer.children.Add(new DebugUI.Button
-            {
-                nameAndTooltip = new DebugUI.Widget.NameAndTooltip { name = "Test Cell Loading", tooltip = "Pwette" },
-                action = () =>
-                {
-                    ToggleCellLoading(debugDisplay.loadingTestCellIndex);
-                }
-            });
-
             var probeContainer = new DebugUI.Container() { displayName = "Probe Visualization" };
             probeContainer.children.Add(new DebugUI.BoolField { displayName = "Display Probes", getter = () => debugDisplay.drawProbes, setter = value => debugDisplay.drawProbes = value, onValueChanged = RefreshDebug });
             if (debugDisplay.drawProbes)
