@@ -1025,7 +1025,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return new DebugUI.MessageBox
             {
-                displayName = "Warning: Missing debug shader variants. Ensure \"Runtime Debug Shaders\" option is enabled in HDRP Global Settings.",
+                displayName = "Warning: the debug shader variants are missing. Ensure that the \"Runtime Debug Shaders\" option is enabled in HDRP Global Settings.",
                 style = DebugUI.MessageBox.Style.Warning,
                 isHiddenCallback = () =>
                 {
