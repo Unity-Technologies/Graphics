@@ -968,9 +968,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
                 if (!rendererFeatures[i].isActive)
-                {
                     continue;
-                }
 
                 rendererFeatures[i].SetupRenderPasses(this, in renderingData);
             }
@@ -1193,13 +1191,9 @@ namespace UnityEngine.Rendering.Universal
                                 var depthAttachment = m_CameraDepthTarget.handle;
 
                                 if (renderPass.overrideCameraTarget)
-                                {
                                     depthAttachment = renderPass.depthAttachmentHandle;
-                                }
                                 else
-                                {
                                     m_FirstTimeCameraDepthTargetIsBound = false;
-                                }
 
                                 // Only one RTHandle is necessary to set the viewport in dynamic scaling, use depth
                                 SetRenderTarget(cmd, trimmedAttachments, depthAttachment, finalClearFlag, renderPass.clearColor);
@@ -1209,13 +1203,9 @@ namespace UnityEngine.Rendering.Universal
                                 var depthAttachment = m_CameraDepthTarget.nameID;
 
                                 if (renderPass.overrideCameraTarget)
-                                {
                                     depthAttachment = renderPass.depthAttachment;
-                                }
                                 else
-                                {
                                     m_FirstTimeCameraDepthTargetIsBound = false;
-                                }
 
                                 SetRenderTarget(cmd, trimmedAttachments, depthAttachment, finalClearFlag, renderPass.clearColor);
                             }
@@ -1321,13 +1311,9 @@ namespace UnityEngine.Rendering.Universal
                         renderPass.colorStoreActions[0] != m_ActiveColorStoreActions[0] || renderPass.depthStoreAction != m_ActiveDepthStoreAction)
                     {
                         if (passColorAttachment.useRTHandle && passDepthAttachment.useRTHandle)
-                        {
                             SetRenderTarget(cmd, passColorAttachment.handle, passDepthAttachment.handle, finalClearFlag, finalClearColor, renderPass.colorStoreActions[0], renderPass.depthStoreAction);
-                        }
                         else
-                        {
                             SetRenderTarget(cmd, passColorAttachment.fallback, passDepthAttachment.fallback, finalClearFlag, finalClearColor, renderPass.colorStoreActions[0], renderPass.depthStoreAction);
-                        }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                         if (cameraData.xr.enabled)
@@ -1415,15 +1401,11 @@ namespace UnityEngine.Rendering.Universal
 
             // Storing depth and color in the same RT should only be possible with alias RTHandles, those that create rendertargets with RTAlloc()
             if (colorAttachment.rt == null && depthAttachment.rt == null && depthAttachment.nameID == k_CameraTarget.nameID)
-            {
                 SetRenderTarget(cmd, colorAttachment, colorLoadAction, RenderBufferStoreAction.Store,
                     colorAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor);
-            }
             else
-            {
                 SetRenderTarget(cmd, colorAttachment, colorLoadAction, RenderBufferStoreAction.Store,
                     depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor);
-            }
         }
 
         [Obsolete]
@@ -1549,14 +1531,10 @@ namespace UnityEngine.Rendering.Universal
         {
             // XRTODO: Revisit the logic. Why treat CameraTarget depth specially?
             if (depthAttachment.nameID == BuiltinRenderTextureType.CameraTarget)
-            {
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
-            }
             else
-            {
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
                     depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
-            }
         }
 
         [Obsolete]
@@ -1580,14 +1558,10 @@ namespace UnityEngine.Rendering.Universal
         static void SetRenderTarget(CommandBuffer cmd, RTHandle[] colorAttachments, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             if (m_ActiveColorAttachments.Length != colorAttachments.Length)
-            {
                 m_ActiveColorAttachments = new RenderTargetIdentifier[colorAttachments.Length];
-            }
 
             for (int i = 0; i < colorAttachments.Length; ++i)
-            {
                 m_ActiveColorAttachments[i] = colorAttachments[i].nameID;
-            }
             m_ActiveDepthAttachment = depthAttachment.nameID;
 
             CoreUtils.SetRenderTarget(cmd, m_ActiveColorAttachments, depthAttachment, clearFlag, clearColor);

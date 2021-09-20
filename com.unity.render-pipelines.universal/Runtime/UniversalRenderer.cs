@@ -493,9 +493,7 @@ namespace UnityEngine.Rendering.Universal
             useDepthPriming &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan || cameraTargetDescriptor.msaaSamples == 1;
 
             if (useRenderPassEnabled || useDepthPriming)
-            {
                 createColorTexture |= createDepthTexture;
-            }
 
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
@@ -505,15 +503,11 @@ namespace UnityEngine.Rendering.Universal
                 // RTHandles do not support combining color and depth in the same texture so we create them separately
                 createDepthTexture = intermediateRenderTexture;
 
-                RenderTargetIdentifier targetId;
+                RenderTargetIdentifier targetId = BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
                     targetId = cameraData.xr.renderTarget;
-                else
 #endif
-                {
-                    targetId = BuiltinRenderTextureType.CameraTarget;
-                }
 
                 if (m_XRTargetHandleAlias == null || m_XRTargetHandleAlias.nameID != targetId)
                 {
@@ -738,9 +732,7 @@ namespace UnityEngine.Rendering.Universal
 
             // For Base Cameras: Set the depth texture to the far Z if we do not have a depth prepass or copy depth
             if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
-            {
                 Shader.SetGlobalTexture("_CameraDepthTexture", SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
-            }
 
             if (copyColorPass)
             {

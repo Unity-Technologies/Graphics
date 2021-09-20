@@ -471,9 +471,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_ColorAttachmentIds.Length != m_ColorAttachments.Length)
                 m_ColorAttachmentIds = new RenderTargetIdentifier[m_ColorAttachments.Length];
             for (var i = 0; i < m_ColorAttachmentIds.Length; ++i)
-            {
                 m_ColorAttachmentIds[i] = new RenderTargetIdentifier(colorAttachments[i].nameID, 0, CubemapFace.Unknown, -1);
-            }
             m_DepthAttachmentId = depthAttachment.nameID;
 #pragma warning restore 612
             m_DepthAttachment = depthAttachment;
@@ -541,9 +539,7 @@ namespace UnityEngine.Rendering.Universal
                 renderTargetFormat[i] = GraphicsFormat.None;
 
             if (depth == true && !GraphicsFormatUtility.IsDepthFormat(format))
-            {
                 throw new ArgumentException("When configuring a depth only target the passed in format must be a depth format.");
-            }
 
             renderTargetWidth = width;
             renderTargetHeight = height;
@@ -559,9 +555,7 @@ namespace UnityEngine.Rendering.Universal
                 renderTargetFormat[i] = GraphicsFormat.None;
 
             if (depth == true && !GraphicsFormatUtility.IsDepthFormat(format))
-            {
                 throw new ArgumentException("When configuring a depth only target the passed in format must be a depth format.");
-            }
 
             renderTargetWidth = width;
             renderTargetHeight = height;

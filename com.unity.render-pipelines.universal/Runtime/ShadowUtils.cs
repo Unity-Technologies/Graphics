@@ -281,9 +281,7 @@ namespace UnityEngine.Rendering.Universal
         public static bool ShadowRTNeedsReAlloc(RTHandle handle, int width, int height, int bits, int anisoLevel, float mipMapBias, string name)
         {
             if (handle == null)
-            {
                 return true;
-            }
             var descriptor = GetTemporaryShadowTextureDescriptor(width, height, bits);
             if (m_ForceShadowPointSampling)
             {

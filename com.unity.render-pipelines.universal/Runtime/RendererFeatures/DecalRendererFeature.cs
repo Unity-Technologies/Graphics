@@ -472,19 +472,15 @@ namespace UnityEngine.Rendering.Universal
             {
                 var universalRenderer = renderer as UniversalRenderer;
                 if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
-                {
                     m_CopyDepthPass.Setup(
                         renderer.cameraDepthTargetHandle,
                         universalRenderer.m_DepthTexture
                     );
-                }
                 else
-                {
                     m_CopyDepthPass.Setup(
                         universalRenderer.m_DepthTexture,
                         m_DBufferRenderPass.dBufferDepthIndentifier
                     );
-                }
                 m_CopyDepthPass.MssaSamples = 1;
             }
         }
