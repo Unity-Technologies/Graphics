@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.8.0] - 2021-07-23
 
 ### Fixed
+- Fixed an issue where 2D Renderer was generating garbage in editor.
+- Fixed multi-edit for UniversalRenderPipelineAsset.
 - Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
 
 ## [7.7.0] - 2021-04-28
@@ -20,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where SMAA did not work for OpenGL [case 1318214](https://issuetracker.unity3d.com/issues/urp-there-is-no-effect-when-using-smaa-in-urp-with-opengles-api)
 - Fixed Opacity as Density blending artifacts on Terrain that that caused Terrain to have modified splat weights of zero in some areas and greater than one in others.
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1339084]
+- Drawing order of SRPDefaultUnlit is now the same as the Built-in Render Pipeline. [case 1325883](https://issuetracker.unity3d.com/product/unity/issues/guid/1325883/)
 
 ## [7.6.0] - 2021-03-25
 

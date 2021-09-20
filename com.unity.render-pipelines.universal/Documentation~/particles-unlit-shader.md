@@ -58,7 +58,7 @@ The __Advanced__ settings affect behind-the-scenes rendering. They do not have a
 #### Transparent surface type
 
 If you’ve chosen a Transparent surface type under [Surface Options](#surface-options), these options appear:
-
+ 
 ![Additional Particle options](Images/Inspectors/Shaders/ParticlesExtra.png)
 
 | Property           | Description                                                  |
