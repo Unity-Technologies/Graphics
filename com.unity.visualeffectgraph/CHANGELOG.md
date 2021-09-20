@@ -103,6 +103,7 @@ The version number for this package has increased due to a version update of a r
 - Fix compilation failure on OpenGLES [Case 1348666](https://issuetracker.unity3d.com/product/unity/issues/guid/1348666/)
 - Don't open an empty VFX Graph Editor when assigning a VFX Asset to a Visual Effect GameObject from the inspector [Case 1347399](https://issuetracker.unity3d.com/product/unity/issues/guid/1347399/)
 - Visual Effect inspector input fields don't lose focus anymore while typing (Random seed)
+- Subgraph output properties tooltips were not easily editable when multiline
 
 ## [11.0.0] - 2020-10-21
 ### Added
