@@ -1550,29 +1550,12 @@ namespace UnityEngine.Rendering.Universal
             // XRTODO: Revisit the logic. Why treat CameraTarget depth specially?
             if (depthAttachment.nameID == BuiltinRenderTextureType.CameraTarget)
             {
-                if (colorAttachment.rt == null)
-                {
-                    // The attachment is an alias for an identifier and doesn't manage the actual RT
-                    CoreUtils.SetRenderTarget(cmd, colorAttachment.nameID, colorLoadAction, colorStoreAction, clearFlags, clearColor);
-                }
-                else
-                {
-                    CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
-                }
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
             }
             else
             {
-                if (colorAttachment.rt == null || depthAttachment.rt == null)
-                {
-                    // One of the attachments is an alias for an identifier and doesn't manage the actual RT
-                    CoreUtils.SetRenderTarget(cmd, colorAttachment.nameID, colorLoadAction, colorStoreAction,
-                        depthAttachment.nameID, depthLoadAction, depthStoreAction, clearFlags, clearColor);
-                }
-                else
-                {
-                    CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
-                        depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
-                }
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
+                    depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
             }
         }
 
