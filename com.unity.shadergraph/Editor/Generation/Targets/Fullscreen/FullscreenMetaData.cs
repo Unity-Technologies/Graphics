@@ -8,12 +8,12 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
     sealed class FullscreenMetaData : ScriptableObject
     {
         [SerializeField]
-        FullscreenTarget.MaterialType m_MaterialType;
+        FullscreenTarget.FullscreenCompatibility _FullscreenCompatibility;
 
-        public FullscreenTarget.MaterialType materialType
+        public FullscreenTarget.FullscreenCompatibility fullscreenCompatibility
         {
-            get => m_MaterialType;
-            set => m_MaterialType = value;
+            get => _FullscreenCompatibility;
+            set => _FullscreenCompatibility = value;
         }
     }
 }

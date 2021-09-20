@@ -28,11 +28,11 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
         }
 
-        public enum MaterialType
+        public enum FullscreenCompatibility
         {
             Blit,
-            // DrawProcedural, // TODO
-            // CustomRenderTexture,
+            DrawProcedural,
+            CustomRenderTexture,
         }
 
         public enum FullscreenBlendMode
@@ -99,6 +99,9 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
 
+        [SerializeField]
+        FullscreenCompatibility m_fullscreenCompatibility;
+
         // When checked, allows the material to control ALL surface settings (uber shader style)
         [SerializeField]
         bool m_AllowMaterialOverride = false;
@@ -155,6 +158,12 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             m_SubTargets = TargetUtils.GetSubTargets(this);
             m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
+        }
+
+        public FullscreenCompatibility fullscreenCompatibility
+        {
+            get => m_fullscreenCompatibility;
+            set => m_fullscreenCompatibility = value;
         }
 
         public FullscreenBlendMode blendMode
@@ -281,8 +290,53 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
-            // TODO: we must remove a lot of nodes :/
-            return base.IsNodeAllowedByTarget(nodeType);
+            bool allowed = true;
+            SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
+
+            // Nodes with SRP specific code donesn't work in the fullscreen target.
+            allowed &= srpFilter == null;
+
+            var interfaces = nodeType.GetInterfaces();
+            // FIXME: allow to sample depth and color in a fullscreen node (needed to compute position)
+            if (interfaces.Contains(typeof(IMayRequirePosition)))
+                allowed = false;
+            if (interfaces.Contains(typeof(IMayRequirePositionPredisplacement)))
+                allowed = false;
+            if (interfaces.Contains(typeof(IMayRequireCameraOpaqueTexture)))
+                allowed = false;
+            if (interfaces.Contains(typeof(IMayRequireDepthTexture)))
+                allowed = false;
+
+            // TODO: add a node to sample the normal buffer:
+            if (interfaces.Contains(typeof(IMayRequireNormal)))
+                allowed = false;
+
+            // We don't have access to the tangent in fullscreen
+            if (interfaces.Contains(typeof(IMayRequireTangent)))
+                allowed = false;
+            if (interfaces.Contains(typeof(IMayRequireBitangent)))
+                allowed = false;
+
+            // There is no input in the vertex block for now
+            if (interfaces.Contains(typeof(IMayRequireVertexColor)))
+                allowed = false;
+            if (interfaces.Contains(typeof(IMayRequireVertexID)))
+                allowed = false;
+            if (interfaces.Contains(typeof(IMayRequireVertexSkinning)))
+                allowed = false;
+
+            // TODO: this is a workaround for all classes that inherit from CodeFunctionNode but doens't need forbidden inputs
+            if (typeof(CodeFunctionNode).IsAssignableFrom(nodeType))
+                allowed = true;
+
+            if (fullscreenCompatibility == FullscreenCompatibility.CustomRenderTexture)
+            {
+                // We can't sample scene info in custom render textures, they are executed outisde the pipeline (for now)
+                allowed &= nodeType != typeof(SceneColorNode);
+                allowed &= nodeType != typeof(SceneDepthNode);
+            }
+
+            return allowed && base.IsNodeAllowedByTarget(nodeType);
         }
 
         public override void Setup(ref TargetSetupContext context)
@@ -340,7 +394,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         public void CollectRenderStateShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
 
-            if (generationMode == GenerationMode.Preview || allowMaterialOverride)
+            if (generationMode != GenerationMode.Preview && allowMaterialOverride)
             {
                 collector.AddEnumProperty(Uniforms.srcColorBlendProperty, srcColorBlendMode);
                 collector.AddEnumProperty(Uniforms.dstColorBlendProperty, dstColorBlendMode);
@@ -371,6 +425,16 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         {
             if (m_ActiveSubTarget.value == null)
                 return;
+
+            context.AddProperty("Compatibility", new EnumField(fullscreenCompatibility) { value = fullscreenCompatibility }, (evt) =>
+            {
+                if (Equals(fullscreenCompatibility, evt.newValue))
+                    return;
+
+                registerUndo("Change Compatibility");
+                fullscreenCompatibility = (FullscreenCompatibility)evt.newValue;
+                onChange();
+            });
 
             context.AddProperty("Allow Material Override", new Toggle() { value = allowMaterialOverride }, (evt) =>
             {
@@ -663,8 +727,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             { RenderState.ZWrite(Uniforms.depthWrite) },
             { RenderState.Blend(Uniforms.srcColorBlend, Uniforms.dstColorBlend, Uniforms.srcAlphaBlend, Uniforms.dstAlphaBlend) },
             { RenderState.BlendOp(Uniforms.colorBlendOperation, Uniforms.alphaBlendOperation) },
-            // TODO: Add stencil read mask!
-            { RenderState.Stencil(new StencilDescriptor{ Ref = Uniforms.stencilReference, WriteMask = Uniforms.stencilWriteMask, Comp = Uniforms.stencilComparison, ZFail = Uniforms.stencilDepthFail, Fail = Uniforms.stencilFail, Pass = Uniforms.stencilPass}) }
+            { RenderState.Stencil(new StencilDescriptor{ Ref = Uniforms.stencilReference, ReadMask = Uniforms.stencilReadMask, WriteMask = Uniforms.stencilWriteMask, Comp = Uniforms.stencilComparison, ZFail = Uniforms.stencilDepthFail, Fail = Uniforms.stencilFail, Pass = Uniforms.stencilPass}) }
         };
 
         public RenderStateCollection GetRenderState()
@@ -695,6 +758,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 result.Add(RenderState.Stencil(new StencilDescriptor
                 {
                     Ref = stencilReference.ToString(),
+                    ReadMask = stencilReadMask.ToString(),
                     WriteMask = stencilWriteMask.ToString(),
                     Comp = stencilCompareFunction.ToString(),
                     ZFail = stencilDepthTestFailOperation.ToString(),
@@ -709,12 +773,14 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
     #region Includes
     static class CoreIncludes
     {
+        const string kCommon = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl";
         const string kColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
         const string kTexture = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl";
-        // TODO: Add shadergraph functions support (replace functions.hlsl by SGFunctions)
-        const string kFunctions = "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl";
-        const string kCommon = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl";
         const string kInstancing = "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl";
+        const string kSpaceTransforms = "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl";
+        const string kShaderGraphFunctions = "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl";
+        const string kFunctions = "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl";
+        const string kShaderVariables = "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl";
         // const string kCore = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl";
         // const string kLighting = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Lighting.hlsl";
         // const string kGraphFunctions = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/ShaderGraphFunctions.hlsl";
@@ -726,26 +792,19 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         // TODO: support SH
         // const string kShims = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shim/Shims.hlsl";
 
-        public static readonly IncludeCollection CorePregraph = new IncludeCollection
+        public static readonly IncludeCollection preGraphIncludes = new IncludeCollection
         {
             // { kShims, IncludeLocation.Pregraph },
-            { kColor, IncludeLocation.Pregraph },
-            // { kCore, IncludeLocation.Pregraph },
-            { kTexture, IncludeLocation.Pregraph },
-            { kFunctions, IncludeLocation.Pregraph },
             { kCommon, IncludeLocation.Pregraph },
+            { kColor, IncludeLocation.Pregraph },
+            { kTexture, IncludeLocation.Pregraph },
             { kInstancing, IncludeLocation.Pregraph }, // For VR
+            { kShaderVariables, IncludeLocation.Pregraph },
+            // { kCore, IncludeLocation.Pregraph },
+            { kSpaceTransforms, IncludeLocation.Pregraph },
+            // { kShaderGraphFunctions, IncludeLocation.Pregraph },
+            { kFunctions, IncludeLocation.Pregraph },
         };
-
-        public static readonly IncludeCollection ShaderGraphPregraph = new IncludeCollection
-        {
-            // { kGraphFunctions, IncludeLocation.Pregraph },
-        };
-
-        // public static readonly IncludeCollection CorePostgraph = new IncludeCollection
-        // {
-        //     { kVaryings, IncludeLocation.Postgraph },
-        // };
     }
     #endregion
 

@@ -15,27 +15,23 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
             // TODO: custom editor field
-            // if (!context.HasCustomEditorForRenderPipeline(null))
-            //     context.customEditorForRenderPipelines.Add((typeof(BuiltInUnlitGUI).FullName, ""));
+            // if (!context.customEditorForRenderPipelines)
+            //context.defaultShaderGUI = typeof(BuiltInUnlitGUI).FullName;
 
             // Process SubShaders
             context.AddSubShader(SubShaders.FullscreenBlit(target));
         }
 
-        protected FullscreenTarget.MaterialType materialType { get; }
-
         public virtual string identifier => GetType().Name;
         public virtual ScriptableObject GetMetadataObject()
         {
             var bultInMetadata = ScriptableObject.CreateInstance<FullscreenMetaData>();
-            bultInMetadata.materialType = materialType;
+            bultInMetadata.fullscreenCompatibility = target.fullscreenCompatibility;
             return bultInMetadata;
         }
 
         // We don't need the save context / update materials for now
         public override object saveContext => null;
-
-
 
         public FullscreenSubTarget()
         {
@@ -83,22 +79,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 base.CollectShaderProperties(collector, generationMode);
 
                 target.CollectRenderStateShaderProperties(collector, generationMode);
-
-                // setup properties using the defaults
-                // TODO
-                // collector.AddFloatProperty(Property.Blend(), (float)target.alphaMode);
-                collector.AddFloatProperty(Property.SrcBlend(), 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
-                collector.AddFloatProperty(Property.DstBlend(), 0.0f);    // always set by material inspector
-                collector.AddFloatProperty(Property.ZWrite(), 0.0f); // TODO
-                // collector.AddFloatProperty(Property.ZWriteControl(), (float)target.zWriteControl);
-                collector.AddFloatProperty(Property.ZTest(), (float)target.depthTestMode);    // ztest mode is designed to directly pass as ztest
             }
-
-            // We always need these properties regardless of whether the material is allowed to override other shader properties.
-            // Queue control & offset enable correct automatic render queue behavior.  Control == 0 is automatic, 1 is user-specified.
-            // We initialize queue control to -1 to indicate to UpdateMaterial that it needs to initialize it properly on the material.
-            // collector.AddFloatProperty(Property.QueueOffset(), 0.0f);
-            // collector.AddFloatProperty(Property.QueueControl(), -1.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -109,7 +90,10 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            const string kFullscreenInclude = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenBlit.hlsl";
+            const string kFullscreenDrawProceduralInclude = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenDrawProcedural.hlsl";
+            const string kFullscreenBlitInclude = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenBlit.hlsl";
+            const string kCustomRenderTextureInclude = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/CustomRenderTexture.hlsl";
+            const string kFullscreenCommon = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenCommon.hlsl";
 
             public static SubShaderDescriptor FullscreenBlit(FullscreenTarget target)
             {
@@ -119,7 +103,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     passes = new PassCollection()
                 };
 
-                result.passes.Add(new PassDescriptor
+                var fullscreenPass = new PassDescriptor
                 {
                     // Definition
                     displayName = "Fullscreen",
@@ -138,6 +122,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     validPixelBlocks = new BlockFieldDescriptor[]
                     {
                         FullscreenTarget.Blocks.Color,
+                        FullscreenTarget.Blocks.Depth,
                     },
 
                     // Fields
@@ -152,6 +137,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     requiredFields = new FieldCollection
                     {
                         StructFields.Attributes.uv0, // Always need uv0 to calculate the other properties in fullscreen node code
+                        StructFields.Varyings.texCoord0,
                         StructFields.Attributes.vertexID, // Need the vertex Id for the DrawProcedural case
                     },
 
@@ -168,14 +154,28 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     includes = new IncludeCollection
                     {
                         // Pre-graph
-                        { CoreIncludes.CorePregraph },
-                        { CoreIncludes.ShaderGraphPregraph },
+                        { CoreIncludes.preGraphIncludes },
 
                         // Post-graph
-                        // { CoreIncludes.CorePostgraph },
-                        { kFullscreenInclude, IncludeLocation.Postgraph },
+                        { kFullscreenCommon, IncludeLocation.Postgraph },
                     },
-                });
+                };
+
+                switch (target.fullscreenCompatibility)
+                {
+                    default:
+                    case FullscreenTarget.FullscreenCompatibility.Blit:
+                        fullscreenPass.includes.Add(kFullscreenBlitInclude, IncludeLocation.Postgraph);
+                        break;
+                    case FullscreenTarget.FullscreenCompatibility.DrawProcedural:
+                        fullscreenPass.includes.Add(kFullscreenDrawProceduralInclude, IncludeLocation.Postgraph);
+                        break;
+                    case FullscreenTarget.FullscreenCompatibility.CustomRenderTexture:
+                        fullscreenPass.includes.Add(kCustomRenderTextureInclude, IncludeLocation.Postgraph);
+                        break;
+                }
+
+                result.passes.Add(fullscreenPass);
 
                 return result;
             }
