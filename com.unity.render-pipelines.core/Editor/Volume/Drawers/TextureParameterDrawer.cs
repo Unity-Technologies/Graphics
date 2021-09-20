@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using System.Linq.Expressions;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
@@ -10,29 +9,16 @@ namespace UnityEditor.Rendering
     internal static class TextureParameterHelper
     {
         static readonly Type k_ObjectFieldValidator = Type.GetType("UnityEditor.EditorGUI+ObjectFieldValidator,UnityEditor");
-
         static readonly MethodInfo k_ValidateObjectFieldAssignment = Type.GetType("UnityEditor.EditorGUI,UnityEditor").GetMethod("ValidateObjectFieldAssignment", BindingFlags.Static | BindingFlags.NonPublic);
-        static readonly MethodInfo k_EditorGUI_DoObjectField = Type.GetType("UnityEditor.EditorGUI,UnityEditor").GetMethod("DoObjectField", BindingFlags.Static | BindingFlags.NonPublic, null,
-            new Type[] { typeof(Rect), typeof(Rect), typeof(int), typeof(Object), typeof(Object), typeof(Type), typeof(Type), typeof(SerializedProperty), k_ObjectFieldValidator, typeof(bool), typeof(GUIStyle) }, null);
+        static readonly MethodInfo k_EditorGUI_DoObjectField = Type.GetType("UnityEditor.EditorGUI,UnityEditor")
+            .GetMethod("DoObjectField", BindingFlags.Static | BindingFlags.NonPublic, null,
+                    new Type[] { typeof(Rect), typeof(Rect), typeof(int), typeof(Object), typeof(Object), typeof(Type), typeof(Type), typeof(SerializedProperty), k_ObjectFieldValidator, typeof(bool), typeof(GUIStyle) }, null);
 
         internal delegate Object ObjectFieldValidator(Object[] references, Type objType, SerializedProperty property, int options);
 
-        public delegate Object ValidateObjectFieldAssignment_Delegate(Object[] o, Type t, SerializedProperty s, int i);
-        static ValidateObjectFieldAssignment_Delegate s_ValidateObjectFieldAssignment_Delegate = null;
-
-        internal static ValidateObjectFieldAssignment_Delegate ValidateObjectFieldAssignment
+        internal static Object ValidateObjectFieldAssignment(Object[] references, Type objType, SerializedProperty property, int options)
         {
-            get
-            {
-                if (s_ValidateObjectFieldAssignment_Delegate == null)
-                {
-                    // Last argument is return type
-                    Type type = Expression.GetDelegateType(typeof(Object[]), typeof(Type), typeof(SerializedProperty), typeof(int), typeof(Object));
-                    Delegate delegateInternal = Delegate.CreateDelegate(type, null, k_ValidateObjectFieldAssignment, true);
-                    s_ValidateObjectFieldAssignment_Delegate = (ValidateObjectFieldAssignment_Delegate)DelegateUtility.Cast(delegateInternal, type);
-                }
-                return s_ValidateObjectFieldAssignment_Delegate;
-            }
+            return (Object)k_ValidateObjectFieldAssignment.Invoke(null, new object[] { references, objType, property, options });
         }
 
         internal static Delegate CastValidator(ObjectFieldValidator validator)
