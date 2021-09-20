@@ -137,7 +137,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the appearance (wrong text color, and not wrapped) of a warning in Node Settings [1365780]
 - Fixed the ordering of inputs on a SubGraph node to match the properties on the blackboard of the subgraph itself [1366052]
 - Fixed Parallax Occlusion Mapping node to handle non-uniformly scaled UVs such as HDRP/Lit POM [1347008].
- 
+
 ## [11.0.0] - 2020-10-21
 
 ### Added
