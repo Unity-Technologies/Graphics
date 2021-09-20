@@ -1366,6 +1366,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle motionVecTexture;
             public HDCamera hdCamera;
             public CustomPostProcessVolumeComponent customPostProcess;
+            public Vector4 postProcessScales;
+            public Vector2Int postProcessViewportSize;
         }
 
         bool DoCustomPostProcess(RenderGraph renderGraph, HDCamera hdCamera, ref TextureHandle source, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, List<string> postProcessList)
@@ -1400,19 +1402,39 @@ namespace UnityEngine.Rendering.HighDefinition
                                 passData.motionVecTexture = builder.ReadTexture(motionVectors);
 
                                 passData.source = builder.ReadTexture(source);
-                                passData.destination = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                                passData.destination = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, IsDynamicResUpscaleTargetEnabled(), true)
                                 { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "CustomPostProcesDestination" }), 0);
                                 passData.hdCamera = hdCamera;
                                 passData.customPostProcess = customPP;
+                                passData.postProcessScales = new Vector4(hdCamera.postProcessRTScales.x, hdCamera.postProcessRTScales.y, hdCamera.postProcessRTScalesHistory.x, hdCamera.postProcessRTScalesHistory.y);
+                                passData.postProcessViewportSize = postProcessViewportSize;
                                 builder.SetRenderFunc(
                                     (CustomPostProcessData data, RenderGraphContext ctx) =>
                                     {
+                                        var srcRt = (RTHandle)data.source;
+                                        var dstRt = (RTHandle)data.destination;
+
+                                        // HACK FIX: for custom post process, we want the user to transparently be able to use color target regardless of the scaling occured. For example, if the user uses any of the HDUtil blit methods
+                                        // which require the rtHandleProperties to set the viewport and sample scales.
+                                        // In the case of DLSS and TAAU, the post process viewport and size for the color target have changed, thus we override them here.
+                                        // When these upscalers arent set, behaviour is still the same (since the post process scale is the same as the global rt handle scale). So for simplicity, we always take this code path for custom post process color.
+                                        var newProps = srcRt.rtHandleProperties;
+                                        newProps.rtHandleScale = data.postProcessScales;
+                                        newProps.currentRenderTargetSize = data.postProcessViewportSize;
+                                        newProps.previousRenderTargetSize = data.postProcessViewportSize;
+                                        newProps.currentViewportSize = data.postProcessViewportSize;
+                                        srcRt.SetCustomHandleProperties(newProps);
+                                        dstRt.SetCustomHandleProperties(newProps);
+
                                         // Temporary: see comment above
                                         ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
                                         ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                                         ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
 
                                         data.customPostProcess.Render(ctx.cmd, data.hdCamera, data.source, data.destination);
+
+                                        srcRt.ClearCustomHandleProperties();
+                                        dstRt.ClearCustomHandleProperties();
                                     });
 
                                 customPostProcessExecuted = true;
@@ -2833,7 +2855,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool postDoFTAAEnabled = false;
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
-            bool taaEnabled = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+            bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
             bool isDoFPathTraced = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -3049,6 +3071,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public LensFlareParameters parameters;
             public TextureHandle source;
             public HDCamera hdCamera;
+            public Vector2Int viewport;
         }
 
         TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
@@ -3059,14 +3082,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.source = builder.WriteTexture(source);
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
+                    passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
-                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Lens Flare Destination");
+                    TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Lens Flare Destination");
 
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
-                            float width = (float)data.hdCamera.actualWidth;
-                            float height = (float)data.hdCamera.actualHeight;
+                            float width = (float)data.viewport.x;
+                            float height = (float)data.viewport.y;
 
                             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
                                 data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, width, height,
