@@ -10,9 +10,9 @@ half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
 {
     half3 albedo = surfaceData.albedo;
 
-    #if defined(_ALPHAPREMULTIPLY_ON)
+#if defined(_ALPHAPREMULTIPLY_ON)
     albedo *= surfaceData.alpha;
-    #endif
+#endif
 
     #if defined(DEBUG_DISPLAY)
     half4 debugColor;

@@ -428,10 +428,6 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 ////////////////////////////////////////////////////////////////////////////////
 half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
 {
-    #ifdef _ALPHAPREMULTIPLY_ON
-    surfaceData.albedo *= surfaceData.alpha;
-    #endif
-
     #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 

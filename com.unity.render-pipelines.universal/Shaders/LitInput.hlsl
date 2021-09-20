@@ -211,6 +211,14 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
     half4 specGloss = SampleMetallicSpecGloss(uv, albedoAlpha.a);
     outSurfaceData.albedo = albedoAlpha.rgb * _BaseColor.rgb;
 
+#if defined(_ALPHAMODULATE_ON)
+    // Fake alpha for multiply blend by lerping albedo to 1.
+    // Manual adjustment for less multiply effect (sort of "premultiplied alpha" version)
+    // would be painting whiter pixels in the texture.
+    // This emulates that procedure by whitening the "base color" automatically using the alpha value.
+    outSurfaceData.albedo = lerp(1, outSurfaceData.albedo, outSurfaceData.alpha);
+#endif
+
 #if _SPECULAR_SETUP
     outSurfaceData.metallic = half(1.0);
     outSurfaceData.specular = specGloss.rgb;
@@ -238,14 +246,6 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
     float2 detailUv = uv * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
     outSurfaceData.albedo = ApplyDetailAlbedo(detailUv, outSurfaceData.albedo, detailMask);
     outSurfaceData.normalTS = ApplyDetailNormal(detailUv, outSurfaceData.normalTS, detailMask);
-#endif
-
-#if defined(_ALPHAMODULATE_ON)
-    // Fake alpha for multiply blend by lerping albedo to 1.
-    // Manual adjustment for less multiply effect (sort of "premultiplied alpha" version)
-    // would be painting whiter pixels in the texture.
-    // This emulates that procedure by whitening the base color automatically using the alpha value.
-    outSurfaceData.albedo = lerp(1, outSurfaceData.albedo, outSurfaceData.alpha);
 #endif
 }
 
