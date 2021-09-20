@@ -493,6 +493,7 @@ namespace UnityEngine.Experimental.Rendering
         internal Dictionary<int, CellInfo> cells = new Dictionary<int, CellInfo>();
         ObjectPool<CellInfo> m_CellInfoPool = new ObjectPool<CellInfo>(x => x.Clear(), null, false);
         ProbeBrickPool.DataLocation m_TemporaryDataLocation;
+        int m_TemporaryDataLocationMemCost;
 
         internal ProbeVolumeSceneData sceneData;
 
@@ -590,6 +591,9 @@ namespace UnityEngine.Experimental.Rendering
             m_IsInitialized = true;
             m_NeedsIndexRebuild = true;
             sceneData = parameters.sceneData;
+
+            m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(kTemporaryDataLocChunkCount * ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, out m_TemporaryDataLocationMemCost);
+
 #if UNITY_EDITOR
             if (sceneData != null)
             {
@@ -631,6 +635,8 @@ namespace UnityEngine.Experimental.Rendering
                 Debug.LogError("Probe Volume System has not been initialized first before calling cleanup.");
                 return;
             }
+
+            m_TemporaryDataLocation.Cleanup();
 
             CleanupLoadedData();
             CleanupDebug();
@@ -1006,8 +1012,6 @@ namespace UnityEngine.Experimental.Rendering
                 m_PositionOffsets[m_PositionOffsets.Length - 1] = 1.0f;
                 Profiler.EndSample();
 
-                m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(kTemporaryDataLocChunkCount * ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, out var allocatedBytes);
-
                 m_ProbeReferenceVolumeInit = true;
 
                 ClearDebugData();
@@ -1071,7 +1075,6 @@ namespace UnityEngine.Experimental.Rendering
                 m_Pool.Clear();
                 m_Index.Clear();
                 cells.Clear();
-                m_TemporaryDataLocation.Cleanup();
             }
 
             if (clearAssetsOnVolumeClear)
