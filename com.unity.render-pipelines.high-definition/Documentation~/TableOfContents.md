@@ -82,10 +82,11 @@
   * [Geometric Specular Anti-aliasing](Geometric-Specular-Anti-Aliasing.md)
   * [Mask Map and Detail Map](Mask-Map-and-Detail-Map.md)
   * [Material Type](Material-Type.md)
-  * [Renderer and Material Priority](Renderer-And-Material-Priority.md)
   * [Tessellation](Tessellation.md)
-  * [Decal](Decal.md)
   * [Surface Type](Surface-Type.md)
+  * [Using materials with C# scripts](Material-Scripting.md)
+  * [Renderer and Material Priority](Renderer-And-Material-Priority.md)
+  * [Decal](Decal.md)
   * Subsurface Scattering
     * [Subsurface Scattering Materials](Subsurface-Scattering.md)
     * [Diffusion Profile](Diffusion-Profile.md)

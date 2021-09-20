@@ -230,9 +230,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 material.SetColor(kEmissionColor, Color.white); // kEmissionColor must always be white to allow our own material to control the GI (this allow to fallback from builtin unity to our system).
                                                                 // as it happen with old material that it isn't the case, we force it.
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 MaterialEditor.FixupEmissiveFlag(material);
-                #endif
+#endif
             }
 
             material.SetupMainTexForAlphaTestGI("_UnlitColorMap", "_UnlitColor");
