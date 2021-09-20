@@ -53,6 +53,8 @@ namespace UnityEngine.Experimental.Rendering
 
         internal float dilationValidtyThreshold = 0.25f; // We ned to store this here to access it
 
+        // Field used for the realtime subdivision preview
+        internal Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>> realtimeSubdivisionInfo = new Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>>();
 
         /// <summary>
         /// Render Probe Volume related debug
@@ -238,6 +240,7 @@ namespace UnityEngine.Experimental.Rendering
         void ClearDebugData()
         {
             m_CellDebugData.Clear();
+            realtimeSubdivisionInfo.Clear();
         }
 
         void CreateInstancedProbes()
@@ -251,7 +254,8 @@ namespace UnityEngine.Experimental.Rendering
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
                 List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
                 CellChunkInfo chunks;
-                m_ChunkInfo.TryGetValue(cell.index, out chunks);
+                if (!m_ChunkInfo.TryGetValue(cell.index, out chunks))
+                    continue;
 
                 Vector4[] texels = new Vector4[kProbesPerBatch];
                 float[] validity = new float[kProbesPerBatch];

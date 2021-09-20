@@ -76,3 +76,21 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable on  XR yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Vulkan hardware DRS broken on render backend
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Vulkan hardware DRS broken on render backend

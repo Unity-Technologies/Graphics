@@ -1,5 +1,6 @@
 import json
 import re
+from .constants import *
 
 def load_json(file_path):
     with open(file_path) as f:
@@ -26,13 +27,19 @@ def find_matching_patterns(patterns, failure_string):
             matches.append((pattern, match))
     return matches
 
-def flatten_tags(tags):
-    '''Tags param: 2d arr of tags gathered from patterns. Returns a 1d arr.'''
-    return [tag for tag_list in tags for tag in tag_list]
+def format_tags(tags):
+    '''Flattens tags, removes duplicates, removes TAG_INSTABILITY if retry was successful
+     (latter is because we need to have either one or another, we cannot have both, so that we can distinguish them by tags)'''
+    tags = sorted(list(set([tag for tag_list in tags for tag in tag_list]))) # flatten and remove duplicates
+    if TAG_INSTABILITY in tags and TAG_SUCCESFUL_RETRY in tags:
+        tags.remove(TAG_INSTABILITY)
+    return tags
 
-def get_ruling_conclusion(conclusions):
+def get_ruling_conclusion(conclusions, tags):
     '''Pick a single conclusion out of several matches in the order of severity'''
-    if 'failure' in conclusions:
+    if TAG_SUCCESFUL_RETRY in tags:
+        return 'success'
+    elif 'failure' in conclusions:
         return 'failure'
     elif 'inconclusive' in conclusions:
         return 'inconclusive'
@@ -42,3 +49,13 @@ def get_ruling_conclusion(conclusions):
         return 'success'
     else:
         return 'failure'
+
+def add_unknown_pattern_if_appropriate(cmd):
+    '''Adds an unknown failure pattern if no patterns were matched at all, or only successful retry was matched.'''
+
+    if (len(cmd['tags']) == 0 # no pattern matched at all
+        or (len(cmd['tags']) == 1 and TAG_SUCCESFUL_RETRY in cmd['tags'])): # only successful retry pattern matched
+
+        cmd['conclusion'].append('failure')
+        cmd['tags'].append('unknown')
+        cmd['summary'].append( 'Unknown failure: check logs for more details. ')

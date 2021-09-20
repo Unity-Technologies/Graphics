@@ -563,6 +563,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
                     }
 
+                    // skip rendering while a preview shader is being compiled
+                    if (m_PreviewsCompiling.Contains(preview))
+                        continue;
+
                     // we want to render this thing, now categorize what kind of render it is
                     if (preview == m_MasterRenderData)
                         renderMasterPreview = true;

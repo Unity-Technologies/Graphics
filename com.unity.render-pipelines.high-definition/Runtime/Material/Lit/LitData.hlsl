@@ -17,9 +17,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
 #endif
 
-//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SPTDistribution.hlsl"
-//#define SPECULAR_OCCLUSION_USE_SPTD
-
 //#define PROJECTED_SPACE_NDF_FILTERING
 
 // Struct that gather UVMapping info of all layers + common calculation
@@ -286,11 +283,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // If user provide bent normal then we process a better term
 #if defined(_BENTNORMALMAP) && defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
     // If we have bent normal and ambient occlusion, process a specular occlusion
-    #ifdef SPECULAR_OCCLUSION_USE_SPTD
-    surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAOPivot(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
-    #else
     surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-#endif
     // Don't do spec occ from Ambient if there is no mask mask
 #elif defined(_MASKMAP) && !defined(_SPECULAR_OCCLUSION_NONE)
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
