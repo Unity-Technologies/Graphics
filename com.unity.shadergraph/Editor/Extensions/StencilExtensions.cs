@@ -15,6 +15,8 @@ namespace UnityEditor.ShaderGraph
                 string failBack = descriptor.FailBack != null && descriptor.FailBack.Length > 0 ? descriptor.FailBack : descriptor.Fail;
                 string passBack = descriptor.PassBack != null && descriptor.PassBack.Length > 0 ? descriptor.PassBack : descriptor.Pass;
 
+                if (descriptor.ReadMask != null && descriptor.ReadMask.Length > 0)
+                    builder.AppendLine($"ReadMask {descriptor.ReadMask}");
                 if (descriptor.WriteMask != null && descriptor.WriteMask.Length > 0)
                     builder.AppendLine($"WriteMask {descriptor.WriteMask}");
                 if (descriptor.Ref != null && descriptor.Ref.Length > 0)
