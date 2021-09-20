@@ -2,8 +2,8 @@ project:
   name: URP_Performance_BoatAttack
   folder: BoatAttack
   variables:
-    BOAT_ATTACK_BRANCH: tests/bump-utf
-    BOAT_ATTACK_REVISION: a92569a5aa8a112cc81255812432723f69dab1ce
+    BOAT_ATTACK_BRANCH: master
+    BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
 
 reuse_blocks:
   unity_config:
