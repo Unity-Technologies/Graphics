@@ -110,6 +110,7 @@ float4 ExtractionFragment(Varyings input) : SV_Target
     extraction.vertexNormalWS = input.normalWS;
     extraction.pixelNormalWS = inputData.normalWS;
     extraction.positionWS = inputData.positionWS;
+    extraction.deviceDepth = input.positionCS.z;
     extraction.baseColor = surfaceData.albedo;
     extraction.alpha = OutputAlpha(UniversalFragmentPBR(inputData, surfaceData).a);
     #ifdef _SPECULAR_SETUP

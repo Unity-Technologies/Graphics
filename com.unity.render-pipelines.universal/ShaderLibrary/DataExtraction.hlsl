@@ -10,6 +10,7 @@ struct ExtractionInputs
     float3 vertexNormalWS;
     float3 pixelNormalWS;
     float3 positionWS;
+    float deviceDepth;
 
     float3 baseColor;
     float  alpha;
@@ -82,9 +83,8 @@ float4 OutputExtraction(ExtractionInputs inputs)
     if (UNITY_DataExtraction_Mode == RENDER_OBJECT_ID)
          return PackId32ToRGBA8888(asuint(unity_LODFade.z));
 #endif
-    //@TODO
     if (UNITY_DataExtraction_Mode == RENDER_DEPTH)
-        return 0;
+        return float4(inputs.deviceDepth.xxx, 1);
     if (UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_FACE_RGB)
         return float4(PackNormalRGB(inputs.vertexNormalWS), 1.0f);
     if (UNITY_DataExtraction_Mode == RENDER_WORLD_POSITION_RGB)
