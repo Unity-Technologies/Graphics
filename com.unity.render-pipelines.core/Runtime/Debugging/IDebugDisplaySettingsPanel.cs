@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering
 {
     public interface IDebugDisplaySettingsPanel
     {

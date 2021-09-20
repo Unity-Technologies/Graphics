@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.Universal
             DecalProjector.defaultMaterial = asset.decalMaterial;
 
             DebugManager.instance.RefreshEditor();
-            m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
+            m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
         }
 
         protected override void Dispose(bool disposing)
@@ -1220,7 +1220,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
         {
-            DebugDisplaySettings debugDisplaySettings = DebugDisplaySettings.Instance;
+            var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
             ref CameraData cameraData = ref renderingData.cameraData;
 
             if (debugDisplaySettings.AreAnySettingsActive && !cameraData.isPreviewCamera)

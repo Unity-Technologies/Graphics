@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel()
             {
-                var materialSettingsData = DebugDisplaySettings.Instance.MaterialSettings;
+                var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
+                var materialSettingsData = debugDisplaySettings.MaterialSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Filters",
@@ -33,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                var lightingSettingsData = DebugDisplaySettings.Instance.LightingSettings;
+                var lightingSettingsData = debugDisplaySettings.LightingSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Lighting Debug Modes",
@@ -54,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                var renderingSettingsData = DebugDisplaySettings.Instance.RenderingSettings;
+                var renderingSettingsData = debugDisplaySettings.RenderingSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Rendering Debug",
@@ -81,11 +82,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region IDebugDisplaySettingsData
-
-        public bool AreAnySettingsActive => DebugDisplaySettings.Instance.AreAnySettingsActive;
-        public bool IsPostProcessingAllowed => DebugDisplaySettings.Instance.IsPostProcessingAllowed;
-        public bool IsLightingActive => DebugDisplaySettings.Instance.IsLightingActive;
-        public bool TryGetScreenClearColor(ref Color color) => DebugDisplaySettings.Instance.TryGetScreenClearColor(ref color);
+        UniversalRenderPipelineDebugDisplaySettings debugDisplaySettings => UniversalRenderPipelineDebugDisplaySettings.Instance;
+        public bool AreAnySettingsActive => debugDisplaySettings.AreAnySettingsActive;
+        public bool IsPostProcessingAllowed => debugDisplaySettings.IsPostProcessingAllowed;
+        public bool IsLightingActive => debugDisplaySettings.IsLightingActive;
+        public bool TryGetScreenClearColor(ref Color color) => debugDisplaySettings.TryGetScreenClearColor(ref color);
 
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
