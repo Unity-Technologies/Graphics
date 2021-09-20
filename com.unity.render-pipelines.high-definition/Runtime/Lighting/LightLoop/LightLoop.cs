@@ -4268,7 +4268,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             parameters.debugViewTilesMaterial.DisableKeyword("DISABLE_TILE_MODE");
 
-                        CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
+                        CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, shaderPassId: 0);
                     }
                 }
             }
