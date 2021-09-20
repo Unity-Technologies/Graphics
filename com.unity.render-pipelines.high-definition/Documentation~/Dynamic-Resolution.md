@@ -116,7 +116,7 @@ You can also override the upscale options in the HDRP Asset for each Camera in y
 
 When you enable **Temporal Anti-Aliasing (TAA) Upscaling**, it replaces Temporal Anti-Aliasing in the pipeline. This means:
 
-- When Temporal Anti-Aliasing (TAA) is active, it is the only anti-aliasing method. No other post-process or anti-aliasing option will work.
+- When Temporal Anti-Aliasing (TAA) Upscale  is active, Temporal Anti-Aliasing (TAA) is the only anti-aliasing method. No other post-process or anti-aliasing option will work.
 - When TAA Upscale is active, Post-processing uses more GPU resources. This is because TAA Upscale upscales a down-sampled texture before HDRP applies post-processing. Post-processing then runs at final resolution which gives a more precise result.
 
 TAA Upscaling sets the [Camera's](HDRP-Camera.md) **TAA Quality Preset** to **High Quality**. When you enable the Temporal Anti-Aliasing (TAA) Upscaling, you cannot change this preset.
