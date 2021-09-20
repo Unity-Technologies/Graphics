@@ -66,14 +66,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
         {
-            if (GraphicsSettings.currentRenderPipeline == null)
+            if (GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset)
                 return;
 
-        #if UNITY_2020_2_OR_NEWER
+#if UNITY_2020_2_OR_NEWER
             SubsystemManager.GetSubsystems(displayList);
-        #else
+#else
             SubsystemManager.GetInstances(displayList);
-        #endif
+#endif
 
             for (int i = 0; i < displayList.Count; i++)
             {
@@ -180,11 +180,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
 
-        #if UNITY_2020_2_OR_NEWER
+#if UNITY_2020_2_OR_NEWER
             SubsystemManager.GetSubsystems(displayList);
-        #else
+#else
             SubsystemManager.GetInstances(displayList);
-        #endif
+#endif
 
             if (displayList.Count > 0)
             {

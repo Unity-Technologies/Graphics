@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.PostProcessing
     /// A volume parameter holding a <see cref="EyeAdaptation"/> value.
     /// </summary>
     [Serializable]
-    public sealed class EyeAdaptationParameter : ParameterOverride<EyeAdaptation> {}
+    public sealed class EyeAdaptationParameter : ParameterOverride<EyeAdaptation> { }
 
     /// <summary>
     /// This class holds settings for the Auto Exposure effect.

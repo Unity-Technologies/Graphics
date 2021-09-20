@@ -264,7 +264,7 @@ namespace UnityEditor.VFX
                 var vfxResource = VisualEffectResource.GetResourceAtPath(path);
                 if (vfxResource != null)
                 {
-                    var graph = vfxResource.GetOrCreateGraph();
+                    vfxResource.GetOrCreateGraph().UpdateSubAssets();
                     vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
                 }
             }
@@ -499,7 +499,7 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
+                    Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e, e.StackTrace));
                 }
 
             systemNames.Sync(this);
@@ -950,6 +950,11 @@ namespace UnityEditor.VFX
                         }
                     }
                 }
+
+                // Check Graph Before Import can be needed to synchronize modified shaderGraph
+                foreach (var child in children)
+                    child.CheckGraphBeforeImport();
+
                 // Graph must have been sanitized at this point by the VFXGraphPreprocessor.OnPreprocess
                 BuildSubgraphDependencies();
                 PrepareSubgraphs();

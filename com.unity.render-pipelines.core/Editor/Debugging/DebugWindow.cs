@@ -12,10 +12,10 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    #pragma warning disable 414
+#pragma warning disable 414
 
     [Serializable]
-    sealed class WidgetStateDictionary : SerializedDictionary<string, DebugState> {}
+    sealed class WidgetStateDictionary : SerializedDictionary<string, DebugState> { }
 
     sealed class DebugWindowSettings : ScriptableObject
     {
@@ -286,7 +286,9 @@ namespace UnityEditor.Rendering
 
         void ApplyState(string queryPath, DebugState state)
         {
-            if (!(DebugManager.instance.GetItem(queryPath) is DebugUI.IValueField widget))
+            if (state == null ||
+                state.GetValue() == null ||
+                !(DebugManager.instance.GetItem(queryPath) is DebugUI.IValueField widget))
                 return;
 
             widget.SetValue(state.GetValue());
@@ -610,5 +612,5 @@ namespace UnityEditor.Rendering
         }
     }
 
-    #pragma warning restore 414
+#pragma warning restore 414
 }

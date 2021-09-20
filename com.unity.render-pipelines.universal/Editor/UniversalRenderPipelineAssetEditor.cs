@@ -5,7 +5,7 @@ using Styles = UnityEditor.Rendering.Universal.UniversalRenderPipelineAssetUI.St
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomEditor(typeof(UniversalRenderPipelineAsset))]
+    [CustomEditor(typeof(UniversalRenderPipelineAsset)), CanEditMultipleObjects]
     public class UniversalRenderPipelineAssetEditor : Editor
     {
         SerializedProperty m_RendererDataProp;
@@ -52,10 +52,7 @@ namespace UnityEditor.Rendering.Universal
                 // Need to add the undo to the removal of our assets here, for it to work properly.
                 Undo.RecordObject(target, $"Deleting renderer at index {reorderableList.index}");
 
-                if (m_RendererDataProp.GetArrayElementAtIndex(reorderableList.index).objectReferenceValue == null)
-                {
-                    shouldUpdateIndex = true;
-                }
+                shouldUpdateIndex = true;
                 m_RendererDataProp.DeleteArrayElementAtIndex(reorderableList.index);
             }
             else

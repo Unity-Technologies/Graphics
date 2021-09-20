@@ -45,6 +45,7 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 | - **Half Resolution Denoiser** | Enable this feature to evaluate the spatio-temporal filter in half resolution. This decreases the resource intensity of denoising but reduces quality. |
 | - **Denoiser Radius**          | Set the radius of the spatio-temporal filter.                |
 | - **Second Denoiser Pass**     | Enable this feature to process a second denoiser pass. This helps to remove noise from the effect. |
+| **Full Resolution**            | Enable this feature to increase the ray budget to one ray per pixel, per frame. Disable this feature to decrease the ray budget to one ray per four pixels, per frame.|
 | **Depth Tolerance** | Use the slider to control the tolerance when comparing the depth of the GameObjects on screen and the depth buffer. Because the SSR algorithm can not distinguish thin GameObjects from thick ones, this property helps trace rays behind GameObjects. The algorithm applies this property to every GameObject uniformly. |
 | **Ray Miss**         | Determines what HDRP does when a screen space global illumination (SSGI) ray doesn't find an intersection. Choose from one of the following options: <br/>&#8226;**Reflection probes**: HDRP uses reflection probes in your scene to calculate the missing SSGI intersection.<br/>&#8226;**Sky**: HDRP uses the sky defined by the current [Volume](Volumes.md) settings to calculate the missing SSGI intersection.<br/>&#8226;**Both**: HDRP uses both reflection probes and the sky defined by the current [Volume](Volumes.md) settings to calculate the missing SSGI intersection.<br/>&#8226;**Nothing**: HDRP does not calculate indirect lighting when SSGI doesn't find an intersection.<br/><br/>This property is set to **Both** by default. |
 
@@ -71,16 +72,7 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 | - **Denoiser Radius**          | Set the radius of the spatio-temporal filter.                |
 | - **Second Denoiser Pass**     | Enable this feature to process a second denoiser pass. This helps to remove noise from the effect. |
 
-## Limitations
-
-### Screen-space global illumination
+### Screen-space global illumination Limitation
 
 * When rendering [Reflection Probes](Reflection-Probe.md) screen space global illumination is not supported.
-
-### Ray-traced global illumination
-
-* Currently, ray tracing in HDRP does not support [decals](decal.md). This means that ray-traced global illumination does not affect decals in your Scene.
-
-  ### Mixed global illumination
-
-* In Mixed tracing mode, emissive decals do not contribute to global illumination because HDRP renders them later in the render pipeline. For the same reason, emissive Materials that use Force Forward Emissive also do not contribute to global illumination.
+* When lit shader mode is setup to deferred the Ambient Occlusion from Lit shader will be combine with Screen space Ambient Occlusion (if it is enabled) and apply on the indirect lighting result where there is no Emissive contribution. This is similar behavior than rendering with lit shader mode setup to forward. If the Material have an emissive contribution then Ambient Occlusion is setup to one.

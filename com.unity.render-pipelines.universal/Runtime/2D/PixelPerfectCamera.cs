@@ -32,6 +32,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             UpscaleRenderTexture
         }
 
+        public enum PixelPerfectFilterMode
+        {
+            RetroAA,
+            Point,
+        }
+
         public enum ComponentVersions
         {
             Version_Unserialized = 0,
@@ -45,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #endif
 
         public CropFrame cropFrame { get { return m_CropFrame; } set { m_CropFrame = value; } }
-        public GridSnapping gridSnapping { get { return m_GridSnapping;} set { m_GridSnapping = value; } }
+        public GridSnapping gridSnapping { get { return m_GridSnapping; } set { m_GridSnapping = value; } }
 
         public float orthographicSize { get { return m_Internal.orthoSize; } }
 
@@ -197,6 +203,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
+        public bool requiresUpscalePass
+        {
+            get
+            {
+                return m_Internal.requiresUpscaling;
+            }
+        }
+
         /// <summary>
         /// Round a arbitrary position to an integer pixel position. Works in world space.
         /// </summary>
@@ -234,12 +248,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return m_Internal.CorrectCinemachineOrthoSize(targetOrthoSize);
         }
 
-        [SerializeField] int    m_AssetsPPU         = 100;
-        [SerializeField] int    m_RefResolutionX    = 320;
-        [SerializeField] int    m_RefResolutionY    = 180;
+        [SerializeField] int m_AssetsPPU = 100;
+        [SerializeField] int m_RefResolutionX = 320;
+        [SerializeField] int m_RefResolutionY = 180;
 
         [SerializeField] CropFrame m_CropFrame;
         [SerializeField] GridSnapping m_GridSnapping;
+        [SerializeField] PixelPerfectFilterMode m_FilterMode = PixelPerfectFilterMode.RetroAA;
 
         // These are obsolete. They are here only for migration.
 #if UNITY_EDITOR
@@ -258,7 +273,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             get
             {
-                return m_Internal.useStretchFill ? FilterMode.Bilinear : FilterMode.Point;
+                return m_FilterMode == PixelPerfectFilterMode.RetroAA ? FilterMode.Bilinear : FilterMode.Point;
             }
         }
 

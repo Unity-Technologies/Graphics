@@ -109,9 +109,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 previewName = "Master Preview",
                 renderTexture =
                     new RenderTexture(400, 400, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default)
-                {
-                    hideFlags = HideFlags.HideAndDontSave
-                },
+                    {
+                        hideFlags = HideFlags.HideAndDontSave
+                    },
                 previewMode = PreviewMode.Preview3D,
             };
 
@@ -171,9 +171,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 previewName = node.name ?? "UNNAMED NODE",
                 renderTexture =
                     new RenderTexture(200, 200, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default)
-                {
-                    hideFlags = HideFlags.HideAndDontSave
-                }
+                    {
+                        hideFlags = HideFlags.HideAndDontSave
+                    }
             };
 
             renderData.renderTexture.Create();
@@ -562,6 +562,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                         preview.NotifyPreviewChanged();
                         continue;
                     }
+
+                    // skip rendering while a preview shader is being compiled
+                    if (m_PreviewsCompiling.Contains(preview))
+                        continue;
 
                     // we want to render this thing, now categorize what kind of render it is
                     if (preview == m_MasterRenderData)

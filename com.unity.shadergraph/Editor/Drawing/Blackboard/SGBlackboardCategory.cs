@@ -470,7 +470,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (draggedElements.ContainsKey(this))
                         draggedElements[this].Add(FindCategoryDirectChild(this, draggedElement));
                     else
-                        draggedElements.Add(this, new List<VisualElement> {FindCategoryDirectChild(this, draggedElement)});
+                        draggedElements.Add(this, new List<VisualElement> { FindCategoryDirectChild(this, draggedElement) });
                 }
                 else
                 {
@@ -480,7 +480,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (draggedElements.ContainsKey(otherCategory))
                             draggedElements[otherCategory].Add(FindCategoryDirectChild(otherCategory, draggedElement));
                         else
-                            draggedElements.Add(otherCategory, new List<VisualElement> {FindCategoryDirectChild(otherCategory, draggedElement)});
+                            draggedElements.Add(otherCategory, new List<VisualElement> { FindCategoryDirectChild(otherCategory, draggedElement) });
                     }
                 }
             }
@@ -690,15 +690,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            if (selectable != this)
-                Inspector.InspectorView.forceNodeView = true;
-
             var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
             materialGraphView?.AddToSelection(selectable);
-
-            if (materialGraphView.selection.OfType<SGBlackboardCategory>().Any())
-                // Turns off the inspector being forced to trigger so user can still use Graph Settings tab if they want, on category selection
-                Inspector.InspectorView.forceNodeView = false;
         }
 
         public void RemoveFromSelection(ISelectable selectable)
