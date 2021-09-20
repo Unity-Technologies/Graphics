@@ -30,12 +30,12 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public static AdditionalGIBakeRequestsManager instance { get { return s_Instance; } }
 
-        private AdditionalGIBakeRequestsManager()
+        internal void Init()
         {
             SubscribeOnBakeStarted();
         }
 
-        ~AdditionalGIBakeRequestsManager()
+        internal void Cleanup()
         {
             UnsubscribeOnBakeStarted();
         }
@@ -630,6 +630,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.OnSceneSaved;
             }
+            AdditionalGIBakeRequestsManager.instance.Init();
 #endif
             m_EnabledBySRP = true;
         }
@@ -660,6 +661,10 @@ namespace UnityEngine.Experimental.Rendering
         public void Cleanup()
         {
             if (!m_ProbeReferenceVolumeInit) return;
+
+#if UNITY_EDITOR
+            AdditionalGIBakeRequestsManager.instance.Cleanup();
+#endif
 
             if (!m_IsInitialized)
             {
@@ -718,14 +723,48 @@ namespace UnityEngine.Experimental.Rendering
             m_ChunkInfo[cell.index] = cellChunks;
         }
 
+        bool CheckCompatibilityWithCollection(ProbeVolumeAsset asset, Dictionary<string, ProbeVolumeAsset> collection)
+        {
+            if (collection.Count > 0)
+            {
+                // Any one is fine, they should all have the same properties. We need to go through them anyway as some might be pending deletion already.
+                foreach (var collectionValue in collection.Values)
+                {
+                    // We don't care about this to check against, it is already pending deletion.
+                    if (m_PendingAssetsToBeUnloaded.ContainsKey(collectionValue.GetSerializedFullPath()))
+                        continue;
+
+                    return collectionValue.CompatibleWith(asset);
+                }
+            }
+            return true;
+        }
+
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
+
             if (m_PendingAssetsToBeLoaded.ContainsKey(key))
             {
                 m_PendingAssetsToBeLoaded.Remove(key);
             }
-            m_PendingAssetsToBeLoaded.Add(asset.GetSerializedFullPath(), asset);
+
+            if (!CheckCompatibilityWithCollection(asset, m_ActiveAssets))
+            {
+                Debug.LogError($"Trying to load Probe Volume data for a scene that has been baked with different settings than currently loaded ones. " +
+                               $"Please make sure all loaded scenes are in the same baking set.");
+                return;
+            }
+
+            // If we don't have any loaded asset yet, we need to verify the other queued assets.
+            if (!CheckCompatibilityWithCollection(asset, m_PendingAssetsToBeLoaded))
+            {
+                Debug.LogError($"Trying to load Probe Volume data for a scene that has been baked with different settings from other scenes that are being loaded. " +
+                                $"Please make sure all loaded scenes are in the same baking set.");
+                return;
+            }
+
+            m_PendingAssetsToBeLoaded.Add(key, asset);
             m_NeedLoadAsset = true;
 
             // Compute the max index dimension from all the loaded assets + assets we need to load
