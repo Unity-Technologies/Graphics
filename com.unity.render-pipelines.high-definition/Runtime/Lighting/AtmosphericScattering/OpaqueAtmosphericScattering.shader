@@ -6,6 +6,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
+        #pragma multi_compile_fragment _ OUTPUT_PIXEL_ILLUMINANCE
 
         // #pragma enable_d3d11_debug_symbols
 
@@ -57,7 +58,11 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             EvaluateAtmosphericScattering(posInput, V, color, opacity); // Premultiplied alpha
         }
 
-        float4 Frag(Varyings input) : SV_Target
+        void Frag(Varyings input, out float4 outColor : SV_Target
+            #ifdef OUTPUT_PIXEL_ILLUMINANCE
+            , out float4 outIlluminance : SV_Target1
+            #endif
+            )
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 positionSS  = input.positionCS.xy;
@@ -67,10 +72,17 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float3 volColor, volOpacity;
             AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
 
-            return float4(volColor, 1.0 - volOpacity.x);
+            outColor =  float4(volColor, 1.0 - volOpacity.x);
+            #ifdef OUTPUT_PIXEL_ILLUMINANCE
+            outIlluminance = float4(Luminance(volColor).xxx, 1.0 - volOpacity.x);
+            #endif
         }
 
-        float4 FragMSAA(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
+        void FragMSAA(Varyings input, out float4 outColor : SV_Target, uint sampleIndex: SV_SampleIndex
+            #ifdef OUTPUT_PIXEL_ILLUMINANCE
+            , out float4 outIlluminance : SV_Target1
+            #endif
+            )
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 positionSS  = input.positionCS.xy;
@@ -80,7 +92,10 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float3 volColor, volOpacity;
             AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
 
-            return float4(volColor, 1.0 - volOpacity.x);
+            outColor = float4(volColor, 1.0 - volOpacity.x);
+            #ifdef OUTPUT_PIXEL_ILLUMINANCE
+            outIlluminance = float4(Luminance(volColor).xxx, 1.0 - volOpacity.x);
+            #endif
         }
 
         float4 FragPBRFog(Varyings input) : SV_Target
@@ -120,6 +135,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         {
             Cull Off    ZWrite Off
             Blend One SrcAlpha, Zero One // Premultiplied alpha for RGB, preserve alpha for the alpha channel
+            Blend 1 OneMinusSrcAlpha SrcAlpha
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
@@ -133,6 +149,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         {
             Cull Off    ZWrite Off
             Blend One SrcAlpha, Zero One // Premultiplied alpha for RGB, preserve alpha for the alpha channel
+            Blend 1 OneMinusSrcAlpha SrcAlpha
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
@@ -141,8 +158,8 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             ENDHLSL
         }
 
-            // 2: NOMSAA PBR FOG
-            Pass
+        // 2: NOMSAA PBR FOG
+        Pass
         {
             Cull Off    ZWrite Off
             Blend Off   // Manual blending
@@ -154,8 +171,8 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             ENDHLSL
         }
 
-            // 3: MSAA PBR FOG
-            Pass
+        // 3: MSAA PBR FOG
+        Pass
         {
             Cull Off    ZWrite Off
             Blend Off   // Manual blending

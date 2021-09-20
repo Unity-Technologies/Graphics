@@ -124,6 +124,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Sky
             [Reload("Runtime/Sky/BlitCubemap.shader")]
             public Shader blitCubemapPS;
+            [Reload("Runtime/Sky/SkyIlluminance.shader")]
+            public Shader skyIlluminancePS;
             [Reload("Runtime/Material/GGXConvolution/BuildProbabilityTables.compute")]
             public ComputeShader buildProbabilityTablesCS;
             [Reload("Runtime/Material/GGXConvolution/ComputeGgxIblSampleData.compute")]

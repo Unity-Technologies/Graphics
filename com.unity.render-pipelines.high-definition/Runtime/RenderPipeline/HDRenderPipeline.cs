@@ -201,6 +201,8 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly SkyManager m_SkyManager = new SkyManager();
         internal SkyManager skyManager { get { return m_SkyManager; } }
 
+        Material m_SkyMaterial;
+
         bool m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
         bool m_IsDepthBufferCopyValid;
         RenderTexture m_TemporaryTargetForCubemaps;
@@ -350,6 +352,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.applyDistortionPS);
 
             m_ClearStencilBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.clearStencilBufferPS);
+
+            m_SkyMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.skyIlluminancePS);
 
             InitializeDebug();
 
@@ -715,6 +719,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_UpsampleTransparency);
             CoreUtils.Destroy(m_ApplyDistortionMaterial);
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
+            CoreUtils.Destroy(m_SkyMaterial);
 
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();

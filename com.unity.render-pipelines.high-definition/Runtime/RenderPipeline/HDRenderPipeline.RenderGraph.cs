@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     RenderSubsurfaceScattering(m_RenderGraph, hdCamera, colorBuffer, historyValidationTexture, ref lightingBuffers, ref prepassOutput);
 
-                    RenderSky(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, prepassOutput.depthBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture);
+                    RenderSky(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers.illuminanceBuffer, volumetricLighting, prepassOutput.depthBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture);
                     RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting, maxZMask);
 
                     // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
@@ -1438,14 +1438,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDCamera hdCamera;
             public TextureHandle volumetricLighting;
             public TextureHandle colorBuffer;
+            public TextureHandle illuminanceBuffer;
             public TextureHandle depthTexture;
             public TextureHandle depthStencilBuffer;
             public TextureHandle intermediateBuffer;
             public DebugDisplaySettings debugDisplaySettings;
             public SkyManager skyManager;
+            public Material skyMaterial;
         }
 
-        void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle volumetricLighting, TextureHandle depthStencilBuffer, TextureHandle depthTexture)
+        void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle illuminanceBuffer, TextureHandle volumetricLighting, TextureHandle depthStencilBuffer, TextureHandle depthTexture)
         {
             if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) || CoreUtils.IsSceneFilteringEnabled())
                 return;
@@ -1457,12 +1459,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.hdCamera = hdCamera;
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
+                if (illuminanceBuffer.IsValid())
+                    passData.illuminanceBuffer = builder.WriteTexture(illuminanceBuffer);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.depthStencilBuffer = builder.WriteTexture(depthStencilBuffer);
                 if (Fog.IsPBRFogEnabled(hdCamera))
                     passData.intermediateBuffer = builder.CreateTransientTexture(colorBuffer);
                 passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
                 passData.skyManager = m_SkyManager;
+                passData.skyMaterial = m_SkyMaterial;
 
                 builder.SetRenderFunc(
                     (RenderSkyPassData data, RenderGraphContext context) =>
@@ -1472,10 +1477,27 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Then we perform a copy from the atmospheric scattering buffer back to the color buffer.
                         data.skyManager.RenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.depthStencilBuffer, data.debugDisplaySettings, context.cmd);
 
+                        // Render sky to illuminance buffer
+                        if (data.illuminanceBuffer.IsValid())
+                        {
+                            data.skyMaterial.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, data.hdCamera.mainViewConstants.pixelCoordToViewDirWS);
+                            data.skyMaterial.SetTexture(HDShaderIDs._Cubemap, data.skyManager.GetSkyReflection(data.hdCamera));
+
+                            HDUtils.DrawFullScreen(context.cmd, data.skyMaterial, data.illuminanceBuffer, data.depthStencilBuffer);
+                        }
+
                         if (Fog.IsFogEnabled(data.hdCamera) || Fog.IsPBRFogEnabled(data.hdCamera))
                         {
+                            RenderTargetIdentifier[] buffers = null;
+                            if (data.illuminanceBuffer.IsValid())
+                            {
+                                buffers = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(2);
+                                buffers[0] = colorBuffer;
+                                buffers[1] = illuminanceBuffer;
+                            }
+
                             var pixelCoordToViewDirWS = data.hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-                            data.skyManager.RenderOpaqueAtmosphericScattering(context.cmd, data.hdCamera, data.colorBuffer, data.depthTexture, data.volumetricLighting, data.intermediateBuffer, data.depthStencilBuffer, pixelCoordToViewDirWS, data.hdCamera.msaaEnabled);
+                            data.skyManager.RenderOpaqueAtmosphericScattering(context.cmd, data.hdCamera, data.colorBuffer, buffers, data.depthTexture, data.volumetricLighting, data.intermediateBuffer, data.depthStencilBuffer, pixelCoordToViewDirWS, data.hdCamera.msaaEnabled);
                         }
                     });
             }

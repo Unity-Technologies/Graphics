@@ -1100,6 +1100,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCamera hdCamera,
             RTHandle colorBuffer,
+            RenderTargetIdentifier[] renderTargets,
             RTHandle depthTexture,
             RTHandle volumetricLighting,
             RTHandle intermediateBuffer,
@@ -1127,7 +1128,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, colorBuffer, depthBuffer, m_OpaqueAtmScatteringBlock, isMSAA ? 1 : 0);
+                    if (renderTargets != null)
+                        HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, renderTargets, depthBuffer, m_OpaqueAtmScatteringBlock, isMSAA ? 1 : 0);
+                    else
+                        HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, colorBuffer, depthBuffer, m_OpaqueAtmScatteringBlock, isMSAA ? 1 : 0);
                 }
             }
         }
