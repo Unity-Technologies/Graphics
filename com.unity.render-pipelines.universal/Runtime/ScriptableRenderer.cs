@@ -1568,13 +1568,13 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetRenderTarget(cmd, colorAttachments, depthAttachment, clearFlag, clearColor);
         }
 
+        [Obsolete]
         static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorAttachments, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments = colorAttachments;
             m_ActiveDepthAttachment = depthAttachment.nameID;
 
             CoreUtils.SetRenderTarget(cmd, m_ActiveColorAttachments, depthAttachment, clearFlag, clearColor);
-            CoreUtils.SetViewport(cmd, depthAttachment);
         }
 
         static void SetRenderTarget(CommandBuffer cmd, RTHandle[] colorAttachments, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
@@ -1591,11 +1591,6 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveDepthAttachment = depthAttachment.nameID;
 
             CoreUtils.SetRenderTarget(cmd, m_ActiveColorAttachments, depthAttachment, clearFlag, clearColor);
-            foreach (var attachment in colorAttachments)
-            {
-                CoreUtils.SetViewport(cmd, attachment);
-            }
-            CoreUtils.SetViewport(cmd, depthAttachment);
         }
 
         internal virtual void SwapColorBuffer(CommandBuffer cmd) { }
