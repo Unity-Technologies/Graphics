@@ -794,7 +794,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.Bloom)))
                             {
-                                ComputeBloomMipSizesAndScales(camera);
                                 AllocateBloomMipTextures();
                                 DoBloom(PrepareBloomParameters(camera), cmd, source, m_BloomMipsDown, m_BloomMipsUp);
                                 RecycleUnusedBloomMips();
@@ -872,6 +871,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            camera.didResetPostProcessingHistoryInLastFrame = camera.resetPostProcessingHistory;
+
             camera.resetPostProcessingHistory = false;
         }
 
@@ -934,6 +935,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
 
             // Setup the rest of the effects
+            ComputeBloomMipSizesAndScales(hdCamera);
             PrepareLensDistortionParameters(ref parameters, featureFlags);
             PrepareChromaticAberrationParameters(ref parameters, featureFlags);
             PrepareVignetteParameters(ref parameters, featureFlags);
@@ -1297,8 +1299,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public RTHandle GetPreviousExposureTexture(HDCamera camera)
         {
+            // If the history was reset in the previous frame, then the history buffers were actually rendered with a neutral EV100 exposure multiplier
+            var rt = (camera.didResetPostProcessingHistoryInLastFrame && !IsExposureFixed(camera)) ?
+                m_EmptyExposureTexture : camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Exposure);
+
             // See GetExposureTexture
-            var rt = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Exposure);
             return rt ?? m_EmptyExposureTexture;
         }
 

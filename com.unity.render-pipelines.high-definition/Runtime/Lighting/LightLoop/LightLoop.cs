@@ -3360,6 +3360,9 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
                 var proj = hdCamera.xr.enabled ? hdCamera.xr.GetProjMatrix(viewIndex) : camera.projectionMatrix;
+                // Note: we need to take into account the TAA jitter when indexing the light list
+                proj = (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing) ? hdCamera.GetJitteredProjectionMatrix(proj) : proj;
+
                 m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
 
                 for (int i = 0; i < 16; ++i)
@@ -4265,7 +4268,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             parameters.debugViewTilesMaterial.DisableKeyword("DISABLE_TILE_MODE");
 
-                        CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
+                        CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, shaderPassId: 0);
                     }
                 }
             }

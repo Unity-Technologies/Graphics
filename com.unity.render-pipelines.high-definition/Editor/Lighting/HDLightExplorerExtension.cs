@@ -528,6 +528,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         Undo.RecordObject(tLightData, "Changed shadow resolution override");
                         tShadowResolution.@override = sShadowResolution.@override;
+
+                        //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                        if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                            SceneView.RepaintAll();
                     }
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.AffectDiffuse, "m_Intensity", 95, (r, prop, dep) =>         // 16: Affect Diffuse
@@ -546,6 +550,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         Undo.RecordObject(lightData, "Changed affects diffuse");
                         lightData.affectDiffuse = affectDiffuse;
+
+                        //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                        if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                            SceneView.RepaintAll();
                     }
                 }, (lprop, rprop) =>
                 {
@@ -580,6 +588,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         Undo.RecordObject(lightData, "Changed affects specular");
                         lightData.affectSpecular = affectSpecular;
+
+                        //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                        if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                            SceneView.RepaintAll();
                     }
                 }, (lprop, rprop) =>
                 {
