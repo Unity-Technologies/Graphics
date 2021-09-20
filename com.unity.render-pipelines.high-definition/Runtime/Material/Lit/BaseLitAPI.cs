@@ -9,17 +9,8 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     abstract class BaseLitAPI
     {
-        // Properties for Base Lit material keyword setup
-        protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
-        protected const string kDoubleSidedGIMode = "_DoubleSidedGIMode";
-        protected const string kDisplacementLockObjectScale = "_DisplacementLockObjectScale";
-        protected const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
-
         // Wind
         protected const string kWindEnabled = "_EnableWind";
-
-        // Decal
-        protected const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
 
         public static DisplacementMode GetFilteredDisplacementMode(Material material)
         {

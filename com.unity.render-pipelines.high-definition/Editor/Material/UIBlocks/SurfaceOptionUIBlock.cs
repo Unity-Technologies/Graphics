@@ -156,52 +156,35 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty surfaceType = null;
 
         MaterialProperty alphaCutoffEnable = null;
-        const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
         MaterialProperty useShadowThreshold = null;
-        const string kUseShadowThreshold = "_UseShadowThreshold";
         MaterialProperty alphaCutoff = null;
-        const string kAlphaCutoff = "_AlphaCutoff";
         MaterialProperty alphaCutoffShadow = null;
-        const string kAlphaCutoffShadow = "_AlphaCutoffShadow";
         MaterialProperty alphaCutoffPrepass = null;
-        const string kAlphaCutoffPrepass = "_AlphaCutoffPrepass";
         MaterialProperty alphaCutoffPostpass = null;
-        const string kAlphaCutoffPostpass = "_AlphaCutoffPostpass";
         MaterialProperty alphaToMask = null;
         const string kAlphaToMask = kAlphaToMaskInspector;
         MaterialProperty transparentDepthPrepassEnable = null;
-        const string kTransparentDepthPrepassEnable = "_TransparentDepthPrepassEnable";
         MaterialProperty transparentDepthPostpassEnable = null;
-        const string kTransparentDepthPostpassEnable = "_TransparentDepthPostpassEnable";
         MaterialProperty transparentBackfaceEnable = null;
-        const string kTransparentBackfaceEnable = "_TransparentBackfaceEnable";
         MaterialProperty transparentSortPriority = null;
         const string kTransparentSortPriority = HDMaterialProperties.kTransparentSortPriority;
         MaterialProperty transparentWritingMotionVec = null;
         MaterialProperty doubleSidedEnable = null;
-        const string kDoubleSidedEnable = "_DoubleSidedEnable";
         MaterialProperty blendMode = null;
-        const string kBlendMode = "_BlendMode";
         MaterialProperty enableBlendModePreserveSpecularLighting = null;
         MaterialProperty enableFogOnTransparent = null;
-        const string kEnableFogOnTransparent = "_EnableFogOnTransparent";
 
         // Lit properties
         MaterialProperty doubleSidedNormalMode = null;
-        const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
         MaterialProperty doubleSidedGIMode = null;
-        const string kDoubleSidedGIMode = "_DoubleSidedGIMode";
         MaterialProperty materialID = null;
         MaterialProperty supportDecals = null;
-        const string kSupportDecals = "_SupportDecals";
         MaterialProperty enableGeometricSpecularAA = null;
-        const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
         MaterialProperty specularAAScreenSpaceVariance = null;
         const string kSpecularAAScreenSpaceVariance = "_SpecularAAScreenSpaceVariance";
         MaterialProperty specularAAThreshold = null;
         const string kSpecularAAThreshold = "_SpecularAAThreshold";
         MaterialProperty transmissionEnable = null;
-        const string kTransmissionEnable = "_TransmissionEnable";
 
         // Per pixel displacement params
         MaterialProperty ppdMinSamples = null;
@@ -219,40 +202,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // SSR
         MaterialProperty receivesSSR = null;
-        const string kReceivesSSR = "_ReceivesSSR";
         MaterialProperty receivesSSRTransparent = null;
-        const string kReceivesSSRTransparent = "_ReceivesSSRTransparent";
 
         MaterialProperty displacementMode = null;
-        const string kDisplacementMode = "_DisplacementMode";
         MaterialProperty displacementLockObjectScale = null;
-        const string kDisplacementLockObjectScale = "_DisplacementLockObjectScale";
         MaterialProperty displacementLockTilingScale = null;
-        const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
 
         MaterialProperty depthOffsetEnable = null;
         MaterialProperty conservativeDepthOffsetEnable = null;
-
-        MaterialProperty[] heightMap = new MaterialProperty[kMaxLayerCount];
-        const string kHeightMap = "_HeightMap";
-        MaterialProperty[] heightAmplitude = new MaterialProperty[kMaxLayerCount];
-        const string kHeightAmplitude = "_HeightAmplitude";
-        MaterialProperty[] heightCenter = new MaterialProperty[kMaxLayerCount];
-        const string kHeightCenter = "_HeightCenter";
-        MaterialProperty[] heightPoMAmplitude = new MaterialProperty[kMaxLayerCount];
-        const string kHeightPoMAmplitude = "_HeightPoMAmplitude";
-        MaterialProperty[] heightTessCenter = new MaterialProperty[kMaxLayerCount];
-        const string kHeightTessCenter = "_HeightTessCenter";
-        MaterialProperty[] heightTessAmplitude = new MaterialProperty[kMaxLayerCount];
-        const string kHeightTessAmplitude = "_HeightTessAmplitude";
-        MaterialProperty[] heightMin = new MaterialProperty[kMaxLayerCount];
-        const string kHeightMin = "_HeightMin";
-        MaterialProperty[] heightMax = new MaterialProperty[kMaxLayerCount];
-        const string kHeightMax = "_HeightMax";
-        MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount];
-        const string kHeightOffset = "_HeightOffset";
-        MaterialProperty[] heightParametrization = new MaterialProperty[kMaxLayerCount];
-        const string kHeightParametrization = "_HeightMapParametrization";
 
         // Refraction (for show pre-refraction pass enum)
         MaterialProperty refractionModel = null;
@@ -352,18 +309,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((m_Features & Features.DoubleSided) != 0)
                 doubleSidedEnable = FindProperty(kDoubleSidedEnable);
-
-            // Height
-            heightMap = FindPropertyLayered(kHeightMap, m_LayerCount);
-            heightAmplitude = FindPropertyLayered(kHeightAmplitude, m_LayerCount);
-            heightCenter = FindPropertyLayered(kHeightCenter, m_LayerCount);
-            heightPoMAmplitude = FindPropertyLayered(kHeightPoMAmplitude, m_LayerCount);
-            heightMin = FindPropertyLayered(kHeightMin, m_LayerCount);
-            heightMax = FindPropertyLayered(kHeightMax, m_LayerCount);
-            heightTessCenter = FindPropertyLayered(kHeightTessCenter, m_LayerCount);
-            heightTessAmplitude = FindPropertyLayered(kHeightTessAmplitude, m_LayerCount);
-            heightOffset = FindPropertyLayered(kHeightOffset, m_LayerCount);
-            heightParametrization = FindPropertyLayered(kHeightParametrization, m_LayerCount);
 
             blendMode = FindProperty(kBlendMode);
 

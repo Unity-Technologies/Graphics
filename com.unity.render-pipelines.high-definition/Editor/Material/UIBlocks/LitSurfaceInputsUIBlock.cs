@@ -121,17 +121,13 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kUVMappingMask = "_UVMappingMask";
 
         MaterialProperty[] baseColor = new MaterialProperty[kMaxLayerCount];
-        const string kBaseColor = "_BaseColor";
         MaterialProperty[] baseColorMap = new MaterialProperty[kMaxLayerCount];
-        const string kBaseColorMap = "_BaseColorMap";
         MaterialProperty[] metallic = new MaterialProperty[kMaxLayerCount];
-        const string kMetallic = "_Metallic";
         MaterialProperty[] metallicRemapMin = new MaterialProperty[kMaxLayerCount];
         const string kMetallicRemapMin = "_MetallicRemapMin";
         MaterialProperty[] metallicRemapMax = new MaterialProperty[kMaxLayerCount];
         const string kMetallicRemapMax = "_MetallicRemapMax";
         MaterialProperty[] smoothness = new MaterialProperty[kMaxLayerCount];
-        const string kSmoothness = "_Smoothness";
         MaterialProperty[] smoothnessRemapMin = new MaterialProperty[kMaxLayerCount];
         const string kSmoothnessRemapMin = "_SmoothnessRemapMin";
         MaterialProperty[] smoothnessRemapMax = new MaterialProperty[kMaxLayerCount];
@@ -141,43 +137,26 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty[] aoRemapMax = new MaterialProperty[kMaxLayerCount];
         const string kAORemapMax = "_AORemapMax";
         MaterialProperty[] maskMap = new MaterialProperty[kMaxLayerCount];
-        const string kMaskMap = "_MaskMap";
         MaterialProperty[] normalScale = new MaterialProperty[kMaxLayerCount];
         const string kNormalScale = "_NormalScale";
         MaterialProperty[] normalMap = new MaterialProperty[kMaxLayerCount];
-        const string kNormalMap = "_NormalMap";
         MaterialProperty[] normalMapOS = new MaterialProperty[kMaxLayerCount];
-        const string kNormalMapOS = "_NormalMapOS";
         MaterialProperty[] bentNormalMap = new MaterialProperty[kMaxLayerCount];
-        const string kBentNormalMap = "_BentNormalMap";
         MaterialProperty[] bentNormalMapOS = new MaterialProperty[kMaxLayerCount];
-        const string kBentNormalMapOS = "_BentNormalMapOS";
         MaterialProperty[] normalMapSpace = new MaterialProperty[kMaxLayerCount];
-        const string kNormalMapSpace = "_NormalMapSpace";
 
         MaterialProperty[] heightMap = new MaterialProperty[kMaxLayerCount];
-        const string kHeightMap = "_HeightMap";
         MaterialProperty[] heightAmplitude = new MaterialProperty[kMaxLayerCount];
-        const string kHeightAmplitude = "_HeightAmplitude";
         MaterialProperty[] heightCenter = new MaterialProperty[kMaxLayerCount];
-        const string kHeightCenter = "_HeightCenter";
         MaterialProperty[] heightPoMAmplitude = new MaterialProperty[kMaxLayerCount];
-        const string kHeightPoMAmplitude = "_HeightPoMAmplitude";
         MaterialProperty[] heightTessCenter = new MaterialProperty[kMaxLayerCount];
-        const string kHeightTessCenter = "_HeightTessCenter";
         MaterialProperty[] heightTessAmplitude = new MaterialProperty[kMaxLayerCount];
-        const string kHeightTessAmplitude = "_HeightTessAmplitude";
         MaterialProperty[] heightMin = new MaterialProperty[kMaxLayerCount];
-        const string kHeightMin = "_HeightMin";
         MaterialProperty[] heightMax = new MaterialProperty[kMaxLayerCount];
-        const string kHeightMax = "_HeightMax";
         MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount];
-        const string kHeightOffset = "_HeightOffset";
         MaterialProperty[] heightParametrization = new MaterialProperty[kMaxLayerCount];
-        const string kHeightParametrization = "_HeightMapParametrization";
 
         MaterialProperty displacementMode = null;
-        const string kDisplacementMode = "_DisplacementMode";
 
         MaterialProperty tangentMap = null;
         const string kTangentMap = "_TangentMap";

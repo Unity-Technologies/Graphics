@@ -77,7 +77,6 @@ namespace UnityEngine.Rendering.HighDefinition
         const string kCarPaint2_FlakeNumThetaI = "_CarPaint2_FlakeNumThetaI";
 
         const string kAxF_BRDFType = "_AxF_BRDFType";
-        const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
 
         const string kMappingMode = "_MappingMode";
         const string kMappingMask = "_MappingMask";
