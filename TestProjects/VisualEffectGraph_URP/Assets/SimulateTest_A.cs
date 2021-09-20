@@ -6,7 +6,7 @@ using UnityEngine.VFX;
 namespace Unity.Testing.VisualEffectGraph
 {
     [ExecuteInEditMode]
-    public class SimulateTest : MonoBehaviour
+    public class SimulateTest_A : MonoBehaviour
     {
         void Start()
         {
