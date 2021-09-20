@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix recursive rendering transmittance over the sky (case 1323945).
 - Fixed specular anti aliasing for layeredlit shader.
 - Fixed lens flare occlusion issues with transparent depth. It had the wrong depth bound (1365098)
+- Fixed emission clamp in Inspector.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
