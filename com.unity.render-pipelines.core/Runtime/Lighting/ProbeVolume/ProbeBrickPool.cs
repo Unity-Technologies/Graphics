@@ -349,7 +349,7 @@ namespace UnityEngine.Experimental.Rendering
 
             ValidateTemporaryBuffers(loc, bands);
 
-            for (int brickIdx = startIndex; brickIdx < count && brickIdx < shl2.Length; brickIdx += kBrickProbeCountTotal)
+            for (int brickIdx = startIndex; brickIdx < (startIndex + count) && brickIdx < shl2.Length; brickIdx += kBrickProbeCountTotal)
             {
                 for (int z = 0; z < kBrickProbeCountPerDim; z++)
                 {
@@ -420,7 +420,7 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         by = 0;
                         bz += kBrickProbeCountPerDim;
-                        Debug.Assert(bz < loc.depth || brickIdx == count - kBrickProbeCountTotal, "Location depth exceeds data texture.");
+                        Debug.Assert(bz < loc.depth || brickIdx == (startIndex + count - kBrickProbeCountTotal), "Location depth exceeds data texture.");
                     }
                 }
             }
