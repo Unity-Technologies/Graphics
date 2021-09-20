@@ -26,7 +26,6 @@ namespace UnityEngine.Experimental.Rendering
         public float probeCullingDistance = 200.0f;
         public int maxSubdivToVisualize = ProbeBrickIndex.kMaxSubdivisionLevels;
         public float exposureCompensation;
-        public int loadingTestCellIndex;
         public bool freezeStreaming;
     }
 
