@@ -39,6 +39,7 @@
   * [The Universal Additional Light Data component](universal-additional-light-data.md)
   * [Shadows in the Universal Render Pipeline](Shadows-in-URP.md)
   * [Reflection probes](lighting/reflection-probes.md)
+  * [Light Layers](lighting/light-layers.md)
   * [Lens Flare asset](shared/lens-flare/lens-flare-asset.md)
 * [Cameras](cameras.md)
   * [The Universal Additional Camera Data component](universal-additional-camera-data.md)
