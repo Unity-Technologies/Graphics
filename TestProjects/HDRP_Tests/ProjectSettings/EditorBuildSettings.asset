@@ -633,6 +633,12 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5014_VolumetricCloudsBanding.unity
     guid: e024f2c09de4b354cbdd89bfe26ab3c2
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5015_VolumetricClouds_ProbeGradient.unity
+    guid: 78ca7afcf8921954aa91cd9f95c25131
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5015_VolumetricCloudsProbeAndSky.unity
+    guid: aa9d69ba302c00f418067837b25922c9
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8101_Opaque.unity
     guid: 3f9e911b4dbc9464e85add595c37cb89
   - enabled: 1
@@ -749,6 +755,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9302_MotionVectorsOn-DefferedDecal-Static.unity
     guid: aa2b8ed7d0d276340b794c91ebc7cdce
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9304_MotionVectorsPrecomputedAndCustomVelocity.unity
+    guid: 17db845926c93fb4e8d11e7880485ba4
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9303_MotionVectorsDisabled.unity
     guid: 82d327d1c3dbce748884df6b53e153fd

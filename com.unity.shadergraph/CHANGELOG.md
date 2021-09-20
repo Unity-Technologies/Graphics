@@ -4,6 +4,24 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.0.0] - 2021-09-01
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+### Added
+
+### Changed
+
+### Fixed
+ - Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
+ - Fixed an incorrect direction transform from view to world space [1362034] (https://issuetracker.unity3d.com/product/unity/issues/guid/1362034/)
+ - Fixed ShaderGraph HDRP master preview disappearing for a few seconds when graph is modified  [1330289] (https://issuetracker.unity3d.com/issues/shadergraph-hdrp-main-preview-is-invisible-until-moved)
+ - Fixed noise nodes to use a deterministic integer hash, instead of platform dependent floating point hashes [1156544]
+ - Fixed the appearance (wrong text color, and not wrapped) of a warning in Node Settings [1356725] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356725/)
+ - Fixed the ordering of inputs on a SubGraph node to match the properties on the blackboard of the subgraph itself [1354463]
+ - Added more inputs to the Parallax Occlusion Mapping node to handle non-uniformly scaled UVs such as HDRP/Lit POM [1347008].
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -36,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added Tessellation Option to PositionNode settings, to provide access to the pre-displaced tessellated position.
   - Added visible errors for invalid stage capability connections to shader graph.
   - Added a ShaderGraph animated preview framerate throttle.
+  - Added many node synonyms for the Create Node search so that it's easier to find nodes.
 
 ### Changed
 - Properties and Keywords are no longer separated by type on the blackboard. Categories allow for any combination of properties and keywords to be grouped together as the user defines.
@@ -128,6 +147,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a ShaderGraph issue where hovering over a context block but not its node stack would not bring up the incorrect add menu [1351733](https://fogbugz.unity3d.com/f/cases/1351733/)
 - Fixed the BuiltIn Target to perform shader variant stripping [1345580] (https://issuetracker.unity3d.com/product/unity/issues/guid/1345580/)
 - Fixed incorrect warning while using VFXTarget
+- Fixed a bug with Sprite Targets in ShaderGraph not rendering correctly in game view [1352225]
+- Fixed compilation problems on preview shader when using hybrid renderer v2 and property desc override Hybrid Per Instance
+- Fixed a serialization bug wrt PVT property flags when using subgraphs. This fixes SRP batcher compatibility.
 
 ## [11.0.0] - 2020-10-21
 

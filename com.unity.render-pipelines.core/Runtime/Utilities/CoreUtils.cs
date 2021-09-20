@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.RendererUtils;
 
 namespace UnityEngine.Rendering
 {
@@ -1025,7 +1024,7 @@ namespace UnityEngine.Rendering
                         {
                             innerTypes = t.GetTypes();
                         }
-                        catch {}
+                        catch { }
                         return innerTypes;
                     });
             }
@@ -1108,7 +1107,7 @@ namespace UnityEngine.Rendering
         {
             bool enabled = true;
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             if (camera.cameraType == CameraType.SceneView)
             {
                 enabled = false;
@@ -1128,7 +1127,7 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
-        #endif
+#endif
 
             return enabled;
         }
@@ -1142,7 +1141,7 @@ namespace UnityEngine.Rendering
         {
             bool animateMaterials = true;
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             animateMaterials = Application.isPlaying; // For Game and VR views; Reflection views pass the parent camera
 
             if (camera.cameraType == CameraType.SceneView)
@@ -1153,11 +1152,11 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
                 {
                     var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-            #if UNITY_2020_2_OR_NEWER
+#if UNITY_2020_2_OR_NEWER
                     if (sv.camera == camera && sv.sceneViewState.alwaysRefreshEnabled)
-            #else
+#else
                     if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)
-            #endif
+#endif
                     {
                         animateMaterials = true;
                         break;
@@ -1187,7 +1186,7 @@ namespace UnityEngine.Rendering
             // which simply amounts to a recursive call, and then the story repeats itself.
             //
             // TLDR: we need to know the caller and its status/properties to make decisions.
-        #endif
+#endif
 
             return animateMaterials;
         }

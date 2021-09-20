@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MinSlotSize = 64;
 
         // Helper array used to check what has been tmp filled.
-        private (int, int)[] m_TempFilled = new(int, int)[6];
+        private (int, int)[] m_TempFilled = new (int, int)[6];
 
         // Cached atlas
         internal HDCachedShadowAtlas punctualShadowAtlas;
