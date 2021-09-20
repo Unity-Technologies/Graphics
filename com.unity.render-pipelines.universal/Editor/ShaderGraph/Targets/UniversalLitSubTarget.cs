@@ -69,11 +69,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             var universalRPType = typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset);
             if (!context.HasCustomEditorForRenderPipeline(universalRPType))
-                context.AddCustomEditorForRenderPipeline(typeof(ShaderGraphLitGUI).FullName, universalRPType);
+            {
+                var gui = typeof(ShaderGraphLitGUI);
+#if HAS_VFX_GRAPH
+                if (TargetsVFX())
+                    gui = typeof(VFXShaderGraphLitGUI);
+#endif
+                context.AddCustomEditorForRenderPipeline(gui.FullName, universalRPType);
+            }
 
             // Process SubShaders
-            context.AddSubShader(SubShaders.LitComputeDotsSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit));
-            context.AddSubShader(SubShaders.LitGLESSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit));
+            context.AddSubShader(PostProcessSubShader(SubShaders.LitComputeDotsSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit)));
+            context.AddSubShader(PostProcessSubShader(SubShaders.LitGLESSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit)));
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -107,6 +114,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            base.GetFields(ref context);
+
             var descs = context.blocks.Select(x => x.descriptor);
 
             // Lit -- always controlled by subtarget

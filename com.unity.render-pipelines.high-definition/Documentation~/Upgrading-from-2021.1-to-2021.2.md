@@ -6,21 +6,6 @@ In the High Definition Render Pipeline (HDRP), some features work differently be
 
 The following shader code behaviour has changed slightly for HDRP version 12.x
 
-### Ambient occlusion for probe volume global illumination
-
-From HDRP2021.2, when you apply ambient occlusion (AO) on a deferred Material to probe volume global illumination (GI) you need to define the following in the Material script:
-
-* A `HAS_PAYLOAD_WITH_UNINIT_GI` constant
-* A `float GetUninitializedGIPayload(SurfaceData surfaceData)` function that returns the AO factor that you want to apply.
-
-You don't need to do anything differently for forward only Materials.
-
-### New shader pass
-
-HDRP 2021.2 includes the `ForwardEmissiveForDeferred` shader pass and the associated `SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED` define for Materials that have a GBuffer pass. You can see this new pass in `Lit.shader`.
-
-When you use the Deferred Lit shader mode, Unity uses `ForwardEmissiveForDeferred` to render the emissive contribution of a Material in a separate forward pass. Otherwise, Unity ignores `ForwardEmissiveForDeferred`.
-
 ### Decals
 
 Decals in HDRP have changed in the following ways:
@@ -58,6 +43,11 @@ HDRP 2021.2 includes the new `ClearFlag.Stencil` function. Use this to clear all
 
 From HDRP 2021.2,  `ClearFlag.Depth` does not clear stencils.
 
+### Remove of Receive SSGI flags
+
+From HDRP2021.2, it is no longer required to use the receive SSGI flags to have Emissive compatible with Screen Space Global Illumination and related.
+For this reasons the receive SSGI flags have been removed and is no longer available.
+
 ## HDRP Global Settings
 
 HDRP 2021.2 introduces a new HDRP Global Settings Asset which saves all settings that are unrelated to which HDRP Asset is active.
@@ -93,3 +83,9 @@ When the **Dynamic Render Pass Culling** option is enabled in the HDRP Global Se
 ## Dynamic Resolution
 
 From 2021.2, Bilinear and Lanczos upscale filters have been removed as they are mostly redundant with other better options. A project using Bilinear filter will migrate to use Catmull-Rom, if using Lanczos it will migrate to Contrast Adaptive Sharpening (CAS).  If your project was relying on those filters also consider the newly added filters TAA Upscale and FidelityFX Super Resolution 1.0.
+
+## Ambient Mode
+
+From version 12.0 HDRP sets the **Ambient Mode** parameter in the **Visual Environment** volume component to **Dynamic** by default. This might impact existing projects where no default volume profile overrides the **Ambient Mode** parameter. To change this behavior:
+1. Add a **Visual Environment** component to the default volume profile.
+2. Change the **Ambient Mode** to **Static**.
