@@ -131,6 +131,9 @@ namespace UnityEngine.Rendering
         /// <param name="count">The number of elements to remove.</param>
         public void RemoveRange(int index, int count)
         {
+            if (count == 0)
+                return;
+
             if (index < 0 || index >= size || count < 0 || index + count > size)
                 throw new ArgumentOutOfRangeException();
 
