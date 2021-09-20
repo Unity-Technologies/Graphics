@@ -278,7 +278,7 @@ namespace UnityEngine.Rendering.Universal
             return shadowTexture;
         }
 
-        public static bool ShadowRTNeedsReAlloc(RTHandle handle, int width, int height, int bits, bool scaled)
+        public static bool ShadowRTNeedsReAlloc(RTHandle handle, int width, int height, int bits, int anisoLevel, float mipMapBias, string name)
         {
             if (handle == null)
             {
@@ -295,13 +295,24 @@ namespace UnityEngine.Rendering.Universal
                 if (handle.rt.filterMode != FilterMode.Bilinear)
                     return true;
             }
-            return RenderingUtils.RTHandleNeedsReAlloc(handle, descriptor, scaled);
+            return RenderingUtils.RTHandleNeedsReAlloc(handle, descriptor, m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear, TextureWrapMode.Clamp, true, anisoLevel, mipMapBias, name, false);
         }
 
-        public static RTHandle AllocShadowRT(int width, int height, int bits, string name)
+        public static RTHandle AllocShadowRT(int width, int height, int bits, int anisoLevel, float mipMapBias, string name)
         {
             var rtd = GetTemporaryShadowTextureDescriptor(width, height, bits);
-            return RTHandles.Alloc(rtd, m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear, TextureWrapMode.Clamp, isShadowMap: true);
+            return RTHandles.Alloc(rtd, m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear, TextureWrapMode.Clamp, isShadowMap: true, name: name);
+        }
+
+        public static bool ShadowRTReAllocateIfNeeded(ref RTHandle handle, int width, int height, int bits, int anisoLevel = 1, float mipMapBias = 0, string name = "")
+        {
+            if (ShadowRTNeedsReAlloc(handle, width, height, bits, anisoLevel, mipMapBias, name))
+            {
+                handle?.Release();
+                handle = AllocShadowRT(width, height, bits, anisoLevel, mipMapBias, name);
+                return true;
+            }
+            return false;
         }
 
         static Matrix4x4 GetShadowTransform(Matrix4x4 proj, Matrix4x4 view)

@@ -788,11 +788,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = sliceTransform * m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex];
             }
 
-            if (ShadowUtils.ShadowRTNeedsReAlloc(m_AdditionalLightsShadowmapTexture, renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, false))
-            {
-                m_AdditionalLightsShadowmapTexture?.Release();
-                m_AdditionalLightsShadowmapTexture = ShadowUtils.AllocShadowRT(renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, "_AdditionalLightsShadowmapTexture");
-            }
+            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_AdditionalLightsShadowmapTexture, renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, name: "_AdditionalLightsShadowmapTexture");
+
             m_MaxShadowDistanceSq = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
             m_CascadeBorder = renderingData.shadowData.mainLightShadowCascadeBorder;
 

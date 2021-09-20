@@ -116,11 +116,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     return false;
             }
 
-            if (ShadowUtils.ShadowRTNeedsReAlloc(m_MainLightShadowmapTexture, renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, false))
-            {
-                m_MainLightShadowmapTexture?.Release();
-                m_MainLightShadowmapTexture = ShadowUtils.AllocShadowRT(renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, "_MainLightShadowmapTexture");
-            }
+            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_MainLightShadowmapTexture, renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, name: "_MainLightShadowmapTexture");
+
             m_MaxShadowDistanceSq = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
             m_CascadeBorder = renderingData.shadowData.mainLightShadowCascadeBorder;
 

@@ -105,11 +105,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var colorDescriptor = cameraTargetDescriptor;
                     colorDescriptor.depthBufferBits = 0;
-                    if (RenderingUtils.RTHandleNeedsReAlloc(m_ColorTextureHandle, colorDescriptor, false))
-                    {
-                        m_ColorTextureHandle?.Release();
-                        m_ColorTextureHandle = RTHandles.Alloc(colorDescriptor, filterMode: colorTextureFilterMode, wrapMode: TextureWrapMode.Clamp, name: "_CameraColorTexture");
-                    }
+                    RenderingUtils.ReAllocateIfNeeded(ref m_ColorTextureHandle, colorDescriptor, colorTextureFilterMode, wrapMode: TextureWrapMode.Clamp, name: "_CameraColorTexture");
                 }
 
                 if (m_CreateDepthTexture)
@@ -119,11 +115,7 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.depthBufferBits = 32;
                     if (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer)
                         depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
-                    if (RenderingUtils.RTHandleNeedsReAlloc(m_DepthTextureHandle, depthDescriptor, false))
-                    {
-                        m_DepthTextureHandle?.Release();
-                        m_DepthTextureHandle = RTHandles.Alloc(depthDescriptor, filterMode: FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
-                    }
+                    RenderingUtils.ReAllocateIfNeeded(ref m_DepthTextureHandle, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
                 }
 
                 colorTargetHandle = m_CreateColorTexture ? m_ColorTextureHandle : k_CameraTarget;
@@ -229,12 +221,7 @@ namespace UnityEngine.Rendering.Universal
             if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && m_PostProcessPasses.isCreated)
             {
                 var desc = colorGradingLutPass.GetDesc(ref renderingData.postProcessingData);
-                if (RenderingUtils.RTHandleNeedsReAlloc(m_PostProcessPasses.m_ColorGradingLut, desc, false))
-                {
-                    m_PostProcessPasses.m_ColorGradingLut?.Release();
-                    m_PostProcessPasses.m_ColorGradingLut = RTHandles.Alloc(desc, filterMode: FilterMode.Bilinear, wrapMode: TextureWrapMode.Clamp, name: "_InternalGradingLut");
-                }
-
+                RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_ColorGradingLut, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_InternalGradingLut");
                 colorGradingLutPass.Setup(colorGradingLutHandle);
                 EnqueuePass(colorGradingLutPass);
             }
@@ -260,12 +247,7 @@ namespace UnityEngine.Rendering.Universal
                 else
                 {
                     var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
-                    if (RenderingUtils.RTHandleNeedsReAlloc(m_PostProcessPasses.m_AfterPostProcessColor, desc, false))
-                    {
-                        m_PostProcessPasses.m_AfterPostProcessColor?.Release();
-                        m_PostProcessPasses.m_AfterPostProcessColor = RTHandles.Alloc(desc, filterMode: FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
-                    }
-
+                    RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
                     postProcessDestHandle = afterPostProcessColorHandle;
                 }
 

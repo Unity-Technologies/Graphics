@@ -73,19 +73,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var desc = m_Desc;
             desc.msaaSamples = m_A.msaa;
-            if (RenderingUtils.RTHandleNeedsReAlloc(m_A.rt, desc, false))
-            {
-                m_A.rt?.Release();
-                m_A.rt = RTHandles.Alloc(desc, filterMode: m_FilterMode, wrapMode: TextureWrapMode.Clamp, name: m_A.name);
-                cmd.SetGlobalTexture(m_A.rt.name, m_A.rt);
-            }
+            RenderingUtils.ReAllocateIfNeeded(ref m_A.rt, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_A.name);
             desc.msaaSamples = m_B.msaa;
-            if (RenderingUtils.RTHandleNeedsReAlloc(m_B.rt, desc, false))
-            {
-                m_B.rt?.Release();
-                m_B.rt = RTHandles.Alloc(desc, filterMode: m_FilterMode, wrapMode: TextureWrapMode.Clamp, name: m_B.name);
-                cmd.SetGlobalTexture(m_B.rt.name, m_B.rt);
-            }
+            RenderingUtils.ReAllocateIfNeeded(ref m_B.rt, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_B.name);
+            cmd.SetGlobalTexture(m_A.rt.name, m_A.rt);
+            cmd.SetGlobalTexture(m_B.rt.name, m_B.rt);
             m_RTisAllocated = true;
         }
 
