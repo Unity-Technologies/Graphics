@@ -17,7 +17,6 @@ Shader "Universal Render Pipeline/Unlit"
         [HideInInspector] _SrcBlendA("__srcA", Float) = 1.0
         [HideInInspector] _DstBlendA("__dstA", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
-        [HideInInspector] _PreserveSpecular("__preserve_specular", Float) = 1.0
 
         // Editmode props
         _QueueOffset("Queue offset", Float) = 0.0

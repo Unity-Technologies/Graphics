@@ -31,7 +31,7 @@ Shader "Universal Render Pipeline/Simple Lit"
         [HideInInspector] _SrcBlendA("__srcA", Float) = 1.0
         [HideInInspector] _DstBlendA("__dstA", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
-        [HideInInspector] _PreserveSpecular("__preserve_specular", Float) = 1.0
+        [HideInInspector] _BlendModePreserveSpecular("_BlendModePreserveSpecular", Float) = 1.0
 
         [ToggleUI] _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Editmode props
@@ -75,8 +75,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
-            #pragma shader_feature_local_fragment _ALPHAMODULATE_ON
+            #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
             #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
 
@@ -347,8 +346,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
-            #pragma shader_feature_local_fragment _ALPHAMODULATE_ON
+            #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
             #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
 

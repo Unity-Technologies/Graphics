@@ -309,6 +309,8 @@ namespace UnityEditor
                 {
                     BlendMode blendMode = (BlendMode)material.GetFloat(Property.BlendMode);
                     var isDisabled = blendMode == BlendMode.Multiply || blendMode == BlendMode.Premultiply;
+                    if (isDisabled)
+                        preserveSpecProp.floatValue = 0;
 
                     EditorGUI.BeginDisabledGroup(isDisabled);
                     EditorGUI.indentLevel += 2;
@@ -620,8 +622,8 @@ namespace UnityEditor
                     BlendMode blendMode = (BlendMode)material.GetFloat(Property.BlendMode);
 
                     // Clear blend keyword state.
-                    material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-                    material.DisableKeyword("_ALPHAMODULATE_ON");
+                    material.DisableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
+                    material.DisableKeyword(ShaderKeywordStrings._ALPHAMODULATE_ON);
 
                     var srcBlendRGB = UnityEngine.Rendering.BlendMode.One;
                     var dstBlendRGB = UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha;
@@ -656,7 +658,7 @@ namespace UnityEditor
                         case BlendMode.Additive:
                             srcBlendRGB = UnityEngine.Rendering.BlendMode.SrcAlpha;
                             dstBlendRGB = UnityEngine.Rendering.BlendMode.One;
-                            srcBlendA = srcBlendRGB;
+                            srcBlendA = UnityEngine.Rendering.BlendMode.One;
                             dstBlendA = dstBlendRGB;
                             break;
 
@@ -666,7 +668,7 @@ namespace UnityEditor
                             srcBlendRGB = UnityEngine.Rendering.BlendMode.Zero;
                             dstBlendRGB = UnityEngine.Rendering.BlendMode.SrcColor;
                             srcBlendA = srcBlendRGB;
-                            dstBlendA = UnityEngine.Rendering.BlendMode.SrcColor;
+                            dstBlendA = dstBlendRGB;
 
                             material.EnableKeyword("_ALPHAMODULATE_ON");
                             break;
