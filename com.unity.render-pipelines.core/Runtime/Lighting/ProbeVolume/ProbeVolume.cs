@@ -242,12 +242,11 @@ namespace UnityEngine.Experimental.Rendering
                     }
                     else
                     {
-                        foreach (var cellInfo in prv.cells.Values)
+                        foreach (var cell in prv.cells.Values)
                         {
-                            if (!cellInfo.loaded)
+                            if (!cell.loaded)
                                 continue;
 
-                            var cell = cellInfo.cell;
                             if (ShouldCullCell(cell.position, prv.GetTransform().posWS))
                                 continue;
 
@@ -288,15 +287,14 @@ namespace UnityEngine.Experimental.Rendering
                     }
                     else
                     {
-                        foreach (var cellInfo in prv.cells.Values)
+                        foreach (var cell in prv.cells.Values)
                         {
-                            var cell = cellInfo.cell;
                             if (ShouldCullCell(cell.position, prv.GetTransform().posWS))
                                 continue;
 
                             var positionF = new Vector4(cell.position.x, cell.position.y, cell.position.z, 0.0f);
                             var center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector4.one;
-                            center.w = cellInfo.loaded ? 1.0f : 0.0f;
+                            center.w = cell.loaded ? 1.0f : 0.0f;
                             yield return center;
                         }
                     }
