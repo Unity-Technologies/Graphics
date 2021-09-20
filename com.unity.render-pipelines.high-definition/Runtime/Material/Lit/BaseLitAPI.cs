@@ -183,5 +183,53 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             material.SetupBaseUnlitPass();
         }
+
+        static public void SetupDisplacement(Material material, int layerCount = 1)
+        {
+            DisplacementMode displacementMode = GetFilteredDisplacementMode(material);
+            for (int i = 0; i < layerCount; i++)
+            {
+                var heightAmplitude = layerCount > 1 ? kHeightAmplitude + i : kHeightAmplitude;
+                var heightCenter = layerCount > 1 ? kHeightCenter + i : kHeightCenter;
+                if (material.HasProperty(heightAmplitude) && material.HasProperty(heightCenter))
+                {
+                    var heightPoMAmplitude = layerCount > 1 ? kHeightPoMAmplitude + i : kHeightPoMAmplitude;
+                    var heightParametrization = layerCount > 1 ? kHeightParametrization + i : kHeightParametrization;
+                    var heightTessAmplitude = layerCount > 1 ? kHeightTessAmplitude + i : kHeightTessAmplitude;
+                    var heightTessCenter = layerCount > 1 ? kHeightTessCenter + i : kHeightTessCenter;
+                    var heightOffset = layerCount > 1 ? kHeightOffset + i : kHeightOffset;
+                    var heightMin = layerCount > 1 ? kHeightMin + i : kHeightMin;
+                    var heightMax = layerCount > 1 ? kHeightMax + i : kHeightMax;
+
+                    if (displacementMode == DisplacementMode.Pixel)
+                    {
+                        material.SetFloat(heightAmplitude, material.GetFloat(heightPoMAmplitude) * 0.01f); // Convert centimeters to meters.
+                        material.SetFloat(heightCenter, 1.0f); // PoM is always inward so base (0 height) is mapped to 1 in the texture
+                    }
+                    else
+                    {
+                        var parametrization = (HeightmapParametrization)material.GetFloat(heightParametrization);
+                        if (parametrization == HeightmapParametrization.MinMax)
+                        {
+                            float offset = material.GetFloat(heightOffset);
+                            float minHeight = material.GetFloat(heightMin);
+                            float amplitude = material.GetFloat(heightMax) - minHeight;
+
+                            material.SetFloat(heightAmplitude, amplitude * 0.01f); // Convert centimeters to meters.
+                            material.SetFloat(heightCenter, -(minHeight + offset) / Mathf.Max(1e-6f, amplitude));
+                        }
+                        else
+                        {
+                            float offset = material.GetFloat(heightOffset);
+                            float center = material.GetFloat(heightTessCenter);
+                            float amplitude = material.GetFloat(heightTessAmplitude);
+
+                            material.SetFloat(heightAmplitude, amplitude * 0.01f); // Convert centimeters to meters.
+                            material.SetFloat(heightCenter, -offset / Mathf.Max(1e-6f, amplitude) + center);
+                        }
+                    }
+                }
+            }
+        }
     }
 } // namespace UnityEditor

@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
                 : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
             BaseLitAPI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
+            BaseLitAPI.SetupDisplacement(material);
 
             if (material.HasProperty(kNormalMapSpace))
             {

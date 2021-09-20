@@ -847,13 +847,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (displacementMode != null)
             {
-                EditorGUI.BeginChangeCheck();
                 var displaceMode = DisplacementModePopup(Styles.displacementModeText, displacementMode);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    for (int i = 0; i < m_LayerCount; i++)
-                        UpdateDisplacement(i);
-                }
 
                 if (displaceMode != DisplacementMode.None)
                 {
@@ -885,34 +879,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        internal void UpdateDisplacement(int layerIndex)
-        {
-            DisplacementMode displaceMode = BaseLitGUI.GetFilteredDisplacementMode(displacementMode);
-            if (displaceMode == DisplacementMode.Pixel)
-            {
-                heightAmplitude[layerIndex].floatValue = heightPoMAmplitude[layerIndex].floatValue * 0.01f; // Conversion centimeters to meters.
-                heightCenter[layerIndex].floatValue = 1.0f; // PoM is always inward so base (0 height) is mapped to 1 in the texture
-            }
-            else
-            {
-                HeightmapParametrization parametrization = (HeightmapParametrization)heightParametrization[layerIndex].floatValue;
-                if (parametrization == HeightmapParametrization.MinMax)
-                {
-                    float offset = heightOffset[layerIndex].floatValue;
-                    float amplitude = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue);
-
-                    heightAmplitude[layerIndex].floatValue = amplitude * 0.01f; // Conversion centimeters to meters.
-                    heightCenter[layerIndex].floatValue = -(heightMin[layerIndex].floatValue + offset) / Mathf.Max(1e-6f, amplitude);
-                }
-                else
-                {
-                    float amplitude = heightTessAmplitude[layerIndex].floatValue;
-                    heightAmplitude[layerIndex].floatValue = amplitude * 0.01f;
-                    heightCenter[layerIndex].floatValue = -heightOffset[layerIndex].floatValue / Mathf.Max(1e-6f, amplitude) + heightTessCenter[layerIndex].floatValue;
-                }
-            }
-        }
-
         DisplacementMode DisplacementModePopup(GUIContent label, MaterialProperty prop)
         {
             var displayedOptions = Styles.displacementModeLitNames;
@@ -937,6 +903,26 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             return (DisplacementMode)newMode;
+        }
+
+        static internal DisplacementMode GetFilteredDisplacementMode(MaterialProperty displacementMode)
+        {
+            var material = displacementMode.targets[0] as Material;
+            return material.GetFilteredDisplacementMode((DisplacementMode)displacementMode.floatValue);
+        }
+
+        static internal bool HasMixedDisplacementMode(MaterialProperty displacementMode)
+        {
+            Material mat0 = displacementMode.targets[0] as Material;
+            var mode = mat0.GetFilteredDisplacementMode((DisplacementMode)displacementMode.floatValue);
+            for (int i = 1; i < displacementMode.targets.Length; i++)
+            {
+                Material mat = displacementMode.targets[i] as Material;
+                var currentMode = (DisplacementMode)mat.GetFloat(displacementMode.name);
+                if (mat.GetFilteredDisplacementMode(currentMode) != mode)
+                    return true;
+            }
+            return false;
         }
     }
 }

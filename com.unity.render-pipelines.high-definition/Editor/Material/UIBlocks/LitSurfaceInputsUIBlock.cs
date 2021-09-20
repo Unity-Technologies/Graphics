@@ -440,12 +440,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.TexturePropertySingleLine(Styles.bentNormalMapOSText, bentNormalMapOS[m_LayerIndex]);
             }
 
-            DisplacementMode displaceMode = BaseLitGUI.GetFilteredDisplacementMode(displacementMode);
+            DisplacementMode displaceMode = SurfaceOptionUIBlock.GetFilteredDisplacementMode(displacementMode);
             if (displaceMode != DisplacementMode.None || (m_Features & Features.HeightMap) != 0)
             {
-                EditorGUI.BeginChangeCheck();
                 materialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[m_LayerIndex]);
-                if (!heightMap[m_LayerIndex].hasMixedValue && heightMap[m_LayerIndex].textureValue != null && !BaseLitGUI.HasMixedDisplacementMode(displacementMode))
+                if (!heightMap[m_LayerIndex].hasMixedValue && heightMap[m_LayerIndex].textureValue != null && !SurfaceOptionUIBlock.HasMixedDisplacementMode(displacementMode))
                 {
                     EditorGUI.indentLevel++;
                     if (displaceMode == DisplacementMode.Pixel)
@@ -482,20 +481,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     }
                     EditorGUI.indentLevel--;
-                }
-
-                // UI only updates intermediate values, this will update the values actually used by the shader.
-                if (EditorGUI.EndChangeCheck())
-                {
-                    SurfaceOptionUIBlock surfaceOption;
-
-                    // Fetch the surface option block which contains the function to update the displacement datas
-                    if (m_LayerCount == 1)
-                        surfaceOption = parent.FetchUIBlock<SurfaceOptionUIBlock>();
-                    else
-                        surfaceOption = parent.parent.FetchUIBlock<SurfaceOptionUIBlock>();
-
-                    surfaceOption.UpdateDisplacement(m_LayerIndex);
                 }
             }
 

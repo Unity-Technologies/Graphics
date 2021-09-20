@@ -177,6 +177,8 @@ namespace UnityEngine.Rendering.HighDefinition
             MaterialId materialId = material.GetMaterialId();
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == MaterialId.LitSSS);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == MaterialId.LitTranslucent || (materialId == MaterialId.LitSSS && material.GetFloat(kTransmissionEnable) > 0.0f));
+
+            BaseLitAPI.SetupDisplacement(material, material.GetInt(kLayerCount));
         }
     }
 }
