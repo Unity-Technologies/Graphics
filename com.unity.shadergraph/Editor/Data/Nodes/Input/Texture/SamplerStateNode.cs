@@ -46,7 +46,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private TextureSamplerState.Anisotropic m_aniso = TextureSamplerState.Anisotropic.None;
 
-        [EnumControl("Aniso")]
         public TextureSamplerState.Anisotropic anisotropic
         {
             get { return m_aniso; }
