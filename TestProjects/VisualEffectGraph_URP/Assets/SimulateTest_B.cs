@@ -11,11 +11,16 @@ namespace Unity.Testing.VisualEffectGraph
         void Start()
         {
             var vfx = GetComponent<VisualEffect>();
+            vfx.Reinit();
 
-            vfx.Simulate(0.1f, 10);
-            vfx.Simulate(0.05f, 20);
-            vfx.Simulate(0.2f, 5);
-            vfx.Simulate(0.05f, 20);
+            for (int i = 0; i < 2; ++i)
+            {
+                vfx.Simulate(0.1f, 10);
+                vfx.Simulate(0.05f, 20);
+                vfx.Simulate(0.2f, 5);
+                vfx.Simulate(0.05f, 20);
+                vfx.Simulate(0.3333f, 3);
+            }
 
             vfx.pause = true;
         }
