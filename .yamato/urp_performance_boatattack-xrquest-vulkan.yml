@@ -89,7 +89,7 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.management@4.0.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.oculus@1.8.1 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -176,7 +176,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Line
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.management@4.0.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.oculus@1.8.1 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -313,7 +313,7 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.management@4.0.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.oculus@1.8.1 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -400,7 +400,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Line
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.management@4.0.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.oculus@1.8.1 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
