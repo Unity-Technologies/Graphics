@@ -8,7 +8,15 @@ namespace UnityEditor.VFX.HDRP
     [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
     class VFXLitPlanarPrimitiveOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name { get { return "Output Particle HDRP Lit " + primitiveType.ToString(); } }
+        public override string name
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(shaderName)
+                ? $"Output Particle {shaderName} {primitiveType.ToString()}"
+                : "Output Particle HDRP Lit " + primitiveType.ToString();
+            }
+        }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType); } }
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }

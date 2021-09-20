@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if ((m_Features & Features.EmissionGI) != 0)
-                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
+                materialEditor.LightmapEmissionFlagsProperty(0, true);
 
             if ((m_Features & Features.MotionVector) != 0)
                 DrawMotionVectorToggle();
