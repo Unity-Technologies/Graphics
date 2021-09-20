@@ -1128,7 +1128,6 @@ Shader "HDRP/Lit"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE
-            #pragma multi_compile _ SENSORSDK_DEBUG
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 

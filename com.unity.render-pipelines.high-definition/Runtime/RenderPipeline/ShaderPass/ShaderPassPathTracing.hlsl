@@ -41,23 +41,12 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     FragInputs fragInput;
     BuildFragInputsFromIntersection(currentVertex, WorldRayDirection(), fragInput);
 
-#ifdef SENSORSDK_DEBUG
-    pathIntersection.color = float3(0.0f, 0.0f, 1.0f);
-#endif
-
     // Such an invalid remainingDepth value means we are called from a subsurface computation
     if (pathIntersection.remainingDepth > _RaytracingMaxRecursion)
     {
-#ifdef SENSORSDK_DEBUG
-        pathIntersection.color = float3(0.0f, 1.0f, 1.0f);
-#endif
         pathIntersection.value = fragInput.tangentToWorld[2]; // Returns normal
         return;
     }
-
-#ifdef SENSORSDK_DEBUG
-        pathIntersection.color = float3(1.0f, 0.0f, 0.0f);
-#endif
 
     // Grab depth information
     uint currentDepth = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
@@ -85,12 +74,6 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     BuiltinData builtinData;
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, pathIntersection.cone, isVisible);
-
-#ifdef SENSORSDK_DEBUG
-    pathIntersection.alpha2 = builtinData.opacity;
-    pathIntersection.alphatreshold = builtinData.alphaClipTreshold;
-    pathIntersection.color = float3(1.0f, 0.0f, 1.0f);
-#endif
 
     // if (!isVisible)
     // {
@@ -120,12 +103,6 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     bsdfData.diffuseColor = SAMPLE_TEXTURE2D(_SensorCustomReflectance, s_linear_clamp_sampler, coordCurve);
 #endif
 
-#ifdef SENSORSDK_DEBUG
-    pathIntersection.diffValue = bsdfData.diffuseColor;
-    pathIntersection.customRefractance = bsdfData.diffuseColor;
-    pathIntersection.color = float3(1.0f, 1.0f, 0.0f);
-#endif
-
     // Override the geometric normal (otherwise, it is merely the non-mapped smooth normal)
     // Also make sure that it is in the same hemisphere as the shading normal (which may have been flipped)
     bsdfData.geomNormalWS = dot(bsdfData.normalWS, geomNormal) > 0.0 ? geomNormal : -geomNormal;
@@ -139,49 +116,11 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     // And reset the ray intersection color, which will store our final result
     pathIntersection.value = computeDirect ? builtinData.emissiveColor : 0.0;
 
- #ifdef SENSORSDK_DEBUG
-    pathIntersection.color = float3(1.0f, 1.0f, 1.0f);
-
-    pathIntersection.materialFeatures = bsdfData.materialFeatures;
-    pathIntersection.diffuseColor = bsdfData.diffuseColor;
-    pathIntersection.fresnel0 = bsdfData.fresnel0;
-    pathIntersection.ambientOcclusion = bsdfData.ambientOcclusion;
-    pathIntersection.specularOcclusion = bsdfData.specularOcclusion;
-    pathIntersection.normalWS = bsdfData.normalWS;
-    pathIntersection.perceptualRoughness = bsdfData.perceptualRoughness;
-    pathIntersection.coatMask = bsdfData.coatMask;
-    pathIntersection.diffusionProfileIndex = bsdfData.diffusionProfileIndex;
-    pathIntersection.subsurfaceMask = bsdfData.subsurfaceMask;
-    pathIntersection.thickness = bsdfData.thickness;
-    pathIntersection.useThickObjectMode = bsdfData.useThickObjectMode;
-    pathIntersection.transmittance = bsdfData.transmittance;
-    pathIntersection.tangentWS = bsdfData.tangentWS;
-    pathIntersection.bitangentWS = bsdfData.bitangentWS;
-    pathIntersection.roughnessT = bsdfData.roughnessT;
-    pathIntersection.roughnessB = bsdfData.roughnessB;
-    pathIntersection.anisotropy = bsdfData.anisotropy;
-    pathIntersection.iridescenceThickness = bsdfData.iridescenceThickness;
-    pathIntersection.iridescenceMask = bsdfData.iridescenceMask;
-    pathIntersection.coatRoughness = bsdfData.coatRoughness;
-    pathIntersection.geomNormalWS = bsdfData.geomNormalWS;
-    pathIntersection.ior = bsdfData.ior;
-    pathIntersection.absorptionCoefficient = bsdfData.absorptionCoefficient;
-    pathIntersection.transmittanceMask = bsdfData.transmittanceMask;
-#endif
-
     // Initialize our material data (this will alter the bsdfData to suit path tracing, and choose between BSDF or SSS evaluation)
     MaterialData mtlData;
     if (CreateMaterialData(pathIntersection, builtinData, bsdfData, shadingPosition, inputSample.z, mtlData))
     {
-    #ifdef SENSORSDK_DEBUG
-        pathIntersection.bsdfWeight0 = mtlData.bsdfWeight[0];
-        pathIntersection.bsdfWeight1 = mtlData.bsdfWeight[1];
-        pathIntersection.bsdfWeight2 = mtlData.bsdfWeight[2];
-        pathIntersection.bsdfWeight3 = mtlData.bsdfWeight[3];
-
-        pathIntersection.color = float3(0.0f, 0.0f, 2.0f);
-    #endif
-        // Create the list of active lights
+    // Create the list of active lights
     #ifdef _SURFACE_TYPE_TRANSPARENT
         float3 lightNormal = 0.0;
     #else
@@ -203,13 +142,6 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
         PathIntersection nextPathIntersection;
 
-    #ifdef SENSORSDK_DEBUG
-        pathIntersection.lightPosition = pathIntersection.beamOrigin;
-        pathIntersection.lightDirection = pathIntersection.beamDirection;
-        pathIntersection.lightCount = _SensorLightCount;
-    #endif
-
-
     #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
             pathIntersection.value = float3(0., 0., 0.);
             for (uint i = 0; i < _SensorLightCount; i++)
@@ -219,20 +151,6 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                                pathIntersection))
                 {
                     EvaluateMaterial(mtlData, rayDescriptor.Direction, mtlResult);
-
-                #ifdef SENSORSDK_DEBUG
-                    pathIntersection.lightOutgoing = rayDescriptor.Direction;
-                    pathIntersection.lightIntensity = _LightDatasRT[i].color.x;
-                    pathIntersection.lightAngleScale = _LightDatasRT[i].angleScale;
-                    pathIntersection.lightAngleOffset = _LightDatasRT[i].angleOffset;
-                    pathIntersection.lightValue = value.x;
-                    pathIntersection.lightPDF = pdf;
-                    pathIntersection.diffValue = mtlResult.diffValue;
-                    pathIntersection.diffPdf = mtlResult.diffPdf;
-                    pathIntersection.specValue = mtlResult.specValue;
-                    pathIntersection.specPdf = mtlResult.specPdf;
-                    pathIntersection.color = float3(0.0f, 2.0f, 0.0f);
-                #endif
 
                     // value is in radian (w/sr) not in lumen (cd/sr) and only the r channel is used
                     value *= (mtlResult.diffValue + mtlResult.specValue) / pdf;
@@ -444,9 +362,6 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
     // Check alpha clipping
     if (!isVisible)
     {
-#ifdef SENSORSDK_DEBUG
-        pathIntersection.color = float3(0.2f, 0.2f, 0.2f);
-#endif
 #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
         pathIntersection.value = 0.98;
 #endif
@@ -466,9 +381,6 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
             IgnoreHit();
 #else
         // Opaque surface
-#ifdef SENSORSDK_DEBUG
-        pathIntersection.color = float3(0.3f, 0.3f, 0.3f);
-#endif
         pathIntersection.value = 0.0;
         AcceptHitAndEndSearch();
 #endif
