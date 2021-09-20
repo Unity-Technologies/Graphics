@@ -374,7 +374,7 @@ namespace UnityEditor.ShaderGraph
             string externalScriptEditor = ScriptEditorUtility.GetExternalScriptEditor();
             if (externalScriptEditor != "internal")
             {
-                InternalEditorUtility.OpenFileAtLineExternal(filePath, 0, 0);
+                InternalEditorUtility.OpenFileAtLineExternal(filePath, 0);
             }
             else
             {
