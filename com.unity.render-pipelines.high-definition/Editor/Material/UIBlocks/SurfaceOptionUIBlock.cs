@@ -923,8 +923,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 optionValues = Styles.displacementModeLitTessellationValues;
             }
 
-            int mode = (int)BaseLitGUI.GetFilteredDisplacementMode(prop);
-            bool mixed = BaseLitGUI.HasMixedDisplacementMode(prop);
+            int mode = (int)GetFilteredDisplacementMode(prop);
+            bool mixed = HasMixedDisplacementMode(prop);
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = mixed;

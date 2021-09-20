@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
-using UnityEditor.ShaderGraph;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -12,7 +10,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     // Extension class to setup material keywords on unlit materials
-    static class BaseUnlitGUI
+    static class BaseUnlitAPI
     {
         public static void SetupBaseUnlitKeywords(this Material material)
         {
@@ -232,7 +230,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 material.SetColor(kEmissionColor, Color.white); // kEmissionColor must always be white to allow our own material to control the GI (this allow to fallback from builtin unity to our system).
                                                                 // as it happen with old material that it isn't the case, we force it.
+                #if UNITY_EDITOR
                 MaterialEditor.FixupEmissiveFlag(material);
+                #endif
             }
 
             material.SetupMainTexForAlphaTestGI("_UnlitColorMap", "_UnlitColor");
@@ -297,7 +297,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static public void SetupBaseUnlitPass(this Material material)
         {
-            if (material.IsShaderGraph())
+            if (HDMaterial.IsShaderGraph(material))
             {
                 // Shader graph generate distortion pass only if required. So we can safely enable it
                 // all the time here.
@@ -360,7 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Shader graphs materials have their own management of motion vector pass in the material inspector
             // (see DrawMotionVectorToggle())
-            if (!material.IsShaderGraph())
+            if (!HDMaterial.IsShaderGraph(material))
             {
                 //In the case of additional velocity data we will enable the motion vector pass.
                 bool addPrecomputedVelocity = false;

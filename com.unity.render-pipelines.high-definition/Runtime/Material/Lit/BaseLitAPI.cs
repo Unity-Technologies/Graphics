@@ -1,13 +1,13 @@
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.Rendering.HighDefinition;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEngine.Rendering.HighDefinition
 {
-    abstract class BaseLitGUI
+    abstract class BaseLitAPI
     {
         // Properties for Base Lit material keyword setup
         protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
@@ -21,54 +21,9 @@ namespace UnityEditor.Rendering.HighDefinition
         // Decal
         protected const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
 
-        // SSR
-        protected MaterialProperty receivesSSR = null;
-
-        // Emission
-        const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
-        const string kEmissiveIntensity = "_EmissiveIntensity";
-        const string kEmissiveColor = "_EmissiveColor";
-
-        protected virtual void UpdateDisplacement() { }
-
-        static DisplacementMode GetFilteredDisplacementMode(Material material)
+        public static DisplacementMode GetFilteredDisplacementMode(Material material)
         {
-            return GetFilteredDisplacementMode(material, (DisplacementMode)material.GetFloat(kDisplacementMode));
-        }
-
-        public static DisplacementMode GetFilteredDisplacementMode(MaterialProperty displacementMode)
-        {
-            var material = displacementMode.targets[0] as Material;
-            return GetFilteredDisplacementMode(material, (DisplacementMode)displacementMode.floatValue);
-        }
-
-        static DisplacementMode GetFilteredDisplacementMode(Material material, DisplacementMode displacementMode)
-        {
-            if (material.HasProperty(kTessellationMode))
-            {
-                if (displacementMode == DisplacementMode.Pixel || displacementMode == DisplacementMode.Vertex)
-                    return DisplacementMode.None;
-            }
-            else
-            {
-                if (displacementMode == DisplacementMode.Tessellation)
-                    return DisplacementMode.None;
-            }
-            return displacementMode;
-        }
-
-        public static bool HasMixedDisplacementMode(MaterialProperty displacementMode)
-        {
-            Material mat0 = displacementMode.targets[0] as Material;
-            var mode = GetFilteredDisplacementMode(mat0, (DisplacementMode)displacementMode.floatValue);
-            for (int i = 1; i < displacementMode.targets.Length; i++)
-            {
-                Material mat = displacementMode.targets[i] as Material;
-                var currentMode = (DisplacementMode)mat.GetFloat(displacementMode.name);
-                if (GetFilteredDisplacementMode(mat, currentMode) != mode)
-                    return true;
-            }
-            return false;
+            return material.GetFilteredDisplacementMode((DisplacementMode)material.GetFloat(kDisplacementMode));
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change

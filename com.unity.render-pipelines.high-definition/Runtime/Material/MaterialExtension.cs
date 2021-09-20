@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
-// Include material common properties names
+using UnityEditor.Rendering.HighDefinition;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDRenderQueue;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -123,6 +123,15 @@ namespace UnityEditor.Rendering.HighDefinition
         Front = CullMode.Front,
     }
 
+    /// <summary>Emissive Intensity Unit</summary>
+    public enum EmissiveIntensityUnit
+    {
+        /// <summary>Nits</summary>
+        Nits,
+        /// <summary>EV100</summary>
+        EV100,
+    }
+
     internal static class MaterialExtension
     {
         public static SurfaceType GetSurfaceType(this Material material)
@@ -202,6 +211,110 @@ namespace UnityEditor.Rendering.HighDefinition
                 Color emissiveColorLDR = new Color(Mathf.LinearToGammaSpace(emissiveColorLDRLinear.r), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.g), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.b));
                 material.SetColor(kEmissiveColorLDR, emissiveColorLDR);
             }
+        }
+
+        public static DisplacementMode GetFilteredDisplacementMode(this Material material, DisplacementMode displacementMode)
+        {
+            if (material.HasProperty(kTessellationMode))
+            {
+                if (displacementMode == DisplacementMode.Pixel || displacementMode == DisplacementMode.Vertex)
+                    return DisplacementMode.None;
+            }
+            else
+            {
+                if (displacementMode == DisplacementMode.Tessellation)
+                    return DisplacementMode.None;
+            }
+            return displacementMode;
+        }
+    }
+}
+
+namespace UnityEditor.Rendering.HighDefinition
+{
+    /// <summary>
+    /// Utility class for setting properties, keywords and passes on a material to ensure it is in a valid state for rendering with HDRP.
+    /// </summary>
+    public static class HDMaterial
+    {
+        //enum representing all shader and shadergraph that we expose to user
+        internal enum ShaderID
+        {
+            Lit,
+            LitTesselation,
+            LayeredLit,
+            LayeredLitTesselation,
+            Unlit,
+            Decal,
+            TerrainLit,
+            AxF,
+            Count_Standard,
+            SG_Unlit = Count_Standard,
+            SG_Lit,
+            SG_Hair,
+            SG_Fabric,
+            SG_StackLit,
+            SG_Decal,
+            SG_Eye,
+            Count_All,
+            Count_ShaderGraph = Count_All - Count_Standard,
+            SG_External = -1, // material packaged outside of HDRP
+        }
+
+        // exposed shader, for reference while searching the ShaderID
+        internal static readonly string[] s_ShaderPaths =
+        {
+            "HDRP/Lit",
+            "HDRP/LitTessellation",
+            "HDRP/LayeredLit",
+            "HDRP/LayeredLitTessellation",
+            "HDRP/Unlit",
+            "HDRP/Decal",
+            "HDRP/TerrainLit",
+            "HDRP/AxF",
+        };
+
+        // list of methods for resetting keywords
+        internal delegate void MaterialResetter(Material material);
+        internal static Dictionary<ShaderID, MaterialResetter> k_PlainShadersMaterialResetters = new Dictionary<ShaderID, MaterialResetter>()
+        {
+            { ShaderID.Lit, LitAPI.ValidateMaterial },
+            { ShaderID.LitTesselation, LitAPI.ValidateMaterial },
+            { ShaderID.LayeredLit,  LayeredLitAPI.ValidateMaterial },
+            { ShaderID.LayeredLitTesselation, LayeredLitAPI.ValidateMaterial },
+            { ShaderID.Unlit, UnlitAPI.ValidateMaterial },
+            { ShaderID.Decal, DecalAPI.ValidateMaterial },
+            { ShaderID.TerrainLit, TerrainLitAPI.ValidateMaterial },
+            { ShaderID.AxF, AxFAPI.ValidateMaterial },
+
+            { ShaderID.SG_Unlit, ShaderGraphAPI.ValidateUnlitMaterial },
+            { ShaderID.SG_Lit, ShaderGraphAPI.ValidateLightingMaterial },
+            { ShaderID.SG_Hair, ShaderGraphAPI.ValidateLightingMaterial },
+            { ShaderID.SG_Fabric, ShaderGraphAPI.ValidateLightingMaterial },
+            { ShaderID.SG_StackLit, ShaderGraphAPI.ValidateLightingMaterial },
+            { ShaderID.SG_Decal, ShaderGraphAPI.ValidateDecalMaterial },
+            { ShaderID.SG_Eye, ShaderGraphAPI.ValidateLightingMaterial }
+        };
+
+        /// <summary>
+        /// Setup properties, keywords and passes on a material to ensure it is in a valid state for rendering with HDRP. This function is only for materials using HDRP Shaders.
+        /// </summary>
+        /// <param name="material">The target material.</param>
+        /// <returns>False if the material doesn't have an HDRP Shader.</returns>
+        public static bool ValidateMaterial(Material material)
+        {
+            var shaderName = material.shader.name;
+            var index = Array.FindIndex(s_ShaderPaths, m => m == shaderName);
+            if (index == -1)
+                return false;
+
+            k_PlainShadersMaterialResetters.TryGetValue((ShaderID)index, out var resetter);
+            if (resetter == null)
+                return false;
+
+            material.shaderKeywords = null;
+            resetter(material);
+            return true;
         }
     }
 }
