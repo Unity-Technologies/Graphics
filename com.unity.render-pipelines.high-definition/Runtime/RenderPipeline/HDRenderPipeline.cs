@@ -210,21 +210,22 @@ namespace UnityEngine.Rendering.HighDefinition
             return TEST_HDR() && false;
         }
 
-        internal void UpdateUIMaterialBlendMode()
+        internal void UpdateUIMaterialBlendMode(CommandBuffer cmd)
         {
+            // TODO: THIS DOESN'T WORK!defaultUIMaterial is editor only... We should find another way, likely a global variables via shader variables.
             if (TEST_HDR())
             {
-                m_Asset.defaultUIMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                m_Asset.defaultUIMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                m_Asset.defaultUIMaterial.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                m_Asset.defaultUIMaterial.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                cmd.SetGlobalInt("_UISrcColorBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                cmd.SetGlobalInt("_UIDstColorBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                cmd.SetGlobalInt("_UISrcAlphaBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                cmd.SetGlobalInt("_UIDstAlphaBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
             }
             else
             {
-                m_Asset.defaultUIMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                m_Asset.defaultUIMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                m_Asset.defaultUIMaterial.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                m_Asset.defaultUIMaterial.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                cmd.SetGlobalInt("_UISrcColorBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                cmd.SetGlobalInt("_UIDstColorBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                cmd.SetGlobalInt("_UISrcAlphaBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                cmd.SetGlobalInt("_UIDstAlphaBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
             }
         }
 
@@ -1823,6 +1824,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             var renderRequest = renderRequests[renderRequestIndex];
 
                             var cmd = CommandBufferPool.Get("");
+                            // If we are in HDR output mode we need to update the default UI blend mode accordingly
+                            UpdateUIMaterialBlendMode(cmd);
 
                             // TODO: Avoid the intermediate target and render directly into final target
                             //  CommandBuffer.Blit does not work on Cubemap faces

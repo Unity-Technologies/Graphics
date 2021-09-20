@@ -26,10 +26,10 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaDstBlend: 10
-    - _AlphaSrcBlend: 5
+    - _AlphaSrcBlend: 1
     - _ColorMask: 15
     - _DstBlend: 10
-    - _SrcBlend: 5
+    - _SrcBlend: 1
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0

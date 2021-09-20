@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>HDRP default UI material.</summary>
         // TODO_FCC: Enable when ready.
         public override Material defaultUIMaterial
-            => globalSettings?.renderPipelineEditorResources?.materials.defaultUIMat;
+            => globalSettings?.renderPipelineResources?.materials.defaultUIMat;
 
         // Array structure that allow us to manipulate the set of defines that the HD render pipeline needs
         List<string> defineArray = new List<string>();

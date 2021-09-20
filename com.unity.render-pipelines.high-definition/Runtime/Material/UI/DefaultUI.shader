@@ -53,10 +53,7 @@ Shader "HDRP/DefaultUI"
             Lighting Off
             ZWrite Off
             ZTest[unity_GUIZTestMode]
-            //Blend One OneMinusSrcAlpha
-            // TODO_FCC: Comment back in when ready to test UI and HDR.
-            Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
-
+            Blend [_UISrcColorBlend] [_UIDstColorBlend], [_UISrcAlphaBlend] [_UIDstAlphaBlend]
             ColorMask[_ColorMask]
 
             Pass
@@ -69,7 +66,7 @@ Shader "HDRP/DefaultUI"
 
                 #include "UnityCG.cginc"
                 #include "UnityUI.cginc"
-
+                #pragma enable_d3d11_debug_symbols
                 #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
                 #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
 

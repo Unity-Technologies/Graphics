@@ -375,6 +375,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable, ReloadGroup]
         public sealed class MaterialResources
         {
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDUIMaterial.mat")]
+            public Material defaultUIMat;
         }
 
         [Serializable, ReloadGroup]
