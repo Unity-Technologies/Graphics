@@ -287,9 +287,9 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     var brickSize = cell.bricks[i / 64].subdivisionLevel;
 
-                    int chunkIndex = i / m_Pool.GetChunkSizeInProbeCount();
+                    int chunkIndex = i / ProbeBrickPool.GetChunkSizeInProbeCount();
                     var chunk = chunks[chunkIndex];
-                    int indexInChunk = i % m_Pool.GetChunkSizeInProbeCount();
+                    int indexInChunk = i % ProbeBrickPool.GetChunkSizeInProbeCount();
                     int brickIdx = indexInChunk / 64;
                     int indexInBrick = indexInChunk % 64;
 

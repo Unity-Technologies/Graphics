@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeBrickPool
     {
-        const int kProbeIndexPoolAllocationSize = 64;
+        const int kProbeIndexPoolAllocationSize = 64; // 128;
 
         [DebuggerDisplay("Chunk ({x}, {y}, {z})")]
         public struct BrickChunkAlloc
@@ -123,7 +123,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         internal static int GetChunkSize() { return kProbeIndexPoolAllocationSize; }
-        internal int GetChunkSizeInProbeCount() { return kProbeIndexPoolAllocationSize * kBrickProbeCountTotal; }
+        internal static int GetChunkSizeInProbeCount() { return kProbeIndexPoolAllocationSize * kBrickProbeCountTotal; }
 
         internal int GetPoolWidth() { return m_Pool.width; }
         internal int GetPoolHeight() { return m_Pool.height; }
@@ -197,14 +197,12 @@ namespace UnityEngine.Experimental.Rendering
                 m_FreeList.Push(brick);
         }
 
-        internal void Update(DataLocation source, List<BrickChunkAlloc> srcLocations, List<BrickChunkAlloc> dstLocations, ProbeVolumeSHBands bands)
+        internal void Update(DataLocation source, List<BrickChunkAlloc> srcLocations, List<BrickChunkAlloc> dstLocations, int destStartIndex, ProbeVolumeSHBands bands)
         {
-            Debug.Assert(srcLocations.Count == dstLocations.Count);
-
             for (int i = 0; i < srcLocations.Count; i++)
             {
                 BrickChunkAlloc src = srcLocations[i];
-                BrickChunkAlloc dst = dstLocations[i];
+                BrickChunkAlloc dst = dstLocations[destStartIndex + i];
 
                 for (int j = 0; j < kBrickProbeCountPerDim; j++)
                 {
@@ -342,16 +340,16 @@ namespace UnityEngine.Experimental.Rendering
             data[index] = value;
         }
 
-        public static void FillDataLocation(ref DataLocation loc, SphericalHarmonicsL2[] shl2, ProbeVolumeSHBands bands)
+        public static void FillDataLocation(ref DataLocation loc, SphericalHarmonicsL2[] shl2, int startIndex, int count, ProbeVolumeSHBands bands)
         {
             int numBricks = shl2.Length / kBrickProbeCountTotal;
-            int shidx = 0;
+            int shidx = startIndex;
             int bx = 0, by = 0, bz = 0;
             Color c = new Color();
 
             ValidateTemporaryBuffers(loc, bands);
 
-            for (int brickIdx = 0; brickIdx < shl2.Length; brickIdx += kBrickProbeCountTotal)
+            for (int brickIdx = startIndex; brickIdx < count && brickIdx < shl2.Length; brickIdx += kBrickProbeCountTotal)
             {
                 for (int z = 0; z < kBrickProbeCountPerDim; z++)
                 {
@@ -422,7 +420,7 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         by = 0;
                         bz += kBrickProbeCountPerDim;
-                        Debug.Assert(bz < loc.depth || brickIdx == shl2.Length - kBrickProbeCountTotal, "Location depth exceeds data texture.");
+                        Debug.Assert(bz < loc.depth || brickIdx == count - kBrickProbeCountTotal, "Location depth exceeds data texture.");
                     }
                 }
             }

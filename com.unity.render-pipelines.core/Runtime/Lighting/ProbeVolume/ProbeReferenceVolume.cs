@@ -284,7 +284,7 @@ namespace UnityEngine.Experimental.Rendering
     /// </summary>
     public partial class ProbeReferenceVolume
     {
-        const int kProbeIndexPoolAllocationSize = 128;
+        const int kTemporaryDataLocChunkCount = 8;
 
         [System.Serializable]
         internal class Cell
@@ -492,6 +492,7 @@ namespace UnityEngine.Experimental.Rendering
 
         internal Dictionary<int, CellInfo> cells = new Dictionary<int, CellInfo>();
         ObjectPool<CellInfo> m_CellInfoPool = new ObjectPool<CellInfo>(x => x.Clear(), null, false);
+        ProbeBrickPool.DataLocation m_TemporaryDataLocation;
 
         internal ProbeVolumeSceneData sceneData;
 
@@ -1005,6 +1006,8 @@ namespace UnityEngine.Experimental.Rendering
                 m_PositionOffsets[m_PositionOffsets.Length - 1] = 1.0f;
                 Profiler.EndSample();
 
+                m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(kTemporaryDataLocChunkCount * ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, out var allocatedBytes);
+
                 m_ProbeReferenceVolumeInit = true;
 
                 ClearDebugData();
@@ -1068,6 +1071,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_Pool.Clear();
                 m_Index.Clear();
                 cells.Clear();
+                m_TemporaryDataLocation.Cleanup();
             }
 
             if (clearAssetsOnVolumeClear)
@@ -1094,38 +1098,41 @@ namespace UnityEngine.Experimental.Rendering
             if (!m_Pool.Allocate(brickChunksCount, cellInfo.chunkList))
                 return false;
 
-            // Create temporary allocation to copy SH data over to main atlas.
-            var dataloc = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed: false, m_SHBands, out var allocatedBytes);
-            ProbeBrickPool.FillDataLocation(ref dataloc, cell.sh, m_SHBands);
-
-            // copy chunks into pool
-            m_TmpSrcChunks.Clear();
-            Chunk c;
-            c.x = 0;
-            c.y = 0;
-            c.z = 0;
-
-            // currently this code assumes that the texture width is a multiple of the allocation chunk size
-            for (int i = 0; i < cellInfo.chunkList.Count; i++)
+            int chunkIndex = 0;
+            while (chunkIndex < cellInfo.chunkList.Count)
             {
-                m_TmpSrcChunks.Add(c);
-                c.x += chunkSize * ProbeBrickPool.kBrickProbeCountPerDim;
-                if (c.x >= dataloc.width)
+                int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.sh, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
+
+                // copy chunks into pool
+                m_TmpSrcChunks.Clear();
+                Chunk c;
+                c.x = 0;
+                c.y = 0;
+                c.z = 0;
+
+                // currently this code assumes that the texture width is a multiple of the allocation chunk size
+                for (int j = 0; j < chunkToProcess; j++)
                 {
-                    c.x = 0;
-                    c.y += ProbeBrickPool.kBrickProbeCountPerDim;
-                    if (c.y >= dataloc.height)
+                    m_TmpSrcChunks.Add(c);
+                    c.x += chunkSize * ProbeBrickPool.kBrickProbeCountPerDim;
+                    if (c.x >= m_TemporaryDataLocation.width)
                     {
-                        c.y = 0;
-                        c.z += ProbeBrickPool.kBrickProbeCountPerDim;
+                        c.x = 0;
+                        c.y += ProbeBrickPool.kBrickProbeCountPerDim;
+                        if (c.y >= m_TemporaryDataLocation.height)
+                        {
+                            c.y = 0;
+                            c.z += ProbeBrickPool.kBrickProbeCountPerDim;
+                        }
                     }
                 }
+
+                // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
+                m_Pool.Update(m_TemporaryDataLocation, m_TmpSrcChunks, cellInfo.chunkList, chunkIndex, m_SHBands);
+
+                chunkIndex += kTemporaryDataLocChunkCount;
             }
-
-            // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
-            m_Pool.Update(dataloc, m_TmpSrcChunks, cellInfo.chunkList, m_SHBands);
-
-            dataloc.Cleanup();
 
             m_BricksLoaded = true;
 
