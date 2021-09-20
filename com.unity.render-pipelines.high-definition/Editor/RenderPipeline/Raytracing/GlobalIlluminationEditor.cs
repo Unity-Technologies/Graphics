@@ -173,8 +173,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             PropertyField(m_Enable);
-            if (m_Enable.value.boolValue)
-                EditorGUILayout.HelpBox("Real-time Global Illumination overwrites emissive data in deferred rendering mode. To recover the emissive contribution, either use Force Forward Emissive or disable Receive SSR/SSGI flag on the emissive materials.", MessageType.Info);
             EditorGUILayout.Space();
 
             // If ray tracing is supported display the content of the volume component

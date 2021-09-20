@@ -957,7 +957,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 true,
                 gpuVP,
                 cmd, source,
-                GetLensFlareLightAttenuation,
+                (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
                 ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
                 false);
