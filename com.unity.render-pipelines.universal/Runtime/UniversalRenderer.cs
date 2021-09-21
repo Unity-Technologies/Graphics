@@ -226,8 +226,7 @@ namespace UnityEngine.Rendering.Universal
             bool copyDepthAfterTransparents = m_CopyDepthMode == CopyDepthMode.AfterTransparents;
 
             m_CopyDepthPass = new CopyDepthPass(copyDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
-            // TODO: remove CopyDepthPass RenderPass checks when depth resolve support is added to RenderPass (URP-1009)
-            m_CopyDepthPass.m_GlobalUseRenderPassEnabled = useRenderPassEnabled;
+            m_CopyDepthPass.m_CopyResolvedDepth = RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled) && copyDepthAfterTransparents;
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
@@ -679,7 +678,9 @@ namespace UnityEngine.Rendering.Universal
                 {
                     bool isCopyDepthAfterTransparent = m_CopyDepthPass.renderPassEvent == RenderPassEvent.AfterRenderingTransparents;
 
-                    if (!(copyColorPass && isCopyDepthAfterTransparent))
+                    // we could StoreAndResolve when the depth copy is after opaque, but performance wise doing StoreAndResolve of depth targets is more expensive than a simple Store + following depth copy pass on Apple GPUs,
+                    // because of the extra resolve step. So, unless we are copying the depth after the transparent pass, just Store the depth target.
+                    if (isCopyDepthAfterTransparent && !copyColorPass)
                     {
                         if (opaquePassDepthStoreAction == RenderBufferStoreAction.Store)
                             opaquePassDepthStoreAction = RenderBufferStoreAction.StoreAndResolve;
@@ -1020,7 +1021,7 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.autoGenerateMips = false;
                     depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
 
-                    if (depthDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled))
+                    if (depthDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled) && m_CopyDepthMode == CopyDepthMode.AfterTransparents)
                         depthDescriptor.bindMS = false;
 
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
