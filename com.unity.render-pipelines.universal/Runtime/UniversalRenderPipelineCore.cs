@@ -111,7 +111,10 @@ namespace UnityEngine.Rendering.Universal
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+
+        public bool usePhysicalCamera;
         public float exposure;
+        public SRPPhysicalCamera physicalParameters;
 
         /// <summary>
         /// Returns true if post processing passes require depth texture.

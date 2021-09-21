@@ -155,17 +155,17 @@ half3 CalculateLightingColor(LightingData lightingData, half3 albedo)
 
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_MAIN_LIGHT))
     {
-        lightingColor += lightingData.mainLightColor;
+        lightingColor += lightingData.mainLightColor * INV_PI;
     }
 
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_ADDITIONAL_LIGHTS))
     {
-        lightingColor += lightingData.additionalLightsColor;
+        lightingColor += lightingData.additionalLightsColor * INV_PI;
     }
 
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_VERTEX_LIGHTING))
     {
-        lightingColor += lightingData.vertexLightingColor;
+        lightingColor += lightingData.vertexLightingColor * INV_PI;
     }
 
     lightingColor *= albedo;

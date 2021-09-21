@@ -348,7 +348,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int _ExposureParams2                = Shader.PropertyToID("_ExposureParams2");
         public static readonly int _OutputTexture                  = Shader.PropertyToID("_OutputTexture");
 
-        private static void GenerateExposureTexture (CameraData cameraData, CommandBuffer cmd, RenderTargetHandle rth)
+        private static void GenerateExposureTexture(CameraData cameraData, CommandBuffer cmd, RenderTargetHandle rth)
         {
             RenderTextureDescriptor rtd = new RenderTextureDescriptor
             {
@@ -375,38 +375,24 @@ namespace UnityEngine.Rendering.Universal
             int kernel = 0;
             Vector4 exposureParams;
             Vector4 exposureParams2 = new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant);
-            if ( /*m_Exposure.mode.value == ExposureMode.Fixed || */
-#if UNITY_EDITOR
-                 UniversalAdditionalSceneViewSettings.sceneExposureOverriden && cameraData.isSceneViewCamera
-#endif
-            )
+
+            if (cameraData.usePhysicalCamera == false)
             {
                 kernel = cs.FindKernel("KFixedExposure");
-                exposureParams = new Vector4(0.0f, UniversalAdditionalSceneViewSettings.sceneExposure, 0f, 0f);
-
-                //exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f);
-/*#if UNITY_EDITOR
-                if (UniversalAdditionalSceneViewSettings.sceneExposureOverriden && hdCamera.camera.cameraType == CameraType.SceneView)
-                {
-                }
-#endif*/
+                exposureParams = new Vector4(0f, cameraData.exposure, 0f, 0f);
             }
-            else
+            else // ExposureMode.UsePhysicalCamera
             {
-                exposureParams = new Vector4(0.0f, 1, 0f, 0f);
+                var physicalCamera = cameraData.physicalParameters;
+                kernel = cs.FindKernel("KManualCameraExposure");
+                exposureParams = new Vector4(0f, physicalCamera.aperture, physicalCamera.shutterSpeed, physicalCamera.iso);
             }
-            /* else // ExposureMode.UsePhysicalCamera
-             {
-                 kernel = cs.FindKernel("KManualCameraExposure");
-                 exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso);
-             }*/
 
             cmd.SetComputeVectorParam(cs, _ExposureParams, exposureParams);
             cmd.SetComputeVectorParam(cs, _ExposureParams2, exposureParams2);
 
             cmd.SetComputeTextureParam(cs, kernel, _OutputTexture, rth.id);
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
-           // cmd.SetGlobalTexture(rth.id, rth.Identifier());
         }
 
         /// <summary>
@@ -848,7 +834,13 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 cameraData.xrRendering = false;
-                cameraData.exposure = 1f;
+                cameraData.usePhysicalCamera = false;
+                cameraData.exposure = 1.0f;
+                cameraData.physicalParameters = SRPPhysicalCamera.GetDefaults();
+#if UNITY_EDITOR
+                if(UniversalAdditionalSceneViewSettings.sceneExposureOverriden)
+                    cameraData.exposure = UniversalAdditionalSceneViewSettings.sceneExposure;
+#endif
 #endif
             }
             else if (baseAdditionalCameraData != null)
@@ -860,6 +852,8 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
                 cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
                 cameraData.exposure = baseAdditionalCameraData.exposure;
+                cameraData.usePhysicalCamera = baseAdditionalCameraData.usePhysicalCamera;
+                cameraData.physicalParameters = baseAdditionalCameraData.physicalParameters;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering && m_XRSystem.RefreshXrSdk();
 #endif
@@ -874,7 +868,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 cameraData.xrRendering = m_XRSystem.RefreshXrSdk();
-                cameraData.exposure = 1f;
+                cameraData.usePhysicalCamera = false;
+                cameraData.exposure = 1.0f;
+                cameraData.physicalParameters = SRPPhysicalCamera.GetDefaults();
 #endif
             }
 

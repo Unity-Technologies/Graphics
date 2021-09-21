@@ -244,6 +244,15 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ClearDepth = true;
         [SerializeField] bool m_AllowXRRendering = true;
 
+        /// <summary>Physical camera parameters.</summary>
+        // [ValueCopy] // reference should not be same. only content.
+
+        [SerializeField]
+        private bool m_UsePhysicalCamera = false;
+
+        [SerializeField]
+        SRPPhysicalCamera m_PhysicalParameters = SRPPhysicalCamera.GetDefaults();
+
         [SerializeField] float m_Exposure = 1f;
 
         [NonSerialized] Camera m_Camera;
@@ -315,6 +324,18 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_RequiresOpaqueTextureOption;
             set => m_RequiresOpaqueTextureOption = value;
+        }
+
+        public bool usePhysicalCamera
+        {
+            get => m_UsePhysicalCamera;
+            set => m_UsePhysicalCamera = value;
+        }
+
+        public SRPPhysicalCamera physicalParameters
+        {
+            get => m_PhysicalParameters;
+            set => m_PhysicalParameters = value;
         }
 
         /// <summary>
