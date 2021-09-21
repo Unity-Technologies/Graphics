@@ -144,8 +144,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 10;
-        [SerializeField] int k_AssetPreviousVersion = 10;
+        [SerializeField] int k_AssetVersion = 9;
+        [SerializeField] int k_AssetPreviousVersion = 9;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
