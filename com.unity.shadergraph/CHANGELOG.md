@@ -21,6 +21,10 @@ The version number for this package has increased due to a version update of a r
  - Fixed noise nodes to use a deterministic integer hash, instead of platform dependent floating point hashes [1156544]
  - Fixed the appearance (wrong text color, and not wrapped) of a warning in Node Settings [1356725] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356725/)
  - Fixed the ordering of inputs on a SubGraph node to match the properties on the blackboard of the subgraph itself [1354463]
+ - Added more inputs to the Parallax Occlusion Mapping node to handle non-uniformly scaled UVs such as HDRP/Lit POM [1347008].
+ - Fixed the wrong scaling of the main preview window  [1356719] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356719/)
+ - Fixed an issue where ShaderGraph "view shader" commands were opening in individual windows, and blocking Unity from closing [1367188]
+ - Improved screenspace position accuracy in the fragment shader by using VPOS [1352662] (https://issuetracker.unity3d.com/issues/shadergraph-dither-node-results-in-artifacts-when-far-from-origin-caused-by-screen-position-breaking-down)
 
 ## [12.0.0] - 2021-01-11
 

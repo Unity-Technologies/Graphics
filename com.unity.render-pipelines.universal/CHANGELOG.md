@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - URP global setting for stripping post processing shader variants.
 - URP global setting for stripping off shader variants.
+- Terrain grass shader alpha changed to always write 1 to alpha. Enabled alpha channel write mask.
 
 ### Changed
 - Removed experimental tile deferred code.
