@@ -705,6 +705,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // setup material control of via keyword
                 pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
                 pass.keywords.Add(CoreKeywordDescriptors.AlphaPremultiplyOn);
+                pass.keywords.Add(CoreKeywordDescriptors.AlphaModulateOn);
             }
             else
             {

@@ -686,6 +686,8 @@ namespace UnityEditor
                         material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                     }
 
+                    // TODO: fog
+
                     // When doing off-screen transparency accumulation, we change blend factors as described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
                     bool offScreenAccumulateAlpha = false;    // TODO:
                     if (offScreenAccumulateAlpha)
