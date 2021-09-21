@@ -149,6 +149,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     && HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.upperBound >= currentMaterial.renderQueue);
         }
 
+        private bool UpdateMaterialCRC(int matInstanceId, int matCRC)
+        {
+            int matPrevCRC;
+            if (m_MaterialCRCs.TryGetValue(matInstanceId, out matPrevCRC))
+            {
+                m_MaterialCRCs[matInstanceId] = matCRC;
+                return (matCRC != matPrevCRC);
+            }
+            else
+            {
+                m_MaterialCRCs.Add(matInstanceId, matCRC);
+                return true;
+            }
+        }
+
         AccelerationStructureStatus AddInstanceToRAS(Renderer currentRenderer,
             bool rayTracedShadow,
             bool aoEnabled, int aoLayerValue,
@@ -235,17 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Check if the material has changed since last time we were here
                         if (!m_MaterialsDirty)
                         {
-                            int matId = currentMaterial.GetInstanceID();
-                            int matPrevCRC, matCurCRC = currentMaterial.ComputeCRC();
-                            if (m_MaterialCRCs.TryGetValue(matId, out matPrevCRC))
-                            {
-                                m_MaterialCRCs[matId] = matCurCRC;
-                                m_MaterialsDirty |= (matCurCRC != matPrevCRC);
-                            }
-                            else
-                            {
-                                m_MaterialCRCs.Add(matId, matCurCRC);
-                            }
+                            m_MaterialsDirty |= UpdateMaterialCRC(currentMaterial.GetInstanceID(), currentMaterial.ComputeCRC());
                         }
                     }
                 }
@@ -355,8 +360,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingLights.reflectionProbeArray.Clear();
             m_RayTracingLights.lightCount = 0;
             if (m_CurrentRAS != null)
-                m_CurrentRAS.Dispose();
-            m_CurrentRAS = new RayTracingAccelerationStructure();
+                m_CurrentRAS.ClearInstances();
+            else
+                m_CurrentRAS = new RayTracingAccelerationStructure();
             m_ValidRayTracingState = false;
             m_ValidRayTracingCluster = false;
             m_ValidRayTracingClusterCulling = false;
@@ -476,101 +482,161 @@ namespace UnityEngine.Rendering.HighDefinition
                     ptEnabled, pathTracingSettings.layerMask.value);
             }
 
-            int matCount = m_MaterialCRCs.Count;
+            RayTracingInstanceCullingConfig cullingConfig = new RayTracingInstanceCullingConfig();
 
-            LODGroup[] lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();
-            for (var i = 0; i < lodGroupArray.Length; i++)
+            cullingConfig.flags = RayTracingInstanceCullingFlags.EnableLODCulling | RayTracingInstanceCullingFlags.IgnoreReflectionProbes;
+
+            if (ptEnabled)
             {
-                // Grab the current LOD group
-                LODGroup lodGroup = lodGroupArray[i];
+                cullingConfig.flags |= RayTracingInstanceCullingFlags.ComputeMaterialsCRC;
+            }            
 
-                // Compute the distance between the LOD group and the camera
-                float lodGroupDistance = (hdCamera.camera.transform.position - lodGroup.transform.TransformPoint(lodGroup.localReferencePoint)).magnitude;
+            cullingConfig.lodParameters.fieldOfView = hdCamera.camera.fieldOfView;
+            cullingConfig.lodParameters.cameraPosition = hdCamera.camera.transform.position;
+            cullingConfig.lodParameters.cameraPixelHeight = hdCamera.camera.pixelHeight;
+            cullingConfig.lodParameters.orthoSize = 0;
+            cullingConfig.lodParameters.isOrthographic = false;
 
-                // Flag to track if the LODGroup has been represented
-                bool lodGroupProcessed = false;
+            cullingConfig.subMeshFlagsConfig.opaqueMaterials = RayTracingSubMeshFlags.Enabled | RayTracingSubMeshFlags.ClosestHitOnly;
+            cullingConfig.subMeshFlagsConfig.transparentMaterials = RayTracingSubMeshFlags.Enabled | RayTracingSubMeshFlags.UniqueAnyHitCalls;
+            cullingConfig.subMeshFlagsConfig.alphaTestedMaterials = RayTracingSubMeshFlags.Enabled;
 
-                // Get the set of LODs
-                LOD[] lodArray = lodGroup.GetLODs();
-                for (int lodIdx = 0; lodIdx < lodArray.Length; ++lodIdx)
-                {
-                    // Grab the current LOD
-                    LOD currentLOD = lodArray[lodIdx];
+            cullingConfig.triangleCullingConfig.checkDoubleSidedGIMaterial = true;
+            cullingConfig.triangleCullingConfig.frontTriangleCounterClockwise = false;
+            cullingConfig.triangleCullingConfig.optionalDoubleSidedShaderKeywords = new string[1];
+            cullingConfig.triangleCullingConfig.optionalDoubleSidedShaderKeywords[0] = "_DOUBLESIDED_ON";
 
-                    // Compute the distance until which this LOD may be used
-                    float maxLODUsageDistance = CalculateCameraDistance(hdCamera.camera.fieldOfView, GetWorldSpaceSize(lodGroup), currentLOD.screenRelativeTransitionHeight);
+            cullingConfig.alphaTestedMaterialConfig.renderQueueLowerBound = HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.lowerBound;
+            cullingConfig.alphaTestedMaterialConfig.renderQueueUpperBound = HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.upperBound;
+            cullingConfig.alphaTestedMaterialConfig.optionalShaderKeywords = new string[1];
+            cullingConfig.alphaTestedMaterialConfig.optionalShaderKeywords[0] = "_ALPHATEST_ON";
 
-                    // If the LOD should be the used one
-                    if (!lodGroupProcessed && lodGroupDistance < maxLODUsageDistance)
-                    {
-                        for (int rendererIdx = 0; rendererIdx < currentLOD.renderers.Length; ++rendererIdx)
-                        {
-                            // Fetch the renderer that we are interested in
-                            Renderer currentRenderer = currentLOD.renderers[rendererIdx];
+            cullingConfig.transparentMaterialConfig.renderQueueLowerBound = HDRenderQueue.k_RenderQueue_Transparent.lowerBound;
+            cullingConfig.transparentMaterialConfig.renderQueueUpperBound = HDRenderQueue.k_RenderQueue_Transparent.upperBound;
+            cullingConfig.transparentMaterialConfig.optionalShaderKeywords = new string[1];
+            cullingConfig.transparentMaterialConfig.optionalShaderKeywords[0] = "_SURFACE_TYPE_TRANSPARENT";
 
-                            // This objects should but included into the RAS
-                            AddInstanceToRAS(currentRenderer,
-                                rayTracedShadows,
-                                aoSettings.rayTracing.value, aoSettings.layerMask.value,
-                                ScreenSpaceReflection.RayTracingActive(reflSettings), reflSettings.layerMask.value,
-                                GlobalIllumination.RayTracingActive(giSettings), giSettings.layerMask.value,
-                                recursiveSettings.enable.value, recursiveSettings.layerMask.value,
-                                pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
-                        }
+            cullingConfig.materialTest.requiredShaderTags = new RayTracingInstanceCullingShaderTagConfig[1];
+            cullingConfig.materialTest.requiredShaderTags[0].tagId = new ShaderTagId("RenderPipeline");
+            cullingConfig.materialTest.requiredShaderTags[0].tagValueId = new ShaderTagId("HDRenderPipeline");
+            cullingConfig.materialTest.deniedShaderPasses = DecalSystem.s_MaterialDecalPassNames;
 
-                        // Flag the LOD group as processed
-                        lodGroupProcessed = true;
-                    }
+            List<RayTracingInstanceCullingTest> instanceTests = new List<RayTracingInstanceCullingTest>();
 
-                    // Add them to the processed set so that they are not taken into account when processing all the renderers
-                    for (int rendererIdx = 0; rendererIdx < currentLOD.renderers.Length; ++rendererIdx)
-                    {
-                        Renderer currentRenderer = currentLOD.renderers[rendererIdx];
-                        if (currentRenderer == null) continue;
+            RayTracingInstanceCullingTest instanceTest = new RayTracingInstanceCullingTest();
+            instanceTest.allowOpaqueMaterials = true;
+            instanceTest.allowAlphaTestedMaterials = true;
+            instanceTest.allowTransparentMaterials = false;
+            instanceTest.layerMask = -1;
+            instanceTest.shadowCastingModeMask = -1;
+            instanceTest.instanceMask = (uint)RayTracingRendererFlag.Opaque;
 
-                        // Add this fella to the renderer list
-                        // Unfortunately, we need to check that this renderer was not already pushed into the list (happens if the user uses the same mesh renderer
-                        // for two LODs)
-                        if (!m_RayTracingRendererReference.ContainsKey(currentRenderer.GetInstanceID()))
-                            m_RayTracingRendererReference.Add(currentRenderer.GetInstanceID(), 1);
-                    }
-                }
+            instanceTests.Add(instanceTest);
+
+            rayTracedShadows &= !ptEnabled;
+
+            if (rayTracedShadows || ptEnabled)
+            {
+                instanceTest = new RayTracingInstanceCullingTest();
+                instanceTest.allowTransparentMaterials = true;
+                instanceTest.allowOpaqueMaterials = true;
+                instanceTest.allowAlphaTestedMaterials = true;
+                instanceTest.layerMask = -1;
+                instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided) | (1 << (int)ShadowCastingMode.ShadowsOnly);
+                instanceTest.instanceMask = (uint)RayTracingRendererFlag.CastShadowTransparent;
+
+                instanceTests.Add(instanceTest);
+
+                instanceTest = new RayTracingInstanceCullingTest();
+                instanceTest.allowTransparentMaterials = false;
+                instanceTest.allowOpaqueMaterials = true;
+                instanceTest.allowAlphaTestedMaterials = true;
+                instanceTest.layerMask = -1;
+                instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided) | (1 << (int)ShadowCastingMode.ShadowsOnly);
+                instanceTest.instanceMask = (uint)RayTracingRendererFlag.CastShadowOpaque;
+
+                instanceTests.Add(instanceTest);
             }
 
-            // Grab all the renderers from the scene
-            var rendererArray = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
-            for (var i = 0; i < rendererArray.Length; i++)
+            if (rtAOEnabled)
             {
-                // Fetch the current renderer
-                Renderer currentRenderer = rendererArray[i];
+                instanceTest = new RayTracingInstanceCullingTest();
+                instanceTest.allowTransparentMaterials = false;
+                instanceTest.allowOpaqueMaterials = true;
+                instanceTest.allowAlphaTestedMaterials = true;
+                instanceTest.layerMask = aoSettings.layerMask.value;
+                instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.Off) | (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided);
+                instanceTest.instanceMask = (uint)RayTracingRendererFlag.AmbientOcclusion;
 
-                // If it is not active skip it
-                if (currentRenderer.enabled == false) continue;
-
-                // Grab the current game object
-                GameObject gameObject = currentRenderer.gameObject;
-
-                // Has this object already been processed, just skip it
-                if (m_RayTracingRendererReference.ContainsKey(currentRenderer.GetInstanceID()))
-                {
-                    continue;
-                }
-
-                // Does this object have a reflection probe component? if yes we do not want to have it in the acceleration structure
-                if (gameObject.TryGetComponent<ReflectionProbe>(out reflectionProbe)) continue;
-
-                // This objects should be included into the RAS
-                AddInstanceToRAS(currentRenderer,
-                    rayTracedShadows,
-                    aoSettings.rayTracing.value, aoSettings.layerMask.value,
-                    ScreenSpaceReflection.RayTracingActive(reflSettings), reflSettings.layerMask.value,
-                    GlobalIllumination.RayTracingActive(giSettings), giSettings.layerMask.value,
-                    recursiveSettings.enable.value, recursiveSettings.layerMask.value,
-                    pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
+                instanceTests.Add(instanceTest);
             }
 
-            // Check if the amount of materials being tracked has changed
-            m_MaterialsDirty |= (matCount != m_MaterialCRCs.Count);
+            if (rtREnabled)
+            {
+                instanceTest = new RayTracingInstanceCullingTest();
+                instanceTest.allowTransparentMaterials = false;
+                instanceTest.allowOpaqueMaterials = true;
+                instanceTest.allowAlphaTestedMaterials = true;
+                instanceTest.layerMask = reflSettings.layerMask.value;
+                instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.Off) | (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided);
+                instanceTest.instanceMask = (uint)RayTracingRendererFlag.Reflection;
+
+                instanceTests.Add(instanceTest);
+            }
+
+            if (rtGIEnabled)
+            {
+                instanceTest = new RayTracingInstanceCullingTest();
+                instanceTest.allowTransparentMaterials = false;
+                instanceTest.allowOpaqueMaterials = true;
+                instanceTest.allowAlphaTestedMaterials = true;
+                instanceTest.layerMask = giSettings.layerMask.value;
+                instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.Off) | (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided);
+                instanceTest.instanceMask = (uint)RayTracingRendererFlag.GlobalIllumination;
+
+                instanceTests.Add(instanceTest);
+            }
+
+            if (rrEnabled)
+            {
+                instanceTest = new RayTracingInstanceCullingTest();
+                instanceTest.allowTransparentMaterials = true;
+                instanceTest.allowOpaqueMaterials = true;
+                instanceTest.allowAlphaTestedMaterials = true;
+                instanceTest.layerMask = recursiveSettings.layerMask.value;
+                instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.Off) | (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided);
+                instanceTest.instanceMask = (uint)RayTracingRendererFlag.RecursiveRendering;
+
+                instanceTests.Add(instanceTest);
+            }
+
+            if (ptEnabled)
+            {
+                instanceTest = new RayTracingInstanceCullingTest();
+                instanceTest.allowTransparentMaterials = true;
+                instanceTest.allowOpaqueMaterials = true;
+                instanceTest.allowAlphaTestedMaterials = true;
+                instanceTest.layerMask = pathTracingSettings.layerMask.value;
+                instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.Off) | (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided);
+                instanceTest.instanceMask = (uint)RayTracingRendererFlag.PathTracing;
+
+                instanceTests.Add(instanceTest);
+            }
+
+            cullingConfig.instanceTests = instanceTests.ToArray();
+
+            RayTracingInstanceCullingResults cullingResults = m_CurrentRAS.CullInstances(ref cullingConfig);
+
+            if (ptEnabled)
+            {
+                m_TransformDirty |= cullingResults.transformsChanged;
+
+                for (int i = 0; i < cullingResults.materialsCRC.Length; i++)
+                {
+                    RayTracingInstanceMaterialCRC matCRC = cullingResults.materialsCRC[i];
+                    m_MaterialsDirty |= UpdateMaterialCRC(matCRC.instanceID, matCRC.crc);
+                }
+            }
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
                 m_CurrentRAS.Build(hdCamera.mainViewConstants.worldSpaceCameraPos);
