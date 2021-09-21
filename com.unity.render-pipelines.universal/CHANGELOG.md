@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - URP global setting for stripping post processing shader variants.
 - URP global setting for stripping off shader variants.
+- Added public api for Light2D shape properties.
 
 ## [12.0.0] - 2021-01-11
 ### Added
