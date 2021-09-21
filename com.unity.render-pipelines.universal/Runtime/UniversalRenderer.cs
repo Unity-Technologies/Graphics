@@ -169,6 +169,7 @@ namespace UnityEngine.Rendering.Universal
             forwardInitParams.lightCookieManager = m_LightCookieManager;
             forwardInitParams.clusteredRendering = data.clusteredRendering;
             forwardInitParams.tileSize = (int)data.tileSize;
+            forwardInitParams.stripShadowsOffVariants = true;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
@@ -187,6 +188,7 @@ namespace UnityEngine.Rendering.Universal
             m_FakeMainLightShadowCasterPass = new FakeMainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_FakeAdditionalLightsShadowCasterPass = new FakeAdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            this.stripShadowsOffVariants = true;
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
             // Schedule XR copydepth right after m_FinalBlitPass(AfterRendering + 1)
@@ -607,7 +609,6 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
             else if (UniversalRenderPipeline.asset.supportsAdditionalLightShadows)
             {
-                m_FakeAdditionalLightsShadowCasterPass.Setup(ref renderingData);
                 EnqueuePass(m_FakeAdditionalLightsShadowCasterPass);
             }
 

@@ -48,6 +48,7 @@ namespace UnityEditor.Rendering.Universal
         MainLightShadowsCascade = (1 << 26),
         DrawProcedural = (1 << 27),
         ScreenSpaceOcclusionAfterOpaque = (1 << 28),
+        ShadowsKeepOfVariant = (1 << 29),
     }
 
     [Flags]
@@ -358,11 +359,22 @@ namespace UnityEditor.Rendering.Universal
             var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants);
 
             // strip main light shadows, cascade and screen variants
-            if (stripTool.StripMultiCompile(
-                m_MainLightShadows, ShaderFeatures.MainLightShadows,
-                m_MainLightShadowsCascades, ShaderFeatures.MainLightShadowsCascade,
-                m_MainLightShadowsScreen, ShaderFeatures.ScreenSpaceShadows))
-                return true;
+            if (IsFeatureEnabled(ShaderFeatures.ShadowsKeepOfVariant, features))
+            {
+                if (stripTool.StripMultiCompileKeepOffVariant(
+                    m_MainLightShadows, ShaderFeatures.MainLightShadows,
+                    m_MainLightShadowsCascades, ShaderFeatures.MainLightShadowsCascade,
+                    m_MainLightShadowsScreen, ShaderFeatures.ScreenSpaceShadows))
+                    return true;
+            }
+            else
+            {
+                if (stripTool.StripMultiCompile(
+                    m_MainLightShadows, ShaderFeatures.MainLightShadows,
+                    m_MainLightShadowsCascades, ShaderFeatures.MainLightShadowsCascade,
+                    m_MainLightShadowsScreen, ShaderFeatures.ScreenSpaceShadows))
+                    return true;
+            }
 
             // TODO: Strip off variants once we have global soft shadows option for forcing instead as support
             if (stripTool.StripMultiCompileKeepOffVariant(m_SoftShadows, ShaderFeatures.SoftShadows))
@@ -399,8 +411,16 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             // No additional light shadows
-            if (stripTool.StripMultiCompile(m_AdditionalLightShadows, ShaderFeatures.AdditionalLightShadows))
-                return true;
+            if (IsFeatureEnabled(ShaderFeatures.ShadowsKeepOfVariant, features))
+            {
+                if (stripTool.StripMultiCompileKeepOffVariant(m_AdditionalLightShadows, ShaderFeatures.AdditionalLightShadows))
+                    return true;
+            }
+            else
+            {
+                if (stripTool.StripMultiCompile(m_AdditionalLightShadows, ShaderFeatures.AdditionalLightShadows))
+                    return true;
+            }
 
             if (stripTool.StripMultiCompile(m_ReflectionProbeBlending, ShaderFeatures.ReflectionProbeBlending))
                 return true;
@@ -423,9 +443,18 @@ namespace UnityEditor.Rendering.Universal
             }
 
             // Additional light are shaded per-vertex or per-pixel.
-            if (stripTool.StripMultiCompile(m_AdditionalLightsVertex, ShaderFeatures.VertexLighting,
-                m_AdditionalLightsPixel, ShaderFeatures.AdditionalLights))
-                return true;
+            if (IsFeatureEnabled(ShaderFeatures.ShadowsKeepOfVariant, features))
+            {
+                if (stripTool.StripMultiCompileKeepOffVariant(m_AdditionalLightsVertex, ShaderFeatures.VertexLighting,
+                    m_AdditionalLightsPixel, ShaderFeatures.AdditionalLights))
+                    return true;
+            }
+            else
+            {
+                if (stripTool.StripMultiCompile(m_AdditionalLightsVertex, ShaderFeatures.VertexLighting,
+                    m_AdditionalLightsPixel, ShaderFeatures.AdditionalLights))
+                    return true;
+            }
 
             if (stripTool.StripMultiCompile(m_ClusteredRendering, ShaderFeatures.ClusteredRendering))
                 return true;
@@ -917,6 +946,9 @@ namespace UnityEditor.Rendering.Universal
                         usesRenderPass |= universalRenderer.useRenderPassEnabled;
                     }
                 }
+
+                if (!renderer.stripShadowsOffVariants)
+                    shaderFeatures |= ShaderFeatures.ShadowsKeepOfVariant;
 
                 var rendererClustered = false;
 

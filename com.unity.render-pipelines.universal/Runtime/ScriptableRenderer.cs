@@ -491,6 +491,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useDepthPriming { get; set; } = false;
 
+        internal bool stripShadowsOffVariants { get; set; } = false;
+
         public ScriptableRenderer(ScriptableRendererData data)
         {
             if (Debug.isDebugBuild)

@@ -22,9 +22,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             int maxAdditionalLightShadowParams = RenderingUtils.useStructuredBuffer ? maxVisibleLights : Math.Min(maxVisibleLights, UniversalRenderPipeline.maxVisibleAdditionalLights);
             m_AdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
         }
-        public void Setup(ref RenderingData renderingData)
-        {
-        }
+
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ref ShadowData shadowData = ref renderingData.shadowData;
