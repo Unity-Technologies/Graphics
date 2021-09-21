@@ -23,6 +23,11 @@ namespace UnityEditor
             BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue: false);
         }
 
+        public override void DrawSurfaceInputs(Material material)
+        {
+            DrawShaderGraphProperties(material, properties);
+        }
+
         public override void ValidateMaterial(Material material)
         {
             if (material == null)
