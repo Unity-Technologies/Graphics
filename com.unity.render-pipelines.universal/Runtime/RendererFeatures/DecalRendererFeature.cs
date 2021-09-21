@@ -479,7 +479,7 @@ namespace UnityEngine.Rendering.Universal
                 else
                     m_CopyDepthPass.Setup(
                         universalRenderer.m_DepthTexture,
-                        m_DBufferRenderPass.dBufferDepthIndentifier
+                        m_DBufferRenderPass.dBufferColorHandle
                     );
                 m_CopyDepthPass.MssaSamples = 1;
             }

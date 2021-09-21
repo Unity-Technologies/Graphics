@@ -26,8 +26,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal DeferredLights deferredLights { get; set; }
         private bool isDeferred => deferredLights != null;
-        internal RTHandle[] dBufferColorIndentifiers { get; private set; }
-        internal RTHandle dBufferDepthIndentifier { get; private set; }
+        internal RTHandle[] dBufferColorHandles { get; private set; }
+        internal RTHandle dBufferColorHandle { get; private set; }
 
         public DBufferRenderPass(Material dBufferClear, DBufferSettings settings, DecalDrawDBufferSystem drawSystem)
         {
@@ -44,18 +44,18 @@ namespace UnityEngine.Rendering.Universal
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DBufferMesh));
 
             int dBufferCount = (int)settings.surfaceData + 1;
-            dBufferColorIndentifiers = new RTHandle[dBufferCount];
+            dBufferColorHandles = new RTHandle[dBufferCount];
             for (int dbufferIndex = 0; dbufferIndex < dBufferCount; ++dbufferIndex)
-                dBufferColorIndentifiers[dbufferIndex] = RTHandles.Alloc(s_DBufferNames[dbufferIndex], name: s_DBufferNames[dbufferIndex]);
+                dBufferColorHandles[dbufferIndex] = RTHandles.Alloc(s_DBufferNames[dbufferIndex], name: s_DBufferNames[dbufferIndex]);
             m_DBufferCount = dBufferCount;
 
-            dBufferDepthIndentifier = RTHandles.Alloc(s_DBufferDepthName, name: s_DBufferDepthName);
+            dBufferColorHandle = RTHandles.Alloc(s_DBufferDepthName, name: s_DBufferDepthName);
         }
 
         public void Dispose()
         {
-            dBufferDepthIndentifier.Release();
-            foreach (var handle in dBufferColorIndentifiers)
+            dBufferColorHandle.Release();
+            foreach (var handle in dBufferColorHandles)
                 handle.Release();
         }
 
@@ -101,14 +101,14 @@ namespace UnityEngine.Rendering.Universal
                 depthDesc.msaaSamples = 1;
 
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferDepthName), depthDesc);
-                depthHandle = dBufferDepthIndentifier;
+                depthHandle = dBufferColorHandle;
             }
             else
             {
                 depthHandle = deferredLights.DepthAttachmentHandle;
             }
 
-            ConfigureTarget(dBufferColorIndentifiers, depthHandle);
+            ConfigureTarget(dBufferColorHandles, depthHandle);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
