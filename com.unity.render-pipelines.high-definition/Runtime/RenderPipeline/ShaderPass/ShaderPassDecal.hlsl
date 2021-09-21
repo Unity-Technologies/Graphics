@@ -4,6 +4,8 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DataExtraction.hlsl"
+
 #if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/DecalMeshBiasTypeEnum.cs.hlsl"
 #endif
@@ -52,7 +54,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 )
 {
 #ifdef SCENEPICKINGPASS
-    outColor = _SelectionID;
+    outColor = ComputePickingValue(false);
 #else
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);

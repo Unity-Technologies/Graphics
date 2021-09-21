@@ -165,9 +165,10 @@ float _RayTracing;
 // TODO: Fix the code in legacy unity so we can customize the behavior for GI
 float3 _EmissionColor;
 
+CBUFFER_END
+
 // Following three variables are feeded by the C++ Editor for Scene selection
+// They are placed in globals instead of the PerMaterial cbuffer to make sure they don't break SRP Batcher compatibility
 int _ObjectId;
 int _PassValue;
 float4 _SelectionID;
-
-CBUFFER_END

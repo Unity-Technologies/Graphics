@@ -2256,14 +2256,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var previousRT = RenderTexture.active;
             RenderTexture.active = null;
 
-#if false
-            if (m_IntermediateAfterPostProcessBufferFloat == null)
-                m_IntermediateAfterPostProcessBufferFloat = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, useDynamicScale: true, name: "AfterPostProcessFloat");
-
-            var previousPostprocessBuffer = m_IntermediateAfterPostProcessBuffer;
-            m_IntermediateAfterPostProcessBuffer = m_IntermediateAfterPostProcessBufferFloat;
-#endif
-
             // Process RenderRequests in two batches. First, process every SceneSelection request, which
             // is handled using a special codepath. Then, process every other request, which will go through
             // the AOV system.
@@ -2340,7 +2332,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             finally
             {
-                // m_IntermediateAfterPostProcessBuffer = previousPostprocessBuffer;
                 RenderTexture.active = previousRT;
             }
         }

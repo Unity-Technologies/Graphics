@@ -37,11 +37,13 @@ float3 _EmissionColor;
 // By default, the emissive is contributing
 float _IncludeIndirectLighting;
 
-// Following two variables are feeded by the C++ Editor for Scene selection
+CBUFFER_END
+
+// Following three variables are feeded by the C++ Editor for Scene selection
+// They are placed in globals instead of the PerMaterial cbuffer to make sure they don't break SRP Batcher compatibility
 int _ObjectId;
 int _PassValue;
-
-CBUFFER_END
+float4 _SelectionID;
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 

@@ -27,6 +27,29 @@ float4 ComputeEntityPickingValue(uint entityID)
     return PackId32ToRGBA8888(pickingValue);
 }
 
+uint LoadInstanceID()
+{
+    // SRP rendering loop supplies instance ID in unity_LODFade.z
+    return asuint(unity_LODFade.z);
+}
+
+float4 ComputePickingValue(bool pickingEntityId)
+{
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+    // When rendering EntityIds, GameObjects output EntityId = 0
+    if (pickingEntityId)
+        return ComputeEntityPickingValue(unity_EntityId.x);
+    else
+        return float4(0, 0, 0, 0);
+#else
+    // When rendering ObjectIds, Entities output ObjectId = 0
+    if (!pickingEntityId)
+        return PackId32ToRGBA8888(LoadInstanceID());
+    else
+        return float4(0, 0, 0, 0);
+#endif
+}
+
 float4 ComputeSelectionMask(float objectGroupId, float3 ndcWithZ, TEXTURE2D_PARAM(depthBuffer, sampler_depthBuffer))
 {
     // float sceneZ = SAMPLE_TEXTURE2D(depthBuffer, sampler_depthBuffer, ndcWithZ.xy).r;

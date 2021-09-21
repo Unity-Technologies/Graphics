@@ -1,6 +1,8 @@
 #ifndef SG_DEPTH_ONLY_PASS_INCLUDED
 #define SG_DEPTH_ONLY_PASS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DataExtraction.hlsl"
+
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
@@ -28,7 +30,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
     outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
     #elif defined(SCENEPICKINGPASS)
-        outColor = _SelectionID;
+    outColor = ComputePickingValue(_SelectionID.x == RENDER_ENTITY_ID);
     #endif
 
     return outColor;

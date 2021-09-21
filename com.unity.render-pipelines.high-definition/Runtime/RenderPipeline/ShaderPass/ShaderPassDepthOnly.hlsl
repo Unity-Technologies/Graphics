@@ -104,19 +104,7 @@ void Frag(  PackedVaryingsToPS packedInput
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
     outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
 #elif defined(SCENEPICKINGPASS)
-    #ifdef UNITY_DOTS_INSTANCING_ENABLED
-    // When rendering EntityIds, GameObjects output EntityId = 0
-    if (_SelectionID.x == RENDER_ENTITY_ID)
-        outColor = ComputeEntityPickingValue(unity_EntityId.x);
-    else
-        outColor = float4(0, 0, 0, 0);
-    #else
-    // When rendering ObjectIds, Entities output ObjectId = 0
-    if (_SelectionID.x == RENDER_OBJECT_ID)
-        outColor = PackId32ToRGBA8888(asuint(unity_LODFade.z));
-    else
-        outColor = float4(0, 0, 0, 0);
-    #endif
+    outColor = ComputePickingValue(_SelectionID.x == RENDER_ENTITY_ID);
 #else
 
     // Depth and Alpha to coverage

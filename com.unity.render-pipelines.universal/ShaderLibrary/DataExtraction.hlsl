@@ -75,28 +75,14 @@ float4 OutputExtraction(ExtractionInputs inputs)
         ConvertMetallicToSpecular(inputs.baseColor, inputs.metallic, diffuse, specular);
     #endif
 
-#ifdef UNITY_DOTS_INSTANCING_ENABLED
-    // Entities always have zero ObjectId
-    if (UNITY_DataExtraction_Mode == RENDER_OBJECT_ID)
-         return 0;
-#else
-    if (UNITY_DataExtraction_Mode == RENDER_OBJECT_ID)
-         return PackId32ToRGBA8888(asuint(unity_LODFade.z));
-#endif
+    if (UNITY_DataExtraction_Mode == RENDER_OBJECT_ID || UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
+        return ComputePickingValue(UNITY_DataExtraction_Mode == RENDER_ENTITY_ID);
     if (UNITY_DataExtraction_Mode == RENDER_DEPTH)
         return float4(inputs.deviceDepth.xxx, 1);
     if (UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_FACE_RGB)
         return float4(PackNormalRGB(inputs.vertexNormalWS), 1.0f);
     if (UNITY_DataExtraction_Mode == RENDER_WORLD_POSITION_RGB)
         return float4(inputs.positionWS, 1.0);
-#ifdef UNITY_DOTS_INSTANCING_ENABLED
-    if (UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
-        return ComputeEntityPickingValue(unity_EntityId.x);
-#else
-    // GameObjects always have zero EntityId
-    if (UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
-        return 0;
-#endif
     if (UNITY_DataExtraction_Mode == RENDER_BASE_COLOR_RGBA)
         return float4(baseColor, inputs.alpha);
     if (UNITY_DataExtraction_Mode == RENDER_SPECULAR_RGB)

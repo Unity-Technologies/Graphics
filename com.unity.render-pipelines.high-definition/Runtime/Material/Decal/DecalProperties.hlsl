@@ -33,10 +33,10 @@ float _Smoothness;
 float _AO;
 float _Metallic;
 
-#ifdef SCENEPICKINGPASS
-    float4 _SelectionID;
-#endif
-
 CBUFFER_END
+
+#ifdef SCENEPICKINGPASS
+float4 _SelectionID;
+#endif
 
 #endif
