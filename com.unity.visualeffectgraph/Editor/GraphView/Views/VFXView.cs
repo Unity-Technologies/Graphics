@@ -454,10 +454,10 @@ namespace UnityEditor.VFX.UI
 
             m_Toolbar = new UnityEditor.UIElements.Toolbar();
 
-            var saveDropDownButton = new VFXSaveDropdownButton(this);
+            var saveDropDownButton = new VFXSaveDropdownButton(this, VFXViewWindow.currentWindow);
             m_Toolbar.Add(saveDropDownButton);
 
-            var compileDropDownButton = new VFXCompileDropdownButton(this);
+            var compileDropDownButton = new VFXCompileDropdownButton(this, VFXViewWindow.currentWindow);
             m_Toolbar.Add(compileDropDownButton);
 
             m_LinkedIcon = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "Linked.png"));
@@ -493,7 +493,7 @@ namespace UnityEditor.VFX.UI
             m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
             m_Toolbar.Add(m_ToggleComponentBoard);
 
-            var helpDropDownButton = new VFXHelpDropdownButton(this);
+            var helpDropDownButton = new VFXHelpDropdownButton(this, VFXViewWindow.currentWindow);
             m_Toolbar.Add(helpDropDownButton);
             // End Toolbar
 

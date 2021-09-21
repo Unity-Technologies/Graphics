@@ -13,8 +13,9 @@ namespace UnityEditor.VFX.UI
         readonly Toggle m_ShaderValidationToggle;
         readonly Button m_ResyncMaterial;
 
-        public VFXCompileDropdownButton(VFXView vfxView)
+        public VFXCompileDropdownButton(VFXView vfxView, VFXViewWindow parentWindow)
             : base(
+                parentWindow,
                 "VFXCompileDropdownPanel",
                 "Compile",
                 "compile-button",
@@ -39,7 +40,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void OnOpenPopup()
         {
-            m_AutoCompileToggle.value = VFXViewWindow.currentWindow.autoCompile;
+            m_AutoCompileToggle.value = m_ParentWindow.autoCompile;
             m_RuntimeModeToggle.value = m_VFXView.GetIsRuntimeMode();
             m_ShaderValidationToggle.value = m_VFXView.GetShaderValidation();
         }
@@ -51,7 +52,7 @@ namespace UnityEditor.VFX.UI
 
         void OnToggleAutoCompile(ChangeEvent<bool> evt)
         {
-            VFXViewWindow.currentWindow.autoCompile = evt.newValue;
+            m_ParentWindow.autoCompile = evt.newValue;
         }
 
         void OnToggleRuntimeMode(ChangeEvent<bool> evt)

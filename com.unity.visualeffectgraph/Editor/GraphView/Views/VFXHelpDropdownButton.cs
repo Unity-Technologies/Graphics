@@ -24,8 +24,9 @@ namespace UnityEditor.VFX.UI
         readonly Button m_installSamplesButton;
         readonly Button m_installHelpersButton;
 
-        public VFXHelpDropdownButton(VFXView vfxView)
+        public VFXHelpDropdownButton(VFXView vfxView, VFXViewWindow parentWindow)
             : base(
+                parentWindow,
                 "VFXHelpDropdownPanel",
                 "Open the user manual of Visual Effect Graph",
                 "help-button",

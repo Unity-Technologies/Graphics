@@ -13,8 +13,9 @@ namespace UnityEditor.VFX.UI
         private readonly VFXView m_VFXView;
         private readonly Button m_CheckoutButton;
 
-        public VFXSaveDropdownButton(VFXView vfxView)
+        public VFXSaveDropdownButton(VFXView vfxView, VFXViewWindow parentWindow)
             : base(
+                parentWindow,
                 "VFXSaveDropDownPanel",
                 "Save",
                 "save-button",
