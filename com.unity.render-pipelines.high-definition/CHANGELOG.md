@@ -422,6 +422,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed double contribution from the clear coat when having SSR or RTR on the Lit and StackLit shaders (case 1352424).
 - Mitigate ghosting / overbluring artifacts when TAA and physically-based DoF are enabled by adjusting the internal range of blend factor values (case 1340541).
 - Fixed silhouette issue with emissive decals
+- Fixed texture fields for volume parameters accepting textures with wrong dimensions.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
