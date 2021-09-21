@@ -29,14 +29,16 @@ public struct DrawRange
 
 public struct DrawKey : IEquatable<DrawKey>
 {
-    public BatchPackedMeshSubmesh packedSubmesh;
+    public BatchMeshID meshID;
+    public uint submeshIndex;
     public BatchMaterialID material;
     public ShadowCastingMode shadows;
 
     public bool Equals(DrawKey other)
     {
-        return 
-            packedSubmesh == other.packedSubmesh && 
+        return
+            meshID == other.meshID &&
+            submeshIndex == other.submeshIndex && 
             material == other.material && 
             shadows == other.shadows;
     }
@@ -231,7 +233,8 @@ public unsafe class RenderBRG : MonoBehaviour
                             batchID = batchID,
                             bufferID = bufferID,
                             materialID = drawBatches[remappedIndex].key.material,
-                            packedMeshSubmesh = drawBatches[remappedIndex].key.packedSubmesh,
+                            meshID = drawBatches[remappedIndex].key.meshID,
+                            submeshIndex = drawBatches[remappedIndex].key.submeshIndex,
                             flags = BatchDrawCommandFlags.None,
                             sortingPosition = 0
                         };
@@ -431,9 +434,8 @@ public unsafe class RenderBRG : MonoBehaviour
             for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
             { 
                 var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
-                var packedSubmesh = new BatchPackedMeshSubmesh(mesh, (byte)matIndex);
 
-                var key = new DrawKey { material = material, packedSubmesh = packedSubmesh, shadows = shadows };
+                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows };
                 var drawBatch = new DrawBatch
                 {
                     key = key,

@@ -105,7 +105,8 @@ public unsafe class BRGSetup : MonoBehaviour
             batchID = m_batchID,
             bufferID = m_GPUPersistanceBufferId,
             materialID = m_materialID,
-            packedMeshSubmesh = new BatchPackedMeshSubmesh(m_meshID, 0),
+            meshID = m_meshID,
+            submeshIndex = 0,
             flags = m_motionVectorTest ? BatchDrawCommandFlags.HasMotion : BatchDrawCommandFlags.None,
             sortingPosition = 0
         };
