@@ -14,6 +14,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.contactShadow    = 1.0;
     context.shadowContext    = InitShadowContext();
     context.shadowValue      = 1.0;
+    context.splineVisibility = -1;
     context.sampleReflection = 0;
 
     // Initialize the contactShadow and contactShadowFade fields
