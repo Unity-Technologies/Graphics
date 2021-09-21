@@ -363,7 +363,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 foreach (var identifier in colorBuffers)
                 {
-                    if (identifier?.nameID != 0)
+                    if (identifier != null && identifier.nameID != 0)
                         ++nonNullColorBuffers;
                 }
             }
