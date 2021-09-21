@@ -263,10 +263,14 @@ namespace UnityEditor.Rendering
                     if (displayContent)
                     {
                         if (!editor.target.supportedOnCurrentPipeline)
+                        {
                             EditorGUILayout.HelpBox(Styles.unsuportedFeature, MessageType.Warning, true);
-
-                        using (new EditorGUI.DisabledScope(!editor.activeProperty.boolValue && !editor.target.supportedOnCurrentPipeline))
-                            editor.OnInternalInspectorGUI();
+                        }
+                        else
+                        {
+                            using (new EditorGUI.DisabledScope(!editor.activeProperty.boolValue && !editor.target.supportedOnCurrentPipeline))
+                                editor.OnInternalInspectorGUI();
+                        }
                     }
                 }
 
@@ -327,7 +331,7 @@ namespace UnityEditor.Rendering
                 menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), targetEditor.showAdditionalProperties, () => targetEditor.showAdditionalProperties ^= true);
             else
                 menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Show Additional Properties"));
-            menu.AddItem(EditorGUIUtility.TrTextContent("Show Only overrided parameters"), targetEditor.showOnlyOverridedParameters, () => targetEditor.showOnlyOverridedParameters = !targetEditor.showOnlyOverridedParameters);
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show Only Overrided Parameters"), targetEditor.showOnlyOverridedParameters, () => targetEditor.showOnlyOverridedParameters = !targetEditor.showOnlyOverridedParameters);
             menu.AddItem(EditorGUIUtility.TrTextContent("Open Core Render Pipeline Preferences..."), false, () => CoreRenderPipelinePreferences.Open());
 
             menu.AddSeparator(string.Empty);
