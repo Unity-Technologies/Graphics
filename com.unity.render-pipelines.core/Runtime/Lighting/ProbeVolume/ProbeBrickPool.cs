@@ -264,26 +264,33 @@ namespace UnityEngine.Experimental.Rendering
 
             allocatedBytes = 0;
             loc.TexL0_L1rx = new Texture3D(width, height, depth, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
+            loc.TexL0_L1rx.hideFlags = HideFlags.HideAndDontSave;
             allocatedBytes += texelCount * 8;
 
             loc.TexL1_G_ry = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+            loc.TexL1_G_ry.hideFlags = HideFlags.HideAndDontSave;
             allocatedBytes += texelCount * (compressed ? 1 : 4);
 
             loc.TexL1_B_rz = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+            loc.TexL1_B_rz.hideFlags = HideFlags.HideAndDontSave;
             allocatedBytes += texelCount * (compressed ? 1 : 4);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
                 loc.TexL2_0 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+                loc.TexL2_0.hideFlags = HideFlags.HideAndDontSave;
                 allocatedBytes += texelCount * (compressed ? 1 : 4);
 
                 loc.TexL2_1 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+                loc.TexL2_1.hideFlags = HideFlags.HideAndDontSave;
                 allocatedBytes += texelCount * (compressed ? 1 : 4);
 
                 loc.TexL2_2 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+                loc.TexL2_2.hideFlags = HideFlags.HideAndDontSave;
                 allocatedBytes += texelCount * (compressed ? 1 : 4);
 
                 loc.TexL2_3 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+                loc.TexL2_3.hideFlags = HideFlags.HideAndDontSave;
                 allocatedBytes += texelCount * (compressed ? 1 : 4);
             }
             else
