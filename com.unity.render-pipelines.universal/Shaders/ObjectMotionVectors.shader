@@ -61,15 +61,6 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 output.positionCS = TransformObjectToHClip(input.position.xyz);
-
-                // this works around an issue with dynamic batching
-                // potentially remove in 5.4 when we use instancing
-                #if defined(UNITY_REVERSED_Z)
-                    output.positionCS.z -= unity_MotionVectorsParams.z * output.positionCS.w;
-                #else
-                    output.positionCS.z += unity_MotionVectorsParams.z * output.positionCS.w;
-                #endif
-
                 output.positionVP = mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, input.position));
 
                 const float4 prevPos = (unity_MotionVectorsParams.x == 1) ? float4(input.positionOld, 1) : input.position;
