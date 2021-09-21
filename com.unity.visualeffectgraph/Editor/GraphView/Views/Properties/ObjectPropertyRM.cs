@@ -14,9 +14,9 @@ namespace UnityEditor.VFX.UI
     {
         static readonly Dictionary<Type, TextureDimension> s_TypeToDimensionMap = new()
         {
-            {typeof(Texture2D), TextureDimension.Tex2D},
-            {typeof(Texture3D), TextureDimension.Tex3D},
-            {typeof(Cubemap), TextureDimension.Cube},
+            { typeof(Texture2D), TextureDimension.Tex2D },
+            { typeof(Texture3D), TextureDimension.Tex3D },
+            { typeof(Cubemap), TextureDimension.Cube },
         };
 
         readonly TextField m_TextField;
@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.UI
 
             m_TextField = new TextField { name = "PickLabel", isReadOnly = true };
             var button = new Button { name = "PickButton" };
-            var icon  = new VisualElement { name = "PickIcon" };
+            var icon = new VisualElement { name = "PickIcon" };
             m_ValueIcon = new Image { name = "TextureIcon" };
 
             button.clicked += OnPickObject;
