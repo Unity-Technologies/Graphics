@@ -664,6 +664,11 @@ namespace UnityEngine.Experimental.Rendering
             {
                 cells.Remove(cell.index);
 
+                if (cellInfo.loaded)
+                    m_LoadedCells.Remove(cellInfo);
+                else
+                    m_UnloadedCells.Remove(cellInfo);
+
                 UnloadCell(cellInfo);
 
                 m_CellInfoPool.Release(cellInfo);
