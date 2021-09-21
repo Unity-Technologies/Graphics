@@ -472,8 +472,6 @@ float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
 // To get instancing working, we must use UNITY_MATRIX_M/UNITY_MATRIX_I_M/UNITY_PREV_MATRIX_M/UNITY_PREV_MATRIX_I_M as UnityInstancing.hlsl redefine them
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
 #define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
-#define unity_MatrixPreviousM Use_Macro_UNITY_PREV_MATRIX_M_instead_of_unity_MatrixPreviousM
-#define unity_MatrixPreviousMI Use_Macro_UNITY_PREV_MATRIX_I_M_instead_of_unity_MatrixPreviousMI
 
 // This define allow to tell to unity instancing that we will use our camera relative functions (ApplyCameraTranslationToMatrix and  ApplyCameraTranslationToInverseMatrix) for the model view matrix
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
