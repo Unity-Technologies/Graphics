@@ -11,6 +11,7 @@ namespace UnityEngine.Experimental.Rendering
         DynamicArray<CellInfo> m_TempCellToUnloadList = new DynamicArray<CellInfo>();
 
         Vector3 m_FrozenCameraPosition;
+        bool m_EnableStreaming;
 
         /// <summary>
         /// Set the number of cells that are loaded per frame when needed.
@@ -31,6 +32,25 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        bool TryLoadCell(CellInfo cellInfo, ref int shBudget, ref int indexBudget, DynamicArray<CellInfo> loadedCells)
+        {
+            // Are we within budget?
+            if (cellInfo.cell.shChunkCount <= shBudget && cellInfo.cell.indexChunkCount <= indexBudget)
+            {
+                // This can still fail because of fragmentation.
+                // TODO: Handle defrag
+                if (LoadCell(cellInfo))
+                {
+                    loadedCells.Add(cellInfo);
+
+                    shBudget -= cellInfo.cell.shChunkCount;
+                    indexBudget -= cellInfo.cell.indexChunkCount;
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public void UpdateCellStreaming(Camera camera)
         {
             var cameraPosition = camera.transform.position;
@@ -48,98 +68,78 @@ namespace UnityEngine.Experimental.Rendering
             m_UnloadedCells.QuickSort();
             m_LoadedCells.QuickSort();
 
-            bool budgetReached = false;
-            int pendingLoadCount = 0;
-
             // This is only a rough budget estimate at first.
             // It doesn't account for fragmentation.
             int indexChunkBudget = m_Index.GetRemainingChunkCount();
             int shChunkBudget = m_Pool.GetRemainingChunkCount();
 
-            while (pendingLoadCount < m_NumberOfCellsLoadedPerFrame && pendingLoadCount < m_UnloadedCells.size && !budgetReached)
+            if (m_EnableStreaming)
             {
-                // Enough memory, we can safely load the cell.
-                var cellInfo = m_UnloadedCells[pendingLoadCount];
-                if (cellInfo.cell.shChunkCount <= shChunkBudget && cellInfo.cell.indexChunkCount <= indexChunkBudget)
-                {
-                    // Do the actual upload to GPU memory and update indirection buffer.
-                    // This can fail if there are not enough consecutive chunks for the cell.
-                    // TODO: Defrag?
-                    if (LoadCell(cellInfo))
-                    {
-                        m_TempCellToLoadList.Add(cellInfo);
+                bool budgetReached = false;
 
-                        shChunkBudget -= cellInfo.cell.shChunkCount;
-                        indexChunkBudget -= cellInfo.cell.indexChunkCount;
-                        pendingLoadCount++;
-                    }
-                    else
-                    {
-                        budgetReached = true;
-                    }
+                while (m_TempCellToLoadList.size < m_NumberOfCellsLoadedPerFrame && m_TempCellToLoadList.size < m_UnloadedCells.size && !budgetReached)
+                {
+                    // Enough memory, we can safely load the cell.
+                    var cellInfo = m_UnloadedCells[m_TempCellToLoadList.size];
+                    budgetReached = !TryLoadCell(cellInfo, ref shChunkBudget, ref indexChunkBudget, m_TempCellToLoadList);
                 }
-                else
+
+                // Budget reached. We need to figure out if we can safely unload other cells to make room.
+                if (budgetReached)
                 {
-                    budgetReached = true;
-                }
-            }
-
-            // Budget reached. We need to figure out if we can safely unload other cells to make room.
-            if (budgetReached)
-            {
-                int pendingUnloadCount = 0;
-                bool canUnloadCell = true;
-                while (canUnloadCell && pendingLoadCount < m_NumberOfCellsLoadedPerFrame && pendingLoadCount < m_UnloadedCells.size)
-                {
-                    if (m_LoadedCells.size - pendingUnloadCount == 0)
+                    int pendingUnloadCount = 0;
+                    bool canUnloadCell = true;
+                    while (canUnloadCell && m_TempCellToLoadList.size < m_NumberOfCellsLoadedPerFrame && m_TempCellToLoadList.size < m_UnloadedCells.size)
                     {
-                        canUnloadCell = false;
-                        break;
-                    }
-
-                    var furthestLoadedCell = m_LoadedCells[m_LoadedCells.size - pendingUnloadCount - 1];
-                    var closestUnloadedCell = m_UnloadedCells[pendingLoadCount];
-
-                    // Redundant work. Maybe store during first sort pass?
-                    float furthestLoadedCellDistance = Vector3.Distance(furthestLoadedCell.cell.position, cameraPositionCellSpace);
-                    float closestUnloadedCellDistance = Vector3.Distance(closestUnloadedCell.cell.position, cameraPositionCellSpace);
-
-                    // The most distant loaded cell is further than the closest unloaded cell, we can unload it.
-                    if (furthestLoadedCellDistance > closestUnloadedCellDistance)
-                    {
-                        pendingUnloadCount++;
-                        UnloadCell(furthestLoadedCell);
-                        shChunkBudget += furthestLoadedCell.cell.shChunkCount;
-                        indexChunkBudget += furthestLoadedCell.cell.indexChunkCount;
-
-                        m_TempCellToUnloadList.Add(furthestLoadedCell);
-
-                        // Are we within budget?
-                        if (closestUnloadedCell.cell.shChunkCount <= shChunkBudget && closestUnloadedCell.cell.indexChunkCount <= indexChunkBudget)
+                        if (m_LoadedCells.size - pendingUnloadCount == 0)
                         {
-                            if (LoadCell(closestUnloadedCell))
-                            {
-                                m_TempCellToLoadList.Add(closestUnloadedCell);
+                            canUnloadCell = false;
+                            break;
+                        }
 
-                                shChunkBudget -= closestUnloadedCell.cell.shChunkCount;
-                                indexChunkBudget -= closestUnloadedCell.cell.indexChunkCount;
-                                pendingLoadCount++;
-                            }
+                        var furthestLoadedCell = m_LoadedCells[m_LoadedCells.size - pendingUnloadCount - 1];
+                        var closestUnloadedCell = m_UnloadedCells[m_TempCellToLoadList.size];
+
+                        // Redundant work. Maybe store during first sort pass?
+                        float furthestLoadedCellDistance = Vector3.Distance(furthestLoadedCell.cell.position, cameraPositionCellSpace);
+                        float closestUnloadedCellDistance = Vector3.Distance(closestUnloadedCell.cell.position, cameraPositionCellSpace);
+
+                        // The most distant loaded cell is further than the closest unloaded cell, we can unload it.
+                        if (furthestLoadedCellDistance > closestUnloadedCellDistance)
+                        {
+                            pendingUnloadCount++;
+                            UnloadCell(furthestLoadedCell);
+                            shChunkBudget += furthestLoadedCell.cell.shChunkCount;
+                            indexChunkBudget += furthestLoadedCell.cell.indexChunkCount;
+
+                            m_TempCellToUnloadList.Add(furthestLoadedCell);
+
+                            TryLoadCell(closestUnloadedCell, ref shChunkBudget, ref indexChunkBudget, m_TempCellToLoadList);
+                        }
+                        else
+                        {
+                            // We are in a "stable" state, all the closest cells are loaded within the budget.
+                            canUnloadCell = false;
                         }
                     }
-                    else
-                    {
-                        // We are in a "stable" state, all the closest cells are loaded within the budget.
-                        canUnloadCell = false;
-                    }
-                }
 
-                if (pendingUnloadCount > 0)
-                    m_LoadedCells.RemoveRange(m_LoadedCells.size - pendingUnloadCount, pendingUnloadCount);
+                    if (pendingUnloadCount > 0)
+                        m_LoadedCells.RemoveRange(m_LoadedCells.size - pendingUnloadCount, pendingUnloadCount);
+                }
+            }
+            else
+            {
+                // TODO: CHeck remaining budget to avoid useless tries to load stuff.
+                int cellCountToLoad = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_UnloadedCells.size);
+                for (int i = 0; i < cellCount; ++i)
+                {
+                    var cellInfo = m_UnloadedCells[m_TempCellToLoadList.size]; // m_TempCellToLoadList.size get incremented in TryLoadCell
+                    TryLoadCell(cellInfo, ref shChunkBudget, ref indexChunkBudget, m_TempCellToLoadList);
+                }
             }
 
             // Remove the cells we successfully loaded.
-            m_UnloadedCells.RemoveRange(0, pendingLoadCount);
+            m_UnloadedCells.RemoveRange(0, m_TempCellToLoadList.size);
             m_LoadedCells.AddRange(m_TempCellToLoadList);
             m_UnloadedCells.AddRange(m_TempCellToUnloadList);
             m_TempCellToLoadList.Clear();
