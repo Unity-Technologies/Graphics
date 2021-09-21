@@ -45,7 +45,7 @@
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.test-framework": "1.1.1"
+        "com.unity.test-framework": "1.1.29"
       },
       "url": "https://packages.unity.com"
     },
@@ -126,7 +126,7 @@
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.test-framework": "1.0.17"
+        "com.unity.test-framework": "1.1.29"
       },
       "url": "https://packages.unity.com"
     },
@@ -135,7 +135,7 @@
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.test-framework": "1.1.1",
+        "com.unity.test-framework": "1.1.29",
         "com.unity.external.test-protocol": "1.0.1-preview"
       },
       "url": "https://packages.unity.com"
