@@ -1531,7 +1531,8 @@ namespace UnityEngine.Rendering.Universal
         {
             // XRTODO: Revisit the logic. Why treat CameraTarget depth specially?
             if (depthAttachment.nameID == BuiltinRenderTextureType.CameraTarget)
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
+                    colorAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
             else
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
                     depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
