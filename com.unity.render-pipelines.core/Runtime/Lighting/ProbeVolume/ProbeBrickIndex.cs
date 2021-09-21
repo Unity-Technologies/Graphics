@@ -88,6 +88,8 @@ namespace UnityEngine.Experimental.Rendering
         int m_VoxelSubdivLevel = 3;
 
         bool m_NeedUpdateIndexComputeBuffer;
+        int m_UpdateMinIndex = int.MaxValue;
+        int m_UpdateMaxIndex = int.MinValue;
 
         // Static variable required to avoid allocations inside lambda functions
         static Cell g_Cell = null;
@@ -141,8 +143,11 @@ namespace UnityEngine.Experimental.Rendering
 
         internal void UploadIndexData()
         {
-            m_PhysicalIndexBuffer.SetData(m_PhysicalIndexBufferData);
+            var count = m_UpdateMaxIndex - m_UpdateMinIndex + 1;
+            m_PhysicalIndexBuffer.SetData(m_PhysicalIndexBufferData, m_UpdateMinIndex, m_UpdateMinIndex, count);
             m_NeedUpdateIndexComputeBuffer = false;
+            m_UpdateMaxIndex = int.MinValue;
+            m_UpdateMinIndex = int.MaxValue;
         }
 
         internal void Clear()
@@ -153,6 +158,9 @@ namespace UnityEngine.Experimental.Rendering
                 m_PhysicalIndexBufferData[i] = -1;
 
             m_NeedUpdateIndexComputeBuffer = true;
+            m_UpdateMinIndex = 0;
+            m_UpdateMaxIndex = m_PhysicalIndexBufferData.Length - 1;
+
             m_NextFreeChunk = 0;
             m_IndexChunks.SetAll(false);
 
@@ -455,6 +463,9 @@ namespace UnityEngine.Experimental.Rendering
                         int localFlatIdx = z * (size.x * size.y) + x * size.y + y;
                         int actualIdx = chunkStart + localFlatIdx;
                         m_PhysicalIndexBufferData[actualIdx] = value;
+
+                        m_UpdateMinIndex = Math.Min(actualIdx, m_UpdateMinIndex);
+                        m_UpdateMaxIndex = Math.Max(actualIdx, m_UpdateMaxIndex);
                     }
                 }
             }
