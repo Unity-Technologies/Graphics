@@ -38,7 +38,11 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The size of the fall-off area. Bigger value corresponds to bigger fall off size.
         /// </summary>
-        public float shapeLightFalloffSize => m_ShapeLightFalloffSize;
+        public float shapeLightFalloffSize
+        {
+            get { return m_ShapeLightFalloffSize; }
+            set { m_ShapeLightFalloffSize = value; }
+        }
 
         /// <summary>
         /// Returns the path that represents the shape light. Values are in object space.
@@ -50,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Set the path that represents the shape light. Values are in object space.
+        /// Set the shape that represents the freeform light. Values are in object space.
         /// </summary>
         public void SetShapePath(Vector3[] path)
         {
