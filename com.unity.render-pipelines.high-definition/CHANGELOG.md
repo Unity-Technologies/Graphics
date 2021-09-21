@@ -36,11 +36,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error when disabling opaque objects on a camera with MSAA.
 - Fixed double camera preview.
 - Fixed the volumetric clouds cloud map not being centered over the world origin (case 1364465).
+- Fixed the emissive being overriden by ray traced sub-surface scattering (case 1364456).
+- Fixed support of directional light coloring from physical sky in path tracing.
+- Fixed disabled menu item for volume additional properties.
+- Fixed Shader advanced options for lit shaders.
+- Fixed Dof, would sometimes get corrupted when DLSS was on caused by TAA logic accidentally being on for DOF (1357722)
+- Fixed shadowmask editable when not supported.
+- Fixed sorting for mesh decals.
+- Fixed a warning when enabling tile/cluster debug.
+- Fix recursive rendering transmittance over the sky (case 1323945).
+- Fixed specular anti aliasing for layeredlit shader.
+- Fixed lens flare occlusion issues with transparent depth. It had the wrong depth bound (1365098)
+- Fixed double contribution from the clear coat when having SSR or RTR on the Lit and StackLit shaders (case 1352424).
 - Fixed texture fields for volume parameters accepting textures with wrong dimensions.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
 - Surface ReflectionTypeLoadExceptions in HDUtils.GetRenderPipelineMaterialList(). Without surfacing these exceptions, developers cannot act on any underlying reflection errors in the HDRP assembly.
+- Improved the DynamicArray class by adding several utility APIs.
+- Moved AMD FidelityFX shaders to core
 
 ## [12.0.0] - 2021-01-11
 
@@ -418,6 +432,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
 - Fixed ThreadMapDetail to saturate AO & smoothness strength inputs to prevent out-of-bounds values set by users (1357740)
 - Allow negative wind speed parameter.
+- Fixed custom pass custom buffer not bound after being created inside a custom pass.
+- Fixed silhouette issue with emissive decals
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -523,6 +539,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make some volumetric clouds properties additional to reduce the number default parameters (case 1357926).
 - Renamed the Cloud Offset to Cloud Map Offset in the volumetric clouds volume component (case 1358528).
 - Made debug panel mip bias functions internal, not public.
+- Mitigate ghosting / overbluring artifacts when TAA and physically-based DoF are enabled by adjusting the internal range of blend factor values (case 1340541).
 
 ## [11.0.0] - 2020-10-21
 
