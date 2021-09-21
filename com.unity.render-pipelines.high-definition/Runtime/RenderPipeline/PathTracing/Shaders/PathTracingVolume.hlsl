@@ -23,10 +23,9 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
     float tFog = min(t, _MaxFogDistance);
 
 #ifdef HAS_LIGHTLOOP
-    //float localWeight = GetLocalLightsInterval(WorldRayOrigin(), WorldRayDirection(), tMin, tMax);
 
     float lightWeight;
-    float localWeight = PickLocalLightInterval(WorldRayOrigin(), WorldRayDirection(), pixelCoord, lightPosition, lightWeight, tMin, tMax);
+    float localWeight = PickLocalLightInterval(WorldRayOrigin(), WorldRayDirection(), inputSample, lightPosition, lightWeight, tMin, tMax);
 
     if (localWeight < 0.0)
         return false;
@@ -57,6 +56,7 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
 
     // FIXME: not quite sure what the sigmaT value is supposed to be...
     const float sigmaT = _HeightFogBaseExtinction;
+    const float transmittanceTMin = max(exp(-tMin * sigmaT), 0.01);
     const float transmittanceTMax = max(exp(-tMax * sigmaT), 0.01);
     const float transmittanceThreshold = t < FLT_MAX ? 1.0 - min(0.5, transmittanceTMax) : 1.0;
 
@@ -78,36 +78,12 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
     // Adjust the pdf
     pdf *= pdfVol * transmittanceThreshold;
 
-    if (sampleLocalLights)
-    {
-        // const float transmittanceTMin = max(exp(-tMin * sigmaT), 0.01);
+    // Exponential sampling
+    float transmittance = transmittanceTMax + inputSample * (transmittanceTMin - transmittanceTMax);
+    t = -log(transmittance) / sigmaT;
 
-        // // Exponential sampling
-        // float transmittance = transmittanceTMax + inputSample * (transmittanceTMin - transmittanceTMax);
-        // t = -log(transmittance) / sigmaT;
-
-        // // Adjust the pdf
-        // pdf *= sigmaT * transmittance / (transmittanceTMin - transmittanceTMax);
-
-
-
-
-        // Linear sampling
-        float deltaT = tMax - tMin;
-        t = tMin + inputSample * deltaT;
-
-        // Adjust the pdf
-        pdf /= deltaT;
-    }
-    else
-    {
-        // Exponential sampling
-        float transmittance = transmittanceTMax + inputSample * (1.0 - transmittanceTMax);
-        t = -log(transmittance) / sigmaT;
-
-        // Adjust the pdf
-        pdf *= sigmaT * transmittance / (1.0 - transmittanceTMax);
-    }
+    // Adjust the pdf
+    pdf *= sigmaT * transmittance / (transmittanceTMin - transmittanceTMax);
 
     return true;
 }
@@ -129,7 +105,7 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
     // Compute the scattering position
     float3 scatteringPosition = WorldRayOrigin() + pathIntersection.t * WorldRayDirection();
 
-    // Create the list of active lights
+    // Create the list of active lights (a local light can be forced by providing its position)
     LightList lightList = CreateLightList(scatteringPosition, sampleLocalLights, lightPosition);
 
     // Bunch of variables common to material and light sampling
