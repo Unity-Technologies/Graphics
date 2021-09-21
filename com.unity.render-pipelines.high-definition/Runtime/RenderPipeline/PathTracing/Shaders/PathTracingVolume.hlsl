@@ -24,8 +24,8 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
 
 #ifdef HAS_LIGHTLOOP
 
-    float lightWeight;
-    float localWeight = PickLocalLightInterval(WorldRayOrigin(), WorldRayDirection(), inputSample, lightPosition, lightWeight, tMin, tMax);
+    float pickedLightWeight;
+    float localWeight = PickLocalLightInterval(WorldRayOrigin(), WorldRayDirection(), inputSample, lightPosition, pickedLightWeight, tMin, tMax);
 
     if (localWeight < 0.0)
         return false;
@@ -38,7 +38,7 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
             return false;
 
         inputSample /= localWeight;
-        pdfVol *= localWeight * lightWeight;
+        pdfVol *= localWeight * pickedLightWeight;
     }
     else
     {
