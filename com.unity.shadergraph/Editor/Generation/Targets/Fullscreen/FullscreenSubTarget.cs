@@ -15,8 +15,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
             // TODO: custom editor field
-            // if (!context.customEditorForRenderPipelines)
-            //context.defaultShaderGUI = typeof(BuiltInUnlitGUI).FullName;
+            if (context.customEditorForRenderPipelines.Count == 0)
+                context.SetDefaultShaderGUI(typeof(FullscreenShaderGUI).FullName);
 
             // Process SubShaders
             context.AddSubShader(SubShaders.FullscreenBlit(target));
@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
         public override void ProcessPreviewMaterial(Material material)
         {
-            if (target.allowMaterialOverride)
+            // if (target.allowMaterialOverride)
             {
                 // copy our target's default settings into the material
                 // (technically not necessary since we are always recreating the material from the shader each time,
@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 // TODO:
                 // material.SetFloat(Property.Blend(), (float)target.alphaMode);
                 // material.SetFloat(Property.ZWriteControl(), target.zWrite ? 1 : 0); // TODO
-                material.SetFloat(Property.ZTest(), (float)target.depthTestMode);
+                // material.SetFloat(Property.ZTest(), (float)target.depthTestMode);
             }
 
             // We always need these properties regardless of whether the material is allowed to override
@@ -95,6 +95,15 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             const string kCustomRenderTextureInclude = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/CustomRenderTexture.hlsl";
             const string kFullscreenCommon = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenCommon.hlsl";
 
+            static readonly KeywordDescriptor depthWriteKeywork = new KeywordDescriptor
+            {
+                displayName = "Depth Write",
+                referenceName = "DEPTH_WRITE",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                stages = KeywordShaderStage.Fragment,
+            };
+
             public static SubShaderDescriptor FullscreenBlit(FullscreenTarget target)
             {
                 var result = new SubShaderDescriptor()
@@ -121,8 +130,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     },
                     validPixelBlocks = new BlockFieldDescriptor[]
                     {
-                        FullscreenTarget.Blocks.Color,
-                        FullscreenTarget.Blocks.Depth,
+                        FullscreenTarget.Blocks.color,
+                        FullscreenTarget.Blocks.depth,
                     },
 
                     // Fields
@@ -149,7 +158,10 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                         { Pragma.Vertex("vert") },
                         { Pragma.Fragment("frag") },
                     },
-                    defines = new DefineCollection(),
+                    defines = new DefineCollection
+                    {
+                        {depthWriteKeywork, 1, new FieldCondition(FullscreenTarget.Fields.depth, true)}
+                    },
                     keywords = new KeywordCollection(),
                     includes = new IncludeCollection
                     {
@@ -182,19 +194,4 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         }
         #endregion
     }
-
-    // internal static class SubShaderUtils
-    // {
-    //     // Overloads to do inline PassDescriptor modifications
-    //     // NOTE: param order should match PassDescriptor field order for consistency
-    //     #region PassVariant
-    //     internal static PassDescriptor PassVariant(in PassDescriptor source, PragmaCollection pragmas)
-    //     {
-    //         var result = source;
-    //         result.pragmas = pragmas;
-    //         return result;
-    //     }
-
-    //     #endregion
-    // }
 }

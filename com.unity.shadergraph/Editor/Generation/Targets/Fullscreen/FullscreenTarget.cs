@@ -15,17 +15,26 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 {
+    public enum FullscreenBlendMode
+    {
+        Disabled,
+        Alpha,
+        Premultiply,
+        Additive,
+        Multiply,
+        Custom,
+    }
+
     sealed class FullscreenTarget : Target, IHasMetadata, IMaySupportVFX
     {
         [GenerateBlocks]
         public struct Blocks
         {
             // TODO: add optional depth write block
-            public static BlockFieldDescriptor Color = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "Color", "Color",
+            public static BlockFieldDescriptor color = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "Color", "Color",
                 "SURFACEDESCRIPTION_COLOR", new ColorRGBAControl(UnityEngine.Color.grey), ShaderStage.Fragment);
-            public static BlockFieldDescriptor Depth = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "Depth", "Depth",
+            public static BlockFieldDescriptor depth = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "Depth", "Depth",
                 "SURFACEDESCRIPTION_DEPTH", new FloatControl(0), ShaderStage.Fragment);
-
         }
 
         public enum FullscreenCompatibility
@@ -35,18 +44,15 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             CustomRenderTexture,
         }
 
-        public enum FullscreenBlendMode
+        [GenerationAPI]
+        public struct Fields
         {
-            Disabled,
-            Alpha,
-            Premultiply,
-            Additive,
-            Multiply,
-            Custom,
+            public static FieldDescriptor depth = new FieldDescriptor("OUTPUT", "depth", "OUTPUT_DEPTH");
         }
 
         public static class Uniforms
         {
+            public static readonly string blendModeProperty = "_Fullscreen_BlendMode";
             public static readonly string srcColorBlendProperty = "_Fullscreen_SrcColorBlend";
             public static readonly string dstColorBlendProperty = "_Fullscreen_DstColorBlend";
             public static readonly string srcAlphaBlendProperty = "_Fullscreen_SrcAlphaBlend";
@@ -55,6 +61,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             public static readonly string alphaBlendOperationProperty = "_Fullscreen_AlphaBlendOperation";
             public static readonly string depthWriteProperty = "_Fullscreen_DepthWrite";
             public static readonly string depthTestProperty = "_Fullscreen_DepthTest";
+            public static readonly string stencilEnableProperty = "_Fullscreen_Stencil";
             public static readonly string stencilReferenceProperty = "_Fullscreen_StencilReference";
             public static readonly string stencilReadMaskProperty = "_Fullscreen_StencilReadMask";
             public static readonly string stencilWriteMaskProperty = "_Fullscreen_StencilWriteMask";
@@ -110,16 +117,16 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         FullscreenBlendMode m_BlendMode = FullscreenBlendMode.Disabled;
 
         [SerializeField]
-        Blend m_SrcColorBlendMode = Blend.Zero;
+        BlendMode m_SrcColorBlendMode = BlendMode.Zero;
         [SerializeField]
-        Blend m_DstColorBlendMode = Blend.One;
+        BlendMode m_DstColorBlendMode = BlendMode.One;
         [SerializeField]
         BlendOp m_ColorBlendOperation = BlendOp.Add;
 
         [SerializeField]
-        Blend m_SrcAlphaBlendMode = Blend.Zero;
+        BlendMode m_SrcAlphaBlendMode = BlendMode.Zero;
         [SerializeField]
-        Blend m_DstAlphaBlendMode = Blend.One;
+        BlendMode m_DstAlphaBlendMode = BlendMode.One;
         [SerializeField]
         BlendOp m_AlphaBlendOperation = BlendOp.Add;
 
@@ -172,13 +179,13 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             set => m_BlendMode = value;
         }
 
-        public Blend srcColorBlendMode
+        public BlendMode srcColorBlendMode
         {
             get => m_SrcColorBlendMode;
             set => m_SrcColorBlendMode = value;
         }
 
-        public Blend dstColorBlendMode
+        public BlendMode dstColorBlendMode
         {
             get => m_DstColorBlendMode;
             set => m_DstColorBlendMode = value;
@@ -190,13 +197,13 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             set => m_ColorBlendOperation = value;
         }
 
-        public Blend srcAlphaBlendMode
+        public BlendMode srcAlphaBlendMode
         {
             get => m_SrcAlphaBlendMode;
             set => m_SrcAlphaBlendMode = value;
         }
 
-        public Blend dstAlphaBlendMode
+        public BlendMode dstAlphaBlendMode
         {
             get => m_DstAlphaBlendMode;
             set => m_DstAlphaBlendMode = value;
@@ -293,7 +300,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             bool allowed = true;
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
 
-            // Nodes with SRP specific code donesn't work in the fullscreen target.
+            // Nodes with SRP specific code doesn't work in the fullscreen target.
             allowed &= srpFilter == null;
 
             var interfaces = nodeType.GetInterfaces();
@@ -325,13 +332,13 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             if (interfaces.Contains(typeof(IMayRequireVertexSkinning)))
                 allowed = false;
 
-            // TODO: this is a workaround for all classes that inherit from CodeFunctionNode but doens't need forbidden inputs
+            // TODO: this is a workaround for all classes that inherit from CodeFunctionNode but doesn't need forbidden inputs
             if (typeof(CodeFunctionNode).IsAssignableFrom(nodeType))
                 allowed = true;
 
             if (fullscreenCompatibility == FullscreenCompatibility.CustomRenderTexture)
             {
-                // We can't sample scene info in custom render textures, they are executed outisde the pipeline (for now)
+                // We can't sample scene info in custom render textures, they are executed outside the pipeline (for now)
                 allowed &= nodeType != typeof(SceneColorNode);
                 allowed &= nodeType != typeof(SceneDepthNode);
             }
@@ -367,9 +374,9 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         public override void GetFields(ref TargetFieldContext context)
         {
             var descs = context.blocks.Select(x => x.descriptor);
-            // Core fields
-            // context.AddField(Fields.GraphVertex); // We don't support custom vertex functions for now
-            context.AddField(Fields.GraphPixel);
+
+            context.AddField(UnityEditor.ShaderGraph.Fields.GraphPixel);
+            context.AddField(Fields.depth, depthWrite);
 
             // SubTarget fields
             m_ActiveSubTarget.value.GetFields(ref context);
@@ -378,8 +385,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             // Core blocks
-            context.AddBlock(Blocks.Color);
-            context.AddBlock(Blocks.Depth, depthWrite);
+            context.AddBlock(Blocks.color);
+            context.AddBlock(Blocks.depth, depthWrite);
 
             // SubTarget blocks
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
@@ -393,9 +400,9 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
         public void CollectRenderStateShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-
             if (generationMode != GenerationMode.Preview && allowMaterialOverride)
             {
+                collector.AddEnumProperty(Uniforms.blendModeProperty, blendMode);
                 collector.AddEnumProperty(Uniforms.srcColorBlendProperty, srcColorBlendMode);
                 collector.AddEnumProperty(Uniforms.dstColorBlendProperty, dstColorBlendMode);
                 collector.AddEnumProperty(Uniforms.srcAlphaBlendProperty, srcAlphaBlendMode);
@@ -404,6 +411,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 collector.AddEnumProperty(Uniforms.alphaBlendOperationProperty, alphaBlendOperation);
                 collector.AddFloatProperty(Uniforms.depthWriteProperty, depthWrite ? 1 : 0);
                 collector.AddFloatProperty(Uniforms.depthTestProperty, (float)depthTestMode);
+                collector.AddBoolProperty(Uniforms.stencilEnableProperty, enableStencil);
                 collector.AddIntProperty(Uniforms.stencilReferenceProperty, stencilReference);
                 collector.AddIntProperty(Uniforms.stencilReadMaskProperty, stencilReadMask);
                 collector.AddIntProperty(Uniforms.stencilWriteMaskProperty, stencilWriteMask);
@@ -489,7 +497,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                         return;
 
                     registerUndo("Change Blend Mode");
-                    srcColorBlendMode = (Blend)evt.newValue;
+                    srcColorBlendMode = (BlendMode)evt.newValue;
                     onChange();
                 });
                 context.AddProperty("Dst Color", new EnumField(dstColorBlendMode) { value = dstColorBlendMode }, (evt) =>
@@ -498,7 +506,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                         return;
 
                     registerUndo("Change Blend Mode");
-                    dstColorBlendMode = (Blend)evt.newValue;
+                    dstColorBlendMode = (BlendMode)evt.newValue;
                     onChange();
                 });
                 context.AddProperty("Color Operation", new EnumField(colorBlendOperation) { value = colorBlendOperation }, (evt) =>
@@ -520,7 +528,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                         return;
 
                     registerUndo("Change Blend Mode");
-                    srcAlphaBlendMode = (Blend)evt.newValue;
+                    srcAlphaBlendMode = (BlendMode)evt.newValue;
                     onChange();
                 });
                 context.AddProperty("Dst", new EnumField(dstAlphaBlendMode) { value = dstAlphaBlendMode }, (evt) =>
@@ -529,7 +537,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                         return;
 
                     registerUndo("Change Blend Mode");
-                    dstAlphaBlendMode = (Blend)evt.newValue;
+                    dstAlphaBlendMode = (BlendMode)evt.newValue;
                     onChange();
                 });
                 context.AddProperty("Blend Operation Alpha", new EnumField(alphaBlendOperation) { value = alphaBlendOperation }, (evt) =>
@@ -751,7 +759,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero));
                 else
                 {
-                    result.Add(RenderState.Blend(srcColorBlendMode, dstColorBlendMode, srcAlphaBlendMode, dstAlphaBlendMode));
+                    result.Add(RenderState.Blend(BlendModeToBlend(srcColorBlendMode), BlendModeToBlend(dstColorBlendMode), BlendModeToBlend(srcAlphaBlendMode), BlendModeToBlend(dstAlphaBlendMode)));
                     result.Add(RenderState.BlendOp(colorBlendOperation, alphaBlendOperation));
                 }
 
@@ -768,6 +776,23 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 return result;
             }
         }
+
+        Blend BlendModeToBlend(BlendMode mode) => mode switch
+        {
+            BlendMode.Zero => Blend.Zero,
+            BlendMode.One => Blend.One,
+            BlendMode.DstColor => Blend.DstColor,
+            BlendMode.SrcColor => Blend.SrcColor,
+            BlendMode.OneMinusDstColor => Blend.OneMinusDstColor,
+            BlendMode.SrcAlpha => Blend.SrcAlpha,
+            BlendMode.OneMinusSrcColor => Blend.OneMinusSrcColor,
+            BlendMode.DstAlpha => Blend.DstAlpha,
+            BlendMode.OneMinusDstAlpha => Blend.OneMinusDstAlpha,
+            BlendMode.SrcAlphaSaturate => Blend.SrcAlpha,
+            BlendMode.OneMinusSrcAlpha => Blend.OneMinusSrcAlpha,
+            _ => Blend.Zero
+        };
+
     }
 
     #region Includes
@@ -781,28 +806,15 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         const string kShaderGraphFunctions = "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl";
         const string kFunctions = "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl";
         const string kShaderVariables = "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl";
-        // const string kCore = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl";
-        // const string kLighting = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Lighting.hlsl";
-        // const string kGraphFunctions = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/ShaderGraphFunctions.hlsl";
-        // const string kVaryings = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/Varyings.hlsl";
-        // const string kShaderPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
-        // const string kDepthOnlyPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
-        // const string kShadowCasterPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
-
-        // TODO: support SH
-        // const string kShims = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shim/Shims.hlsl";
 
         public static readonly IncludeCollection preGraphIncludes = new IncludeCollection
         {
-            // { kShims, IncludeLocation.Pregraph },
             { kCommon, IncludeLocation.Pregraph },
             { kColor, IncludeLocation.Pregraph },
             { kTexture, IncludeLocation.Pregraph },
             { kInstancing, IncludeLocation.Pregraph }, // For VR
             { kShaderVariables, IncludeLocation.Pregraph },
-            // { kCore, IncludeLocation.Pregraph },
             { kSpaceTransforms, IncludeLocation.Pregraph },
-            // { kShaderGraphFunctions, IncludeLocation.Pregraph },
             { kFunctions, IncludeLocation.Pregraph },
         };
     }
@@ -815,7 +827,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
                 floatType = FloatType.Enum,
-                enumType = EnumType.Enum,
+                enumType = EnumType.CSharpEnum,
                 cSharpEnumType = typeof(T),
                 hidden = true,
                 overrideHLSLDeclaration = true,
@@ -830,6 +842,18 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
                 floatType = FloatType.Integer,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = hlslDeclaration,
+                value = value,
+                overrideReferenceName = prop,
+            });
+        }
+
+        public static void AddBoolProperty(this PropertyCollector collector, string prop, bool value, HLSLDeclaration hlslDeclaration = HLSLDeclaration.DoNotDeclare)
+        {
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = hlslDeclaration,

@@ -5,7 +5,7 @@
 struct FragOutput
 {
     float4 color : SV_TARGET;
-#ifdef SURFACEDESCRIPTION_DEPTH
+#ifdef DEPTH_WRITE
     float depth : SV_DEPTH;
 #endif
 };
@@ -32,7 +32,6 @@ float4 GetDrawProceduralVertexPosition(uint vertexID)
 
 float4 GetBlitVertexPosition(float3 positionOS)
 {
-    // TODO
     return mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, float4(positionOS, 1.0)));
 }
 
@@ -48,7 +47,7 @@ FragOutput DefaultFullscreenFragmentShader(PackedVaryings packedInput)
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
     output.color = surfaceDescription.Color;
-#ifdef SURFACEDESCRIPTION_DEPTH
+#ifdef DEPTH_WRITE
     output.depth = surfaceDescription.Depth;
 #endif
 
