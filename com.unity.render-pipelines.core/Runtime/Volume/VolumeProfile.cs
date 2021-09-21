@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
@@ -30,6 +32,40 @@ namespace UnityEngine.Rendering
             // harmless and happens because Unity does a redraw of the editor (and thus the current
             // frame) before the recompilation step.
             components.RemoveAll(x => x == null);
+
+            // Subscribe to the changes performed on the current pipeline to know which Volume Components are supported on the current pipeline
+            RenderPipelineManager.activeRenderPipelineTypeChanged += UpdateIsSupportedOnCurrentPipeline;
+            UpdateIsSupportedOnCurrentPipeline();
+        }
+
+        private void OnDisable()
+        {
+            RenderPipelineManager.activeRenderPipelineTypeChanged -= UpdateIsSupportedOnCurrentPipeline;
+        }
+
+        internal void UpdateIsSupportedOnCurrentPipeline()
+        {
+            var currentPipeline = RenderPipelineManager.currentPipeline;
+            if (currentPipeline != null)
+            {
+                var currentPipelineType = currentPipeline.GetType();
+                foreach (var component in components)
+                {
+                    SetIsSupportedOnCurrentPipeline(component, currentPipelineType);
+                }
+            }
+        }
+
+        void SetIsSupportedOnCurrentPipeline(VolumeComponent component, Type currentPipelineType)
+        {
+            bool supportedOnCurrentPipeline = true;
+
+            // Get the supported pipelines for the volume component
+            if (component.GetType().GetCustomAttribute(typeof(VolumeComponentMenuForRenderPipeline), false) is VolumeComponentMenuForRenderPipeline supportedOn)
+            {
+                supportedOnCurrentPipeline = supportedOn.pipelineTypes.Contains(currentPipelineType);
+            }
+            component.supportedOnCurrentPipeline = supportedOnCurrentPipeline;
         }
 
         /// <summary>
@@ -80,7 +116,16 @@ namespace UnityEngine.Rendering
             component.name = type.Name;
 #endif
             component.SetAllOverridesTo(overrides);
+
+            var currentPipeline = RenderPipelineManager.currentPipeline;
+            if (currentPipeline != null)
+            {
+                var currentPipelineType = currentPipeline.GetType();
+                SetIsSupportedOnCurrentPipeline(component, currentPipeline.GetType());
+            }
+
             components.Add(component);
+
             isDirty = true;
             return component;
         }

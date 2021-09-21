@@ -169,8 +169,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // If we have switched to custom quality from a preset, then load the last custom quality settings the user has used in this volume
                     if (prevQualityLevel != k_CustomQuality)
                     {
-                        QualitySettingsBlob history = null;
-                        s_CustomSettingsHistory.TryGetValue(serializedObject.targetObject, out history);
+                        s_CustomSettingsHistory.TryGetValue(serializedObject.targetObject, out QualitySettingsBlob history);
                         if (history != null)
                         {
                             LoadSettingsFromObject(history);
@@ -180,14 +179,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                 {
                     // If we are going to use a quality preset, then load the preset values so they are reflected in the UI
-                    var pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
-                    if (pipeline != null)
+                    if (RenderPipelineManager.currentPipeline is HDRenderPipeline pipeline)
                     {
                         // If we switch from a custom quality level, then save these values so we can re-use them if teh user switches back
                         if (prevQualityLevel == k_CustomQuality)
                         {
-                            QualitySettingsBlob history = null;
-                            s_CustomSettingsHistory.TryGetValue(serializedObject.targetObject, out history);
+                            s_CustomSettingsHistory.TryGetValue(serializedObject.targetObject, out QualitySettingsBlob history);
                             if (history != null)
                             {
                                 SaveCustomQualitySettingsAsObject(history);

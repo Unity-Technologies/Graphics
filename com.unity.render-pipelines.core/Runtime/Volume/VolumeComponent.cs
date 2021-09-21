@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Linq;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering
 {
@@ -109,11 +110,21 @@ namespace UnityEngine.Rendering
                 => this.relativeAmount = relativeAmount;
         }
 
+        [SerializeField]
+        [FormerlySerializedAs("active")]
+        private bool m_Active = true;
+
+        internal bool supportedOnCurrentPipeline { get; set; } = true;
+
         /// <summary>
         /// The active state of the set of parameters defined in this class. You can use this to
         /// quickly turn on or off all the overrides at once.
         /// </summary>
-        public bool active = true;
+        public bool active
+        {
+            get => m_Active && supportedOnCurrentPipeline;
+            set => m_Active = value;
+        }
 
         /// <summary>
         /// The name displayed in the component header. If you do not set a name, Unity generates one from

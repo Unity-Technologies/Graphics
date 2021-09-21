@@ -150,6 +150,27 @@ namespace UnityEditor.Rendering
             }
         }
 
+        EditorPrefBool m_ShowOnlyOverridedParameters;
+        internal void SetShowOnlyOverridedParameters(bool value)
+        {
+            m_ShowOnlyOverridedParameters.value = value;
+        }
+
+        internal void InitShowOnlyOverridedParametersPreference()
+        {
+            string key = $"UI_Show_Only_Overrided_Parameters_{GetType()}";
+            m_ShowOnlyOverridedParameters = new EditorPrefBool(key);
+        }
+
+        /// <summary>
+        /// Set to true to show only the parameters that are overrided
+        /// </summary>
+        public bool showOnlyOverridedParameters
+        {
+            get => m_ShowOnlyOverridedParameters.value;
+            set => SetShowOnlyOverridedParameters(value);
+        }
+
         /// <summary>
         /// Start a scope for additional properties.
         /// This will handle the highlight of the background when toggled on and off.
@@ -247,9 +268,10 @@ namespace UnityEditor.Rendering
             this.target = target;
             m_Inspector = inspector;
             serializedObject = new SerializedObject(target);
-            activeProperty = serializedObject.FindProperty("active");
+            activeProperty = serializedObject.FindProperty("m_Active");
 
             InitAdditionalPropertiesPreference();
+            InitShowOnlyOverridedParametersPreference();
 
             m_AdditionalPropertiesAnimation = new AnimFloat(0, Repaint)
             {
@@ -557,6 +579,9 @@ namespace UnityEditor.Rendering
         /// <param name="title">A custom label and/or tooltip.</param>
         private bool DrawPropertyField(SerializedDataParameter property, GUIContent title)
         {
+            if (!property.overrideState.boolValue && showOnlyOverridedParameters)
+                return false;
+
             using (var scope = new OverridablePropertyScope(property, title, this))
             {
                 if (!scope.displayed)

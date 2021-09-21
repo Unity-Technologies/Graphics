@@ -45,6 +45,12 @@ namespace UnityEditor.Rendering
     /// </example>
     public sealed class VolumeComponentListEditor
     {
+        class Styles
+        {
+            public static readonly string noSRPInUse = L10n.Tr("No SRP in Use");
+            public static readonly string unsuportedFeature = L10n.Tr("This feature is not supported by the current active render pipeline");
+        }
+
         /// <summary>
         /// A direct reference to the <see cref="VolumeProfile"/> this editor displays.
         /// </summary>
@@ -88,6 +94,9 @@ namespace UnityEditor.Rendering
         {
             Assert.IsNotNull(asset);
             Assert.IsNotNull(serializedObject);
+
+            // Make sure that the volumes are being updated
+            asset.UpdateIsSupportedOnCurrentPipeline();
 
             this.asset = asset;
             m_SerializedObject = serializedObject;
@@ -210,6 +219,13 @@ namespace UnityEditor.Rendering
             if (asset == null)
                 return;
 
+            var currentPipeline = RenderPipelineManager.currentPipeline;
+            if (currentPipeline == null)
+            {
+                EditorGUILayout.HelpBox(Styles.noSRPInUse, MessageType.Info, true);
+                return;
+            }
+
             // Even if the asset is not dirty, the list of component may have been changed by another inspector.
             // In this case, only the hash will tell us that we need to refresh.
             if (asset.isDirty || asset.GetComponentListHashCode() != m_CurrentHashCode)
@@ -246,7 +262,10 @@ namespace UnityEditor.Rendering
 
                     if (displayContent)
                     {
-                        using (new EditorGUI.DisabledScope(!editor.activeProperty.boolValue))
+                        if (!editor.target.supportedOnCurrentPipeline)
+                            EditorGUILayout.HelpBox(Styles.unsuportedFeature, MessageType.Warning, true);
+
+                        using (new EditorGUI.DisabledScope(!editor.activeProperty.boolValue && !editor.target.supportedOnCurrentPipeline))
                             editor.OnInternalInspectorGUI();
                     }
                 }
@@ -308,7 +327,8 @@ namespace UnityEditor.Rendering
                 menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), targetEditor.showAdditionalProperties, () => targetEditor.showAdditionalProperties ^= true);
             else
                 menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Show Additional Properties"));
-            menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false, () => CoreRenderPipelinePreferences.Open());
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show Only overrided parameters"), targetEditor.showOnlyOverridedParameters, () => targetEditor.showOnlyOverridedParameters = !targetEditor.showOnlyOverridedParameters);
+            menu.AddItem(EditorGUIUtility.TrTextContent("Open Core Render Pipeline Preferences..."), false, () => CoreRenderPipelinePreferences.Open());
 
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Copy Settings"), false, () => CopySettings(targetComponent));
