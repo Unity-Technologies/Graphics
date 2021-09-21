@@ -103,7 +103,6 @@ public unsafe class BRGSetup : MonoBehaviour
             visibleOffset = 0,
             visibleCount = (uint)n,
             batchID = m_batchID,
-            bufferID = m_GPUPersistanceBufferId,
             materialID = m_materialID,
             packedMeshSubmesh = new BatchPackedMeshSubmesh(m_meshID, 0),
             flags = m_motionVectorTest ? BatchDrawCommandFlags.HasMotion : BatchDrawCommandFlags.None,
@@ -147,9 +146,6 @@ public unsafe class BRGSetup : MonoBehaviour
         batchMetadata[1] = CreateMetadataValue(matrixPreviousMID, itemCount * UnsafeUtility.SizeOf<Vector4>() * 3, true);   // previous matrices
         batchMetadata[2] = CreateMetadataValue(colorID, itemCount * UnsafeUtility.SizeOf<Vector4>() * 3 * 2, true);     // colors
 
-        // Register batch
-        m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata);
-
         // Generate a grid of objects...
         int bigDataBufferVector4Count = itemCount * 3 * 2 + itemCount;      // mat4x3, colors
         m_sysmemBuffer = new NativeArray<Vector4>(bigDataBufferVector4Count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
@@ -157,6 +153,9 @@ public unsafe class BRGSetup : MonoBehaviour
         m_GPUPersistentInstanceData = new ComputeBuffer((int)bigDataBufferVector4Count * 16 / 4, 4, ComputeBufferType.Raw);
         m_GPUPersistanceBufferId = m_BatchRendererGroup.RegisterBuffer(m_GPUPersistentInstanceData);
 
+        // Register batch
+        m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistanceBufferId);
+        
         // Matrices
         /*
          *  mat4x3 packed like this:

@@ -169,7 +169,6 @@ public unsafe class RenderBRG : MonoBehaviour
     private struct DrawCommandOutputJob : IJob
     {
         public BatchID batchID;
-        public BatchBufferID bufferID;
 
         [DeallocateOnJobCompletion]
         [ReadOnly]
@@ -229,7 +228,6 @@ public unsafe class RenderBRG : MonoBehaviour
                             visibleOffset = (uint)batchStartIndex,
                             visibleCount = (uint)visibleCount,
                             batchID = batchID,
-                            bufferID = bufferID,
                             materialID = drawBatches[remappedIndex].key.material,
                             packedMeshSubmesh = drawBatches[remappedIndex].key.packedSubmesh,
                             flags = BatchDrawCommandFlags.None,
@@ -318,7 +316,6 @@ public unsafe class RenderBRG : MonoBehaviour
         var drawOutputJob = new DrawCommandOutputJob
         {
             batchID = m_batchID,
-            bufferID = m_GPUPersistanceBufferId,
             rendererVisibility = rendererVisibility,
             instanceIndices = m_instanceIndices,
             drawBatches = m_drawBatches,
@@ -579,7 +576,7 @@ public unsafe class RenderBRG : MonoBehaviour
         batchMetadata[10] = CreateMetadataValue(SHCID, (SHOffset + 6) * UnsafeUtility.SizeOf<Vector4>(), false);
 
         // Register batch
-        m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata);
+        m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistanceBufferId);
 
         m_initialized = true;
     }
