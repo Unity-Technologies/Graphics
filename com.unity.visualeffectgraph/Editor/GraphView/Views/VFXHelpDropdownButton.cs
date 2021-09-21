@@ -10,7 +10,6 @@ namespace UnityEditor.VFX.UI
 {
     class VFXHelpDropdownButton : DropDownButtonBase
     {
-        const string k_PackageVersion = "12.0.0";
         const string k_PackageName = "com.unity.visualeffectgraph";
         const string k_AdditionalSamples = "VisualEffectGraph Additions";
         const string k_AdditionalHelpers = "OutputEvent Helpers";
@@ -73,25 +72,27 @@ namespace UnityEditor.VFX.UI
             InstallSample(k_AdditionalHelpers);
         }
 
-        bool IsSampleInstalled(string sampleName)
-        {
-            return Sample.FindByPackage(k_PackageName, k_PackageVersion).SingleOrDefault(x => x.displayName == sampleName).isImported;
-        }
-
         void InstallSample(string sampleName)
         {
-            var sample = Sample.FindByPackage(k_PackageName, k_PackageVersion).SingleOrDefault(x => x.displayName == sampleName);
-            if (!sample.isImported)
+            var sample = Sample.FindByPackage(k_PackageName, null).SingleOrDefault(x => x.displayName == sampleName);
+            if (!string.IsNullOrEmpty(sample.displayName))
             {
-                sample.Import();
+                if (!sample.isImported)
+                {
+                    sample.Import();
+                }
+                else
+                {
+                    var reinstall = EditorUtility.DisplayDialog("Warning", "This sample package is already installed.\nDo you want to reinstall it?", "Yes", "No");
+                    if (reinstall)
+                    {
+                        sample.Import(Sample.ImportOptions.OverridePreviousImports);
+                    }
+                }
             }
             else
             {
-                var reinstall = EditorUtility.DisplayDialog("Warning", "This sample package is already installed.\nDo you want to reinstall it?", "Yes", "No");
-                if (reinstall)
-                {
-                    sample.Import(Sample.ImportOptions.OverridePreviousImports);
-                }
+                Debug.LogWarning($"Could not find sample package {sampleName}");
             }
         }
     }
