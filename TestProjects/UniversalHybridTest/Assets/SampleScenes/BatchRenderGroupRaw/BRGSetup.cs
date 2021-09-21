@@ -103,7 +103,6 @@ public unsafe class BRGSetup : MonoBehaviour
             visibleOffset = 0,
             visibleCount = (uint)n,
             batchID = m_batchID,
-            bufferID = m_GPUPersistanceBufferId,
             materialID = m_materialID,
             meshID = m_meshID,
             submeshIndex = 0,
@@ -143,18 +142,9 @@ public unsafe class BRGSetup : MonoBehaviour
 //        int worldToObjectID = Shader.PropertyToID("unity_WorldToObject");
         int colorID = Shader.PropertyToID("_BaseColor");
 
-        var batchMetadata = new NativeArray<MetadataValue>(3, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-        batchMetadata[0] = CreateMetadataValue(objectToWorldID, 0, true);       // matrices
-        batchMetadata[1] = CreateMetadataValue(matrixPreviousMID, itemCount * UnsafeUtility.SizeOf<Vector4>() * 3, true);   // previous matrices
-        batchMetadata[2] = CreateMetadataValue(colorID, itemCount * UnsafeUtility.SizeOf<Vector4>() * 3 * 2, true);     // colors
-
-        // Register batch
-        m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata);
-
         // Generate a grid of objects...
         int bigDataBufferVector4Count = itemCount * 3 * 2 + itemCount;      // mat4x3, colors
         m_sysmemBuffer = new NativeArray<Vector4>(bigDataBufferVector4Count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-
         m_GPUPersistentInstanceData = new ComputeBuffer((int)bigDataBufferVector4Count * 16 / 4, 4, ComputeBufferType.Raw);
         m_GPUPersistanceBufferId = m_BatchRendererGroup.RegisterBuffer(m_GPUPersistentInstanceData);
 
@@ -181,6 +171,15 @@ public unsafe class BRGSetup : MonoBehaviour
             m_sysmemBuffer[colorOffset + i] = new Vector4(col.r, col.g, col.b, 1.0f);
         }
         m_GPUPersistentInstanceData.SetData(m_sysmemBuffer);
+
+        var batchMetadata = new NativeArray<MetadataValue>(3, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+        batchMetadata[0] = CreateMetadataValue(objectToWorldID, 0, true);       // matrices
+        batchMetadata[1] = CreateMetadataValue(matrixPreviousMID, itemCount * UnsafeUtility.SizeOf<Vector4>() * 3, true);   // previous matrices
+        batchMetadata[2] = CreateMetadataValue(colorID, itemCount * UnsafeUtility.SizeOf<Vector4>() * 3 * 2, true);     // colors
+
+        // Register batch
+        m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistanceBufferId);
+
 
         m_initialized = true;
     }
