@@ -35,10 +35,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing context menu for “Post Anti-Aliasing” in Camera (1357283)
 - Fixed error when disabling opaque objects on a camera with MSAA.
 - Fixed double camera preview.
+- Fixed the volumetric clouds cloud map not being centered over the world origin (case 1364465).
+- Fixed the emissive being overriden by ray traced sub-surface scattering (case 1364456).
+- Fixed support of directional light coloring from physical sky in path tracing.
+- Fixed disabled menu item for volume additional properties.
+- Fixed Shader advanced options for lit shaders.
+- Fixed Dof, would sometimes get corrupted when DLSS was on caused by TAA logic accidentally being on for DOF (1357722)
+- Fixed shadowmask editable when not supported.
+- Fixed sorting for mesh decals.
+- Fixed a warning when enabling tile/cluster debug.
+- Fix recursive rendering transmittance over the sky (case 1323945).
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
 - Surface ReflectionTypeLoadExceptions in HDUtils.GetRenderPipelineMaterialList(). Without surfacing these exceptions, developers cannot act on any underlying reflection errors in the HDRP assembly.
+- Improved the DynamicArray class by adding several utility APIs.
 
 ## [12.0.0] - 2021-01-11
 
@@ -416,6 +427,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
 - Fixed ThreadMapDetail to saturate AO & smoothness strength inputs to prevent out-of-bounds values set by users (1357740)
 - Allow negative wind speed parameter.
+- Fixed custom pass custom buffer not bound after being created inside a custom pass.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
