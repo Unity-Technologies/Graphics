@@ -52,6 +52,9 @@ namespace UnityEditor.ShaderGraph
             new FieldDependency(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,                     StructFields.VertexDescriptionInputs.WorldSpaceNormal),
 
             new FieldDependency(StructFields.VertexDescriptionInputs.ScreenPosition,                                StructFields.VertexDescriptionInputs.WorldSpacePosition),
+            new FieldDependency(StructFields.VertexDescriptionInputs.NDCPosition,                                   StructFields.VertexDescriptionInputs.ScreenPosition),
+            new FieldDependency(StructFields.VertexDescriptionInputs.PixelPosition,                                 StructFields.VertexDescriptionInputs.NDCPosition),
+
             new FieldDependency(StructFields.VertexDescriptionInputs.uv0,                                           StructFields.Attributes.uv0),
             new FieldDependency(StructFields.VertexDescriptionInputs.uv1,                                           StructFields.Attributes.uv1),
             new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                                           StructFields.Attributes.uv2),
@@ -98,6 +101,9 @@ namespace UnityEditor.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,                    StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
 
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ScreenPosition,                               StructFields.SurfaceDescriptionInputs.WorldSpacePosition),
+            // new FieldDependency(StructFields.SurfaceDescriptionInputs.PixelPosition,                                 StructFields.Varyings.vpos),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.NDCPosition,                                   StructFields.SurfaceDescriptionInputs.PixelPosition),
+
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv0,                                          StructFields.Varyings.texCoord0),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv1,                                          StructFields.Varyings.texCoord1),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv2,                                          StructFields.Varyings.texCoord2),

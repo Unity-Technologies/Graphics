@@ -137,6 +137,11 @@ namespace UnityEditor.ShaderGraph
 
             public static FieldDescriptor ScreenPosition = new FieldDescriptor(VertexDescriptionInputs.name, "ScreenPosition", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor NDCPosition = new FieldDescriptor(VertexDescriptionInputs.name, "NDCPosition", "", ShaderValueType.Float2,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor PixelPosition = new FieldDescriptor(VertexDescriptionInputs.name, "PixelPosition", "", ShaderValueType.Float2,
+                subscriptOptions: StructFieldOptions.Optional);
+
             public static FieldDescriptor uv0 = new FieldDescriptor(VertexDescriptionInputs.name, "uv0", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor uv1 = new FieldDescriptor(VertexDescriptionInputs.name, "uv1", "", ShaderValueType.Float4,
@@ -222,6 +227,11 @@ namespace UnityEditor.ShaderGraph
 
             public static FieldDescriptor ScreenPosition = new FieldDescriptor(SurfaceDescriptionInputs.name, "ScreenPosition", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor NDCPosition = new FieldDescriptor(SurfaceDescriptionInputs.name, "NDCPosition", "", ShaderValueType.Float2,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor PixelPosition = new FieldDescriptor(SurfaceDescriptionInputs.name, "PixelPosition", "", ShaderValueType.Float2,
+                subscriptOptions: StructFieldOptions.Optional);
+
             public static FieldDescriptor uv0 = new FieldDescriptor(SurfaceDescriptionInputs.name, "uv0", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor uv1 = new FieldDescriptor(SurfaceDescriptionInputs.name, "uv1", "", ShaderValueType.Float4,

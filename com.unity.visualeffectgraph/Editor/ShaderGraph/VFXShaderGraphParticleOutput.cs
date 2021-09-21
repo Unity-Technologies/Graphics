@@ -820,7 +820,9 @@ namespace UnityEditor.VFX
                                 callSG.builder.AppendLine("INSG.TangentSpaceBiTangent = float3(0.0f, 1.0f, 0.0f);");
                         }
 
-                        if (graphCode.requirements.requiresPosition != NeededCoordinateSpace.None || graphCode.requirements.requiresScreenPosition || graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
+                        if (graphCode.requirements.requiresPosition != NeededCoordinateSpace.None ||
+                            graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None ||
+                            graphCode.requirements.requiresScreenPosition || graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
                         {
                             callSG.builder.AppendLine("float3 posRelativeWS = VFXGetPositionRWS(i.VFX_VARYING_POSWS);");
                             callSG.builder.AppendLine("float3 posAbsoluteWS = VFXGetPositionAWS(i.VFX_VARYING_POSWS);");
@@ -850,8 +852,19 @@ namespace UnityEditor.VFX
                                     callSG.builder.AppendLine("INSG.AbsoluteWorldSpacePositionPredisplacement = posAbsoluteWS;");
                             }
 
+                            callSG.builder.AppendLine("{");
+                            if (graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
+                                callSG.builder.AppendLine("float2 localPixelPosition = i.VFX_VARYING_POSCS.xy;");
+                            if (graphCode.requirements.requiresNDCPosition)
+                                callSG.builder.AppendLine("float2 localNDCPosition = localPixelPosition.xy / _ScreenParams.w;");
+
                             if (graphCode.requirements.requiresScreenPosition)
                                 callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(VFXTransformPositionWorldToClip(i.VFX_VARYING_POSWS), _ProjectionParams.x);");
+                            if (graphCode.requirements.requiresNDCPosition)
+                                callSG.builder.AppendLine("INSG.NDCPosition = localPixelPosition / _ScreenParams.xy;");
+                            if (graphCode.requirements.requiresPixelPosition)
+                                callSG.builder.AppendLine("INSG.PixelPosition = localPixelPosition;");
+                            callSG.builder.AppendLine("}");
 
                             if (graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
                             {
