@@ -99,6 +99,7 @@ Material:
     m_Floats:
     - _AlphaClip: 0
     - _Blend: 3
+    - _BlendModePreserveSpecular: 0
     - _BlendOp: 0
     - _BumpScale: 1
     - _ClearCoat: 0
@@ -109,7 +110,7 @@ Material:
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 3
-    - _DstBlendA: 1
+    - _DstBlendA: 3
     - _EnvironmentReflections: 1
     - _GlossMapScale: 0
     - _Glossiness: 0

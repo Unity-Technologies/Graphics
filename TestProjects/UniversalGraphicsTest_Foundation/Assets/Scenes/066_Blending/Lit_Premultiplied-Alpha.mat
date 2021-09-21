@@ -95,7 +95,7 @@ Material:
     m_Floats:
     - _AlphaClip: 0
     - _Blend: 1
-    - _BlendModePreserveSpecular: 1
+    - _BlendModePreserveSpecular: 0
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0

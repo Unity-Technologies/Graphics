@@ -95,6 +95,7 @@ Material:
     m_Floats:
     - _AlphaClip: 0
     - _Blend: 2
+    - _BlendModePreserveSpecular: 0
     - _BumpScale: 1
     - _Cull: 2
     - _Cutoff: 0.5
