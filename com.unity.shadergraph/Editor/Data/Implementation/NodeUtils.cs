@@ -14,7 +14,7 @@ namespace UnityEditor.Graphing
     {
         public SlotConfigurationException(string message)
             : base(message)
-        {}
+        { }
     }
 
     static class NodeUtils
@@ -466,9 +466,9 @@ namespace UnityEditor.Graphing
                 {
                     var ownerSlots = Enumerable.Empty<MaterialSlot>();
                     if (goingBackwards && slot.isOutputSlot)
-                        ownerSlots = slot.owner.GetInputSlots<MaterialSlot>();
+                        ownerSlots = slot.owner.GetInputSlots<MaterialSlot>(slot);
                     else if (!goingBackwards && slot.isInputSlot)
-                        ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>();
+                        ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>(slot);
                     foreach (var ownerSlot in ownerSlots)
                         s_SlotStack.Push(ownerSlot);
                 }
@@ -482,12 +482,16 @@ namespace UnityEditor.Graphing
             var graph = initialSlot.owner.owner;
             s_SlotStack.Clear();
             s_SlotStack.Push(initialSlot);
+            ShaderStageCapability capabilities = ShaderStageCapability.All;
             while (s_SlotStack.Any())
             {
                 var slot = s_SlotStack.Pop();
-                ShaderStage stage;
-                if (slot.stageCapability.TryGetShaderStage(out stage))
-                    return slot.stageCapability;
+
+                // Clear any stages from the total capabilities that this slot doesn't support (e.g. if this is vertex, clear pixel)
+                capabilities &= slot.stageCapability;
+                // Can early out if we know nothing is compatible, otherwise we have to keep checking everything we can reach.
+                if (capabilities == ShaderStageCapability.None)
+                    return capabilities;
 
                 if (goingBackwards && slot.isInputSlot)
                 {
@@ -509,15 +513,15 @@ namespace UnityEditor.Graphing
                 {
                     var ownerSlots = Enumerable.Empty<MaterialSlot>();
                     if (goingBackwards && slot.isOutputSlot)
-                        ownerSlots = slot.owner.GetInputSlots<MaterialSlot>();
+                        ownerSlots = slot.owner.GetInputSlots<MaterialSlot>(slot);
                     else if (!goingBackwards && slot.isInputSlot)
-                        ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>();
+                        ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>(slot);
                     foreach (var ownerSlot in ownerSlots)
                         s_SlotStack.Push(ownerSlot);
                 }
             }
 
-            return ShaderStageCapability.All;
+            return capabilities;
         }
 
         public static string GetSlotDimension(ConcreteSlotValueType slotValue)
@@ -538,6 +542,8 @@ namespace UnityEditor.Graphing
                     return "3x3";
                 case ConcreteSlotValueType.Matrix4:
                     return "4x4";
+                case ConcreteSlotValueType.PropertyConnectionState:
+                    return String.Empty;
                 default:
                     return "Error";
             }
@@ -844,6 +850,16 @@ namespace UnityEditor.Graphing
             "while"
         };
 
+        static HashSet<string> m_ShaderGraphKeywords = new HashSet<string>()
+        {
+            "Gradient",
+            "UnitySamplerState",
+            "UnityTexture2D",
+            "UnityTexture2DArray",
+            "UnityTexture3D",
+            "UnityTextureCube"
+        };
+
         static bool m_HLSLKeywordDictionaryBuilt = false;
 
         public static bool IsHLSLKeyword(string id)
@@ -866,6 +882,12 @@ namespace UnityEditor.Graphing
         {
             bool isShaderLabKeyword = m_ShaderLabKeywords.Contains(id.ToLower());
             return isShaderLabKeyword;
+        }
+
+        public static bool IsShaderGraphKeyWord(string id)
+        {
+            bool isShaderGraphKeyword = m_ShaderGraphKeywords.Contains(id);
+            return isShaderGraphKeyword;
         }
 
         public static string ConvertToValidHLSLIdentifier(string originalId, Func<string, bool> isDisallowedIdentifier = null)

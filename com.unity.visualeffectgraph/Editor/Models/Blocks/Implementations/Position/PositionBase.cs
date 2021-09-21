@@ -18,6 +18,11 @@ namespace UnityEditor.VFX.Block
     }
     abstract class PositionBase : VFXBlock
     {
+        public enum HeightMode
+        {
+            Base,
+            Volume
+        }
         public enum PositionMode
         {
             Surface,

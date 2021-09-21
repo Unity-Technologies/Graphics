@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class Light2D
     {
@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             "FreeformLight.png",
             "SpriteLight.png",
             "PointLight.png",
-            "PointLight.png"
+            "GlobalLight.png"
         };
 
         private void OnDrawGizmos()

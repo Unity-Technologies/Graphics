@@ -22,8 +22,6 @@ namespace UnityEditor.Rendering.HighDefinition
     class LayeredLitGUI : HDShaderGUI
     {
         const LitSurfaceInputsUIBlock.Features commonLitSurfaceInputsFeatures = LitSurfaceInputsUIBlock.Features.LayerOptions;
-        // Layered lit shaders don't support emission (realtime or baked)
-        const EmissionUIBlock.Features emissionFeatures = EmissionUIBlock.Features.All ^ EmissionUIBlock.Features.EnableEmissionForGI;
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
@@ -32,17 +30,13 @@ namespace UnityEditor.Rendering.HighDefinition
             new LitSurfaceInputsUIBlock(MaterialUIBlock.ExpandableBit.Input, kMaxLayerCount, features: commonLitSurfaceInputsFeatures),
             new LayerListUIBlock(MaterialUIBlock.ExpandableBit.MaterialReferences),
             new LayersUIBlock(),
-            new EmissionUIBlock(MaterialUIBlock.ExpandableBit.Emissive, features: emissionFeatures),
-            new LitAdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance),
+            new EmissionUIBlock(MaterialUIBlock.ExpandableBit.Emissive),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, features: AdvancedOptionsUIBlock.Features.StandardLit),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                uiBlocks.OnGUI(materialEditor, props);
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
-            }
+            uiBlocks.OnGUI(materialEditor, props);
         }
 
         // Material property name for Layered Lit keyword setup
@@ -77,7 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
-        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupLayeredLitKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => SetupLayeredLitKeywordsAndPass(material);
 
         static public void SetupLayersMappingKeywords(Material material)
         {
@@ -87,7 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Blend mask
             UVBaseMapping UVBlendMaskMapping = (UVBaseMapping)material.GetFloat(kUVBlendMask);
             CoreUtils.SetKeyword(material, "_LAYER_MAPPING_PLANAR_BLENDMASK", UVBlendMaskMapping == UVBaseMapping.Planar);
-            CoreUtils.SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK",  UVBlendMaskMapping == UVBaseMapping.Triplanar);
+            CoreUtils.SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK", UVBlendMaskMapping == UVBaseMapping.Triplanar);
 
             int numLayer = (int)material.GetFloat(kLayerCount);
 

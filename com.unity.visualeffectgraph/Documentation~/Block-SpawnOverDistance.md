@@ -18,7 +18,7 @@ This Block is compatible with the following Contexts:
 | ---------------------- | -------- | ------------------------------------------------------------ |
 | **Position**           | Vector3  | The reference position to use to check whether to spawn a particle or not. The system automatically stores this value in the position spawn state attribute. It stores the previous value in the oldPosition spawn state attribute. |
 | **Rate per Unit**      | float    | The number of particles to spawn per unit of displacement.   |
-| **Velocity Threshold** | float    | The maximum velocity to consider for spawning. If the position moves faster than this threshold, the block does not spawn anymore particles. |
+| **Velocity Threshold** | float    | The maximum velocity to consider for spawning. If the position moves faster than this threshold, the Block does not spawn anymore particles. |
 
 ## Remarks
 

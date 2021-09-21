@@ -1,11 +1,13 @@
+using System.Diagnostics;
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeBrickPool
     {
+        [DebuggerDisplay("Chunk ({x}, {y}, {z})")]
         public struct BrickChunkAlloc
         {
             public int x, y, z;
@@ -57,34 +59,36 @@ namespace UnityEngine.Rendering
         internal const int kBrickProbeCountPerDim = kBrickCellCount + 1;
         internal const int kBrickProbeCountTotal = kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim;
 
+        internal int estimatedVMemCost { get; private set; }
+
         const int kMaxPoolWidth = 1 << 11; // 2048 texels is a d3d11 limit for tex3d in all dimensions
 
-        int                            m_AllocationSize;
+        int m_AllocationSize;
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
-        DataLocation                   m_Pool;
-        BrickChunkAlloc                m_NextFreeChunk;
-        Stack<BrickChunkAlloc>         m_FreeList;
+        DataLocation m_Pool;
+        BrickChunkAlloc m_NextFreeChunk;
+        Stack<BrickChunkAlloc> m_FreeList;
 
-        internal ProbeBrickPool(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget)
+        ProbeVolumeSHBands m_SHBands;
+
+        internal ProbeBrickPool(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
         {
             Profiler.BeginSample("Create ProbeBrickPool");
             m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
 
             m_AllocationSize = allocationSize;
             m_MemoryBudget = memoryBudget;
+            m_SHBands = shBands;
 
             m_FreeList = new Stack<BrickChunkAlloc>(256);
 
             int width, height, depth;
             DerivePoolSizeFromBudget(allocationSize, memoryBudget, out width, out height, out depth);
+            int estimatedCost = 0;
+            m_Pool = CreateDataLocation(width * height * depth, false, shBands, out estimatedCost);
+            estimatedVMemCost = estimatedCost;
 
-            m_Pool = CreateDataLocation(width * height * depth, false, ProbeVolumeSHBands.SphericalHarmonicsL2);
             Profiler.EndSample();
-        }
-
-        internal ProbeVolumeTextureMemoryBudget GetMemoryBudget()
-        {
-            return m_MemoryBudget;
         }
 
         internal void EnsureTextureValidity()
@@ -93,11 +97,15 @@ namespace UnityEngine.Rendering
             if (m_Pool.TexL0_L1rx == null)
             {
                 m_Pool.Cleanup();
-                m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, ProbeVolumeSHBands.SphericalHarmonicsL2);
+                int estimatedCost = 0;
+                m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, m_SHBands, out estimatedCost);
+                estimatedVMemCost = estimatedCost;
             }
         }
 
         internal int GetChunkSize() { return m_AllocationSize; }
+        internal int GetChunkSizeInProbeCount() { return m_AllocationSize * kBrickProbeCountTotal; }
+
         internal int GetPoolWidth() { return m_Pool.width; }
         internal int GetPoolHeight() { return m_Pool.height; }
         internal Vector3Int GetPoolDimensions() { return new Vector3Int(m_Pool.width, m_Pool.height, m_Pool.depth); }
@@ -170,7 +178,7 @@ namespace UnityEngine.Rendering
                 for (int j = 0; j < kBrickProbeCountPerDim; j++)
                 {
                     int width = Mathf.Min(m_AllocationSize * kBrickProbeCountPerDim, source.width - src.x);
-                    Graphics.CopyTexture(source.TexL0_L1rx  , src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL0_L1rx  , dst.z + j, 0, dst.x, dst.y);
+                    Graphics.CopyTexture(source.TexL0_L1rx, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL0_L1rx, dst.z + j, 0, dst.x, dst.y);
 
                     Graphics.CopyTexture(source.TexL1_G_ry, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_G_ry, dst.z + j, 0, dst.x, dst.y);
                     Graphics.CopyTexture(source.TexL1_B_rz, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_B_rz, dst.z + j, 0, dst.x, dst.y);
@@ -186,7 +194,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public static DataLocation CreateDataLocation(int numProbes, bool compressed, ProbeVolumeSHBands bands)
+        static Vector3Int ProbeCountToDataLocSize(int numProbes)
         {
             Debug.Assert(numProbes != 0);
             Debug.Assert(numProbes % kBrickProbeCountTotal == 0);
@@ -207,23 +215,47 @@ namespace UnityEngine.Rendering
                     width = numBricks;
             }
 
-            width  *= kBrickProbeCountPerDim;
+            width *= kBrickProbeCountPerDim;
             height *= kBrickProbeCountPerDim;
-            depth  *= kBrickProbeCountPerDim;
+            depth *= kBrickProbeCountPerDim;
+
+            return new Vector3Int(width, height, depth);
+        }
+
+        public static DataLocation CreateDataLocation(int numProbes, bool compressed, ProbeVolumeSHBands bands, out int allocatedBytes)
+        {
+            Vector3Int locSize = ProbeCountToDataLocSize(numProbes);
+            int width = locSize.x;
+            int height = locSize.y;
+            int depth = locSize.z;
+
+            int texelCount = width * height * depth;
 
             DataLocation loc;
 
-            loc.TexL0_L1rx   = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGB_BC6H_UFloat : GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
+            allocatedBytes = 0;
+            loc.TexL0_L1rx = new Texture3D(width, height, depth, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
+            allocatedBytes += texelCount * 8;
 
-            loc.TexL1_G_ry = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
-            loc.TexL1_B_rz = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+            loc.TexL1_G_ry = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+            allocatedBytes += texelCount * (compressed ? 1 : 4);
+
+            loc.TexL1_B_rz = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+            allocatedBytes += texelCount * (compressed ? 1 : 4);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
                 loc.TexL2_0 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+                allocatedBytes += texelCount * (compressed ? 1 : 4);
+
                 loc.TexL2_1 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+                allocatedBytes += texelCount * (compressed ? 1 : 4);
+
                 loc.TexL2_2 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+                allocatedBytes += texelCount * (compressed ? 1 : 4);
+
                 loc.TexL2_3 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+                allocatedBytes += texelCount * (compressed ? 1 : 4);
             }
             else
             {
@@ -240,12 +272,37 @@ namespace UnityEngine.Rendering
             return loc;
         }
 
+        static void SetPixel(ref Color[] data, int x, int y, int z, int dataLocWidth, int dataLocHeight, Color value)
+        {
+            int index = x + dataLocWidth * (y + dataLocHeight * z);
+            data[index] = value;
+        }
+
         public static void FillDataLocation(ref DataLocation loc, SphericalHarmonicsL2[] shl2, ProbeVolumeSHBands bands)
         {
             int numBricks = shl2.Length / kBrickProbeCountTotal;
             int shidx = 0;
             int bx = 0, by = 0, bz = 0;
             Color c = new Color();
+
+            Color[] L0L1Rx_locData = new Color[loc.width * loc.height * loc.depth * 2];
+            Color[] L1GL1Ry_locData = new Color[loc.width * loc.height * loc.depth * 2];
+            Color[] L1BL1Rz_locData = new Color[loc.width * loc.height * loc.depth * 2];
+
+            Color[] L2_0_locData = null;
+            Color[] L2_1_locData = null;
+            Color[] L2_2_locData = null;
+            Color[] L2_3_locData = null;
+
+
+            if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+            {
+                L2_0_locData = new Color[loc.width * loc.height * loc.depth];
+                L2_1_locData = new Color[loc.width * loc.height * loc.depth];
+                L2_2_locData = new Color[loc.width * loc.height * loc.depth];
+                L2_3_locData = new Color[loc.width * loc.height * loc.depth];
+            }
+
             for (int brickIdx = 0; brickIdx < shl2.Length; brickIdx += kBrickProbeCountTotal)
             {
                 for (int z = 0; z < kBrickProbeCountPerDim; z++)
@@ -258,50 +315,49 @@ namespace UnityEngine.Rendering
                             int iy = by + y;
                             int iz = bz + z;
 
-                            Vector3 L0 = SphericalHarmonicsL2Utils.GetCoefficient(shl2[shidx], 0);
-                            Vector3 L1R, L1G, L1B;
-                            SphericalHarmonicsL2Utils.GetL1(shl2[shidx], out L1R, out L1G, out L1B);
+                            c.r = shl2[shidx][0, 0]; // L0.r
+                            c.g = shl2[shidx][1, 0]; // L0.g
+                            c.b = shl2[shidx][2, 0]; // L0.b
+                            c.a = shl2[shidx][0, 1]; // L1_R.r
+                            SetPixel(ref L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, c);
 
-                            // First texture will have L0 coefficients in RGB, and L1R.x in the alpha channel
-                            Color L0_L1Rx = new Color(L0.x, L0.y, L0.z, L1R.x);
-                            // Second texture will have L1_G coefficients in RGB and L1R.y in the alpha channel
-                            Color L1G_L1Ry = new Color(L1G.x, L1G.y, L1G.z, L1R.y);
-                            // Third texture will have L1_B coefficients in RGB and L1R.z in the alpha channel
-                            Color L1B_L1Rz = new Color(L1B.x, L1B.y, L1B.z, L1R.z);
+                            c.r = shl2[shidx][1, 1]; // L1_G.r
+                            c.g = shl2[shidx][1, 2]; // L1_G.g
+                            c.b = shl2[shidx][1, 3]; // L1_G.b
+                            c.a = shl2[shidx][0, 2]; // L1_R.g
+                            SetPixel(ref L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, c);
 
-                            loc.TexL0_L1rx.SetPixel(ix, iy, iz, L0_L1Rx);
-                            loc.TexL1_G_ry.SetPixel(ix, iy, iz, L1G_L1Ry);
-                            loc.TexL1_B_rz.SetPixel(ix, iy, iz, L1B_L1Rz);
+                            c.r = shl2[shidx][2, 1]; // L1_B.r
+                            c.g = shl2[shidx][2, 2]; // L1_B.g
+                            c.b = shl2[shidx][2, 3]; // L1_B.b
+                            c.a = shl2[shidx][0, 3]; // L1_R.b
+                            SetPixel(ref L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, c);
 
                             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                             {
-                                Vector3 L2_0, L2_1, L2_2, L2_3, L2_4;
-                                SphericalHarmonicsL2Utils.GetL2(shl2[shidx], out L2_0, out L2_1, out L2_2, out L2_3, out L2_4);
+                                c.r = shl2[shidx][0, 4];
+                                c.g = shl2[shidx][0, 5];
+                                c.b = shl2[shidx][0, 6];
+                                c.a = shl2[shidx][0, 7];
+                                SetPixel(ref L2_0_locData, ix, iy, iz, loc.width, loc.height, c);
 
-                                c.r = L2_0.x;
-                                c.g = L2_1.x;
-                                c.b = L2_2.x;
-                                c.a = L2_3.x;
-                                loc.TexL2_0.SetPixel(ix, iy, iz, c);
+                                c.r = shl2[shidx][1, 4];
+                                c.g = shl2[shidx][1, 5];
+                                c.b = shl2[shidx][1, 6];
+                                c.a = shl2[shidx][1, 7];
+                                SetPixel(ref L2_1_locData, ix, iy, iz, loc.width, loc.height, c);
 
-                                c.r = L2_0.y;
-                                c.g = L2_1.y;
-                                c.b = L2_2.y;
-                                c.a = L2_3.y;
-                                loc.TexL2_1.SetPixel(ix, iy, iz, c);
+                                c.r = shl2[shidx][2, 4];
+                                c.g = shl2[shidx][2, 5];
+                                c.b = shl2[shidx][2, 6];
+                                c.a = shl2[shidx][2, 7];
+                                SetPixel(ref L2_2_locData, ix, iy, iz, loc.width, loc.height, c);
 
-
-                                c.r = L2_0.z;
-                                c.g = L2_1.z;
-                                c.b = L2_2.z;
-                                c.a = L2_3.z;
-                                loc.TexL2_2.SetPixel(ix, iy, iz, c);
-
-                                c.r = L2_4.x;
-                                c.g = L2_4.y;
-                                c.b = L2_4.z;
+                                c.r = shl2[shidx][0, 8];
+                                c.g = shl2[shidx][1, 8];
+                                c.b = shl2[shidx][2, 8];
                                 c.a = 1;
-                                loc.TexL2_3.SetPixel(ix, iy, iz, c);
+                                SetPixel(ref L2_3_locData, ix, iy, iz, loc.width, loc.height, c);
                             }
 
                             shidx++;
@@ -323,21 +379,27 @@ namespace UnityEngine.Rendering
                 }
             }
 
+            loc.TexL0_L1rx.SetPixels(L0L1Rx_locData);
             loc.TexL0_L1rx.Apply(false);
-
+            loc.TexL1_G_ry.SetPixels(L1GL1Ry_locData);
             loc.TexL1_G_ry.Apply(false);
+            loc.TexL1_B_rz.SetPixels(L1BL1Rz_locData);
             loc.TexL1_B_rz.Apply(false);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
+                loc.TexL2_0.SetPixels(L2_0_locData);
                 loc.TexL2_0.Apply(false);
+                loc.TexL2_1.SetPixels(L2_1_locData);
                 loc.TexL2_1.Apply(false);
+                loc.TexL2_2.SetPixels(L2_2_locData);
                 loc.TexL2_2.Apply(false);
+                loc.TexL2_3.SetPixels(L2_3_locData);
                 loc.TexL2_3.Apply(false);
             }
         }
 
-        private void DerivePoolSizeFromBudget(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
+        void DerivePoolSizeFromBudget(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
         {
             // TODO: This is fairly simplistic for now and relies on the enum to have the value set to the desired numbers,
             // might change the heuristic later on.

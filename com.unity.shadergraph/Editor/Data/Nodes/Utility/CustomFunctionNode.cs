@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
 {
     [HasDependencies(typeof(MinimalCustomFunctionNode))]
     [Title("Utility", "Custom Function")]
-    class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireTransform
     {
         // 0 original version
         // 1 differentiate between struct-based UnityTexture2D and bare Texture2D resources (for all texture and samplerstate resources)
@@ -58,14 +58,17 @@ namespace UnityEditor.ShaderGraph
             Invalid,      // File exists but isn't of a valid type (such as wrong extension)
             Valid
         };
-        public static string[] s_ValidExtensions = { ".hlsl", ".cginc" };
-        const string k_InvalidFileType = "Source file is not a valid file type. Valid file extensions are .hlsl and .cginc";
-        const string k_MissingFile = "Source file does not exist. A valid .hlsl or .cginc file must be referenced";
+
+        // With ShaderInclude asset type, it should no longer be necessary to soft-check the extension.
+        public static string[] s_ValidExtensions = { ".hlsl", ".cginc", ".cg" };
+        const string k_InvalidFileType = "Source file is not a valid file type. Valid file extensions are .hlsl, .cginc, and .cg";
+        const string k_MissingFile = "Source file does not exist. A valid .hlsl, .cginc, or .cg file must be referenced";
         const string k_MissingOutputSlot = "A Custom Function Node must have at least one output slot";
 
         public CustomFunctionNode()
         {
             UpdateNodeName();
+            synonyms = new string[] { "code", "HLSL" };
         }
 
         void UpdateNodeName()
@@ -168,7 +171,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 // call function
-                sb.AppendIndentation();
+                sb.TryAppendIndentation();
                 sb.Append(hlslFunctionName);
                 sb.Append("(");
                 bool first = true;
@@ -219,15 +222,15 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Texture2D:
                 {
                     var slotVariable = GetVariableNameForSlot(slot.id);
-                    sb.AppendIndentation();
+                    sb.TryAppendIndentation();
                     sb.Append(slotVariable);
                     sb.Append(".samplerstate = default_sampler_Linear_Repeat;");
                     sb.AppendNewLine();
-                    sb.AppendIndentation();
+                    sb.TryAppendIndentation();
                     sb.Append(slotVariable);
                     sb.Append(".texelSize = float4(1.0f/128.0f, 1.0f/128.0f, 128.0f, 128.0f);");
                     sb.AppendNewLine();
-                    sb.AppendIndentation();
+                    sb.TryAppendIndentation();
                     sb.Append(slotVariable);
                     sb.Append(".scaleTranslate = float4(1.0f, 1.0f, 0.0f, 0.0f);");
                     sb.AppendNewLine();
@@ -238,7 +241,7 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Cubemap:
                 {
                     var slotVariable = GetVariableNameForSlot(slot.id);
-                    sb.AppendIndentation();
+                    sb.TryAppendIndentation();
                     sb.Append(slotVariable);
                     sb.Append(".samplerstate = default_sampler_Linear_Repeat;");
                     sb.AppendNewLine();
@@ -457,11 +460,11 @@ namespace UnityEditor.ShaderGraph
                 // not sure why we don't use AssetDatabase.AssetPathToGUID...
                 // I guess we are testing that it actually exists and can be loaded here before converting?
                 string guidString = string.Empty;
-                TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(functionSource);
-                if (textAsset != null)
+                ShaderInclude shaderInclude = AssetDatabase.LoadAssetAtPath<ShaderInclude>(functionSource);
+                if (shaderInclude != null)
                 {
                     long localId;
-                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(textAsset, out guidString, out localId);
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(shaderInclude, out guidString, out localId);
                 }
                 functionSource = guidString;
             }
@@ -490,6 +493,15 @@ namespace UnityEditor.ShaderGraph
                 }
                 ChangeVersion(1);
             }
+        }
+
+        public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            return new[]
+            {
+                NeededTransform.ObjectToWorld,
+                NeededTransform.WorldToObject
+            };
         }
     }
 }

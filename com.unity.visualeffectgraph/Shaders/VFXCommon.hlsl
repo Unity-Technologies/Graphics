@@ -21,6 +21,8 @@
 
 #define VFX_FLT_MIN 1.175494351e-38
 #define VFX_EPSILON 1e-5
+#define VFX_INFINITY  (1.0f/0.0f)
+#define VFX_NAN       asfloat(~0u)
 
 #pragma warning(disable : 3557) // disable warning for auto unrolling of single iteration loop
 
@@ -34,6 +36,14 @@
 #define UNITY_INV_FOUR_PI   0.07957747155f
 #define UNITY_HALF_PI       1.57079632679f
 #define UNITY_INV_HALF_PI   0.636619772367f
+#endif
+
+// SHADER_AVAILABLE_XXX defines are not yet passed to compute shader atm
+// So we define it manually for compute atm.
+// It won't compile for devices that don't have cubemap array support but this is acceptable by now
+// TODO Remove this once SHADER_AVAILABLE_XXX are passed to compute shaders
+#ifdef SHADER_STAGE_COMPUTE
+#define SHADER_AVAILABLE_CUBEARRAY 1
 #endif
 
 struct VFXSampler2D
@@ -60,11 +70,13 @@ struct VFXSamplerCube
     SamplerState s;
 };
 
+#if SHADER_AVAILABLE_CUBEARRAY
 struct VFXSamplerCubeArray
 {
     TextureCubeArray t;
     SamplerState s;
 };
+#endif
 
 #if !VFX_WORLD_SPACE && !VFX_LOCAL_SPACE
 #error VFXCommon.hlsl should be included after space defines
@@ -98,30 +110,59 @@ float3 GetViewVFXPosition() { return mul(VFXGetWorldToObjectMatrix(), float4(VFX
 
 #define VFX_SAMPLER(name) GetVFXSampler(name,sampler##name)
 
-float4 SampleTexture(VFXSampler2D s, float2 coords, float level = 0.0f)
+float4 SampleTexture(VFXSampler2D s, float2 coords)
 {
-    return s.t.SampleLevel(s.s, coords, level);
+    return SAMPLE_TEXTURE2D(s.t, s.s, coords);
 }
 
-float4 SampleTexture(VFXSampler2DArray s, float2 coords, float slice, float level = 0.0f)
+float4 SampleTexture(VFXSampler2DArray s, float2 coords, float slice)
 {
-    return s.t.SampleLevel(s.s, float3(coords, slice), level);
+    return SAMPLE_TEXTURE2D_ARRAY(s.t, s.s, coords, slice);
 }
 
-float4 SampleTexture(VFXSampler3D s, float3 coords, float level = 0.0f)
+float4 SampleTexture(VFXSampler3D s, float3 coords)
 {
-    return s.t.SampleLevel(s.s, coords, level);
+    return SAMPLE_TEXTURE3D(s.t, s.s, coords);
 }
 
-float4 SampleTexture(VFXSamplerCube s, float3 coords, float level = 0.0f)
+float4 SampleTexture(VFXSamplerCube s, float3 coords)
 {
-    return s.t.SampleLevel(s.s, coords, level);
+    return SAMPLE_TEXTURECUBE(s.t, s.s, coords);
 }
 
-float4 SampleTexture(VFXSamplerCubeArray s, float3 coords, float slice, float level = 0.0f)
+#if SHADER_AVAILABLE_CUBEARRAY
+float4 SampleTexture(VFXSamplerCubeArray s, float3 coords, float slice)
 {
-    return s.t.SampleLevel(s.s, float4(coords, slice), level);
+    return SAMPLE_TEXTURECUBE_ARRAY(s.t, s.s, coords, slice);
 }
+#endif
+
+float4 SampleTexture(VFXSampler2D s, float2 coords, float level)
+{
+    return SAMPLE_TEXTURE2D_LOD(s.t, s.s, coords, level);
+}
+
+float4 SampleTexture(VFXSampler2DArray s, float2 coords, float slice, float level)
+{
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(s.t, s.s, coords, slice, level);
+}
+
+float4 SampleTexture(VFXSampler3D s, float3 coords, float level)
+{
+    return SAMPLE_TEXTURE3D_LOD(s.t, s.s, coords, level);
+}
+
+float4 SampleTexture(VFXSamplerCube s, float3 coords, float level)
+{
+    return SAMPLE_TEXTURECUBE_LOD(s.t, s.s, coords, level);
+}
+
+#if SHADER_AVAILABLE_CUBEARRAY
+float4 SampleTexture(VFXSamplerCubeArray s, float3 coords, float slice, float level)
+{
+    return SAMPLE_TEXTURECUBE_ARRAY_LOD(s.t, s.s, coords, slice, level);
+}
+#endif
 
 float4 LoadTexture(VFXSampler2D s, int3 pixelCoords)
 {
@@ -236,6 +277,7 @@ VFXSamplerCube GetVFXSampler(TextureCube t, SamplerState s)
     return vfxSampler;
 }
 
+#if SHADER_AVAILABLE_CUBEARRAY
 VFXSamplerCubeArray GetVFXSampler(TextureCubeArray t, SamplerState s)
 {
     VFXSamplerCubeArray vfxSampler;
@@ -243,6 +285,7 @@ VFXSamplerCubeArray GetVFXSampler(TextureCubeArray t, SamplerState s)
     vfxSampler.s = s;
     return vfxSampler;
 }
+#endif
 
 uint ConvertFloatToSortableUint(float f)
 {
@@ -404,7 +447,7 @@ float4 SampleGradient(float2 gradientData, float u)
 {
     float2 uv = float2(HalfTexelOffset(saturate(u)), gradientData.x);
     if (gradientData.y > 0.5f) uv.x = SnapToTexel(uv.x);
-    return bakedTexture.SampleLevel(samplerbakedTexture, uv, 0);
+    return SampleTexture(VFX_SAMPLER(bakedTexture), uv, 0);
 }
 
 float4 SampleGradient(float gradientData, float u)
@@ -427,7 +470,7 @@ float SampleCurve(float4 curveData, float u)
         case 2: uNorm = HalfTexelOffset(frac(max(0.0f, uNorm))); break; // clamp start
         case 3: uNorm = HalfTexelOffset(saturate(uNorm)); break; // clamp both
     }
-    return bakedTexture.SampleLevel(samplerbakedTexture, float2(uNorm, curveData.z), 0)[asuint(curveData.w) & 0x3];
+    return SampleTexture(VFX_SAMPLER(bakedTexture), float2(uNorm, curveData.z), 0)[asuint(curveData.w) & 0x3];
 }
 
 ///////////
@@ -463,11 +506,12 @@ float4x4 VFXInverseTRSMatrix(float4x4 input)
 
     //Multiply by reciprocal determinant
     float det = determinant((float3x3)input);
-    output *= rcp(det);
+    const bool degenerate = (det * det) < 1e-25 ; //Condition consistent with C++ InvertMatrix4x4_General3D()
+    output *= degenerate ? 0.0f :  rcp(det) ;
 
     // Do the translation part
     output._m03_m13_m23 = -mul((float3x3)output, input._m03_m13_m23);
-    output._m33 = 1.0f;
+    output._m33 = degenerate ? 0.0f : 1.0f;
 
     return output;
 }
@@ -560,6 +604,13 @@ float3 VFXSafeNormalize(float3 v)
     return v * rsqrt(sqrLength);
 }
 
+float3 VFXSafeNormalizedCross(float3 v1, float3 v2, float3 fallback)
+{
+    float3 outVec = cross(v1, v2);
+    outVec = dot(outVec, outVec) < VFX_EPSILON ? fallback : normalize(outVec);
+    return outVec;
+}
+
 /////////////////////
 // flipbooks utils //
 /////////////////////
@@ -573,15 +624,15 @@ struct VFXUVData
 
 float4 SampleTexture(VFXSampler2D s, VFXUVData uvData)
 {
-    float4 s0 = s.t.Sample(s.s, uvData.uvs.xy + uvData.mvs.xy);
-    float4 s1 = s.t.Sample(s.s, uvData.uvs.zw + uvData.mvs.zw);
+    float4 s0 = SampleTexture(s, uvData.uvs.xy + uvData.mvs.xy);
+    float4 s1 = SampleTexture(s, uvData.uvs.zw + uvData.mvs.zw);
     return lerp(s0, s1, uvData.blend);
 }
 
 float4 SampleTexture(VFXSampler2DArray s, VFXUVData uvData) //For flipbook in array layout
 {
-    float4 s0 = s.t.Sample(s.s, uvData.uvs.xyz + float3(uvData.mvs.xy,0.0f));
-    float4 s1 = s.t.Sample(s.s, uvData.uvs.xyw + float3(uvData.mvs.zw,0.0f));
+    float4 s0 = SampleTexture(s, uvData.uvs.xy + uvData.mvs.xy, uvData.uvs.z);
+    float4 s1 = SampleTexture(s, uvData.uvs.xy + uvData.mvs.zw, uvData.uvs.w);
     return lerp(s0, s1, uvData.blend);
 }
 
@@ -663,3 +714,11 @@ VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
 ////////////
 
 #include "VFXParticleStripCommon.hlsl"
+
+
+
+////////////////////////////
+// Bounds reduction utils //
+////////////////////////////
+
+#include "VFXBoundsReduction.hlsl"

@@ -12,6 +12,7 @@ The Universal Render Pipeline uses a different shading approach than the Unity b
 - [Particles Simple Lit](particles-simple-lit-shader.md)
 - [Particles Unlit](particles-unlit-shader.md)
 - [SpeedTree](speedtree.md)
+- [Decal](decal-shader.md)
 - Autodesk Interactive
 - Autodesk Interactive Transparent
 - Autodesk Interactive Masked

@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Logic > Nand**
 
-The **Nand** Operator takes two inputs and outputs the result of a logical *nand* operation between them. *Nand* is a composite operation that first calculates the *not* of the inputs and then calculates the *and* of the results. The result of A **Nand** B is `true` if both A and B are `false`. This operator is equivalent to the C# `!` operator followed by the `&&` operator.
+The **Nand** Operator takes two inputs and outputs the result of a logical *nand* operation between them. *Nand* is a composite operation that first calculates the *not* of the inputs and then calculates the *and* of the results. The result of A **Nand** B is `true` if both A and B are `false`. This Operator is equivalent to the C# `!` operator followed by the `&&` operator.
 
 ## Operator properties
 

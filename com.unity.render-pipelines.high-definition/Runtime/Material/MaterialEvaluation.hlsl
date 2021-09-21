@@ -175,11 +175,6 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
             );
             lightLoopOutput.specularLighting = float3(0, 0, 0);
             #endif
-            break ;
-
-        case DEBUGLIGHTINGMODE_PROBE_VOLUME:
-            lightLoopOutput.diffuseLighting = builtinData.bakeDiffuseLighting;
-            lightLoopOutput.specularLighting = float3(0, 0, 0);
             break;
         }
     }

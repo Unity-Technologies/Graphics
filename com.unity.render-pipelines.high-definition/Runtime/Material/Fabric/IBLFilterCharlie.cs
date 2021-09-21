@@ -2,7 +2,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class IBLFilterCharlie : IBLFilterBSDF
     {
-        public IBLFilterCharlie(RenderPipelineResources renderPipelineResources, MipGenerator mipGenerator)
+        public IBLFilterCharlie(HDRenderPipelineRuntimeResources renderPipelineResources, MipGenerator mipGenerator)
         {
             m_RenderPipelineResources = renderPipelineResources;
             m_MipGenerator = mipGenerator;
@@ -58,6 +58,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 var props = new MaterialPropertyBlock();
                 props.SetTexture("_MainTex", source);
                 props.SetFloat("_InvOmegaP", invOmegaP);
+                float invFaceCenterTexelSolidAngle = 1.0f / (((4.0f * Mathf.PI) / 6.0f) * 4.0f / (3.173436852f * source.width * source.width)); // inverse of the solid angle of the face center texel
+                props.SetFloat("_InvFaceCenterTexelSolidAngle", invFaceCenterTexelSolidAngle);
 
                 for (int mip = 0; mip < (int)EnvConstants.ConvolutionMipCount; ++mip)
                 {

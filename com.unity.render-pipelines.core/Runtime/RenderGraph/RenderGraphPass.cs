@@ -9,29 +9,33 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     abstract class RenderGraphPass
     {
         public RenderFunc<PassData> GetExecuteDelegate<PassData>()
-            where PassData : class, new() => ((RenderGraphPass<PassData>) this).renderFunc;
+            where PassData : class, new() => ((RenderGraphPass<PassData>)this).renderFunc;
 
         public abstract void Execute(RenderGraphContext renderGraphContext);
         public abstract void Release(RenderGraphObjectPool pool);
         public abstract bool HasRenderFunc();
 
-        public string           name { get; protected set; }
-        public int              index { get; protected set; }
+        public string name { get; protected set; }
+        public int index { get; protected set; }
         public ProfilingSampler customSampler { get; protected set; }
-        public bool             enableAsyncCompute { get; protected set; }
-        public bool             allowPassCulling { get; protected set; }
+        public bool enableAsyncCompute { get; protected set; }
+        public bool allowPassCulling { get; protected set; }
 
-        public TextureHandle    depthBuffer { get; protected set; }
-        public TextureHandle[]  colorBuffers { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
-        public int              colorBufferMaxIndex { get; protected set; } = -1;
-        public int              refCount { get; protected set; }
-        public bool             generateDebugData { get; protected set; }
+        public TextureHandle depthBuffer { get; protected set; }
+        public TextureHandle[] colorBuffers { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
+        public int colorBufferMaxIndex { get; protected set; } = -1;
+        public int refCount { get; protected set; }
+        public bool generateDebugData { get; protected set; }
+
+        public bool allowRendererListCulling { get; protected set; }
 
         public List<ResourceHandle>[] resourceReadLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
         public List<ResourceHandle>[] resourceWriteLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
         public List<ResourceHandle>[] transientResourceList = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
 
         public List<RendererListHandle> usedRendererListList = new List<RendererListHandle>();
+
+        public List<RendererListHandle> dependsOnRendererListList = new List<RendererListHandle>();
 
         public RenderGraphPass()
         {
@@ -56,8 +60,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             usedRendererListList.Clear();
+            dependsOnRendererListList.Clear();
             enableAsyncCompute = false;
             allowPassCulling = true;
+            allowRendererListCulling = true;
             generateDebugData = true;
             refCount = 0;
 
@@ -90,6 +96,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             usedRendererListList.Add(rendererList);
         }
 
+        public void DependsOnRendererList(RendererListHandle rendererList)
+        {
+            dependsOnRendererListList.Add(rendererList);
+        }
+
         public void EnableAsyncCompute(bool value)
         {
             enableAsyncCompute = value;
@@ -98,6 +109,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void AllowPassCulling(bool value)
         {
             allowPassCulling = value;
+        }
+
+        public void AllowRendererListCulling(bool value)
+        {
+            allowRendererListCulling = value;
         }
 
         public void GenerateDebugData(bool value)

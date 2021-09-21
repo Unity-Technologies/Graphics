@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                while (m_RayCountReadbacks.Peek().done || m_RayCountReadbacks.Peek().hasError ==  true)
+                while (m_RayCountReadbacks.Peek().done || m_RayCountReadbacks.Peek().hasError == true)
                 {
                     // If this has an error, just skip it
                     if (!m_RayCountReadbacks.Peek().hasError)

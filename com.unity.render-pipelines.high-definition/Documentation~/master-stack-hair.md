@@ -39,6 +39,19 @@ When you create a new Hair Master Stack, the Vertex Context contains the followi
 </table>
 
 #### Relevant
+Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following locks to the Vertex Context:
+
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Setting Dependency</th>
+<th>Default Value</th>
+</tr>
+[!include[](snippets/shader-graph-blocks/tessellation-factor.md)]
+[!include[](snippets/shader-graph-blocks/tessellation-displacement.md)]
+</table>
+
 
 This Master Stack material type adds all its Vertex Blocks to the Vertex Context by default and has no extra relevant Blocks.
 
@@ -73,7 +86,7 @@ When you create a new Hair Master Stack, the Fragment Context contains the follo
 
 #### Relevant
 
-Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following locks to the Fragment Context:
+Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following blocks to the Fragment Context:
 
 <table>
 <tr>
@@ -94,6 +107,9 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-graph-blocks/specular-aa-screen-space-variance.md)]
 [!include[](snippets/shader-graph-blocks/specular-aa-threshold.md)]
 [!include[](snippets/shader-graph-blocks/specular-occlusion.md)]
+[!include[](snippets/shader-graph-blocks/smoothness-radial.md)]
+[!include[](snippets/shader-graph-blocks/cuticle-angle.md)]
+[!include[](snippets/shader-graph-blocks/strand-count-probe.md)]
 </table>
 
 ## Graph Settings
@@ -128,6 +144,8 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/geometric-specular-aa.md)]
 [!include[](snippets/shader-properties/surface-options/ss-depth-offset.md)]
 [!include[](snippets/shader-properties/surface-options/conservative-depth-offset.md)]
+[!include[](snippets/shader-properties/surface-options/velocity.md)]
+[!include[](snippets/shader-properties/surface-options/tessellation.md)]
 </table>
 
 ### Advanced Options
@@ -140,5 +158,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/advanced-options/override-baked-gi.md)]
 [!include[](snippets/shader-properties/advanced-options/support-lod-crossfade.md)]
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
-[!include[](snippets/shader-properties/advanced-options/use-light-facing-normal.md)]
+[!include[](snippets/shader-properties/advanced-options/geometry-type.md)]
+[!include[](snippets/shader-properties/advanced-options/scattering-mode.md)]
+[!include[](snippets/shader-properties/advanced-options/allow-radial-smoothness.md)]
 </table>

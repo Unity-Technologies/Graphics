@@ -35,3 +35,14 @@ This Sample includes various examples of Materials. It includes Materials that u
 The Fabric, Hair and Eye Master Nodes usually require various work from artists inside the Shader Graph and the Samples are a good head start.
 
 In the **Eye** Scene, the eye examples use a carefully designed mesh with a particular UV setup. If you want to produce eyes of similar quality, open the eye mesh in 3D modelling software to see how the mesh is contructed and the UVs are setup.
+
+## Lens Flare Samples
+
+![Lens Flare Samples](Images/LensFlareSamples.png)
+
+This Sample includes the following Lens Flare examples that you can use in your project:
+- Lens Flare Assets
+- Lens Flare Textures
+- A scene you can use to preview Lens Flare Assets
+- A scene to showcases the use of Lens Flares with interior lighting
+- A scene to showcases the use of Lens Flares with a directional light

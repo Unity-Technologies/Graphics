@@ -62,41 +62,42 @@ namespace UnityEngine.Rendering
         }
 
         // Need to keep both the Texture and the RTHandle in order to be able to track lifetime properly.
-        static Texture      m_BlackUIntTexture2DArray;
-        static Texture      m_BlackUIntTexture;
-        static RTHandle     m_BlackUIntTexture2DArrayRTH;
-        static RTHandle     m_BlackUIntTextureRTH;
+        static Texture m_BlackUIntTexture2DArray;
+        static Texture m_BlackUIntTexture;
+        static RTHandle m_BlackUIntTexture2DArrayRTH;
+        static RTHandle m_BlackUIntTextureRTH;
         /// <summary>
         /// Default black unsigned integer texture.
         /// </summary>
         /// <returns>The default black unsigned integer texture.</returns>
-        public static RTHandle  GetBlackUIntTexture() { return useTexArray ? m_BlackUIntTexture2DArrayRTH : m_BlackUIntTextureRTH; }
+        public static RTHandle GetBlackUIntTexture() { return useTexArray ? m_BlackUIntTexture2DArrayRTH : m_BlackUIntTextureRTH; }
 
-        static Texture2DArray   m_ClearTexture2DArray;
-        static Texture2D        m_ClearTexture;
-        static RTHandle         m_ClearTexture2DArrayRTH;
-        static RTHandle         m_ClearTextureRTH;
+        static Texture2DArray m_ClearTexture2DArray;
+        static Texture2D m_ClearTexture;
+        static RTHandle m_ClearTexture2DArrayRTH;
+        static RTHandle m_ClearTextureRTH;
         /// <summary>
         /// Default clear color (0, 0, 0, 1) texture.
         /// </summary>
         /// <returns>The default clear color texture.</returns>
         public static RTHandle GetClearTexture() { return useTexArray ? m_ClearTexture2DArrayRTH : m_ClearTextureRTH; }
 
-        static Texture2DArray   m_MagentaTexture2DArray;
-        static Texture2D        m_MagentaTexture;
-        static RTHandle         m_MagentaTexture2DArrayRTH;
-        static RTHandle         m_MagentaTextureRTH;
+        static Texture2DArray m_MagentaTexture2DArray;
+        static Texture2D m_MagentaTexture;
+        static RTHandle m_MagentaTexture2DArrayRTH;
+        static RTHandle m_MagentaTextureRTH;
         /// <summary>
         /// Default magenta texture.
         /// </summary>
         /// <returns>The default magenta texture.</returns>
         public static RTHandle GetMagentaTexture() { return useTexArray ? m_MagentaTexture2DArrayRTH : m_MagentaTextureRTH; }
 
-        static Texture3D        m_BlackTexture3D;
-        static Texture2DArray   m_BlackTexture2DArray;
-        static RTHandle         m_BlackTexture2DArrayRTH;
-        static RTHandle         m_BlackTextureRTH;
-        static RTHandle         m_BlackTexture3DRTH;
+        static Texture2D m_BlackTexture;
+        static Texture3D m_BlackTexture3D;
+        static Texture2DArray m_BlackTexture2DArray;
+        static RTHandle m_BlackTexture2DArrayRTH;
+        static RTHandle m_BlackTextureRTH;
+        static RTHandle m_BlackTexture3DRTH;
         /// <summary>
         /// Default black texture.
         /// </summary>
@@ -113,9 +114,9 @@ namespace UnityEngine.Rendering
         /// <returns>The default black texture 3D.</returns>
         public static RTHandle GetBlackTexture3D() { return m_BlackTexture3DRTH; }
 
-        static Texture2DArray   m_WhiteTexture2DArray;
-        static RTHandle         m_WhiteTexture2DArrayRTH;
-        static RTHandle         m_WhiteTextureRTH;
+        static Texture2DArray m_WhiteTexture2DArray;
+        static RTHandle m_WhiteTexture2DArrayRTH;
+        static RTHandle m_WhiteTextureRTH;
         /// <summary>
         /// Default white texture.
         /// </summary>
@@ -161,9 +162,12 @@ namespace UnityEngine.Rendering
 
                 // Black
                 RTHandles.Release(m_BlackTextureRTH);
-                m_BlackTextureRTH = RTHandles.Alloc(Texture2D.blackTexture);
+                m_BlackTexture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None) { name = "Black Texture" };
+                m_BlackTexture.SetPixel(0, 0, Color.black);
+                m_BlackTexture.Apply();
+                m_BlackTextureRTH = RTHandles.Alloc(m_BlackTexture);
                 RTHandles.Release(m_BlackTexture2DArrayRTH);
-                m_BlackTexture2DArray = CreateTexture2DArrayFromTexture2D(Texture2D.blackTexture, "Black Texture2DArray");
+                m_BlackTexture2DArray = CreateTexture2DArrayFromTexture2D(m_BlackTexture, "Black Texture2DArray");
                 m_BlackTexture2DArrayRTH = RTHandles.Alloc(m_BlackTexture2DArray);
                 RTHandles.Release(m_BlackTexture3DRTH);
                 m_BlackTexture3D = CreateBlackTexture3D("Black Texture3D");

@@ -12,57 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAssetDeferred
   m_EditorClassIdentifier: 
-  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
-    type: 2}
-  m_RenderPipelineRayTracingResources: {fileID: 11400000, guid: ba6e7f30e5cffc249a8bf7ee5756c196,
-    type: 2}
-  m_DefaultVolumeProfile: {fileID: 11400000, guid: 4414889870ba0db42b20b120a434b7f5,
-    type: 2}
-  m_LensAttenuation: 0
-  m_DefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
-    type: 2}
-  m_RenderingPathDefaultCameraFrameSettings:
-    bitDatas:
-      data1: 136268574097245
-      data2: 4539628428617252888
-    lodBias: 1
-    lodBiasMode: 0
-    lodBiasQualityLevel: 0
-    maximumLODLevel: 0
-    maximumLODLevelMode: 0
-    maximumLODLevelQualityLevel: 0
-    sssQualityMode: 0
-    sssQualityLevel: 0
-    sssCustomSampleBudget: 20
-    materialQuality: 0
-  m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
-    bitDatas:
-      data1: 139713129479965
-      data2: 4539628424389459992
-    lodBias: 1
-    lodBiasMode: 0
-    lodBiasQualityLevel: 0
-    maximumLODLevel: 0
-    maximumLODLevelMode: 0
-    maximumLODLevelQualityLevel: 0
-    sssQualityMode: 0
-    sssQualityLevel: 0
-    sssCustomSampleBudget: 20
-    materialQuality: 0
-  m_RenderingPathDefaultRealtimeReflectionFrameSettings:
-    bitDatas:
-      data1: 140065159257885
-      data2: 4539628424389459992
-    lodBias: 1
-    lodBiasMode: 0
-    lodBiasQualityLevel: 0
-    maximumLODLevel: 0
-    maximumLODLevelMode: 0
-    maximumLODLevelQualityLevel: 0
-    sssQualityMode: 0
-    sssQualityLevel: 0
-    sssCustomSampleBudget: 20
-    materialQuality: 0
   m_RenderPipelineSettings:
     supportShadowMask: 1
     supportSSR: 1
@@ -77,14 +26,6 @@ MonoBehaviour:
     supportVolumetrics: 1
     supportVolumetricClouds: 0
     supportLightLayers: 0
-    lightLayerName0: Light Layer default
-    lightLayerName1: Light Layer 1
-    lightLayerName2: Light Layer 2
-    lightLayerName3: Light Layer 3
-    lightLayerName4: Light Layer 4
-    lightLayerName5: Light Layer 5
-    lightLayerName6: Light Layer 6
-    lightLayerName7: Light Layer 7
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
@@ -99,14 +40,6 @@ MonoBehaviour:
         m_Id: With3Levels
     supportDecals: 1
     supportDecalLayers: 0
-    decalLayerName0: Decal Layer default
-    decalLayerName1: Decal Layer 1
-    decalLayerName2: Decal Layer 2
-    decalLayerName3: Decal Layer 3
-    decalLayerName4: Decal Layer 4
-    decalLayerName5: Decal Layer 5
-    decalLayerName6: Decal Layer 6
-    decalLayerName7: Decal Layer 7
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 1
@@ -140,8 +73,8 @@ MonoBehaviour:
       maxDecalsOnScreen: 512
       maxPlanarReflectionOnScreen: 16
       maxLightsPerClusterCell: 8
-      maxDensityVolumeSize: 32
-      maxDensityVolumesOnScreen: 64
+      maxLocalVolumetricFogSize: 32
+      maxLocalVolumetricFogOnScreen: 64
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 32
@@ -300,33 +233,34 @@ MonoBehaviour:
       - 0.666
       - 0.666
       - 0.5
+    m_ObsoleteLightLayerName0: Light Layer default
+    m_ObsoleteLightLayerName1: Light Layer 1
+    m_ObsoleteLightLayerName2: Light Layer 2
+    m_ObsoleteLightLayerName3: Light Layer 3
+    m_ObsoleteLightLayerName4: Light Layer 4
+    m_ObsoleteLightLayerName5: Light Layer 5
+    m_ObsoleteLightLayerName6: Light Layer 6
+    m_ObsoleteLightLayerName7: Light Layer 7
+    m_ObsoleteDecalLayerName0: Decal Layer default
+    m_ObsoleteDecalLayerName1: Decal Layer 1
+    m_ObsoleteDecalLayerName2: Decal Layer 2
+    m_ObsoleteDecalLayerName3: Decal Layer 3
+    m_ObsoleteDecalLayerName4: Decal Layer 4
+    m_ObsoleteDecalLayerName5: Decal Layer 5
+    m_ObsoleteDecalLayerName6: Decal Layer 6
+    m_ObsoleteDecalLayerName7: Decal Layer 7
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
-  shaderVariantLogLevel: 0
   availableMaterialQualityLevels: -1
   m_DefaultMaterialQualityLevel: 4
   diffusionProfileSettings: {fileID: 0}
-  diffusionProfileSettingsList:
-  - {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}
-  - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
-  - {fileID: 11400000, guid: fe1cdcfbe2f6023428af5974e17511c6, type: 2}
-  - {fileID: 11400000, guid: 784637474d9deec43a1d78b2361b9e6f, type: 2}
-  - {fileID: 11400000, guid: 0069ee94e5a66174e8d3393776072a41, type: 2}
-  - {fileID: 11400000, guid: e9b7d3ae706a8c845b9d317e195ff8a0, type: 2}
-  - {fileID: 11400000, guid: 57e246e5f8d6a8b4395e2070883735d5, type: 2}
-  - {fileID: 11400000, guid: d48d38dbecb5bf44db08516376edc733, type: 2}
-  - {fileID: 11400000, guid: b9b40238eefdcf841834c152892f8196, type: 2}
-  - {fileID: 11400000, guid: 458d5c32111ea5749a494da813d01275, type: 2}
-  beforeTransparentCustomPostProcesses: []
-  beforeTAACustomPostProcesses: []
-  beforePostProcessCustomPostProcesses: []
-  afterPostProcessCustomPostProcesses: []
   virtualTexturingSettings:
     streamingCpuCacheSizeInMegaBytes: 256
     streamingGpuCacheSettings:
     - format: 0
       sizeInMegaBytes: 128
-  m_Version: 18
+  m_UseRenderGraph: 1
+  m_Version: 19
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -462,3 +396,70 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 0
       enableBigTilePrepass: 0
       isFptlEnabled: 0
+  m_ObsoleteDefaultVolumeProfile: {fileID: 11400000, guid: 4414889870ba0db42b20b120a434b7f5,
+    type: 2}
+  m_ObsoleteDefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
+    type: 2}
+  m_ObsoleteFrameSettingsMovedToDefaultSettings:
+    bitDatas:
+      data1: 136268574097245
+      data2: 4539628428617252888
+    lodBias: 1
+    lodBiasMode: 0
+    lodBiasQualityLevel: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
+    maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
+    materialQuality: 0
+  m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings:
+    bitDatas:
+      data1: 139713129479965
+      data2: 4539628424389459992
+    lodBias: 1
+    lodBiasMode: 0
+    lodBiasQualityLevel: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
+    maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
+    materialQuality: 0
+  m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings:
+    bitDatas:
+      data1: 140065159257885
+      data2: 4539628424389459992
+    lodBias: 1
+    lodBiasMode: 0
+    lodBiasQualityLevel: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
+    maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
+    materialQuality: 0
+  m_ObsoleteRenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
+    type: 2}
+  m_ObsoleteRenderPipelineRayTracingResources: {fileID: 11400000, guid: ba6e7f30e5cffc249a8bf7ee5756c196,
+    type: 2}
+  m_ObsoleteBeforeTransparentCustomPostProcesses: []
+  m_ObsoleteBeforePostProcessCustomPostProcesses: []
+  m_ObsoleteAfterPostProcessCustomPostProcesses: []
+  m_ObsoleteBeforeTAACustomPostProcesses: []
+  m_ObsoleteShaderVariantLogLevel: 0
+  m_ObsoleteLensAttenuation: 0
+  m_ObsoleteDiffusionProfileSettingsList:
+  - {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}
+  - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
+  - {fileID: 11400000, guid: fe1cdcfbe2f6023428af5974e17511c6, type: 2}
+  - {fileID: 11400000, guid: 784637474d9deec43a1d78b2361b9e6f, type: 2}
+  - {fileID: 11400000, guid: 0069ee94e5a66174e8d3393776072a41, type: 2}
+  - {fileID: 11400000, guid: e9b7d3ae706a8c845b9d317e195ff8a0, type: 2}
+  - {fileID: 11400000, guid: 57e246e5f8d6a8b4395e2070883735d5, type: 2}
+  - {fileID: 11400000, guid: d48d38dbecb5bf44db08516376edc733, type: 2}
+  - {fileID: 11400000, guid: b9b40238eefdcf841834c152892f8196, type: 2}
+  - {fileID: 11400000, guid: 458d5c32111ea5749a494da813d01275, type: 2}

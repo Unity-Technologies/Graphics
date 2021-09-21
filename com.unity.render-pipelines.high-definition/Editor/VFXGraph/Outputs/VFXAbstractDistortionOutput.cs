@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Serialization;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     abstract class VFXAbstractDistortionOutput : VFXAbstractParticleOutput
     {
-        public VFXAbstractDistortionOutput(bool strip = false) : base(strip) {}
+        public VFXAbstractDistortionOutput(bool strip = false) : base(strip) { }
 
         public enum DistortionMode
         {
@@ -23,6 +24,10 @@ namespace UnityEditor.VFX
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.All), Tooltip("Whether Distortion scales with the distance")]
         protected bool scaleByDistance = true;
 
+        public override sealed bool CanBeCompiled()
+        {
+            return (VFXLibrary.currentSRPBinder is VFXHDRPBinder) && base.CanBeCompiled();
+        }
 
         protected override IEnumerable<string> filteredOutSettings
         {

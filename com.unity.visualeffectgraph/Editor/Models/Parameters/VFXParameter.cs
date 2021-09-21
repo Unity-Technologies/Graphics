@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Collections.ObjectModel;
+using UnityEditor.VFX.UI;
 using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX
@@ -22,6 +23,33 @@ namespace UnityEditor.VFX
             m_ExposedName = "exposedName";
             m_Exposed = false;
             m_UICollapsed = false;
+        }
+
+        public static VFXParameter Duplicate(string copyName, VFXParameter source)
+        {
+            var newVfxParameter = (VFXParameter)ScriptableObject.CreateInstance(source.GetType());
+
+            newVfxParameter.m_ExposedName = copyName;
+            newVfxParameter.m_Exposed = source.m_Exposed;
+            newVfxParameter.m_UICollapsed = source.m_UICollapsed;
+            newVfxParameter.m_Order = source.m_Order + 1;
+            newVfxParameter.m_Category = source.m_Category;
+            newVfxParameter.m_Min = source.m_Min;
+            newVfxParameter.m_Max = source.m_Max;
+            newVfxParameter.m_IsOutput = source.m_IsOutput;
+            newVfxParameter.m_EnumValues = source.m_EnumValues?.ToList();
+            newVfxParameter.m_Tooltip = source.m_Tooltip;
+            newVfxParameter.m_ValueFilter = source.m_ValueFilter;
+            newVfxParameter.subgraphMode = source.subgraphMode;
+            newVfxParameter.m_ValueExpr = source.m_ValueExpr;
+            newVfxParameter.Init(source.type);
+
+            if (!source.isOutput)
+            {
+                newVfxParameter.value = source.value;
+            }
+
+            return newVfxParameter;
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, FormerlySerializedAs("m_exposedName")]
@@ -59,12 +87,17 @@ namespace UnityEditor.VFX
 
             set
             {
+                var invalidateCause = InvalidationCause.kParamChanged;
+
                 if (m_Min == null || m_Min.type != type)
+                {
                     m_Min = new VFXSerializableObject(type, value);
+                    invalidateCause = InvalidationCause.kSettingChanged;
+                }
                 else
                     m_Min.Set(value);
 
-                Invalidate(InvalidationCause.kSettingChanged);
+                Invalidate(invalidateCause);
             }
         }
         public object max
@@ -73,11 +106,17 @@ namespace UnityEditor.VFX
 
             set
             {
+                var invalidateCause = InvalidationCause.kParamChanged;
+
                 if (m_Max == null || m_Max.type != type)
+                {
                     m_Max = new VFXSerializableObject(type, value);
+                    invalidateCause = InvalidationCause.kSettingChanged;
+                }
                 else
                     m_Max.Set(value);
-                Invalidate(InvalidationCause.kSettingChanged);
+
+                Invalidate(invalidateCause);
             }
         }
 
@@ -348,6 +387,20 @@ namespace UnityEditor.VFX
             return m_Nodes.FirstOrDefault(t => t.id == id);
         }
 
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+
+            var type = this.type;
+            if (Deprecated.s_Types.Contains(type))
+            {
+                manager.RegisterError(
+                    "DeprecatedTypeParameter",
+                    VFXErrorType.Warning,
+                    string.Format("The structure of the '{0}' has changed, the position property has been moved to a transform type. You should consider to recreate this parameter.", type.Name));
+            }
+        }
+
         protected sealed override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             base.OnInvalidate(model, cause);
@@ -424,7 +477,7 @@ namespace UnityEditor.VFX
                 VFXSlot slot = VFXSlot.Create(new VFXProperty(_type, "o"), VFXSlot.Direction.kOutput);
                 AddSlot(slot);
 
-                if (!typeof(UnityEngine.Object).IsAssignableFrom(_type))
+                if (!typeof(UnityEngine.Object).IsAssignableFrom(_type) && _type != typeof(GraphicsBuffer))
                     slot.value = System.Activator.CreateInstance(_type);
             }
             else
@@ -631,23 +684,29 @@ namespace UnityEditor.VFX
                     }
                 }
                 // if there are some links in the output slots that are in not found in the infos, find or create a node for them.
-                if (links.Count > 0)
+                foreach (var link in links)
                 {
                     Node newInfos = null;
-
-                    if (nodes.Count > 0)
+                    if (nodes.Any())
                     {
-                        newInfos = nodes[0];
+                        //There are already some nodes, choose the closest one to restore the link
+                        var refPosition = Vector2.zero;
+                        object refOwner = link.inputSlot.owner;
+                        while (refOwner is VFXModel model && refPosition == Vector2.zero)
+                        {
+                            refPosition = model is VFXBlock ? Vector2.zero : model.position;
+                            refOwner = model.GetParent();
+                        }
+                        newInfos = nodes.OrderBy(o => (refPosition - o.position).SqrMagnitude()).First();
                     }
                     else
                     {
                         newInfos = NewNode();
                         m_Nodes.Add(newInfos);
                     }
-                    newInfos.position = Vector2.zero;
                     if (newInfos.linkedSlots == null)
                         newInfos.linkedSlots = new List<NodeLinkedSlot>();
-                    newInfos.linkedSlots.AddRange(links);
+                    newInfos.linkedSlots.Add(link);
                     newInfos.expandedSlots = new List<VFXSlot>();
                 }
             }

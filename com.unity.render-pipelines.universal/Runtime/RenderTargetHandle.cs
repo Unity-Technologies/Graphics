@@ -3,12 +3,12 @@ using UnityEngine.Scripting.APIUpdating;
 namespace UnityEngine.Rendering.Universal
 {
     // RenderTargetHandle can be thought of as a kind of ShaderProperty string hash
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct RenderTargetHandle
+    public struct RenderTargetHandle
     {
         public int id { set; get; }
         private RenderTargetIdentifier rtid { set; get; }
 
-        public static readonly RenderTargetHandle CameraTarget = new RenderTargetHandle {id = -1 };
+        public static readonly RenderTargetHandle CameraTarget = new RenderTargetHandle { id = -1 };
 
         public RenderTargetHandle(RenderTargetIdentifier renderTargetIdentifier)
         {
@@ -75,12 +75,12 @@ namespace UnityEngine.Rendering.Universal
             return id;
         }
 
-        public static bool operator==(RenderTargetHandle c1, RenderTargetHandle c2)
+        public static bool operator ==(RenderTargetHandle c1, RenderTargetHandle c2)
         {
             return c1.Equals(c2);
         }
 
-        public static bool operator!=(RenderTargetHandle c1, RenderTargetHandle c2)
+        public static bool operator !=(RenderTargetHandle c1, RenderTargetHandle c2)
         {
             return !c1.Equals(c2);
         }

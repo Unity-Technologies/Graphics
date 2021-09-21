@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [DisallowMultipleRendererFeature]
+    [Tooltip("The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other.")]
     internal class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
     {
         // Serialized Fields
@@ -49,6 +50,8 @@ namespace UnityEngine.Rendering.Universal
         private const string k_NormalReconstructionHighKeyword = "_RECONSTRUCT_NORMAL_HIGH";
         private const string k_SourceDepthKeyword = "_SOURCE_DEPTH";
         private const string k_SourceDepthNormalsKeyword = "_SOURCE_DEPTH_NORMALS";
+
+        internal bool afterOpaque => m_Settings.AfterOpaque;
 
         /// <inheritdoc/>
         public override void Create()
@@ -178,7 +181,10 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses;
+                    // Rendering after PrePasses is usually correct except when depth priming is in play:
+                    // then we rely on a depth resolve taking place after the PrePasses in order to have it ready for SSAO.
+                    // Hence we set the event to RenderPassEvent.AfterRenderingPrePasses + 1 at the earliest.
+                    renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses + 1;
                     source = m_CurrentSettings.Source;
                 }
 
@@ -309,10 +315,10 @@ namespace UnityEngine.Rendering.Universal
                 m_FinalDescriptor.colorFormat = m_SupportsR8RenderTextureFormat ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
 
                 // Get temporary render textures
-                cmd.GetTemporaryRT(s_SSAOTexture1ID,     m_AOPassDescriptor,      FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTexture2ID,     m_BlurPassesDescriptor,  FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTexture3ID,     m_BlurPassesDescriptor,  FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTextureFinalID, m_FinalDescriptor,       FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTexture1ID, m_AOPassDescriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTexture2ID, m_BlurPassesDescriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTexture3ID, m_BlurPassesDescriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTextureFinalID, m_FinalDescriptor, FilterMode.Bilinear);
 
                 // Configure targets and clear color
                 ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTarget : s_SSAOTexture2ID);
@@ -354,7 +360,7 @@ namespace UnityEngine.Rendering.Universal
                     // If true, SSAO pass is inserted after opaque pass and is expected to modulate lighting result now.
                     if (m_CurrentSettings.AfterOpaque)
                     {
-                        // This implicitely also bind depth attachment. Explicitely binding m_Renderer.cameraDepthTarget does not work.
+                        // This implicitly also bind depth attachment. Explicitly binding m_Renderer.cameraDepthTarget does not work.
                         cmd.SetRenderTarget(
                             m_Renderer.cameraColorTarget,
                             RenderBufferLoadAction.Load,

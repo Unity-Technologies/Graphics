@@ -2,7 +2,7 @@
 
 Menu Path : **Force > Conform to Signed Distance Field**
 
-The **Conform to Signed Distance Field** Block attracts particles towards a defined distance field. This is useful for pulling particles towards a specific shape which cannot be easily defined via other force blocks, and it works best when you use it alongside other forces.
+The **Conform to Signed Distance Field** Block attracts particles towards a defined distance field. This is useful for pulling particles towards a specific shape which cannot be easily defined via other force Blocks, and it works best when you use it alongside other forces.
 
 ![](Images/Block-ConformToSDFExample.gif)
 

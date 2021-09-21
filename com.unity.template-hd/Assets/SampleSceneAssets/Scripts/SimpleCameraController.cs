@@ -54,6 +54,8 @@ namespace UnityTemplateProjects
             }
         }
 
+        const float k_MouseSensitivityMultiplier = 0.01f;
+
         CameraState m_TargetCameraState = new CameraState();
         CameraState m_InterpolatingCameraState = new CameraState();
 
@@ -65,6 +67,9 @@ namespace UnityTemplateProjects
         public float positionLerpTime = 0.2f;
 
         [Header("Rotation Settings")]
+        [Tooltip("Multiplier for the sensitivity of the rotation.")]
+        public float mouseSensitivity = 60.0f;
+
         [Tooltip("X = Change in mouse position.\nY = Multiplicative factor for camera rotation.")]
         public AnimationCurve mouseSensitivityCurve = new AnimationCurve(new Keyframe(0f, 0.5f, 0f, 5f), new Keyframe(1f, 2.5f, 0f, 0f));
 
@@ -162,14 +167,12 @@ namespace UnityTemplateProjects
 
         void Update()
         {
-            // Exit Sample
-
             if (IsEscapePressed())
             {
                 Application.Quit();
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
-                #endif
+#endif
             }
 
             // Hide and lock cursor when right mouse button pressed
@@ -188,7 +191,7 @@ namespace UnityTemplateProjects
             // Rotation
             if (IsCameraRotationAllowed())
             {
-                var mouseMovement = GetInputLookRotation() * Time.deltaTime * 5;
+                var mouseMovement = GetInputLookRotation() * k_MouseSensitivityMultiplier * mouseSensitivity;
                 if (invertY)
                     mouseMovement.y = -mouseMovement.y;
 
@@ -225,7 +228,6 @@ namespace UnityTemplateProjects
         float GetBoostFactor()
         {
 #if ENABLE_INPUT_SYSTEM
-            // TODO
             return boostFactorAction.ReadValue<Vector2>().y * 0.01f;
 #else
             return Input.mouseScrollDelta.y * 0.01f;
@@ -234,10 +236,14 @@ namespace UnityTemplateProjects
 
         Vector2 GetInputLookRotation()
         {
+            // try to compensate the diff between the two input systems by multiplying with empirical values
 #if ENABLE_INPUT_SYSTEM
-            return lookAction.ReadValue<Vector2>();
+            var delta = lookAction.ReadValue<Vector2>();
+            delta *= 0.5f; // Account for scaling applied directly in Windows code by old input system.
+            delta *= 0.1f; // Account for sensitivity setting on old Mouse X and Y axes.
+            return delta;
 #else
-            return new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y") * (invertY ? 1 : -1));
+            return new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
 #endif
         }
 
@@ -268,7 +274,7 @@ namespace UnityTemplateProjects
             canRotate |= Gamepad.current != null ? Gamepad.current.rightStick.ReadValue().magnitude > 0 : false;
             return canRotate;
 #else
-            return Input.GetMouseButtonDown(1);
+            return Input.GetMouseButton(1);
 #endif
         }
 

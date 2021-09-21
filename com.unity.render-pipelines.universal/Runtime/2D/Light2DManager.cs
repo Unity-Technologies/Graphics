@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal static class Light2DManager
     {
@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static bool GetGlobalColor(int sortingLayerIndex, int blendStyleIndex, out Color color)
         {
-            var  foundGlobalColor = false;
+            var foundGlobalColor = false;
             color = Color.black;
 
             // This should be rewritten to search only global lights

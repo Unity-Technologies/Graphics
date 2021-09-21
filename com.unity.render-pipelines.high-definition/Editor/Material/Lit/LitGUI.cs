@@ -24,16 +24,12 @@ namespace UnityEditor.Rendering.HighDefinition
             // We don't want distortion in Lit
             new TransparencyUIBlock(MaterialUIBlock.ExpandableBit.Transparency, features: TransparencyUIBlock.Features.All & ~TransparencyUIBlock.Features.Distortion),
             new EmissionUIBlock(MaterialUIBlock.ExpandableBit.Emissive),
-            new LitAdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, AdvancedOptionsUIBlock.Features.StandardLit),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, AdvancedOptionsUIBlock.Features.StandardLit),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                uiBlocks.OnGUI(materialEditor, props);
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
-            }
+            uiBlocks.OnGUI(materialEditor, props);
         }
 
         // Properties for material keyword setup
@@ -77,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kTransmittanceColorMap = "_TransmittanceColorMap";
         protected const string kRefractionModel = "_RefractionModel";
 
-        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupLitKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => SetupLitKeywordsAndPass(material);
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupLitKeywordsAndPass(Material material)

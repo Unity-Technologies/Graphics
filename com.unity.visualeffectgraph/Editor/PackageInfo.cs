@@ -14,6 +14,8 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.PerformanceRuntimeTests-testable")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Editor")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Editor-testable")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor-testable")]
 
 namespace UnityEditor.VFX
 {

@@ -758,7 +758,7 @@ namespace UnityEditor.VFX.UI
         public class VFXContextOnlyVFXNodeProvider : VFXNodeProvider
         {
             public VFXContextOnlyVFXNodeProvider(VFXViewController controller, Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter) :
-                base(controller, onAddBlock, filter, new Type[] { typeof(VFXContext)})
+                base(controller, onAddBlock, filter, new Type[] { typeof(VFXContext) })
             {
             }
 
@@ -814,7 +814,7 @@ namespace UnityEditor.VFX.UI
             var contextType = controller.model.GetType();
             foreach (var setting in newContextController.model.GetSettings(true))
             {
-                if ((newContextController.model is VFXPlanarPrimitiveOutput || newContextController.model.GetType().Name == "VFXLitPlanarPrimitiveOutput") && setting.field.Name == "primitiveType")
+                if (!newContextController.model.CanTransferSetting(setting))
                     continue;
 
                 if (!setting.valid || setting.field.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 0)

@@ -12,6 +12,7 @@ struct FragInputs
     // Note: SV_POSITION is the result of the clip space position provide to the vertex shaders that is transform by the viewport
     float4 positionSS; // In case depth offset is use, positionRWS.w is equal to depth offset
     float3 positionRWS; // Relative camera space position
+    float3 positionPredisplacementRWS; // Relative camera space position
     float4 texCoord0;
     float4 texCoord1;
     float4 texCoord2;
@@ -34,6 +35,11 @@ struct FragInputs
     // append a substruct for custom interpolators to be copied correctly into SDI from Varyings.
     #if defined(USE_CUSTOMINTERP_SUBSTRUCT)
         CustomInterpolators customInterpolators;
+    #endif
+
+    // Append an additional substruct for VFX interpolators. Eventually, we should merge this with custom interpolators.
+    #if defined(HAVE_VFX_MODIFICATION)
+        FragInputsVFX vfx;
     #endif
 };
 

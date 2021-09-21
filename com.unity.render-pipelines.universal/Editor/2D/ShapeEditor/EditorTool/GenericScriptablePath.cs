@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     internal class GenericScriptablePath<T> : ScriptablePath
     {
@@ -67,6 +67,6 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             return Activator.CreateInstance<T>();
         }
 
-        protected virtual void Destroy(T data) {}
+        protected virtual void Destroy(T data) { }
     }
 }

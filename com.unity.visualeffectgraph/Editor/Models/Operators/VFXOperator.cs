@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
                 try
                 {
                     changed = base.ResyncSlots(notify);
-                    if (changed && notify)
+                    if (notify)
                         foreach (var slot in outputSlots) // invalidate expressions on output slots
                             slot.InvalidateExpressionTree();
                 }
@@ -103,6 +103,9 @@ namespace UnityEditor.VFX
                     }
                 }
             }
+            if (space == (VFXCoordinateSpace)int.MaxValue)
+                space = outputSlot.space;
+
             return space;
         }
 

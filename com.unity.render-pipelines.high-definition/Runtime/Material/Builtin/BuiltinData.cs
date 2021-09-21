@@ -58,13 +58,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public float distortionBlur;           // Define the color buffer mipmap level to use
 
             // Misc
+            [SurfaceDataAttributes("Is Lightmap")]
+            public uint isLightmap; // Currently only use with APV
+
             [SurfaceDataAttributes("Rendering Layers")]
             public uint renderingLayers;
 
             [SurfaceDataAttributes("Depth Offset")]
             public float depthOffset; // define the depth in unity unit to add in Z forward direction
 
-            [SurfaceDataAttributes("VT Packed Feedback", precision = FieldPrecision.Real)]
+            [SurfaceDataAttributes("VT Packed Feedback", precision: FieldPrecision.Real, preprocessor: "defined(UNITY_VIRTUAL_TEXTURING)")]
             public Vector4 vtPackedFeedback;
         };
 

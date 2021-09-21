@@ -5,6 +5,7 @@ namespace UnityEditor.ShaderGraph
     [Flags]
     enum ShaderStageCapability
     {
+        None = 0,
         Vertex = 1 << 0,
         Fragment = 1 << 1,
         All = Vertex | Fragment

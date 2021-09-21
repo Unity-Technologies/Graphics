@@ -8,8 +8,14 @@
 PackedVaryingsType Vert(AttributesMesh inputMesh, AttributesPass inputPass)
 {
     VaryingsType varyingsType;
+#ifdef HAVE_VFX_MODIFICATION
+    AttributesElement inputElement;
+    varyingsType.vmesh = VertMesh(inputMesh, inputElement);
+    return MotionVectorVS(varyingsType, inputMesh, inputPass, inputElement);
+#else
     varyingsType.vmesh = VertMesh(inputMesh);
     return MotionVectorVS(varyingsType, inputMesh, inputPass);
+#endif
 }
 
 #ifdef TESSELLATION_ON
@@ -18,12 +24,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 {
     VaryingsToPS output;
     output.vmesh = VertMeshTesselation(input.vmesh);
-    MotionVectorPositionZBias(output);
-
-    output.vpass.positionCS = input.vpass.positionCS;
-    output.vpass.previousPositionCS = input.vpass.previousPositionCS;
-
-    return PackVaryingsToPS(output);
+    return MotionVectorTessellation(output, input);
 }
 
 #endif // TESSELLATION_ON
@@ -116,8 +117,24 @@ void Frag(PackedVaryingsToPS packedInput,
     bsdfData.color *= GetScreenSpaceAmbientOcclusion(input.positionSS.xy);
 #endif
 
+#ifdef DEBUG_DISPLAY
+    // Handle debug lighting mode here as there is no lightloop for unlit.
+    // For unlit we let all unlit object appear
+    if (_DebugLightingMode >= DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING && _DebugLightingMode <= DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+    {
+        if (_DebugLightingMode != DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+        {
+            builtinData.emissiveColor = 0.0;
+        }
+        else
+        {
+            bsdfData.color = 0.0;
+        }
+    }
+#endif
+
     // Note: we must not access bsdfData in shader pass, but for unlit we make an exception and assume it should have a color field
-    float4 outResult = ApplyBlendMode(bsdfData.color*GetDeExposureMultiplier() + builtinData.emissiveColor * GetCurrentExposureMultiplier(), builtinData.opacity);
+    float4 outResult = ApplyBlendMode(bsdfData.color * GetDeExposureMultiplier() + builtinData.emissiveColor * GetCurrentExposureMultiplier(), builtinData.opacity);
     outResult = EvaluateAtmosphericScattering(posInput, V, outResult);
 
 #ifdef DEBUG_DISPLAY
@@ -147,8 +164,8 @@ void Frag(PackedVaryingsToPS packedInput,
 
             // TEMP!
             // For now, the final blit in the backbuffer performs an sRGB write
-            // So in the meantime we apply the inverse transform to linear data to compensate.
-            if (!needLinearToSRGB)
+            // So in the meantime we apply the inverse transform to linear data to compensate, unless we output to AOVs.
+            if (!needLinearToSRGB && _DebugAOVOutput == 0)
                 result = SRGBToLinear(max(0, result));
 
             outResult = float4(result, 1.0);

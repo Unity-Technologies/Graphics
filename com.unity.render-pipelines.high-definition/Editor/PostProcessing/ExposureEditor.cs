@@ -1,4 +1,3 @@
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -37,7 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_TargetMidGray;
 
-        private static LightUnitSliderUIDrawer k_LightUnitSlider;
+        private static HDLightUnitSliderUIDrawer k_LightUnitSlider;
 
         int m_RepaintsAfterChange = 0;
         int m_SettingsForDoubleRefreshHash = 0;
@@ -76,7 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_TargetMidGray = Unpack(o.Find(x => x.targetMidGray));
 
-            k_LightUnitSlider = new LightUnitSliderUIDrawer();
+            k_LightUnitSlider = new HDLightUnitSliderUIDrawer();
         }
 
         public override void OnInspectorGUI()
@@ -121,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_ProceduralCenter, centerLabel);
                     var radiiValue = m_ProceduralRadii.value.vector2Value;
                     m_ProceduralRadii.value.vector2Value = new Vector2(Mathf.Clamp01(radiiValue.x), Mathf.Clamp01(radiiValue.y));
-                    PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radii", "Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
+                    PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radius", "Sets the radiuses of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
                     PropertyField(m_ProceduralSoftness, EditorGUIUtility.TrTextContent("Softness", "Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask"));
                     PropertyField(m_ProceduralMinIntensity);
                     PropertyField(m_ProceduralMaxIntensity);
@@ -200,33 +199,31 @@ namespace UnityEditor.Rendering.HighDefinition
         // TODO: See if this can be refactored into a custom VolumeParameterDrawer
         void DoExposurePropertyField(SerializedDataParameter exposureProperty)
         {
-            using (new EditorGUILayout.HorizontalScope())
+            using (var scope = new OverridablePropertyScope(exposureProperty, exposureProperty.displayName, this))
             {
-                DrawOverrideCheckbox(exposureProperty);
+                if (!scope.displayed)
+                    return;
 
-                using (new EditorGUI.DisabledScope(!exposureProperty.overrideState.boolValue))
+                using (new EditorGUILayout.VerticalScope())
                 {
-                    using (new EditorGUILayout.VerticalScope())
-                    {
-                        EditorGUILayout.LabelField(exposureProperty.displayName);
+                    EditorGUILayout.LabelField(scope.label);
 
-                        var xOffset = EditorGUIUtility.labelWidth;
+                    var xOffset = EditorGUIUtility.labelWidth + 2;
 
-                        var lineRect = EditorGUILayout.GetControlRect();
-                        lineRect.x += xOffset;
-                        lineRect.width -= xOffset;
+                    var lineRect = EditorGUILayout.GetControlRect();
+                    lineRect.x += xOffset;
+                    lineRect.width -= xOffset;
 
-                        var sliderRect = lineRect;
-                        sliderRect.y -= EditorGUIUtility.singleLineHeight;
-                        k_LightUnitSlider.SetSerializedObject(serializedObject);
-                        k_LightUnitSlider.DrawExposureSlider(exposureProperty.value, sliderRect);
+                    var sliderRect = lineRect;
+                    sliderRect.y -= EditorGUIUtility.singleLineHeight;
+                    k_LightUnitSlider.SetSerializedObject(serializedObject);
+                    k_LightUnitSlider.DrawExposureSlider(exposureProperty.value, sliderRect);
 
-                        // GUIContent.none disables horizontal scrolling, use TrTextContent and adjust the rect to make it work.
-                        lineRect.x -= EditorGUIUtility.labelWidth + 2;
-                        lineRect.y += EditorGUIUtility.standardVerticalSpacing;
-                        lineRect.width += EditorGUIUtility.labelWidth + 2;
-                        EditorGUI.PropertyField(lineRect, exposureProperty.value, EditorGUIUtility.TrTextContent(" "));
-                    }
+                    // GUIContent.none disables horizontal scrolling, use TrTextContent and adjust the rect to make it work.
+                    lineRect.x -= EditorGUIUtility.labelWidth + 2;
+                    lineRect.y += EditorGUIUtility.standardVerticalSpacing;
+                    lineRect.width += EditorGUIUtility.labelWidth + 2;
+                    EditorGUI.PropertyField(lineRect, exposureProperty.value, EditorGUIUtility.TrTextContent(" "));
                 }
             }
         }

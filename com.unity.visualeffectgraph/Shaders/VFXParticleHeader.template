@@ -26,7 +26,7 @@ ByteAddressBuffer deadListCount;
 #endif
 
 #if HAS_STRIPS
-Buffer<uint> stripDataBuffer;
+StructuredBuffer<uint> stripDataBuffer;
 #endif
 
 #if VFX_FEATURE_MOTION_VECTORS
@@ -43,6 +43,7 @@ ByteAddressBuffer elementToVFXBufferPrevious;
 CBUFFER_START(outputParams)
 	float nbMax;
 	float systemSeed;
+	float3 cameraXRSettings;
 CBUFFER_END
 
 // Helper macros to always use a valid instanceID
