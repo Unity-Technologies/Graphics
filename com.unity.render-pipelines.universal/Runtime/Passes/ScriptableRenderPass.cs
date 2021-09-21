@@ -270,18 +270,16 @@ namespace UnityEngine.Rendering.Universal
             m_UsesRTHandles = true;
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RTHandle[] { k_CameraTarget, null, null, null, null, null, null, null };
-#pragma warning disable 612
-            m_ColorAttachmentIds = new RenderTargetIdentifier[] { k_CameraTarget.nameID, 0, 0, 0, 0, 0, 0, 0 };
-#pragma warning restore 612
             m_InputAttachments = new RTHandle[] { null, null, null, null, null, null, null, null };
             m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store, 0, 0, 0, 0, 0, 0, 0 };
             m_DepthStoreAction = RenderBufferStoreAction.Store;
             m_OverriddenColorStoreActions = new bool[] { false, false, false, false, false, false, false, false };
             m_OverriddenDepthStoreAction = false;
             m_DepthAttachment = k_CameraTarget;
-#pragma warning disable 612
+#pragma warning disable 0612 // Obsolete usage: RenderTargetIdentifiers used for backwards compatibility
             m_DepthAttachmentId = m_DepthAttachment.nameID;
-#pragma warning restore 612
+            m_ColorAttachmentIds = new RenderTargetIdentifier[] { k_CameraTarget.nameID, 0, 0, 0, 0, 0, 0, 0 };
+#pragma warning restore 0612
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -406,9 +404,9 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment)
         {
             m_DepthAttachment = depthAttachment;
-#pragma warning disable 612
+#pragma warning disable 0612 // Obsolete usage: RenderTargetIdentifier used for backwards compatibility
             m_DepthAttachmentId = m_DepthAttachment.nameID;
-#pragma warning restore 612
+#pragma warning restore 0612
             ConfigureTarget(colorAttachment);
         }
 
@@ -423,9 +421,9 @@ namespace UnityEngine.Rendering.Universal
         internal void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment, GraphicsFormat format)
         {
             m_DepthAttachment = depthAttachment;
-#pragma warning disable 612
+#pragma warning disable 0612 // Obsolete usage: RenderTargetIdentifier used for backwards compatibility
             m_DepthAttachmentId = m_DepthAttachment.nameID;
-#pragma warning restore 612
+#pragma warning restore 0612
             ConfigureTarget(colorAttachment, format);
         }
 
@@ -467,13 +465,13 @@ namespace UnityEngine.Rendering.Universal
                 Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
 
             m_ColorAttachments = colorAttachments;
-#pragma warning disable 612
+#pragma warning disable 0612 // Obsolete usage: RenderTargetIdentifiers used for backwards compatibility
             if (m_ColorAttachmentIds.Length != m_ColorAttachments.Length)
                 m_ColorAttachmentIds = new RenderTargetIdentifier[m_ColorAttachments.Length];
             for (var i = 0; i < m_ColorAttachmentIds.Length; ++i)
                 m_ColorAttachmentIds[i] = new RenderTargetIdentifier(colorAttachments[i].nameID, 0, CubemapFace.Unknown, -1);
             m_DepthAttachmentId = depthAttachment.nameID;
-#pragma warning restore 612
+#pragma warning restore 0612
             m_DepthAttachment = depthAttachment;
         }
 
@@ -521,14 +519,14 @@ namespace UnityEngine.Rendering.Universal
             overrideCameraTarget = true;
 
             m_ColorAttachments[0] = colorAttachment;
-#pragma warning disable 612
+#pragma warning disable 0612  // Obsolete usage: Backwards compatibility from for passes set with RenderTargetIdentifiers
             m_ColorAttachmentIds[0] = new RenderTargetIdentifier(colorAttachment.nameID, 0, CubemapFace.Unknown, -1);
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
             {
                 m_ColorAttachments[i] = null;
                 m_ColorAttachmentIds[i] = 0;
             }
-#pragma warning restore 612
+#pragma warning restore 0612
         }
 
         [Obsolete]

@@ -212,19 +212,31 @@ namespace UnityEngine.Rendering.Universal
                     for (int i = 0; i < pass.m_InputAttachmentIndices.Length; ++i)
                         pass.m_InputAttachmentIndices[i] = -1;
 
-#pragma warning disable 612
-                    uint validColorBuffersCount = RenderingUtils.GetValidColorBufferCount(pass.colorAttachments);
-#pragma warning restore 612
+                    uint validColorBuffersCount;
+                    if (pass.m_UsesRTHandles)
+                        validColorBuffersCount = RenderingUtils.GetValidColorBufferCount(pass.colorAttachmentHandles);
+#pragma warning disable 0612 // Obsolete usage: Backwards compatibility with passes that only set with RenderTargetIdentifiers
+                    else
+                        validColorBuffersCount = RenderingUtils.GetValidColorBufferCount(pass.colorAttachments);
+#pragma warning restore 0612
 
                     for (int i = 0; i < validColorBuffersCount; ++i)
                     {
                         AttachmentDescriptor currentAttachmentDescriptor =
                             new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None ? pass.renderTargetFormat[i] : GetDefaultGraphicsFormat(cameraData));
 
-                        var cameraColorTarget = m_CameraColorTarget.useRTHandle ? m_CameraColorTarget.handle.nameID : m_CameraColorTarget.fallback;
-#pragma warning disable 612
-                        var colorTarget = pass.overrideCameraTarget ? pass.colorAttachments[i] : cameraColorTarget;
-#pragma warning restore 612
+                        RenderTargetIdentifier colorTarget;
+                        if (m_CameraColorTarget.useRTHandle)
+                        {
+                            var colorHandle = pass.overrideCameraTarget ? pass.colorAttachmentHandles[i] : m_CameraColorTarget.handle;
+                            colorTarget = colorHandle.nameID;
+                        }
+                        else
+                        {
+#pragma warning disable 0612 // Obsolete usage: Backwards compatibility for passes set with RenderTargetIdentifiers (fallback)
+                            colorTarget = pass.overrideCameraTarget ? pass.colorAttachments[i] : m_CameraColorTarget.fallback;
+#pragma warning restore 0612
+                        }
                         colorTarget = new RenderTargetIdentifier(colorTarget, 0, CubemapFace.Unknown, 0); // remove depthSlice -1 from XR SPI
                         int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(colorTarget, m_ActiveColorAttachmentDescriptors);
 
@@ -237,12 +249,12 @@ namespace UnityEngine.Rendering.Universal
                             m_ActiveColorAttachmentDescriptors[currentAttachmentIdx] = currentAttachmentDescriptor;
                             m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureTarget(colorTarget, (pass.clearFlag & ClearFlag.Color) == 0, true);
 
-#pragma warning disable 612
+#pragma warning disable 0612 // Obsolete usage: Backwards compatibility for passes set with RenderTargetIdentifiers
                             if (pass.colorAttachments[i] == m_CameraColorTarget.nameID && needCustomCameraColorClear && (clearFlag & ClearFlag.Color) != 0)
                                 m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(cameraData.camera.backgroundColor), 1.0f, 0);
                             else if ((pass.clearFlag & ClearFlag.Color) != 0)
                                 m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(pass.clearColor), 1.0f, 0);
-#pragma warning restore 612
+#pragma warning restore 0612
 
                             pass.m_ColorAttachmentIndices[i] = currentAttachmentIdx;
                             currentAttachmentIdx++;
@@ -260,9 +272,9 @@ namespace UnityEngine.Rendering.Universal
 
                     // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
-#pragma warning disable 612
+#pragma warning disable 0612 // Obsolete usage: Backwards compatibility for passes set with RenderTargetIdentifiers
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(pass.overrideCameraTarget ? pass.depthAttachment : m_CameraDepthTarget.nameID, (clearFlag & ClearFlag.DepthStencil) == 0, true);
-#pragma warning restore 612
+#pragma warning restore 0612
 
                     if ((clearFlag & ClearFlag.DepthStencil) != 0)
                         m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
@@ -319,13 +331,15 @@ namespace UnityEngine.Rendering.Universal
                     // Offscreen depth-only cameras need this set explicitly
                     if (depthOnly && usesTargetTexture)
                     {
-#pragma warning disable 612
                         if (IsDepthOnlyRenderTexture(cameraData.targetTexture) && !pass.overrideCameraTarget)
                             passColorAttachment = new RenderTargetIdentifier(cameraData.targetTexture);
+                        else if (renderPass.m_UsesRTHandles)
+                            passColorAttachment = renderPass.colorAttachmentHandle.nameID;
+#pragma warning disable 0612 // Obsolete usage: Backwards compatibility for passes set with RenderTargetIdentifiers
                         else
                             passColorAttachment = renderPass.colorAttachment;
                         currentAttachmentDescriptor = new AttachmentDescriptor(SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
-#pragma warning restore 612
+#pragma warning restore 0612
                     }
                     else
                         currentAttachmentDescriptor =
@@ -436,10 +450,10 @@ namespace UnityEngine.Rendering.Universal
                 bool isLastPassToBB = isLastPass && (m_ActiveColorAttachmentDescriptors[0].loadStoreTarget ==
                     BuiltinRenderTextureType.CameraTarget);
                 var depthOnly = renderPass.depthOnly || (cameraData.targetTexture != null && IsDepthOnlyRenderTexture(cameraData.targetTexture));
-#pragma warning disable 612
+#pragma warning disable 0612 // Obsolete usage: Deprecated depthAttachment used in order to ensure backwards compatibility with passes set with RenderTargetIdentifiers
                 bool useDepth = depthOnly || (!renderPass.overrideCameraTarget || (renderPass.overrideCameraTarget && renderPass.depthAttachment != -1)) &&
                     (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
-#pragma warning restore 612
+#pragma warning restore 0612
 
                 var attachments =
                     new NativeArray<AttachmentDescriptor>(useDepth && !depthOnly ? validColorBuffersCount + 1 : 1,
@@ -671,10 +685,10 @@ namespace UnityEngine.Rendering.Universal
             var w = (renderPass.renderTargetWidth != -1) ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
             var h = (renderPass.renderTargetHeight != -1) ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
             var samples = (renderPass.renderTargetSampleCount != -1) ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
-#pragma warning disable 612
+#pragma warning disable 0612 // Obsolete usage: Deprecated depthAttachment used to ensure backwards compatibility with passes set with RenderTargetIdentifiers
             var depthTarget = renderPass.overrideCameraTarget ? renderPass.depthAttachment : m_CameraDepthTarget.nameID;
             var depthID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : depthTarget.GetHashCode();
-#pragma warning restore 612
+#pragma warning restore 0612
             return new RenderPassDescriptor(w, h, samples, depthID);
         }
 
