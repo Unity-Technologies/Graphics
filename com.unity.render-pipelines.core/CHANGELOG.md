@@ -22,11 +22,13 @@ The version number for this package has increased due to a version update of a r
 ### Added
 - New `IVolumeDebugSettings` interface and `VolumeDebugSettings<T>` class that stores the information for the Volumes Debug Panel.
 - Added AMD FidelityFX shaders which were originally in HDRP
-- Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
+- Added warning on Volumes not supported by the current pipeline.
+- Added option to hide not overrided properties on Volume Components.
 
 ### Fixed
 - Fixed black pixel issue in AMD FidelityFX RCAS implementation
 - Fixed a critical issue on android devices & lens flares. Accidentally creating a 16 bit texture was causing gpus not supporting them to fail.
+- Fixed the processing of volumes that are not supported to the current pipeline.
 
 ## [12.0.0] - 2021-01-11
 
