@@ -36,6 +36,24 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.useNativeRenderPass = false;
         }
 
+        public static void ConfigureDescriptor(Downsampling downsamplingMethod, ref RenderTextureDescriptor descriptor, out FilterMode filterMode)
+        {
+            descriptor.msaaSamples = 1;
+            descriptor.depthBufferBits = 0;
+            if (downsamplingMethod == Downsampling._2xBilinear)
+            {
+                descriptor.width /= 2;
+                descriptor.height /= 2;
+            }
+            else if (downsamplingMethod == Downsampling._4xBox || downsamplingMethod == Downsampling._4xBilinear)
+            {
+                descriptor.width /= 4;
+                descriptor.height /= 4;
+            }
+
+            filterMode = downsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear;
+        }
+
         /// <summary>
         /// Configure the pass with the source and destination to execute on.
         /// </summary>
