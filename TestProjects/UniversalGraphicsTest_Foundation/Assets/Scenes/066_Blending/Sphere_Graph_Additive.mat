@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SphereGraphPreserveSpecAlpha
-  m_Shader: {fileID: -6465566751694194690, guid: 7a95bad4d10ab4f85893f4cc76688719,
+  m_Name: Sphere_Graph_Additive
+  m_Shader: {fileID: -6465566751694194690, guid: 63eb2ef320eb04add86195e255562d82,
     type: 3}
   m_ShaderKeywords: _PRESERVE_SPECULAR
   m_LightmapFlags: 4
@@ -84,14 +84,14 @@ Material:
     m_Floats:
     - Vector1_a0ddbb77abd54f869c04bd63ddca87af: 0.5
     - _AlphaClip: 0
-    - _Blend: 0
+    - _Blend: 2
     - _BumpScale: 1
     - _Cull: 2
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
-    - _DstBlend: 10
-    - _DstBlendA: 10
+    - _DstBlend: 1
+    - _DstBlendA: 1
     - _EnvironmentReflections: 1
     - _GlossMapScale: 0
     - _Glossiness: 0

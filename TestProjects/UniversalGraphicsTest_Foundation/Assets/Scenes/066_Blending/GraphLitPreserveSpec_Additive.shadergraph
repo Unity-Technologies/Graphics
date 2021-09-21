@@ -574,7 +574,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "Alpha",
     "m_StageCapability": 2,
-    "m_Value": 0.25,
+    "m_Value": 0.125,
     "m_DefaultValue": 1.0,
     "m_Labels": []
 }
