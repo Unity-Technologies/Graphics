@@ -269,9 +269,9 @@ namespace UnityEditor.ShaderFoundry
             blockBuilder.SetEntryPointFunction(entryPointFunction);
 
             // Add all of the block input/output/property variables
-            foreach(var field in mergedInputInstance.ResolvedFields)
+            foreach(var field in mergedInputInstance.Fields)
                 blockBuilder.AddInput(field.Build(Container));
-            foreach (var field in mergedOutputInstance.ResolvedFields)
+            foreach (var field in mergedOutputInstance.Fields)
                 blockBuilder.AddOutput(field.Build(Container));
             foreach (var field in mergedBlockLinkInstance.Properties)
                 blockBuilder.AddProperty(field.Build(Container));
