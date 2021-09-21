@@ -22,8 +22,6 @@ namespace UnityEditor.Rendering.HighDefinition
     class LayeredLitGUI : HDShaderGUI
     {
         const LitSurfaceInputsUIBlock.Features commonLitSurfaceInputsFeatures = LitSurfaceInputsUIBlock.Features.LayerOptions;
-        // Layered lit shaders don't support emission (realtime or baked)
-        const EmissionUIBlock.Features emissionFeatures = EmissionUIBlock.Features.All ^ EmissionUIBlock.Features.EnableEmissionForGI;
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
@@ -32,8 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition
             new LitSurfaceInputsUIBlock(MaterialUIBlock.ExpandableBit.Input, kMaxLayerCount, features: commonLitSurfaceInputsFeatures),
             new LayerListUIBlock(MaterialUIBlock.ExpandableBit.MaterialReferences),
             new LayersUIBlock(),
-            new EmissionUIBlock(MaterialUIBlock.ExpandableBit.Emissive, features: emissionFeatures),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance),
+            new EmissionUIBlock(MaterialUIBlock.ExpandableBit.Emissive),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, features: AdvancedOptionsUIBlock.Features.StandardLit),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
