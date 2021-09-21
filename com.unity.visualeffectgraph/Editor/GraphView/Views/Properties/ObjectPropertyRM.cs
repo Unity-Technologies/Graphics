@@ -1,4 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
 using UnityObject = UnityEngine.Object;
@@ -7,8 +12,16 @@ namespace UnityEditor.VFX.UI
 {
     class ObjectPropertyRM : PropertyRM<UnityObject>
     {
+        static readonly Dictionary<Type, TextureDimension> s_TypeToDimensionMap = new()
+        {
+            {typeof(Texture2D), TextureDimension.Tex2D},
+            {typeof(Texture3D), TextureDimension.Tex3D},
+            {typeof(Cubemap), TextureDimension.Cube},
+        };
+
         readonly TextField m_TextField;
         readonly Image m_ValueIcon;
+        readonly TextureDimension m_textureDimension;
 
         public ObjectPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -24,6 +37,15 @@ namespace UnityEditor.VFX.UI
             m_TextField.Add(m_ValueIcon);
             m_TextField.Add(button);
             Add(m_TextField);
+
+            RegisterCallback<DragUpdatedEvent>(OnDragUpdate);
+            RegisterCallback<DragEnterEvent>(OnDragEnter);
+            RegisterCallback<DragPerformEvent>(OnDragPerformed);
+
+            if (!s_TypeToDimensionMap.TryGetValue(m_Provider.portType, out m_textureDimension))
+            {
+                m_textureDimension = TextureDimension.Unknown;
+            }
         }
 
         public override float GetPreferredControlWidth() => 120;
@@ -40,18 +62,18 @@ namespace UnityEditor.VFX.UI
         {
             try
             {
-                m_Value = (Object)obj;
+                m_Value = (UnityObject)obj;
                 m_ValueIcon.image = obj != null
                     ? AssetPreview.GetMiniTypeThumbnail(m_Value)
                     : AssetPreview.GetMiniTypeThumbnail(m_Provider.portType);
                 m_TextField.value = m_Value?.name ?? $"None ({m_Provider.portType.Name})";
             }
-            catch (System.Exception)
+            catch (Exception)
             {
-                Debug.Log($"Error Trying to convert {obj?.GetType().Name ?? "null"} to {nameof(Object)}");
+                Debug.Log($"Error Trying to convert {obj?.GetType().Name ?? "null"} to Object");
             }
 
-            UpdateGUI(!object.ReferenceEquals(m_Value, obj));
+            UpdateGUI(!ReferenceEquals(m_Value, obj));
         }
 
         public override bool showsEverything => true;
@@ -62,13 +84,50 @@ namespace UnityEditor.VFX.UI
 
         void OnPickObject() => CustomObjectPicker.Pick(m_Provider.portType, SelectHandler);
 
-        void SelectHandler(Object obj, bool isCanceled)
+        void SelectHandler(UnityObject obj, bool isCanceled)
         {
             if (!isCanceled)
             {
                 SetValue(obj);
                 NotifyValueChanged();
             }
+        }
+
+        bool CanDrag()
+        {
+            if (DragAndDrop.objectReferences.Length == 1)
+            {
+                var type = DragAndDrop.objectReferences[0].GetType();
+                if (m_Provider.portType.IsAssignableFrom(type))
+                {
+                    return true;
+                }
+
+                if (m_textureDimension != TextureDimension.Unknown && DragAndDrop.objectReferences[0] is Texture texture)
+                {
+                    return texture.dimension == m_textureDimension;
+                }
+            }
+
+            return false;
+        }
+
+        void OnDragEnter(DragEnterEvent evt)
+        {
+            DragAndDrop.visualMode = CanDrag() ? DragAndDropVisualMode.Link : DragAndDropVisualMode.Rejected;
+            evt.StopPropagation();
+        }
+
+        void OnDragUpdate(DragUpdatedEvent evt)
+        {
+            DragAndDrop.visualMode = CanDrag() ? DragAndDropVisualMode.Link : DragAndDropVisualMode.Rejected;
+            evt.StopPropagation();
+        }
+
+        void OnDragPerformed(DragPerformEvent evt)
+        {
+            var dragObject = DragAndDrop.objectReferences.First();
+            SelectHandler(dragObject, false);
         }
     }
 }
