@@ -232,12 +232,12 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
-      # - platform: iPhone
-      #   api: Metal
-      #   build_config: il2cpp
-      #   color_space: Linear
-      #   test_platforms:
-      #     - Standalone
+      - platform: iPhone
+        api: Metal
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - Standalone
 
   - name: Extra <PROJECT_NAME>
     dependencies:
