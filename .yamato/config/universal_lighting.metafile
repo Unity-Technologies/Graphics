@@ -229,6 +229,7 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
+      # Disabled until https://fogbugz.unity3d.com/f/cases/1309660/ is fixed.
       # - platform: iPhone
       #   api: Metal
       #   build_config: il2cpp
