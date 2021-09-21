@@ -26,6 +26,12 @@ namespace UnityEditor.ShaderFoundry
             this.container = container;
         }
 
+
+        internal static string BuildVariableName(Block block, BlockVariableLinkInstance variable)
+        {
+            return $"{block.Name}_{variable.ReferenceName}";
+        }
+
         internal void LinkBlock(BlockDescriptor blockDescriptor, NamespaceScopes scopes, BlockLinkInstance mergedBlockLinkInstance, BlockLinkInstance blockLinkInstance)
         {
             var block = blockDescriptor.Block;
@@ -48,7 +54,7 @@ namespace UnityEditor.ShaderFoundry
                 if (matchingField == null)
                 {
                     // Make the new field name unique
-                    var name = $"{input.ReferenceName}_{block.Name}";
+                    var name = BuildVariableName(block, input);
                     // If this field already exists (duplicate blocks) use the existing field, otherwise create a new one
                     matchingField = mergedInputInstance.FindField(name);
                     if(matchingField == null)
@@ -85,7 +91,7 @@ namespace UnityEditor.ShaderFoundry
             foreach (var output in blockOutputInstance.Fields)
             {
                 // Always create an output on the merged block since anyone could use the output later.
-                var name = $"{output.ReferenceName}_{block.Name}";
+                var name = BuildVariableName(block, output);
                 // If this field already exists (duplicate blocks) use the existing field, otherwise create a new one
                 var availableOutput = mergedOutputInstance.FindField(name);
                 if(availableOutput == null)
