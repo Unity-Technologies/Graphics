@@ -47,21 +47,14 @@ namespace UnityEditor.ShaderGraph
             // - No match is last.
             int score = 0;
 
-            bool isSynonymMatch = false;
-            bool isSynonymPartial = false;
-            bool isNameMatch = false;
-            bool isNamePartial = false;
-
             // Split the entry name so that we can remove suffix that looks like "Clamp: In(4)"
             var nameSansSuffix = matchItem.Name.Split(':');
             if (nameSansSuffix[0].Equals(queryTerm, StringComparison.OrdinalIgnoreCase))
             {
-                isNameMatch = true;
                 score += 1000000;
             }
             else if (nameSansSuffix[0].Contains(queryTerm, StringComparison.OrdinalIgnoreCase))
             {
-                isNamePartial = true;
                 score += 100000;
                 score -= (nameSansSuffix[0].Length - queryTerm.Length);
             }
@@ -74,12 +67,10 @@ namespace UnityEditor.ShaderGraph
             {
                 if (syn.Equals(queryTerm, StringComparison.OrdinalIgnoreCase))
                 {
-                    isSynonymMatch = true;
                     score += 10000;
                 }
                 else if (syn.Contains(queryTerm, StringComparison.OrdinalIgnoreCase))
                 {
-                    isSynonymPartial = true;
                     score += 1000;
                     score -= (syn.Length - queryTerm.Length);
                 }
