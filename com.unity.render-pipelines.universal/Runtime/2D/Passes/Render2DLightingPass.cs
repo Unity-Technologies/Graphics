@@ -291,6 +291,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 var unlitDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
 
+                var sortSettings = unlitDrawSettings.sortingSettings;
+                GetTransparencySortingMode(camera, ref sortSettings);
+                unlitDrawSettings.sortingSettings = sortSettings;
+
                 var cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSamplerUnlit))
                 {

@@ -102,6 +102,19 @@ namespace UnityEngine.Rendering.Universal
         HighDynamicRange
     }
 
+    /// <summary>
+    /// Defines the update frequency for the Volume Framework.
+    /// </summary>
+    public enum VolumeFrameworkUpdateMode
+    {
+        [InspectorName("Every Frame")]
+        EveryFrame = 0,
+        [InspectorName("Via Scripting")]
+        ViaScripting = 1,
+        [InspectorName("Use Pipeline Settings")]
+        UsePipelineSettings = 2,
+    }
+
     [ExcludeFromPreset]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
@@ -180,6 +193,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
         [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
+        [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
         // minimum, the lut being encoded in log. Lower sizes would work better with an additional
@@ -712,6 +726,11 @@ namespace UnityEngine.Rendering.Universal
             get { return m_ShaderVariantLogLevel; }
             set { m_ShaderVariantLogLevel = value; }
         }
+
+        /// <summary>
+        /// Returns the selected update mode for volumes.
+        /// </summary>
+        public VolumeFrameworkUpdateMode volumeFrameworkUpdateMode => m_VolumeFrameworkUpdateMode;
 
         [Obsolete("PipelineDebugLevel is deprecated. Calling debugLevel is not necessary.", false)]
         public PipelineDebugLevel debugLevel

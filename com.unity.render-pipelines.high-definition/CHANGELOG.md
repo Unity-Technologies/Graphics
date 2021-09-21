@@ -173,6 +173,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
 - Fixed issue with constant buffer being stomped on when async tasks run concurrently to shadows.
 - Fixed undo of some properties on light editor.
+- Fixed an issue where auto baking of ambient and reflection probe done for builtin renderer would cause wrong baking in HDRP.
 - Fixed null reference exception in Raytracing SSS volume component.
 - Fixed artifact appearing when diffuse and specular normal differ too much for eye shader with area lights
 - Fixed LightCluster debug view for ray tracing.
@@ -192,6 +193,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where enabling GPU Instancing on a ShaderGraph Material would cause compile failures [1338695].
 - Fixed issue with velocity rejection when using physically-based DoF.
 - Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
+- Fixed error when disabling opaque objects on a camera with MSAA.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.

@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added [DisallowMultipleRendererFeature] attribute for Renderer Features.
 - Added support for the PlayStation 5 platform.
 - Added a SpeedTree 8 Shader Graph but did not set it as the default when importing or upgrading Speed Tree 8 assets. Because URP doesn't yet support per-material culling, this Shader Graph does not yet behave in the same way as the existing handwritten SpeedTree 8 shader for URP.
+- Added support for controlling Volume Framework Update Frequency in UI on Cameras and URP Asset as well as through scripting.
 
 ### Changed
 - Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
@@ -45,8 +46,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Always use "High" quality normals, which normalizes the normal in pixel shader. "Low" quality normals looked too much like a bug.
 - Re-enabled implicit MSAA resolve to backbuffer on Metal MacOS.
 - Changed Post Process Data to bool. When it is no enabled all post processing is stripped from build, when it is enabled you can still override resources there.
+- Opacity as Density blending feature for Terrain Lit Shader is now disabled when the Terrain has more than four Terrain Layers. This is now similar to the Height-blend feature for the Terrain Lit Shader.
 
 ### Fixed
+- Fixed an issue where the 2D Renderer was not rendering depth and stencil in the normal rendering pass [1259874](https://issuetracker.unity3d.com/product/unity/issues/guid/1259874/)
 - Fixed an issue where Transparency Sort Mode value is taken from Graphics Settings instead of 2D Renderer [1310652](https://issuetracker.unity3d.com/issues/transparency-sort-mode-value-is-taken-from-graphics-settings-instead-of-2d-forward-renderer)
 - Fixed an issue where Post Processing doesn't enable when PostProcessData reassigned from the asset selector window.
 - Fixed an issue where the camera renders black screen when Post Processing is enabled in the 2D Renderer and in the Camera Component.
@@ -103,7 +106,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue causing missing shaders on DirectX 11 feature level 10 GPUs. [case 1278390](https://issuetracker.unity3d.com/product/unity/issues/guid/1278390/)
 - Fixed errors when the Profiler is used with XR multipass. [case 1322916](https://issuetracker.unity3d.com/issues/xr-urp-profiler-spams-errors-in-the-console-upon-entering-play-mode)
 - Fixed an issue where SMAA did not work for OpenGL [case 1336708](https://issuetracker.unity3d.com/issues/urp-there-is-no-effect-when-using-smaa-in-urp-with-opengles-api)
-- Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629] (https://issuetracker.unity3d.com/issues/camera-doesnt-move-when-changing-its-position-in-the-begincamerarendering-and-the-endcamerarendering-methods)
+- Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629](https://issuetracker.unity3d.com/issues/camera-doesnt-move-when-changing-its-position-in-the-begincamerarendering-and-the-endcamerarendering-methods)
 - Fixed a performance issue in Hololens when using renderer with custom render passes.
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1331780]
 - Fixed SRP batcher not working on OpenGL.
@@ -112,6 +115,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed soft shadows shader variants not set to multi_compile_fragment on some shaders (gbuffer pass, speedtree shaders, WavingGrass shader).
 - Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
 - Fixed a case where camera dimension can be zero. [case 1321168](https://issuetracker.unity3d.com/issues/urp-attempting-to-get-camera-relative-temporary-rendertexture-is-thrown-when-tweening-the-viewport-rect-values-of-a-camera)
+- Fixed an issue where depth texture was not available when ScriptableRenderPasses had configured it as input and MSAA was disabled. [case 1364121]
+- VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
+- VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
+- Fixed Opacity as Density blending artifacts on Terrain that that caused Terrain to have modified splat weights of zero in some areas and greater than one in others.
+- UniversalRenderPipeineAsset can now use multi-edit.
 
 ## [10.2.0] - 2020-10-19
 
