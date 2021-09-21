@@ -68,7 +68,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
     }
 #endif // _SPECULARHIGHLIGHTS_OFF
 
-    return brdf * radiance;
+    return INV_PI * brdf * radiance;
 }
 
 half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, Light light, half3 normalWS, half3 viewDirectionWS, half clearCoatMask, bool specularHighlightsOff)
