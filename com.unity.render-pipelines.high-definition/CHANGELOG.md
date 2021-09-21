@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lens flare occlusion issues with transparent depth. It had the wrong depth bound (1365098)
 - Fixed double contribution from the clear coat when having SSR or RTR on the Lit and StackLit shaders (case 1352424).
 - Fixed texture fields for volume parameters accepting textures with wrong dimensions.
+- Fixed Realtime lightmap not working correctly in player with various lit shader (case 1360021)
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
