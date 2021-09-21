@@ -26,6 +26,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             useNativeRenderPass = false;
         }
 
+        public static GraphicsFormat GetGraphicsFormat()
+        {
+
+            if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render))
+                return GraphicsFormat.R8G8B8A8_SNorm; // Preferred format
+            else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Render))
+                return GraphicsFormat.R16G16B16A16_SFloat; // fallback
+            else
+                return GraphicsFormat.R32G32B32A32_SFloat; // fallback
+        }
+
         /// <summary>
         /// Configure the pass
         /// </summary>

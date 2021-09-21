@@ -615,12 +615,8 @@ namespace UnityEngine.Rendering.Universal
                 // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
                 if (this.actualRenderingMode == RenderingMode.Deferred)
                     normalDescriptor.graphicsFormat = m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferNormalSmoothnessIndex); // the one used by the gbuffer.
-                else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render))
-                    normalDescriptor.graphicsFormat = GraphicsFormat.R8G8B8A8_SNorm; // Preferred format
-                else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Render))
-                    normalDescriptor.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat; // fallback
                 else
-                    normalDescriptor.graphicsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
+                    normalDescriptor.graphicsFormat = DepthNormalOnlyPass.GetGraphicsFormat();
 
                 RenderingUtils.ReAllocateIfNeeded(ref normalsTexture, normalDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: normalsTextureName);
 
