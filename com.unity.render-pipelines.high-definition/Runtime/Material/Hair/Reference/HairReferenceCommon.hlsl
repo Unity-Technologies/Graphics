@@ -27,6 +27,8 @@ struct ReferenceBSDFData
     float  betaM;  // Longitudinal Roughness
     float  betaN;  // Azimuthal Roughness
     float  alpha;  // Cuticle Tilt
+
+    float  v[PATH_MAX + 1]; // Longitudinal Variance
 };
 
 struct ReferenceAngles
@@ -80,6 +82,17 @@ float LogBesselI(float x)
     return lnIO;
 }
 
+void LongitudinalVarianceFromBeta(float beta, inout float v[PATH_MAX + 1])
+{
+    // Ref: An Energy-Conserving Hair Reflectance Model
+    v[0] = Sq((0.726 * beta) + (0.812 * beta * beta) + (3.7 * pow(beta, 20.0)));
+    v[1] = 0.25 * v[0];
+    v[2] =  4.0 * v[0];
+
+    for (int p = 3; p <= PATH_MAX; ++p)
+        v[p] = v[2];
+}
+
 // TODO: Currently we do not support ribbon in pathtracing.
 float GetHFromRibbon(BSDFData bsdfData)
 {
@@ -118,6 +131,9 @@ ReferenceBSDFData GetReferenceBSDFData(float3 L, BSDFData bsdfData)
     data.betaN  = 0.3;
     data.alpha  = 2.0;
 
+    // Fill the list of variances from beta
+    LongitudinalVarianceFromBeta(data.betaM, data.v);
+
     return data;
 }
 
@@ -135,8 +151,8 @@ ReferenceAngles GetReferenceAngles(float3 L, float3 V, BSDFData bsdfData)
     angles.sinThetaO = wo.x;
 
     // This is technically "CosFromSin", but does the same thing. Worth adding for readability?
-    angles.cosThetaI = SinFromCos(angles.sinThetaI);
-    angles.cosThetaO = SinFromCos(angles.sinThetaO);
+    angles.cosThetaI = CosFromSin(angles.sinThetaI);
+    angles.cosThetaO = CosFromSin(angles.sinThetaO);
 
     angles.phiI = FastAtan2(wi.z, wi.y);
     angles.phiO = FastAtan2(wo.z, wo.y);
