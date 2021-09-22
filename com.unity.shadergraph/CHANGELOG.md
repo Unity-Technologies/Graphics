@@ -10,6 +10,7 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ### Added
+ - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
 
 ### Changed
 
@@ -23,6 +24,7 @@ The version number for this package has increased due to a version update of a r
  - Added more inputs to the Parallax Occlusion Mapping node to handle non-uniformly scaled UVs such as HDRP/Lit POM [1347008].
  - Fixed the wrong scaling of the main preview window  [1356719] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356719/)
  - Fixed an issue where ShaderGraph "view shader" commands were opening in individual windows, and blocking Unity from closing [1367188]
+ - Improved screenspace position accuracy in the fragment shader by using VPOS [1352662] (https://issuetracker.unity3d.com/issues/shadergraph-dither-node-results-in-artifacts-when-far-from-origin-caused-by-screen-position-breaking-down)
 
 ## [12.0.0] - 2021-01-11
 
@@ -73,6 +75,7 @@ The version number for this package has increased due to a version update of a r
 - Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
 - ShaderGraph SubGraphs will now report errors and warnings in a condensed single error.
 - Changed "Create Node" action in ShaderGraph stack separator context menu to "Add Block Node" and added it to main stack context menu
+- GatherTexture2D and TexelSize nodes now support all shader stages.
 
 ### Fixed
 - Fixed an issue where fog node density was incorrectly calculated.
