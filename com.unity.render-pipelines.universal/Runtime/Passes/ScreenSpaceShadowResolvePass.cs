@@ -10,14 +10,12 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         Material m_ScreenSpaceShadowsMaterial;
         RTHandle m_ScreenSpaceShadowmap;
-        RenderTextureDescriptor m_RenderTextureDescriptor;
 
         public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial)
         {
             base.profilingSampler = new ProfilingSampler(nameof(ScreenSpaceShadowResolvePass));
 
             m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
-            m_ScreenSpaceShadowmap = RTHandles.Alloc("_ScreenSpaceShadowmapTexture", "_ScreenSpaceShadowmapTexture");
             renderPassEvent = evt;
         }
 
@@ -28,18 +26,18 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Setup(RenderTextureDescriptor baseDescriptor)
         {
-            m_RenderTextureDescriptor = baseDescriptor;
-            m_RenderTextureDescriptor.depthBufferBits = 0;
-            m_RenderTextureDescriptor.msaaSamples = 1;
-            m_RenderTextureDescriptor.graphicsFormat = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8_UNorm, FormatUsage.Linear | FormatUsage.Render)
+            var desc = baseDescriptor;
+            desc.depthBufferBits = 0;
+            desc.msaaSamples = 1;
+            desc.graphicsFormat = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8_UNorm, FormatUsage.Linear | FormatUsage.Render)
                 ? GraphicsFormat.R8_UNorm
                 : GraphicsFormat.B8G8R8A8_UNorm;
+
+            RenderingUtils.ReAllocateIfNeeded(ref m_ScreenSpaceShadowmap, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_ScreenSpaceShadowmapTexture");
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            cmd.GetTemporaryRT(Shader.PropertyToID(m_ScreenSpaceShadowmap.name), m_RenderTextureDescriptor, FilterMode.Bilinear);
-
             ConfigureTarget(m_ScreenSpaceShadowmap);
             ConfigureClear(ClearFlag.All, Color.white);
         }
@@ -76,15 +74,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        /// <inheritdoc/>
-        public override void OnCameraCleanup(CommandBuffer cmd)
-        {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
-            cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_ScreenSpaceShadowmap.name));
         }
     }
 }

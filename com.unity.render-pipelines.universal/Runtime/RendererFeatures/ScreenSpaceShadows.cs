@@ -103,13 +103,11 @@ namespace UnityEngine.Rendering.Universal
             // Private Variables
             private Material m_Material;
             private ScreenSpaceShadowsSettings m_CurrentSettings;
-            private RenderTextureDescriptor m_RenderTextureDescriptor;
             private RTHandle m_RenderTarget;
 
             internal ScreenSpaceShadowsPass()
             {
                 m_CurrentSettings = new ScreenSpaceShadowsSettings();
-                m_RenderTarget = RTHandles.Alloc("_ScreenSpaceShadowmapTexture", "_ScreenSpaceShadowmapTexture");
             }
 
             public void Dispose()
@@ -129,14 +127,14 @@ namespace UnityEngine.Rendering.Universal
             /// <inheritdoc/>
             public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
             {
-                m_RenderTextureDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-                m_RenderTextureDescriptor.depthBufferBits = 0;
-                m_RenderTextureDescriptor.msaaSamples = 1;
-                m_RenderTextureDescriptor.graphicsFormat = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8_UNorm, FormatUsage.Linear | FormatUsage.Render)
+                var desc = renderingData.cameraData.cameraTargetDescriptor;
+                desc.depthBufferBits = 0;
+                desc.msaaSamples = 1;
+                desc.graphicsFormat = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8_UNorm, FormatUsage.Linear | FormatUsage.Render)
                     ? GraphicsFormat.R8_UNorm
                     : GraphicsFormat.B8G8R8A8_UNorm;
 
-                cmd.GetTemporaryRT(Shader.PropertyToID(m_RenderTarget.name), m_RenderTextureDescriptor, FilterMode.Point);
+                RenderingUtils.ReAllocateIfNeeded(ref m_RenderTarget, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_ScreenSpaceShadowmapTexture");
 
                 ConfigureTarget(m_RenderTarget);
                 ConfigureClear(ClearFlag.None, Color.white);
