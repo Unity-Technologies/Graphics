@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
@@ -68,6 +69,12 @@ namespace UnityEditor.ShaderFoundry
 
         static void BuildTemplateGraph(ShaderFoundry.ShaderContainer container, ShaderGraph.Generator generator, ShaderFoundry.TemplateDescriptor.Builder templateDescBuilder, ShaderFoundry.Template template, ShaderFoundry.TemplatePass passDesc, PassDescriptor legacyPassDescriptor)
         {
+            var path = AssetDatabase.GUIDToAssetPath(generator.m_GraphData.assetGuid);
+            var sharedDirectory = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path) + "Shared");
+            if (!Directory.Exists(sharedDirectory))
+                Directory.CreateDirectory(sharedDirectory);
+            var sharedFileName = $"Pass_({passDesc.PassIdentifier.m_SubShaderIndex}_{passDesc.PassIdentifier.m_PassIndex})" + "Shared.hlsl";
+            var sharedPath = Path.Combine(sharedDirectory, sharedFileName);
 
             const string vertexGraphInputName = "VSInput";
             const string vertexGraphOutputName = "VSOutput";
@@ -170,12 +177,21 @@ namespace UnityEditor.ShaderFoundry
                 pass.virtualTextureFeedback);
 
             fragmentBlockBuilder.SetEntryPointFunction(surfaceDescriptionFunction);
-            // Hack
-            //pixelBlock.extraCode = functionBuilder.ToString();
+            var sharedIncludeDesc = new IncludeDescriptor.Builder(container, $"\"{sharedPath}\"");
+            fragmentBlockBuilder.AddInclude(sharedIncludeDesc.Build());
             fragmentCPDesc.BlockDescriptors.Add(BuildSimpleBlockDescriptor(container, fragmentBlockBuilder.Build()));
 
             templateDescBuilder.AddCustomizationPointDescriptor(vertexCPDesc.Build());
             templateDescBuilder.AddCustomizationPointDescriptor(fragmentCPDesc.Build());
+
+            string existingShared = null;
+            if (File.Exists(sharedPath))
+                existingShared = File.ReadAllText(sharedPath);
+            var sharedCode = functionBuilder.ToString();
+            if(existingShared != sharedCode)
+                File.WriteAllText(sharedPath, sharedCode);
+            //if(generator.m_assetCollection != null)
+            //    generator.m_assetCollection.AddAssetDependency(AssetDatabase.GUIDFromAssetPath(sharedPath), AssetCollection.Flags.IncludeInExportPackage);
         }
 
         static ShaderFoundry.Block.Builder BuildBlockForStage(ShaderGraph.Generator generator, List<AbstractMaterialNode> nodes, List<MaterialSlot> slots, ShaderStageCapability stageCapability, ShaderFoundry.ShaderContainer container, string blockName, string customizationPointName, string inputsTypeName, string outputsTypeName)
