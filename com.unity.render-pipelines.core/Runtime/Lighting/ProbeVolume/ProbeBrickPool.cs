@@ -96,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering
             int width, height, depth;
             DerivePoolSizeFromBudget(memoryBudget, out width, out height, out depth);
             int estimatedCost = 0;
-            m_Pool = CreateDataLocation(width * height * depth, false, shBands, out estimatedCost);
+            m_Pool = CreateDataLocation(width * height * depth, false, shBands, "APV", out estimatedCost);
             estimatedVMemCost = estimatedCost;
 
             m_AvailableChunkCount = (width / (kProbeIndexPoolAllocationSize * kBrickProbeCountPerDim)) * (height / kBrickProbeCountPerDim) * (depth / kBrickProbeCountPerDim);
@@ -117,7 +117,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 m_Pool.Cleanup();
                 int estimatedCost = 0;
-                m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, m_SHBands, out estimatedCost);
+                m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, m_SHBands, "APV", out estimatedCost);
                 estimatedVMemCost = estimatedCost;
             }
         }
@@ -251,7 +251,7 @@ namespace UnityEngine.Experimental.Rendering
             return new Vector3Int(width, height, depth);
         }
 
-        public static DataLocation CreateDataLocation(int numProbes, bool compressed, ProbeVolumeSHBands bands, out int allocatedBytes)
+        public static DataLocation CreateDataLocation(int numProbes, bool compressed, ProbeVolumeSHBands bands, string name, out int allocatedBytes)
         {
             Vector3Int locSize = ProbeCountToDataLocSize(numProbes);
             int width = locSize.x;
@@ -265,32 +265,39 @@ namespace UnityEngine.Experimental.Rendering
             allocatedBytes = 0;
             loc.TexL0_L1rx = new Texture3D(width, height, depth, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
             loc.TexL0_L1rx.hideFlags = HideFlags.HideAndDontSave;
+            loc.TexL0_L1rx.name = $"{name}_TexL0_L1rx";
             allocatedBytes += texelCount * 8;
 
             loc.TexL1_G_ry = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
             loc.TexL1_G_ry.hideFlags = HideFlags.HideAndDontSave;
+            loc.TexL1_G_ry.name = $"{name}_TexL1_G_ry";
             allocatedBytes += texelCount * (compressed ? 1 : 4);
 
             loc.TexL1_B_rz = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
             loc.TexL1_B_rz.hideFlags = HideFlags.HideAndDontSave;
+            loc.TexL1_B_rz.name = $"{name}_TexL1_B_rz";
             allocatedBytes += texelCount * (compressed ? 1 : 4);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
                 loc.TexL2_0 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
                 loc.TexL2_0.hideFlags = HideFlags.HideAndDontSave;
+                loc.TexL2_0.name = $"{name}_TexL2_0";
                 allocatedBytes += texelCount * (compressed ? 1 : 4);
 
                 loc.TexL2_1 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
                 loc.TexL2_1.hideFlags = HideFlags.HideAndDontSave;
+                loc.TexL2_1.name = $"{name}_TexL2_1";
                 allocatedBytes += texelCount * (compressed ? 1 : 4);
 
                 loc.TexL2_2 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
                 loc.TexL2_2.hideFlags = HideFlags.HideAndDontSave;
+                loc.TexL2_2.name = $"{name}_TexL2_2";
                 allocatedBytes += texelCount * (compressed ? 1 : 4);
 
                 loc.TexL2_3 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
                 loc.TexL2_3.hideFlags = HideFlags.HideAndDontSave;
+                loc.TexL2_3.name = $"{name}_TexL2_3";
                 allocatedBytes += texelCount * (compressed ? 1 : 4);
             }
             else

@@ -590,7 +590,7 @@ namespace UnityEngine.Experimental.Rendering
             m_NeedsIndexRebuild = true;
             sceneData = parameters.sceneData;
 
-            m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(kTemporaryDataLocChunkCount * ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, out m_TemporaryDataLocationMemCost);
+            m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(kTemporaryDataLocChunkCount * ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, "APV_Intermediate", out m_TemporaryDataLocationMemCost);
 
 #if UNITY_EDITOR
             if (sceneData != null)
