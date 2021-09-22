@@ -48,3 +48,15 @@ manifest-updater.py
 TestProjects/UniversalGraphicsTest_Lighting/UserSettings/EditorUserSettings.asset
 TestProjects/UniversalGraphicsTest_Lighting/Packages/packages-lock.json
 com.unity.template-hd/InitCodeMarker
+com.unity.visualeffectgraph/Editor/UIResources/VFX/compile.png
+com.unity.visualeffectgraph/Editor/UIResources/VFX/compile@2x.png
+com.unity.visualeffectgraph/Editor/UIResources/VFX/controls.png
+com.unity.visualeffectgraph/Editor/UIResources/VFX/controls@2x.png
+com.unity.visualeffectgraph/Editor/UIResources/VFX/d_compile.png
+com.unity.visualeffectgraph/Editor/UIResources/VFX/d_compile@2x.png
+com.unity.visualeffectgraph/Editor/UIResources/VFX/d_controls.png
+com.unity.visualeffectgraph/Editor/UIResources/VFX/d_controls@2x.png
+com.unity.visualeffectgraph/Editor/UIResources/VFX/d_variableswindow.png
+com.unity.visualeffectgraph/Editor/UIResources/VFX/d_variableswindow@2x.png
+com.unity.visualeffectgraph/Editor/UIResources/VFX/variableswindow.png
+com.unity.visualeffectgraph/Editor/UIResources/VFX/variableswindow@2x.png
