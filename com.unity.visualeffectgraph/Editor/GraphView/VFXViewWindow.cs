@@ -18,7 +18,10 @@ namespace UnityEditor.VFX.UI
     [Serializable]
     class VFXViewWindow : EditorWindow
     {
+        static VisualEffect s_LastAttachedComponent;
+
         ShortcutHandler m_ShortcutHandler;
+
         protected void SetupFramingShortcutHandler(VFXView view)
         {
             m_ShortcutHandler = new ShortcutHandler(
@@ -29,7 +32,7 @@ namespace UnityEditor.VFX.UI
                     {Event.KeyboardEvent("o"), view.FrameOrigin },
                     {Event.KeyboardEvent("^#>"), view.FramePrev },
                     {Event.KeyboardEvent("^>"), view.FrameNext },
-                    {Event.KeyboardEvent("F7"), view.Compile},
+                    {Event.KeyboardEvent("F7"), view.OnCompile},
                     {Event.KeyboardEvent("#d"), view.OutputToDot},
                     {Event.KeyboardEvent("^&d"), view.DuplicateSelectionWithEdges},
                     {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
@@ -41,7 +44,7 @@ namespace UnityEditor.VFX.UI
                 });
         }
 
-        public static VFXViewWindow currentWindow;
+        public static VFXViewWindow currentWindow => WindowLayout.FindEditorWindowOfType(typeof(VFXViewWindow)) as VFXViewWindow;
 
         [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3011)]
         public static void ShowWindow()
@@ -80,8 +83,11 @@ namespace UnityEditor.VFX.UI
             {
                 InternalLoadResource(resource);
             }
-            if (effectToAttach != null && graphView.controller != null && graphView.controller.model != null && effectToAttach.visualEffectAsset == graphView.controller.model.asset)
-                graphView.attachedComponent = effectToAttach;
+
+            if (!graphView.TryAttachTo(effectToAttach))
+            {
+                s_LastAttachedComponent = null;
+            }
         }
 
         List<VisualEffectResource> m_ResourceHistory = new List<VisualEffectResource>();
@@ -106,6 +112,12 @@ namespace UnityEditor.VFX.UI
             graphView.controller = VFXViewController.GetController(resource, true);
             graphView.UpdateGlobalSelection();
             graphView.FrameNewController();
+            graphView.UpdateIsSubgraph();
+        }
+
+        public bool CanPopResource()
+        {
+            return m_ResourceHistory.Any();
         }
 
         public void PopResource()
@@ -174,7 +186,7 @@ namespace UnityEditor.VFX.UI
                 var currentAsset = GetCurrentResource();
                 if (currentAsset != null)
                 {
-                    LoadResource(currentAsset);
+                    LoadResource(currentAsset, s_LastAttachedComponent);
                 }
             };
 
@@ -187,8 +199,6 @@ namespace UnityEditor.VFX.UI
             {
                 rootVisualElement.AddManipulator(m_ShortcutHandler);
             }
-
-            currentWindow = this;
 
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
             EditorApplication.wantsToQuit += Quitting_Workaround;
@@ -216,11 +226,11 @@ namespace UnityEditor.VFX.UI
 
             if (graphView != null)
             {
+                s_LastAttachedComponent = graphView.attachedComponent;
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
                 graphView.controller = null;
             }
-            currentWindow = null;
         }
 
         void OnEnterPanel(AttachToPanelEvent e)
@@ -281,6 +291,7 @@ namespace UnityEditor.VFX.UI
                             {
                                 VFXGraph.compileReporter = reporter;
                                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
+                                graph.SetExpressionGraphDirty(false); // As are implemented subgraph now, compiling dependents chain can reset dirty flag on used subgraphs, which will make an infinite loop, this is bad!
                                 VFXGraph.compileReporter = null;
                             }
                             VFXGraph.explicitCompile = false;
@@ -308,19 +319,6 @@ namespace UnityEditor.VFX.UI
                 VFXViewModificationProcessor.assetMoved = false;
             }
             titleContent.text = filename;
-
-            if (graphView?.controller?.model?.visualEffectObject != null)
-            {
-                graphView.checkoutButton.visible = true;
-                if (!graphView.IsAssetEditable() && Provider.isActive && Provider.enabled)
-                {
-                    graphView.checkoutButton.SetEnabled(true);
-                }
-                else
-                {
-                    graphView.checkoutButton.SetEnabled(false);
-                }
-            }
         }
 
         [SerializeField]

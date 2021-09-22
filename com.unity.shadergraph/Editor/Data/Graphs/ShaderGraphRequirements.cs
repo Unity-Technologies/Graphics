@@ -16,6 +16,8 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField] NeededCoordinateSpace m_RequiresPosition;
         [SerializeField] NeededCoordinateSpace m_RequiresPositionPredisplacement;
         [SerializeField] bool m_RequiresScreenPosition;
+        [SerializeField] bool m_RequiresNDCPosition;
+        [SerializeField] bool m_RequiresPixelPosition;
         [SerializeField] bool m_RequiresVertexColor;
         [SerializeField] bool m_RequiresFaceSign;
         [SerializeField] List<UVChannel> m_RequiresMeshUVs;
@@ -85,6 +87,18 @@ namespace UnityEditor.ShaderGraph.Internal
             internal set { m_RequiresScreenPosition = value; }
         }
 
+        public bool requiresNDCPosition
+        {
+            get { return m_RequiresNDCPosition; }
+            internal set { m_RequiresNDCPosition = value; }
+        }
+
+        public bool requiresPixelPosition
+        {
+            get { return m_RequiresPixelPosition; }
+            internal set { m_RequiresPixelPosition = value; }
+        }
+
         public bool requiresVertexColor
         {
             get { return m_RequiresVertexColor; }
@@ -152,6 +166,8 @@ namespace UnityEditor.ShaderGraph.Internal
             newReqs.m_RequiresPosition = other.m_RequiresPosition | m_RequiresPosition;
             newReqs.m_RequiresPositionPredisplacement = other.m_RequiresPositionPredisplacement | m_RequiresPositionPredisplacement;
             newReqs.m_RequiresScreenPosition = other.m_RequiresScreenPosition | m_RequiresScreenPosition;
+            newReqs.m_RequiresNDCPosition = other.m_RequiresNDCPosition | m_RequiresNDCPosition;
+            newReqs.m_RequiresPixelPosition = other.m_RequiresPixelPosition | m_RequiresPixelPosition;
             newReqs.m_RequiresVertexColor = other.m_RequiresVertexColor | m_RequiresVertexColor;
             newReqs.m_RequiresFaceSign = other.m_RequiresFaceSign | m_RequiresFaceSign;
             newReqs.m_RequiresDepthTexture = other.m_RequiresDepthTexture | m_RequiresDepthTexture;
@@ -179,6 +195,8 @@ namespace UnityEditor.ShaderGraph.Internal
             NeededCoordinateSpace requiresPosition = nodes.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
             NeededCoordinateSpace requiresPredisplacement = nodes.OfType<IMayRequirePositionPredisplacement>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPositionPredisplacement(stageCapability));
             bool requiresScreenPosition = nodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition(stageCapability));
+            bool requiresNDCPosition = nodes.OfType<IMayRequireNDCPosition>().Any(x => x.RequiresNDCPosition(stageCapability));
+            bool requiresPixelPosition = nodes.OfType<IMayRequirePixelPosition>().Any(x => x.RequiresPixelPosition(stageCapability));
             bool requiresVertexColor = nodes.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor(stageCapability));
             bool requiresFaceSign = nodes.OfType<IMayRequireFaceSign>().Any(x => x.RequiresFaceSign());
             bool requiresDepthTexture = nodes.OfType<IMayRequireDepthTexture>().Any(x => x.RequiresDepthTexture());
@@ -222,6 +240,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 m_RequiresPosition = requiresPosition,
                 m_RequiresPositionPredisplacement = requiresPredisplacement,
                 m_RequiresScreenPosition = requiresScreenPosition,
+                m_RequiresNDCPosition = requiresNDCPosition,
+                m_RequiresPixelPosition = requiresPixelPosition,
                 m_RequiresVertexColor = requiresVertexColor,
                 m_RequiresFaceSign = requiresFaceSign,
                 m_RequiresMeshUVs = meshUV,
