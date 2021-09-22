@@ -370,7 +370,7 @@ namespace UnityEditor.ShaderGraph
             graphRequirements.UnionWith(vertexRequirements);
         }
 
-        static ConditionalField[] GetConditionalFieldsFromVertexRequirements(ShaderGraphRequirements requirements)
+        internal static ConditionalField[] GetConditionalFieldsFromVertexRequirements(ShaderGraphRequirements requirements)
         {
             return new ConditionalField[]
             {
@@ -419,7 +419,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        static ConditionalField[] GetConditionalFieldsFromPixelRequirements(ShaderGraphRequirements requirements)
+        internal static ConditionalField[] GetConditionalFieldsFromPixelRequirements(ShaderGraphRequirements requirements)
         {
             return new ConditionalField[]
             {
@@ -854,7 +854,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static void GenerateDescriptionForNode(
+        internal static void GenerateDescriptionForNode(
             AbstractMaterialNode activeNode,
             List<int> keywordPermutations,
             FunctionRegistry functionRegistry,

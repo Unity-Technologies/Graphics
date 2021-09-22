@@ -16,21 +16,24 @@ namespace UnityEditor.ShaderGraph
     {
         const string kDebugSymbol = "SHADERGRAPH_DEBUG";
 
-        GraphData m_GraphData;
-        AbstractMaterialNode m_OutputNode;
-        Target[] m_Targets;
-        List<BlockNode> m_ActiveBlocks;
-        List<BlockNode> m_TemporaryBlocks;
-        GenerationMode m_Mode;
-        string m_Name;
+        public GraphData m_GraphData;
+        public AbstractMaterialNode m_OutputNode;
+        public Target[] m_Targets;
+        public List<BlockNode> m_ActiveBlocks;
+        public List<BlockNode> m_TemporaryBlocks;
+        public GenerationMode m_Mode;
+        public string m_Name;
 
         ShaderStringBuilder m_Builder;
         List<PropertyCollector.TextureInfo> m_ConfiguredTextures;
-        AssetCollection m_assetCollection;
+        public AssetCollection m_assetCollection;
 
         public string generatedShader => m_Builder.ToCodeBlock();
         public List<PropertyCollector.TextureInfo> configuredTextures => m_ConfiguredTextures;
         public List<BlockNode> temporaryBlocks => m_TemporaryBlocks;
+
+        public delegate string GeneratorCallback(Generator generator);
+        public static GeneratorCallback Callback = null;
 
         public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection)
         {
@@ -117,6 +120,12 @@ namespace UnityEditor.ShaderGraph
 
         void BuildShader()
         {
+            if(Callback != null)
+            {
+                m_Builder.Append(Callback(this));
+                return;
+            }
+
             var activeNodeList = Pool.ListPool<AbstractMaterialNode>.Get();
             bool ignoreActiveState = (m_Mode == GenerationMode.Preview);  // for previews, we ignore node active state
             if (m_OutputNode == null)
