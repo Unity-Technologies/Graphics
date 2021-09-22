@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 if (EditorGUI.EndChangeCheck())
                     SetBlendMode(blendModeValue);
 
-                if (blendModeValue == FullscreenBlendMode.Custom) ;
+                if (blendModeValue == FullscreenBlendMode.Custom)
                 {
                     m_MaterialEditor.ShaderProperty(srcColorBlend, Styles.srcColorBlendMode, 1);
                     m_MaterialEditor.ShaderProperty(dstColorBlend, Styles.dstColorBlendMode, 1);
@@ -156,10 +156,10 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.BeginChangeCheck();
                 m_MaterialEditor.ShaderProperty(stencilEnable, Styles.stencil);
-                bool stencilEnableValue = stencilEnable.floatValue < 0.5f;
+                bool stencilEnableValue = stencilEnable.floatValue > 0.5f;
                 if (EditorGUI.EndChangeCheck())
                     SetStencilEnable(stencilEnableValue);
-                if (stencilEnableValue) ;
+                if (stencilEnableValue)
                 {
                     m_MaterialEditor.ShaderProperty(stencilRef, Styles.stencilRef, 1);
                     m_MaterialEditor.ShaderProperty(stencilReadMask, Styles.stencilReadMask, 1);
@@ -173,8 +173,11 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
             void SetStencilEnable(bool enabled)
             {
-                stencilComp.floatValue = (float)CompareFunction.Always;
-                stencilPass.floatValue = (float)StencilOp.Keep;
+                if (!enabled)
+                {
+                    stencilComp.floatValue = (float)CompareFunction.Always;
+                    stencilPass.floatValue = (float)StencilOp.Keep;
+                }
             }
 
             void SetBlendMode(FullscreenBlendMode blendMode)

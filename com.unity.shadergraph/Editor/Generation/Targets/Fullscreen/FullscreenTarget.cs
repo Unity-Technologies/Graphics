@@ -402,23 +402,32 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         {
             if (generationMode != GenerationMode.Preview && allowMaterialOverride)
             {
-                collector.AddEnumProperty(Uniforms.blendModeProperty, blendMode);
-                collector.AddEnumProperty(Uniforms.srcColorBlendProperty, srcColorBlendMode);
-                collector.AddEnumProperty(Uniforms.dstColorBlendProperty, dstColorBlendMode);
-                collector.AddEnumProperty(Uniforms.srcAlphaBlendProperty, srcAlphaBlendMode);
-                collector.AddEnumProperty(Uniforms.dstAlphaBlendProperty, dstAlphaBlendMode);
-                collector.AddEnumProperty(Uniforms.colorBlendOperationProperty, colorBlendOperation);
-                collector.AddEnumProperty(Uniforms.alphaBlendOperationProperty, alphaBlendOperation);
+                // When blend mode is disabled, we can't override
+                if (blendMode != FullscreenBlendMode.Disabled)
+                {
+                    collector.AddEnumProperty(Uniforms.blendModeProperty, blendMode);
+                    collector.AddEnumProperty(Uniforms.srcColorBlendProperty, srcColorBlendMode);
+                    collector.AddEnumProperty(Uniforms.dstColorBlendProperty, dstColorBlendMode);
+                    collector.AddEnumProperty(Uniforms.srcAlphaBlendProperty, srcAlphaBlendMode);
+                    collector.AddEnumProperty(Uniforms.dstAlphaBlendProperty, dstAlphaBlendMode);
+                    collector.AddEnumProperty(Uniforms.colorBlendOperationProperty, colorBlendOperation);
+                    collector.AddEnumProperty(Uniforms.alphaBlendOperationProperty, alphaBlendOperation);
+                }
                 collector.AddFloatProperty(Uniforms.depthWriteProperty, depthWrite ? 1 : 0);
                 collector.AddFloatProperty(Uniforms.depthTestProperty, (float)depthTestMode);
-                collector.AddBoolProperty(Uniforms.stencilEnableProperty, enableStencil);
-                collector.AddIntProperty(Uniforms.stencilReferenceProperty, stencilReference);
-                collector.AddIntProperty(Uniforms.stencilReadMaskProperty, stencilReadMask);
-                collector.AddIntProperty(Uniforms.stencilWriteMaskProperty, stencilWriteMask);
-                collector.AddEnumProperty(Uniforms.stencilComparisonProperty, stencilCompareFunction);
-                collector.AddEnumProperty(Uniforms.stencilPassProperty, stencilPassOperation);
-                collector.AddEnumProperty(Uniforms.stencilFailProperty, stencilFailOperation);
-                collector.AddEnumProperty(Uniforms.stencilDepthFailProperty, stencilDepthTestFailOperation);
+
+                // When stencil is disabled, we can't override
+                if (enableStencil)
+                {
+                    collector.AddBoolProperty(Uniforms.stencilEnableProperty, enableStencil);
+                    collector.AddIntProperty(Uniforms.stencilReferenceProperty, stencilReference);
+                    collector.AddIntProperty(Uniforms.stencilReadMaskProperty, stencilReadMask);
+                    collector.AddIntProperty(Uniforms.stencilWriteMaskProperty, stencilWriteMask);
+                    collector.AddEnumProperty(Uniforms.stencilComparisonProperty, stencilCompareFunction);
+                    collector.AddEnumProperty(Uniforms.stencilPassProperty, stencilPassOperation);
+                    collector.AddEnumProperty(Uniforms.stencilFailProperty, stencilFailOperation);
+                    collector.AddEnumProperty(Uniforms.stencilDepthFailProperty, stencilDepthTestFailOperation);
+                }
             }
         }
 
@@ -729,22 +738,34 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             }
         };
 
-        public static readonly RenderStateCollection MaterialControlledDefault = new RenderStateCollection
-        {
-            { RenderState.ZTest(Uniforms.depthTest) },
-            { RenderState.ZWrite(Uniforms.depthWrite) },
-            { RenderState.Blend(Uniforms.srcColorBlend, Uniforms.dstColorBlend, Uniforms.srcAlphaBlend, Uniforms.dstAlphaBlend) },
-            { RenderState.BlendOp(Uniforms.colorBlendOperation, Uniforms.alphaBlendOperation) },
-            { RenderState.Stencil(new StencilDescriptor{ Ref = Uniforms.stencilReference, ReadMask = Uniforms.stencilReadMask, WriteMask = Uniforms.stencilWriteMask, Comp = Uniforms.stencilComparison, ZFail = Uniforms.stencilDepthFail, Fail = Uniforms.stencilFail, Pass = Uniforms.stencilPass}) }
-        };
 
         public RenderStateCollection GetRenderState()
         {
+            var result = new RenderStateCollection();
+
             if (allowMaterialOverride)
-                return MaterialControlledDefault;
+            {
+                result.Add(RenderState.ZTest(Uniforms.depthTest));
+                result.Add(RenderState.ZWrite(Uniforms.depthWrite));
+                if (blendMode != FullscreenBlendMode.Disabled)
+                {
+                    result.Add(RenderState.Blend(Uniforms.srcColorBlend, Uniforms.dstColorBlend, Uniforms.srcAlphaBlend, Uniforms.dstAlphaBlend));
+                    result.Add(RenderState.BlendOp(Uniforms.colorBlendOperation, Uniforms.alphaBlendOperation));
+                }
+                else
+                {
+                    result.Add(RenderState.Blend("Blend Off"));
+                }
+
+                if (enableStencil)
+                {
+                    result.Add(RenderState.Stencil(new StencilDescriptor { Ref = Uniforms.stencilReference, ReadMask = Uniforms.stencilReadMask, WriteMask = Uniforms.stencilWriteMask, Comp = Uniforms.stencilComparison, ZFail = Uniforms.stencilDepthFail, Fail = Uniforms.stencilFail, Pass = Uniforms.stencilPass }));
+                }
+
+                return result;
+            }
             else
             {
-                var result = new RenderStateCollection();
                 result.Add(RenderState.ZTest(depthTestMode.ToString()));
                 result.Add(RenderState.ZWrite(depthWrite.ToString()));
 
@@ -757,6 +778,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One));
                 else if (blendMode == FullscreenBlendMode.Multiply)
                     result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero));
+                else if (blendMode == FullscreenBlendMode.Disabled)
+                    result.Add(RenderState.Blend("Blend Off"));
                 else
                 {
                     result.Add(RenderState.Blend(BlendModeToBlend(srcColorBlendMode), BlendModeToBlend(dstColorBlendMode), BlendModeToBlend(srcAlphaBlendMode), BlendModeToBlend(dstAlphaBlendMode)));
@@ -773,8 +796,9 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     Fail = stencilFailOperation.ToString(),
                     Pass = stencilPassOperation.ToString(),
                 }));
-                return result;
             }
+
+            return result;
         }
 
         Blend BlendModeToBlend(BlendMode mode) => mode switch
