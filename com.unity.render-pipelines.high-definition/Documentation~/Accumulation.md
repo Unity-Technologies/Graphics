@@ -115,6 +115,115 @@ You can easily define the first three profiles without using an animation curve 
 
 In this example, you can see that the slow open profile creates a motion trail appearance for the motion blur, which might be more desired for artists. On the other hand, the smooth open and close profile creates smoother animations than the slow open or uniform profiles.
 
+
+## High Quality Anti-aliasing wiht Accumulation
+You can also use the accumulation API to jitter the projection matrix of each rendered subframe and get a high quality antialiased frame. This is equivalent to rendering a higher resolution image, then downscaling to the final resolution, a process that is often called **SuperSampling**. The accumulation API uses fewer memory resources in the GPU than rendering at higher resolutions. The following example shows how to perform high quality antialiasing with the accumulation API from a script:
+
+```C#
+public class SuperSampling : MonoBehaviour
+{
+    // The number of samples used for accumumation in the horizontal and verical directions.
+    public int  samples = 8;
+    public bool saveToDisk = true;
+
+    bool m_Recording = false;
+    int m_Iteration = 0;
+    int m_RecordedFrames = 0;
+    List<Matrix4x4> m_OriginalProectionMatrix = new List<Matrix4x4>();
+
+    [ContextMenu("Start Accumulation")]
+    void BeginAccumulation()
+    {
+        RenderPipelineManager.beginContextRendering += PrepareSubFrameCallBack;
+        RenderPipelineManager.endContextRendering += EndSubFrameCallBack;
+        HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+        renderPipeline.BeginRecording(samples * samples, 1, 0.0f, 1.0f);
+        m_Recording = true;
+        m_Iteration = 0;
+        m_RecordedFrames = 0;
+    }
+
+    [ContextMenu("Stop Accumulation")]
+    void StopAccumulation()
+    {
+        RenderPipelineManager.beginContextRendering -= PrepareSubFrameCallBack;
+        RenderPipelineManager.endContextRendering -= EndSubFrameCallBack;
+        HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+        renderPipeline?.EndRecording();
+        m_Recording = false;
+    }
+
+    Matrix4x4 GetJitteredProjectionMatrix(Camera camera)
+    {
+        int totalSamples = samples * samples;
+        int subframe = m_Iteration % totalSamples;
+        int stratumX = subframe % samples;
+        int stratumY = subframe / samples;
+        float jitterX = stratumX * (1.0f / samples) - 0.5f;
+        float jitterY = stratumY * (1.0f / samples) - 0.5f;
+        var planes = camera.projectionMatrix.decomposeProjection;
+
+        float vertFov = Mathf.Abs(planes.top) + Mathf.Abs(planes.bottom);
+        float horizFov = Mathf.Abs(planes.left) + Mathf.Abs(planes.right);
+
+        var planeJitter = new Vector2(jitterX * horizFov / camera.pixelWidth,
+            jitterY * vertFov / camera.pixelHeight);
+
+        planes.left += planeJitter.x;
+        planes.right += planeJitter.x;
+        planes.top += planeJitter.y;
+        planes.bottom += planeJitter.y;
+
+        return Matrix4x4.Frustum(planes);
+    }
+
+    void PrepareSubFrameCallBack(ScriptableRenderContext cntx, List<Camera> cameras)
+    {
+        HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+        if (renderPipeline != null && m_Recording)
+        {
+            renderPipeline.PrepareNewSubFrame();
+            m_Iteration++;
+        }
+
+        m_OriginalProectionMatrix.Clear();
+        foreach (var camera in cameras)
+        {
+            // Jitter the projection matrix
+            m_OriginalProectionMatrix.Add(camera.projectionMatrix);
+            camera.projectionMatrix = GetJitteredProjectionMatrix(camera);
+        }
+
+        if (saveToDisk && m_Recording && m_Iteration % (samples * samples) == 0)
+        {
+            ScreenCapture.CaptureScreenshot($"frame_{m_RecordedFrames++}.png");
+        }
+    }
+
+    void EndSubFrameCallBack(ScriptableRenderContext cntx, List<Camera> cameras)
+    {
+        for (int i=0; i < cameras.Count; ++i)
+        {
+            cameras[i].projectionMatrix = m_OriginalProectionMatrix[i];
+        }
+    }
+
+    void OnDestroy()
+    {
+        if (m_Recording)
+        {
+            StopAccumulation();
+        }
+    }
+
+    void OnValidate()
+    {
+        // Make sure that we have at least one sample
+        samples = Mathf.Max(1, samples);
+    }
+}
+```
+
 ## Limitations
 The multi-frame rendering API internally changes the `Time.timeScale` of the Scene. This means that:
 - You cannot have different accumulation motion blur parameters per camera.

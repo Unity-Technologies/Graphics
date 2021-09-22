@@ -315,6 +315,19 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Checks if a texture format is supported by the run-time system.
+        /// Similar to <see cref="SystemInfo.IsFormatSupported"/>, but doesn't allocate memory.
+        /// </summary>
+        /// <param name="format">The format to look up.</param>
+        /// <param name="usage1">The first format usage to look up.</param>
+        /// <param name="usage2">The second format usage to look up.</param>
+        /// <returns>Returns true if the graphics card supports the given <c>GraphicsFormat</c> and both usage1 and usage 2.</returns>
+        public static bool SupportsGraphicsFormat(GraphicsFormat format, FormatUsage usage1, FormatUsage usage2)
+        {
+            return SupportsGraphicsFormat(format, usage1) && SupportsGraphicsFormat(format, usage2);
+        }
+
+        /// <summary>
         /// Return the last colorBuffer index actually referring to an existing RenderTarget
         /// </summary>
         /// <param name="colorBuffers"></param>
