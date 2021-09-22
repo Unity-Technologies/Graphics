@@ -328,7 +328,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     for(int category=0; category<CATEGORY_LIST_SIZE; category++)
     {
         int nrLightsFinal = ldsCategoryListCount[category];
-        int nrLightsFinalClamped = nrLightsFinal<LIGHT_LIST_MAX_PRUNED_ENTRIES ? nrLightsFinal : LIGHT_LIST_MAX_PRUNED_ENTRIES;
+        int nrLightsFinalClamped = nrLightsFinal<SHADEROPTIONS_FPTLMAX_LIGHT_COUNT ? nrLightsFinal : SHADEROPTIONS_FPTLMAX_LIGHT_COUNT;
 
         const int nrDWords = ((nrLightsFinalClamped+1)+1)>>1;
         for(int l=(int) t; l<(int) nrDWords; l += NR_THREADS)
@@ -337,7 +337,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
             uint uLow = l==0 ? nrLightsFinalClamped : prunedList[max(0,2 * l - 1 + localOffs)] - shiftIndex[category];
             uint uHigh = prunedList[2 * l + 0 + localOffs] - shiftIndex[category];
 
-            g_vLightList[16*offs + l] = (uLow&0xffff) | (uHigh<<16);
+            g_vLightList[LIGHT_DWORD_PER_FPTL_TILE*offs + l] = (uLow&0xffff) | (uHigh<<16);
         }
 
         localOffs += nrLightsFinal;

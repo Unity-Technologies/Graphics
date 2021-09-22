@@ -589,15 +589,13 @@ namespace UnityEngine.Rendering.HighDefinition
             var nrTilesX = (m_MaxCameraWidth + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
             var nrTilesY = (m_MaxCameraHeight + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
             var nrTiles = nrTilesX * nrTilesY * m_MaxViewCount;
-            const int capacityUShortsPerTile = 32;
-            const int dwordsPerTile = (capacityUShortsPerTile + 1) >> 1; // room for 31 lights and a nrLights value.
 
             if (tileAndClusterData.hasTileBuffers)
             {
                 // note that nrTiles include the viewCount in allocation below
                 // Tile buffers
                 passData.output.lightList = builder.WriteComputeBuffer(
-                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * dwordsPerTile * nrTiles, sizeof(uint)) { name = "LightList" }));
+                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * LightDefinitions.s_LightDwordPerFptlTile * nrTiles, sizeof(uint)) { name = "LightList" }));
                 passData.output.tileList = builder.WriteComputeBuffer(
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc(LightDefinitions.s_NumFeatureVariants * nrTiles, sizeof(uint)) { name = "TileList" }));
                 passData.output.tileFeatureFlags = builder.WriteComputeBuffer(
