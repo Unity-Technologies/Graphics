@@ -47,6 +47,17 @@ float LongitudinalScattering(float cosThetaI, float cosThetaO, float sinThetaI, 
     return M;
 }
 
+float AzimuthalScattering(float phi, int p, float s, float gammaO, float gammaT)
+{
+    float dphi = phi - AzimuthalDirection(p, gammaO, gammaT);
+
+    // Remap Phi to fit in the -PI..PI domain for the logistic.
+    while (dphi > +PI) dphi -= TWO_PI;
+    while (dphi < -PI) dphi += TWO_PI;
+
+    return TrimmedLogistic(dphi, s, -PI, PI);
+}
+
 CBSDF EvaluateHairReference(float3 V, float3 L, BSDFData bsdfData)
 {
     // Initialize the BSDF invocation.
@@ -65,16 +76,14 @@ CBSDF EvaluateHairReference(float3 V, float3 L, BSDFData bsdfData)
     float cosGammaT = CosFromSin(sinGammaT);
 
     // Compute transmittance of single path through the fiber using Beer's Law.
-    // Ref: The Implementation of a Hair Scattering Model
+    // Ref: The Implementation of a Hair Scattering Model Eq. 1.4
     float3 T = exp(-data.sigmaA * (2 * cosGammaT / cosThetaT));
 
     // Comptue the absorptions that occur in the fiber for every path.
     float3 Ap[PATH_MAX + 1];
     ComputeFiberAttenuations(angles.cosThetaO, data.eta, data.h, T, Ap);
 
-    float3 F;
-
-    F = float3(1, 0, 0);
+    float3 F = 0;
 
     return HairFtoCBSDF(F);
 }
