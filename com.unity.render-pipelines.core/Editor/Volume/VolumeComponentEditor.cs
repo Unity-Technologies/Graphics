@@ -78,11 +78,12 @@ namespace UnityEditor.Rendering
     {
         class Styles
         {
-            public static GUIContent overrideSettingText { get; } = EditorGUIUtility.TrTextContent("", "Override this setting for this volume.");
-            public static GUIContent allText { get; } = EditorGUIUtility.TrTextContent("ALL", "Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need.");
-            public static GUIContent noneText { get; } = EditorGUIUtility.TrTextContent("NONE", "Toggle all overrides off.");
+            public readonly static GUIContent overrideSettingText = EditorGUIUtility.TrTextContent("", "Override this setting for this volume.");
+            public readonly static GUIContent allText = EditorGUIUtility.TrTextContent("ALL", "Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need.");
+            public readonly static GUIContent noneText = EditorGUIUtility.TrTextContent("NONE", "Toggle all overrides off.");
 
-            public static string toggleAllText { get; } = L10n.Tr("Toggle All");
+            public static readonly string toggleAllText = L10n.Tr("Toggle All");
+            public static readonly string unsuportedFeature = L10n.Tr("This feature is not supported by the current active render pipeline");
 
             public const int overrideCheckboxWidth = 14;
             public const int overrideCheckboxOffset = 9;
@@ -359,8 +360,18 @@ namespace UnityEditor.Rendering
             serializedObject.Update();
             using (new EditorGUILayout.VerticalScope())
             {
-                TopRowFields();
-                OnInspectorGUI();
+                if (!target.supportedOnCurrentPipeline)
+                {
+                    EditorGUILayout.HelpBox(Styles.unsuportedFeature, MessageType.Warning, true);
+                }
+                else
+                {
+                    TopRowFields();
+                }
+
+                using (new EditorGUI.DisabledScope(!target.supportedOnCurrentPipeline))
+                    OnInspectorGUI();
+
                 EditorGUILayout.Space();
             }
             serializedObject.ApplyModifiedProperties();
@@ -653,6 +664,9 @@ namespace UnityEditor.Rendering
         /// <param name="property">The property to draw the override checkbox for</param>
         protected void DrawOverrideCheckbox(SerializedDataParameter property)
         {
+            if (!target.supportedOnCurrentPipeline)
+                return;
+
             // Create a rect the height + vspacing of the property that is being overriden
             float height = EditorGUI.GetPropertyHeight(property.value) + EditorGUIUtility.standardVerticalSpacing;
             var overrideRect = GUILayoutUtility.GetRect(Styles.allText, CoreEditorStyles.miniLabelButton, GUILayout.Height(height), GUILayout.Width(Styles.overrideCheckboxWidth + Styles.overrideCheckboxOffset), GUILayout.ExpandWidth(false));

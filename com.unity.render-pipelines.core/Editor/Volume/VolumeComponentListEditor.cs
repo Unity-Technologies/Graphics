@@ -48,7 +48,6 @@ namespace UnityEditor.Rendering
         class Styles
         {
             public static readonly string noSRPInUse = L10n.Tr("No SRP in Use");
-            public static readonly string unsuportedFeature = L10n.Tr("This feature is not supported by the current active render pipeline");
         }
 
         /// <summary>
@@ -219,13 +218,6 @@ namespace UnityEditor.Rendering
             if (asset == null)
                 return;
 
-            var currentPipeline = RenderPipelineManager.currentPipeline;
-            if (currentPipeline == null)
-            {
-                EditorGUILayout.HelpBox(Styles.noSRPInUse, MessageType.Info, true);
-                return;
-            }
-
             // Even if the asset is not dirty, the list of component may have been changed by another inspector.
             // In this case, only the hash will tell us that we need to refresh.
             if (asset.isDirty || asset.GetComponentListHashCode() != m_CurrentHashCode)
@@ -262,15 +254,8 @@ namespace UnityEditor.Rendering
 
                     if (displayContent)
                     {
-                        if (!editor.target.supportedOnCurrentPipeline)
-                        {
-                            EditorGUILayout.HelpBox(Styles.unsuportedFeature, MessageType.Warning, true);
-                        }
-                        else
-                        {
-                            using (new EditorGUI.DisabledScope(!editor.activeProperty.boolValue && !editor.target.supportedOnCurrentPipeline))
-                                editor.OnInternalInspectorGUI();
-                        }
+                        using (new EditorGUI.DisabledScope(!editor.activeProperty.boolValue && !editor.target.supportedOnCurrentPipeline))
+                            editor.OnInternalInspectorGUI();
                     }
                 }
 
