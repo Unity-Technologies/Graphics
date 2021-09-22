@@ -691,7 +691,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
-            materialGraphView?.AddToSelection(selectable);
+            // Don't want to modify graph selection when in middle of an undo/redo op as that throws exceptions
+            //if(materialGraphView.wasUndoRedoPerformed == false)
+                materialGraphView?.AddToSelection(selectable);
         }
 
         public void RemoveFromSelection(ISelectable selectable)
