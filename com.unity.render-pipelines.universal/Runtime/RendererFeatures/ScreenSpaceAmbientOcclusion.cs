@@ -375,11 +375,16 @@ namespace UnityEngine.Rendering.Universal
                     // If true, SSAO pass is inserted after opaque pass and is expected to modulate lighting result now.
                     if (m_CurrentSettings.AfterOpaque)
                     {
-                        // This implicitly also bind depth attachment. Explicitly binding m_Renderer.cameraDepthTarget does not work.
-                        cmd.SetRenderTarget(
-                            m_Renderer.cameraColorTarget,
+                        CoreUtils.SetRenderTarget(
+                            cmd,
+                            m_Renderer.cameraColorTargetHandle,
                             RenderBufferLoadAction.Load,
-                            RenderBufferStoreAction.Store
+                            RenderBufferStoreAction.Store,
+                            m_Renderer.cameraDepthTargetHandle,
+                            RenderBufferLoadAction.Load,
+                            RenderBufferStoreAction.Store,
+                            ClearFlag.None,
+                            Color.clear
                         );
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, (int)ShaderPasses.AfterOpaque);
                     }

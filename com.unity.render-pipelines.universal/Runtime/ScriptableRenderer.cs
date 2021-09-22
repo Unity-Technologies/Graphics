@@ -332,6 +332,7 @@ namespace UnityEngine.Rendering.Universal
         /// It's only valid to call cameraColorTarget in the scope of <c>ScriptableRenderPass</c>.
         /// <seealso cref="ScriptableRenderPass"/>.
         /// </summary>
+        [Obsolete]
         public RenderTargetIdentifier cameraColorTarget
         {
             get
@@ -383,6 +384,7 @@ namespace UnityEngine.Rendering.Universal
         /// It's only valid to call cameraDepthTarget in the scope of <c>ScriptableRenderPass</c>.
         /// <seealso cref="ScriptableRenderPass"/>.
         /// </summary>
+        [Obsolete]
         public RenderTargetIdentifier cameraDepthTarget
         {
             get

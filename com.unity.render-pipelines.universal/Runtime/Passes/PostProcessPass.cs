@@ -333,7 +333,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // GetDestination() instead
             bool tempTargetUsed = false;
             bool tempTarget2Used = false;
-            RenderTargetIdentifier source = m_UseSwapBuffer ? renderer.cameraColorTarget : m_Source;
+            RenderTargetIdentifier source = m_UseSwapBuffer ? renderer.cameraColorTargetHandle : m_Source;
             RenderTargetIdentifier destination = m_UseSwapBuffer ? renderer.GetCameraColorFrontBuffer(cmd) : -1;
 
             RenderTargetIdentifier GetSource() => source;
@@ -373,7 +373,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
 
                     r.SwapColorBuffer(cmd);
-                    source = r.cameraColorTarget;
+                    source = r.cameraColorTargetHandle.nameID;
                     destination = r.GetCameraColorFrontBuffer(cmd);
                 }
                 else
