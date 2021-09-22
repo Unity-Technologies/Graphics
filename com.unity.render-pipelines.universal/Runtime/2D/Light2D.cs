@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// The accuracy of how the normap map calculation.
+        /// The accuracy of how the normal map calculation.
         /// </summary>
         public enum NormalMapQuality
         {
@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.Universal
             /// </summary>
             Additive,
             /// <summary>
-            /// Colors are blended using standed blending (alpha, 1-alpha)
+            /// Colors are blended using standard blending (alpha, 1-alpha)
             /// </summary>
             AlphaBlend
         }
@@ -260,7 +260,6 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public float falloffIntensity { get => m_FalloffIntensity; set => m_FalloffIntensity = value; }
 
-
         [Obsolete]
         public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; } }
 
@@ -284,6 +283,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public NormalMapQuality normalMapQuality => m_NormalMapQuality;
 
+        /// <summary>
+        /// Returns if volumetric shadows should be rendered.
+        /// </summary>
         public bool renderVolumetricShadows => volumetricShadowsEnabled && shadowVolumeIntensity > 0;
 
 
@@ -419,11 +421,17 @@ namespace UnityEngine.Rendering.Universal
             UpdateBoundingSphere();
         }
 
+        /// <summary>
+        /// OnBeforeSerialize implementation.
+        /// </summary>
         public void OnBeforeSerialize()
         {
             m_ComponentVersion = k_CurrentComponentVersion;
         }
 
+        /// <summary>
+        /// OnAfterSerialize implementation.
+        /// </summary>
         public void OnAfterDeserialize()
         {
             // Upgrade from no serialized version

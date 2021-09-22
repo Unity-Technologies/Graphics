@@ -56,6 +56,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Set the shape that represents the freeform light. Values are in object space.
         /// </summary>
+        /// <param name="path">Array of Vector3 defining the shape.</param>
         public void SetShapePath(Vector3[] path)
         {
             m_ShapePath = path;
