@@ -58,7 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved the DynamicArray class by adding several utility APIs.
 - Moved AMD FidelityFX shaders to core
 - Improved sampling of overlapping point/area lights in path-traced volumetric scattering (case 1358777).
-- Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1358783, 1346105).
+- Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1346105, 1358783).
 
 ## [12.0.0] - 2021-01-11
 
