@@ -29,7 +29,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
 {
     Init(result);
 
-    CBSDF cbsdf = EvaluateMarschnerReference(mtlData.V, sampleDir, mtlData.bsdfData);
+    CBSDF cbsdf = EvaluateHairReference(mtlData.V, sampleDir, mtlData.bsdfData);
 
     result.specValue = cbsdf.specR;
 

@@ -237,8 +237,6 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // Marschner
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
     {
-        // Note: Light Path Length is computed per-light.
-
         // Cuticle Angle
         const float cuticleAngle = radians(surfaceData.cuticleAngle);
         bsdfData.cuticleAngleR   = -cuticleAngle;
@@ -256,9 +254,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.roughnessRadial = PerceptualSmoothnessToRoughness(surfaceData.perceptualRadialSmoothness);
     #else
         // Need to provide some sensible default in case of no roughened azimuthal scattering, since currently our
-        // absorption is dependent on it. 0.3 is generally a good default for hair, but 0.8 seems to get us closer
-        // to an absorption that better matches the Kajiya diffuse component.
-        bsdfData.roughnessRadial = 0.8;
+        // absorption is dependent on it. 0.3 is generally a good default for human hair.
+        bsdfData.roughnessRadial = 0.3;
     #endif
 
         // Absorption
@@ -503,7 +500,7 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairReference.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Reference/HairReference.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/PreIntegratedAzimuthalScattering.hlsl"
 
 #ifdef _USE_ADVANCED_MULTIPLE_SCATTERING
