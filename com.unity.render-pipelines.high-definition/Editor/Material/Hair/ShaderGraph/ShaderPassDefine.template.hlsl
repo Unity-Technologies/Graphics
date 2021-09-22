@@ -8,3 +8,5 @@ $SpecularOcclusionCustom:           #define _SPECULAR_OCCLUSION_CUSTOM 1
 $Specular.AA:                       #define _ENABLE_GEOMETRIC_SPECULAR_AA 1
 $ScatteringAdvanced:                #define _USE_ADVANCED_MULTIPLE_SCATTERING 1
 $UseRoughenedAzimuthalScattering:   #define _USE_ROUGHENED_AZIMUTHAL_SCATTERING 1
+$AbsorptionFromColor:               #define _ABSORPTION_FROM_COLOR 1
+$AbsorptionFromMelanin:             #define _ABSORPTION_FROM_MELANIN 1

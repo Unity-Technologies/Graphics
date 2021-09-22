@@ -32,7 +32,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.AbsorptionCoefficient:       surfaceData.absorption =                     surfaceDescription.AbsorptionCoefficient;
 
     $SurfaceDescription.Eumelanin:                   surfaceData.eumelanin =                      surfaceDescription.Eumelanin;
-    $SurfaceDescription.Pheoumelanin:                surfaceData.pheoumelanin =                   surfaceDescription.Pheoumelanin;
+    $SurfaceDescription.Pheomelanin:                 surfaceData.pheomelanin =                    surfaceDescription.Pheomelanin;
 \
     $SurfaceDescription.SpecularOcclusion:           surfaceData.specularOcclusion =              surfaceDescription.SpecularOcclusion;
     $SurfaceDescription.Smoothness:                  surfaceData.perceptualSmoothness =           surfaceDescription.Smoothness;

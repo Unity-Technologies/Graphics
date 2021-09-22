@@ -59,7 +59,7 @@ float ModifiedRefractionIndex(float cosThetaD)
 }
 
 // Ref: A Practical and Controllable Hair and Fur Model for Production Path Tracing
-float3 DiffuseColorToAbsorption(float3 diffuseColor, float azimuthalRoughness)
+float3 AbsorptionFromReflectance(float3 diffuseColor, float azimuthalRoughness)
 {
     float beta  = azimuthalRoughness;
     float beta2 = beta  * beta;
@@ -72,6 +72,15 @@ float3 DiffuseColorToAbsorption(float3 diffuseColor, float azimuthalRoughness)
 
     float3 t = log(diffuseColor) / denom;
     return t * t;
+}
+
+// Ref: An Energy-Conserving Hair Reflectance Model
+float AbsorptionFromMelanin(float eumelanin, float pheomelanin)
+{
+    const float3 eA = float3(0.419, 0.697, 1.37);
+    const float3 eP = float3(0.187, 0.4,   1.05);
+
+    return (eumelanin * eA) + (pheomelanin * eP);
 }
 
 float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
@@ -253,7 +262,13 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     #endif
 
         // Absorption
-        bsdfData.absorption = DiffuseColorToAbsorption(surfaceData.diffuseColor, bsdfData.roughnessRadial);
+    #if _ABSORPTION_FROM_COLOR
+        bsdfData.absorption = AbsorptionFromReflectance(surfaceData.diffuseColor, bsdfData.roughnessRadial);
+    #elif _ABSORPTION_FROM_MELANIN
+        bsdfData.absorption = AbsorptionFromMelanin(surfaceData.eumelanin, surfaceData.pheomelanin);
+    #else
+        bsdfData.absorption = surfaceData.absorption;
+    #endif
 
     #if _USE_ADVANCED_MULTIPLE_SCATTERING
         bsdfData.strandCountProbe = surfaceData.strandCountProbe;
