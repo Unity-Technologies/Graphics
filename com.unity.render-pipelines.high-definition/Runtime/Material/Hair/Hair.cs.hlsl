@@ -30,10 +30,13 @@
 #define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_TINT (1414)
 #define DEBUGVIEW_HAIR_SURFACEDATA_SPECULAR_SHIFT (1415)
 #define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_SHIFT (1416)
-#define DEBUGVIEW_HAIR_SURFACEDATA_AZIMUTHAL_ROUGHNESS (1417)
-#define DEBUGVIEW_HAIR_SURFACEDATA_CUTICLE_ANGLE (1418)
-#define DEBUGVIEW_HAIR_SURFACEDATA_STRAND_COUNT_PROBE (1419)
-#define DEBUGVIEW_HAIR_SURFACEDATA_STRAND_SHADOW_BIAS (1420)
+#define DEBUGVIEW_HAIR_SURFACEDATA_ABSORPTION_COEFFICIENT (1417)
+#define DEBUGVIEW_HAIR_SURFACEDATA_EUMELANIN (1418)
+#define DEBUGVIEW_HAIR_SURFACEDATA_PHEOMELANIN (1419)
+#define DEBUGVIEW_HAIR_SURFACEDATA_AZIMUTHAL_ROUGHNESS (1420)
+#define DEBUGVIEW_HAIR_SURFACEDATA_CUTICLE_ANGLE (1421)
+#define DEBUGVIEW_HAIR_SURFACEDATA_STRAND_COUNT_PROBE (1422)
+#define DEBUGVIEW_HAIR_SURFACEDATA_STRAND_SHADOW_BIAS (1423)
 
 //
 // UnityEngine.Rendering.HighDefinition.Hair+BSDFData:  static fields
@@ -95,6 +98,9 @@ struct SurfaceData
     float3 secondarySpecularTint;
     float specularShift;
     float secondarySpecularShift;
+    float3 absorption;
+    float eumelanin;
+    float pheomelanin;
     float perceptualRadialSmoothness;
     float cuticleAngle;
     float4 strandCountProbe;
@@ -202,6 +208,15 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_SHIFT:
             result = surfacedata.secondarySpecularShift.xxx;
+            break;
+        case DEBUGVIEW_HAIR_SURFACEDATA_ABSORPTION_COEFFICIENT:
+            result = surfacedata.absorption;
+            break;
+        case DEBUGVIEW_HAIR_SURFACEDATA_EUMELANIN:
+            result = surfacedata.eumelanin.xxx;
+            break;
+        case DEBUGVIEW_HAIR_SURFACEDATA_PHEOMELANIN:
+            result = surfacedata.pheomelanin.xxx;
             break;
         case DEBUGVIEW_HAIR_SURFACEDATA_AZIMUTHAL_ROUGHNESS:
             result = surfacedata.perceptualRadialSmoothness.xxx;

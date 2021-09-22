@@ -75,6 +75,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public float secondarySpecularShift;
 
             // Marschner
+            [SurfaceDataAttributes("Absorption Coefficient")]
+            public Vector3 absorption;
+            [SurfaceDataAttributes("Eumelanin")]
+            public float eumelanin;
+            [SurfaceDataAttributes("Pheomelanin")]
+            public float pheomelanin;
+
             [SurfaceDataAttributes("Azimuthal Roughness")]
             public float perceptualRadialSmoothness;
             [SurfaceDataAttributes("Cuticle Angle")]

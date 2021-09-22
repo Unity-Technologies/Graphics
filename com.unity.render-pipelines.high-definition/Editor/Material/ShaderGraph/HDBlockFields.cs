@@ -134,6 +134,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new Vector4Control(Vector4.zero), ShaderStage.Fragment);
             public static BlockFieldDescriptor StrandShadowBias = new BlockFieldDescriptor(SurfaceDescription.name, "StrandShadowBias", "Strand Shadow Bias", "SURFACEDESCRIPTION_STRANDSHADOWBIAS",
                 new FloatControl(0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor AbsorptionCoefficient = new BlockFieldDescriptor(SurfaceDescription.name, "AbsorptionCoefficient", "Absorption", "SURFACEDESCRIPTION_ABSORPTIONCOEFFICIENT",
+                new Vector3Control(new Vector3(.06f, 0.1f, 0.2f)), ShaderStage.Fragment);
+            public static BlockFieldDescriptor Eumelanin = new BlockFieldDescriptor(SurfaceDescription.name, "Eumelanin", "Eumelanin", "SURFACEDESCRIPTION_EUMELANIN",
+                new FloatControl(0.3f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor Pheomelanin = new BlockFieldDescriptor(SurfaceDescription.name, "Pheomelanin", "Pheomelanin", "SURFACEDESCRIPTION_PHEOMELANIN",
+                new FloatControl(0.3f), ShaderStage.Fragment);
+
 
             // --------------------------------------------------
             // StackLit

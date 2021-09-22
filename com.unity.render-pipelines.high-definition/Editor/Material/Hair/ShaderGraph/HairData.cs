@@ -12,6 +12,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             Marschner
         }
 
+        public enum ColorParameterization
+        {
+            BaseColor,
+            Melanin,
+            Absorption
+        }
+
         public enum GeometryType
         {
             Cards,
@@ -39,6 +46,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_ScatteringMode;
             set => m_ScatteringMode = value;
+        }
+
+        [SerializeField]
+        ColorParameterization m_ColorParameterization;
+
+        public ColorParameterization colorParameterization
+        {
+            get => m_ColorParameterization;
+            set => m_ColorParameterization = value;
         }
 
         [SerializeField]

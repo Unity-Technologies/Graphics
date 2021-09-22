@@ -63,6 +63,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static FieldDescriptor Transmittance = new FieldDescriptor(string.Empty, "Transmittance", "_TRANSMITTANCE 1");
         public static FieldDescriptor UseRoughenedAzimuthalScattering = new FieldDescriptor(string.Empty, "UseRoughenedAzimuthalScattering", "_USE_ROUGHENED_AZIMUTHAL_SCATTERING 1");
         public static FieldDescriptor ScatteringAdvanced = new FieldDescriptor(string.Empty, "ScatteringAdvanced", "_USE_ADVANCED_MULTIPLE_SCATTERING 1");
+        public static FieldDescriptor AbsorptionFromColor = new FieldDescriptor(string.Empty, "AbsorptionFromColor", "_ABSORPTION_FROM_COLOR 1");
+        public static FieldDescriptor AbsorptionFromMelanin = new FieldDescriptor(string.Empty, "AbsorptionFromMelanin", "_ABSORPTION_FROM_MELANIN 1");
 
         public override void GetFields(ref TargetFieldContext context)
         {
@@ -79,6 +81,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(Transmittance, descs.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
             context.AddField(UseRoughenedAzimuthalScattering, hairData.useRoughenedAzimuthalScattering);
             context.AddField(ScatteringAdvanced, useAdvancedMultipleScattering);
+            context.AddField(AbsorptionFromColor, hairData.colorParameterization == HairData.ColorParameterization.BaseColor);
+            context.AddField(AbsorptionFromMelanin, hairData.colorParameterization == HairData.ColorParameterization.Melanin);
 
             // Misc
             context.AddField(SpecularAA, lightingData.specularAA &&
@@ -106,6 +110,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             else
             {
+                // Color parameterization for cortex (default is base color)
+                context.AddBlock(HDBlockFields.SurfaceDescription.AbsorptionCoefficient, hairData.colorParameterization == HairData.ColorParameterization.Absorption);
+                context.AddBlock(HDBlockFields.SurfaceDescription.Eumelanin, hairData.colorParameterization == HairData.ColorParameterization.Melanin);
+                context.AddBlock(HDBlockFields.SurfaceDescription.Pheomelanin, hairData.colorParameterization == HairData.ColorParameterization.Melanin);
+
+                // Need to explicitly remove the base color here as it is by default always included.
+                if (hairData.colorParameterization != HairData.ColorParameterization.BaseColor)
+                    context.activeBlocks.Remove(BlockFields.SurfaceDescription.BaseColor);
+
                 context.AddBlock(HDBlockFields.SurfaceDescription.RadialSmoothness, hairData.useRoughenedAzimuthalScattering);
                 context.AddBlock(HDBlockFields.SurfaceDescription.CuticleAngle);
 

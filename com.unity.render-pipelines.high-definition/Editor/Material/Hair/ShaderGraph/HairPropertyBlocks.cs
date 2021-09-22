@@ -37,6 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         class Styles
         {
+            public static GUIContent colorParameterization = new GUIContent("Color Mode", "Indicates the way the hair fiber cortex color is parameterized.");
             public static GUIContent geometryType = new GUIContent("Geometry Type", "Indicates the type of geometry being used to represent the hair, allowing the shading model to make informed approximations.");
             public static GUIContent scatteringMode = new GUIContent("Scattering Mode", "TODO");
             public static GUIContent useRoughenedAzimuthalScattering = new GUIContent("Allow Radial Smoothness", "Adds a Radial Smoothness block to the target, controlling the internal scattering of the light paths and absorption that occurs within the fiber.");
@@ -51,6 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CreatePropertyGUI();
 
             // Hair specific properties GUI
+            AddProperty(Styles.colorParameterization, () => hairData.colorParameterization, (newValue) => hairData.colorParameterization = newValue);
             AddProperty(Styles.geometryType, () => hairData.geometryType, (newValue) => hairData.geometryType = newValue);
 
             if (hairData.materialType == HairData.MaterialType.Marschner)
