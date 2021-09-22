@@ -89,6 +89,13 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
+  - name: Linux
+    apis:
+      - name: Vulkan
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
 
 jobs:
   - name: <PROJECT_NAME>
