@@ -346,7 +346,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     && probeVolume.HasNeighbors()
                     && probeVolume.GetProbeVolumeEngineDataIndex() >= 0)
                 {
-                    DispatchPropagationCombine(cmd, probeVolume, in giSettings, in shaderGlobals, probeVolumeAtlasSHRTHandle, true);
+                    if (CleanupPropagation(probeVolume))
+                    {
+                        // trigger an update so original bake data gets set since Dynamic GI was disabled
+                        probeVolume.SetDataUpdated(true);
+                    }
                 }
             }
         }
@@ -430,7 +434,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
 
-        void DispatchPropagationCombine(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RTHandle probeVolumeAtlasSHRTHandle, bool clearDynamicGI = false)
+        void DispatchPropagationCombine(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RTHandle probeVolumeAtlasSHRTHandle)
         {
             int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
             ProbeVolume.ProbeVolumeAtlasKey key = probeVolume.ComputeProbeVolumeAtlasKey();
@@ -468,16 +472,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis", probeVolume.propagationBuffers.GetWriteRadianceCacheAxis());
             cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", probeVolume.propagationBuffers.radianceCacheAxis0.count);
 
-            if (clearDynamicGI)
-            {
-                cmd.SetComputeFloatParam(shader, "_BakedLightingContribution", 1);
-                cmd.SetComputeFloatParam(shader, "_DynamicPropagationContribution", 0);
-            }
-            else
-            {
-                cmd.SetComputeFloatParam(shader, "_BakedLightingContribution", giSettings.bakeAmount.value);
-                cmd.SetComputeFloatParam(shader, "_DynamicPropagationContribution", giSettings.dynamicAmount.value);
-            }
+            cmd.SetComputeFloatParam(shader, "_BakedLightingContribution", giSettings.bakeAmount.value);
+            cmd.SetComputeFloatParam(shader, "_DynamicPropagationContribution", giSettings.dynamicAmount.value);
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
 
             cmd.SetComputeFloatParam(shader, "_PropagationSharpness", giSettings.propagationSharpness.value);

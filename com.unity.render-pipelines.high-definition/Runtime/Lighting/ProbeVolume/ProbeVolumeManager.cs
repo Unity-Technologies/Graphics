@@ -244,8 +244,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool IProbeVolumeList.HasNeighbors(int i)
         {
-            var neighborAxis = m_Volumes[i].probeVolumeAsset.payload.neighborAxis;
-            return neighborAxis != null && neighborAxis.Length > 0;
+            bool hasNeighbors = false;
+            if (m_Volumes[i].probeVolumeAsset != null)
+            {
+                var neighborAxis = m_Volumes[i].probeVolumeAsset.payload.neighborAxis;
+                hasNeighbors = neighborAxis != null && neighborAxis.Length > 0;
+            }
+            return hasNeighbors;
         }
 
         int IProbeVolumeList.GetHitNeighborAxisLength(int i) => m_Volumes[i].GetPayload().hitNeighborAxis.Length;
