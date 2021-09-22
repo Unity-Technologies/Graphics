@@ -39,6 +39,7 @@ URP_Foundation_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
+              -  "TestProjects/UniversalGraphicsTest_Foundation/Assets/ReferenceImages/Linear/OSXEditor/Metal/None/*.png"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX_Apple_Silicon
          rerun: on_new_revision
