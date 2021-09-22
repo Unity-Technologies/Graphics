@@ -111,7 +111,7 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
         {
-            if (!ProbeReferenceVolume.instance.isInitialized)
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
                 var renderPipelineAsset = UnityEngine.Rendering.RenderPipelineManager.currentPipeline;
                 if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipeline")
@@ -126,8 +126,12 @@ namespace UnityEditor.Experimental.Rendering
                 return;
             }
 
+            ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
+
+            bool hasProfile = (ProbeReferenceVolume.instance.sceneData?.GetProfileForScene(pv.gameObject.scene) != null);
+
             EditorGUI.BeginChangeCheck();
-            if ((serialized.serializedObject.targetObject as ProbeVolume).mightNeedRebaking)
+            if (pv.mightNeedRebaking)
             {
                 var helpBoxRect = GUILayoutUtility.GetRect(new GUIContent(Styles.s_ProbeVolumeChangedMessage, EditorGUIUtility.IconContent("Warning@2x").image), EditorStyles.helpBox);
                 EditorGUI.HelpBox(helpBoxRect, Styles.s_ProbeVolumeChangedMessage, MessageType.Warning);
@@ -137,24 +141,61 @@ namespace UnityEditor.Experimental.Rendering
             if (!serialized.globalVolume.boolValue)
                 EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
 
+            if (!hasProfile)
+            {
+                EditorGUILayout.HelpBox("No profile information is set for the scene that owns this probe volume so no subdivision information can be retrieved.", MessageType.Warning);
+            }
+
+            EditorGUI.BeginDisabledGroup(!hasProfile);
+
             var rect = EditorGUILayout.GetControlRect(true);
-            EditorGUI.BeginProperty(rect, Styles.s_MinMaxSubdivSlider, serialized.minSubdivisionMultiplier);
-            EditorGUI.BeginProperty(rect, Styles.s_MinMaxSubdivSlider, serialized.maxSubdivisionMultiplier);
+            EditorGUI.BeginProperty(rect, Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride);
+            EditorGUI.BeginProperty(rect, Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride);
 
             // Round min and max subdiv
-            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision(1) - 1;
-            float min = Mathf.Round(serialized.minSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
-            float max = Mathf.Round(serialized.maxSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
+            int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+            // it's likely we don't have a profile loaded yet.
+            if (maxSubdiv < 0)
+            {
+                if (ProbeReferenceVolume.instance.sceneData != null)
+                {
+                    var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(pv.gameObject.scene);
 
-            EditorGUILayout.MinMaxSlider(Styles.s_MinMaxSubdivSlider, ref min, ref max, 0, 1);
-            serialized.minSubdivisionMultiplier.floatValue = Mathf.Max(0.00f, min);
-            serialized.maxSubdivisionMultiplier.floatValue = Mathf.Max(0.01f, max);
+                    if (profile != null)
+                    {
+                        ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(profile.minBrickSize, profile.maxSubdivision);
+                        maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+                    }
+                    else
+                    {
+                        maxSubdiv = 0;
+                    }
+                }
+            }
+
+            EditorGUILayout.LabelField("Subdivision Overrides", EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            int value = serialized.highestSubdivisionLevelOverride.intValue;
+
+            // We were initialized, but we cannot know the highest subdiv statically, so we need to resort to this.
+            if (serialized.highestSubdivisionLevelOverride.intValue < 0)
+                serialized.highestSubdivisionLevelOverride.intValue = maxSubdiv;
+
+            serialized.highestSubdivisionLevelOverride.intValue = EditorGUILayout.IntSlider(Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride.intValue, 0, maxSubdiv);
+            serialized.lowestSubdivisionLevelOverride.intValue = EditorGUILayout.IntSlider(Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride.intValue, 0, maxSubdiv);
+            serialized.lowestSubdivisionLevelOverride.intValue = Mathf.Min(serialized.lowestSubdivisionLevelOverride.intValue, serialized.highestSubdivisionLevelOverride.intValue);
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
 
-            int minSubdivInVolume = ProbeReferenceVolume.instance.GetMaxSubdivision(1 - serialized.minSubdivisionMultiplier.floatValue);
-            int maxSubdivInVolume = ProbeReferenceVolume.instance.GetMaxSubdivision(1 - serialized.maxSubdivisionMultiplier.floatValue);
-            EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdivInVolume)}m and {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(minSubdivInVolume)}m", MessageType.Info);
+            int minSubdivInVolume = serialized.lowestSubdivisionLevelOverride.intValue;
+            int maxSubdivInVolume = serialized.highestSubdivisionLevelOverride.intValue;
+            EditorGUI.indentLevel--;
+
+            if (hasProfile)
+                EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - maxSubdivInVolume)}m and {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - minSubdivInVolume)}m", MessageType.Info);
+
+            EditorGUI.EndDisabledGroup();
+
             if (EditorGUI.EndChangeCheck())
             {
                 Vector3 tmpClamp = serialized.size.vector3Value;

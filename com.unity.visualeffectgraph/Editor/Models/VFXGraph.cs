@@ -950,6 +950,11 @@ namespace UnityEditor.VFX
                         }
                     }
                 }
+
+                // Check Graph Before Import can be needed to synchronize modified shaderGraph
+                foreach (var child in children)
+                    child.CheckGraphBeforeImport();
+
                 // Graph must have been sanitized at this point by the VFXGraphPreprocessor.OnPreprocess
                 BuildSubgraphDependencies();
                 PrepareSubgraphs();

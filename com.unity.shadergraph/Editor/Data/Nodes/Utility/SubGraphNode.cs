@@ -18,6 +18,8 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireBitangent
         , IMayRequireMeshUV
         , IMayRequireScreenPosition
+        , IMayRequireNDCPosition
+        , IMayRequirePixelPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
         , IMayRequirePositionPredisplacement
@@ -728,6 +730,22 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return asset.requirements.requiresScreenPosition;
+        }
+
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresNDCPosition;
+        }
+
+        public bool RequiresPixelPosition(ShaderStageCapability stageCapability)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresPixelPosition;
         }
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
