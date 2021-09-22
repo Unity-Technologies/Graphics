@@ -49,8 +49,7 @@ real3 GetIndexColor(int index)
 bool SampleDebugFont(int2 pixCoord, uint digit)
 {
     bool isForeground = false;
-
-    if ((pixCoord.x < 0 || pixCoord.y < 0 || pixCoord.x >= 5 || pixCoord.y >= 9 || digit > 9))
+    if (pixCoord.x >= 0 && pixCoord.y >= 0 && pixCoord.x < 5 && pixCoord.y < 9 && digit <= 9)
     {
 #define PACK_BITS25(_x0,_x1,_x2,_x3,_x4,_x5,_x6,_x7,_x8,_x9,_x10,_x11,_x12,_x13,_x14,_x15,_x16,_x17,_x18,_x19,_x20,_x21,_x22,_x23,_x24) (_x0|(_x1<<1)|(_x2<<2)|(_x3<<3)|(_x4<<4)|(_x5<<5)|(_x6<<6)|(_x7<<7)|(_x8<<8)|(_x9<<9)|(_x10<<10)|(_x11<<11)|(_x12<<12)|(_x13<<13)|(_x14<<14)|(_x15<<15)|(_x16<<16)|(_x17<<17)|(_x18<<18)|(_x19<<19)|(_x20<<20)|(_x21<<21)|(_x22<<22)|(_x23<<23)|(_x24<<24))
 #define _ 0
@@ -69,6 +68,7 @@ bool SampleDebugFont(int2 pixCoord, uint digit)
 #undef _
 #undef x
 #undef PACK_BITS25
+
         isForeground = (fontData[8 - pixCoord.y][digit >= 5] >> ((digit % 5) * 5 + pixCoord.x)) & 1;
     }
 
