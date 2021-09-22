@@ -490,7 +490,7 @@ namespace UnityEditor.ShaderFoundry
             }
 
 
-            subBlockInputType.AddVariableDeclarationStatement(fnBuilder, blockInputInstance.Name);
+            fnBuilder.AddVariableDeclarationStatement(subBlockInputType, blockInputInstance.Name);
             // Copy all inputs into the sub-block struct
             foreach (var inputData in inputsInstance.Fields)
                 DeclareMatch(fnBuilder, inputData);
@@ -499,7 +499,7 @@ namespace UnityEditor.ShaderFoundry
             subEntryPointFn.AddCallStatementWithNewReturn(fnBuilder, blockOutputInstance.Name, blockInputInstance.Name);
 
             // Copy all outputs into the legacy description type
-            outputType.AddVariableDeclarationStatement(fnBuilder, outputsInstance.Instance.Name);
+            fnBuilder.AddVariableDeclarationStatement(outputType, outputsInstance.Instance.Name);
             foreach (var outputData in outputsInstance.Fields)
                 DeclareMatch(fnBuilder, outputData);
 

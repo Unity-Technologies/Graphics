@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderFoundry
                 builder.Add(m_SpaceToken, m_EqualToken, m_SpaceToken, defaultValue);
         }
 
-        internal static void AddVariableDeclarationStatement(this ShaderType type, ShaderBuilder builder, string name, string defaultValue = null)
+        internal static void AddVariableDeclarationStatement(this ShaderBuilder builder, ShaderType type, string name, string defaultValue = null)
         {
             builder.Indentation();
             builder.AddVariableDeclarationString(type, name, defaultValue);
