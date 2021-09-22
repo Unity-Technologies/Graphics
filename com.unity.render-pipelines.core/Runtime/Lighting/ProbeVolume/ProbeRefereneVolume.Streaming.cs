@@ -129,7 +129,6 @@ namespace UnityEngine.Experimental.Rendering
             }
             else
             {
-                // TODO: CHeck remaining budget to avoid useless tries to load stuff.
                 int cellCountToLoad = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_UnloadedCells.size);
                 for (int i = 0; i < cellCount; ++i)
                 {
