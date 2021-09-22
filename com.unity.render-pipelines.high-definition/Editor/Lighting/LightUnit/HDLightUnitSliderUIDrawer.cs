@@ -5,20 +5,20 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     internal class HDLightUnitSliderUIDrawer
     {
-        static HDPiecewiseLightUnitSlider k_DirectionalLightUnitSlider;
+        static PiecewiseLightUnitSlider k_DirectionalLightUnitSlider;
         static HDPunctualLightUnitSlider k_PunctualLightUnitSlider;
-        static HDPiecewiseLightUnitSlider k_ExposureSlider;
+        static PiecewiseLightUnitSlider k_ExposureSlider;
 
         static HDLightUnitSliderUIDrawer()
         {
             // Maintain a unique slider for directional/lux.
-            k_DirectionalLightUnitSlider = new HDPiecewiseLightUnitSlider(LightUnitSliderDescriptors.LuxDescriptor);
+            k_DirectionalLightUnitSlider = new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.LuxDescriptor);
 
             // Internally, slider is always in terms of lumens, so that the slider is uniform for all light units.
             k_PunctualLightUnitSlider = new HDPunctualLightUnitSlider(LightUnitSliderDescriptors.LumenDescriptor);
 
             // Exposure is in EV100, but we load a separate due to the different icon set.
-            k_ExposureSlider = new HDPiecewiseLightUnitSlider(LightUnitSliderDescriptors.ExposureDescriptor);
+            k_ExposureSlider = new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.ExposureDescriptor);
         }
 
         // Need to cache the serialized object on the slider, to add support for the preset selection context menu (need to apply changes to serialized)

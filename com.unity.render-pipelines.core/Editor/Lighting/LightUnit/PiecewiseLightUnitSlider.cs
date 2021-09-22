@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     /// <summary>
     /// Formats the provided descriptor into a piece-wise linear slider with contextual slider markers, tooltips, and icons.
     /// </summary>
-    class HDPiecewiseLightUnitSlider : LightUnitSlider
+    public class PiecewiseLightUnitSlider : LightUnitSlider
     {
         struct Piece
         {

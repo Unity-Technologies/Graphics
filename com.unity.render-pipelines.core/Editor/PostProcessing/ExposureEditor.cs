@@ -1,7 +1,7 @@
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     [VolumeComponentEditor(typeof(Exposure))]
     sealed class ExposureEditor : VolumeComponentEditor
@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_TargetMidGray;
 
-        private static HDLightUnitSliderUIDrawer k_LightUnitSlider;
+        private static PiecewiseLightUnitSlider k_LightUnitSlider;
 
         int m_RepaintsAfterChange = 0;
         int m_SettingsForDoubleRefreshHash = 0;
@@ -75,7 +75,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_TargetMidGray = Unpack(o.Find(x => x.targetMidGray));
 
-            k_LightUnitSlider = new HDLightUnitSliderUIDrawer();
+            k_LightUnitSlider = new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.ExposureDescriptor);
+        }
+
+        public void DrawExposureSlider(SerializedProperty value, Rect rect)
+        {
+            using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
+            {
+                float val = value.floatValue;
+                k_LightUnitSlider.Draw(rect, value, ref val);
+                if (val != value.floatValue)
+                    value.floatValue = val;
+            }
         }
 
         public override void OnInspectorGUI()
@@ -217,7 +228,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     var sliderRect = lineRect;
                     sliderRect.y -= EditorGUIUtility.singleLineHeight;
                     k_LightUnitSlider.SetSerializedObject(serializedObject);
-                    k_LightUnitSlider.DrawExposureSlider(exposureProperty.value, sliderRect);
+                    DrawExposureSlider(exposureProperty.value, sliderRect);
 
                     // GUIContent.none disables horizontal scrolling, use TrTextContent and adjust the rect to make it work.
                     lineRect.x -= EditorGUIUtility.labelWidth + 2;
