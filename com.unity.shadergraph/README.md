@@ -4,17 +4,22 @@
 
 A Shader Graph enables you to build shaders visually. Instead of hand writing code you create and connect nodes in a graph network. The graph framework gives instant feedback on the changes, and it’s simple enough that new users can become involved in shader creation.
 
-### Disclaimer
+Unless you intend to modify Shader Graph or want to try out the latest and unsupported features, Unity recommends that you install Shader Graph through the Unity Package Manager:
 
-This repository is under active development. Everything is subject to change. The `master` branch is our current development branch and may not work on the latest publicly available version of Unity. Unless you intend to modify Shader Graph or want to try out the very latest and unsupported features, we recommend that you acquire Shader Graph through the Unity Package Manager.
+1. Open a Unity project.
+2. Open the **Package Manager** window (**Window** &gt; **Package Manager**).
+3. In the **Package Manager** window, in the **Packages** menu, select **Unity Registry**.
+4. Do one of the following, based on your project needs:
+    - To use Shader Graph and the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest) in your project, select **Universal RP**.
+    - To use Shader Graph and the [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest), select **High Definition RP**.
+    - To use Shader Graph with Unity's [Built-In Render Pipeline](https://docs.unity3d.com/2020.3/Documentation/Manual/built-in-render-pipeline.html), select **Shader Graph**.
+
+Unity recommends using Shader Graph with URP or HDRP.
 
 ## Instructions
 
-At the moment we recommend using Shader Graph through the [SRP repository](https://github.com/Unity-Technologies/Graphics), which has the Shader Graph submodule setup as a submodule. Otherwise you will not have any Master Node backends available and thus your shaders will be pink. This also ensure that you get a compatible set of render pipeline and Shader Graph versions. Otherwise, carry on with the following instructions.
+If you want to try out the latest features, we recommend obtaining the most recent version of Shader Graph through the [Unity Scriptable Render Pipeline (SRP) repository](https://github.com/Unity-Technologies/Graphics), which includes the Shader Graph project as a Git submodule. For more information on Git submodules, see [Git's documentation on Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules).
 
-**Requires Unity 2018.1 Beta**
+If you don't install Shader Graph through the SRP repository, you don't have any Master Node backends available and your shaders are invalid. Invalid shaders appear pink in the Unity Editor. Installing through the repository also ensures you have a compatible set of render pipeline and Shader Graph versions.
 
-* Download the beta [here](https://unity3d.com/unity/beta)
-* Create a new project (or use an existing)
-* Clone branch `2018.1` into the `Assets` folder of your project, such that the repository is contained in a sub-folder of the `Assets` folder
-* Quick start guide can be found [here](https://forum.unity.com/threads/feedback-wanted-shader-graph.511960/)
+For more detailed instructions for installing from the repository, see the [SRP repository's README](https://github.com/Unity-Technologies/Graphics/blob/master/README.md).

@@ -11,31 +11,11 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     float3 emissiveRcpExposure = builtinData.emissiveColor * GetInverseCurrentExposureMultiplier();
     builtinData.emissiveColor = lerp(emissiveRcpExposure, builtinData.emissiveColor, _EmissiveExposureWeight);
 
-#if (SHADERPASS == SHADERPASS_DISTORTION) || defined(DEBUG_DISPLAY)
-    float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0.xy).rgb;
-    distortion.rg = distortion.rg * _DistortionVectorScale.xx + _DistortionVectorBias.xx;
-    builtinData.distortion = distortion.rg * _DistortionScale;
-    builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;
-#endif
-
     builtinData.depthOffset = depthOffset;
 
     PostInitBuiltinData(V, posInput, surfaceData, builtinData);
 }
 
-#if SHADERPASS == SHADERPASS_GBUFFER && defined(_FORCE_FORWARD_EMISSIVE) // in case emissive is done in forward pass, do nothing in gbuffer pass
-float3 GetEmissiveColor(SurfaceData surfaceData)
-{
-    return float3(0.0, 0.0, 0.0);
-}
-
-#ifdef _EMISSIVE_COLOR_MAP
-float3 GetEmissiveColor(SurfaceData surfaceData, UVMapping emissiveMapMapping)
-{
-    return float3(0.0, 0.0, 0.0);
-}
-#endif // _EMISSIVE_COLOR_MAP
-#else
 float3 GetEmissiveColor(SurfaceData surfaceData)
 {
     return _EmissiveColor * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
@@ -49,8 +29,6 @@ float3 GetEmissiveColor(SurfaceData surfaceData, UVMapping emissiveMapMapping)
     return emissiveColor;
 }
 #endif // _EMISSIVE_COLOR_MAP
-
-#endif // _FORCE_FORWARD_EMISSIVE
 
 void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
 {
