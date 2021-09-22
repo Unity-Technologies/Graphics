@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ClusteredRendering = false;
         const TileSize k_DefaultTileSize = TileSize._32;
         [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
-        [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.WhenNeeded;
+        [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Auto;
 
         protected override ScriptableRenderer Create()
         {
@@ -211,6 +211,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Controls when URP renders via an intermediate texture.
+        /// </summary>
         public IntermediateTextureMode intermediateTextureMode
         {
             get => m_IntermediateTextureMode;
@@ -285,7 +288,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Replicate old intermediate texture behaviour in case of any non-URP renderer features,
                 // where we cannot know if they properly declare needed inputs.
-                m_IntermediateTextureMode = anyNonUrpRendererFeatures ? IntermediateTextureMode.Always : IntermediateTextureMode.WhenNeeded;
+                m_IntermediateTextureMode = anyNonUrpRendererFeatures ? IntermediateTextureMode.Always : IntermediateTextureMode.Auto;
             }
 
             m_AssetVersion = k_LatestAssetVersion;
