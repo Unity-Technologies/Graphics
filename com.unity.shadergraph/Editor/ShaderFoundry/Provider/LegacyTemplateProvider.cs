@@ -125,24 +125,26 @@ namespace UnityEditor.ShaderFoundry
 
         void ExtractVertexAndFragmentPostFields(UnityEditor.ShaderGraph.PassDescriptor legacyPassDescriptor, PostFieldsContext vertexContext, PostFieldsContext fragmentContext)
         {
+            void ExtractContext(TargetActiveBlockContext targetActiveBlockContext, IEnumerable<BlockFieldDescriptor> validBlocks, PostFieldsContext context)
+            {
+                if (validBlocks != null)
+                {
+                    foreach (var blockFieldDescriptor in validBlocks)
+                    {
+                        if (targetActiveBlockContext.activeBlocks.Contains(blockFieldDescriptor) && !context.FieldNames.Contains(blockFieldDescriptor.name))
+                        {
+                            context.FieldNames.Add(blockFieldDescriptor.name);
+                            context.Fields.Add(blockFieldDescriptor);
+                        }
+                    }
+                }
+            }
+
             var targetActiveBlockContext = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), legacyPassDescriptor);
             LegacyTarget.GetActiveBlocks(ref targetActiveBlockContext);
-            foreach (var blockFieldDescriptor in legacyPassDescriptor.validVertexBlocks)
-            {
-                if (targetActiveBlockContext.activeBlocks.Contains(blockFieldDescriptor) && !vertexContext.FieldNames.Contains(blockFieldDescriptor.name))
-                {
-                    vertexContext.FieldNames.Add(blockFieldDescriptor.name);
-                    vertexContext.Fields.Add(blockFieldDescriptor);
-                }
-            }
-            foreach (var blockFieldDescriptor in legacyPassDescriptor.validPixelBlocks)
-            {
-                if (targetActiveBlockContext.activeBlocks.Contains(blockFieldDescriptor) && !fragmentContext.FieldNames.Contains(blockFieldDescriptor.name))
-                {
-                    fragmentContext.FieldNames.Add(blockFieldDescriptor.name);
-                    fragmentContext.Fields.Add(blockFieldDescriptor);
-                }
-            }
+            
+            ExtractContext(targetActiveBlockContext, legacyPassDescriptor.validVertexBlocks, vertexContext);
+            ExtractContext(targetActiveBlockContext, legacyPassDescriptor.validPixelBlocks, fragmentContext);
         }
 
         BlockDescriptor BuildSimpleBlockDesc(Block block)
