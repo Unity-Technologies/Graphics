@@ -91,30 +91,29 @@ namespace UnityEditor.ShaderGraph
             var bestMatch = GetFirstChildItem(searchResults.FirstOrDefault());
             int bestScore = 0;
             List<int> visitedItems = new List<int>();
+            var queryTerms = searchQuery.Split(' ');
             foreach (var result in searchResults)
             {
                 var currentItem = GetFirstChildItem(result);
 
                 if (currentItem.Parent != null)
                 {
-                    var queryTerms = searchQuery.Split(' ');
-
                     SearcherItem parentItem = currentItem.Parent;
-                    foreach (var word in queryTerms)
+                    foreach (var matchItem in parentItem.Children)
                     {
-                        foreach (var matchItem in parentItem.Children)
-                        {
-                            if (visitedItems.Contains(matchItem.Id))
-                                continue;
+                        if (visitedItems.Contains(matchItem.Id))
+                            continue;
 
+                        foreach (var word in queryTerms)
+                        {
                             int currentScore = ComputeScoreForMatch(word, matchItem);
                             if (currentScore > bestScore)
                             {
                                 bestScore = currentScore;
                                 bestMatch = matchItem;
                             }
-                            visitedItems.Add(matchItem.Id);
                         }
+                        visitedItems.Add(matchItem.Id);
                     }
                 }
             }
