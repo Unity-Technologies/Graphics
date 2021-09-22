@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         const int k_ShadowmapBufferBits = 16;
         private int m_AdditionalLightsShadowmapID;
-        internal RTHandle m_AdditionalLightsShadowmapTexture;
+        internal RTHandle m_AdditionalLightsShadowmapHandle;
 
 
         float m_MaxShadowDistanceSq;
@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Dispose()
         {
-            m_AdditionalLightsShadowmapTexture?.Release();
+            m_AdditionalLightsShadowmapHandle?.Release();
         }
 
         private int GetPunctualLightShadowSlicesCount(in LightType lightType)
@@ -788,7 +788,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = sliceTransform * m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex];
             }
 
-            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_AdditionalLightsShadowmapTexture, renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, name: "_AdditionalLightsShadowmapTexture");
+            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_AdditionalLightsShadowmapHandle, renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, name: "_AdditionalLightsShadowmapTexture");
 
             m_MaxShadowDistanceSq = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
             m_CascadeBorder = renderingData.shadowData.mainLightShadowCascadeBorder;
@@ -798,7 +798,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(m_AdditionalLightsShadowmapTexture, m_AdditionalLightsShadowmapTexture.rt.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
+            ConfigureTarget(m_AdditionalLightsShadowmapHandle, m_AdditionalLightsShadowmapHandle.rt.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -898,7 +898,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
 
-            cmd.SetGlobalTexture(m_AdditionalLightsShadowmapID, m_AdditionalLightsShadowmapTexture.nameID);
+            cmd.SetGlobalTexture(m_AdditionalLightsShadowmapID, m_AdditionalLightsShadowmapHandle.nameID);
 
             if (m_UseStructuredBuffer)
             {

@@ -322,7 +322,7 @@ namespace UnityEngine.Rendering.Universal
                         }
                         case DebugFullScreenMode.AdditionalLightsShadowMap:
                         {
-                            DebugHandler.SetDebugRenderTarget(m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture, normalizedRect, false);
+                            DebugHandler.SetDebugRenderTarget(m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapHandle, normalizedRect, false);
                             break;
                         }
                         case DebugFullScreenMode.MainLightShadowMap:
