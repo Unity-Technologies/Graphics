@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph
             return item;
         }
 
-        private int ComputeScoreForMatch(string queryTerm, SearcherItem matchItem)
+        private int ComputeScoreForMatch(string[] queryTerms, SearcherItem matchItem)
         {
             // Scoring Criteria:
             // - Exact name match is most preferred.
@@ -48,32 +48,41 @@ namespace UnityEditor.ShaderGraph
             int score = 0;
 
             // Split the entry name so that we can remove suffix that looks like "Clamp: In(4)"
-            var nameSansSuffix = matchItem.Name.Split(':');
-            if (nameSansSuffix[0].Equals(queryTerm, StringComparison.OrdinalIgnoreCase))
+            var nameSansSuffix = matchItem.Name.Split(':').First();
+
+            int nameCharactersMatched = 0;
+
+            foreach (var queryWord in queryTerms)
             {
-                score += 1000000;
-            }
-            else if (nameSansSuffix[0].Contains(queryTerm, StringComparison.OrdinalIgnoreCase))
-            {
-                score += 100000;
-                score -= (nameSansSuffix[0].Length - queryTerm.Length);
+                if (nameSansSuffix.Contains(queryWord, StringComparison.OrdinalIgnoreCase))
+                {
+                    score += 100000;
+                    nameCharactersMatched += queryWord.Length;
+                    // score -= (nameSansSuffix.Length - queryWord.Length);
+                }
+
+                // Check for synonym matches -- give a bonus to each
+                if (matchItem.Synonyms != null)
+                {
+                    foreach (var syn in matchItem.Synonyms)
+                    {
+                        if (syn.Equals(queryWord, StringComparison.OrdinalIgnoreCase))
+                        {
+                            score += 10000;
+                        }
+                        else if (syn.Contains(queryWord, StringComparison.OrdinalIgnoreCase))
+                        {
+                            score += 1000;
+                            score -= (syn.Length - queryWord.Length);
+                        }
+                    }
+                }
             }
 
-            if (matchItem.Synonyms == null)
-                return score;
-
-            // Check for synonym matches
-            foreach (var syn in matchItem.Synonyms)
+            if (nameCharactersMatched > 0)
             {
-                if (syn.Equals(queryTerm, StringComparison.OrdinalIgnoreCase))
-                {
-                    score += 10000;
-                }
-                else if (syn.Contains(queryTerm, StringComparison.OrdinalIgnoreCase))
-                {
-                    score += 1000;
-                    score -= (syn.Length - queryTerm.Length);
-                }
+                int unmatchedCharacters = (nameSansSuffix.Length - nameCharactersMatched);
+                score -= unmatchedCharacters;
             }
 
             return score;
@@ -104,15 +113,13 @@ namespace UnityEditor.ShaderGraph
                         if (visitedItems.Contains(matchItem.Id))
                             continue;
 
-                        foreach (var word in queryTerms)
+                        int currentScore = ComputeScoreForMatch(queryTerms, matchItem);
+                        if (currentScore > bestScore)
                         {
-                            int currentScore = ComputeScoreForMatch(word, matchItem);
-                            if (currentScore > bestScore)
-                            {
-                                bestScore = currentScore;
-                                bestMatch = matchItem;
-                            }
+                            bestScore = currentScore;
+                            bestMatch = matchItem;
                         }
+
                         visitedItems.Add(matchItem.Id);
                     }
                 }
