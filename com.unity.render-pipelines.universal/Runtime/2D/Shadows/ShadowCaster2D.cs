@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
 using Unity.Collections;
@@ -30,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
 
         public enum ShadowCastingSources
         {
-            None,
+            None = 0,
             ShapeEditor,
             ShapeProvider
         }
@@ -46,9 +47,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShapeProvider;
         [SerializeField] float m_ShadowShapeContract;
-        [SerializeField] ShadowCastingSources m_ShadowCastingSource = ShadowCastingSources.ShapeEditor;
+        [SerializeField] ShadowCastingSources m_ShadowCastingSource = (ShadowCastingSources)( - 1);
 
         [SerializeField] internal ShadowMesh2D  m_ShadowMesh;
+
         internal ShadowCasterGroup2D  m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D  m_PreviousShadowCasterGroup = null;
         internal int                  m_PreviousShadowCastingSource;
@@ -178,7 +180,7 @@ namespace UnityEngine.Rendering.Universal
             }
             if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider)
             {
-                ShadowUtility.PersistantDataCreated(m_ShadowShapeProvider, m_ShadowMesh);
+                ShapeProviderUtility.PersistantDataCreated(m_ShadowShapeProvider, m_ShadowMesh);
             }
         }
 
@@ -188,6 +190,20 @@ namespace UnityEngine.Rendering.Universal
                 m_ApplyToSortingLayers = SetDefaultSortingLayers();
 
             Bounds bounds = new Bounds(transform.position, Vector3.one);
+
+            if (m_ShadowCastingSource < 0)
+            {
+                Component component = ShapeProviderUtility.GetDefaultShadowCastingSource(gameObject);
+                if (component != null && shapePath == null)
+                {
+                    m_ShadowShapeProvider = component;
+                    m_ShadowCastingSource = ShadowCastingSources.ShapeProvider;
+                }
+                else
+                {
+                    m_ShadowCastingSource = ShadowCastingSources.ShapeEditor;
+                }
+            }
 
             Renderer renderer = GetComponent<Renderer>();
             if (renderer != null)
@@ -296,7 +312,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         internal void DrawPreviewOutline()
         {
-            if (mesh != null)
+            if (mesh != null && m_ShadowCastingSource != ShadowCastingSources.None)
             {
                 Vector3[] vertices = mesh.vertices;
                 int[] triangles = mesh.triangles;

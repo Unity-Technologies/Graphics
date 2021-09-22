@@ -384,7 +384,7 @@ namespace UnityEngine.Rendering.Universal
             if (ShadowCasterGroup2DManager.shadowCasterGroups != null)
             {
                 //Matrix4x4 cameraLightFrustum = CalculateCameraLightFrustum(camera, cullResult);
-                Matrix4x4 cameraLightFrustum = camera.projectionMatrix;
+                Matrix4x4 cameraLightFrustum = camera.cullingMatrix;
 
                 List<ShadowCasterGroup2D> groups = ShadowCasterGroup2DManager.shadowCasterGroups;
                 for (int groupIndex = 0; groupIndex < groups.Count; groupIndex++)
@@ -399,7 +399,7 @@ namespace UnityEngine.Rendering.Universal
                             ShadowCaster2D shadowCaster = shadowCasters[shadowCasterIndex];
                             if (shadowCaster != null && shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider)
                             {
-                                ShadowUtility.CallOnBeforeRender(shadowCaster.shadowShape2DProvider, shadowCaster.m_ShadowMesh, cameraLightFrustum);
+                                ShapeProviderUtility.CallOnBeforeRender(shadowCaster.shadowShape2DProvider, shadowCaster.m_ShadowMesh, cameraLightFrustum);
                             }
                         }
                     }
