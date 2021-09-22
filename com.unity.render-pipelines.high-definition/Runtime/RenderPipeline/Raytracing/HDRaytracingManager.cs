@@ -709,8 +709,14 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal bool PipelineSupportsRayTracing(RenderPipelineSettings rpSetting)
             => rpSetting.supportRayTracing && currentSystemSupportsRayTracing;
 
-        static internal bool currentSystemSupportsRayTracing
-            => SystemInfo.supportsRayTracing;
+        static internal bool currentSystemSupportsRayTracing => SystemInfo.supportsRayTracing
+#if UNITY_EDITOR
+            && (UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
+                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows)
+            || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.PS5;
+#else
+            ;
+#endif
 
 #if UNITY_EDITOR
         static internal bool buildTargetSupportsRayTracing
