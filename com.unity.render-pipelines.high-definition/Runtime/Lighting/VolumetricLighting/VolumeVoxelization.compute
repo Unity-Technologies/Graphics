@@ -19,7 +19,6 @@
     #define VBUFFER_VOXEL_SIZE 8
 #endif
 
-#define GROUP_SIZE_1D     8
 #define SOFT_VOXELIZATION 1 // Hack which attempts to determine partial coverage of the voxel
 
 #define EXPONENTIAL_FALLOFF_EXPONENT 2.2
@@ -28,13 +27,7 @@
 // Included headers
 //--------------------------------------------------------------------------------------------------
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/HDRenderPipeline.VolumetricLighting.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumeVoxelisationCommon.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -45,21 +38,9 @@ StructuredBuffer<LocalVolumetricFogEngineData> _VolumeData;
 
 TEXTURE3D(_VolumeMaskAtlas);
 
-RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extinction)
-
 //--------------------------------------------------------------------------------------------------
 // Implementation
 //--------------------------------------------------------------------------------------------------
-
-// Jittered ray with screen-space derivatives.
-struct JitteredRay
-{
-    float3 originWS;
-    float3 centerDirWS;
-    float3 jitterDirWS;
-    float3 xDirDerivWS;
-    float3 yDirDerivWS;
-};
 
 float ComputeFadeFactor(float3 coordNDC, float dist,
                         float3 rcpPosFaceFade, float3 rcpNegFaceFade, bool invertFade,
@@ -115,6 +96,7 @@ float4 SampleVolumeMask(LocalVolumetricFogEngineData volumeData, float3 voxelCen
 
 void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, JitteredRay ray)
 {
+
     uint volumeCount, volumeStart;
 
 #ifdef USE_BIG_TILE_LIGHTLIST
@@ -161,14 +143,9 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 
     for (uint slice = 0; slice < _VBufferSliceCount; slice++)
     {
-        uint3 voxelCoord = uint3(posInput.positionSS, slice + _VBufferSliceCount * unity_StereoEyeIndex);
-
-        float e1 = slice * de + de; // (slice + 1) / sliceCount
-        float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
-        float dt = t1 - t0;
-        float t  = t0 + 0.5 * dt;
-
-        float3 voxelCenterWS = ray.originWS + t * ray.centerDirWS;
+        float t1, dt, t;
+        uint3 voxelCoord;
+        float3 voxelCenterWS = ComputeVoxelCenterWS(posInput, ray, _VBufferSliceCount, slice, t0, de, voxelCoord, t1, dt, t);
 
         // TODO: the fog value at the center is likely different from the average value across the voxel.
         // Compute the average value.
@@ -313,57 +290,11 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
                         uint2 groupId          : SV_GroupID,
                         uint2 groupThreadId    : SV_GroupThreadID)
 {
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    uint2 groupOffset = groupId * GROUP_SIZE_1D;
-    uint2 voxelCoord  = groupOffset + groupThreadId;
-#ifdef VL_PRESET_OPTIMAL
-    // The entire thread group is within the same light tile.
-    uint2 tileCoord = groupOffset * VBUFFER_VOXEL_SIZE / TILE_SIZE_BIG_TILE;
-#else
-    // No compile-time optimizations, no scalarization.
-    // If _VBufferVoxelSize is not a power of 2 or > TILE_SIZE_BIG_TILE, a voxel may straddle
-    // a tile boundary. This means different voxel subsamples may belong to different tiles.
-    // We accept this error, and simply use the coordinates of the center of the voxel.
-    uint2 tileCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize) / TILE_SIZE_BIG_TILE;
-#endif
-    uint  tileIndex = tileCoord.x + _NumTileBigTileX * tileCoord.y;
-    // This clamp is important as _VBufferVoxelSize can have float value which can cause en overflow (Crash on Vulkan and Metal)
-    tileIndex = min(tileIndex, _NumTileBigTileX * _NumTileBigTileY);
-
-    // Reminder: our voxels are sphere-capped right frustums (truncated right pyramids).
-    // The curvature of the front and back faces is quite gentle, so we can use
-    // the right frustum approximation (thus the front and the back faces are squares).
-    // Note, that since we still rely on the perspective camera model, pixels at the center
-    // of the screen correspond to larger solid angles than those at the edges.
-    // Basically, sizes of front and back faces depend on the XY coordinate.
-    // https://www.desmos.com/calculator/i3rkesvidk
-
-    float3 F = GetViewForwardDir();
-    float3 U = GetViewUpDir();
-
-    float2 centerCoord = voxelCoord + float2(0.5, 0.5);
-
-    // Compute a ray direction s.t. ViewSpace(rayDirWS).z = 1.
-    float3 rayDirWS       = mul(-float4(centerCoord, 1, 1), _VBufferCoordToViewDirWS[unity_StereoEyeIndex]).xyz;
-    float3 rightDirWS     = cross(rayDirWS, U);
-    float  rcpLenRayDir   = rsqrt(dot(rayDirWS, rayDirWS));
-    float  rcpLenRightDir = rsqrt(dot(rightDirWS, rightDirWS));
-
+    PositionInputs posInput;
+    uint tileIndex;
     JitteredRay ray;
-    ray.originWS    = GetCurrentViewPosition();
-    ray.centerDirWS = rayDirWS * rcpLenRayDir; // Normalize
 
-    float FdotD = dot(F, ray.centerDirWS);
-    float unitDistFaceSize = _VBufferUnitDepthTexelSpacing * FdotD * rcpLenRayDir;
-
-    ray.xDirDerivWS = rightDirWS * (rcpLenRightDir * unitDistFaceSize); // Normalize & rescale
-    ray.yDirDerivWS = cross(ray.xDirDerivWS, ray.centerDirWS); // Will have the length of 'unitDistFaceSize' by construction
-    ray.jitterDirWS = ray.centerDirWS; // TODO
-
-    PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw, tileCoord);
-
-    ApplyCameraRelativeXR(ray.originWS);
+    PrepareVoxelization(dispatchThreadId, groupId, groupThreadId, posInput, tileIndex, ray);
 
     FillVolumetricDensityBuffer(posInput, tileIndex, ray);
 }

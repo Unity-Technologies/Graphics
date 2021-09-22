@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("Rendering/Local Volumetric Fog")]
     public partial class LocalVolumetricFog : MonoBehaviour
     {
-        private static string kernelName = "CSMain";
+        private static string kernelName = "VoxelizeComputeLocalFog";
 
         /// <summary>Local Volumetric Fog Type.</summary>
         public LocalVolumetricFogType localVolumetricFogType = LocalVolumetricFogType.Texture;
