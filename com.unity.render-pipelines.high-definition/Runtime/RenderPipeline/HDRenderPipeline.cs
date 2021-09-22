@@ -201,8 +201,33 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO_FCC: THIS IS NEEDED FOR TESTING, REPLACE WITH HDROutputSettings.main.active LATER
         static bool TEST_HDR()
         {
+            if (HDROutputSettings.main.available)
+            {
+                Debug.Log("Available");
+            }
+
+            if (HDROutputSettings.main.available && SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported))
+            {
+                HDROutputSettings.main.automaticHDRTonemapping = false;
+                var minNits = HDROutputSettings.main.minToneMapLuminance;
+                var maxNits = HDROutputSettings.main.maxToneMapLuminance;
+                var gamut = HDROutputSettings.main.displayColorGamut;
+                var dst = HDROutputSettings.main.graphicsFormat;
+
+                Debug.Log($" min {minNits} max {maxNits} {gamut} {dst}");
+
+                HDROutputSettings.main.RequestHDRModeChange(true);
+            }
+            //if (SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported))
+            //{
+            //    Debug.Log("System info Available");
+            //}
+            //if (HDROutputSettings.displays.Length > 0)
+            //{
+            //    Debug.Log("Display length more than 0");
+            //}
             //
-            return true;// HDROutputSettings.main.active;
+            return HDROutputSettings.main.active;
         }
 
         static bool TEST_SEPARATEUICULLING()
@@ -524,7 +549,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseColorTemperature = true;
             m_PreviousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
-#if  UNITY_2020_2_OR_NEWER
+#if UNITY_2020_2_OR_NEWER
             m_PreviousDefaultRenderingLayerMask = GraphicsSettings.defaultRenderingLayerMask;
             GraphicsSettings.defaultRenderingLayerMask = ShaderVariablesGlobal.DefaultRenderingLayerMask;
 #endif
@@ -1814,8 +1839,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             RTHandles.SetReferenceSize(maxSize.x, maxSize.y);
                         }
 
-                        // If we are in HDR output mode we need to update the default UI blend mode accordingly
-                        UpdateUIMaterialBlendMode();
 
                         // Execute render request graph, in reverse order
                         for (int i = renderRequestIndicesToRender.Count - 1; i >= 0; --i)

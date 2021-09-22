@@ -334,49 +334,6 @@ float3 SoftLight(float3 base, float3 blend)
     return r2 * t + (1.0 - t) * r1;
 }
 
-// SMPTE ST.2084 (PQ) transfer functions
-// 1.0 = 100nits, 100.0 = 10knits
-#define DEFAULT_MAX_PQ 100.0
-
-struct ParamsPQ
-{
-    real N, M;
-    real C1, C2, C3;
-};
-
-static const ParamsPQ PQ =
-{
-    2610.0 / 4096.0 / 4.0,   // N
-    2523.0 / 4096.0 * 128.0, // M
-    3424.0 / 4096.0,         // C1
-    2413.0 / 4096.0 * 32.0,  // C2
-    2392.0 / 4096.0 * 32.0,  // C3
-};
-
-real3 LinearToPQ(real3 x, real maxPQValue)
-{
-    x = PositivePow(x / maxPQValue, PQ.N);
-    real3 nd = (PQ.C1 + PQ.C2 * x) / (1.0 + PQ.C3 * x);
-    return PositivePow(nd, PQ.M);
-}
-
-real3 LinearToPQ(real3 x)
-{
-    return LinearToPQ(x, DEFAULT_MAX_PQ);
-}
-
-real3 PQToLinear(real3 x, real maxPQValue)
-{
-    x = PositivePow(x, rcp(PQ.M));
-    real3 nd = max(x - PQ.C1, 0.0) / (PQ.C2 - (PQ.C3 * x));
-    return PositivePow(nd, rcp(PQ.N)) * maxPQValue;
-}
-
-real3 PQToLinear(real3 x)
-{
-    return PQToLinear(x, DEFAULT_MAX_PQ);
-}
-
 // Alexa LogC converters (El 1000)
 // See http://www.vocas.nl/webfm_send/964
 // Max range is ~58.85666

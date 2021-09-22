@@ -222,7 +222,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
         float3 colorLutSpace = saturate(LinearToLogC(color.xyz));
 
         // Color lookup in the LogC lut
-        color.xyz = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
+        //color.xyz = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
     }
 
     // Alpha mask

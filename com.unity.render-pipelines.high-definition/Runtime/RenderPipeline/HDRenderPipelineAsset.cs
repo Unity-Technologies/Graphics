@@ -191,10 +191,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public override Material defaultTerrainMaterial
             => globalSettings?.renderPipelineEditorResources?.materials.defaultTerrainMat;
 
-        /// <summary>HDRP default UI material.</summary>
-        // TODO_FCC: Enable when ready.
-        public override Material defaultUIMaterial
-            => globalSettings?.renderPipelineResources?.materials.defaultUIMat;
 
         // Array structure that allow us to manipulate the set of defines that the HD render pipeline needs
         List<string> defineArray = new List<string>();
@@ -222,6 +218,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #endif
+
+        /// <summary>HDRP default UI material.</summary>
+        // TODO_FCC: Enable when ready.
+        public override Material defaultUIMaterial
+            => globalSettings?.renderPipelineResources?.materials.defaultUIMat;
 
         /// <summary>
         /// Indicates if virtual texturing is currently enabled for this render pipeline instance.

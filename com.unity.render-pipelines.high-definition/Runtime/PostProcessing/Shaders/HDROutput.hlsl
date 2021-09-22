@@ -175,8 +175,9 @@ float3 GTSInvPQ(float3 inputCol)
 #define PRECISE_INV_PQ 0
 #define ISS_APPROX_INV_PQ 1
 #define GTS_APPROX_INV_PQ 2
-#define INV_PQ_CHOICE GTS_APPROX_INV_PQ
+#define INV_PQ_CHOICE PRECISE_INV_PQ
 
+// START FROM HERE: ACCURATE ONE NEEDS SCALING BY MAX BRIGHTNESS.
 float3 ApplyOETF(float3 inputCol)
 {
 #if INV_PQ_CHOICE == PRECISE_INV_PQ
@@ -323,4 +324,27 @@ float3 HDRMappingFromRec709(float3 Rec709Input, float minNits, float maxNits)
 {
     float3 rec2020Input = RotateRec709ToRec2020(Rec709Input);
     return HDRMapping(rec2020Input, minNits, maxNits);
+}
+
+// --------------------------------
+// UI Composition functions
+// --------------------------------
+// Traditionally UI is not authored to be  TODO_FCC FILL
+
+// A bit verbose and optimizable.
+float3 NormalizeUIForHDRComposition(float3 uiValue, float paperWhiteNits)
+{
+
+    const float maxNits2084 = 10000.0f; // The standard set 10k nits as max.
+    const float hdrScalar = paperWhiteNits / maxNits2084;
+    float3 linearRec709 = uiValue;// pow(uiValue, 2.2);
+    float3 linearUIRec2020 = RotateRec709ToRec2020(linearRec709);
+    return AccuratePQInv(linearUIRec2020.rgb * hdrScalar * paperWhiteNits);
+
+
+    //// TODO: Do we need to move to linear? Is it linear? Is it gamma? Need to check on UIOverlay side.
+    //// Assuming linear?
+    //float3 normalizedUI = (linearUIRec2020 * (paperWhiteNits / maxNits2084));
+    //// Now move to PQ
+    //return AccuratePQInv(normalizedUI);
 }

@@ -26,6 +26,17 @@ Shader "Hidden/HDRP/FinalPass"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
+#ifdef HDR_OUTPUT
+        #define WCG_REC2020 // For now hard coded, eventually coming from settings.
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
+        //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HDROUTPUT_FRESH.hlsl"
+
+        //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HDROutput.hlsl"
+  //      #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HDROutput_2.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HDROutput_3.hlsl"
+        //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HDROutput_Outside.hlsl"
+#endif
+        #pragma enable_d3d11_debug_symbols
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D(_GrainTexture);
@@ -161,8 +172,23 @@ Shader "Hidden/HDRP/FinalPass"
             #endif
 
 #if HDR_OUTPUT
-            float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
-            outColor = uiValue.rgb + outColor * (1.0f - uiValue.a);
+
+            // The reason to have a boost factor is because the standard for SDR is peaking at 100nits, but televisions are typically 300nits
+            // and the colours get boosted. If we want equivalent look in HDR a similar boost needs to happen. It might look washed out otherwise.
+            float hdrBoostFactor = 300; // TODO: Should come from user or from paperwhite nits.
+            //outColor.rgb = HDRMappingFromRec709(outColor.xyz*hdrBoostFactor, 0.005f, 10.0f);
+            //outColor.rgb = HDRMappingFromRec709(outColor.xyz, 0.005f, 10.0f);
+            outColor.rgb = HDRMappingFromRec709(outColor.rgb, hdrBoostFactor, 0.0f, 400.0f);
+            //rec2020 *= hdrBoostFactor;
+            //float3 tonemapped = Tonemap_HDR(rec2020);
+            //outColor.rgb = EOTF_(tonemapped);
+
+
+            //// This looks really bad now, so it is likely wrong code, will come back when making stuff more ordinate.
+            //float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
+            //const float paperWhiteNits = 100.0f; // TODO: Have from UI
+            //uiValue.rgb = NormalizeUIForHDRComposition(uiValue.rgb, paperWhiteNits);
+            //outColor.rgb = uiValue.rgb + outColor.rgb * (1.0f - uiValue.a);
 #endif
 
         #if !defined(ENABLE_ALPHA)
