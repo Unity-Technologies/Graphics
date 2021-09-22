@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         // Data used for runtime evaluation
-        RayTracingAccelerationStructure m_CurrentRAS = new RayTracingAccelerationStructure();
+        RayTracingAccelerationStructure m_CurrentRAS = null;
         HDRaytracingLightCluster m_RayTracingLightCluster;
         HDRayTracingLights m_RayTracingLights = new HDRayTracingLights();
         bool m_ValidRayTracingState = false;
@@ -64,7 +64,6 @@ namespace UnityEngine.Rendering.HighDefinition
         HDDiffuseDenoiser m_DiffuseDenoiser;
         HDReflectionDenoiser m_ReflectionDenoiser;
         HDDiffuseShadowDenoiser m_DiffuseShadowDenoiser;
-        SSGIDenoiser m_SSGIDenoiser;
 
         // Ray-count manager data
         RayCountManager m_RayCountManager;
@@ -96,7 +95,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseRayTracingManager()
         {
-            m_CurrentRAS.Dispose();
+            if (m_CurrentRAS != null)
+                m_CurrentRAS.Dispose();
 
             if (m_RayTracingLightCluster != null)
                 m_RayTracingLightCluster.ReleaseResources();
@@ -109,8 +109,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TemporalFilter.Release();
             if (m_SimpleDenoiser != null)
                 m_SimpleDenoiser.Release();
-            if (m_SSGIDenoiser != null)
-                m_SSGIDenoiser.Release();
             if (m_DiffuseShadowDenoiser != null)
                 m_DiffuseShadowDenoiser.Release();
             if (m_DiffuseDenoiser != null)
@@ -356,7 +354,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingLights.hdLightArray.Clear();
             m_RayTracingLights.reflectionProbeArray.Clear();
             m_RayTracingLights.lightCount = 0;
-            m_CurrentRAS.Dispose();
+            if (m_CurrentRAS != null)
+                m_CurrentRAS.Dispose();
             m_CurrentRAS = new RayTracingAccelerationStructure();
             m_ValidRayTracingState = false;
             m_ValidRayTracingCluster = false;
@@ -589,21 +588,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int RayTracingFrameIndex(HDCamera hdCamera)
         {
-        #if UNITY_HDRP_DXR_TESTS_DEFINE
+#if UNITY_HDRP_DXR_TESTS_DEFINE
             if (Application.isPlaying)
                 return 0;
             else
-        #endif
+#endif
             return (int)hdCamera.GetCameraFrameCount() % 8;
         }
 
         internal int RayTracingFrameIndex(HDCamera hdCamera, int targetFrameCount = 8)
         {
-            #if UNITY_HDRP_DXR_TESTS_DEFINE
+#if UNITY_HDRP_DXR_TESTS_DEFINE
             if (Application.isPlaying)
                 return 0;
             else
-            #endif
+#endif
             return (int)hdCamera.GetCameraFrameCount() % targetFrameCount;
         }
 
@@ -666,6 +665,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return historyValidity;
         }
 
+        internal bool RayTracingHalfResAllowed()
+        {
+            return DynamicResolutionHandler.instance.GetCurrentScale() >= (currentPlatformRenderPipelineSettings.dynamicResolutionSettings.rayTracingHalfResThreshold / 100.0f);
+        }
+
         void UpdateShaderVariablesRaytracingLightLoopCB(HDCamera hdCamera, CommandBuffer cmd)
         {
             m_ShaderVariablesRaytracingLightLoopCB._MinClusterPos = m_RayTracingLightCluster.GetMinClusterPos();
@@ -702,16 +706,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Ray Tracing is supported if the asset setting supports it and the platform supports it
-        static internal bool GatherRayTracingSupport(RenderPipelineSettings rpSetting)
-            => rpSetting.supportRayTracing && rayTracingSupportedBySystem;
+        static internal bool PipelineSupportsRayTracing(RenderPipelineSettings rpSetting)
+            => rpSetting.supportRayTracing && currentSystemSupportsRayTracing;
 
-        static internal bool rayTracingSupportedBySystem
-            => UnityEngine.SystemInfo.supportsRayTracing
+        static internal bool currentSystemSupportsRayTracing
+            => SystemInfo.supportsRayTracing;
+
 #if UNITY_EDITOR
-            && (UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
-                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows)
+        static internal bool buildTargetSupportsRayTracing
+            => (UnityEditor.PlayerSettings.GetGraphicsAPIs(UnityEditor.EditorUserBuildSettings.activeBuildTarget)[0] == GraphicsDeviceType.Direct3D12)
+            || (UnityEditor.PlayerSettings.GetGraphicsAPIs(UnityEditor.EditorUserBuildSettings.activeBuildTarget)[0] == GraphicsDeviceType.PlayStation5);
 #endif
-        ;
 
         internal BlueNoise GetBlueNoiseManager()
         {
@@ -720,10 +725,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal HDTemporalFilter GetTemporalFilter()
         {
-            if (m_TemporalFilter == null && m_RayTracingSupported)
+            if (m_TemporalFilter == null)
             {
                 m_TemporalFilter = new HDTemporalFilter();
-                m_TemporalFilter.Init(m_GlobalSettings.renderPipelineRayTracingResources);
+                m_TemporalFilter.Init(m_GlobalSettings.renderPipelineResources);
             }
             return m_TemporalFilter;
         }
@@ -738,22 +743,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_SimpleDenoiser;
         }
 
-        internal SSGIDenoiser GetSSGIDenoiser()
-        {
-            if (m_SSGIDenoiser == null)
-            {
-                m_SSGIDenoiser = new SSGIDenoiser();
-                m_SSGIDenoiser.Init(m_GlobalSettings.renderPipelineResources);
-            }
-            return m_SSGIDenoiser;
-        }
-
         internal HDDiffuseDenoiser GetDiffuseDenoiser()
         {
             if (m_DiffuseDenoiser == null)
             {
                 m_DiffuseDenoiser = new HDDiffuseDenoiser();
-                m_DiffuseDenoiser.Init(m_GlobalSettings.renderPipelineResources, m_GlobalSettings.renderPipelineRayTracingResources, this);
+                m_DiffuseDenoiser.Init(m_GlobalSettings.renderPipelineResources, this);
             }
             return m_DiffuseDenoiser;
         }

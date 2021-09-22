@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.Universal
         [MenuItem("Assets/Create/Rendering/URP Universal Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 2)]
         static void CreateUniversalRendererData()
         {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalRendererAsset>(), "CustomUniversalRendererData.asset", null, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalRendererAsset>(), "New Custom Universal Renderer Data.asset", null, null);
         }
 
 #endif
@@ -87,7 +87,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
         [SerializeField] bool m_AccurateGbufferNormals = false;
-        //[SerializeField] bool m_TiledDeferredShading = false;
         [SerializeField] bool m_ClusteredRendering = false;
         const TileSize k_DefaultTileSize = TileSize._32;
         [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
@@ -190,18 +189,6 @@ namespace UnityEngine.Rendering.Universal
                 m_AccurateGbufferNormals = value;
             }
         }
-
-        /*
-        public bool tiledDeferredShading
-        {
-            get => m_TiledDeferredShading;
-            set
-            {
-                SetDirty();
-                m_TiledDeferredShading = value;
-            }
-        }
-        */
 
         internal bool clusteredRendering
         {

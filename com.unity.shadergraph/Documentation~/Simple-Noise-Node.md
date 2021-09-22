@@ -4,6 +4,8 @@
 
 Generates a simple, or [Value](https://en.wikipedia.org/wiki/Value_noise), noise based on input **UV**. The scale of the generated noise is controlled by input **Scale**.
 
+You can also choose to use two different hashing methods for calculating the noise. As of Unity version 2021.2, the Simple Noise node defaults to the **Deterministic** hash, to ensure consistent results for noise generation across platforms.
+
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
@@ -11,6 +13,12 @@ Generates a simple, or [Value](https://en.wikipedia.org/wiki/Value_noise), noise
 | UV      | Input | Vector 2 | UV | Input UV value |
 | Scale      | Input | Float    | None | Noise scale |
 | Out | Output      |    Float    | None | Output value |
+
+## Controls
+
+| Name        | Type           | Options  | Description |
+|:------------ |:-------------|:-----|:---|
+| Hash Type      | Dropdown | Deterministic, LegacySine | Selects the hash function used to generate random numbers for noise generation. |
 
 ## Generated Code Example
 

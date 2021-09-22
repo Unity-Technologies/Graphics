@@ -44,7 +44,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
+#if !UNITY_EDITOR
+                // The HDRP Global Settings could have been changed by script, undo/redo (case 1342987), or file update - file versioning, let us make sure we display the correct one
+                // In a Player, we do not need to worry about those changes as we only support loading one
                 if (cachedInstance == null)
+#endif
                     cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>() as HDRenderPipelineGlobalSettings;
                 return cachedInstance;
             }
@@ -62,6 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
+
         //Making sure there is at least one HDRenderPipelineGlobalSettings instance in the project
         static internal HDRenderPipelineGlobalSettings Ensure(bool canCreateNewAsset = true)
         {
@@ -520,6 +525,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal List<string> beforePostProcessCustomPostProcesses = new List<string>();
         [SerializeField]
+        internal List<string> afterPostProcessBlursCustomPostProcesses = new List<string>();
+        [SerializeField]
         internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
         [SerializeField]
         internal List<string> beforeTAACustomPostProcesses = new List<string>();
@@ -528,7 +535,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Rendering Layer Names [Light + Decal]
 
-        static readonly string[] k_DefaultLightLayerNames = { "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7"};
+        static readonly string[] k_DefaultLightLayerNames = { "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7" };
 
         /// <summary>Name for light layer 0.</summary>
         public string lightLayerName0 = k_DefaultLightLayerNames[0];
@@ -700,8 +707,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderingLayerNames[6] = lightLayerName6;
             m_RenderingLayerNames[7] = lightLayerName7;
 
-            m_RenderingLayerNames[8]  = decalLayerName0;
-            m_RenderingLayerNames[9]  = decalLayerName1;
+            m_RenderingLayerNames[8] = decalLayerName0;
+            m_RenderingLayerNames[9] = decalLayerName1;
             m_RenderingLayerNames[10] = decalLayerName2;
             m_RenderingLayerNames[11] = decalLayerName3;
             m_RenderingLayerNames[12] = decalLayerName4;
@@ -814,16 +821,16 @@ namespace UnityEngine.Rendering.HighDefinition
         #region APV
         // This is temporarily here until we have a core place to put it shared between pipelines.
         [SerializeField]
-        internal ProbeVolumeSceneBounds apvScenesBounds;
+        internal ProbeVolumeSceneData apvScenesData;
 
-        internal ProbeVolumeSceneBounds GetOrCreateAPVSceneBounds()
+        internal ProbeVolumeSceneData GetOrCreateAPVSceneData()
         {
-            if (apvScenesBounds == null)
-                apvScenesBounds = new ProbeVolumeSceneBounds((Object)this);
+            if (apvScenesData == null)
+                apvScenesData = new ProbeVolumeSceneData((Object)this, nameof(apvScenesData));
 
 
-            apvScenesBounds.SetParentObject((Object)this);
-            return apvScenesBounds;
+            apvScenesData.SetParentObject((Object)this, nameof(apvScenesData));
+            return apvScenesData;
         }
 
         #endregion

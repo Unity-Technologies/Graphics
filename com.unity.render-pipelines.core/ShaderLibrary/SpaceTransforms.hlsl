@@ -18,6 +18,16 @@ float4x4 GetWorldToObjectMatrix()
     return UNITY_MATRIX_I_M;
 }
 
+float4x4 GetPrevObjectToWorldMatrix()
+{
+    return UNITY_PREV_MATRIX_M;
+}
+
+float4x4 GetPrevWorldToObjectMatrix()
+{
+    return UNITY_PREV_MATRIX_I_M;
+}
+
 float4x4 GetWorldToViewMatrix()
 {
     return UNITY_MATRIX_V;

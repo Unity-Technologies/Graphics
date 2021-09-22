@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.Tests
         }
 
         internal static IReadOnlyList<MaterialUpgrader> CreateMaterialUpgraders(
-            params(string OldShader, string NewShader, (string From, string To, int Type)[] Renames)[] materialUpgraderParams
+            params (string OldShader, string NewShader, (string From, string To, int Type)[] Renames)[] materialUpgraderParams
         )
         {
             var result = new List<MaterialUpgrader>(materialUpgraderParams.Length);

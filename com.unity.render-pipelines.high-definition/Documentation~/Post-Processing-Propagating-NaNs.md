@@ -40,13 +40,13 @@ If you are unable to fix the source of the NaN/Inf values, [HDRP Cameras](HDRP-C
 
 To find the root cause of a NaN/Inf, HDRP includes a debug mode which displays pixels that contain NaNs/Infs in a recognizable color. To use this debug mode:
 
-1. Open the Render Pipeline Debugger window (menu: **Window > Analysis > Render Pipeline Debugger**).
+1. Open the Rendering Debugger window (menu: **Window > Analysis > Rendering Debugger**).
 2. Go to **Rendering** and set **Fullscreen Debug Mode** to **NanTracker**.
 
 This helps you to see if there are actually NaNs/Infs on screen and which material causes them. However, if you need more information, such as which particular draw call causes the issue, you can use frame debugging tools such as [RenderDoc](https://renderdoc.org/). For information on how to use RenderDoc to capture frames in Unity, see [RenderDoc integration](https://docs.unity3d.com/Manual/RenderDocIntegration.html).
 
 A common situation that leads to NaNs is when a mesh is imported with ill-defined normals, like normals equal to the zero vector.
-To find these normals, you can use one of the normal visualization modes in the [Material panel](Render-Pipeline-Debug-Window.md#material-panel) of the Render Pipeline Debugger window.
+To find these normals, you can use one of the normal visualization modes in the [Material panel](Render-Pipeline-Debug-Window.md#material-panel) of the Rendering Debugger.
 
 #### RenderDoc
 

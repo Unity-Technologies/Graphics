@@ -57,13 +57,13 @@ namespace UnityEngine.Rendering.PostProcessing
     /// A volume parameter holding a <see cref="AmbientOcclusionMode"/> value.
     /// </summary>
     [Serializable]
-    public sealed class AmbientOcclusionModeParameter : ParameterOverride<AmbientOcclusionMode> {}
+    public sealed class AmbientOcclusionModeParameter : ParameterOverride<AmbientOcclusionMode> { }
 
     /// <summary>
     /// A volume parameter holding a <see cref="AmbientOcclusionQuality"/> value.
     /// </summary>
     [Serializable]
-    public sealed class AmbientOcclusionQualityParameter : ParameterOverride<AmbientOcclusionQuality> {}
+    public sealed class AmbientOcclusionQualityParameter : ParameterOverride<AmbientOcclusionQuality> { }
 
     /// <summary>
     /// This class holds settings for the Ambient Occlusion effect.
@@ -190,9 +190,9 @@ namespace UnityEngine.Rendering.PostProcessing
 
                 state &= SystemInfo.supportsComputeShaders
                     && !RuntimeUtilities.isAndroidOpenGL
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, FormatUsage.Render | FormatUsage.Sparse)
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Render | FormatUsage.Sparse)
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.Render | FormatUsage.Sparse);
+                    && SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, FormatUsage.Sparse) // Sparse implies Render
+                    && SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Sparse)
+                    && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.Sparse);
             }
 
             return state;

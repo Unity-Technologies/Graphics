@@ -48,6 +48,15 @@ MonoBehaviour:
   cloudThickness:
     m_OverrideState: 0
     m_Value: 3000
+  fadeInMode:
+    m_OverrideState: 0
+    m_Value: 0
+  fadeInStart:
+    m_OverrideState: 0
+    m_Value: 0
+  fadeInDistance:
+    m_OverrideState: 0
+    m_Value: 0
   numPrimarySteps:
     m_OverrideState: 0
     m_Value: 48
@@ -222,24 +231,44 @@ MonoBehaviour:
   shapeScale:
     m_OverrideState: 1
     m_Value: 8.86
+  shapeOffsetX:
+    m_OverrideState: 0
+    m_Value: 0
+  shapeOffsetZ:
+    m_OverrideState: 0
+    m_Value: 0
   erosionFactor:
     m_OverrideState: 1
     m_Value: 0.212
   erosionScale:
     m_OverrideState: 1
     m_Value: 50
-  ambientLightProbeDimmer:
+  erosionNoiseType:
     m_OverrideState: 0
     m_Value: 1
+  ambientLightProbeDimmer:
+    m_OverrideState: 1
+    m_Value: 0
   erosionOcclusion:
     m_OverrideState: 1
     m_Value: 0
   globalWindSpeed:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value:
+      mode: 0
+      customValue: 0
+      additiveValue: 0
+      multiplyValue: 0
   orientation:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value:
+      mode: 0
+      customValue: 0
+      additiveValue: 0
+      multiplyValue: 0
+  altitudeDistortion:
+    m_OverrideState: 0
+    m_Value: 0.5
   cloudMapSpeedMultiplier:
     m_OverrideState: 0
     m_Value: 1
@@ -268,5 +297,12 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0.5
   shadowOpacityFallback:
+    m_OverrideState: 0
+    m_Value: 0
+  m_Version: 1
+  m_ObsoleteWindSpeed:
+    m_OverrideState: 1
+    m_Value: 0
+  m_ObsoleteOrientation:
     m_OverrideState: 0
     m_Value: 0

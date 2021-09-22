@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Bloom effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Bloom")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Bloom", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Post-Processing-Bloom")]
     public sealed class Bloom : VolumeComponentWithQuality, IPostProcessComponent
     {
@@ -44,13 +44,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the extent of the veiling effect.
         /// </summary>
-        [Tooltip("Controls the extent of the veiling effect.")]
+        [Tooltip("Set the radius of the bloom effect")]
         public ClampedFloatParameter scatter = new ClampedFloatParameter(0.7f, 0f, 1f);
 
         /// <summary>
         /// Specifies the tint of the bloom filter.
         /// </summary>
-        [Tooltip("Specifies the tint of the bloom filter.")]
+        [Tooltip("Use the color picker to select a color for the Bloom effect to tint to.")]
         public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Header("Lens Dirt")]
         [Tooltip("Specifies a Texture to add smudges or dust to the bloom effect.")]
-        public TextureParameter dirtTexture = new TextureParameter(null);
+        public Texture2DParameter dirtTexture = new Texture2DParameter(null);
 
         /// <summary>
         /// Controls the strength of the lens dirt.
@@ -171,6 +171,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public BloomResolutionParameter(BloomResolution value, bool overrideState = false) : base(value, overrideState) {}
+        public BloomResolutionParameter(BloomResolution value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

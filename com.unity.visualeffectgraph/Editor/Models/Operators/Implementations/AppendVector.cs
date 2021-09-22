@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.Operator
 
             if (allComponent.Length == 0)
             {
-                return new VFXExpression[] {};
+                return new VFXExpression[] { };
             }
             else if (allComponent.Length == 1)
             {

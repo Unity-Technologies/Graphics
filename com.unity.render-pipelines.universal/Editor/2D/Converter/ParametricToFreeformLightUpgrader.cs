@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.Universal
 
         public override string name => "Parametric to Freeform Light Upgrade";
         public override string info => "This will upgrade all parametric lights to freeform lights.";
-        public override int priority => - 1000;
+        public override int priority => -1000;
         public override Type container => typeof(UpgradeURP2DAssetsContainer);
 
         List<string> m_AssetsToConvert = new List<string>();

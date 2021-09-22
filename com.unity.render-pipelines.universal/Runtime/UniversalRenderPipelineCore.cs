@@ -111,6 +111,12 @@ namespace UnityEngine.Rendering.Universal
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+
+        /// <summary>
+        /// Returns true if post processing passes require depth texture.
+        /// </summary>
+        public bool postProcessingRequiresDepthTexture;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
         public bool xrRendering;
 #endif
@@ -136,6 +142,8 @@ namespace UnityEngine.Rendering.Universal
         /// True if the camera rendering is for the preview window in the editor
         /// </summary>
         public bool isPreviewCamera => cameraType == CameraType.Preview;
+
+        internal bool isRenderPassSupportedCamera => (cameraType == CameraType.Game || cameraType == CameraType.Reflection);
 
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
@@ -505,9 +513,9 @@ namespace UnityEngine.Rendering.Universal
         {
             if (isHdrEnabled)
             {
-                if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear, FormatUsage.Render))
                     return GraphicsFormat.B10G11R11_UFloatPack32;
-                if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+                if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear, FormatUsage.Render))
                     return GraphicsFormat.R16G16B16A16_SFloat;
                 return SystemInfo.GetGraphicsFormat(DefaultFormat.HDR); // This might actually be a LDR format on old devices.
             }

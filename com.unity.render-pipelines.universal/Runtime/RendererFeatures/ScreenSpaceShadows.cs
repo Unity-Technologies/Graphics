@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [DisallowMultipleRendererFeature]
+    [Tooltip("Screen Space Shadows")]
     internal class ScreenSpaceShadows : ScriptableRendererFeature
     {
         // Serialized Fields
@@ -33,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
 
             LoadMaterial();
 
-            m_SSShadowsPass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
+            m_SSShadowsPass.renderPassEvent = RenderPassEvent.AfterRenderingGbuffer;
             m_SSShadowsPostPass.renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
         }
 
@@ -53,6 +54,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (shouldEnqueue)
             {
+                bool isDeferredRenderingMode = renderer is UniversalRenderer && ((UniversalRenderer)renderer).renderingMode == RenderingMode.Deferred;
+
+                m_SSShadowsPass.renderPassEvent = isDeferredRenderingMode
+                    ? RenderPassEvent.AfterRenderingGbuffer
+                    : RenderPassEvent.AfterRenderingPrePasses;
+
                 renderer.EnqueuePass(m_SSShadowsPass);
                 renderer.EnqueuePass(m_SSShadowsPostPass);
             }
@@ -121,7 +128,7 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderTextureDescriptor = renderingData.cameraData.cameraTargetDescriptor;
                 m_RenderTextureDescriptor.depthBufferBits = 0;
                 m_RenderTextureDescriptor.msaaSamples = 1;
-                m_RenderTextureDescriptor.graphicsFormat = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8_UNorm, FormatUsage.Linear | FormatUsage.Render)
+                m_RenderTextureDescriptor.graphicsFormat = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8_UNorm, FormatUsage.Linear, FormatUsage.Render)
                     ? GraphicsFormat.R8_UNorm
                     : GraphicsFormat.B8G8R8A8_UNorm;
 

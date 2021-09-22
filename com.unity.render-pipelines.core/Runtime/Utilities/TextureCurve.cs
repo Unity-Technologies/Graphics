@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering
         /// <param name="loop">Should the curve automatically loop in the given <paramref name="bounds"/>?</param>
         /// <param name="bounds">The boundaries of the curve.</param>
         public TextureCurve(AnimationCurve baseCurve, float zeroValue, bool loop, in Vector2 bounds)
-            : this(baseCurve.keys, zeroValue, loop, bounds) {}
+            : this(baseCurve.keys, zeroValue, loop, bounds) { }
 
         /// <summary>
         /// Creates a new <see cref="TextureCurve"/> from an arbitrary number of keyframes.
@@ -81,13 +81,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Finalizer.
         /// </summary>
-        ~TextureCurve() {}
+        ~TextureCurve() { }
 
         /// <summary>
         /// Cleans up the internal texture resource.
         /// </summary>
         [Obsolete("Please use Release() instead.")]
-        public void Dispose() {}
+        public void Dispose() { }
 
         /// <summary>
         /// Releases the internal texture resource.
@@ -111,9 +111,9 @@ namespace UnityEngine.Rendering
 
         static GraphicsFormat GetTextureFormat()
         {
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Sample | FormatUsage.SetPixels))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Sample) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.SetPixels))
                 return GraphicsFormat.R16_SFloat;
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.Sample | FormatUsage.SetPixels))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.Sample) && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.SetPixels))
                 return GraphicsFormat.R8_UNorm;
 
             return GraphicsFormat.R8G8B8A8_UNorm;
@@ -251,7 +251,7 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public TextureCurveParameter(TextureCurve value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
 
         /// <summary>
         /// Release implementation.

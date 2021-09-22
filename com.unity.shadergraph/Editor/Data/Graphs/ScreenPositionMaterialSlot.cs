@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    class ScreenPositionMaterialSlot : Vector4MaterialSlot, IMayRequireScreenPosition
+    class ScreenPositionMaterialSlot : Vector4MaterialSlot, IMayRequireScreenPosition, IMayRequireNDCPosition, IMayRequirePixelPosition
     {
         [SerializeField]
         ScreenSpaceType m_ScreenSpaceType;
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
         public override bool isDefaultValue => screenSpaceType == ScreenSpaceType.Default;
 
         public ScreenPositionMaterialSlot()
-        {}
+        { }
 
         public ScreenPositionMaterialSlot(int slotId, string displayName, string shaderOutputName, ScreenSpaceType screenSpaceType,
                                           ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
@@ -42,7 +42,15 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
-            return !isConnected;
+            return !isConnected && screenSpaceType.RequiresScreenPosition();
+        }
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability)
+        {
+            return !isConnected && screenSpaceType.RequiresNDCPosition();
+        }
+        public bool RequiresPixelPosition(ShaderStageCapability stageCapability)
+        {
+            return !isConnected && screenSpaceType.RequiresPixelPosition();
         }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
