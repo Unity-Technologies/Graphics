@@ -58,7 +58,6 @@ namespace UnityEditor.ShaderGraph
                 {
                     score += 100000;
                     nameCharactersMatched += queryWord.Length;
-                    // score -= (nameSansSuffix.Length - queryWord.Length);
                 }
 
                 // Check for synonym matches -- give a bonus to each
