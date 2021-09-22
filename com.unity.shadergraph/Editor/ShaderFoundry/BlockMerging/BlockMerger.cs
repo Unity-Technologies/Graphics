@@ -219,7 +219,7 @@ namespace UnityEditor.ShaderFoundry
                 var blockInputInstance = blockLinkInstance.InputInstance;
                 var blockOutputInstance = blockLinkInstance.OutputInstance;
 
-                blockInputInstance.Type.AddVariableDeclarationStatement(fnBuilder, blockInputInstance.ReferenceName);
+                fnBuilder.AddVariableDeclarationStatement(blockInputInstance.Type, blockInputInstance.ReferenceName);
                 foreach (var input in blockInputInstance.Fields)
                 {
                     var match = blockInputInstance.FindResolvedField(input.ReferenceName);
@@ -233,7 +233,7 @@ namespace UnityEditor.ShaderFoundry
             }
 
             // Generate the merged block's output type and copy all of the output fields over
-            outputInstance.Type.AddVariableDeclarationStatement(fnBuilder, outputInstance.ReferenceName);
+            fnBuilder.AddVariableDeclarationStatement(outputInstance.Type, outputInstance.ReferenceName);
             foreach (var output in outputInstance.Fields)
             {
                 var match = outputInstance.FindResolvedField(output.ReferenceName);
