@@ -60,6 +60,9 @@ Build_URP_Foundation_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
+      -  brew install git-lfs
+      -  git-lfs install
+      -  git-lfs pull
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
