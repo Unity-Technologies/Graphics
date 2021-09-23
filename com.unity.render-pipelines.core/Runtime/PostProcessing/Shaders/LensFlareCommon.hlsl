@@ -26,6 +26,11 @@ struct VaryingsLensFlare
 TEXTURE2D(_FlareTex);
 SAMPLER(sampler_FlareTex);
 
+#ifdef HDRP_FLARE
+TEXTURE2D_X(_FlareOcclusionTex);
+SAMPLER(sampler_FlareOcclusionTex);
+#endif
+
 float4 _FlareColorValue;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
 float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
@@ -36,13 +41,11 @@ float4 _FlareData4; // x: SDF Roundness, y: Poly Radius, z: PolyParam0, w: PolyP
 #ifdef FLARE_PREVIEW
 float4 _FlarePreviewData;
 
-#define _ScreenSize     _FlarePreviewData.xy;
-#define _ScreenRatio    _FlarePreviewData.z;
+#define _ScreenSize         _FlarePreviewData.xy;
+#define _FlareScreenRatio   _FlarePreviewData.z;
 #endif
 
 float4 _FlareOcclusionIndex;
-
-#define _FlareOcclusionIdx      _FlareOcclusionIndex.x
 
 #define _FlareColor             _FlareColorValue
 
@@ -53,7 +56,9 @@ float4 _FlareOcclusionIndex;
 #define _OcclusionRadius        _FlareData1.x
 #define _OcclusionSampleCount   _FlareData1.y
 #define _ScreenPosZ             _FlareData1.z
-#define _ScreenRatio            _FlareData1.w
+#ifndef _FlareScreenRatio
+#define _FlareScreenRatio       _FlareData1.w
+#endif
 
 #define _ScreenPos              _FlareData2.xy
 #define _FlareSize              _FlareData2.zw
@@ -129,48 +134,43 @@ VaryingsLensFlare vertOcclusion(AttributesLensFlare input, uint instanceID : SV_
 {
     VaryingsLensFlare output;
 
-#ifndef FLARE_PREVIEW
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-#endif
 
 #if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
-    float screenRatio = _ScreenRatio;
+    float screenRatio = _FlareScreenRatio;
 #else
     float2 screenParam = GetScaledScreenParams().xy;
     float screenRatio = screenParam.y / screenParam.x;
 #endif
 
-#if SHADER_API_GLES
-    float4 posPreScale = input.positionCS;
-    float2 uv = input.uv;
-    output.positionCS.xy = local + _ScreenPos + _PositionTranslate;
-#else
-    float4 quadPos = GetQuadVertexPosition(input.vertexID);
-    float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * quadPos - float4(1.0f, 1.0f, 0.0f, 0.0);
+    //float2 quadPos = float2(2.0f, -2.0f) * GetQuadVertexPosition(input.vertexID).xy + float2(-1.0f, 1.0f);
+    float2 quadPos = 2.0f * GetQuadVertexPosition(input.vertexID).xy - 1.0f;
     float2 uv = GetQuadTexCoord(input.vertexID);
     uv.x = 1.0f - uv.x;
     output.positionCS.xy = quadPos;
-#endif
 
     output.texcoord.xy = uv;
 
     output.positionCS.z = 1.0f;
     output.positionCS.w = 1.0f;
 
-#if FLARE_OCCLUSION
     float occlusion = GetOcclusion(screenRatio);
 
     if (_OcclusionOffscreen < 0.0f && // No lens flare off screen
         (any(_ScreenPos.xy < -1) || any(_ScreenPos.xy >= 1)))
         occlusion = 0.0f;
-#else
-    float occlusion = 1.0f;
-#endif
 
     output.occlusion = occlusion;
 
     return output;
+}
+
+float4 fragOcclusion(VaryingsLensFlare input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    return float4(input.occlusion.xxx, 1.0f);
 }
 #else
 VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceID)
@@ -183,7 +183,7 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
 #endif
 
 #if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
-    float screenRatio = _ScreenRatio;
+    float screenRatio = _FlareScreenRatio;
 #else
     float2 screenParam = GetScaledScreenParams().xy;
     float screenRatio = screenParam.y / screenParam.x;
@@ -298,10 +298,17 @@ float4 frag(VaryingsLensFlare input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 #endif
 
-#if defined(FLARE_COMPUTE_OCCLUSION)
-    return input.occlusion.xxxx;
-#else
     float4 col = GetFlareShape(input.texcoord);
+
+#ifdef HDRP_FLARE
+#ifdef FLARE_OCCLUSION
+    float occ = SAMPLE_TEXTURE2D_X_LOD(_FlareOcclusionTex, sampler_FlareOcclusionTex, float2(_FlareOcclusionIndex.x, 0.0f), 0).x;
+
+    return col * _FlareColor * occ;
+#else
+    return col * _FlareColor;
+#endif
+#else
     return col * _FlareColor * input.occlusion;
 #endif
 }

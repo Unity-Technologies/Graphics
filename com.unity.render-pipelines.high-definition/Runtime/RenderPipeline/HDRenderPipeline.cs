@@ -439,6 +439,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(m_GlobalSettings.renderPipelineResources.shaders.resolveMotionVecPS);
 
             CustomPassUtils.Initialize();
+
+            LensFlareCommonSRP.Initialize();
         }
 
 #if UNITY_EDITOR
@@ -737,6 +739,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CleanupPrepass();
             CoreUtils.Destroy(m_ColorResolveMaterial);
             CoreUtils.Destroy(m_MotionVectorResolve);
+
+            LensFlareCommonSRP.Dispose();
 
             CustomPassUtils.Cleanup();
 #if UNITY_EDITOR

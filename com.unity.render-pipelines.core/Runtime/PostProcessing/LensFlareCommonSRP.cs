@@ -8,9 +8,27 @@ namespace UnityEngine.Rendering
         private static LensFlareCommonSRP m_Instance = null;
         private static readonly object m_Padlock = new object();
         private static System.Collections.Generic.List<LensFlareComponentSRP> m_Data = new System.Collections.Generic.List<LensFlareComponentSRP>();
+        public static int maxLensFlareWithOcclusion = 16;
+        public static int maxLensFlareWithOcclusionTemporalSample = 8;
+        public static int mergeNeeded = 1;
+        public static RTHandle occlusionRT = null;
+
+        private static int frameIdx = 0;
 
         private LensFlareCommonSRP()
         {
+        }
+
+        static public void Initialize()
+        {
+            if (occlusionRT == null)
+                occlusionRT = RTHandles.Alloc(width: maxLensFlareWithOcclusion, height: maxLensFlareWithOcclusionTemporalSample + 1 * mergeNeeded, colorFormat: Experimental.Rendering.GraphicsFormat.R16_SFloat, enableRandomWrite: true, dimension: TextureXR.dimension);
+        }
+
+        static public void Dispose()
+        {
+            if (occlusionRT != null)
+                RTHandles.Release(occlusionRT);
         }
 
         /// <summary>
@@ -33,8 +51,6 @@ namespace UnityEngine.Rendering
                 return m_Instance;
             }
         }
-
-        public static uint MaxLensFlareWithOcclusion = 1024;
 
         private System.Collections.Generic.List<LensFlareComponentSRP> Data { get { return LensFlareCommonSRP.m_Data; } }
 
@@ -319,8 +335,8 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
-            Rendering.RenderTargetIdentifier colorBuffer,
-            int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4, int _FlareOcclusionIndex = 0)
+            RenderTexture depthBuffer,
+            int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
             Vector2 vScreenRatio;
 
@@ -331,8 +347,7 @@ namespace UnityEngine.Rendering
             float screenRatio = screenSize.x / screenSize.y;
             vScreenRatio = new Vector2(screenRatio, 1.0f);
 
-            Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
-            cmd.ClearRenderTarget(false, true, Color.black);
+            Rendering.CoreUtils.SetRenderTarget(cmd, occlusionRT);
 
 #if UNITY_EDITOR
             if (cam.cameraType == CameraType.SceneView)
@@ -349,6 +364,12 @@ namespace UnityEngine.Rendering
             }
 #endif
 
+            float dx = 1.0f / ((float)maxLensFlareWithOcclusion);
+            float dy = 1.0f / ((float)(maxLensFlareWithOcclusionTemporalSample + 1 * mergeNeeded));
+            float halfx = 0.5f / ((float)maxLensFlareWithOcclusion);
+            float halfy = 0.5f / ((float)(maxLensFlareWithOcclusionTemporalSample + 1 * mergeNeeded));
+
+            int occlusionIndex = 0;
             foreach (LensFlareComponentSRP comp in lensFlares.GetData())
             {
                 if (comp == null)
@@ -361,7 +382,9 @@ namespace UnityEngine.Rendering
                     !comp.gameObject.activeInHierarchy ||
                     data == null ||
                     data.elements == null ||
-                    data.elements.Length == 0)
+                    data.elements.Length == 0 ||
+                    !comp.useOcclusion ||
+                    (comp.useOcclusion && comp.sampleCount == 0))
                     continue;
 
                 Light light = comp.GetComponent<Light>();
@@ -404,10 +427,6 @@ namespace UnityEngine.Rendering
                 float distanceAttenuation = !isDirLight && comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(coefDistSample) : 1.0f;
                 float scaleByDistance = !isDirLight && comp.scaleByDistanceCurve.length >= 1 ? comp.scaleByDistanceCurve.Evaluate(coefScaleSample) : 1.0f;
 
-                Color globalColorModulation = Color.white;
-
-                globalColorModulation *= distanceAttenuation;
-
                 Vector3 dir = (cameraPositionWS - comp.transform.position).normalized;
                 Vector3 screenPosZ = WorldToViewport(isCameraRelative, viewProjMatrix, cameraPositionWS, positionWS + dir * comp.occlusionOffset);
                 Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)viewportPos;
@@ -415,65 +434,44 @@ namespace UnityEngine.Rendering
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
-                if (comp.useOcclusion)
-                {
-                    cmd.EnableShaderKeyword("FLARE_OCCLUSION");
-                }
-                else
-                {
-                    cmd.DisableShaderKeyword("FLARE_OCCLUSION");
-                }
+                cmd.EnableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
 
-                int occlusionIndex = 0;
-                foreach (LensFlareDataElementSRP element in data.elements)
-                {
-                    if (element == null ||
-                        element.visible == false ||
-                        (element.lensFlareTexture == null && element.flareType == SRPLensFlareType.Image) ||
-                        element.localIntensity <= 0.0f ||
-                        element.count <= 0 ||
-                        !comp.useOcclusion)
-                        continue;
+                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
 
-                    Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
+                Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
+                float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
+                float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
 
-                    float rotation = element.rotation;
-                    Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
-                    float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
-                    float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
+                float currentIntensity = comp.intensity * radialsScaleRadius * distanceAttenuation;
 
-                    float currentIntensity = comp.intensity * element.localIntensity * radialsScaleRadius * distanceAttenuation;
+                if (currentIntensity <= 0.0f)
+                    continue;
 
-                    if (currentIntensity <= 0.0f)
-                        continue;
+                cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4(((float)(occlusionIndex)) * dx + halfx, halfy, 0, frameIdx + 1));
 
-                    cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4(occlusionIndex, 0, 0, 0));
-                    cmd.SetViewport(new Rect() { x = occlusionIndex, y = 0, width = 1, height = 1 });
+                float globalCos0 = Mathf.Cos(0.0f);
+                float globalSin0 = Mathf.Sin(0.0f);
 
-                    float angularOffset = SystemInfo.graphicsUVStartsAtTop ? element.angularOffset : -element.angularOffset;
-                    float globalCos0 = Mathf.Cos(-angularOffset * Mathf.Deg2Rad);
-                    float globalSin0 = Mathf.Sin(-angularOffset * Mathf.Deg2Rad);
+                float position = 0.0f;
 
-                    float position = 2.0f * element.position;
+                float usedGradientPosition = Mathf.Clamp01(1.0f - 1e-6f);
 
-                    float usedGradientPosition = Mathf.Clamp01((1.0f - element.edgeOffset) - 1e-6f);
-                    if (element.flareType == SRPLensFlareType.Polygon)
-                        usedGradientPosition = Mathf.Pow(usedGradientPosition + 1.0f, 5);
+                cmd.SetGlobalVector(_FlareData3, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, 1.0f)), 1.0f / 3.0f));
 
-                    float usedSDFRoundness = element.sdfRoundness;
+                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
+                Vector4 flareData0 = GetFlareData0(screenPos, Vector2.one, rayOff, vScreenRatio, 0.0f, position, 0.0f, Vector2.zero, false);
 
-                    cmd.SetGlobalVector(_FlareData3, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - element.fallOff))), 1.0f / (float)element.sideCount));
+                cmd.SetGlobalVector(_FlareData0, flareData0);
+                cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, 0.0f, 0.0f));
 
-                    Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
-                    Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation, position, angularOffset, element.positionOffset, element.autoRotate);
+                cmd.SetViewport(new Rect() { x = occlusionIndex, y = frameIdx + 1 * mergeNeeded, width = 1, height = 1 });
 
-                    cmd.SetGlobalVector(_FlareData0, flareData0);
-                    cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, 0.0f, 0.0f));
-
-                    UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, 5);
-                    ++occlusionIndex;
-                }
+                UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, 4);
+                ++occlusionIndex;
             }
+
+            ++frameIdx;
+            frameIdx %= maxLensFlareWithOcclusionTemporalSample;
         }
 
         /// <summary>
@@ -505,9 +503,10 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
+            //Rendering.RenderTargetIdentifier occlusion,
             Rendering.RenderTargetIdentifier colorBuffer,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
-            int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
+            int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
             bool debugView)
         {
             Vector2 vScreenRatio;
@@ -542,6 +541,7 @@ namespace UnityEngine.Rendering
             }
 #endif
 
+            int occlusionIndex = 0;
             foreach (LensFlareComponentSRP comp in lensFlares.GetData())
             {
                 if (comp == null)
@@ -622,6 +622,12 @@ namespace UnityEngine.Rendering
                 {
                     cmd.DisableShaderKeyword("FLARE_OCCLUSION");
                 }
+
+                cmd.SetGlobalTexture(_FlareOcclusionTex, occlusionRT);
+                cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4((float)occlusionIndex / (float)LensFlareCommonSRP.maxLensFlareWithOcclusion + 0.5f / (float)LensFlareCommonSRP.maxLensFlareWithOcclusion, 0.5f, 0, 0));
+
+                if (comp.useOcclusion && comp.sampleCount > 0)
+                    ++occlusionIndex;
 
                 foreach (LensFlareDataElementSRP element in data.elements)
                 {

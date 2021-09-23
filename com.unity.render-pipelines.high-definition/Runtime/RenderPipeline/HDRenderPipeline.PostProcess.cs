@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Lens Flare Data-Driven
         Material m_LensFlareDataDrivenShader;
+        ComputeShader m_LensFlareMergeOcclusionDataDrivenCS { get { return defaultResources.shaders.lensFlareMergeOcclusionCS; } }
 
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
@@ -466,7 +467,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_PostProcessEnabled || m_AntialiasingFS)
             {
-                TextureHandle occlusion = LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer);
+                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer);
+                LensFlareMergeOcclusionDataDrivenPass(renderGraph, hdCamera);
 
                 source = StopNaNsPass(renderGraph, hdCamera, source);
 
@@ -3064,25 +3066,25 @@ namespace UnityEngine.Rendering.HighDefinition
             public LensFlareParameters parameters;
             public TextureHandle source;
             public TextureHandle depthBuffer;
+            public TextureHandle occlusion;
             public HDCamera hdCamera;
             public Vector2Int viewport;
         }
 
-        TextureHandle LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer)
+        void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer)
         {
             if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
-                TextureHandle lensFlareOcclusion = renderGraph.CreateTexture(
-                    new TextureDesc(new Vector2(LensFlareCommonSRP.MaxLensFlareWithOcclusion, 1), false, true) { colorFormat = GraphicsFormat.R16_SFloat, name = "Lens Flare Occlusion" });
+                RTHandle occH = LensFlareCommonSRP.occlusionRT;
+                TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
 
                 using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareComputeOcclusionDataDriven)))
                 {
-                    passData.source = builder.WriteTexture(lensFlareOcclusion);
+                    passData.source = builder.WriteTexture(occlusionHandle);
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
-                    passData.viewport = postProcessViewportSize;
+                    passData.viewport = new Vector2Int(LensFlareCommonSRP.maxLensFlareWithOcclusion, LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample);
                     passData.hdCamera = hdCamera;
-                    passData.depthBuffer = depthBuffer;
-                    TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Lens Flare Destination");
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
 
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
@@ -3090,26 +3092,40 @@ namespace UnityEngine.Rendering.HighDefinition
                             float width = (float)data.viewport.x;
                             float height = (float)data.viewport.y;
 
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
-
                             LensFlareCommonSRP.ComputeOcclusion(
                                 data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera,
                                 width, height,
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit, ShaderConfig.s_CameraRelativeRendering != 0,
-                                data.hdCamera.mainViewConstants.worldSpaceCameraPos, data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
-                                //data.hdCamera.mainViewConstants.viewProjMatrix,
-                                ctx.cmd, data.source,
-                                HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
-                                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4,
-                                HDShaderIDs._FlareOcclusionIndex);
+                                data.hdCamera.mainViewConstants.worldSpaceCameraPos,
+                                data.hdCamera.mainViewConstants.viewProjMatrix,
+                                ctx.cmd, data.depthBuffer,
+                                HDShaderIDs._FlareOcclusionTex, HDShaderIDs._FlareOcclusionIndex, HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
+                                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4);
                         });
                 }
-
-                return lensFlareOcclusion;
             }
-            else
+        }
+
+        void LensFlareMergeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
-                return TextureHandle.nullHandle;
+                TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
+
+                using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare Merge Occlusion", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareMergeOcclusionDataDriven)))
+                {
+                    passData.source = builder.WriteTexture(occlusionHandle);
+                    passData.hdCamera = hdCamera;
+                    passData.parameters = PrepareLensFlareParameters(hdCamera);
+                    passData.viewport = new Vector2Int(LensFlareCommonSRP.maxLensFlareWithOcclusion, 1);
+
+                    builder.SetRenderFunc(
+                        (LensFlareData data, RenderGraphContext ctx) =>
+                        {
+                            ctx.cmd.SetComputeTextureParam(data.parameters.lensFlareMergeOcclusion, data.parameters.mergeOcclusionKernel, HDShaderIDs._LensFlareOcclusion, LensFlareCommonSRP.occlusionRT);
+                            ctx.cmd.DispatchCompute(data.parameters.lensFlareMergeOcclusion, data.parameters.mergeOcclusionKernel, HDUtils.DivRoundUp(LensFlareCommonSRP.maxLensFlareWithOcclusion, 8), 1, data.hdCamera.viewCount);
+                        });
+                }
             }
         }
 
@@ -3117,6 +3133,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
+                TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
+
                 using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareDataDriven)))
                 {
                     passData.source = builder.WriteTexture(source);
@@ -3124,6 +3142,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
                     passData.depthBuffer = depthBuffer;
+                    passData.occlusion = builder.ReadTexture(occlusionHandle);
                     TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Lens Flare Destination");
 
                     builder.SetRenderFunc(
@@ -3139,13 +3158,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
                                 ShaderConfig.s_CameraRelativeRendering != 0,
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
-                                data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
-                                //data.hdCamera.mainViewConstants.viewProjMatrix,
+                                data.hdCamera.mainViewConstants.viewProjMatrix,
                                 ctx.cmd, data.source,
                                 // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
                                 // And here the lambda setup like that seem to not alloc anything.
                                 (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
-                                HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
+                                HDShaderIDs._FlareOcclusionTex, HDShaderIDs._FlareOcclusionIndex, HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
                                 HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4,
                                 data.parameters.skipCopy);
                         });
@@ -3160,6 +3178,8 @@ namespace UnityEngine.Rendering.HighDefinition
         struct LensFlareParameters
         {
             public Material lensFlareShader;
+            public ComputeShader lensFlareMergeOcclusion;
+            public int mergeOcclusionKernel;
             public LensFlareCommonSRP lensFlares;
             public float paniniDistance;
             public float paniniCropToFit;
@@ -3173,6 +3193,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.lensFlares = LensFlareCommonSRP.Instance;
             parameters.lensFlareShader = m_LensFlareDataDrivenShader;
+            parameters.lensFlareMergeOcclusion = m_LensFlareMergeOcclusionDataDrivenCS;
+            parameters.mergeOcclusionKernel = m_LensFlareMergeOcclusionDataDrivenCS.FindKernel("MainCS");
             parameters.skipCopy = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.LensFlareDataDriven;
 
             PaniniProjection panini = camera.volumeStack.GetComponent<PaniniProjection>();
