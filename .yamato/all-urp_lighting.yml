@@ -36,17 +36,9 @@ PR_URP_Lighting_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-vulkan.yml#URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/urp_lighting-iphone-metal.yml#URP_Lighting_iPhone_Metal_Standalone_il2cpp_Linear_trunk
-         rerun: on_new_revision
       -  path: .yamato/urp_lighting-osx-metal.yml#URP_Lighting_OSX_Metal_playmode_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_lighting-osx-openglcore.yml#URP_Lighting_OSX_OpenGLCore_editmode_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-android-opengles3.yml#URP_Lighting_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-android-vulkan.yml#URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-iphone-metal.yml#URP_Lighting_iPhone_Metal_Standalone_il2cpp_Linear_trunk
          rerun: on_new_revision
 Extra_URP_Lighting_trunk:
     name: Extra URP_Lighting on trunk
@@ -104,17 +96,9 @@ PR_URP_Lighting_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-vulkan.yml#URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/urp_lighting-iphone-metal.yml#URP_Lighting_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/urp_lighting-osx-metal.yml#URP_Lighting_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_lighting-osx-openglcore.yml#URP_Lighting_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-android-opengles3.yml#URP_Lighting_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-android-vulkan.yml#URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-iphone-metal.yml#URP_Lighting_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_URP_Lighting_CUSTOM-REVISION:
     name: Extra URP_Lighting on CUSTOM-REVISION
