@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing;
@@ -48,13 +49,13 @@ namespace UnityEditor.ShaderGraph
             int score = 0;
 
             // Split the entry name so that we can remove suffix that looks like "Clamp: In(4)"
-            var nameSansSuffix = matchItem.Name.Split(':').First();
+            var nameSansSuffix = matchItem.Name.Split(':').First().ToLowerInvariant();
 
             int nameCharactersMatched = 0;
 
             foreach (var queryWord in queryTerms)
             {
-                if (nameSansSuffix.Contains(queryWord, StringComparison.OrdinalIgnoreCase))
+                if (nameSansSuffix.Contains(queryWord.ToLowerInvariant()))
                 {
                     score += 100000;
                     nameCharactersMatched += queryWord.Length;
@@ -69,7 +70,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             score += 10000;
                         }
-                        else if (syn.Contains(queryWord, StringComparison.OrdinalIgnoreCase))
+                        else if (syn.Contains(queryWord.ToLowerInvariant()))
                         {
                             score += 1000;
                             score -= (syn.Length - queryWord.Length);
