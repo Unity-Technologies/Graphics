@@ -749,10 +749,7 @@ namespace UnityEditor.VFX
         private static bool NeedsPositionWorldInterpolator(GraphCode graphCode)
         {
             return graphCode.requirements.requiresPosition != NeededCoordinateSpace.None
-                    || graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None
-                    || graphCode.requirements.requiresScreenPosition
-                    || graphCode.requirements.requiresNDCPosition
-                    || graphCode.requirements.requiresPixelPosition;
+                    || graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None;
         }
 
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
@@ -857,20 +854,6 @@ namespace UnityEditor.VFX
                                     callSG.builder.AppendLine("INSG.AbsoluteWorldSpacePositionPredisplacement = posAbsoluteWS;");
                             }
 
-                            callSG.builder.AppendLine("{");
-                            if (graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
-                                callSG.builder.AppendLine("float2 localPixelPosition = i.VFX_VARYING_POSCS.xy;");
-                            if (graphCode.requirements.requiresNDCPosition)
-                                callSG.builder.AppendLine("float2 localNDCPosition = localPixelPosition.xy / _ScreenParams.w;");
-
-                            if (graphCode.requirements.requiresScreenPosition)
-                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(VFXTransformPositionWorldToClip(i.VFX_VARYING_POSWS), _ProjectionParams.x);");
-                            if (graphCode.requirements.requiresNDCPosition)
-                                callSG.builder.AppendLine("INSG.NDCPosition = localPixelPosition / _ScreenParams.xy;");
-                            if (graphCode.requirements.requiresPixelPosition)
-                                callSG.builder.AppendLine("INSG.PixelPosition = localPixelPosition;");
-                            callSG.builder.AppendLine("}");
-
                             if (graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
                             {
                                 callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(VFXGetPositionRWS(i.VFX_VARYING_POSWS));");
@@ -883,6 +866,25 @@ namespace UnityEditor.VFX
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Tangent) != 0)
                                     callSG.builder.AppendLine("INSG.TangentSpaceViewDirection = mul(tbn, V);");
                             }
+                        }
+
+                        if (graphCode.requirements.requiresScreenPosition
+                            || graphCode.requirements.requiresNDCPosition
+                            || graphCode.requirements.requiresPixelPosition)
+                        {
+                            callSG.builder.AppendLine("{");
+                            if (graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
+                                callSG.builder.AppendLine("float2 localPixelPosition = i.VFX_VARYING_POSCS.xy;");
+                            if (graphCode.requirements.requiresNDCPosition)
+                                callSG.builder.AppendLine("float2 localNDCPosition = localPixelPosition.xy / _ScreenParams.w;");
+
+                            if (graphCode.requirements.requiresScreenPosition)
+                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(localPixelPosition, _ProjectionParams.x);");
+                            if (graphCode.requirements.requiresNDCPosition)
+                                callSG.builder.AppendLine("INSG.NDCPosition = localPixelPosition / _ScreenParams.xy;");
+                            if (graphCode.requirements.requiresPixelPosition)
+                                callSG.builder.AppendLine("INSG.PixelPosition = localPixelPosition;");
+                            callSG.builder.AppendLine("}");
                         }
 
                         if (graphCode.requirements.requiresMeshUVs.Contains(UVChannel.UV0))
