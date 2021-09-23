@@ -33,6 +33,11 @@ namespace UnityEditor.ShaderFoundry
             return Construct(variable.Type, newName, newName, variable.DefaultExpression, owner, variable.Attributes);
         }
 
+        internal static BlockVariableLinkInstance Construct(BlockVariableLinkInstance variable, string referenceName, string displayName, BlockVariableLinkInstance owner)
+        {
+            return Construct(variable.Type, referenceName, displayName, variable.DefaultExpression, owner, variable.Attributes);
+        }
+
         internal static BlockVariableLinkInstance Construct(ShaderType type, string referenceName, string displayName, string defaultExpression, BlockVariableLinkInstance owner, IEnumerable<ShaderAttribute> attributes = null)
         {
             var result = new BlockVariableLinkInstance
@@ -96,6 +101,11 @@ namespace UnityEditor.ShaderFoundry
         internal void AddOverride(string key, string namespaceName, string name, int swizzle)
         {
             nameOverrides.Add(key, namespaceName, name, swizzle);
+        }
+
+        internal bool GetLastVariableOverrideOrDefault(string referenceName, out VariableNameOverride varOverride)
+        {
+            return nameOverrides.GetLastVariableOverrideOrDefault(referenceName, out varOverride);
         }
 
         internal VariableNameOverride FindLastVariableOverride(string referenceName)

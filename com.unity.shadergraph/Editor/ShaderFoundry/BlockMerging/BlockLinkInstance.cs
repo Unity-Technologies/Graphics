@@ -71,5 +71,10 @@ namespace UnityEditor.ShaderFoundry
         {
             properties.Add(prop);
         }
+
+        internal BlockVariableLinkInstance FindProperty(string referenceName)
+        {
+            return properties.Find((p) => (p.ReferenceName == referenceName));
+        }
     }
 }
