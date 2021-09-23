@@ -173,6 +173,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             PropertyField(m_Enable);
+            EditorGUILayout.Space();
 
             // If ray tracing is supported display the content of the volume component
             if (HDRenderPipeline.buildPipelineSupportsRayTracing)

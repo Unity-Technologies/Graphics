@@ -1465,6 +1465,36 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a 2D <c>Texture</c> value.
+    /// </summary>
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public class Texture2DParameter : VolumeParameter<Texture>
+    {
+        /// <summary>
+        /// Creates a new <seealso cref="Texture2DParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public Texture2DParameter(Texture value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a 3D <c>Texture</c> value.
+    /// </summary>
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public class Texture3DParameter : VolumeParameter<Texture>
+    {
+        /// <summary>
+        /// Creates a new <seealso cref="Texture3DParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public Texture3DParameter(Texture value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
+    /// <summary>
     /// A <see cref="VolumeParameter"/> that holds a <c>RenderTexture</c> value.
     /// </summary>
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]

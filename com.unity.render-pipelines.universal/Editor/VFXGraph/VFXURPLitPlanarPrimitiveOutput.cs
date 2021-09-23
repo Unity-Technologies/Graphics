@@ -9,7 +9,15 @@ namespace UnityEditor.VFX.URP
     [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
     class VFXURPLitPlanarPrimitiveOutput : VFXAbstractParticleURPLitOutput
     {
-        public override string name { get { return "Output Particle URP Lit " + primitiveType.ToString(); } }
+        public override string name
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(shaderName)
+                    ? $"Output Particle {shaderName} {primitiveType.ToString()}"
+                    : "Output Particle URP Lit " + primitiveType.ToString();
+            }
+        }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType); } }
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
