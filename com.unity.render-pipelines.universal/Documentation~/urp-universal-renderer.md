@@ -77,6 +77,14 @@ With this check box selected, the Renderer processes the Stencil buffer values.
 
 For more information on how Unity works with the Stencil buffer, see [ShaderLab: Stencil](https://docs.unity3d.com/Manual/SL-Stencil.html).
 
+### Compatibility
+
+This section contains settings related to backwards compatibility.
+
+| Property | Description |
+|:-|:-|
+| **Intermediate Texture** | Controls when URP renders via an intermediate texture. Options: <ul><li>**Auto**: Uses information declared by active Renderer Features to automatically determine whether to render through an intermediate texture or not.</li><li>**Always**: Forces rendering via an intermediate texture, enabling compatibility with renderer features that do not declare their needed inputs, but can have a significant performance impact on some platforms.</li></ul> |
+
 ### Renderer Features
 
 This section contains the list of Renderer Features assigned to the selected Renderer.
