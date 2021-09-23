@@ -110,7 +110,13 @@ ShaderGraph_ref_Win_Vulkan_playmode_ref_images_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph %CACHE_ARGS% --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+    after:
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
@@ -143,7 +149,7 @@ ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+    after:
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
@@ -294,7 +300,13 @@ ShaderGraph_ref_Win_Vulkan_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph %CACHE_ARGS% --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+    after:
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
@@ -327,7 +339,7 @@ ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISI
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+    after:
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
