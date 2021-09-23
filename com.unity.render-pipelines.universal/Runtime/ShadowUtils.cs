@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.Universal
             return rtd;
         }
 
-        [Obsolete]
+        [Obsolete("Use AllocShadowRT or ShadowRTReAllocateIfNeeded")]
         public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
         {
             var rtd = GetTemporaryShadowTextureDescriptor(width, height, bits);

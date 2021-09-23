@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private RTHandle source { get; set; }
         private RTHandle destination { get; set; }
-        [Obsolete]
+        // TODO: Remove when Obsolete Setup is removed
         private int destinationID { get; set; }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Target</param>
-        [Obsolete]
+        [Obsolete("Use RTHandles for source and destination.")]
         public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination, Downsampling downsampling)
         {
             this.source = RTHandles.Alloc(source);

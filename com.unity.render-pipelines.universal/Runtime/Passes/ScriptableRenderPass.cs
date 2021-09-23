@@ -140,19 +140,19 @@ namespace UnityEngine.Rendering.Universal
 
         public RenderPassEvent renderPassEvent { get; set; }
 
-        [Obsolete]
+        [Obsolete("Use colorAttachmentHandles")]
         public RenderTargetIdentifier[] colorAttachments
         {
             get => m_ColorAttachmentIds;
         }
 
-        [Obsolete]
+        [Obsolete("Use colorAttachmentHandle")]
         public RenderTargetIdentifier colorAttachment
         {
             get => m_ColorAttachmentIds[0];
         }
 
-        [Obsolete]
+        [Obsolete("Use depthAttachmentHandle")]
         public RenderTargetIdentifier depthAttachment
         {
             get => m_UsesRTHandles ? new RenderTargetIdentifier(m_DepthAttachment.nameID, 0, CubemapFace.Unknown, -1) : m_DepthAttachmentId;
@@ -247,11 +247,11 @@ namespace UnityEngine.Rendering.Universal
         internal GraphicsFormat[] renderTargetFormat { get; set; }
         internal bool m_UsesRTHandles;
         RTHandle[] m_ColorAttachments;
-        [Obsolete]
+        // TODO: Replace with m_ColorAttachments when dropping backwards compatibility
         RenderTargetIdentifier[] m_ColorAttachmentIds;
         internal RTHandle[] m_InputAttachments = new RTHandle[8];
         RTHandle m_DepthAttachment;
-        [Obsolete]
+        // TODO: Replace with m_DepthAttachment when dropping backwards compatibility
         RenderTargetIdentifier m_DepthAttachmentId;
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
@@ -349,7 +349,7 @@ namespace UnityEngine.Rendering.Universal
             m_InputAttachments[0] = input;
         }
 
-        [Obsolete]
+        [Obsolete("Use RTHandle for input")]
         internal void ConfigureInputAttachments(RenderTargetIdentifier input)
         {
             m_InputAttachments[0] = RTHandles.Alloc(input);
@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering.Universal
             m_InputAttachments = inputs;
         }
 
-        [Obsolete]
+        [Obsolete("Use RTHandles for inputs")]
         internal void ConfigureInputAttachments(RenderTargetIdentifier[] inputs)
         {
             for (int i = 0; i < inputs.Length; ++i)
@@ -386,7 +386,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete]
+        [Obsolete("Use RTHandles for colorAttachment and depthAttachment")]
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
             m_DepthAttachmentId = depthAttachment;
@@ -410,7 +410,7 @@ namespace UnityEngine.Rendering.Universal
             ConfigureTarget(colorAttachment);
         }
 
-        [Obsolete]
+        [Obsolete("Use RTHandles for colorAttachment and depthAttachment")]
         internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, GraphicsFormat format)
         {
             m_DepthAttachment = null;
@@ -434,7 +434,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete]
+        [Obsolete("Use RTHandles for colorAttachments and depthAttachment")]
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
         {
             m_UsesRTHandles = false;
@@ -475,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = depthAttachment;
         }
 
-        [Obsolete]
+        [Obsolete("Use RTHandles for colorAttachments and depthAttachment")]
         internal void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, GraphicsFormat[] formats)
         {
             ConfigureTarget(colorAttachments, depthAttachment);
@@ -496,7 +496,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete]
+        [Obsolete("Use RTHandle for colorAttachment")]
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
             m_UsesRTHandles = false;
@@ -529,7 +529,7 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 0612
         }
 
-        [Obsolete]
+        [Obsolete("Use RTHandle for colorAttachment")]
         internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
         {
             ConfigureTarget(colorAttachment);
@@ -566,9 +566,9 @@ namespace UnityEngine.Rendering.Universal
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
         /// </summary>
-        /// <param name="colorAttachment">Color attachment identifier.</param>
+        /// <param name="colorAttachments">Color attachment identifiers.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete]
+        [Obsolete("Use RTHandles for colorAttachments")]
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
             ConfigureTarget(colorAttachments, k_CameraTarget.nameID);
@@ -663,7 +663,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
         /// <seealso cref="ScriptableRenderer"/>
-        [Obsolete]
+        [Obsolete("Use RTHandles for source and destination")]
         public void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
         {
             ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);

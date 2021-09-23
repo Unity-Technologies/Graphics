@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="baseDescriptor"></param>
         /// <param name="colorHandle"></param>
-        [Obsolete]
+        [Obsolete("Use RTHandles for colorHandle")]
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
             if (m_Source?.nameID != colorHandle.Identifier())
