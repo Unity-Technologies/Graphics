@@ -277,12 +277,15 @@ float _TessellationObjectScale;
 float _TessellationTilingScale;
 #endif
 
+
+
+CBUFFER_END
+
 // Following three variables are feeded by the C++ Editor for Scene selection
+// It need to be outside the UnityPerMaterial buffer to have Material compatible with SRP Batcher
 int _ObjectId;
 int _PassValue;
 float4 _SelectionID;
-
-CBUFFER_END
 
 #if defined(UNITY_DOTS_INSTANCING_ENABLED)
 #if defined(LAYERED_LIT_SHADER)
