@@ -1,8 +1,10 @@
+using System;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
     // RenderTargetHandle can be thought of as a kind of ShaderProperty string hash
+    [Obsolete("Deprecated in favor of RTHandle")]
     public struct RenderTargetHandle
     {
         public int id { set; get; }
