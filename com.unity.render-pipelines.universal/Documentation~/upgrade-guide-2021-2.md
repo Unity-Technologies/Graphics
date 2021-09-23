@@ -2,6 +2,8 @@
 
 This page describes how to upgrade from an older version of the Universal Render Pipeline (URP) to version 12.0.x.
 
+For information on converting assets made for a Built-in Render Pipeline project to assets compatible with URP, see the page [Render Pipeline Converter](features/rp-converter.md).
+
 ## Upgrading from URP 11.x.x
 
 * The Forward Renderer asset is renamed to the Universal Renderer asset. When you open an existing project in the Unity Editor containing URP 12, Unity updates the existing Forward Renderer assets to Universal Renderer assets.
