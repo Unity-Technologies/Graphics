@@ -4904,6 +4904,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (TEST_HDR())
                         {
                             finalPassMaterial.EnableKeyword("HDR_OUTPUT");
+                            int colorGamut = (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec2020 || HDROutputSettings.main.displayColorGamut == ColorGamut.HDR10) ? 0 :
+                            HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709 ? 1 :
+                            (HDROutputSettings.main.displayColorGamut == ColorGamut.DisplayP3 || HDROutputSettings.main.displayColorGamut == ColorGamut.DolbyHDR) ? 2 : -1;
+
+                            var a = HDROutputSettings.main.maxFullFrameToneMapLuminance;
+
+                            finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams, new Vector4(HDROutputSettings.main.minToneMapLuminance, HDROutputSettings.main.maxToneMapLuminance, HDROutputSettings.main.paperWhiteNits, colorGamut));
                         }
                         else
                         {

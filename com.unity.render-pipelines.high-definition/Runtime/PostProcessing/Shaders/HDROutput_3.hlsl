@@ -149,7 +149,7 @@ float3 RotateICtCpToPQLMS(float3 ICtCp)
 float3 RotateICtCpToRec2020(float3 ICtCp)
 {
     float3 PQLMS = RotateICtCpToPQLMS(ICtCp);
-    float3 LMS = PQToLinear(PQLMS, 10000.0);
+    float3 LMS = PQToLinear(PQLMS, MAX_PQ_VALUE);
     float3 XYZ = RotateLMSToXYZ(LMS);
     return RotateXYZToRec2020(XYZ);
 }
@@ -299,4 +299,19 @@ float3 HDRMappingFromRec709(float3 Rec709Input, float hdrBoost, float minNits, f
     // and the colours get boosted. If we want equivalent look in HDR a similar boost needs to happen. It might look washed out otherwise.
     float3 reducedHDR = PerformRangeReduction(Rec2020Input * hdrBoost, minNits, maxNits);
     return EOTF(reducedHDR);
+}
+
+// --------------------------------------------------------------------------------------------
+
+// --------------------------------
+// UI Related functions
+// --------------------------------
+
+// Assumes UI is linear at this point ? Is it true?
+float3 SceneUIComposition(float4 uiSample, float3 pqSceneColor, float paperWhite)
+{
+    uiSample.rgb = RotateRec709ToRec2020(uiSample.rgb / (uiSample.a == 0.0 ? 1.0 : uiSample.a));
+    uiSample.rgb = LinearToPQ(uiSample.rgb, (MAX_PQ_VALUE / paperWhite));
+    uiSample.rgb *= uiSample.a;
+    return uiSample.rgb + pqSceneColor.rgb * (1.0f - uiSample.a);
 }

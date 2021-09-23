@@ -56,6 +56,15 @@ Shader "Hidden/HDRP/FinalPass"
         float4 _ViewPortSize;
         float  _KeepAlpha;
 
+        // TODO_FCC: HDR RELATED STUFF, WILL NEED TO MOVE TO WHATEVER BUILDS THE LUT.
+        float4 _HDROutputParams;
+        #define _MinNits    _HDROutputParams.x
+        #define _MaxNits    _HDROutputParams.y
+        #define _PaperWhite _HDROutputParams.z
+        #define _IsRec2020  (int)(_HDROutputParams.w) == 0
+        #define _IsRec709   (int)(_HDROutputParams.w) == 1
+        #define _IsP3       (int)(_HDROutputParams.w) == 2
+
         struct Attributes
         {
             uint vertexID : SV_VertexID;
@@ -175,20 +184,12 @@ Shader "Hidden/HDRP/FinalPass"
 
             // The reason to have a boost factor is because the standard for SDR is peaking at 100nits, but televisions are typically 300nits
             // and the colours get boosted. If we want equivalent look in HDR a similar boost needs to happen. It might look washed out otherwise.
-            float hdrBoostFactor = 300; // TODO: Should come from user or from paperwhite nits.
-            //outColor.rgb = HDRMappingFromRec709(outColor.xyz*hdrBoostFactor, 0.005f, 10.0f);
-            //outColor.rgb = HDRMappingFromRec709(outColor.xyz, 0.005f, 10.0f);
-            outColor.rgb = HDRMappingFromRec709(outColor.rgb, hdrBoostFactor, 0.0f, 400.0f);
-            //rec2020 *= hdrBoostFactor;
-            //float3 tonemapped = Tonemap_HDR(rec2020);
-            //outColor.rgb = EOTF_(tonemapped);
-
+            float paperWhiteBoost = 1.5f;// ??????? Something like this should come from calibration, so probably allow to set via script.
+            outColor.rgb = HDRMappingFromRec709(outColor.rgb, _PaperWhite * paperWhiteBoost, _MinNits, _MaxNits);
 
             //// This looks really bad now, so it is likely wrong code, will come back when making stuff more ordinate.
-            //float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
-            //const float paperWhiteNits = 100.0f; // TODO: Have from UI
-            //uiValue.rgb = NormalizeUIForHDRComposition(uiValue.rgb, paperWhiteNits);
-            //outColor.rgb = uiValue.rgb + outColor.rgb * (1.0f - uiValue.a);
+            float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
+            outColor.rgb = SceneUIComposition(uiValue, outColor.rgb, _PaperWhite * paperWhiteBoost);
 #endif
 
         #if !defined(ENABLE_ALPHA)
