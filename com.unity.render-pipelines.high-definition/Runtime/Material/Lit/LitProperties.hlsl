@@ -134,13 +134,6 @@ float4 _UVMappingMaskEmissive;
 
 float4 _InvPrimScale; // Only XY are used
 
-// Wind
-float _InitialBend;
-float _Stiffness;
-float _Drag;
-float _ShiverDrag;
-float _ShiverDirectionality;
-
 // Specular AA
 float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
