@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
         public SampleTexture2DArrayNode()
         {
             name = "Sample Texture 2D Array";
-            synonyms = new string[] { "stack", "pile" };
+            synonyms = new string[] { "stack", "pile", "tex2darray" };
             UpdateNodeAfterDeserialization();
         }
 

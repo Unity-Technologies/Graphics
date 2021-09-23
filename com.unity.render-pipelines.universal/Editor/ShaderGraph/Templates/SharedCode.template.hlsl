@@ -3,6 +3,14 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     SurfaceDescriptionInputs output;
     ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
+#ifdef HAVE_VFX_MODIFICATION
+    // FragInputs from VFX come from two places: Interpolator or CBuffer.
+    $splice(VFXSetFragInputs)
+
+    $SurfaceDescriptionInputs.elementToWorld: BuildElementToWorld(input);
+    $SurfaceDescriptionInputs.worldToElement: BuildWorldToElement(input);
+#endif
+
     $splice(CustomInterpolatorCopyToSDI)
 
     $SurfaceDescriptionInputs.WorldSpaceNormal: // must use interpolated tangent, bitangent and normal before they are normalized in the pixel shader.
@@ -46,6 +54,8 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.TangentSpacePositionPredisplacement:      output.TangentSpacePositionPredisplacement = float3(0.0f, 0.0f, 0.0f);
     $SurfaceDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement:output.AbsoluteWorldSpacePositionPredisplacement = GetAbsolutePositionWS(input.positionWS);
     $SurfaceDescriptionInputs.ScreenPosition:                           output.ScreenPosition = ComputeScreenPos(TransformWorldToHClip(input.positionWS), _ProjectionParams.x);
+    $SurfaceDescriptionInputs.PixelPosition:                            output.PixelPosition = input.positionCS.xy;
+    $SurfaceDescriptionInputs.NDCPosition:                              output.NDCPosition = output.PixelPosition.xy / _ScreenParams.xy;
     $SurfaceDescriptionInputs.uv0:                                      output.uv0 = input.texCoord0;
     $SurfaceDescriptionInputs.uv1:                                      output.uv1 = input.texCoord1;
     $SurfaceDescriptionInputs.uv2:                                      output.uv2 = input.texCoord2;

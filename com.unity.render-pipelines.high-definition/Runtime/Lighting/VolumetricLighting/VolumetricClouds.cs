@@ -80,10 +80,12 @@ namespace UnityEngine.Rendering.HighDefinition
             Medium256 = 256,
             /// <summary>The volumetric clouds shadow will be 512x512.</summary>
             High512 = 512,
+            /// <summary>The volumetric clouds shadow will be 1024x1024.</summary>
+            Ultra1024 = 1024,
         }
 
         /// <summary> </summary>
-        public const int CloudShadowResolutionCount = 4;
+        public const int CloudShadowResolutionCount = 5;
 
         /// <summary>
         /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudControl"/> value.
@@ -379,22 +381,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter shapeScale = new MinFloatParameter(2.5f, 0.1f);
 
         /// <summary>
-        /// Controls the offset (world X-axis) applied when evaluating the larger noise passing through the cloud coverage.
+        /// Controls the world space offset applied when evaluating the larger noise passing through the cloud coverage.
         /// </summary>
-        [Tooltip("Controls the offset (world X-axis) applied when evaluating the larger noise passing through the cloud coverage.")]
-        public FloatParameter shapeOffsetX = new FloatParameter(0.0f);
-
-        /// <summary>
-        /// Controls the offset (world Y-axis) applied when evaluating the larger noise passing through the cloud coverage.
-        /// </summary>
-        [Tooltip("Controls the offset (world Y-axis) applied when evaluating the larger noise passing through the cloud coverage.")]
-        public FloatParameter shapeOffsetY = new FloatParameter(0.0f);
-
-        /// <summary>
-        /// Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage.
-        /// </summary>
-        [Tooltip("Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage.")]
-        public FloatParameter shapeOffsetZ = new FloatParameter(0.0f);
+        [Tooltip("Controls the world space offset applied when evaluating the larger noise passing through the cloud coverage.")]
+        public Vector3Parameter shapeOffset = new Vector3Parameter(Vector3.zero);
 
         /// <summary>
         /// Controls the smaller noise on the edge of the clouds. A higher value will erode clouds more significantly.
@@ -420,6 +410,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the influence of the light probes on the cloud volume. A lower value will suppress the ambient light and produce darker clouds overall.")]
         public ClampedFloatParameter ambientLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Controls the influence of the sun light on the cloud volume. A lower value will suppress the sun light and produce darker clouds overall.
+        /// </summary>
+        [Tooltip("Controls the influence of the sun light on the cloud volume. A lower value will suppress the sun light and produce darker clouds overall.")]
+        public ClampedFloatParameter sunLightDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes.

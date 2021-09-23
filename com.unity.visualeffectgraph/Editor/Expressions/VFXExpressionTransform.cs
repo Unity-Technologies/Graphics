@@ -34,7 +34,6 @@ namespace UnityEditor.VFX
             var pos = posReduce.Get<Vector3>();
             var rot = rotReduce.Get<Vector3>();
             var scale = scaleReduce.Get<Vector3>();
-
             var quat = Quaternion.Euler(rot);
 
             Matrix4x4 matrix = new Matrix4x4();
@@ -121,83 +120,9 @@ namespace UnityEditor.VFX
         // adjust matrix of each element. Finally deals with the translation by transforming the
         // original translation using by the calculated inverse.
         //https://github.com/erich666/GraphicsGems/blob/master/gemsii/inverse.c
-        static bool inputvertMatrix4x4_General3D(Matrix4x4 input, ref Matrix4x4 output) //*WIP* This function is not exposed, we will add an helper in Matrix4 bindings
+        static bool inputvertMatrix4x4_General3D(Matrix4x4 input, ref Matrix4x4 output)
         {
-#if UNITY_2019_2_OR_NEWER
             return Matrix4x4.Inverse3DAffine(input, ref output);
-#else
-            output = Matrix4x4.identity;
-
-            float pos, neg, t;
-            float det;
-
-            // Calculate the determinant of upper left 3x3 sub-matrix and
-            // determine if the matrix is singular.
-            pos = neg = 0.0f;
-            t = input[0, 0] * input[1, 1] * input[2, 2];
-            if (t >= 0.0f)
-                pos += t;
-            else
-                neg += t;
-
-            t = input[1, 0] * input[2, 1] * input[0, 2];
-            if (t >= 0.0f)
-                pos += t;
-            else
-                neg += t;
-
-            t = input[2, 0] * input[0, 1] * input[1, 2];
-            if (t >= 0.0f)
-                pos += t;
-            else
-                neg += t;
-
-            t = -input[2, 0] * input[1, 1] * input[0, 2];
-            if (t >= 0.0f)
-                pos += t;
-            else
-                neg += t;
-
-            t = -input[1, 0] * input[0, 1] * input[2, 2];
-            if (t >= 0.0f)
-                pos += t;
-            else
-                neg += t;
-
-            t = -input[0, 0] * input[2, 1] * input[1, 2];
-            if (t >= 0.0f)
-                pos += t;
-            else
-                neg += t;
-
-            det = pos + neg;
-
-            if (det * det < 1e-25f)
-                return false;
-
-            det = 1.0f / det;
-            output[0, 0] = (input[1, 1] * input[2, 2] - input[2, 1] * input[1, 2]) * det;
-            output[0, 1] = -(input[0, 1] * input[2, 2] - input[2, 1] * input[0, 2]) * det;
-            output[0, 2] = (input[0, 1] * input[1, 2] - input[1, 1] * input[0, 2]) * det;
-            output[1, 0] = -(input[1, 0] * input[2, 2] - input[2, 0] * input[1, 2]) * det;
-            output[1, 1] = (input[0, 0] * input[2, 2] - input[2, 0] * input[0, 2]) * det;
-            output[1, 2] = -(input[0, 0] * input[1, 2] - input[1, 0] * input[0, 2]) * det;
-            output[2, 0] = (input[1, 0] * input[2, 1] - input[2, 0] * input[1, 1]) * det;
-            output[2, 1] = -(input[0, 0] * input[2, 1] - input[2, 0] * input[0, 1]) * det;
-            output[2, 2] = (input[0, 0] * input[1, 1] - input[1, 0] * input[0, 1]) * det;
-
-            // Do the translation part
-            output[0, 3] = -(input[0, 3] * output[0, 0] + input[1, 3] * output[0, 1] + input[2, 3] * output[0, 2]);
-            output[1, 3] = -(input[0, 3] * output[1, 0] + input[1, 3] * output[1, 1] + input[2, 3] * output[1, 2]);
-            output[2, 3] = -(input[0, 3] * output[2, 0] + input[1, 3] * output[2, 1] + input[2, 3] * output[2, 2]);
-
-            output[3, 0] = 0.0f;
-            output[3, 1] = 0.0f;
-            output[3, 2] = 0.0f;
-            output[3, 3] = 1.0f;
-
-            return true;
-#endif
         }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
@@ -205,10 +130,7 @@ namespace UnityEditor.VFX
             var matrix = constParents[0].Get<Matrix4x4>();
 
             var result = Matrix4x4.identity;
-            if (!inputvertMatrix4x4_General3D(matrix, ref result))
-            {
-                throw new InvalidOperationException("VFXExpressionInverseTRSMatrix used on a not TRS Matrix");
-            }
+            inputvertMatrix4x4_General3D(matrix, ref result);
             return VFXValue.Constant(result);
         }
 
