@@ -40,8 +40,6 @@ all_project_ci_weekly_2019.4:
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_2019.4
          rerun: on_new_revision
-      -  path: .yamato/_templates.yml#all_template_ci_2019.4
-         rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_2019.4
          rerun: on_new_revision
 General_Checks_2019.4:
@@ -107,8 +105,6 @@ all_project_ci_weekly_fast-2019.4:
       -  path: .yamato/all-urp.yml#Nightly_URP_fast-2019.4
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_fast-2019.4
-         rerun: on_new_revision
-      -  path: .yamato/_templates.yml#all_template_ci_fast-2019.4
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_fast-2019.4
          rerun: on_new_revision
@@ -179,8 +175,6 @@ all_project_ci_weekly_CUSTOM-REVISION:
       -  path: .yamato/all-urp.yml#Nightly_URP_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/_templates.yml#all_template_ci_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision
