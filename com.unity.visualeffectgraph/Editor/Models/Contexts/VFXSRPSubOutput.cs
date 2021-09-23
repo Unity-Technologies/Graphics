@@ -65,9 +65,9 @@ namespace UnityEditor.VFX
                     throw new NotImplementedException("Unknown blend mode");
             }
 
-            int rawMaterialOffset = owner.GetMaterialOffset();
-            int materialOffset = Mathf.Clamp(rawMaterialOffset, -50, +50);
-            return baseRenderQueue + materialOffset.ToString("+#;-#;+0");
+            int rawMaterialSortingPriority = owner.GetMaterialSortingPriority();
+            int queueOffset = Mathf.Clamp(rawMaterialSortingPriority, -50, +50);
+            return baseRenderQueue + queueOffset.ToString("+#;-#;+0");
         }
 
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> GetStencilStateOverridesStr()
