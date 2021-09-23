@@ -71,13 +71,18 @@ namespace UnityEditor.ShaderFoundry
             return false;
         }
 
+        internal bool GetLastVariableOverrideOrDefault(string referenceName, out VariableNameOverride varOverride)
+        {
+            if (FindLastVariableOverride(referenceName, out varOverride))
+                return true;
+
+            varOverride = new VariableNameOverride { Name = referenceName };
+            return false;
+        }
+
         internal VariableNameOverride FindLastVariableOverride(string referenceName)
         {
-            VariableNameOverride varOverride;
-            if(FindLastVariableOverride(referenceName, out varOverride))
-                return varOverride;
-            
-            varOverride = new VariableNameOverride { Name = referenceName };
+            GetLastVariableOverrideOrDefault(referenceName, out var varOverride);
             return varOverride;
         }
 

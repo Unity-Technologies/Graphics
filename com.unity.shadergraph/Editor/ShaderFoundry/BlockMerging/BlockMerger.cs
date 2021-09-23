@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.ShaderFoundry;
 
 namespace UnityEditor.ShaderFoundry
 {
@@ -21,6 +20,12 @@ namespace UnityEditor.ShaderFoundry
             internal UnityEditor.Rendering.ShaderType StageType;
         }
 
+        class PropertyTuple
+        {
+            internal BlockVariable Variable;
+            internal bool DeclareAsProperty = true;
+        }
+
         internal BlockMerger(ShaderContainer container)
         {
             this.container = container;
@@ -30,6 +35,18 @@ namespace UnityEditor.ShaderFoundry
         internal static string BuildVariableName(Block block, BlockVariableLinkInstance variable)
         {
             return $"{block.Name}_{variable.ReferenceName}";
+        }
+
+        BlockVariableLinkInstance FindOrCreateVariableInstance(BlockVariableLinkInstance ownerInstance, BlockVariableLinkInstance variable, string referenceName, string displayName)
+        {
+            // If this field already exists on the owner (duplicate blocks) use the existing field, otherwise create a new one
+            var matchingField = ownerInstance.FindField(referenceName);
+            if (matchingField == null)
+            {
+                matchingField = BlockVariableLinkInstance.Construct(variable, referenceName, displayName, ownerInstance);
+                ownerInstance.AddField(matchingField);
+            }
+            return matchingField;
         }
 
         internal void LinkBlock(BlockDescriptor blockDescriptor, NamespaceScopes scopes, BlockLinkInstance mergedBlockLinkInstance, BlockLinkInstance blockLinkInstance)
@@ -43,29 +60,68 @@ namespace UnityEditor.ShaderFoundry
             // Begin a scope for the current block
             scopes.PushScope(block.Name);
 
+            var propertyVariableMap = new Dictionary<string, PropertyTuple>();
+            // Keep track of all properties this block declared. These are used along with
+            // the inputs to figure out how to match and whether a property is actually declared
+            foreach (var prop in block.Properties)
+            {
+                var propName = prop.ReferenceName;
+                if (!propertyVariableMap.ContainsKey(propName))
+                    propertyVariableMap.Add(propName, new PropertyTuple { Variable = prop, DeclareAsProperty = true } );
+            }
+
             // Try matching all input fields
             foreach (var input in blockInputInstance.Fields)
             {
-                // Find if there's a match for this input
-                var inputNameData = blockInputInstance.FindLastVariableOverride(input.ReferenceName);
-                bool allowNonExactMatch = inputNameData.Swizzle != 0;
-                var matchingField = scopes.Find(inputNameData.Namespace, input.Type, inputNameData.Name, allowNonExactMatch);
-                // If not, create a new input on the merged block to link to
-                if (matchingField == null)
-                {
-                    // Make the new field name unique
-                    var name = BuildVariableName(block, input);
-                    // If this field already exists (duplicate blocks) use the existing field, otherwise create a new one
-                    matchingField = mergedInputInstance.FindField(name);
-                    if(matchingField == null)
-                    {
-                        matchingField = BlockVariableLinkInstance.Construct(input, name, mergedInputInstance);
-                        mergedInputInstance.AddField(matchingField);
-                    }
-                    // Add the original name override so we can keep track of how to resolve this when linking later
-                    mergedInputInstance.AddOverride(matchingField.ReferenceName, inputNameData);
+                // Find if there's a backing property (always use the reference name, not the override name)
+                bool hasBackingProperty = propertyVariableMap.TryGetValue(input.ReferenceName, out var backingProperty);
 
-                    // If this was a property, also mark this as a property on the block
+                // Find if there's an override. This also creates a default name override to use if there wasn't one.
+                VariableNameOverride inputNameData;
+                bool hasOverride = blockInputInstance.GetLastVariableOverrideOrDefault(input.ReferenceName, out inputNameData);
+
+                // Find if there's a matching field using the override name
+                bool allowNonExactMatch = inputNameData?.Swizzle != 0;
+                var matchingField = scopes.Find(inputNameData.Namespace, input.Type, inputNameData.Name, allowNonExactMatch);
+
+                // By default, always create a new variable if there is no matching field
+                bool createNewVariable = (matchingField == null);
+                
+                // However, if there's a backing property the rules change a bit.
+                // An input with a backing property is always a property unless:
+                // - There is an override to a matching field
+                if (hasBackingProperty)
+                {
+                    createNewVariable = true;
+                    if(hasOverride && matchingField != null)
+                    {
+                        createNewVariable = false;
+                        backingProperty.DeclareAsProperty = false;
+                    }
+                }
+
+                // If we need to create a new variable on the merged block to link to
+                if (createNewVariable)
+                {
+                    // If the field has a backing property then use the original reference name, otherwise build a unique one
+                    var referenceName = input.ReferenceName;
+                    if(!hasBackingProperty)
+                        referenceName = BuildVariableName(block, input);
+
+                    // Make sure to propagate the original display name if it exists. If it doesn't use the reference name.
+                    var displayName = input.DisplayName;
+                    if (string.IsNullOrEmpty(input.DisplayName))
+                        displayName = referenceName;
+
+                    // Make sure a field exists on the merged input instance
+                    matchingField = FindOrCreateVariableInstance(mergedInputInstance, input, referenceName, displayName);
+
+                    // Propagate the override up to the new variable. This override is used to know know how the linking is supposed to work at an subsequent merges.
+                    // Note: Don't do this if there's a backing property as the override would provide no new information
+                    if(!hasBackingProperty)
+                        mergedInputInstance.AddOverride(matchingField.ReferenceName, inputNameData);
+
+                    // If this was a property, also mark this as a property on the block. (Should this exist or be all on the front-end?)
                     if (matchingField.Attributes.IsProperty())
                         mergedBlockLinkInstance.AddProperty(matchingField);
                 }
@@ -79,26 +135,29 @@ namespace UnityEditor.ShaderFoundry
                 };
                 blockInputInstance.AddResolvedField(input.ReferenceName, matchLink);
                 // Mark this resolution on the matching field's owner (the owner has a match for the field)
+                // Is this actually needed? I don't think the source ever needs the match...
                 matchingField.Owner.AddResolvedField(matchingField.ReferenceName, matchLink);
             }
 
-            // All properties get auto promoted to the merged block
+            // Try to promote all properties. Not all properties are promoted, depending on the input linking
             foreach(var prop in block.Properties)
             {
-                mergedBlockLinkInstance.AddProperty(BlockVariableLinkInstance.Construct(prop, blockInputInstance, prop.Attributes));
+                propertyVariableMap.TryGetValue(prop.ReferenceName, out var trackedProperty);
+                if (!trackedProperty.DeclareAsProperty)
+                    continue;
+
+                var existingProperty = mergedBlockLinkInstance.FindProperty(prop.ReferenceName);
+                if(existingProperty == null)
+                    mergedBlockLinkInstance.AddProperty(BlockVariableLinkInstance.Construct(prop, blockInputInstance, prop.Attributes));
             }
 
             foreach (var output in blockOutputInstance.Fields)
             {
                 // Always create an output on the merged block since anyone could use the output later.
                 var name = BuildVariableName(block, output);
-                // If this field already exists (duplicate blocks) use the existing field, otherwise create a new one
-                var availableOutput = mergedOutputInstance.FindField(name);
-                if(availableOutput == null)
-                {
-                    availableOutput = BlockVariableLinkInstance.Construct(output, name, mergedOutputInstance);
-                    mergedOutputInstance.AddField(availableOutput);
-                }
+
+                // Make sure a field exists on the merged output instance
+                var availableOutput = FindOrCreateVariableInstance(mergedOutputInstance, output, name, name);
 
                 // Link the new output to the block's output
                 var match = new ResolvedFieldMatch
@@ -108,15 +167,17 @@ namespace UnityEditor.ShaderFoundry
                 };
                 mergedOutputInstance.AddResolvedField(availableOutput.ReferenceName, match);
 
-                // Add a name override for the output so we can keep track of how to resolve this later when linking
+                // Always set in the block's explicit scope the original name.
+                // This is so explicit scope access can work on the original name
+                scopes.SetScope(block.Name, output, output.ReferenceName);
+
+                // Make all override names available for matching and also propagate those overrides onto the new variable.
+                // This includes the original name if there are no overrides.
                 var outputNameDatas = blockOutputInstance.FindVariableOverrides(output.ReferenceName);
                 foreach (var outputNameData in outputNameDatas)
                 {
-                    mergedOutputInstance.AddOverride(availableOutput.ReferenceName, outputNameData);
-
-                    // Set both of these outputs as available in all of the current scopes
+                    mergedOutputInstance.AddOverride(name, outputNameData);
                     scopes.SetInCurrentScopeStack(output, outputNameData.Name);
-                    scopes.SetInCurrentScopeStack(availableOutput, availableOutput.ReferenceName);
                 }
             }
 
