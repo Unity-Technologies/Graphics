@@ -18,6 +18,7 @@ void BuildVaryings(Attributes input, inout Varyings output)
 
 #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
     output.texCoord0 = output.positionCS * 0.5 + 0.5;
+    output.texCoord0.y = 1 - output.texCoord0.y;
 #endif
 
 #ifdef VARYINGS_NEED_SCREENPOSITION
@@ -32,7 +33,7 @@ float4 GetDrawProceduralVertexPosition(uint vertexID)
 
 float4 GetBlitVertexPosition(float3 positionOS)
 {
-    return mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, float4(positionOS, 1.0)));
+    return mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, float4(positionOS, 1.0)));
 }
 
 FragOutput DefaultFullscreenFragmentShader(PackedVaryings packedInput)

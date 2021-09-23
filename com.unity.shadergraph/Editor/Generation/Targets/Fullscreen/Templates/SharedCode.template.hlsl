@@ -3,40 +3,34 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     SurfaceDescriptionInputs output;
     ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
+    // Normal is not available yet, TODO: add a node to sample the normal buffer if it exists
+    float3 normalWS = 0;
+    float4 tangentWS = 0; // We can't access the tangent in screen space
+
     $SurfaceDescriptionInputs.WorldSpaceNormal:                         // must use interpolated tangent, bitangent and normal before they are normalized in the pixel shader.
-    $SurfaceDescriptionInputs.WorldSpaceNormal:                         float3 unnormalizedNormalWS = input.normalWS;
+    $SurfaceDescriptionInputs.WorldSpaceNormal:                         float3 unnormalizedNormalWS = normalWS;
     $SurfaceDescriptionInputs.WorldSpaceNormal:                         const float renormFactor = 1.0 / length(unnormalizedNormalWS);
 
     $SurfaceDescriptionInputs.WorldSpaceBiTangent:                      // use bitangent on the fly like in hdrp
     $SurfaceDescriptionInputs.WorldSpaceBiTangent:                      // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
-    $SurfaceDescriptionInputs.WorldSpaceBiTangent:                      float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0)* GetOddNegativeScale();
-    $SurfaceDescriptionInputs.WorldSpaceBiTangent:                      float3 bitang = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
+    $SurfaceDescriptionInputs.WorldSpaceBiTangent:                      float crossSign = (tangentWS.w > 0.0 ? 1.0 : -1.0)* GetOddNegativeScale();
+    $SurfaceDescriptionInputs.WorldSpaceBiTangent:                      float3 bitang = crossSign * cross(normalWS.xyz, tangentWS.xyz);
 
-    $SurfaceDescriptionInputs.WorldSpaceNormal:                         output.WorldSpaceNormal = renormFactor * input.normalWS.xyz;      // we want a unit length Normal Vector node in shader graph
+    $SurfaceDescriptionInputs.WorldSpaceNormal:                         output.WorldSpaceNormal = renormFactor * normalWS.xyz;      // we want a unit length Normal Vector node in shader graph
     $SurfaceDescriptionInputs.ObjectSpaceNormal:                        output.ObjectSpaceNormal = normalize(mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M));           // transposed multiplication by inverse matrix to handle normal scale
     $SurfaceDescriptionInputs.ViewSpaceNormal:                          output.ViewSpaceNormal = mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
     $SurfaceDescriptionInputs.TangentSpaceNormal:                       output.TangentSpaceNormal = float3(0.0f, 0.0f, 1.0f);
 
     $SurfaceDescriptionInputs.WorldSpaceTangent:                        // to preserve mikktspace compliance we use same scale renormFactor as was used on the normal.
     $SurfaceDescriptionInputs.WorldSpaceTangent:                        // This is explained in section 2.2 in "surface gradient based bump mapping framework"
-    $SurfaceDescriptionInputs.WorldSpaceTangent:                        output.WorldSpaceTangent = renormFactor * input.tangentWS.xyz;
+    $SurfaceDescriptionInputs.WorldSpaceTangent:                        output.WorldSpaceTangent = renormFactor * tangentWS.xyz;
     $SurfaceDescriptionInputs.WorldSpaceBiTangent:                      output.WorldSpaceBiTangent = renormFactor * bitang;
 
-    // Calculate world space view direction without the position WS:
-    bool ortho = UNITY_MATRIX_P[3][3] == 0;
-    float3 viewDirWS;
-    if (ortho)
-    {
-        viewDirWS = -GetWorldToViewMatrix()[2].xyz;
-    }
-    else
-    {
-        float4 n = mul(UNITY_MATRIX_I_VP, float4(input.positionCS.xy, 0, 1));
-        float4 f = n + UNITY_MATRIX_I_VP[2];
-        n.xyz /= n.w;
-        f.xyz /= f.w;
-        viewDirWS = f.xyz-n.xyz;
-    }
+    float linearDepth = (SHADERGRAPH_SAMPLE_SCENE_DEPTH(input.texCoord0.xy));
+    float3 positionWS = ComputeWorldSpacePosition(input.texCoord0.xy, linearDepth, UNITY_MATRIX_I_VP);
+    float3 viewDirWS = GetWorldSpaceNormalizeViewDir(positionWS);
+
+    // positionWS = float3(SHADERGRAPH_SAMPLE_SCENE_DEPTH(input.texCoord0.xy), 0, 0);
 
     $SurfaceDescriptionInputs.ObjectSpaceTangent:                       output.ObjectSpaceTangent = TransformWorldToObjectDir(output.WorldSpaceTangent);
     $SurfaceDescriptionInputs.ViewSpaceTangent:                         output.ViewSpaceTangent = TransformWorldToViewDir(output.WorldSpaceTangent);
@@ -49,11 +43,6 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.ViewSpaceViewDirection:                   output.ViewSpaceViewDirection = TransformWorldToViewDir(output.WorldSpaceViewDirection);
     $SurfaceDescriptionInputs.TangentSpaceViewDirection:                float3x3 tangentSpaceTransform = float3x3(output.WorldSpaceTangent, output.WorldSpaceBiTangent, output.WorldSpaceNormal);
     $SurfaceDescriptionInputs.TangentSpaceViewDirection:                output.TangentSpaceViewDirection = mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
-
-    // Calculate world space position:
-    float2 screenSpaceUV = input.texCoord0.xy;
-    float linearDepth = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(screenSpaceUV), _ZBufferParams);
-    float3 positionWS = viewDirWS * linearDepth;
 
     $SurfaceDescriptionInputs.WorldSpacePosition:                       output.WorldSpacePosition = positionWS;
     $SurfaceDescriptionInputs.ObjectSpacePosition:                      output.ObjectSpacePosition = TransformWorldToObject(positionWS);

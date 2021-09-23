@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         JsonData<SubTarget> m_ActiveSubTarget;
 
         [SerializeField]
-        List<JsonData<HDTargetData>> m_Datas = new List<JsonData<HDTargetData>>();
+        List<JsonData<JsonObject>> m_Datas = new List<JsonData<JsonObject>>();
 
         [SerializeField]
         string m_CustomEditorGUI;
@@ -75,7 +75,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         private static readonly List<Type> m_IncompatibleVFXSubTargets = new List<Type>
         {
             // Currently there is not support for VFX decals via HDRP master node.
-            typeof(DecalSubTarget)
+            typeof(DecalSubTarget),
+            typeof(HDFullscreenSubTarget),
         };
 
         internal override bool ignoreCustomInterpolators => false;
@@ -271,12 +272,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         void ProcessSubTargetDatas(SubTarget subTarget)
         {
-            var typeCollection = TypeCache.GetTypesDerivedFrom<HDTargetData>();
+            var typeCollection = TypeCache.GetTypesDerivedFrom<JsonObject>();
             foreach (var type in typeCollection)
             {
+                if (type.IsGenericType)
+                    continue;
+
                 // Data requirement interfaces need generic type arguments
                 // Therefore we need to use reflections to call the method
-                var methodInfo = typeof(HDTarget).GetMethod("SetDataOnSubTarget");
+                var methodInfo = typeof(HDTarget).GetMethod(nameof(SetDataOnSubTarget));
                 var genericMethodInfo = methodInfo.MakeGenericMethod(type);
                 genericMethodInfo.Invoke(this, new object[] { subTarget });
             }
@@ -291,13 +295,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Data requirement interfaces need generic type arguments
                 // Therefore we need to use reflections to call the method
-                var methodInfo = typeof(HDTarget).GetMethod("ValidateDataForSubTarget");
+                var methodInfo = typeof(HDTarget).GetMethod(nameof(ValidateDataForSubTarget));
                 var genericMethodInfo = methodInfo.MakeGenericMethod(type);
                 genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget.value, data.value });
             }
         }
 
-        public void SetDataOnSubTarget<T>(SubTarget subTarget) where T : HDTargetData
+        public void SetDataOnSubTarget<T>(SubTarget subTarget) where T : JsonObject
         {
             if (!(subTarget is IRequiresData<T> requiresData))
                 return;
@@ -314,7 +318,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             requiresData.data = data;
         }
 
-        public void ValidateDataForSubTarget<T>(SubTarget subTarget, T data) where T : HDTargetData
+        public void ValidateDataForSubTarget<T>(SubTarget subTarget, T data) where T : JsonObject
         {
             if (!(subTarget is IRequiresData<T> requiresData))
             {

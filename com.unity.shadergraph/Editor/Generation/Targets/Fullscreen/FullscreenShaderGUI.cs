@@ -109,25 +109,25 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             var materialEditor = m_MaterialEditor;
             var properties = m_Properties;
 
-            var blendMode = FindProperty(FullscreenTarget.Uniforms.blendModeProperty, properties, false);
-            var srcColorBlend = FindProperty(FullscreenTarget.Uniforms.srcColorBlendProperty, properties, false);
-            var dstColorBlend = FindProperty(FullscreenTarget.Uniforms.dstColorBlendProperty, properties, false);
-            var srcAlphaBlend = FindProperty(FullscreenTarget.Uniforms.srcAlphaBlendProperty, properties, false);
-            var dstAlphaBlend = FindProperty(FullscreenTarget.Uniforms.dstAlphaBlendProperty, properties, false);
-            var colorBlendOp = FindProperty(FullscreenTarget.Uniforms.colorBlendOperationProperty, properties, false);
-            var alphaBlendOp = FindProperty(FullscreenTarget.Uniforms.alphaBlendOperationProperty, properties, false);
-            var depthWrite = FindProperty(FullscreenTarget.Uniforms.depthWriteProperty, properties, false);
-            var depthTest = FindProperty(FullscreenTarget.Uniforms.depthTestProperty, properties, false);
-            var stencilEnable = FindProperty(FullscreenTarget.Uniforms.stencilEnableProperty, properties, false);
-            var stencilRef = FindProperty(FullscreenTarget.Uniforms.stencilReferenceProperty, properties, false);
-            var stencilReadMask = FindProperty(FullscreenTarget.Uniforms.stencilReadMaskProperty, properties, false);
-            var stencilWriteMask = FindProperty(FullscreenTarget.Uniforms.stencilWriteMaskProperty, properties, false);
-            var stencilComp = FindProperty(FullscreenTarget.Uniforms.stencilComparisonProperty, properties, false);
-            var stencilPass = FindProperty(FullscreenTarget.Uniforms.stencilPassProperty, properties, false);
-            var stencilFail = FindProperty(FullscreenTarget.Uniforms.stencilFailProperty, properties, false);
-            var stencilDepthFail = FindProperty(FullscreenTarget.Uniforms.stencilDepthFailProperty, properties, false);
+            var blendMode = FindProperty(FullscreenUniforms.blendModeProperty, properties, false);
+            var srcColorBlend = FindProperty(FullscreenUniforms.srcColorBlendProperty, properties, false);
+            var dstColorBlend = FindProperty(FullscreenUniforms.dstColorBlendProperty, properties, false);
+            var srcAlphaBlend = FindProperty(FullscreenUniforms.srcAlphaBlendProperty, properties, false);
+            var dstAlphaBlend = FindProperty(FullscreenUniforms.dstAlphaBlendProperty, properties, false);
+            var colorBlendOp = FindProperty(FullscreenUniforms.colorBlendOperationProperty, properties, false);
+            var alphaBlendOp = FindProperty(FullscreenUniforms.alphaBlendOperationProperty, properties, false);
+            var depthWrite = FindProperty(FullscreenUniforms.depthWriteProperty, properties, false);
+            var depthTest = FindProperty(FullscreenUniforms.depthTestProperty, properties, false);
+            var stencilEnable = FindProperty(FullscreenUniforms.stencilEnableProperty, properties, false);
+            var stencilRef = FindProperty(FullscreenUniforms.stencilReferenceProperty, properties, false);
+            var stencilReadMask = FindProperty(FullscreenUniforms.stencilReadMaskProperty, properties, false);
+            var stencilWriteMask = FindProperty(FullscreenUniforms.stencilWriteMaskProperty, properties, false);
+            var stencilComp = FindProperty(FullscreenUniforms.stencilComparisonProperty, properties, false);
+            var stencilPass = FindProperty(FullscreenUniforms.stencilPassProperty, properties, false);
+            var stencilFail = FindProperty(FullscreenUniforms.stencilFailProperty, properties, false);
+            var stencilDepthFail = FindProperty(FullscreenUniforms.stencilDepthFailProperty, properties, false);
 
-            if (material.HasProperty(FullscreenTarget.Uniforms.blendModeProperty))
+            if (material.HasProperty(FullscreenUniforms.blendModeProperty))
             {
                 EditorGUI.BeginChangeCheck();
                 m_MaterialEditor.ShaderProperty(blendMode, Styles.blendingMode);
@@ -146,12 +146,12 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 }
             }
 
-            if (material.HasProperty(FullscreenTarget.Uniforms.depthWriteProperty))
+            if (material.HasProperty(FullscreenUniforms.depthWriteProperty))
                 m_MaterialEditor.ShaderProperty(depthWrite, Styles.depthWrite);
-            if (material.HasProperty(FullscreenTarget.Uniforms.depthTestProperty))
+            if (material.HasProperty(FullscreenUniforms.depthTestProperty))
                 m_MaterialEditor.ShaderProperty(depthTest, Styles.depthTest);
 
-            if (material.HasProperty(FullscreenTarget.Uniforms.stencilEnableProperty))
+            if (material.HasProperty(FullscreenUniforms.stencilEnableProperty))
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.BeginChangeCheck();
