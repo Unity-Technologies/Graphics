@@ -8,8 +8,11 @@ namespace UnityEngine.Rendering
         private static LensFlareCommonSRP m_Instance = null;
         private static readonly object m_Padlock = new object();
         private static System.Collections.Generic.List<LensFlareComponentSRP> m_Data = new System.Collections.Generic.List<LensFlareComponentSRP>();
-        public static int maxLensFlareWithOcclusion = 16;
+        public static int maxLensFlareWithOcclusion = 128; // Max lens-flares-with-occlusion supported
+        // With TAA Occlusion jitter depth, thought frame on HDRP.
+        // So we do a "unanimity vote" for occlusion thought 'maxLensFlareWithOcclusionTemporalSample' frame
         public static int maxLensFlareWithOcclusionTemporalSample = 8;
+
         public static int mergeNeeded = 1;
         public static RTHandle occlusionRT = null;
 
