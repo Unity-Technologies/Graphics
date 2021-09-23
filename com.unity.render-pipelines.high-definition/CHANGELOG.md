@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed texture fields for volume parameters accepting textures with wrong dimensions.
 - Fixed Realtime lightmap not working correctly in player with various lit shader (case 1360021)
 - Fixed unexpectedly strong contribution from directional lights in path-traced volumetric scattering (case 1304688).
+- Fixed memory leak with XR combined occlusion meshes (case 1366173).
 - Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
 
 ### Changed
