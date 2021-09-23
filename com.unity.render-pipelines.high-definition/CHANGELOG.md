@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
 - Fixed error in SSGI when disabling decals (case 1365521).
+- Fixed silhouette issue with emissive decals
+- Fixed range compression factor being clamped. (case 1365707)
+- Fixed tooltip not showing on labels in ShaderGraphs (1358483).
+- Fix API warnings in Matcap mode on Metal.
+- Fix D3D validation layer errors w.r.t shadow textures when an atlas is not used.
+- Fixed screen space reflection PBR Accumulation
+- Fixed and optimize distance shadowmask fade.
+- Fixed memory leak with XR combined occlusion meshes (case 1366173).
 
 ## [10.7.0] - 2021-07-02
 
