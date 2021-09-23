@@ -3132,7 +3132,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
                             ctx.cmd.SetComputeTextureParam(data.parameters.lensFlareMergeOcclusion, data.parameters.mergeOcclusionKernel, HDShaderIDs._LensFlareOcclusion, LensFlareCommonSRP.occlusionRT);
-                            ctx.cmd.DispatchCompute(data.parameters.lensFlareMergeOcclusion, data.parameters.mergeOcclusionKernel, HDUtils.DivRoundUp(LensFlareCommonSRP.maxLensFlareWithOcclusion, 8), 1, data.hdCamera.viewCount);
+                            ctx.cmd.DispatchCompute(data.parameters.lensFlareMergeOcclusion, data.parameters.mergeOcclusionKernel,
+                                HDUtils.DivRoundUp(LensFlareCommonSRP.maxLensFlareWithOcclusion, 8),
+                                HDUtils.DivRoundUp(LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample, 8),
+                                data.hdCamera.viewCount);
                         });
                 }
             }
