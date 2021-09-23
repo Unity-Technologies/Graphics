@@ -211,10 +211,6 @@ Shader "HDRP/Lit"
         [HideInInspector] _ShiverDrag("_ShiverDrag", Float) = 0.0
         [HideInInspector] _ShiverDirectionality("_ShiverDirectionality", Float) = 0.0
 
-        [HideInInspector] _ObjectId("_ObjectId", Int) = 0.0
-        [HideInInspector] _PassValue("_PassValue", Int) = 0.0
-        [HideInInspector] _SelectionID("_SelectionID", Vector) =(0,0,0,0)
-		
         [HideInInspector] _DistortionBlurRemapMax("_DistortionBlurRemapMax", Float) = 0.0
         [HideInInspector] _DistortionBlurRemapMin("_DistortionBlurRemapMin", Float) = 0.0
         [HideInInspector] _DistortionBlurScale("_DistortionBlurScale", Float) = 0.0
