@@ -9,7 +9,12 @@
 ---
 
 PR_Universal_Split_trunk:
-    name: Universal_Split PR Job - trunk
+    name: PR Universal_Split on trunk
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urp_2d.yml#PR_URP_2D_trunk
          rerun: on_new_revision
@@ -17,53 +22,35 @@ PR_Universal_Split_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-urp_lighting.yml#PR_URP_Lighting_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-urp_postpro.yml#PR_URP_PostPro_trunk
-         rerun: on_new_revision
       -  path: .yamato/all-urp_terrain.yml#PR_URP_Terrain_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_trunk
+      -  path: .yamato/all-urp_postpro.yml#PR_URP_PostPro_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_trunk
-         rerun: on_new_revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest_*/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+Extra_Universal_Split_trunk:
+    name: Extra Universal_Split on trunk
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_Universal_Split_trunk:
-    name: Nightly Universal_Split - trunk
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/all-urp_2d.yml#Nightly_URP_2D_trunk
+      -  path: .yamato/all-urp_2d.yml#Extra_URP_2D_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-urp_foundation.yml#Nightly_URP_Foundation_trunk
+      -  path: .yamato/all-urp_foundation.yml#Extra_URP_Foundation_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-urp_lighting.yml#Nightly_URP_Lighting_trunk
+      -  path: .yamato/all-urp_lighting.yml#Extra_URP_Lighting_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-urp_postpro.yml#Nightly_URP_PostPro_trunk
+      -  path: .yamato/all-urp_terrain.yml#Extra_URP_Terrain_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-urp_terrain.yml#Nightly_URP_Terrain_trunk
+      -  path: .yamato/all-urp_postpro.yml#Extra_URP_PostPro_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-universal_stereo.yml#Nightly_Universal_Stereo_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-smoke_test.yml#Nightly_Smoke_Test_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-urpupdate.yml#Nightly_URPUpdate_trunk
-         rerun: on_new_revision
+PR_Universal_Split_CUSTOM-REVISION:
+    name: PR Universal_Split on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-PR_Universal_Split_CUSTOM-REVISION:
-    name: Universal_Split PR Job - CUSTOM-REVISION
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urp_2d.yml#PR_URP_2D_CUSTOM-REVISION
          rerun: on_new_revision
@@ -71,46 +58,25 @@ PR_Universal_Split_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/all-urp_lighting.yml#PR_URP_Lighting_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-urp_postpro.yml#PR_URP_PostPro_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/all-urp_terrain.yml#PR_URP_Terrain_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_CUSTOM-REVISION
+      -  path: .yamato/all-urp_postpro.yml#PR_URP_PostPro_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_CUSTOM-REVISION
-         rerun: on_new_revision
+Extra_Universal_Split_CUSTOM-REVISION:
+    name: Extra Universal_Split on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_Universal_Split_CUSTOM-REVISION:
-    name: Nightly Universal_Split - CUSTOM-REVISION
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/all-urp_2d.yml#Nightly_URP_2D_CUSTOM-REVISION
+      -  path: .yamato/all-urp_2d.yml#Extra_URP_2D_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-urp_foundation.yml#Nightly_URP_Foundation_CUSTOM-REVISION
+      -  path: .yamato/all-urp_foundation.yml#Extra_URP_Foundation_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-urp_lighting.yml#Nightly_URP_Lighting_CUSTOM-REVISION
+      -  path: .yamato/all-urp_lighting.yml#Extra_URP_Lighting_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-urp_postpro.yml#Nightly_URP_PostPro_CUSTOM-REVISION
+      -  path: .yamato/all-urp_terrain.yml#Extra_URP_Terrain_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-urp_terrain.yml#Nightly_URP_Terrain_CUSTOM-REVISION
+      -  path: .yamato/all-urp_postpro.yml#Extra_URP_PostPro_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-universal_stereo.yml#Nightly_Universal_Stereo_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-smoke_test.yml#Nightly_Smoke_Test_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-urpupdate.yml#Nightly_URPUpdate_CUSTOM-REVISION
-         rerun: on_new_revision
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*

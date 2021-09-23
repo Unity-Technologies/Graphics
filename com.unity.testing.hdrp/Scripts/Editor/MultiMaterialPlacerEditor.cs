@@ -12,12 +12,12 @@ public class MultiMaterialPlacerEditor : Editor
 
     private void OnEnable()
     {
-        if ( !serializedObject.FindProperty("material").hasMultipleDifferentValues )
+        if (!serializedObject.FindProperty("material").hasMultipleDifferentValues)
         {
             if (serializedObject.FindProperty("material") != null)
             {
                 // Create an instance of the default MaterialEditor
-                _materialEditor = (MaterialEditor)CreateEditor((Material) serializedObject.FindProperty("material").objectReferenceValue);
+                _materialEditor = (MaterialEditor)CreateEditor((Material)serializedObject.FindProperty("material").objectReferenceValue);
             }
         }
     }
@@ -27,7 +27,7 @@ public class MultiMaterialPlacerEditor : Editor
         EditorGUI.BeginChangeCheck();
 
         base.OnInspectorGUI();
-        if ( GUILayout.Button("Place") )
+        if (GUILayout.Button("Place"))
         {
             foreach (object obj in targets)
             {
@@ -45,11 +45,10 @@ public class MultiMaterialPlacerEditor : Editor
                 DestroyImmediate(_materialEditor);
             }
 
-            if (!serializedObject.FindProperty("material").hasMultipleDifferentValues && (serializedObject.FindProperty("material") != null) )
+            if (!serializedObject.FindProperty("material").hasMultipleDifferentValues && (serializedObject.FindProperty("material") != null))
             {
                 // Create a new instance of the default MaterialEditor
                 _materialEditor = (MaterialEditor)CreateEditor((Material)serializedObject.FindProperty("material").objectReferenceValue);
-
             }
         }
 
@@ -65,7 +64,6 @@ public class MultiMaterialPlacerEditor : Editor
 
             using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
             {
-
                 // Draw the material properties
                 // Works only if the foldout of _materialEditor.DrawHeader () is open
                 _materialEditor.OnInspectorGUI();
@@ -76,7 +74,7 @@ public class MultiMaterialPlacerEditor : Editor
     public static void PlaceObjects(MultiMaterialPlacer _target)
     {
         //clear hierarchy
-        for (int i=_target.transform.childCount-1; i>=0; --i)
+        for (int i = _target.transform.childCount - 1; i >= 0; --i)
         {
             //DestroyImmediate(_target.transform.GetChild(i).GetComponent<Renderer>().sharedMaterial);
             DestroyImmediate(_target.transform.GetChild(i).gameObject);
@@ -88,7 +86,7 @@ public class MultiMaterialPlacerEditor : Editor
 
         Renderer refObject = Instantiate(_target.prefabObject.gameObject).GetComponent<Renderer>();
         if (_target.material != null)
-            refObject.sharedMaterial = Instantiate( _target.material );
+            refObject.sharedMaterial = Instantiate(_target.material);
         else
             refObject.sharedMaterial = Instantiate(_target.prefabObject.sharedMaterial);
 
@@ -111,8 +109,8 @@ public class MultiMaterialPlacerEditor : Editor
                 for (int j = 0; j < _target.instanceParameters[1].count; j++)
                 {
                     Renderer tmp = CopyObject(refObject, x, y, _target.transform, _target);
-                    tmp.gameObject.name = _target.prefabObject.name+"_"+ ApplyParameterToMaterial(tmp.sharedMaterial, _target.instanceParameters[0], i);
-                    tmp.gameObject.name += "_"+ApplyParameterToMaterial(tmp.sharedMaterial, _target.instanceParameters[1], j);
+                    tmp.gameObject.name = _target.prefabObject.name + "_" + ApplyParameterToMaterial(tmp.sharedMaterial, _target.instanceParameters[0], i);
+                    tmp.gameObject.name += "_" + ApplyParameterToMaterial(tmp.sharedMaterial, _target.instanceParameters[1], j);
                     materials.Add(tmp.sharedMaterial);
                     y -= _target.offset;
                 }
@@ -160,7 +158,7 @@ public class MultiMaterialPlacerEditor : Editor
         }
 
         DestroyImmediate(refObject.gameObject);
-        
+
         if (materials != null)
         {
             foreach (Material mat in materials)
@@ -172,7 +170,7 @@ public class MultiMaterialPlacerEditor : Editor
         UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
     }
 
-    public static Renderer CopyObject( Renderer _target, float _x, float _y, Transform _parent, MultiMaterialPlacer _placer )
+    public static Renderer CopyObject(Renderer _target, float _x, float _y, Transform _parent, MultiMaterialPlacer _placer)
     {
         Renderer o = Instantiate(_target.gameObject).GetComponent<Renderer>();
         o.sharedMaterial = Instantiate(_target.sharedMaterial);
@@ -229,13 +227,13 @@ public class MultiMaterialPlacerEditor : Editor
         if ((_param.paramType == MaterialParameterVariation.ParamType.Bool) && (_num > 1)) return null;
 
         float f = 1.0f * _num / (_param.count - 1.0f);
-        string o = _param.parameter+"_";
+        string o = _param.parameter + "_";
 
         switch (_param.paramType)
         {
             case MaterialParameterVariation.ParamType.Bool:
                 _mat.SetFloat(_param.parameter, _num);
-                o += (_num==1)?"true":"false";
+                o += (_num == 1) ? "true" : "false";
                 break;
             case MaterialParameterVariation.ParamType.Float:
                 _mat.SetFloat(_param.parameter, Mathf.Lerp(_param.f_Value, _param.f_Value_Max, f));

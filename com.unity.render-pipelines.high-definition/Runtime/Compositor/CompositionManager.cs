@@ -151,6 +151,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
 
+        int m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
+
         static private CompositionManager s_CompositorInstance;
 
         // Built-in Color.black has an alpha of 1, so defien here a fully transparent black
@@ -355,6 +357,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             //This is a work-around, to make edit and continue work when editing source code
             UnityEditor.AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
 #endif
+            RenderPipelineManager.beginContextRendering += ResizeCallback;
         }
 
         public void DeleteLayerRTs()
@@ -497,8 +500,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         static HDRenderPipelineGlobalSettings m_globalSettings;
 
-        // Update is called once per frame
-        void Update()
+        // LateUpdate is called once per frame
+        void LateUpdate()
         {
             // TODO: move all validation calls to onValidate. Before doing it, this needs some extra testing to ensure nothing breaks
             if (enableOutput == false || ValidatePipeline() == false || ValidateAndFixRuntime() == false || RuntimeCheck() == false)
@@ -515,19 +518,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 m_ShaderPropertiesAreDirty = false;
                 SetupCompositorLayers();//< required to allocate RT for the new layers
             }
-
-            // Detect runtime resolution change
-            foreach (var layer in m_InputLayers)
-            {
-                if (!layer.ValidateRTSize(m_OutputCamera.pixelWidth, m_OutputCamera.pixelHeight))
-                {
-                    DeleteLayerRTs();
-                    SetupCompositorLayers();
-                    break;
-                }
-            }
 #endif
-
             if (m_CompositionProfile)
             {
                 foreach (var layer in m_InputLayers)
@@ -562,6 +553,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             // By now the s_CompositorManagedCameras should be empty, but clear it just to be safe
             CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans();
+
+            RenderPipelineManager.beginContextRendering -= ResizeCallback;
         }
 
         public void AddInputFilterAtLayer(CompositionFilter filter, int index)
@@ -753,6 +746,53 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
         }
 
+        void ResizeCallback(ScriptableRenderContext cntx, List<Camera> cameras)
+        {
+            if (m_OutputCamera && enableOutput)
+            {
+                // Detect runtime resolution change
+                foreach (var layer in m_InputLayers)
+                {
+                    if (!layer.ValidateRTSize(m_OutputCamera.pixelWidth, m_OutputCamera.pixelHeight))
+                    {
+                        for (int i = m_InputLayers.Count - 1; i >= 0; --i)
+                        {
+                            if (m_InputLayers[i].camera)
+                                m_InputLayers[i].camera.targetTexture = null;
+
+                            m_InputLayers[i].DestroyRT();
+                        }
+                        SetupCompositorLayers();
+                        // After a resolution change, redraw the internal layer cameras.
+                        InternalRender(cntx);
+                        break;
+                    }
+                }
+            }
+        }
+
+        void InternalRender(ScriptableRenderContext cntx)
+        {
+            HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (enableOutput && renderPipeline != null)
+            {
+                List<Camera> cameras = new List<Camera>(1);
+                foreach (var layer in m_InputLayers)
+                {
+                    if (layer.camera && layer.camera.enabled)
+                    {
+                        cameras.Clear();
+                        // Emit geometry manually for this camera (Unity will not do it for us because we call the internal render)
+                        ScriptableRenderContext.EmitGeometryForCamera(layer.camera);
+                        cameras.Add(layer.camera);
+#if UNITY_2021_1_OR_NEWER
+                        renderPipeline.InternalRender(cntx, cameras);
+#endif
+                    }
+                }
+            }
+        }
+
         void CustomRender(ScriptableRenderContext context, HDCamera camera)
         {
             if (camera == null || camera.camera == null || m_Material == null || m_Shader == null)
@@ -824,14 +864,14 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 if (recorderCaptureActions != null)
                 {
                     m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrixFlipped;
-                    cmd.SetInvertCulling(true);
                     ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
-                    cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_Material, m_Material.FindPass("ForwardOnly"));
+                    var format = m_InputLayers[0].GetRenderTarget().format;
+                    cmd.GetTemporaryRT(m_RecorderTempRT, camera.camera.pixelWidth, camera.camera.pixelHeight, 0, FilterMode.Point, format);
+                    cmd.Blit(null, m_RecorderTempRT, m_Material, m_Material.FindPass("ForwardOnly"));
                     for (recorderCaptureActions.Reset(); recorderCaptureActions.MoveNext();)
                     {
-                        recorderCaptureActions.Current(BuiltinRenderTextureType.CameraTarget, cmd);
+                        recorderCaptureActions.Current(m_RecorderTempRT, cmd);
                     }
-                    cmd.SetInvertCulling(false);
                 }
 
                 // When we render directly to game view, we render the image flipped up-side-down, like other HDRP cameras

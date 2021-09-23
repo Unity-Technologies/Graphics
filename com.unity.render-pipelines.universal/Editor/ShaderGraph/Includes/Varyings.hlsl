@@ -2,22 +2,67 @@
     // Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs
     // For Directional lights, _LightDirection is used when applying shadow Normal Bias.
     // For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
+#ifndef HAVE_VFX_MODIFICATION
     float3 _LightDirection;
+#else
+    //_LightDirection is already defined in com.unity.render-pipelines.universal\Runtime\VFXGraph\Shaders\VFXCommon.hlsl
+#endif
     float3 _LightPosition;
+#endif
+
+#if defined(FEATURES_GRAPH_VERTEX)
+#if defined(HAVE_VFX_MODIFICATION)
+VertexDescription BuildVertexDescription(Attributes input, AttributesElement element)
+{
+    GraphProperties properties;
+    ZERO_INITIALIZE(GraphProperties, properties);
+    // Fetch the vertex graph properties for the particle instance.
+    GetElementVertexProperties(element, properties);
+
+    // Evaluate Vertex Graph
+    VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
+    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs, properties);
+    return vertexDescription;
+}
+#else
+VertexDescription BuildVertexDescription(Attributes input)
+{
+    // Evaluate Vertex Graph
+    VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
+    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+    return vertexDescription;
+}
+#endif
 #endif
 
 Varyings BuildVaryings(Attributes input)
 {
     Varyings output = (Varyings)0;
 
+#if defined(HAVE_VFX_MODIFICATION)
+    AttributesElement element;
+    ZERO_INITIALIZE(AttributesElement, element);
+
+    if (!GetMeshAndElementIndex(input, element))
+        return output; // Culled index.
+
+    if (!GetInterpolatorAndElementData(output, element))
+        return output; // Dead particle.
+
+    SetupVFXMatrices(element, output);
+#endif
+
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 #if defined(FEATURES_GRAPH_VERTEX)
-    // Evaluate Vertex Graph
-    VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
-    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+
+#if defined(HAVE_VFX_MODIFICATION)
+    VertexDescription vertexDescription = BuildVertexDescription(input, element);
+#else
+    VertexDescription vertexDescription = BuildVertexDescription(input);
+#endif
 
     #if defined(CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC)
         CustomInterpolatorPassThroughFunc(output, vertexDescription);
@@ -82,7 +127,7 @@ Varyings BuildVaryings(Attributes input)
         output.positionCS.z = max(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
     #endif
 #elif (SHADERPASS == SHADERPASS_META)
-    output.positionCS = MetaVertexPosition(float4(input.positionOS, 0), input.uv1, input.uv2, unity_LightmapST, unity_DynamicLightmapST);
+    output.positionCS = UnityMetaVertexPosition(input.positionOS, input.uv1, input.uv2, unity_LightmapST, unity_DynamicLightmapST);
 #else
     output.positionCS = TransformWorldToHClip(positionWS);
 #endif
@@ -90,11 +135,24 @@ Varyings BuildVaryings(Attributes input)
 #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
     output.texCoord0 = input.uv0;
 #endif
+#ifdef EDITOR_VISUALIZATION
+    float2 VizUV = 0;
+    float4 LightCoord = 0;
+    UnityEditorVizData(input.positionOS, input.uv0, input.uv1, input.uv2, VizUV, LightCoord);
+#endif
 #if defined(VARYINGS_NEED_TEXCOORD1) || defined(VARYINGS_DS_NEED_TEXCOORD1)
+#ifdef EDITOR_VISUALIZATION
+    output.texCoord1 = float4(VizUV, 0, 0);
+#else
     output.texCoord1 = input.uv1;
 #endif
+#endif
 #if defined(VARYINGS_NEED_TEXCOORD2) || defined(VARYINGS_DS_NEED_TEXCOORD2)
+#ifdef EDITOR_VISUALIZATION
+    output.texCoord2 = LightCoord;
+#else
     output.texCoord2 = input.uv2;
+#endif
 #endif
 #if defined(VARYINGS_NEED_TEXCOORD3) || defined(VARYINGS_DS_NEED_TEXCOORD3)
     output.texCoord3 = input.uv3;
@@ -136,4 +194,18 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
     return output;
+}
+
+SurfaceDescription BuildSurfaceDescription(Varyings varyings)
+{
+    SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(varyings);
+#if defined(HAVE_VFX_MODIFICATION)
+    GraphProperties properties;
+    ZERO_INITIALIZE(GraphProperties, properties);
+    GetElementPixelProperties(surfaceDescriptionInputs, properties);
+    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs, properties);
+#else
+    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+#endif
+    return surfaceDescription;
 }

@@ -1,45 +1,25 @@
 #ifndef TERRAIN_LIT_META_PASS_INCLUDED
 #define TERRAIN_LIT_META_PASS_INCLUDED
-
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl"
-
-struct Attributes
-{
-    float4 positionOS   : POSITION;
-    float2 uv0          : TEXCOORD0;
-    float2 uv1          : TEXCOORD1;
-    float2 uv2          : TEXCOORD2;
-};
-
-struct Varyings
-{
-    float4 positionCS   : SV_POSITION;
-    float2 uv           : TEXCOORD0;
-};
+#define _BaseMap_ST _MainTex_ST
+#include "Packages/com.unity.render-pipelines.universal/Shaders/LitMetaPass.hlsl"
 
 Varyings TerrainVertexMeta(Attributes input)
 {
     Varyings output;
-    output.positionCS = MetaVertexPosition(input.positionOS, input.uv1, input.uv2,
-        unity_LightmapST, unity_DynamicLightmapST);
-    output.uv = TRANSFORM_TEX(input.uv0, _MainTex);
+    UNITY_SETUP_INSTANCE_ID(input);
+    TerrainInstancing(input.positionOS, input.normalOS, input.uv0);
+    // For some reason, uv1 and uv2 are not populated for instanced terrain. Use uv0.
+    input.uv1 = input.uv2 = input.uv0;
+    output = UniversalVertexMeta(input);
     return output;
 }
 
 half4 TerrainFragmentMeta(Varyings input) : SV_Target
 {
-    SurfaceData surfaceData;
-    InitializeStandardLitSurfaceData(input.uv, surfaceData);
-
-    BRDFData brdfData;
-    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
-
-    MetaInput metaInput;
-    metaInput.Albedo = brdfData.diffuse + brdfData.specular * brdfData.roughness * 0.5;
-    metaInput.SpecularColor = surfaceData.specular;
-    metaInput.Emission = surfaceData.emission;
-
-    return MetaFragment(metaInput);
+#ifdef _ALPHATEST_ON
+    ClipHoles(input.uv);
+#endif
+    return UniversalFragmentMetaLit(input);
 }
 
 #endif

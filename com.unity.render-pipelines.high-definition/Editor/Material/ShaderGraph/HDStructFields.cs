@@ -38,6 +38,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static FieldDescriptor positionCS = new FieldDescriptor(VaryingsMeshToPS.name, "positionCS", "", ShaderValueType.Float4, "SV_POSITION", interpolation: "SV_POSITION_QUALIFIERS");
             public static FieldDescriptor positionRWS = new FieldDescriptor(VaryingsMeshToPS.name, "positionRWS", "VARYINGS_NEED_POSITION_WS", ShaderValueType.Float3,
                 subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor positionPredisplacementRWS = new FieldDescriptor(VaryingsMeshToPS.name, "positionPredisplacementRWS", "VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor normalWS = new FieldDescriptor(VaryingsMeshToPS.name, "normalWS", "VARYINGS_NEED_NORMAL_WS", ShaderValueType.Float3,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor tangentWS = new FieldDescriptor(VaryingsMeshToPS.name, "tangentWS", "VARYINGS_NEED_TANGENT_WS", ShaderValueType.Float4,
@@ -70,6 +72,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static string name = "VaryingsMeshToDS";
             public static FieldDescriptor positionRWS = new FieldDescriptor(VaryingsMeshToDS.name, "positionRWS", "VARYINGS_DS_NEED_POSITION_WS", ShaderValueType.Float3);
+            public static FieldDescriptor positionPredisplacementRWS = new FieldDescriptor(VaryingsMeshToDS.name, "positionPredisplacementRWS", "VARYINGS_DS_NEED_POSITIONPREDISPLACEMENT_WS", ShaderValueType.Float3);
             public static FieldDescriptor tessellationFactor = new FieldDescriptor(VaryingsMeshToDS.name, "tessellationFactor", "VARYINGS_DS_NEED_TESSELLATION_FACTOR", ShaderValueType.Float);
             public static FieldDescriptor normalWS = new FieldDescriptor(VaryingsMeshToDS.name, "normalWS", "VARYINGS_DS_NEED_NORMAL_WS", ShaderValueType.Float3);
             public static FieldDescriptor tangentWS = new FieldDescriptor(VaryingsMeshToDS.name, "tangentWS", "VARYINGS_DS_NEED_TANGENT_WS", ShaderValueType.Float4,
@@ -92,6 +95,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static string name = "FragInputs";
             public static FieldDescriptor positionRWS = new FieldDescriptor(FragInputs.name, "positionRWS", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor positionPredisplacementRWS = new FieldDescriptor(FragInputs.name, "positionPredisplacementRWS", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor positionPixel = new FieldDescriptor(FragInputs.name, "positionPixel", "", ShaderValueType.Float2,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor tangentToWorld = new FieldDescriptor(FragInputs.name, "tangentToWorld", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);

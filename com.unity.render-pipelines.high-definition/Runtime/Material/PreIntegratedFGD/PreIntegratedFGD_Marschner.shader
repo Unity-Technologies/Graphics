@@ -47,7 +47,10 @@ Shader "Hidden/HDRP/PreIntegratedFGD_Marschner"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                // TODO
+                // Currently, we do not implement the pre-integration of Marschner for two reason:
+                // 1) Area Light support for anisotropic LTC is not supported, and we fall back to GGX.
+                // 2) Environment lighting is evaluated with the BSDF directly.
+
                 float4 preFGD = 0;
 
                 return float4(preFGD.xyz, 1.0);

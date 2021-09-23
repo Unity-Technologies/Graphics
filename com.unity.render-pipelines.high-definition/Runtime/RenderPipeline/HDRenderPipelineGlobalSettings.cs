@@ -44,7 +44,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
+#if !UNITY_EDITOR
+                // The HDRP Global Settings could have been changed by script, undo/redo (case 1342987), or file update - file versioning, let us make sure we display the correct one
+                // In a Player, we do not need to worry about those changes as we only support loading one
                 if (cachedInstance == null)
+#endif
                     cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>() as HDRenderPipelineGlobalSettings;
                 return cachedInstance;
             }
@@ -52,13 +56,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static internal void UpdateGraphicsSettings(HDRenderPipelineGlobalSettings newSettings)
         {
-            if (newSettings == null || newSettings == cachedInstance)
+            if (newSettings == cachedInstance)
                 return;
-            GraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(newSettings as RenderPipelineGlobalSettings);
+            if (newSettings != null)
+                GraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(newSettings as RenderPipelineGlobalSettings);
+            else
+                GraphicsSettings.UnregisterRenderPipelineSettings<HDRenderPipeline>();
             cachedInstance = newSettings;
         }
 
 #if UNITY_EDITOR
+
         //Making sure there is at least one HDRenderPipelineGlobalSettings instance in the project
         static internal HDRenderPipelineGlobalSettings Ensure(bool canCreateNewAsset = true)
         {
@@ -76,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (instance == null || instance.Equals(null))
             {
                 //try load at default path
-                HDRenderPipelineGlobalSettings loaded = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>($"Assets/{HDProjectSettingsProxy.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
+                HDRenderPipelineGlobalSettings loaded = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>($"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
 
                 if (loaded == null)
                 {
@@ -92,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // No migration available and no asset available? Create one if allowed
                 if (canCreateNewAsset && instance == null)
                 {
-                    var createdAsset = Create($"Assets/{HDProjectSettingsProxy.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
+                    var createdAsset = Create($"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
                     UpdateGraphicsSettings(createdAsset);
 
                     Debug.LogWarning("No HDRP Global Settings Asset is assigned. One has been created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
@@ -517,6 +525,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal List<string> beforePostProcessCustomPostProcesses = new List<string>();
         [SerializeField]
+        internal List<string> afterPostProcessBlursCustomPostProcesses = new List<string>();
+        [SerializeField]
         internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
         [SerializeField]
         internal List<string> beforeTAACustomPostProcesses = new List<string>();
@@ -525,7 +535,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Rendering Layer Names [Light + Decal]
 
-        static readonly string[] k_DefaultLightLayerNames = { "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7"};
+        static readonly string[] k_DefaultLightLayerNames = { "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7" };
 
         /// <summary>Name for light layer 0.</summary>
         public string lightLayerName0 = k_DefaultLightLayerNames[0];
@@ -569,6 +579,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LightLayerNames[7] = lightLayerName7;
 
                 return m_LightLayerNames;
+            }
+        }
+
+        [System.NonSerialized]
+        string[] m_PrefixedLightLayerNames = null;
+        /// <summary>
+        /// Names used for display of light layers with Layer's index as prefix.
+        /// For example: "0: Light Layer Default"
+        /// </summary>
+        public string[] prefixedLightLayerNames
+        {
+            get
+            {
+                if (m_PrefixedLightLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_PrefixedLightLayerNames;
             }
         }
 
@@ -618,9 +644,22 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [System.NonSerialized]
+        string[] m_PrefixedDecalLayerNames = null;
+        /// <summary>
+        /// Names used for display of decal layers with Decal's index as prefix.
+        /// For example: "0: Decal Layer Default"
+        /// </summary>
+        public string[] prefixedDecalLayerNames
+        {
+            get
+            {
+                if (m_PrefixedDecalLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_PrefixedDecalLayerNames;
+            }
+        }
 
-        // HDRP use GetRenderingLayerMaskNames to create its light linking system
-        // Mean here we define our name for light linking.
         [System.NonSerialized]
         string[] m_RenderingLayerNames;
         string[] renderingLayerNames
@@ -628,20 +667,36 @@ namespace UnityEngine.Rendering.HighDefinition
             get
             {
                 if (m_RenderingLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_RenderingLayerNames;
+            }
+        }
+
+        [System.NonSerialized]
+        string[] m_PrefixedRenderingLayerNames;
+        string[] prefixedRenderingLayerNames
+        {
+            get
+            {
+                if (m_PrefixedRenderingLayerNames == null)
                 {
                     UpdateRenderingLayerNames();
                 }
-
-                return m_RenderingLayerNames;
+                return m_PrefixedRenderingLayerNames;
             }
         }
 
         /// <summary>Names used for display of rendering layer masks.</summary>
         public string[] renderingLayerMaskNames => renderingLayerNames;
 
-        void UpdateRenderingLayerNames()
+        /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
+        public string[] prefixedRenderingLayerMaskNames => prefixedRenderingLayerNames;
+
+        /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
+        internal void UpdateRenderingLayerNames()
         {
-            m_RenderingLayerNames = new string[32];
+            if (m_RenderingLayerNames == null)
+                m_RenderingLayerNames = new string[32];
 
             m_RenderingLayerNames[0] = lightLayerName0;
             m_RenderingLayerNames[1] = lightLayerName1;
@@ -652,8 +707,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderingLayerNames[6] = lightLayerName6;
             m_RenderingLayerNames[7] = lightLayerName7;
 
-            m_RenderingLayerNames[8]  = decalLayerName0;
-            m_RenderingLayerNames[9]  = decalLayerName1;
+            m_RenderingLayerNames[8] = decalLayerName0;
+            m_RenderingLayerNames[9] = decalLayerName1;
             m_RenderingLayerNames[10] = decalLayerName2;
             m_RenderingLayerNames[11] = decalLayerName3;
             m_RenderingLayerNames[12] = decalLayerName4;
@@ -665,6 +720,22 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 16; i < m_RenderingLayerNames.Length; ++i)
             {
                 m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
+            }
+
+            // Update prefixed
+            if (m_PrefixedRenderingLayerNames == null)
+                m_PrefixedRenderingLayerNames = new string[32];
+            if (m_PrefixedLightLayerNames == null)
+                m_PrefixedLightLayerNames = new string[8];
+            if (m_PrefixedDecalLayerNames == null)
+                m_PrefixedDecalLayerNames = new string[8];
+            for (int i = 0; i < m_PrefixedRenderingLayerNames.Length; ++i)
+            {
+                m_PrefixedRenderingLayerNames[i] = string.Format("{0}: {1}", i, m_RenderingLayerNames[i]);
+                if (i < 8)
+                    m_PrefixedLightLayerNames[i] = m_PrefixedRenderingLayerNames[i];
+                else if (i < 16)
+                    m_PrefixedDecalLayerNames[i - 8] = string.Format("{0}: {1}", i - 8, m_RenderingLayerNames[i]);
             }
         }
 
@@ -692,6 +763,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 decalLayerName6 = k_DefaultDecalLayerNames[6];
                 decalLayerName7 = k_DefaultDecalLayerNames[7];
             }
+            UpdateRenderingLayerNames();
         }
 
         #endregion
@@ -739,21 +811,26 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal bool supportProbeVolumes = false;
 
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        public bool supportRuntimeDebugDisplay = false;
+
         #endregion
 
         #region APV
         // This is temporarily here until we have a core place to put it shared between pipelines.
         [SerializeField]
-        internal ProbeVolumeSceneBounds apvScenesBounds;
+        internal ProbeVolumeSceneData apvScenesData;
 
-        internal ProbeVolumeSceneBounds GetOrCreateAPVSceneBounds()
+        internal ProbeVolumeSceneData GetOrCreateAPVSceneData()
         {
-            if (apvScenesBounds == null)
-                apvScenesBounds = new ProbeVolumeSceneBounds((Object)this);
+            if (apvScenesData == null)
+                apvScenesData = new ProbeVolumeSceneData((Object)this, nameof(apvScenesData));
 
 
-            apvScenesBounds.SetParentObject((Object)this);
-            return apvScenesBounds;
+            apvScenesData.SetParentObject((Object)this, nameof(apvScenesData));
+            return apvScenesData;
         }
 
         #endregion

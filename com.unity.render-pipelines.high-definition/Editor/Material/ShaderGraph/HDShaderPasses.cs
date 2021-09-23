@@ -185,6 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var includes = new IncludeCollection();
 
+                includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CorePregraph);
                 if (supportLighting)
                     includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
@@ -216,7 +217,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "ShadowCaster",
                 useInPreview = false,
 
-                validPixelBlocks  = new BlockFieldDescriptor[]
+                validPixelBlocks = new BlockFieldDescriptor[]
                 {
                     BlockFields.SurfaceDescription.Alpha,
                     BlockFields.SurfaceDescription.AlphaClipThreshold,
@@ -280,6 +281,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Note: no tessellation for meta pass
                 pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, false),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, false),
+                keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
                 includes = GenerateIncludes(),
             };
 
@@ -480,44 +482,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 else
                     includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph);
 
-                return includes;
-            }
-        }
-
-        #endregion
-
-        #region Forward Emissive For Deferred
-
-        public static PassDescriptor GenerateForwardEmissiveForDeferredPass(bool useVFX, bool useTessellation)
-        {
-            return new PassDescriptor
-            {
-                // Definition
-                displayName = "ForwardEmissiveForDeferred",
-                referenceName = "SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED",
-                lightMode = "ForwardEmissiveForDeferred",
-                useInPreview = false,
-
-                // Collections
-                structs = GenerateStructs(null, useVFX, useTessellation),
-                requiredFields = CoreRequiredFields.Basic,
-                renderStates = CoreRenderStates.ForwardEmissiveForDeferred,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation),
-                defines = GenerateDefines(CoreDefines.ForwardEmissiveForDeferred, useVFX, useTessellation),
-                includes = GenerateIncludes(),
-
-                virtualTextureFeedback = true,
-                customInterpolators = CoreCustomInterpolators.Common,
-            };
-
-            IncludeCollection GenerateIncludes()
-            {
-                var includes = new IncludeCollection();
-                includes.Add(CoreIncludes.CorePregraph);
-                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.CoreUtility);
-                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassForwardEmissiveForDeferred, IncludeLocation.Postgraph);
                 return includes;
             }
         }
@@ -1360,13 +1324,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static class Defines
         {
             // Shadows
-            public static DefineCollection shadowLow = new DefineCollection { {CoreKeywordDescriptors.Shadow, 0} };
-            public static DefineCollection shadowMedium = new DefineCollection { {CoreKeywordDescriptors.Shadow, 1} };
-            public static DefineCollection shadowHigh = new DefineCollection { {CoreKeywordDescriptors.Shadow, 2} };
+            public static DefineCollection shadowLow = new DefineCollection { { CoreKeywordDescriptors.Shadow, 0 } };
+            public static DefineCollection shadowMedium = new DefineCollection { { CoreKeywordDescriptors.Shadow, 1 } };
+            public static DefineCollection shadowHigh = new DefineCollection { { CoreKeywordDescriptors.Shadow, 2 } };
 
             // Raytracing Quality
-            public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0} };
-            public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1} };
+            public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 } };
+            public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1 } };
         }
 
         #endregion

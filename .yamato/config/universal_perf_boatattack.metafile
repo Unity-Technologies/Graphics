@@ -68,28 +68,39 @@ reuse_blocks:
 test_platforms:
   - type: Standalone
     name: performance_playmode_runtime
+    allow_cache: False
     commands:
       - [OSX_Metal]: <reuse_blocks.unity_config>
-      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken_hikey>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
           - [iPhone_Metal]: --timeout=2400
-          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: --player-load-path=playersLow
+          - [iPhone_Metal,  Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: --player-load-path=playersLow
           - [OSX_Metal]: --testfilter=Low
           - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - [Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
           - [iPhone_Metal]: --timeout=2400
-          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: --player-load-path=playersMedium
+          - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: --player-load-path=playersMedium
           - [OSX_Metal]: --testfilter=Medium
           - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - [Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
       - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
@@ -110,7 +121,7 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [Android_Vulkan, Android_OpenGLES3, XRQuest_Vulkan, XRQuest_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
@@ -119,13 +130,23 @@ test_platforms:
           - [XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-stereoRenderingMode=MultiPass"
           - [all]: --testfilter=Low
           - [all]: --player-save-path=playersLow
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+        flags:
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Low
+          - [all]: --player-save-path=playersLow
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
           - [XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-stereoRenderingMode=MultiPass"
+          - [all]: --testfilter=Medium
+          - [all]: --player-save-path=playersMedium
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+        flags:
+          - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
           - [all]: --player-save-path=playersMedium
       - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
@@ -139,18 +160,31 @@ test_platforms:
 
   - type: playmode
     name: performance_playmode_editor
+    allow_cache: False
     commands:
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
-      - [all]: <shared.platform.commands.call_utr>
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
-      - [all]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Low
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Medium
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
@@ -164,19 +198,34 @@ test_platforms:
           - [all]: --testfilter=High
   - type: editmode
     name: performance_build_editmode
+    allow_cache: False
     commands:
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
-      - [all]: <shared.platform.commands.call_utr>
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
-      - [all]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+        flags:
+          - [all]: --testfilter=Build
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Low
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --testfilter=Build
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Medium
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
@@ -190,8 +239,7 @@ test_platforms:
           - [all]: --performance-project-id=BoatAttack
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=High
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:
@@ -305,74 +353,72 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
-        - performance_build_editmode
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        #- performance_playmode_editor
-        - performance_build_editmode
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
-        - performance_build_editmode
-    - platform: Android
-      api: OpenGLES3
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_build_editmode
-    - platform: Android
-      api: Vulkan
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_build_editmode
-    - platform: iPhone
-      api: Metal
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_build_editmode
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
-        - performance_build_editmode
-nightly:
-  dependencies:
-    - platform: XRQuest
-      api: OpenGLES3
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-    - platform: XRQuest
-      api: Vulkan
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-    - project: URP_Performance_BoatAttack
-      pr: true
+
+jobs:
+  - name: <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_playmode_editor
+          - performance_build_editmode
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          #- performance_playmode_editor
+          - performance_build_editmode
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_playmode_editor
+          - performance_build_editmode
+      - platform: Android
+        api: OpenGLES3
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_build_editmode
+      - platform: Android
+        api: Vulkan
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_build_editmode
+      - platform: iPhone
+        api: Metal
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_build_editmode
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_playmode_editor
+          - performance_build_editmode
+      - platform: XRQuest
+        api: OpenGLES3
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+      - platform: XRQuest
+        api: Vulkan
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime

@@ -149,6 +149,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
             RegisterCallback<DragExitedEvent>(OnDragExitedEvent);
 
+            // This callback makes sure the drag indicator is shown again if user exits and then re-enters blackboard while dragging
+            RegisterCallback<MouseEnterEvent>(OnMouseEnterEvent);
+
             m_ScrollBoundaryTop = m_MainContainer.Q(name: "scrollBoundaryTop");
             m_ScrollBoundaryTop.RegisterCallback<MouseEnterEvent>(ScrollRegionTopEnter);
             m_ScrollBoundaryTop.RegisterCallback<DragUpdatedEvent>(OnFieldDragUpdate);
@@ -220,6 +223,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             HideScrollBoundaryRegions();
         }
 
+        void OnMouseEnterEvent(MouseEnterEvent evt)
+        {
+            if (m_IsUserDraggingItems && selection.OfType<SGBlackboardCategory>().Any())
+                SetCategoryDragIndicatorVisible(true);
+        }
+
         void HideScrollBoundaryRegions()
         {
             m_BottomResizer.style.visibility = Visibility.Visible;
@@ -239,8 +248,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Checking for at least 2 children to make sure Children.First() and Children.Last() don't throw an exception
             if (index == -1 && childCount >= 2)
             {
-                index = localPos.y<Children().First().layout.yMin? 0 :
-                                   localPos.y> Children().Last().layout.yMax ? childCount : -1;
+                index = localPos.y < Children().First().layout.yMin ? 0 :
+                                   localPos.y > Children().Last().layout.yMax ? childCount : -1;
             }
 
             // Don't allow the default category to be displaced
@@ -291,7 +300,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.resolvedStyle.marginTop)).y;
                 }
 
-                m_DragIndicator.style.top =  indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
+                m_DragIndicator.style.top = indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
                 DragAndDrop.visualMode = DragAndDropVisualMode.Move;
             }
             else
@@ -308,7 +317,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             evt.StopPropagation();
 
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
-            if (selection == null)
+            if (selection == null || selection.Count == 0)
             {
                 SetCategoryDragIndicatorVisible(false);
                 return;
@@ -550,7 +559,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             pathChangeAction.NewGraphPath = newPath;
             ViewModel.requestModelChangeAction(pathChangeAction);
 
-            m_SubTitleLabel.text =  BlackboardUtils.FormatPath(newPath);
+            m_SubTitleLabel.text = BlackboardUtils.FormatPath(newPath);
             m_EditPathCancelled = false;
         }
     }

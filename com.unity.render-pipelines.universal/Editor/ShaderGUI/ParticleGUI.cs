@@ -21,44 +21,48 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         public static class Styles
         {
-            public static GUIContent colorMode = new GUIContent("Color Mode",
+            public static GUIContent colorMode = EditorGUIUtility.TrTextContent("Color Mode",
                 "Controls how the Particle color and the Material color blend together.");
 
-            public static GUIContent flipbookMode = new GUIContent("Flip-Book Blending",
+            public static GUIContent flipbookMode = EditorGUIUtility.TrTextContent("Flip-Book Blending",
                 "Blends the frames in a flip-book together in a smooth animation.");
 
-            public static GUIContent softParticlesEnabled = new GUIContent("Soft Particles",
+            public static GUIContent softParticlesEnabled = EditorGUIUtility.TrTextContent("Soft Particles",
                 "Makes particles fade out when they get close to intersecting with the surface of other geometry in the depth buffer.");
 
+            public static GUIContent softParticlesFadeText = EditorGUIUtility.TrTextContent("Surface Fade");
+
             public static GUIContent softParticlesNearFadeDistanceText =
-                new GUIContent("Near",
+                EditorGUIUtility.TrTextContent("Near",
                     "The distance from the other surface where the particle is completely transparent.");
 
             public static GUIContent softParticlesFarFadeDistanceText =
-                new GUIContent("Far",
+                EditorGUIUtility.TrTextContent("Far",
                     "The distance from the other surface where the particle is completely opaque.");
 
-            public static GUIContent cameraFadingEnabled = new GUIContent("Camera Fading",
+            public static GUIContent cameraFadingEnabled = EditorGUIUtility.TrTextContent("Camera Fading",
                 "Makes particles fade out when they get close to the camera.");
 
+            public static GUIContent cameraFadingDistanceText = EditorGUIUtility.TrTextContent("Distance");
+
             public static GUIContent cameraNearFadeDistanceText =
-                new GUIContent("Near",
+                EditorGUIUtility.TrTextContent("Near",
                     "The distance from the camera where the particle is completely transparent.");
 
             public static GUIContent cameraFarFadeDistanceText =
-                new GUIContent("Far", "The distance from the camera where the particle is completely opaque.");
+                EditorGUIUtility.TrTextContent("Far", "The distance from the camera where the particle is completely opaque.");
 
-            public static GUIContent distortionEnabled = new GUIContent("Distortion",
+            public static GUIContent distortionEnabled = EditorGUIUtility.TrTextContent("Distortion",
                 "Creates a distortion effect by making particles perform refraction with the objects drawn before them.");
 
-            public static GUIContent distortionStrength = new GUIContent("Strength",
+            public static GUIContent distortionStrength = EditorGUIUtility.TrTextContent("Strength",
                 "Controls how much the Particle distorts the background. ");
 
-            public static GUIContent distortionBlend = new GUIContent("Blend",
+            public static GUIContent distortionBlend = EditorGUIUtility.TrTextContent("Blend",
                 "Controls how visible the distortion effect is. At 0, there’s no visible distortion. At 1, only the distortion effect is visible, not the background.");
 
-            public static GUIContent VertexStreams = new GUIContent("Vertex Streams",
-                "The vertex streams needed for this Material to function properly.");
+            public static GUIContent VertexStreams = EditorGUIUtility.TrTextContent("Vertex Streams",
+                "List detailing the expected layout of data sent to the shader from the particle system.");
 
             public static string streamPositionText = "Position (POSITION.xyz)";
             public static string streamNormalText = "Normal (NORMAL.xyz)";
@@ -70,7 +74,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public static string streamAnimFrameText = "AnimFrame (INSTANCED1.x)";
             public static string streamTangentText = "Tangent (TANGENT.xyzw)";
 
-            public static GUIContent streamApplyToAllSystemsText = new GUIContent("Fix Now",
+            public static GUIContent streamApplyToAllSystemsText = EditorGUIUtility.TrTextContent("Fix Now",
                 "Apply the vertex stream layout to all Particle Systems using this material");
 
             public static string undoApplyCustomVertexStreams = L10n.Tr("Apply custom vertex streams from material");
@@ -178,7 +182,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                         }
 
                         EditorGUI.indentLevel++;
-                        BaseShaderGUI.TwoFloatSingleLine(new GUIContent("Surface Fade"),
+                        BaseShaderGUI.TwoFloatSingleLine(Styles.softParticlesFadeText,
                             properties.softParticlesNearFadeDistance,
                             Styles.softParticlesNearFadeDistanceText,
                             properties.softParticlesFarFadeDistance,
@@ -194,7 +198,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     if (properties.cameraFadingEnabled.floatValue >= 0.5f)
                     {
                         EditorGUI.indentLevel++;
-                        BaseShaderGUI.TwoFloatSingleLine(new GUIContent("Distance"),
+                        BaseShaderGUI.TwoFloatSingleLine(Styles.cameraFadingDistanceText,
                             properties.cameraNearFadeDistance,
                             Styles.cameraNearFadeDistanceText,
                             properties.cameraFarFadeDistance,
@@ -277,8 +281,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             vertexStreamList = new ReorderableList(streamList, typeof(string), false, true, false, false);
 
-            vertexStreamList.drawHeaderCallback = (Rect rect) => {
-                EditorGUI.LabelField(rect, "Vertex Streams");
+            vertexStreamList.drawHeaderCallback = (Rect rect) =>
+            {
+                EditorGUI.LabelField(rect, Styles.VertexStreams);
             };
 
             vertexStreamList.DoLayoutList();

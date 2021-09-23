@@ -45,3 +45,6 @@ node_modules
 
 .yamato/script/path.config
 manifest-updater.py
+TestProjects/UniversalGraphicsTest_Lighting/UserSettings/EditorUserSettings.asset
+TestProjects/UniversalGraphicsTest_Lighting/Packages/packages-lock.json
+com.unity.template-hd/InitCodeMarker

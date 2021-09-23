@@ -18,6 +18,7 @@ URP_Foundation_Win_Vulkan_Standalone_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -31,7 +32,6 @@ URP_Foundation_Win_Vulkan_Standalone_mono_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -51,6 +51,7 @@ Build_URP_Foundation_Win_Vulkan_Standalone_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -67,8 +68,7 @@ Build_URP_Foundation_Win_Vulkan_Standalone_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
-         retries: 2
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
     artifacts:
         logs:
             paths:
@@ -90,6 +90,7 @@ URP_Foundation_Win_Vulkan_playmode_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -106,44 +107,7 @@ URP_Foundation_Win_Vulkan_playmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
-         rerun: on_new_revision
-URP_Foundation_Win_Vulkan_playmode_cache_mono_Linear_trunk:
-    name: URP_Foundation on Win_Vulkan_playmode_cache_mono_Linear on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -161,6 +125,7 @@ URP_Foundation_Win_Vulkan_editmode_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -178,7 +143,6 @@ URP_Foundation_Win_Vulkan_editmode_mono_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -197,6 +161,7 @@ URP_Foundation_Win_Vulkan_playmode_XR_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -213,8 +178,7 @@ URP_Foundation_Win_Vulkan_playmode_XR_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -223,8 +187,8 @@ URP_Foundation_Win_Vulkan_playmode_XR_mono_Linear_trunk:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
-URP_Foundation_Win_Vulkan_playmode_XR_cache_mono_Linear_trunk:
-    name: URP_Foundation on Win_Vulkan_playmode_XR_cache_mono_Linear on version trunk
+URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_trunk:
+    name: URP_Foundation on Win_Vulkan_Standalone_XR_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -233,114 +197,7 @@ URP_Foundation_Win_Vulkan_playmode_XR_cache_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
-         rerun: on_new_revision
-URP_Foundation_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
-    name: URP_Foundation on Win_Vulkan_Standalone_cache_mono_Linear on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-vulkan.yml#Build_URP_Foundation_Win_Vulkan_Standalone_cache_mono_Linear_trunk
-         rerun: on_new_revision
-Build_URP_Foundation_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
-    name: Build URP_Foundation on Win_Vulkan_mono_Linear_Standalone_cache_build_Player on version trunk
-    agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
-        players:
-            paths:
-              -  "players*/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
-         rerun: on_new_revision
-URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_trunk:
-    name: URP_Foundation on Win_Vulkan_Standalone_XR_cache_mono_Linear on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -354,7 +211,6 @@ URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -363,10 +219,10 @@ URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_trunk:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-vulkan.yml#Build_URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_trunk
+      -  path: .yamato/urp_foundation-win-vulkan.yml#Build_URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_trunk
          rerun: on_new_revision
-Build_URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_trunk:
-    name: Build URP_Foundation on Win_Vulkan_mono_Linear_Standalone_XR_cache_build_Player on version trunk
+Build_URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_trunk:
+    name: Build URP_Foundation on Win_Vulkan_mono_Linear_Standalone_XR_build_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -374,6 +230,7 @@ Build_URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -390,8 +247,7 @@ Build_URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
-         retries: 2
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
     artifacts:
         logs:
             paths:
@@ -413,6 +269,7 @@ URP_Foundation_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -426,7 +283,6 @@ URP_Foundation_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -446,6 +302,7 @@ Build_URP_Foundation_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -462,8 +319,7 @@ Build_URP_Foundation_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
-         retries: 2
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
     artifacts:
         logs:
             paths:
@@ -485,6 +341,7 @@ URP_Foundation_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -501,44 +358,7 @@ URP_Foundation_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: on_new_revision
-URP_Foundation_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
-    name: URP_Foundation on Win_Vulkan_playmode_cache_mono_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -556,6 +376,7 @@ URP_Foundation_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -573,7 +394,6 @@ URP_Foundation_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -592,6 +412,7 @@ URP_Foundation_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -608,8 +429,7 @@ URP_Foundation_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -618,8 +438,8 @@ URP_Foundation_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: on_new_revision
-URP_Foundation_Win_Vulkan_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
-    name: URP_Foundation on Win_Vulkan_playmode_XR_cache_mono_Linear on version CUSTOM-REVISION
+URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION:
+    name: URP_Foundation on Win_Vulkan_Standalone_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -628,114 +448,7 @@ URP_Foundation_Win_Vulkan_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: on_new_revision
-URP_Foundation_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
-    name: URP_Foundation on Win_Vulkan_Standalone_cache_mono_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-vulkan.yml#Build_URP_Foundation_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-Build_URP_Foundation_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
-    name: Build URP_Foundation on Win_Vulkan_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
-        players:
-            paths:
-              -  "players*/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: on_new_revision
-URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION:
-    name: URP_Foundation on Win_Vulkan_Standalone_XR_cache_mono_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -749,7 +462,6 @@ URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -758,10 +470,10 @@ URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-vulkan.yml#Build_URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_foundation-win-vulkan.yml#Build_URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-Build_URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION:
-    name: Build URP_Foundation on Win_Vulkan_mono_Linear_Standalone_XR_cache_build_Player on version CUSTOM-REVISION
+Build_URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION:
+    name: Build URP_Foundation on Win_Vulkan_mono_Linear_Standalone_XR_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -769,6 +481,7 @@ Build_URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -785,8 +498,7 @@ Build_URP_Foundation_Win_Vulkan_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
-         retries: 2
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
     artifacts:
         logs:
             paths:

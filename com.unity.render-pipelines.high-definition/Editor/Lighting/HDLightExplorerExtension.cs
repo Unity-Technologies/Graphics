@@ -70,6 +70,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent ContactShadowsLevel = EditorGUIUtility.TrTextContent("Contact Shadows Level");
             public static readonly GUIContent ContactShadowsValue = EditorGUIUtility.TrTextContent("Contact Shadows Value");
             public static readonly GUIContent ShadowResolutionLevel = EditorGUIUtility.TrTextContent("Shadows Resolution Level");
+            public static readonly GUIContent ShadowUpdateMode = EditorGUIUtility.TrTextContent("Shadows Update Mode");
+            public static readonly GUIContent ShadowFitAtlas = EditorGUIUtility.TrTextContent("Shadows Fit Atlas");
             public static readonly GUIContent ShadowResolutionValue = EditorGUIUtility.TrTextContent("Shadows Resolution Value");
             public static readonly GUIContent ShapeWidth = EditorGUIUtility.TrTextContent("Shape Width");
             public static readonly GUIContent VolumeProfile = EditorGUIUtility.TrTextContent("Volume Profile");
@@ -123,11 +125,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual UnityEngine.Object[] GetHDLights()
         {
-            #if UNITY_2020_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
             var lights = Resources.FindObjectsOfTypeAll<Light>();
-            #else
+#else
             var lights = UnityEngine.Object.FindObjectsOfType<Light>();
-            #endif
+#endif
 
             foreach (Light light in lights)
             {
@@ -145,11 +147,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual UnityEngine.Object[] GetHDReflectionProbes()
         {
-            #if UNITY_2020_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
             var reflectionProbes = Resources.FindObjectsOfTypeAll<ReflectionProbe>();
-            #else
+#else
             var reflectionProbes = UnityEngine.Object.FindObjectsOfType<ReflectionProbe>();
-            #endif
+#endif
 
             foreach (ReflectionProbe probe in reflectionProbes)
             {
@@ -161,20 +163,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual UnityEngine.Object[] GetPlanarReflections()
         {
-            #if UNITY_2020_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
             return Resources.FindObjectsOfTypeAll<PlanarReflectionProbe>();
-            #else
+#else
             return UnityEngine.Object.FindObjectsOfType<PlanarReflectionProbe>();
-            #endif
+#endif
         }
 
         protected virtual UnityEngine.Object[] GetVolumes()
         {
-            #if UNITY_2020_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
             var volumes = Resources.FindObjectsOfTypeAll<Volume>();
-            #else
+#else
             var volumes = UnityEngine.Object.FindObjectsOfType<Volume>();
-            #endif
+#endif
 
             foreach (var volume in volumes)
             {
@@ -330,7 +332,200 @@ namespace UnityEditor.Rendering.HighDefinition
                         prop.intValue = shadows ? (int)LightShadows.Soft : (int)LightShadows.None;
                     }
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.ContactShadowsLevel, "m_Shadows.m_Type", 115, (r, prop, dep) =>      // 12: Contact Shadows level
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.ShadowResolutionLevel, "m_Intensity", 130, (r, prop, dep) =>         // 12: Shadow Resolution level
+                {
+                    if (!TryGetAdditionalLightData(prop, out var lightData))
+                    {
+                        EditorGUI.LabelField(r, "--");
+                        return;
+                    }
+
+                    var shadowResolution = lightData.shadowResolution;
+
+                    EditorGUI.BeginChangeCheck();
+                    var(level, useOverride) = SerializedScalableSettingValueUI.LevelFieldGUI(r, GUIContent.none, ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With4Levels), shadowResolution.level, shadowResolution.useOverride);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        lightData.RefreshCachedShadow();
+                        Undo.RecordObject(lightData, "Changed shadow resolution");
+                        shadowResolution.level = level;
+                        shadowResolution.useOverride = useOverride;
+                    }
+                }, (lprop, rprop) =>
+                    {
+                        TryGetAdditionalLightData(lprop, out var lLightData);
+                        TryGetAdditionalLightData(rprop, out var rLightData);
+
+                        if (IsNullComparison(lLightData, rLightData, out var order))
+                            return order;
+
+                        return ((int)lLightData.shadowResolution.level).CompareTo((int)rLightData.shadowResolution.level);
+                    }, (target, source) =>
+                    {
+                        if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
+                            return;
+
+                        tLightData.RefreshCachedShadow();
+                        Undo.RecordObject(tLightData, "Changed shadow resolution");
+                        tLightData.shadowResolution.level = sLightData.shadowResolution.level;
+                        tLightData.shadowResolution.useOverride = sLightData.shadowResolution.useOverride;
+                    }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.ShadowUpdateMode, "m_Intensity", 130, (r, prop, dep) =>         // 13: Shadow Update mode level
+                {
+                    if (!TryGetAdditionalLightData(prop, out var lightData))
+                    {
+                        EditorGUI.LabelField(r, "--");
+                        return;
+                    }
+
+                    var shadowUpdateMode = lightData.shadowUpdateMode;
+
+                    EditorGUI.BeginChangeCheck();
+                    shadowUpdateMode = (ShadowUpdateMode)EditorGUI.EnumPopup(r, shadowUpdateMode);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        lightData.RefreshCachedShadow();
+                        Undo.RecordObject(lightData, "Changed shadow update mode");
+                        lightData.shadowUpdateMode = shadowUpdateMode;
+                    }
+                }, (lprop, rprop) =>
+                    {
+                        TryGetAdditionalLightData(lprop, out var lLightData);
+                        TryGetAdditionalLightData(rprop, out var rLightData);
+
+                        if (IsNullComparison(lLightData, rLightData, out var order))
+                            return order;
+
+                        return ((int)lLightData.shadowUpdateMode).CompareTo((int)rLightData.shadowUpdateMode);
+                    }, (target, source) =>
+                    {
+                        if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
+                            return;
+                        tLightData.RefreshCachedShadow();
+
+                        Undo.RecordObject(tLightData, "Changed shadow update mode");
+                        tLightData.shadowUpdateMode = sLightData.shadowUpdateMode;
+                    }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ShadowFitAtlas, "m_Intensity", 130, (r, prop, dep) =>         // 13: Shadow Fit atlas
+                {
+                    if (!TryGetAdditionalLightData(prop, out var lightData))
+                    {
+                        EditorGUI.LabelField(r, "--");
+                        return;
+                    }
+                    var hdrp = HDRenderPipeline.currentAsset;
+
+                    var shadowResolution = lightData.shadowResolution;
+                    int shadowRes = 0;
+                    var lightType = lightData.type;
+
+                    if (shadowResolution.useOverride)
+                    {
+                        shadowRes = shadowResolution.@override;
+                    }
+                    else
+                    {
+                        var defaultValue = HDLightUI.ScalableSettings.ShadowResolution(lightType, hdrp);
+                        shadowRes = defaultValue[shadowResolution.level];
+                    }
+
+                    if (lightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(lightData))
+                    {
+                        EditorGUI.LabelField(r, "Yes");
+                    }
+                    else
+                    {
+                        EditorGUI.LabelField(r, "No");
+                    }
+                    return;
+                }, (lprop, rprop) =>
+                    {
+                        TryGetAdditionalLightData(lprop, out var lLightData);
+                        TryGetAdditionalLightData(rprop, out var rLightData);
+
+                        if (IsNullComparison(lLightData, rLightData, out var order))
+                            return order;
+
+                        var hdrp = HDRenderPipeline.currentAsset;
+
+                        var lightType = lLightData.type;
+
+                        bool lFit = lLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(lLightData);
+
+                        lightType = rLightData.type;
+
+                        bool rFit = rLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(rLightData);
+
+                        return rFit.CompareTo(lFit);
+                    }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ShadowResolutionValue, "m_Intensity", 130, (r, prop, dep) =>          // 14: Shadow resolution override
+                {
+                    var hdrp = HDRenderPipeline.currentAsset;
+
+                    if (!TryGetAdditionalLightData(prop, out var lightData, out var light) || hdrp == null)
+                    {
+                        EditorGUI.LabelField(r, "--");
+                        return;
+                    }
+
+                    var shadowResolution = lightData.shadowResolution;
+                    if (shadowResolution.useOverride)
+                    {
+                        var overrideShadowResolution = shadowResolution.@override;
+
+                        EditorGUI.BeginChangeCheck();
+                        overrideShadowResolution = EditorGUI.IntField(r, overrideShadowResolution);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            lightData.RefreshCachedShadow();
+                            Undo.RecordObject(lightData, "Changed shadow resolution override");
+                            shadowResolution.@override = overrideShadowResolution;
+                        }
+                    }
+                    else
+                    {
+                        var lightType = lightData.type;
+                        var defaultValue = HDLightUI.ScalableSettings.ShadowResolution(lightType, hdrp);
+
+                        using (new EditorGUI.DisabledScope(true))
+                        {
+                            EditorGUI.IntField(r, defaultValue[shadowResolution.level]);
+                        }
+                    }
+                }, (lprop, rprop) =>
+                    {
+                        TryGetAdditionalLightData(lprop, out var lLightData, out var lLight);
+                        TryGetAdditionalLightData(rprop, out var rLightData, out var rLight);
+
+                        if (IsNullComparison(lLightData, rLightData, out var order))
+                            return order;
+
+                        var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+                        var lShadowResolution = lLightData.shadowResolution;
+                        var rShadowResolution = rLightData.shadowResolution;
+                        var lLightShape = lLightData.type;
+                        var rLightShape = rLightData.type;
+
+                        int lResolution = lShadowResolution.useOverride ? lShadowResolution.@override : (hdrp == null ? -1 : HDLightUI.ScalableSettings.ShadowResolution(lLightShape, hdrp)[lShadowResolution.level]);
+                        int rResolution = rShadowResolution.useOverride ? rShadowResolution.@override : (hdrp == null ? -1 : HDLightUI.ScalableSettings.ShadowResolution(rLightShape, hdrp)[rShadowResolution.level]);
+
+                        return lResolution.CompareTo(rResolution);
+                    }, (target, source) =>
+                    {
+                        if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
+                            return;
+
+                        var tShadowResolution = tLightData.shadowResolution;
+                        var sShadowResolution = sLightData.shadowResolution;
+
+                        if (tShadowResolution.useOverride)
+                        {
+                            tLightData.RefreshCachedShadow();
+                            Undo.RecordObject(tLightData, "Changed shadow resolution override");
+                            tShadowResolution.@override = sShadowResolution.@override;
+                        }
+                    }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.ContactShadowsLevel, "m_Shadows.m_Type", 115, (r, prop, dep) =>      // 15: Contact Shadows level
                 {
                     if (!TryGetAdditionalLightData(prop, out var lightData))
                     {
@@ -365,7 +560,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         tLightData.useContactShadow.level = sLightData.useContactShadow.level;
                         tLightData.useContactShadow.useOverride = sLightData.useContactShadow.useOverride;
                     }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.ContactShadowsValue, "m_Shadows.m_Type", 115, (r, prop, dep) =>  // 13: Contact Shadows override
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.ContactShadowsValue, "m_Shadows.m_Type", 115, (r, prop, dep) =>  // 16: Contact Shadows override
                 {
                     if (!TryGetAdditionalLightData(prop, out var lightData))
                     {
@@ -385,6 +580,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             Undo.RecordObject(lightData, "Changed contact shadow override");
                             useContactShadow.@override = overrideUseContactShadows;
+
+                            //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                            if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                                SceneView.RepaintAll();
                         }
                     }
                     else
@@ -428,109 +627,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             tUseContactShadow.@override = sUseContactShadow.@override;
                         }
                     }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.ShadowResolutionLevel, "m_Intensity", 130, (r, prop, dep) =>         // 14: Shadow Resolution level
-                {
-                    if (!TryGetAdditionalLightData(prop, out var lightData))
-                    {
-                        EditorGUI.LabelField(r, "--");
-                        return;
-                    }
-
-                    var shadowResolution = lightData.shadowResolution;
-
-                    EditorGUI.BeginChangeCheck();
-                    var(level, useOverride) = SerializedScalableSettingValueUI.LevelFieldGUI(r, GUIContent.none, ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With4Levels), shadowResolution.level, shadowResolution.useOverride);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        Undo.RecordObject(lightData, "Changed contact shadow resolution");
-                        shadowResolution.level = level;
-                        shadowResolution.useOverride = useOverride;
-                    }
-                }, (lprop, rprop) =>
-                    {
-                        TryGetAdditionalLightData(lprop, out var lLightData);
-                        TryGetAdditionalLightData(rprop, out var rLightData);
-
-                        if (IsNullComparison(lLightData, rLightData, out var order))
-                            return order;
-
-                        return ((int)lLightData.shadowResolution.level).CompareTo((int)rLightData.shadowResolution.level);
-                    }, (target, source) =>
-                    {
-                        if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
-                            return;
-
-                        Undo.RecordObject(tLightData, "Changed contact shadow resolution");
-                        tLightData.shadowResolution.level = sLightData.shadowResolution.level;
-                        tLightData.shadowResolution.useOverride = sLightData.shadowResolution.useOverride;
-                    }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ShadowResolutionValue, "m_Intensity", 130, (r, prop, dep) =>          // 15: Shadow resolution override
-                {
-                    var hdrp = HDRenderPipeline.currentAsset;
-
-                    if (!TryGetAdditionalLightData(prop, out var lightData, out var light) || hdrp == null)
-                    {
-                        EditorGUI.LabelField(r, "--");
-                        return;
-                    }
-
-                    var shadowResolution = lightData.shadowResolution;
-                    if (shadowResolution.useOverride)
-                    {
-                        var overrideShadowResolution = shadowResolution.@override;
-
-                        EditorGUI.BeginChangeCheck();
-                        overrideShadowResolution = EditorGUI.IntField(r, overrideShadowResolution);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(lightData, "Changed shadow resolution override");
-                            shadowResolution.@override = overrideShadowResolution;
-                        }
-                    }
-                    else
-                    {
-                        var lightType = lightData.type;
-                        var defaultValue = HDLightUI.ScalableSettings.ShadowResolution(lightType, hdrp);
-
-                        using (new EditorGUI.DisabledScope(true))
-                        {
-                            EditorGUI.IntField(r, defaultValue[shadowResolution.level]);
-                        }
-                    }
-                }, (lprop, rprop) =>
-                    {
-                        TryGetAdditionalLightData(lprop, out var lLightData, out var lLight);
-                        TryGetAdditionalLightData(rprop, out var rLightData, out var rLight);
-
-                        if (IsNullComparison(lLightData, rLightData, out var order))
-                            return order;
-
-                        var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
-                        var lShadowResolution = lLightData.shadowResolution;
-                        var rShadowResolution = rLightData.shadowResolution;
-                        var lLightShape = lLightData.type;
-                        var rLightShape = rLightData.type;
-
-                        int lResolution = lShadowResolution.useOverride ? lShadowResolution.@override : (hdrp == null ? -1 : HDLightUI.ScalableSettings.ShadowResolution(lLightShape, hdrp)[lShadowResolution.level]);
-                        int rResolution = rShadowResolution.useOverride ? rShadowResolution.@override : (hdrp == null ? -1 : HDLightUI.ScalableSettings.ShadowResolution(rLightShape, hdrp)[rShadowResolution.level]);
-
-                        return lResolution.CompareTo(rResolution);
-                    }, (target, source) =>
-                    {
-                        if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
-                            return;
-
-                        var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
-                        var tShadowResolution = tLightData.shadowResolution;
-                        var sShadowResolution = sLightData.shadowResolution;
-
-                        if (tShadowResolution.useOverride)
-                        {
-                            Undo.RecordObject(tLightData, "Changed shadow resolution override");
-                            tShadowResolution.@override = sShadowResolution.@override;
-                        }
-                    }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.AffectDiffuse, "m_Intensity", 95, (r, prop, dep) =>         // 16: Affect Diffuse
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.AffectDiffuse, "m_Intensity", 95, (r, prop, dep) =>         // 17: Affect Diffuse
                 {
                     if (!TryGetAdditionalLightData(prop, out var lightData))
                     {
@@ -546,6 +643,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         Undo.RecordObject(lightData, "Changed affects diffuse");
                         lightData.affectDiffuse = affectDiffuse;
+
+                        //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                        if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                            SceneView.RepaintAll();
                     }
                 }, (lprop, rprop) =>
                     {
@@ -580,6 +681,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         Undo.RecordObject(lightData, "Changed affects specular");
                         lightData.affectSpecular = affectSpecular;
+
+                        //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                        if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                            SceneView.RepaintAll();
                     }
                 }, (lprop, rprop) =>
                     {

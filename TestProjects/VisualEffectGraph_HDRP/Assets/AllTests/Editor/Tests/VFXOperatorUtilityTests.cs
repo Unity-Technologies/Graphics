@@ -143,7 +143,7 @@ namespace UnityEditor.VFX.Test
             var value_a = new VFXValue<float>(a);
             var value_b = new VFXValue<float>(b);
 
-            var expressionA = VFXOperatorUtility.CylinderVolume(value_a, value_b);
+            var expressionA = VFXOperatorUtility.ConeVolume(value_a, value_a, value_b);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var resultExpressionA = context.Compile(expressionA);

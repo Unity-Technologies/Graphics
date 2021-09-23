@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public override int Priority => 100;
 
-        public CommonShaderPreprocessor() {}
+        public CommonShaderPreprocessor() { }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
@@ -29,7 +29,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // Remove editor only pass
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
             bool isScenePickingPass = snippet.passName == "ScenePickingPass";
-            if (isSceneSelectionPass || isScenePickingPass)
+            bool metaPassUnused = (snippet.passName == "META") && (SupportedRenderingFeatures.active.enlighten == false ||
+                ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0);
+            bool editorVisualization = inputData.shaderKeywordSet.IsEnabled(m_EditorVisualization);
+            if (isSceneSelectionPass || isScenePickingPass || metaPassUnused || editorVisualization)
                 return true;
 
             // CAUTION: We can't identify transparent material in the stripped in a general way.
@@ -65,7 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // If requested by the render pipeline settings, or if we are in a release build,
             // don't compile fullscreen debug display variant
             bool isFullScreenDebugPass = snippet.passName == "FullScreenDebug";
-            if (isFullScreenDebugPass && (!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay))
+            if (isFullScreenDebugPass && (!Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay))
                 return true;
 
             // Debug Display shader is currently the longest shader to compile, so we allow users to disable it at runtime.
@@ -74,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // we allow user to make explicit request for it and it bypass other request
             if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
             {
-                if ((!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+                if ((!Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                     return true;
             }
 
@@ -653,9 +656,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 // 1. It is set in a quality level
                 // 2. It is set as main (GraphicsSettings.renderPipelineAsset)
                 //   AND at least one quality level does not have SRP override
-                // 3. It is set as default (GraphicsSettings.defaultRenderPipeline)
-                //   AND there is no main SRP
-                //   AND at least one quality level does not have SRP override
 
                 // Fetch all SRP overrides in all quality levels
                 // Note: QualitySettings contains only quality levels that are valid for the current platform.
@@ -671,10 +671,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!allQualityLevelsAreOverriden)
                 {
                     // We need to check the fallback cases
-                    if (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrp1)
-                        tmpAssets.Add(hdrp1);
-                    else if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrp2)
-                        tmpAssets.Add(hdrp2);
+                    if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrp)
+                        tmpAssets.Add(hdrp);
                 }
 
                 _hdrpAssets.AddRange(tmpAssets);

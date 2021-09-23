@@ -134,9 +134,27 @@ namespace UnityEngine.Rendering.Universal
             return maxViews;
         }
 
-        internal List<XRPass> SetupFrame(CameraData cameraData)
+        internal void BeginLateLatching(Camera camera, XRPass xrPass)
         {
-            Camera camera = cameraData.camera;
+            //Only support late latching for multiview use case
+            if (display != null && xrPass.singlePassEnabled && xrPass.viewCount == 2)
+            {
+                display.BeginRecordingIfLateLatched(camera);
+                xrPass.isLateLatchEnabled = true;
+            }
+        }
+
+        internal void EndLateLatching(Camera camera, XRPass xrPass)
+        {
+            if (display != null && xrPass.isLateLatchEnabled)
+            {
+                display.EndRecordingIfLateLatched(camera);
+                xrPass.isLateLatchEnabled = false;
+            }
+        }
+
+        internal List<XRPass> SetupFrame(Camera camera, bool enableXRRendering)
+        {
             bool xrEnabled = RefreshXrSdk();
 
             if (display != null)
@@ -159,7 +177,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Enable XR layout only for game camera
             bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
-            bool xrSupported = isGameCamera && camera.targetTexture == null && cameraData.xrRendering;
+            bool xrSupported = isGameCamera && camera.targetTexture == null && enableXRRendering;
 
             if (xrEnabled && xrSupported)
             {

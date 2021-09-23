@@ -110,6 +110,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public override string[] renderingLayerMaskNames
             => globalSettings.renderingLayerMaskNames;
 
+        /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
+        public override string[] prefixedRenderingLayerMaskNames
+            => globalSettings.prefixedRenderingLayerMaskNames;
+
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
@@ -210,25 +214,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
             return false;
-        }
-
-        // This function allows us to raise or remove some preprocessing defines based on the render pipeline settings
-        internal void EvaluateSettings()
-        {
-            // Grab the current set of defines and split them
-            string currentDefineList = UnityEditor.PlayerSettings.GetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone);
-            defineArray.Clear();
-            defineArray.AddRange(currentDefineList.Split(';'));
-
-            // Update all the individual defines
-            bool needUpdate = false;
-            needUpdate |= UpdateDefineList(HDRenderPipeline.GatherRayTracingSupport(currentPlatformRenderPipelineSettings), "ENABLE_RAYTRACING");
-
-            // Only set if it changed
-            if (needUpdate)
-            {
-                UnityEditor.PlayerSettings.SetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone, string.Join(";", defineArray.ToArray()));
-            }
         }
 
 #endif

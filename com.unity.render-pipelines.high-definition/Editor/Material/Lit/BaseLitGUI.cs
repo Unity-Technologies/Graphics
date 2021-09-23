@@ -29,7 +29,47 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kEmissiveIntensity = "_EmissiveIntensity";
         const string kEmissiveColor = "_EmissiveColor";
 
-        protected virtual void UpdateDisplacement() {}
+        protected virtual void UpdateDisplacement() { }
+
+        static DisplacementMode GetFilteredDisplacementMode(Material material)
+        {
+            return GetFilteredDisplacementMode(material, (DisplacementMode)material.GetFloat(kDisplacementMode));
+        }
+
+        public static DisplacementMode GetFilteredDisplacementMode(MaterialProperty displacementMode)
+        {
+            var material = displacementMode.targets[0] as Material;
+            return GetFilteredDisplacementMode(material, (DisplacementMode)displacementMode.floatValue);
+        }
+
+        static DisplacementMode GetFilteredDisplacementMode(Material material, DisplacementMode displacementMode)
+        {
+            if (material.HasProperty(kTessellationMode))
+            {
+                if (displacementMode == DisplacementMode.Pixel || displacementMode == DisplacementMode.Vertex)
+                    return DisplacementMode.None;
+            }
+            else
+            {
+                if (displacementMode == DisplacementMode.Tessellation)
+                    return DisplacementMode.None;
+            }
+            return displacementMode;
+        }
+
+        public static bool HasMixedDisplacementMode(MaterialProperty displacementMode)
+        {
+            Material mat0 = displacementMode.targets[0] as Material;
+            var mode = GetFilteredDisplacementMode(mat0, (DisplacementMode)displacementMode.floatValue);
+            for (int i = 1; i < displacementMode.targets.Length; i++)
+            {
+                Material mat = displacementMode.targets[i] as Material;
+                var currentMode = (DisplacementMode)mat.GetFloat(displacementMode.name);
+                if (GetFilteredDisplacementMode(mat, currentMode) != mode)
+                    return true;
+            }
+            return false;
+        }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupBaseLitKeywords(Material material)
@@ -58,10 +98,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material.HasProperty(kDisplacementMode))
             {
-                bool enableDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) != DisplacementMode.None;
-                bool enableVertexDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Vertex;
-                bool enablePixelDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Pixel;
-                bool enableTessellationDisplacement = ((DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Tessellation) && material.HasProperty(kTessellationMode);
+                var displacementMode = GetFilteredDisplacementMode(material);
+
+                bool enableDisplacement = displacementMode != DisplacementMode.None;
+                bool enableVertexDisplacement = displacementMode == DisplacementMode.Vertex;
+                bool enablePixelDisplacement = displacementMode == DisplacementMode.Pixel;
+                bool enableTessellationDisplacement = displacementMode == DisplacementMode.Tessellation;
 
                 CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT", enableVertexDisplacement);
                 CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT", enablePixelDisplacement);
@@ -98,11 +140,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Box) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_REFRACTION_THIN", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Thin) && canHaveRefraction);
-            }
-
-            if (material.HasProperty(kForceForwardEmissive))
-            {
-                CoreUtils.SetKeyword(material, "_FORCE_FORWARD_EMISSIVE", material.GetInt(kForceForwardEmissive) != 0);
             }
         }
 
@@ -190,42 +227,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static public void SetupBaseLitMaterialPass(Material material)
         {
             material.SetupBaseUnlitPass();
-
-            if (material.HasProperty(kForceForwardEmissive))
-            {
-                // Emissive check below is only for the lit shader
-                // It is possible that it works with SG if the SG properties have the same name.
-                bool emissiveIsDisabled = false;
-                if (material.HasProperty(kUseEmissiveIntensity))
-                {
-                    var useIntensity = material.GetInt(kUseEmissiveIntensity);
-                    if (useIntensity == 0)
-                    {
-                        if (material.HasProperty(kEmissiveColor))
-                        {
-                            var emissionColor = material.GetColor(kEmissiveColor);
-                            if (emissionColor.r == 0.0 && emissionColor.g == 0.0 && emissionColor.b == 0.0)
-                            {
-                                emissiveIsDisabled = true;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (material.HasProperty(kEmissiveIntensity))
-                        {
-                            var intensityValue = material.GetFloat(kEmissiveIntensity);
-                            if (intensityValue == 0.0)
-                            {
-                                emissiveIsDisabled = true;
-                            }
-                        }
-                    }
-                }
-
-                bool forceForwardEmissive = (material.GetFloat(kForceForwardEmissive) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Opaque);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardEmissiveForDeferredStr, forceForwardEmissive && !emissiveIsDisabled);
-            }
         }
     }
 } // namespace UnityEditor

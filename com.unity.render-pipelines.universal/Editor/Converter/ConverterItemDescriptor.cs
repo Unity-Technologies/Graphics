@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEditor.Rendering.Universal.Converters
 {
     /// <summary>
@@ -8,6 +10,7 @@ namespace UnityEditor.Rendering.Universal.Converters
     ///     Example: If we know it is a custom shader, we can not convert it so we add the information here.
     /// HelpLink = Link to the documentation of how to convert this asset. Useful if the conversion failed or if we know we can not convert this asset automatically.
     /// </summary>
+    [Serializable]
     internal struct ConverterItemDescriptor
     {
         /// <summary> Name of the asset being converted. This will be shown in the UI. </summary>
