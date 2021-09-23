@@ -45,18 +45,29 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 | **Quality**                   | Specifies the quality level to use for this effect. Each quality level applies different preset values. Unity also stops you from editing the properties that the preset overrides. If you want to set your own values for every property, select **Custom**. |
 | - **Max Ray Steps**           | Sets the maximum number of iterations that the algorithm can execute before it stops trying to find an intersection with a Mesh. For example, if you set the number of iterations to 1000 and the algorithm only needs 10 to find an intersection, the algorithm terminates after 10 iterations. If you set this value too low, the algorithm may terminate too early and abruptly stop reflections. |
 | **Accumulation Factor**       | The speed of the accumulation convergence. 0 means no accumulation. 1 means accumulation is very slow which is useful for fixed images. The more accumulation, the more accurate the result but the more ghosting occurs when moving. When using accumulation, it is important to find a balance between convergence quality and the ghosting artifact. Also note that rougher reflective surfaces require more accumulation to produce a converged image without noise.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
-| **World Space Speed Rejection**   | When enabled, speed from will be computed in world space to reject samples.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
-| **Speed Rejection**               | Controls the likelihood history will be rejected based on the previous frame motion vectors of both the surface and the hit object.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
-| **Speed Rejection Scaler Factor** | Controls the upper range of speed. The faster the objects or camera are moving, the higher this number should be.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
-| **Speed From Reflecting Surface** | When enabled, the reflecting surface movement is considered as a valid rejection condition. At least one of the two conditions must be checked.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
-| **Speed From Reflected Surface**  | When enabled, the reflected surface movement is considered as a valid rejection condition. At least one of the two conditions must be checked.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
-| **Speed Smooth Rejection**        | When enabled, history can be partially rejected for moving objects which gives a smoother transition. When disabled, history is either kept or totally rejected.<br/>This property only appears if you enable **World Space Speed Rejection**. |
-| **Roughness Bias**            | Controls the relative roughness offset. A low value means material roughness stays the same, a high value means smoother reflections.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
+| **World Space Speed Rejection**   | When enabled, HDRP calculates speed in world space to reject samples.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
+| **Speed Rejection**               | Controls the likelihood that HDRP rejects history based on the previous frame motion vectors of both the surface and the GameObject that the sample hits.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** and enable **Additional Properties** from the contextual menu. |
+| **Speed Rejection Scaler Factor** | Controls the upper range of speed. The faster a GameObject or the Camera move, the higher this number is.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** enable **Additional Properties** from the contextual menu. |
+| **Speed From Reflecting Surface** | When enabled, HDRP rejects samples based on the reflecting surface movement. You must check this property or **Speed From Reflected Surface**.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** enable **Additional Properties** from the contextual menu. |
+| **Speed From Reflected Surface**  | When enabled, HDRP rejects samples based on the reflected surface movement. You must check this property or **Speed From Reflecting Surface**.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** enable **Additional Properties** from the contextual menu. |
+| **Speed Smooth Rejection**        | When enabled, HDRP can partially reject history for moving objects to create a smoother transition. When disabled, HDRP either rejects or keeps history.<br/>This property only appears if you enable **World Space Speed Rejection** enable **Additional Properties** from the contextual menu. |
+| **Roughness Bias**            | Controls the relative roughness offset. A low value means material roughness stays the same, a high value results in smoother reflections.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** enable **Additional Properties** from the contextual menu. |
 
-To simplify the parametrization of 'Speed Rejection' (**Speed Rejection**, **Speed Rejection Scaler Factor**, **Speed From Reflecting Surface**, **Speed From Reflected Surface**, **Speed Smooth Rejection**) we provide a **Fullscreen Debug Mode**: 'ScreenSpaceReflectionSpeedRejection':
-With a color scale from Green to Red, Green means the sample will be accumulated according to **Accumulation Factor** and Red means this sample will be rejected.
+## Debugging Speed Rejection
 
-One the following example the car is centered on the camera, so the relative motion is null. Here by using **Speed From Reflected Surface** we can accumulate sample from the car and less the one from the sky. 
+HDRP includes a **Fullscreen Debug Mode** called **Screen Space Reflection Speed Rejection** (menu: **Lighting > Fullscreen debug mode > Screen Space Reflection Speed Rejection**) that you can use to visualise the contribution of the following properties:
+
+- **Speed Rejection**
+- **Speed Rejection Scaler Factor**
+- **Speed From Reflecting Surface**
+- **Speed From Reflected Surface**
+- **Speed Smooth Rejection**
+
+This fullscreen debug mode uses a color scale from green to red. Green areas indicate the sample is accumulated according to the **Accumulation Factor** and red areas indicate that HDRP rejects this sample. Orange areas indicate a that HDRP accumulates some samples and rejects some samples in this area.
+
+In the following example image, the car GameObject is in the center of the Camera's view. This means the car has no relative motion to the Camera.
+
+This example image uses **Speed From Reflected Surface** to accumulate the samples from the car and partially accumulate the samples from the sky. This makes the car and its reflection appear green, and the surface that reflects the sky appear orange.
 
 ![](Images/ScreenSpaceReflectionPBR_SpeedRejectionSmooth.gif)
 
@@ -92,8 +103,6 @@ To calculate SSR, HDRP reads a color buffer with a blurred mipmap generated duri
 
 If a transparent material has **Receive SSR Transparent** enabled, HDRP always uses the **Approximation** algorithm to calculate SSR, even you select **PBR Accumulation**.
 
-
-
 ### Ray-traced reflection
 
-Currently, ray tracing in HDRP does not support [decals](decal.md). This means that, when you use ray-traced reflection, decals do not appear in reflective surfaces.
+Currently, ray tracing in HDRP does not support [decals](decal.md). This means that when you use ray-traced reflection decals do not appear in reflective surfaces.
