@@ -6,7 +6,7 @@
 
 void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, inout BSDFData bsdfData)
 {
-    // TODO
+    bsdfData.h = -1 + 2 * GenerateHashedRandomFloat(uint3(pathIntersection.pixelCoord, _RaytracingSampleIndex));
 }
 
 bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)

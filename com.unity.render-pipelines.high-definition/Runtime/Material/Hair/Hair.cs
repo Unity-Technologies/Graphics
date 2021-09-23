@@ -135,6 +135,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float roughnessT;
             public float roughnessB;
 
+            public float h;
+
             // Kajiya kay
             public float secondaryPerceptualRoughness;
             public Vector3 secondarySpecularTint;

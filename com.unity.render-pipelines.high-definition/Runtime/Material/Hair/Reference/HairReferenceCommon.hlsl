@@ -21,9 +21,16 @@ static const float FACTORIAL[11] = { 1.0,
                                      362880.0,
                                      3628800.0 };
 
+float SafeSqrt(float x)
+{
+    return sqrt(max(0, x));
+}
+
 struct ReferenceBSDFData
 {
     float  h;      // Intersection offset from fiber center.
+    float  gammaO;
+
     float  eta;    // Refraction Index
     float3 sigmaA; // Absorption Coefficient of Cortex
     float  betaM;  // Longitudinal Roughness
@@ -50,15 +57,15 @@ struct ReferenceAngles
     float phi;
 };
 
+float HyperbolicCosecant(float x)
+{
+    return rcp(sinh(x));
+}
+
 // Ref: Light Scattering from Human Hair Fibers Eq. 3
 float AzimuthalDirection(uint p, float gammaO, float gammaT)
 {
     return (2 * p * gammaT) - (2 * gammaO) + (p * PI);
-}
-
-float HyperbolicCosecant(float x)
-{
-    return rcp(sinh(x));
 }
 
 float Logistic(float x, float s)
@@ -115,11 +122,11 @@ float LogBesselI(float x)
 void LongitudinalVarianceFromBeta(float beta, inout float v[PATH_MAX + 1])
 {
     // Ref: A Practical and Controllable Hair and Fur Model for Production Path Tracing Eq. 7
-    v[0] = Sq((0.726 * beta) + (0.812 * beta * beta) + (3.7 * pow(beta, 20.0)));
+    v[0] = Sq(0.726 * beta + 0.812 * Sq(beta) + 3.7 * pow(beta, 20.0));
     v[1] = 0.25 * v[0];
     v[2] =  4.0 * v[0];
 
-    for (int p = 3; p <= PATH_MAX; ++p)
+    for (int p = 3; p <= PATH_MAX; p++)
         v[p] = v[2];
 }
 
@@ -147,13 +154,40 @@ float GetHFromTube(float3 L, float3 N, float3 T)
     float cosGamma = dot(LProj, N);
 
     // Length along the fiber width.
-    return SinFromCos(cosGamma);
+    return SafeSqrt(1 - Sq(cosGamma));
+}
+
+void ApplyCuticleTilts(uint p, ReferenceAngles angles, ReferenceBSDFData data, out float sinThetaO, out float cosThetaO)
+{
+    if (p == 0)
+    {
+        sinThetaO = angles.sinThetaO * data.cosAlpha[1] - angles.cosThetaO * data.sinAlpha[1];
+        cosThetaO = angles.cosThetaO * data.cosAlpha[1] + angles.sinThetaO * data.sinAlpha[1];
+    }
+    else if (p == 1)
+    {
+        sinThetaO = angles.sinThetaO * data.cosAlpha[0] + angles.cosThetaO * data.sinAlpha[0];
+        cosThetaO = angles.cosThetaO * data.cosAlpha[0] - angles.sinThetaO * data.sinAlpha[0];
+    }
+    else if (p == 2)
+    {
+        sinThetaO = angles.sinThetaO * data.cosAlpha[2] + angles.cosThetaO * data.sinAlpha[2];
+        cosThetaO = angles.cosThetaO * data.cosAlpha[2] - angles.sinThetaO * data.sinAlpha[2];
+    }
+    else
+    {
+        sinThetaO = angles.sinThetaO;
+        cosThetaO = angles.cosThetaO;
+    }
+
+    // Need to clamp for possible out of range after cuticle tilt application.
+    cosThetaO = abs(cosThetaO);
 }
 
 void GetAlphaScalesFromAlpha(float alpha, inout float sinAlpha[3], inout float cosAlpha[3])
 {
-    sinAlpha[0] = sin(alpha);
-    cosAlpha[0] = CosFromSin(sinAlpha[0]);
+    sinAlpha[0] = sin(radians(alpha));
+    cosAlpha[0] = SafeSqrt(1 - Sq(sinAlpha[0]));
 
     // Get the lobe alpha terms by solving for the trigonometric double angle identities.
     for (int i = 1; i < 3; ++i)
@@ -168,11 +202,13 @@ ReferenceBSDFData GetReferenceBSDFData(float3 L, BSDFData bsdfData)
     ReferenceBSDFData data;
     ZERO_INITIALIZE(ReferenceBSDFData, data);
 
-#if HAIR_TYPE == HAIR_TYPE_TUBE
-    data.h = GetHFromTube(L, bsdfData.geomNormalWS, bsdfData.hairStrandDirectionWS);
-#elif HAIR_TYPE == HAIR_TYPE_RIBBON
-    data.h = GetHFromRibbon(bsdfData);
-#endif
+// #if HAIR_TYPE == HAIR_TYPE_TUBE
+    data.h = GetHFromTube(L, bsdfData.normalWS, bsdfData.hairStrandDirectionWS);
+// #elif HAIR_TYPE == HAIR_TYPE_RIBBON
+//     data.h = GetHFromRibbon(bsdfData);
+// #endif
+    // data.h = bsdfData.h;
+    data.gammaO = FastASin(data.h);
 
     data.eta    = 1.55;
     data.sigmaA = bsdfData.absorption;
@@ -190,26 +226,20 @@ ReferenceBSDFData GetReferenceBSDFData(float3 L, BSDFData bsdfData)
     return data;
 }
 
-ReferenceAngles GetReferenceAngles(float3 L, float3 V, BSDFData bsdfData)
+ReferenceAngles GetReferenceAngles(float3 wi, float3 wo)
 {
     ReferenceAngles angles;
     ZERO_INITIALIZE(ReferenceAngles, angles);
 
-    // Transform to the local frame for spherical coordinates
-    float3x3 frame = GetLocalFrame(bsdfData.hairStrandDirectionWS);
-    float3 wi = TransformWorldToTangent(L, frame);
-    float3 wo = TransformWorldToTangent(V, frame);
+    angles.sinThetaI = wi.z;
+    angles.sinThetaO = wo.z;
 
-    angles.sinThetaI = wi.x;
-    angles.sinThetaO = wo.x;
+    angles.cosThetaI = SafeSqrt(1 - Sq(angles.sinThetaI));
+    angles.cosThetaO = SafeSqrt(1 - Sq(angles.sinThetaO));
 
-    // This is technically "CosFromSin", but does the same thing. Worth adding for readability?
-    angles.cosThetaI = CosFromSin(angles.sinThetaI);
-    angles.cosThetaO = CosFromSin(angles.sinThetaO);
-
-    angles.phiI = FastAtan2(wi.z, wi.y);
-    angles.phiO = FastAtan2(wo.z, wo.y);
-    angles.phi  = angles.phiO - angles.phiI;
+    angles.phiI = FastAtan2(wi.y, wi.x);
+    angles.phiO = FastAtan2(wo.y, wo.x);
+    angles.phi  = angles.phiI - angles.phiO;
 
     return angles;
 }

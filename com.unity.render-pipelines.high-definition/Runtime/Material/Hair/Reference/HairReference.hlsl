@@ -3,7 +3,7 @@
 void ComputeFiberAttenuations(float cosThetaO, float eta, float h, float3 T, inout float3 Ap[PATH_MAX + 1])
 {
     // Reconstruct the incident angle.
-    float cosGammaO = sqrt(1 - Sq(h));
+    float cosGammaO = SafeSqrt(1 - Sq(h));
     float cosTheta  = cosThetaO * cosGammaO;
 
     float F0 = IorToFresnel0(eta);
@@ -41,7 +41,7 @@ float LongitudinalScattering(float cosThetaI, float cosThetaO, float sinThetaI, 
     }
     else
     {
-        M = exp(-b) * BesselI(a) / HyperbolicCosecant(1 / v) * 2 * v;
+        M = (exp(-b) * BesselI(a)) / (sinh(1 / v) * 2 * v);
     }
 
     return M;
@@ -62,28 +62,50 @@ CBSDF EvaluateHairReference(float3 V, float3 L, BSDFData bsdfData)
 {
     // Initialize the BSDF invocation.
     ReferenceBSDFData data = GetReferenceBSDFData(L, bsdfData);
-    ReferenceAngles angles = GetReferenceAngles(L, V, bsdfData);
+
+    // Transform to the local frame for spherical coordinates
+    float3x3 frame = GetLocalFrame(bsdfData.hairStrandDirectionWS);
+    float3 wi = mul(L, transpose(frame));
+    float3 wo = mul(V, transpose(frame));
+
+    ReferenceAngles angles = GetReferenceAngles(wi, wo);
 
     // Find refracted ray angles.
     float sinThetaT = angles.sinThetaO / data.eta;
-    float cosThetaT = CosFromSin(sinThetaT);
+    float cosThetaT = SafeSqrt(1 - Sq(sinThetaT));
 
     // Find the modified index of refraction.
-    float etaP = sqrt(data.eta - Sq(angles.sinThetaO)) / angles.cosThetaO;
+    float etaP = sqrt(Sq(data.eta) - Sq(angles.sinThetaO)) / angles.cosThetaO;
 
     // Compute refracted angle gamma T (exploiting the Bravais properties of a cylinder).
     float sinGammaT = data.h / etaP;
-    float cosGammaT = CosFromSin(sinGammaT);
+    float cosGammaT = SafeSqrt(1 - Sq(sinGammaT));
+    float gammaT = clamp(FastASin(sinGammaT), -1, 1);
 
     // Compute transmittance of single path through the fiber using Beer's Law.
     // Ref: The Implementation of a Hair Scattering Model Eq. 1.4
     float3 T = exp(-data.sigmaA * (2 * cosGammaT / cosThetaT));
 
-    // Comptue the absorptions that occur in the fiber for every path.
-    float3 Ap[PATH_MAX + 1];
-    ComputeFiberAttenuations(angles.cosThetaO, data.eta, data.h, T, Ap);
+    // Compute the absorptions that occur in the fiber for every path.
+    float3 A[PATH_MAX + 1];
+    ComputeFiberAttenuations(angles.cosThetaO, data.eta, data.h, T, A);
 
     float3 F = 0;
 
-    return HairFtoCBSDF(F);
+    for (uint p = 0; p < PATH_MAX; p++)
+    {
+        float sinThetaO, cosThetaO;
+        ApplyCuticleTilts(p, angles, data, sinThetaO, cosThetaO);
+
+        F += LongitudinalScattering(angles.cosThetaI, cosThetaO, angles.sinThetaI, sinThetaO, data.v[p]) * A[p] *
+             AzimuthalScattering(angles.phi, p, data.s, data.gammaO, gammaT);
+    }
+
+    // Compute the residual lobe
+    F += LongitudinalScattering(angles.cosThetaI, angles.cosThetaO, angles.sinThetaI, angles.sinThetaO, data.v[PATH_MAX]) * A[PATH_MAX] / TWO_PI;
+
+    if(abs(angles.cosThetaI) > 0)
+        F /= abs(angles.cosThetaI);
+
+    return HairFtoCBSDF(max(F, 0));
 }
