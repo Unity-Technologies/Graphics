@@ -1,16 +1,23 @@
 {
-	"name": "com.unity.testing.urp-upgrade",
-	"displayName":"URP Upgrade Tests",
-	"version": "1.0.0",
-	"unity": "2019.3",
-	"unityRelease": "0b4",
-	"description": "Test suite for upgrade to universal render pipeline.",
-	"keywords": ["qa", "test", "testing", "tests", "graphics", "URP"],
-	"dependencies": {
-  "nuget.moq": "1.0.0",
-  "com.unity.test-framework": "1.1.22",
-	"com.unity.testframework.graphics": "7.8.11-preview",
-	"com.unity.render-pipelines.universal": "12.0.0",
-  "com.unity.timeline": "1.6.0-pre.3"
-	}
+  "name": "com.unity.testing.urp-upgrade",
+  "displayName": "URP Upgrade Tests",
+  "version": "1.0.0",
+  "unity": "2019.3",
+  "unityRelease": "0b4",
+  "description": "Test suite for upgrade to universal render pipeline.",
+  "keywords": [
+    "qa",
+    "test",
+    "testing",
+    "tests",
+    "graphics",
+    "URP"
+  ],
+  "dependencies": {
+    "nuget.moq": "1.0.0",
+    "com.unity.test-framework": "1.1.29",
+    "com.unity.testframework.graphics": "7.8.11-preview",
+    "com.unity.render-pipelines.universal": "12.0.0",
+    "com.unity.timeline": "1.6.0-pre.3"
+  }
 }

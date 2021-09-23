@@ -50,12 +50,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed double contribution from the clear coat when having SSR or RTR on the Lit and StackLit shaders (case 1352424).
 - Fixed texture fields for volume parameters accepting textures with wrong dimensions.
 - Fixed Realtime lightmap not working correctly in player with various lit shader (case 1360021)
+- Fixed unexpectedly strong contribution from directional lights in path-traced volumetric scattering (case 1304688).
+- Fixed memory leak with XR combined occlusion meshes (case 1366173).
+- Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
 - Surface ReflectionTypeLoadExceptions in HDUtils.GetRenderPipelineMaterialList(). Without surfacing these exceptions, developers cannot act on any underlying reflection errors in the HDRP assembly.
 - Improved the DynamicArray class by adding several utility APIs.
 - Moved AMD FidelityFX shaders to core
+- Improved sampling of overlapping point/area lights in path-traced volumetric scattering (case 1358777).
+- Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1346105, 1358783).
+- Fixed minor readability issues in the ray tracing code.
 
 ## [12.0.0] - 2021-01-11
 
