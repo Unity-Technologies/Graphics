@@ -40,6 +40,7 @@ void MainCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         float history = _LensFlareOcclusion[COORD_TEXTURE2D_X(positionSS)].x;
 
+        //occlusion += history * (1.0f / 8.0f);
         occlusion = max(occlusion, history);
     }
 
