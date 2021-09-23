@@ -67,8 +67,11 @@ namespace UnityEngine.Experimental.Rendering
 
         internal void Clear()
         {
-            foreach ((Camera _, XRPass xrPass) in m_ActivePasses)
+            for (int i = 0; i < m_ActivePasses.Count; i++)
             {
+                // Pop from the back to keep initial ordering (see implementation of ObjectPool)
+                (Camera _, XRPass xrPass) = m_ActivePasses[m_ActivePasses.Count - i - 1];
+
                 if (xrPass != XRSystem.emptyPass)
                     xrPass.Release();
             }
