@@ -10,7 +10,7 @@ using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
 namespace UnityEditor.ShaderFoundry
 {
-    internal class SandboxLegacyTemplateLinker : ITemplateLinker
+    internal class LegacyTemplateLinker : ITemplateLinker
     {
         internal AssetCollection m_assetCollection = new AssetCollection();
 
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderFoundry
         UnityEditor.ShaderGraph.Target m_LegacyTarget;
         UnityEditor.ShaderGraph.SubShaderDescriptor m_LegacySubShader;
 
-        internal SandboxLegacyTemplateLinker(AssetCollection assetCollection)
+        internal LegacyTemplateLinker(AssetCollection assetCollection)
         {
             m_assetCollection = assetCollection;
         }
