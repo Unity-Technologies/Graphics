@@ -38,12 +38,6 @@ PR_URP_2D_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_2d-osx-openglcore.yml#URP_2D_OSX_OpenGLCore_editmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/urp_2d-android-opengles3.yml#URP_2D_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_2d-android-vulkan.yml#URP_2D_Android_Vulkan_Standalone_il2cpp_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_2d-iphone-metal.yml#URP_2D_iPhone_Metal_Standalone_il2cpp_Linear_trunk
-         rerun: on_new_revision
 Extra_URP_2D_trunk:
     name: Extra URP_2D on trunk
     variables:
@@ -101,12 +95,6 @@ PR_URP_2D_CUSTOM-REVISION:
       -  path: .yamato/urp_2d-osx-metal.yml#URP_2D_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_2d-osx-openglcore.yml#URP_2D_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_2d-android-opengles3.yml#URP_2D_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_2d-android-vulkan.yml#URP_2D_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_2d-iphone-metal.yml#URP_2D_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_URP_2D_CUSTOM-REVISION:
     name: Extra URP_2D on CUSTOM-REVISION

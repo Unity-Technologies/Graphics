@@ -22,7 +22,7 @@ uint IFloatFlip(uint f)
     return f ^ mask;
 }
 
-void InitReduction(Attributes attributes, float3 size3, uint tid)
+void InitReduction(VFXAttributes attributes, float3 size3, uint tid)
 {
     if (attributes.alive)
     {
