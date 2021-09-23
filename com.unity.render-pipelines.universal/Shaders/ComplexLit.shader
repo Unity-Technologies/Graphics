@@ -56,8 +56,8 @@ Shader "Universal Render Pipeline/Complex Lit"
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
-        [HideInInspector] _SrcBlendA("__srcA", Float) = 1.0
-        [HideInInspector] _DstBlendA("__dstA", Float) = 0.0
+        [HideInInspector] _SrcBlendAlpha("__srcA", Float) = 1.0
+        [HideInInspector] _DstBlendAlpha("__dstA", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _BlendModePreserveSpecular("_BlendModePreserveSpecular", Float) = 1.0
 
@@ -88,7 +88,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             Name "ForwardLit"
             Tags{"LightMode" = "UniversalForwardOnly"}
 
-            Blend[_SrcBlend][_DstBlend], [_SrcBlendA][_DstBlendA]
+            Blend[_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
             ZWrite[_ZWrite]
             Cull[_Cull]
 
@@ -327,7 +327,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             Name "ForwardLit"
             Tags{"LightMode" = "UniversalForwardOnly"}
 
-            Blend[_SrcBlend][_DstBlend], [_SrcBlendA][_DstBlendA]
+            Blend[_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
             ZWrite[_ZWrite]
             Cull[_Cull]
 

@@ -572,6 +572,27 @@ namespace UnityEditor
 
             if (material.HasProperty(Property.DstBlend))
                 material.SetFloat(Property.DstBlend, (float)dstBlend);
+
+            if (material.HasProperty(Property.SrcBlendAlpha))
+                material.SetFloat(Property.SrcBlendAlpha, (float)srcBlend);
+
+            if (material.HasProperty(Property.DstBlendAlpha))
+                material.SetFloat(Property.DstBlendAlpha, (float)dstBlend);
+        }
+
+        internal static void SetMaterialSrcDstBlendProperties(Material material, UnityEngine.Rendering.BlendMode srcBlendRGB, UnityEngine.Rendering.BlendMode dstBlendRGB, UnityEngine.Rendering.BlendMode srcBlendAlpha, UnityEngine.Rendering.BlendMode dstBlendAlpha)
+        {
+            if (material.HasProperty(Property.SrcBlend))
+                material.SetFloat(Property.SrcBlend, (float)srcBlendRGB);
+
+            if (material.HasProperty(Property.DstBlend))
+                material.SetFloat(Property.DstBlend, (float)dstBlendRGB);
+
+            if (material.HasProperty(Property.SrcBlendAlpha))
+                material.SetFloat(Property.SrcBlendAlpha, (float)srcBlendAlpha);
+
+            if (material.HasProperty(Property.DstBlendAlpha))
+                material.SetFloat(Property.DstBlendAlpha, (float)dstBlendAlpha);
         }
 
         internal static void SetMaterialZWriteProperty(Material material, bool zwriteEnabled)
@@ -664,11 +685,12 @@ namespace UnityEditor
 
                         // srcRGB * 0 + dstRGB * srcRGB
                         // in shader alpha controls amount of multiplication, lerp(1, srcRGB, srcAlpha)
+                        // Multiply affects color only, keep existing alpha.
                         case BlendMode.Multiply:
-                            srcBlendRGB = UnityEngine.Rendering.BlendMode.Zero;
-                            dstBlendRGB = UnityEngine.Rendering.BlendMode.SrcColor;
-                            srcBlendA = srcBlendRGB;
-                            dstBlendA = dstBlendRGB;
+                            srcBlendRGB = UnityEngine.Rendering.BlendMode.DstColor;
+                            dstBlendRGB = UnityEngine.Rendering.BlendMode.Zero;
+                            srcBlendA = UnityEngine.Rendering.BlendMode.Zero;
+                            dstBlendA = UnityEngine.Rendering.BlendMode.One;
 
                             material.EnableKeyword("_ALPHAMODULATE_ON");
                             break;
@@ -693,13 +715,8 @@ namespace UnityEditor
                     if (offScreenAccumulateAlpha)
                         srcBlendA = UnityEngine.Rendering.BlendMode.Zero; // TODO:
 
-                    // RGB
-                    material.SetInt("_SrcBlend", (int)srcBlendRGB);
-                    material.SetInt("_DstBlend", (int)dstBlendRGB);
-
-                    // Alpha
-                    material.SetInt("_SrcBlendA", (int)srcBlendA);
-                    material.SetInt("_DstBlendA", (int)dstBlendA);
+                    SetMaterialSrcDstBlendProperties(material, srcBlendRGB, dstBlendRGB, // RGB
+                        srcBlendA, dstBlendA); // Alpha
 
                     // General Transparent Material Settings
                     material.SetOverrideTag("RenderType", "Transparent");

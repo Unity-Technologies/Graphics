@@ -15,8 +15,8 @@ Shader "Universal Render Pipeline/Baked Lit"
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
-        [HideInInspector] _SrcBlendA("__srcA", Float) = 1.0
-        [HideInInspector] _DstBlendA("__dstA", Float) = 0.0
+        [HideInInspector] _SrcBlendAlpha("__srcA", Float) = 1.0
+        [HideInInspector] _DstBlendAlpha("__dstA", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
 
         // Editmode props
@@ -32,7 +32,7 @@ Shader "Universal Render Pipeline/Baked Lit"
         Tags { "RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="4.5"}
         LOD 100
 
-        Blend [_SrcBlend][_DstBlend], [_SrcBlendA][_DstBlendA]
+        Blend [_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
         ZWrite [_ZWrite]
         Cull [_Cull]
 

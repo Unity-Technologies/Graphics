@@ -1207,7 +1207,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                             result.Add(RenderState.Blend(blendSrcRGB, Blend.One, Blend.One, Blend.One));
                             break;
                         case AlphaMode.Multiply:
-                            result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero));
+                            result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.Zero, Blend.One)); // Multiply RGB only, keep A
                             break;
                     }
                 }
