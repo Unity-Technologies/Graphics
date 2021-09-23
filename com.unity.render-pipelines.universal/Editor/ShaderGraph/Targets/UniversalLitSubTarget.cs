@@ -227,16 +227,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            if (target.alphaMode == AlphaMode.Alpha || target.alphaMode == AlphaMode.Additive)
-                context.AddProperty("Preserve Specular", new Toggle() { value = clearCoat }, (evt) =>
-                {
-                    if (Equals(blendModePreserveSpecular, evt.newValue))
-                        return;
+            if (target.surfaceType == SurfaceType.Transparent)
+            {
+                if (target.alphaMode == AlphaMode.Alpha || target.alphaMode == AlphaMode.Additive)
+                    context.AddProperty("Preserve Specular Lighting", new Toggle() { value = clearCoat }, (evt) =>
+                    {
+                        if (Equals(blendModePreserveSpecular, evt.newValue))
+                            return;
 
-                    registerUndo("Change Preserve Specular");
-                    blendModePreserveSpecular = evt.newValue;
-                    onChange();
-                });
+                        registerUndo("Change Preserve Specular");
+                        blendModePreserveSpecular = evt.newValue;
+                        onChange();
+                    });
+            }
         }
 
         protected override int ComputeMaterialNeedsUpdateHash()
