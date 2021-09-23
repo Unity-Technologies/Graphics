@@ -52,9 +52,9 @@ namespace UnityEngine.Rendering.Universal
             shadowSliceData.resolution = shadowResolution;
             shadowSliceData.shadowTransform = GetShadowTransform(shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix);
 
-            // This used to be fixed to .6f, but is now configureable.
             // It is the culling sphere radius multiplier for shadow cascade blending
-            shadowSliceData.splitData.shadowCascadeBlendCullingFactor = 0.6f;
+            // If this is less than 1.0, then it will begin to cull castors across cascades
+            shadowSliceData.splitData.shadowCascadeBlendCullingFactor = 1.0f;
 
             // If we have shadow cascades baked into the atlas we bake cascade transform
             // in each shadow matrix to save shader ALU and L/S

@@ -39,10 +39,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_LutBuilderHdr = Load(data.shaders.lutBuilderHdrPS);
 
             // Warm up lut format as IsFormatSupported adds GC pressure...
-            const FormatUsage kFlags = FormatUsage.Linear | FormatUsage.Render;
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, kFlags))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear) && SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Render))
                 m_HdrLutFormat = GraphicsFormat.R16G16B16A16_SFloat;
-            else if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, kFlags))
+            else if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear) && SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Render))
                 m_HdrLutFormat = GraphicsFormat.B10G11R11_UFloatPack32;
             else
                 // Obviously using this for log lut encoding is a very bad idea for precision but we
