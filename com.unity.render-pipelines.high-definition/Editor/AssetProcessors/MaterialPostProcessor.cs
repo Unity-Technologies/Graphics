@@ -75,6 +75,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             int materialIdx = 0;
             int totalMaterials = distinctGuids.Count();
+
+            AssetDatabase.StartAssetEditing();
+
             foreach (var asset in distinctGuids)
             {
                 materialIdx++;
@@ -82,6 +85,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
                 AssetDatabase.ImportAsset(path);
             }
+
+            AssetDatabase.StopAssetEditing();
+
             UnityEditor.EditorUtility.ClearProgressBar();
 
             MaterialPostprocessor.s_NeedsSavingAssets = true;
@@ -95,6 +101,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             int shaderIdx = 0;
             int totalShaders = distinctGuids.Count();
+
+            AssetDatabase.StartAssetEditing();
+
             foreach (var asset in distinctGuids)
             {
                 shaderIdx++;
@@ -106,6 +115,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     AssetDatabase.ImportAsset(path);
                 }
             }
+
+            AssetDatabase.StopAssetEditing();
+
             UnityEditor.EditorUtility.ClearProgressBar();
 
             MaterialPostprocessor.s_NeedsSavingAssets = true;

@@ -33,6 +33,9 @@ namespace UnityEditor.Rendering.Universal
 
             int materialIdx = 0;
             int totalMaterials = distinctGuids.Count();
+
+            AssetDatabase.StartAssetEditing();
+
             foreach (var asset in distinctGuids)
             {
                 materialIdx++;
@@ -40,6 +43,9 @@ namespace UnityEditor.Rendering.Universal
                 EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
                 AssetDatabase.ImportAsset(path);
             }
+
+            AssetDatabase.StopAssetEditing();
+
             EditorUtility.ClearProgressBar();
 
             MaterialPostprocessor.s_NeedsSavingAssets = true;
