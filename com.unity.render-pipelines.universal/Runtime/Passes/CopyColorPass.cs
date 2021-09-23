@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 throw new ArgumentNullException("cmd");
 
 #pragma warning disable 0612 // Obsolete usage: Backwards compatibility for obsolete GetTemporaryRT
-            if (destination.rt == null && destinationID != RenderTargetHandle.CameraTarget.id)
+            if (destination.rt == null && destinationID != -1)
             {
                 cmd.ReleaseTemporaryRT(destinationID);
                 destination.Release();
