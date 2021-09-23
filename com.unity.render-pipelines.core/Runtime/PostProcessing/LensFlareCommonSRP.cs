@@ -11,6 +11,9 @@ namespace UnityEngine.Rendering
         public static int maxLensFlareWithOcclusion = 128; // Max lens-flares-with-occlusion supported
         // With TAA Occlusion jitter depth, thought frame on HDRP.
         // So we do a "unanimity vote" for occlusion thought 'maxLensFlareWithOcclusionTemporalSample' frame
+        // Important to keep this value maximum of 8
+        // If this value change that could implies an implementation modification on:
+        // com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/LensFlareMergeOcclusionDataDriven.compute
         public static int maxLensFlareWithOcclusionTemporalSample = 8;
 
         public static int mergeNeeded = 1;
