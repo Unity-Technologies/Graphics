@@ -3,6 +3,13 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
+    enum ConversionType
+    {
+        Position,
+        Direction,
+        Normal
+    }
+
     internal struct SpaceTransform
     {
         public CoordinateSpace from;
@@ -39,13 +46,6 @@ namespace UnityEditor.ShaderGraph
                 tangentTransformSpace.ToString(), "SpaceBiTangent, IN.",
                 tangentTransformSpace.ToString(), "SpaceNormal);");
             return "tangentTransform";
-        }
-
-        public static string GenerateTransposeTangentTransform(ShaderStringBuilder sb, CoordinateSpace tangentTransformSpace = CoordinateSpace.World)
-        {
-            var tangentTransform = GenerateTangentTransform(sb, tangentTransformSpace);
-            sb.AddLine("$precision3x3 transposeTangentTransform = transpose(tangentTransform);");
-            return "transposeTangentTransform";
         }
 
         public static void Identity(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
@@ -89,11 +89,6 @@ namespace UnityEditor.ShaderGraph
                 {
                     switch (xform.from)
                     {
-                        case CoordinateSpace.Object:
-                            if (xform.to == CoordinateSpace.Tangent)
-                            {
-                            }
-                            break;
                         case CoordinateSpace.AbsoluteWorld:
                             if ((xform.to == CoordinateSpace.Object) || (xform.to == CoordinateSpace.View))
                             {
@@ -113,14 +108,12 @@ namespace UnityEditor.ShaderGraph
                         case CoordinateSpace.Tangent:
                             if ((xform.to == CoordinateSpace.Object) || (xform.to == CoordinateSpace.View) || (xform.to == CoordinateSpace.AbsoluteWorld))
                             {
-                                // disable the versioning on toWorld transform to remove normalization
+                                // manually version to 2, to remove normalization (while keeping Normal type)
+                                toWorld.type = ConversionType.Normal;
                                 toWorld.version = 2;
                             }
                             break;
                     }
-                }
-                else if (xform.type == ConversionType.Position)
-                {
                 }
             }
 
@@ -145,6 +138,9 @@ namespace UnityEditor.ShaderGraph
                         xform.normalize = true;
                     sb.AddLine(outputVariable, " = TransformWorldToObjectDir(", inputValue, ", ", xform.NormalizeString(), ");");
                     break;
+                case ConversionType.Normal:
+                    sb.AddLine(outputVariable, " = TransformWorldToObjectNormal(", inputValue, ", ", xform.NormalizeString(), ");");
+                    break;
             }
         }
 
@@ -152,9 +148,9 @@ namespace UnityEditor.ShaderGraph
         {
             if (xform.version <= 1)
             {
-                // prior to version 2, all transform were normalized, and position transform actually did direction transform
+                // prior to version 2, all transform were normalized, and all transforms were Normal transforms
                 xform.normalize = true;
-                xform.type = ConversionType.Direction;
+                xform.type = ConversionType.Normal;
             }
 
             using (sb.BlockScope())
@@ -164,9 +160,12 @@ namespace UnityEditor.ShaderGraph
                 switch (xform.type)
                 {
                     case ConversionType.Position:
-                        sb.AddLine(outputVariable, " = TransformWorldToTangent(", inputValue, " - IN.WorldSpacePosition, ", tangentTransform, ", false);");
+                        sb.AddLine(outputVariable, " = TransformWorldToTangentDir(", inputValue, " - IN.WorldSpacePosition, ", tangentTransform, ", false);");
                         break;
                     case ConversionType.Direction:
+                        sb.AddLine(outputVariable, " = TransformWorldToTangentDir(", inputValue, ", ", tangentTransform, ", ", xform.NormalizeString(), ");");
+                        break;
+                    case ConversionType.Normal:
                         sb.AddLine(outputVariable, " = TransformWorldToTangent(", inputValue, ", ", tangentTransform, ", ", xform.NormalizeString(), ");");
                         break;
                 }
@@ -185,6 +184,9 @@ namespace UnityEditor.ShaderGraph
                         xform.normalize = false;
                     sb.AddLine(outputVariable, " = TransformWorldToViewDir(", inputValue, ", ", xform.NormalizeString(), ");");
                     break;
+                case ConversionType.Normal:
+                    sb.AddLine(outputVariable, " = TransformWorldToViewNormal(", inputValue, ", ", xform.NormalizeString(), ");");
+                    break;
             }
         }
 
@@ -200,6 +202,7 @@ namespace UnityEditor.ShaderGraph
                     sb.AddLine(outputVariable, " = GetAbsolutePositionWS(", inputValue, ");");
                     break;
                 case ConversionType.Direction:
+                case ConversionType.Normal:
                     // both normal and direction are unchanged
                     if (xform.normalize)
                         sb.AddLine(outputVariable, " = SafeNormalize(", inputValue, ");");
@@ -221,6 +224,9 @@ namespace UnityEditor.ShaderGraph
                         xform.normalize = true;
                     sb.AddLine(outputVariable, " = TransformObjectToWorldDir(", inputValue, ", ", xform.NormalizeString(), ");");
                     break;
+                case ConversionType.Normal:
+                    sb.AddLine(outputVariable, " = TransformObjectToWorldNormal(", inputValue, ", ", xform.NormalizeString(), ");");
+                    break;
             }
         }
 
@@ -236,33 +242,35 @@ namespace UnityEditor.ShaderGraph
                         xform.normalize = true;
                     sb.AddLine(outputVariable, " = TransformObjectToWorldDir(", inputValue, ", ", xform.NormalizeString(), ");");
                     break;
+                case ConversionType.Normal:
+                    sb.AddLine(outputVariable, " = TransformObjectToWorldNormal(", inputValue, ", ", xform.NormalizeString(), ");");
+                    break;
             }
         }
 
         public static void TangentToWorld(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
         {
-            // all tangent to world before version 2 are doing Direction transformations only
+            // prior to version 2 all transforms were Normal, and directional transforms were normalized
             if (xform.version <= 1)
             {
-                if (xform.type == ConversionType.Position)
-                    xform.type = ConversionType.Direction;
-                else
+                if (xform.type != ConversionType.Position)
                     xform.normalize = true;
+                xform.type = ConversionType.Normal;
             }
 
             using (sb.BlockScope())
             {
-                string transposeTangentTransform = GenerateTransposeTangentTransform(sb, CoordinateSpace.World);
+                string tangentTransform = GenerateTangentTransform(sb, CoordinateSpace.World);
                 switch (xform.type)
                 {
                     case ConversionType.Position:
-                        sb.AddLine(outputVariable, " = mul(", transposeTangentTransform, ", ", inputValue, ").xyz + IN.WorldSpacePosition;");
+                        sb.AddLine(outputVariable, " = TransformTangentToWorldDir(", inputValue, ", ", tangentTransform, ", false).xyz + IN.WorldSpacePosition;");
                         break;
                     case ConversionType.Direction:
-                        if (xform.normalize)
-                            sb.AddLine(outputVariable, " = SafeNormalize(mul(", transposeTangentTransform, ", ", inputValue, ").xyz);");
-                        else
-                            sb.AddLine(outputVariable, " = mul(", transposeTangentTransform, ", ", inputValue, ").xyz;");
+                        sb.AddLine(outputVariable, " = TransformTangentToWorldDir(", inputValue, ", ", tangentTransform, ", ", xform.NormalizeString(), ").xyz;");
+                        break;
+                    case ConversionType.Normal:
+                        sb.AddLine(outputVariable, " = TransformTangentToWorld(", inputValue, ", ", tangentTransform, ", ", xform.NormalizeString(), ");");
                         break;
                 }
             }
@@ -273,15 +281,15 @@ namespace UnityEditor.ShaderGraph
             switch (xform.type)
             {
                 case ConversionType.Position:
-                    sb.AddLine(outputVariable, " = mul(UNITY_MATRIX_I_V, $precision4(", inputValue, ", 1)).xyz;");
+                    sb.AddLine(outputVariable, " = TransformViewToWorld(", inputValue, ");");
                     break;
                 case ConversionType.Direction:
                     if (xform.version <= 1)
                         xform.normalize = false;
-                    if (xform.normalize)
-                        sb.AddLine(outputVariable, " = SafeNormalize(mul((float3x3) UNITY_MATRIX_I_V, ", inputValue, "));");
-                    else
-                        sb.AddLine(outputVariable, " = mul((float3x3) UNITY_MATRIX_I_V, ", inputValue, ");");
+                    sb.AddLine(outputVariable, " = TransformViewToWorldDir(", inputValue, ", ", xform.NormalizeString(), ");");
+                    break;
+                case ConversionType.Normal:
+                    sb.AddLine(outputVariable, " = TransformViewToWorldNormal(", inputValue, ", ", xform.NormalizeString(), ");");
                     break;
             }
         }
@@ -298,6 +306,7 @@ namespace UnityEditor.ShaderGraph
                     sb.AddLine(outputVariable, " = GetCameraRelativePositionWS(", inputValue, ");");
                     break;
                 case ConversionType.Direction:
+                case ConversionType.Normal:
                     // both normal and direction are unchanged
                     if (xform.normalize)
                         sb.AddLine(outputVariable, " = SafeNormalize(", inputValue, ");");

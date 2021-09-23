@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void UpdateVisibility()
         {
-            normalizePropRow.visible = (node.conversionType != ConversionType.Position);
+            normalizePropRow.visible = (node.sgVersion >= 2) && (node.conversionType != ConversionType.Position);
         }
 
         internal override void AddCustomNodeProperties(VisualElement parentElement, AbstractMaterialNode nodeBase, Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)

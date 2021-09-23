@@ -6,12 +6,6 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    enum ConversionType
-    {
-        Position,
-        Direction
-    }
-
     [Serializable]
     struct CoordinateSpaceConversion : IEnumConversion
     {
