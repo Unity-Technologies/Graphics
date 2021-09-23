@@ -617,9 +617,7 @@ namespace UnityEditor.VFX
                         if (readsTangent || hasNormalPort) // needs tangent
                             yield return $"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper(CultureInfo.InvariantCulture)}";
 
-                        needsPosWS |= graphCode.requirements.requiresPosition != NeededCoordinateSpace.None ||
-                            graphCode.requirements.requiresScreenPosition ||
-                            graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None;
+                        needsPosWS |= NeedsPositionWorldInterpolator(graphCode);
                     }
 
                     // TODO Put that per pass ?
@@ -748,6 +746,15 @@ namespace UnityEditor.VFX
                 graphCodes.Clear();
         }
 
+        private static bool NeedsPositionWorldInterpolator(GraphCode graphCode)
+        {
+            return graphCode.requirements.requiresPosition != NeededCoordinateSpace.None
+                    || graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None
+                    || graphCode.requirements.requiresScreenPosition
+                    || graphCode.requirements.requiresNDCPosition
+                    || graphCode.requirements.requiresPixelPosition;
+        }
+
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get
@@ -820,9 +827,7 @@ namespace UnityEditor.VFX
                                 callSG.builder.AppendLine("INSG.TangentSpaceBiTangent = float3(0.0f, 1.0f, 0.0f);");
                         }
 
-                        if (graphCode.requirements.requiresPosition != NeededCoordinateSpace.None ||
-                            graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None ||
-                            graphCode.requirements.requiresScreenPosition || graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
+                        if (NeedsPositionWorldInterpolator(graphCode))
                         {
                             callSG.builder.AppendLine("float3 posRelativeWS = VFXGetPositionRWS(i.VFX_VARYING_POSWS);");
                             callSG.builder.AppendLine("float3 posAbsoluteWS = VFXGetPositionAWS(i.VFX_VARYING_POSWS);");
