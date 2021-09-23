@@ -35,7 +35,10 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_trunk:
                   GIT_REVISIONDATE=`cat revdate.tmp`
                   echo %GIT_REVISIONDATE%
                   rm revdate.tmp
-                  python3 .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                  # python3 .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+         retries: 2
+    after:
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
@@ -70,6 +73,8 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_trunk:
          retries: 2
       -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
          retries: 2
+    after:
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -110,6 +115,8 @@ ShaderGraph_ref_OSX_OpenGLCore_playmode_ref_images_mono_Linear_trunk:
                   rm revdate.tmp
                   python3 .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+    after:
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -147,6 +154,8 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_trunk:
                   rm revdate.tmp
                   python3 .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+    after:
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -180,6 +189,8 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_tru
          retries: 2
       -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
          retries: 2
+    after:
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -218,7 +229,10 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_CUSTOM-REVISION
                   GIT_REVISIONDATE=`cat revdate.tmp`
                   echo %GIT_REVISIONDATE%
                   rm revdate.tmp
-                  python3 .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                  # python3 .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+         retries: 2
+    after:
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
@@ -253,6 +267,8 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_CUSTOM-RE
          retries: 2
       -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
          retries: 2
+    after:
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -293,6 +309,8 @@ ShaderGraph_ref_OSX_OpenGLCore_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
                   rm revdate.tmp
                   python3 .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+    after:
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -330,6 +348,8 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_CUSTOM-RE
                   rm revdate.tmp
                   python3 .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+    after:
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -363,6 +383,8 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_CUS
          retries: 2
       -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
          retries: 2
+    after:
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
