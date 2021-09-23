@@ -205,6 +205,23 @@ Shader "HDRP/Lit"
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
         [ToggleUI] _ForceForwardEmissive("ForceForwardEmissive", Float) = 0.0
 
+        [HideInInspector] _InitialBend("_InitialBend", Float) = 0.0
+        [HideInInspector] _Stiffness("Stiffness", Float) = 0.0
+        [HideInInspector] _Drag("_Drag", Float) = 0.0
+        [HideInInspector] _ShiverDrag("_ShiverDrag", Float) = 0.0
+        [HideInInspector] _ShiverDirectionality("_ShiverDirectionality", Float) = 0.0
+
+        [HideInInspector] _ObjectId("_ObjectId", Int) = 0.0
+        [HideInInspector] _PassValue("_PassValue", Int) = 0.0
+        [HideInInspector] _SelectionID("_SelectionID", Vector) =(0,0,0,0)
+		
+        [HideInInspector] _DistortionBlurRemapMax("_DistortionBlurRemapMax", Float) = 0.0
+        [HideInInspector] _DistortionBlurRemapMin("_DistortionBlurRemapMin", Float) = 0.0
+        [HideInInspector] _DistortionBlurScale("_DistortionBlurScale", Float) = 0.0
+        [HideInInspector] _DistortionScale("_DistortionScale", Float) = 0.0
+        [HideInInspector] _DistortionVectorBias("_DistortionVectorBias", Float) = 0.0
+        [HideInInspector] _DistortionVectorScale("_DistortionVectorScale", Float) = 0.0
+
         // Ray Tracing
         [ToggleUI] _RayTracing("Ray Tracing (Preview)", Float) = 0
 
