@@ -168,7 +168,7 @@ platforms:
         model: rtx2080
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: mobile/android-execution-r19
         flavor: b1.xlarge
       performance_build_editmode:
         type: Unity::VM

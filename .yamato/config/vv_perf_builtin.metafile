@@ -185,7 +185,7 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: mobile/android-execution-r19
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM

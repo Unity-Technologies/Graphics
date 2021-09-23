@@ -255,16 +255,16 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
         model: rtx2080
       standalone_build:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
       performance_build_editmode:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
   - name: Android
     apis:
@@ -285,11 +285,11 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: mobile/android-execution-r19
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: mobile/android-execution-r19
         flavor: b1.large
   - name: XRQuest
     apis:
