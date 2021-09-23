@@ -26,7 +26,7 @@ struct VaryingsLensFlare
 TEXTURE2D(_FlareTex);
 SAMPLER(sampler_FlareTex);
 
-#ifdef HDRP_FLARE
+#if defined(HDRP_FLARE) && defined(FLARE_OCCLUSION)
 TEXTURE2D_X(_FlareOcclusionTex);
 SAMPLER(sampler_FlareOcclusionTex);
 #endif
@@ -300,14 +300,12 @@ float4 frag(VaryingsLensFlare input) : SV_Target
 
     float4 col = GetFlareShape(input.texcoord);
 
-#ifdef HDRP_FLARE
-#ifdef FLARE_OCCLUSION
+#if defined(HDRP_FLARE) && defined(FLARE_OCCLUSION)
     float occ = SAMPLE_TEXTURE2D_X_LOD(_FlareOcclusionTex, sampler_FlareOcclusionTex, float2(_FlareOcclusionIndex.x, 0.0f), 0).x;
 
     return col * _FlareColor * occ;
-#else
+#elif !defined(FLARE_OCCLUSION)
     return col * _FlareColor;
-#endif
 #else
     return col * _FlareColor * input.occlusion;
 #endif
