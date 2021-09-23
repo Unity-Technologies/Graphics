@@ -1,0 +1,21 @@
+{% metadata_file .yamato/_cache_config.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
+
+---
+
+tempjob:
+    name: Affected areas
+    variables:
+        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      - .yamato/vikingvillage_urp-android-opengles3.yml#VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_2021.2
+      - .yamato/vikingvillage_urp-android-opengles3.yml#VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_2021.2
+      - .yamato/vikingvillage_builtin-android-opengles3.yml#VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_2021.2
+      - .yamato/vikingvillage_builtin-android-opengles3.yml#VikingVillage_BuiltIn_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_2021.2
+      - .yamato/urp_performance_lostcrypt-android-vulkan.yml#URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linear_2021.2
+      - .yamato/urp_performance_lostcrypt-android-vulkan.yml#URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_2021.2
+      - .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_2021.2
+      - .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_2021.2
