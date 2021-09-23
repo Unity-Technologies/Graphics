@@ -606,8 +606,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Configures the camera target.
         /// </summary>
-        /// <param name="colorTarget">Camera color target. Pass BuiltinRenderTextureType.CameraTarget if rendering to backbuffer.</param>
-        /// <param name="depthTarget">Camera depth target. Pass BuiltinRenderTextureType.CameraTarget if color has depth or rendering to backbuffer.</param>
+        /// <param name="colorTarget">Camera color target. Pass k_CameraTarget if rendering to backbuffer.</param>
+        /// <param name="depthTarget">Camera depth target. Pass k_CameraTarget if color has depth or rendering to backbuffer.</param>
         public void ConfigureCameraTarget(RTHandle colorTarget, RTHandle depthTarget)
         {
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { handle = colorTarget };
