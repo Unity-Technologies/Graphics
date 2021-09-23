@@ -99,34 +99,42 @@ float4 GetStreamingMipColor(uint mipCount, float4 mipInfo)
     // w = 0
     uint originalTextureMipCount = uint(mipInfo.y);
 
+    float4 res = 0.0;
+
     // If material/shader mip info (original mip level) has not been set its not a streamed texture
     if (originalTextureMipCount == 0)
-        return float4(1.0, 1.0, 1.0, 0.0);
-
-    uint desiredMipLevel = uint(mipInfo.z);
-    uint mipCountDesired = uint(originalTextureMipCount)-uint(desiredMipLevel);
-    if (mipCount == 0)
     {
-        // Magenta if mip count invalid
-        return float4(1.0, 0.0, 1.0, 1.0);
-    }
-    else if (mipCount < mipCountDesired)
-    {
-        // red tones when not at the desired mip level (reduction due to budget). Brighter is further from original, alpha 0 when at desired
-        float ratioToDesired = float(mipCount) / float(mipCountDesired);
-        return float4(1.0, 0.0, 0.0, 1.0 - ratioToDesired);
-    }
-    else if (mipCount >= originalTextureMipCount)
-    {
-        // original color when at (or beyond) original mip count
-        return float4(1.0, 1.0, 1.0, 0.0);
+        res = float4(1.0, 1.0, 1.0, 0.0);
     }
     else
     {
-        // green tones when not at the original mip level. Brighter is closer to original, alpha 0 when at original
-        float ratioToOriginal = float(mipCount) / float(originalTextureMipCount);
-        return float4(0.0, 1.0, 0.0, 1.0 - ratioToOriginal);
+        uint desiredMipLevel = uint(mipInfo.z);
+        uint mipCountDesired = uint(originalTextureMipCount)-uint(desiredMipLevel);
+        if (mipCount == 0)
+        {
+            // Magenta if mip count invalid
+            res = float4(1.0, 0.0, 1.0, 1.0);
+        }
+        else if (mipCount < mipCountDesired)
+        {
+            // red tones when not at the desired mip level (reduction due to budget). Brighter is further from original, alpha 0 when at desired
+            float ratioToDesired = float(mipCount) / float(mipCountDesired);
+            res = float4(1.0, 0.0, 0.0, 1.0 - ratioToDesired);
+        }
+        else if (mipCount >= originalTextureMipCount)
+        {
+            // original color when at (or beyond) original mip count
+            res = float4(1.0, 1.0, 1.0, 0.0);
+        }
+        else
+        {
+            // green tones when not at the original mip level. Brighter is closer to original, alpha 0 when at original
+            float ratioToOriginal = float(mipCount) / float(originalTextureMipCount);
+            res = float4(0.0, 1.0, 0.0, 1.0 - ratioToOriginal);
+        }
     }
+
+    return res;
 }
 
 float4 GetSimpleMipCountColor(uint mipCount)
