@@ -167,8 +167,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseFrame()
         {
-            foreach ((Camera _, XRPass xrPass) in framePasses)
+            for (int i = 0; i < framePasses.Count; i++)
             {
+                // Pop from the back to keep initial ordering (see implementation of ObjectPool)
+                (Camera _, XRPass xrPass) = framePasses[framePasses.Count - i - 1];
+
                 if (xrPass != emptyPass)
                     XRPass.Release(xrPass);
             }
