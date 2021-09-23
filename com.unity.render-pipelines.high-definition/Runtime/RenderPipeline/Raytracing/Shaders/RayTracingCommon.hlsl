@@ -57,4 +57,23 @@ uint2 ComputeSourceCoordinates(uint2 halfResCoord, int frameIndex)
 {
     return halfResCoord * 2;
 }
+
+// These need to be negative for RayDistanceIndicatesHitSkyOrUnlit
+#define RAY_TRACING_DISTANCE_FLAG_UNLIT -1.0
+#define RAY_TRACING_DISTANCE_FLAG_SKY 0.0
+
+bool RayTracingGBufferIsUnlit(float rayDistance)
+{
+    return rayDistance < 0.0;
+}
+
+bool RayTracingGBufferIsSky(float rayDistance)
+{
+    return rayDistance == RAY_TRACING_DISTANCE_FLAG_SKY;
+}
+
+bool RayTracingGBufferIsLit(float rayDistance)
+{
+    return rayDistance > 0.0;
+}
 #endif // RAY_TRACING_COMMON_HLSL
