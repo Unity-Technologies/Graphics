@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderFoundry
             BuildTemplateCustomizationPoints(builder, subShaderDescriptor, out vertexCustomizationPoint, out surfaceCustomizationPoint);
             var result = builder.Build();
 
-            var legacyLinker = new SandboxLegacyTemplateLinker(m_assetCollection);
+            var legacyLinker = new LegacyTemplateLinker(m_assetCollection);
             legacyLinker.SetLegacy(m_Target, subShaderDescriptor);
             builder.SetLinker(legacyLinker);
 
