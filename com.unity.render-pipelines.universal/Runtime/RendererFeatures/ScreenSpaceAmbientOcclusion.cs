@@ -396,13 +396,13 @@ namespace UnityEngine.Rendering.Universal
 
             private void Render(CommandBuffer cmd, RTHandle target, ShaderPasses pass)
             {
-                cmd.SetRenderTarget(
-                    target.nameID,
+                CoreUtils.SetRenderTarget(
+                    cmd,
+                    target,
                     RenderBufferLoadAction.DontCare,
                     RenderBufferStoreAction.Store,
-                    target.nameID,
-                    RenderBufferLoadAction.DontCare,
-                    RenderBufferStoreAction.DontCare
+                    ClearFlag.None,
+                    Color.clear
                 );
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, (int)pass);
             }
