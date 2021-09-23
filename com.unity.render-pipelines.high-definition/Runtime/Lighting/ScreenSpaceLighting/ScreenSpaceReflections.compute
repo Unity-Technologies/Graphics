@@ -8,7 +8,7 @@
 #pragma kernel ScreenSpaceReflectionsTracing                                                SSR_TRACE
 #pragma kernel ScreenSpaceReflectionsReprojection                                           SSR_REPROJECT
 
-#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth                    SSR_ACCUMULATE USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth 
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth                    SSR_ACCUMULATE USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth
 #pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly              SSR_ACCUMULATE USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly
 #pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly              SSR_ACCUMULATE USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly
 #pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth              SSR_ACCUMULATE WORLD_SPEED_REJECTION USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1 MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth
