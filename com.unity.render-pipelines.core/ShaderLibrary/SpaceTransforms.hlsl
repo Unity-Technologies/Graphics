@@ -250,9 +250,7 @@ real3 TransformWorldToTangentDir(real3 dirWS, real3x3 tangentToWorld, bool doNor
 }
 
 // this function is intended to work on Vectors/Directions
-// This function does the exact inverse of TransformTangentToWorld() and is
-// also decribed within comments in mikktspace.h and it follows implicitly
-// from the scalar triple product (google it).
+// This function does the exact inverse of TransformWorldToTangentDir()
 real3 TransformTangentToWorldDir(real3 dirWS, real3x3 tangentToWorld, bool doNormalize = false)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
