@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.8.0] - 2021-09-20
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
 
 ## [10.7.0] - 2021-07-02
 
