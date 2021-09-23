@@ -281,19 +281,19 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_EnableWorldSpeedRejection, k_EnableSpeedRejectionText);
                     if (BeginAdditionalPropertiesScope())
                     {
-                        PropertyField(m_SpeedRejectionFactor, k_SpeedRejectionFactorText);
                         if (m_EnableWorldSpeedRejection.value.boolValue)
                         {
-                            PropertyField(m_SpeedRejectionScalerFactor, k_SpeedRejectionScalerFactorText);
+                            using (new IndentLevelScope())
+                            {
+                                PropertyField(m_SpeedRejectionScalerFactor, k_SpeedRejectionScalerFactorText);
+                                PropertyField(m_SpeedSmoothReject, k_SpeedSmoothRejectText);
+                            }
                         }
+                        PropertyField(m_SpeedRejectionFactor, k_SpeedRejectionFactorText);
                         if (!m_SpeedSurfaceOnly.value.boolValue && !m_SpeedTargetOnly.value.boolValue)
                             m_SpeedSurfaceOnly.value.boolValue = true;
                         PropertyField(m_SpeedSurfaceOnly, k_SpeedSurfaceOnlyText);
                         PropertyField(m_SpeedTargetOnly, k_SpeedTargetOnlyText);
-                        if (m_EnableWorldSpeedRejection.value.boolValue)
-                        {
-                            PropertyField(m_SpeedSmoothReject, k_SpeedSmoothRejectText);
-                        }
                         PropertyField(m_BiasFactor, k_BiasFactorText);
                     }
                     EndAdditionalPropertiesScope();
