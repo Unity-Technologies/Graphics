@@ -211,6 +211,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public Vector3 worldSpaceCameraPos;
 
+        /// <summary>
+        /// Camera at the top of the overlay camera stack
+        /// </summary>
         public Camera baseCamera;
     }
 

@@ -136,6 +136,9 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public abstract partial class ScriptableRenderPass
     {
+        /// <summary>
+        /// RTHandle alias for BuiltinRenderTextureType.CameraTarget which is the backbuffer.
+        /// </summary>
         static public RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
 
         public RenderPassEvent renderPassEvent { get; set; }
@@ -158,16 +161,25 @@ namespace UnityEngine.Rendering.Universal
             get => m_UsesRTHandles ? new RenderTargetIdentifier(m_DepthAttachment.nameID, 0, CubemapFace.Unknown, -1) : m_DepthAttachmentId;
         }
 
+        /// <summary>
+        /// List for the g-buffer attachment handles.
+        /// </summary>
         public RTHandle[] colorAttachmentHandles
         {
             get => m_ColorAttachments;
         }
 
+        /// <summary>
+        /// The main color attachment handle.
+        /// </summary>
         public RTHandle colorAttachmentHandle
         {
             get => m_ColorAttachments[0];
         }
 
+        /// <summary>
+        /// The depth attachment handle.
+        /// </summary>
         public RTHandle depthAttachmentHandle
         {
             get => m_DepthAttachment;

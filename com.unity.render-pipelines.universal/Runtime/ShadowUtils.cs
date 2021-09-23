@@ -278,6 +278,17 @@ namespace UnityEngine.Rendering.Universal
             return shadowTexture;
         }
 
+        /// <summary>
+        /// Return true if handle does not match the requirements
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null).</param>
+        /// <param name="width">Width of the RTHandle to match.</param>
+        /// <param name="height">Height of the RTHandle to match.</param>
+        /// <param name="bits">Depth bits of the RTHandle to match.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level of the RTHandle to match.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering of the RTHandle to match.</param>
+        /// <param name="name">Name of the RTHandle of the RTHandle to match.</param>
+        /// <returns>If the RTHandle needs to be re-allocated</returns>
         public static bool ShadowRTNeedsReAlloc(RTHandle handle, int width, int height, int bits, int anisoLevel, float mipMapBias, string name)
         {
             if (handle == null)
@@ -296,12 +307,34 @@ namespace UnityEngine.Rendering.Universal
             return RenderingUtils.RTHandleNeedsReAlloc(handle, descriptor, m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear, TextureWrapMode.Clamp, true, anisoLevel, mipMapBias, name, false);
         }
 
+        /// <summary>
+        /// Allocate a Shadow Map
+        /// </summary>
+        /// <param name="width">Width of the Shadow Map.</param>
+        /// <param name="height">Height of the Shadow Map.</param>
+        /// <param name="bits">Minimum depth bits of the Shadow Map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level of the Shadow Map.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering of the Shadow Map.</param>
+        /// <param name="name">Name of the Shadow Map.</param>
+        /// <returns>If an RTHandle for the Shadow Map</returns>
         public static RTHandle AllocShadowRT(int width, int height, int bits, int anisoLevel, float mipMapBias, string name)
         {
             var rtd = GetTemporaryShadowTextureDescriptor(width, height, bits);
             return RTHandles.Alloc(rtd, m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear, TextureWrapMode.Clamp, isShadowMap: true, name: name);
         }
 
+        /// <summary>
+        /// Allocate a Shadow Map or re-allocate if it doesn't match requirements.
+        /// For use only if the map requirements changes at runtime.
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null).</param>
+        /// <param name="width">Width of the Shadow Map.</param>
+        /// <param name="height">Height of the Shadow Map.</param>
+        /// <param name="bits">Minimum depth bits of the Shadow Map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level of the Shadow Map.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering of the Shadow Map.</param>
+        /// <param name="name">Name of the Shadow Map.</param>
+        /// <returns>If the RTHandle was re-allocated</returns>
         public static bool ShadowRTReAllocateIfNeeded(ref RTHandle handle, int width, int height, int bits, int anisoLevel = 1, float mipMapBias = 0, string name = "")
         {
             if (ShadowRTNeedsReAlloc(handle, width, height, bits, anisoLevel, mipMapBias, name))
