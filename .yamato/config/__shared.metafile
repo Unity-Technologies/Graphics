@@ -337,7 +337,7 @@ platforms:
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
             retries: 2
         log_parser:
-          - command: python3 .yamato/script/log_scripts/log_parser.py
+          - command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
 
 
   Linux:
@@ -379,7 +379,7 @@ platforms:
           - command: sudo unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
             retries: 2
         log_parser:
-          - command: python .yamato/script/log_scripts/log_parser.py
+          - command: python .yamato/script/log_scripts/log_parser.py || exit 0
 
 
   Android:
@@ -412,6 +412,15 @@ platforms:
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
                     utr <UTR_FLAGS>
+        call_utr_hikey_android_sdk_root:
+          - command: |5-
+                    set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                    set /p GIT_REVISIONDATE=<revdate.tmp
+                    echo %GIT_REVISIONDATE%
+                    del revdate.tmp
+                    set ANDROID_SDK_ROOT=./WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
+                    utr <UTR_FLAGS>
         call_utr:
           - command: |5-
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -440,8 +449,8 @@ platforms:
           - command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
             retries: 2
         log_parser:
-          - command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-          - command: python .yamato/script/log_scripts/log_parser.py
+          - command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: python .yamato/script/log_scripts/log_parser.py || exit 0
 
 
   XRQuest:
@@ -495,8 +504,8 @@ platforms:
           - command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
             retries: 2
         log_parser:
-          - command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-          - command: python .yamato/script/log_scripts/log_parser.py
+          - command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: python .yamato/script/log_scripts/log_parser.py || exit 0
 
   iPhone:
     name: iPhone
@@ -534,8 +543,8 @@ platforms:
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp  --wait --published-only
             retries: 2
         log_parser:
-          - command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-          - command: python3 .yamato/script/log_scripts/log_parser.py
+          - command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
 non_project_agents:
   package_ci_ubuntu_large:
     type: Unity::VM
