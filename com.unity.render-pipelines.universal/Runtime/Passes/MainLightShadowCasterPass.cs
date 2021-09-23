@@ -3,33 +3,6 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
-    public class FakeMainLightShadowCasterPass : ScriptableRenderPass
-    {
-        RenderTargetHandle m_MainLightShadowmap;
-        public FakeMainLightShadowCasterPass(RenderPassEvent evt)
-        {
-            renderPassEvent = evt;
-            useNativeRenderPass = false;
-            m_MainLightShadowmap.Init("_MainLightShadowmapTexture");
-
-            MainLightShadowCasterPass.MainLightShadowConstantBuffer._ShadowParams = Shader.PropertyToID("_MainLightShadowParams");
-            MainLightShadowCasterPass.MainLightShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_MainLightShadowmapSize");
-        }
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            ref ShadowData shadowData = ref renderingData.shadowData;
-            CommandBuffer cmd = CommandBufferPool.Get();
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, true);
-            cmd.SetGlobalTexture(m_MainLightShadowmap.id, Texture2D.whiteTexture);
-            cmd.SetGlobalVector(MainLightShadowCasterPass.MainLightShadowConstantBuffer._ShadowParams,
-                new Vector4(1, 0, 1, 0));
-            cmd.SetGlobalVector(MainLightShadowCasterPass.MainLightShadowConstantBuffer._ShadowmapSize,
-    new Vector4(1f / Texture2D.whiteTexture.width, 1f / Texture2D.whiteTexture.height, Texture2D.whiteTexture.width, Texture2D.whiteTexture.height));
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-        }
-    }
-
     /// <summary>
     /// Renders a shadow map for the main Light.
     /// </summary>
@@ -52,7 +25,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         const int k_MaxCascades = 4;
-        const int k_ShadowmapBufferBits = 16;
+        internal const int k_ShadowmapBufferBits = 16;
         float m_CascadeBorder;
         float m_MaxShadowDistanceSq;
         int m_ShadowCasterCascadesCount;
@@ -64,6 +37,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         Matrix4x4[] m_MainLightShadowMatrices;
         ShadowSliceData[] m_CascadeSlices;
         Vector4[] m_CascadeSplitDistances;
+
+        bool m_CreateEmptyShadowmap;
 
         ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Main Shadowmap");
 
@@ -145,6 +120,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             return true;
         }
 
+        internal void SetupEmpty()
+        {
+            m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(1, 1, k_ShadowmapBufferBits);
+            m_CreateEmptyShadowmap = true;
+            useNativeRenderPass = false;
+        }
+
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             ConfigureTarget(new RenderTargetIdentifier(m_MainLightShadowmapTexture), m_MainLightShadowmapTexture.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
@@ -154,6 +136,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (m_CreateEmptyShadowmap)
+            {
+                EmptyMainLightCascadeShadowmap(ref context);
+                return;
+            }
+
             RenderMainLightCascadeShadowmap(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
         }
 
@@ -182,6 +170,19 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             for (int i = 0; i < m_CascadeSlices.Length; ++i)
                 m_CascadeSlices[i].Clear();
+        }
+
+        void EmptyMainLightCascadeShadowmap(ref ScriptableRenderContext context)
+        {
+            CommandBuffer cmd = CommandBufferPool.Get();
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, true);
+            cmd.SetGlobalTexture(m_MainLightShadowmap.id, m_MainLightShadowmapTexture);
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
+                new Vector4(1, 0, 1, 0));
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowmapSize,
+                new Vector4(1f / m_MainLightShadowmapTexture.width, 1f / m_MainLightShadowmapTexture.height, m_MainLightShadowmapTexture.width, m_MainLightShadowmapTexture.height));
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         void RenderMainLightCascadeShadowmap(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData)

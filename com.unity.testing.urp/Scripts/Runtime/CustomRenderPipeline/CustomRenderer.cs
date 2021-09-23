@@ -4,18 +4,20 @@ namespace UnityEngine.Rendering.Universal
 {
     public class CustomRenderer : ScriptableRenderer
     {
-        private DrawObjectsPass m_RenderOpaqueForwardPass;
-
+        DrawObjectsPass m_RenderOpaqueForwardPass;
         ForwardLights m_ForwardLights;
-        FakeMainLightShadowCasterPass m_FakeMainLightShadowCasterPass;
-        FakeAdditionalLightsShadowCasterPass m_FakeAdditionalLightsShadowCasterPass;
+        MainLightShadowCasterPass m_MainLightShadowCasterPass;
+        AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
 
         public CustomRenderer(CustomRenderGraphData data) : base(data)
         {
+            ForwardLights.InitParams forwardInitParams = ForwardLights.InitParams.GetDefault();
+            forwardInitParams.additionalLightsAlwaysEnabled = true;
+            m_ForwardLights = new ForwardLights(forwardInitParams);
+
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, -1, StencilState.defaultValue, 0);
-            m_ForwardLights = new ForwardLights();
-            m_FakeMainLightShadowCasterPass = new FakeMainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
-            m_FakeAdditionalLightsShadowCasterPass = new FakeAdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             stripShadowsOffVariants = true;
         }
 
@@ -26,8 +28,12 @@ namespace UnityEngine.Rendering.Universal
             foreach (var feature in rendererFeatures)
                 feature.AddRenderPasses(this, ref renderingData);
             EnqueuePass(m_RenderOpaqueForwardPass);
-            EnqueuePass(m_FakeMainLightShadowCasterPass);
-            EnqueuePass(m_FakeAdditionalLightsShadowCasterPass);
+
+            m_MainLightShadowCasterPass.SetupEmpty();
+            m_AdditionalLightsShadowCasterPass.SetupEmpty();
+
+            EnqueuePass(m_MainLightShadowCasterPass);
+            EnqueuePass(m_AdditionalLightsShadowCasterPass);
         }
 
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)

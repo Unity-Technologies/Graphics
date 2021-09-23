@@ -63,9 +63,7 @@ namespace UnityEngine.Rendering.Universal
         CopyDepthPass m_PrimedDepthCopyPass;
         MotionVectorRenderPass m_MotionVectorPass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
-        FakeMainLightShadowCasterPass m_FakeMainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
-        FakeAdditionalLightsShadowCasterPass m_FakeAdditionalLightsShadowCasterPass;
         GBufferPass m_GBufferPass;
         CopyDepthPass m_GBufferCopyDepthPass;
         TileDepthRangePass m_TileDepthRangePass;
@@ -169,7 +167,7 @@ namespace UnityEngine.Rendering.Universal
             forwardInitParams.lightCookieManager = m_LightCookieManager;
             forwardInitParams.clusteredRendering = data.clusteredRendering;
             forwardInitParams.tileSize = (int)data.tileSize;
-            forwardInitParams.stripShadowsOffVariants = true;
+            forwardInitParams.additionalLightsAlwaysEnabled = UniversalRenderPipeline.asset.additionalLightsRenderingMode != LightRenderingMode.Disabled;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
@@ -185,9 +183,7 @@ namespace UnityEngine.Rendering.Universal
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
-            m_FakeMainLightShadowCasterPass = new FakeMainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
-            m_FakeAdditionalLightsShadowCasterPass = new FakeAdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             this.stripShadowsOffVariants = true;
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
@@ -598,18 +594,18 @@ namespace UnityEngine.Rendering.Universal
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
 
-            if (mainLightShadows)
-                EnqueuePass(m_MainLightShadowCasterPass);
-            else if (UniversalRenderPipeline.asset.supportsMainLightShadows)
+            if (UniversalRenderPipeline.asset.supportsMainLightShadows)
             {
-                EnqueuePass(m_FakeMainLightShadowCasterPass);
+                if (!mainLightShadows)
+                    m_MainLightShadowCasterPass.SetupEmpty();
+                EnqueuePass(m_MainLightShadowCasterPass);
             }
 
-            if (additionalLightShadows)
-                EnqueuePass(m_AdditionalLightsShadowCasterPass);
-            else if (UniversalRenderPipeline.asset.supportsAdditionalLightShadows)
+            if (UniversalRenderPipeline.asset.supportsAdditionalLightShadows)
             {
-                EnqueuePass(m_FakeAdditionalLightsShadowCasterPass);
+                if (!additionalLightShadows)
+                    m_AdditionalLightsShadowCasterPass.SetupEmpty();
+                EnqueuePass(m_AdditionalLightsShadowCasterPass);
             }
 
             if (requiresDepthPrepass)
