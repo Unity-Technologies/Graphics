@@ -74,6 +74,9 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/PostProcessing/FinalPost.shader")]
             public Shader finalPostPassPS;
+
+            [Reload("Shaders/PostProcessing/Exposure.compute")]
+            public ComputeShader exposureComputeShader;
         }
 
         [Serializable, ReloadGroup]

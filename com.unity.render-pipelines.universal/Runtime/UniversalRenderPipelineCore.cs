@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.Universal
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
 
-        public bool usePhysicalCamera;
+        public ExposureMode exposureMode;
         public float exposure;
         public SRPPhysicalCamera physicalParameters;
 
@@ -829,6 +829,7 @@ namespace UnityEngine.Rendering.Universal
         // GPU
         AdditionalLightsShadow,
         ColorGradingLUT,
+        Exposure,
         CopyColor,
         CopyDepth,
         DepthNormalPrepass,

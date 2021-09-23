@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -147,7 +148,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     var sliderRect = rect;
                     sliderRect.x += labelRect.width + sliderPaddingLeft;
                     sliderRect.width = rect.width - labelRect.width - sliderPaddingRight;
-                    float newVal = GUI.HorizontalSlider(sliderRect, p.aperture.floatValue, HDPhysicalCamera.kMinAperture, HDPhysicalCamera.kMaxAperture);
+                    float newVal = GUI.HorizontalSlider(sliderRect, p.aperture.floatValue, SRPPhysicalCamera.kMinAperture, SRPPhysicalCamera.kMaxAperture);
 
                     // keep only 2 digits of precision, like the otehr editor fields
                     newVal = Mathf.Floor(100 * newVal) / 100.0f;
@@ -171,7 +172,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     textRect.height = EditorGUIUtility.singleLineHeight;
                     string newAperture = EditorGUI.TextField(textRect, p.aperture.floatValue.ToString());
                     if (float.TryParse(newAperture, out float parsedValue))
-                        p.aperture.floatValue = Mathf.Clamp(parsedValue, HDPhysicalCamera.kMinAperture, HDPhysicalCamera.kMaxAperture);
+                        p.aperture.floatValue = Mathf.Clamp(parsedValue, SRPPhysicalCamera.kMinAperture, SRPPhysicalCamera.kMaxAperture);
                 }
 
                 EditorGUILayout.EndHorizontal();
@@ -203,7 +204,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     EditorGUI.PrefixLabel(labelRect, propertyScope.content);
                     v.x = EditorGUI.FloatField(floatFieldLeft, v.x);
-                    EditorGUI.MinMaxSlider(sliderRect, ref v.x, ref v.y, HDPhysicalCamera.kMinAperture, HDPhysicalCamera.kMaxAperture);
+                    EditorGUI.MinMaxSlider(sliderRect, ref v.x, ref v.y, SRPPhysicalCamera.kMinAperture, SRPPhysicalCamera.kMaxAperture);
                     v.y = EditorGUI.FloatField(floatFieldRight, v.y);
 
                     p.curvature.vector2Value = v;

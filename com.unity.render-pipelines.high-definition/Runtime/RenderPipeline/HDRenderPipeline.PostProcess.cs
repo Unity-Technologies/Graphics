@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
         float m_DebugExposureCompensation;
 
         // Physical camera copy
-        HDPhysicalCamera m_PhysicalCamera;
+        SRPPhysicalCamera m_PhysicalCamera;
 
         // HDRP has the following behavior regarding alpha:
         // - If post processing is disabled, the alpha channel of the rendering passes (if any) will be passed to the frame buffer by the final pass
@@ -2211,7 +2211,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int bladeCount = dofParameters.physicalCameraBladeCount;
 
-            float rotation = (dofParameters.physicalCameraAperture - HDPhysicalCamera.kMinAperture) / (HDPhysicalCamera.kMaxAperture - HDPhysicalCamera.kMinAperture);
+            float rotation = (dofParameters.physicalCameraAperture - SRPPhysicalCamera.kMinAperture) / (SRPPhysicalCamera.kMaxAperture - SRPPhysicalCamera.kMinAperture);
             rotation *= (360f / bladeCount) * Mathf.Deg2Rad; // TODO: Crude approximation, make it correct
 
             float ngonFactor = 1f;

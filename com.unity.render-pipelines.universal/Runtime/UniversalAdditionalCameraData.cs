@@ -253,8 +253,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         SRPPhysicalCamera m_PhysicalParameters = SRPPhysicalCamera.GetDefaults();
 
-        [SerializeField] float m_Exposure = 1f;
-
         [NonSerialized] Camera m_Camera;
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
@@ -556,15 +554,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_StopNaN;
             set => m_StopNaN = value;
-        }
-
-        /// <summary>
-        /// Returns the exposure value set on this camera
-        /// </summary>
-        public float exposure
-        {
-            get => m_Exposure;
-            set => m_Exposure = value;
         }
 
         /// <summary>

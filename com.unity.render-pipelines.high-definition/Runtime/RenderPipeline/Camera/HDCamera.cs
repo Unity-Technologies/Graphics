@@ -595,7 +595,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // We set the values of the physical camera in the Update() call. Here we initialize with
         // the defaults, in case someone is trying to access the values before the first Update
-        internal HDPhysicalCamera physicalParameters { get; private set; } = HDPhysicalCamera.GetDefaults();
+        internal SRPPhysicalCamera physicalParameters { get; private set; } = SRPPhysicalCamera.GetDefaults();
 
         internal IEnumerable<AOVRequestData> aovRequests =>
             m_AdditionalCameraData != null && !m_AdditionalCameraData.Equals(null)
@@ -1665,7 +1665,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             volumeLayerMask = (-1 & ~(hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask | (1 << 31)));
 
                         // Use the default physical camera values so the exposure will look reasonable
-                        physicalParameters = HDPhysicalCamera.GetDefaults();
+                        physicalParameters = SRPPhysicalCamera.GetDefaults();
                     }
                 }
             }

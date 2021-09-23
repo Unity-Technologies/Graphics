@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// Formats the provided descriptor into a punctual light unit slider with contextual slider markers, tooltips, and icons.
     /// </summary>
-    class HDPunctualLightUnitSlider : HDPiecewiseLightUnitSlider
+    class HDPunctualLightUnitSlider : PiecewiseLightUnitSlider
     {
         public HDPunctualLightUnitSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor) { }
 

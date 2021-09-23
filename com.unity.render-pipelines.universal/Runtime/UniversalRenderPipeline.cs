@@ -65,8 +65,6 @@ namespace UnityEngine.Rendering.Universal
                 public static readonly ProfilingSampler getMainLightIndex = new ProfilingSampler($"{k_Name}.{nameof(GetMainLightIndex)}");
                 public static readonly ProfilingSampler setupPerFrameShaderConstants = new ProfilingSampler($"{k_Name}.{nameof(SetupPerFrameShaderConstants)}");
 
-                public static readonly ProfilingSampler generateExposureTexture = new ProfilingSampler($"{k_Name}.{nameof(GenerateExposureTexture)}");
-
                 public static class Renderer
                 {
                     const string k_Name = nameof(ScriptableRenderer);
@@ -344,56 +342,8 @@ namespace UnityEngine.Rendering.Universal
             return cameraData.camera.TryGetCullingParameters(false, out cullingParams);
         }
 
-        public static readonly int _ExposureParams                 = Shader.PropertyToID("_ExposureParams");
-        public static readonly int _ExposureParams2                = Shader.PropertyToID("_ExposureParams2");
-        public static readonly int _OutputTexture                  = Shader.PropertyToID("_OutputTexture");
 
-        private static void GenerateExposureTexture(CameraData cameraData, CommandBuffer cmd, RenderTargetHandle rth)
-        {
-            RenderTextureDescriptor rtd = new RenderTextureDescriptor
-            {
-                width = 1,
-                height = 1,
-                msaaSamples = 1,
-                volumeDepth = 1,
-                mipCount = 0,
-                graphicsFormat = GraphicsFormat.R32G32_SFloat,
-                sRGB = false,
-                depthBufferBits = 0,
-                dimension = TextureDimension.Tex2D,
-                vrUsage = VRTextureUsage.None,
-                memoryless = RenderTextureMemoryless.None,
-                useMipMap = false,
-                autoGenerateMips = false,
-                enableRandomWrite = true,
-                bindMS = false,
-                useDynamicScale = false
-            };
-            cmd.GetTemporaryRT(rth.id, rtd);
 
-            ComputeShader cs = asset.shaders.exposureCS;
-            int kernel = 0;
-            Vector4 exposureParams;
-            Vector4 exposureParams2 = new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant);
-
-            if (cameraData.usePhysicalCamera == false)
-            {
-                kernel = cs.FindKernel("KFixedExposure");
-                exposureParams = new Vector4(0f, cameraData.exposure, 0f, 0f);
-            }
-            else // ExposureMode.UsePhysicalCamera
-            {
-                var physicalCamera = cameraData.physicalParameters;
-                kernel = cs.FindKernel("KManualCameraExposure");
-                exposureParams = new Vector4(0f, physicalCamera.aperture, physicalCamera.shutterSpeed, physicalCamera.iso);
-            }
-
-            cmd.SetComputeVectorParam(cs, _ExposureParams, exposureParams);
-            cmd.SetComputeVectorParam(cs, _ExposureParams2, exposureParams2);
-
-            cmd.SetComputeTextureParam(cs, kernel, _OutputTexture, rth.id);
-            cmd.DispatchCompute(cs, kernel, 1, 1, 1);
-        }
 
         /// <summary>
         /// Renders a single camera. This method will do culling, setup and execution of the renderer.
@@ -424,17 +374,6 @@ namespace UnityEngine.Rendering.Universal
             // Resulting in following pattern:
             // exec(cmd.start, scope.start, cmd.end) and exec(cmd.start, scope.end, cmd.end)
             CommandBuffer cmd = CommandBufferPool.Get();
-
-            RenderTargetHandle exposureTexture = default;
-            exposureTexture.Init("_ExposureTexture");
-
-            // Build the exposure texture for this camera
-            using (new ProfilingScope(cmd, Profiling.Pipeline.generateExposureTexture))
-            {
-                GenerateExposureTexture(cameraData, cmd, exposureTexture);
-            }
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
 
             // TODO: move skybox code from C++ to URP in order to remove the call to context.Submit() inside DrawSkyboxPass
             // Until then, we can't use nested profiling scopes with XR multipass
@@ -481,7 +420,6 @@ namespace UnityEngine.Rendering.Universal
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
             cameraData.xr.EndCamera(cmd, cameraData);
-            cmd.ReleaseTemporaryRT(exposureTexture.id);
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
             CommandBufferPool.Release(cmd);
 
@@ -821,6 +759,33 @@ namespace UnityEngine.Rendering.Universal
             cameraData.cameraType = baseCamera.cameraType;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
+            var stack = VolumeManager.instance.stack;
+            var exposure = stack.GetComponent<Exposure>();
+            cameraData.physicalParameters = baseAdditionalCameraData ? baseAdditionalCameraData.physicalParameters : new SRPPhysicalCamera();
+
+            if (exposure != null)
+            {
+                switch (exposure.mode.value)
+                {
+                    case ExposureMode.Fixed:
+                        cameraData.exposureMode = ExposureMode.Fixed;
+                        cameraData.exposure = exposure.fixedExposure.value;
+                        break;
+                    case ExposureMode.UsePhysicalCamera:
+                        cameraData.exposureMode = ExposureMode.UsePhysicalCamera;
+                        break;
+                    default:
+                        cameraData.exposureMode = ExposureMode.Fixed;
+                        cameraData.exposure = 1f;
+                        break;
+                }
+            }
+            else
+            {
+                cameraData.exposureMode = ExposureMode.Fixed;
+                cameraData.exposure = 1f;
+            }
+
             ///////////////////////////////////////////////////////////////////
             // Environment and Post-processing settings                       /
             ///////////////////////////////////////////////////////////////////
@@ -834,12 +799,12 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 cameraData.xrRendering = false;
-                cameraData.usePhysicalCamera = false;
-                cameraData.exposure = 1.0f;
-                cameraData.physicalParameters = SRPPhysicalCamera.GetDefaults();
 #if UNITY_EDITOR
-                if(UniversalAdditionalSceneViewSettings.sceneExposureOverriden)
+                if (UniversalAdditionalSceneViewSettings.sceneExposureOverriden)
+                {
+                    cameraData.exposureMode = ExposureMode.Fixed;
                     cameraData.exposure = UniversalAdditionalSceneViewSettings.sceneExposure;
+                }
 #endif
 #endif
             }
@@ -851,9 +816,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.isDitheringEnabled = baseAdditionalCameraData.dithering;
                 cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
                 cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
-                cameraData.exposure = baseAdditionalCameraData.exposure;
-                cameraData.usePhysicalCamera = baseAdditionalCameraData.usePhysicalCamera;
-                cameraData.physicalParameters = baseAdditionalCameraData.physicalParameters;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
                 cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering && m_XRSystem.RefreshXrSdk();
 #endif
@@ -868,9 +831,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 cameraData.xrRendering = m_XRSystem.RefreshXrSdk();
-                cameraData.usePhysicalCamera = false;
-                cameraData.exposure = 1.0f;
-                cameraData.physicalParameters = SRPPhysicalCamera.GetDefaults();
 #endif
             }
 
