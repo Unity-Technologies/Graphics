@@ -174,17 +174,6 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
-
-            /// <inheritdoc/>
-            public override void OnCameraCleanup(CommandBuffer cmd)
-            {
-                if (cmd == null)
-                {
-                    throw new ArgumentNullException("cmd");
-                }
-
-                cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_RenderTarget.name));
-            }
         }
 
         private class ScreenSpaceShadowsPostPass : ScriptableRenderPass
