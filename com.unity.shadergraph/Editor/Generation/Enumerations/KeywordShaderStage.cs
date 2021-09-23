@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
         RayTracing = (1 << 5),
 
         // Common aggregates
-        FragmentAndRaytracing = (Fragment | RayTracing),
+        VertexFragmentAndRaytracing = (Vertex | Fragment | RayTracing), // 'Optimize Mesh Data' strip away variants without the keyword set on the vertex stage.
         All = (Vertex | Fragment | Geometry | Hull | Domain | RayTracing)
     }
 }

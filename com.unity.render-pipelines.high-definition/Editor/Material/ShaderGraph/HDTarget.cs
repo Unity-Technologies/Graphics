@@ -1137,7 +1137,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing
+            stages = KeywordShaderStage.VertexFragmentAndRaytracing
         };
 
         public static KeywordDescriptor DirectionalLightmapCombined = new KeywordDescriptor()
@@ -1147,7 +1147,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing
+            stages = KeywordShaderStage.VertexFragmentAndRaytracing
         };
 
         public static KeywordDescriptor DynamicLightmap = new KeywordDescriptor()
@@ -1157,7 +1157,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing
+            stages = KeywordShaderStage.VertexFragmentAndRaytracing
         };
 
         public static KeywordDescriptor ShadowsShadowmask = new KeywordDescriptor()
@@ -1167,7 +1167,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing
+            stages = KeywordShaderStage.VertexFragmentAndRaytracing
         };
 
         public static KeywordDescriptor ScreenSpaceShadow = new KeywordDescriptor()
@@ -1192,7 +1192,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing,
+            stages = KeywordShaderStage.VertexFragmentAndRaytracing,
         };
 
         public static KeywordDescriptor Decals = new KeywordDescriptor()
@@ -1224,7 +1224,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new KeywordEntry() { displayName = "L1", referenceName = "L1" },
                 new KeywordEntry() { displayName = "L2", referenceName = "L2" },
             },
-            stages = KeywordShaderStage.FragmentAndRaytracing,
+            stages = KeywordShaderStage.VertexFragmentAndRaytracing,
         };
 
         public static KeywordDescriptor LodFadeCrossfade = new KeywordDescriptor()
@@ -1447,7 +1447,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
-            stages = KeywordShaderStage.FragmentAndRaytracing,
+            stages = KeywordShaderStage.VertexFragmentAndRaytracing,
         };
 
         public static KeywordDescriptor DecalSurfaceGradient = new KeywordDescriptor
@@ -1467,7 +1467,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
-            stages = KeywordShaderStage.FragmentAndRaytracing,
+            stages = KeywordShaderStage.VertexFragmentAndRaytracing,
         };
 
         public static KeywordDescriptor DisableSSRTransparent = new KeywordDescriptor
@@ -1477,7 +1477,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
-            stages = KeywordShaderStage.FragmentAndRaytracing,
+            stages = KeywordShaderStage.VertexFragmentAndRaytracing,
         };
 
         public static KeywordDescriptor EnableGeometricSpecularAA = new KeywordDescriptor
