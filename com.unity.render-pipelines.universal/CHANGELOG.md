@@ -179,6 +179,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where _AfterPostProcessTexture was no longer being assigned in UniversalRenderer.
 - Fixed UniversalRenderPipelineAsset now being able to use multiedit
 - Fixed memory leak with XR combined occlusion meshes. [case 1366173]
+- Fixed a Universal Targets in ShaderGraph not rendering correctly in game view [1352225]
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
