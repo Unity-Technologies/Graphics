@@ -450,11 +450,19 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static public void CalculateEdgesFromTriangles(NativeArray<Vector3> vertices, NativeArray<int> indices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices, out NativeArray<bool> outShapeIsClosedArray)
+
+        static public void CalculateEdgesFromTriangles(NativeArray<Vector3> vertices, NativeArray<int> indices, bool duplicatesVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices, out NativeArray<bool> outShapeIsClosedArray)
         {
+            NativeArray<int> processedIndices = indices;
+            if (duplicatesVertices) // If this duplicates vertices (like sprite shape does)
+            {
+                VertexDictionary vertexDictionary = new VertexDictionary();
+                processedIndices = vertexDictionary.GetIndexRemap(vertices, indices); 
+            }
+
             // Add our edges to an edge list
             EdgeDictionary edgeDictionary = new EdgeDictionary();
-            NativeArray<ShadowEdge> unsortedEdges = edgeDictionary.GetOutsideEdges(vertices, indices);
+            NativeArray<ShadowEdge> unsortedEdges = edgeDictionary.GetOutsideEdges(vertices, processedIndices);
 
             // Create vertex remapping arrays
             NativeArray<int> originalToSubsetMap = new NativeArray<int>(vertices.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -469,7 +477,6 @@ namespace UnityEngine.Rendering.Universal
                 subsetToOriginalMap[i] = unsortedEdges[i].v0;
             }
 
-            // Sort edges so they are in order
             RemapEdges(unsortedEdges, originalToSubsetMap);
             SortEdges(unsortedEdges, out outEdges, out outShapeStartingIndices);
             RemapEdges(outEdges, subsetToOriginalMap);

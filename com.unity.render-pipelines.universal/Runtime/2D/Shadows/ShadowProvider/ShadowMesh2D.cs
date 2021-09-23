@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Triangles)
             {
-                ShadowUtility.CalculateEdgesFromTriangles(vertices, indices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
+                ShadowUtility.CalculateEdgesFromTriangles(vertices, indices, true, out edges, out shapeStartingIndices, out shapeIsClosedArray);
             }
             else // if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Lines)
             {
