@@ -31,9 +31,22 @@ namespace UnityEngine.Rendering.Universal
 
         public enum ShadowCastingSources
         {
-            None = 0,
+            None,
             ShapeEditor,
             ShapeProvider
+        }
+
+        public enum RendererSilhoutteOptions
+        {
+            None,
+            Unshadowed,
+            SelfShadowed
+        }
+
+        public enum ContractionOptions
+        {
+            None,
+            RemoveIntersections,
         }
 
         [SerializeField] bool m_HasRenderer = false;
@@ -47,15 +60,16 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShapeProvider;
         [SerializeField] float m_ShadowShapeContract;
+        [SerializeField] ContractionOptions m_RemoveIntersections = ContractionOptions.RemoveIntersections;
         [SerializeField] ShadowCastingSources m_ShadowCastingSource = (ShadowCastingSources)( - 1);
 
-        [SerializeField] internal ShadowMesh2D  m_ShadowMesh;
+        [SerializeField] internal ShadowMesh2D   m_ShadowMesh;
+        [SerializeField] RendererSilhoutteOptions m_RendererSilhouette = RendererSilhoutteOptions.Unshadowed;
 
         internal ShadowCasterGroup2D  m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D  m_PreviousShadowCasterGroup = null;
         internal int                  m_PreviousShadowCastingSource;
         internal Component            m_PreviousShadowShapeProvider = null;
-
         
         public Mesh mesh => m_ShadowMesh.mesh;
         public BoundingSphere boundingSphere => m_ShadowMesh.boundingSphere;
@@ -92,9 +106,18 @@ namespace UnityEngine.Rendering.Universal
             m_CachedLocalToWorldMatrix = transform.localToWorldMatrix;
         }
 
+
+        public RendererSilhoutteOptions rendererSilhouette
+        {
+            set { m_RendererSilhouette = value; }
+            get { return m_RendererSilhouette; }
+        }
+
+
         /// <summary>
         /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
         /// </summary>
+        [Obsolete("useRendererSilhoutte is deprecated. Use rendererSilhoutte instead")]
         public bool useRendererSilhouette
         {
             set { m_UseRendererSilhouette = value; }
@@ -104,6 +127,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// If true, the shadow casting shape is included as part of the shadow. If false, the shadow casting shape is excluded from the shadow.
         /// </summary>
+        [Obsolete("selfShadows is deprecated. Use rendererSilhoutte instead")]
         public bool selfShadows
         {
             set { m_SelfShadows = value; }
@@ -113,6 +137,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Specifies if shadows will be cast.
         /// </summary>
+        ///
         public bool castsShadows
         {
             set { m_CastsShadows = value; }
@@ -303,7 +328,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (LightUtility.CheckForChange(m_CastsShadows, ref m_PreviousCastsShadows))
             {
-                if (m_CastsShadows || m_SelfShadows)
+                if (m_RendererSilhouette != RendererSilhoutteOptions.None)
                     ShadowCasterGroup2DManager.AddGroup(this);
                 else
                     ShadowCasterGroup2DManager.RemoveGroup(this);

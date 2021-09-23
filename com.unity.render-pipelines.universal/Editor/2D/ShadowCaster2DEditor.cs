@@ -49,20 +49,17 @@ namespace UnityEditor.Rendering.Universal
 
         private static class Styles
         {
-            public static GUIContent shadowMode = EditorGUIUtility.TrTextContent("Use Renderer Silhouette", "When this and Self Shadows are enabled, the Renderer's silhouette is considered part of the shadow. When this is enabled and Self Shadows disabled, the Renderer's silhouette is excluded from the shadow.");
-            public static GUIContent selfShadows = EditorGUIUtility.TrTextContent("Self Shadows", "When enabled, the Renderer casts shadows on itself.");
             public static GUIContent castsShadows = EditorGUIUtility.TrTextContent("Casts Shadows", "Specifies if this renderer will cast shadows");
             public static GUIContent castingSourcePrefixLabel = EditorGUIUtility.TrTextContent("Casting Source", "Specifies the source used for projected shadows");
             public static GUIContent sortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply shadows to the specified sorting layers.");
             public static GUIContent shadowShapeProvider = EditorGUIUtility.TrTextContent("Shape Provider", "This allows a selected component provide a different shape from the Shadow Caster 2D shape. This component must implement IShadowShape2DProvider");
             public static GUIContent shadowShapeContract = EditorGUIUtility.TrTextContent("Contract Edge", "This contracts the edge of the shape given by the shape provider by the specified amount");
-            
+            public static GUIContent rendererSilhouette = EditorGUIUtility.TrTextContent("Renderer Silhoutte", "Specifies how to draw the renderer used with the ShadowCaster2D");
             public static GUIContent castingSource = EditorGUIUtility.TrTextContent("Casting Source", "Specifies the source of the shape used for projected shadows");
         }
 
-        SerializedProperty m_UseRendererSilhouette;
+        SerializedProperty m_RendererSilhouette;
         SerializedProperty m_CastsShadows;
-        SerializedProperty m_SelfShadows;
         SerializedProperty m_ShadowShapeProvider;
         SerializedProperty m_ShadowShapeContract;
         SerializedProperty m_CastingSource;
@@ -74,8 +71,7 @@ namespace UnityEditor.Rendering.Universal
 
         public void OnEnable()
         {
-            m_UseRendererSilhouette = serializedObject.FindProperty("m_UseRendererSilhouette");
-            m_SelfShadows = serializedObject.FindProperty("m_SelfShadows");
+            m_RendererSilhouette = serializedObject.FindProperty("m_RendererSilhouette");
             m_CastsShadows = serializedObject.FindProperty("m_CastsShadows");
             m_ShadowShapeProvider = serializedObject.FindProperty("m_ShadowShapeProvider");
             m_ShadowShapeContract = serializedObject.FindProperty("m_ShadowShapeContract");
@@ -137,13 +133,16 @@ namespace UnityEditor.Rendering.Universal
                     m_ShadowShapeContract.floatValue = 0;
             }
 
-
-            using (new EditorGUI.DisabledScope(!HasRenderer()))  // Done to support multiedit
+            if (!HasRenderer())
             {
-                EditorGUILayout.PropertyField(m_UseRendererSilhouette, Styles.shadowMode);
+                using (new EditorGUI.DisabledScope(true))  // Done to support multiedit
+                    EditorGUILayout.EnumPopup(Styles.rendererSilhouette, ShadowCaster2D.RendererSilhoutteOptions.None);
             }
-
-            EditorGUILayout.PropertyField(m_SelfShadows, Styles.selfShadows);
+            else
+            {
+                EditorGUILayout.PropertyField(m_RendererSilhouette, Styles.rendererSilhouette);
+            }
+           
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel, null);
 

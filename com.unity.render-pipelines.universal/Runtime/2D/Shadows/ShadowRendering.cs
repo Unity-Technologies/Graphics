@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (shadowCaster != null && shadowCaster.IsShadowedLayer(layerToRender))
                     {
-                        if (shadowCaster.useRendererSilhouette)
+                        if (shadowCaster.rendererSilhouette != ShadowCaster2D.RendererSilhoutteOptions.None)
                         {
                             // Draw using the sprite renderer
                             var renderer = (Renderer)null;
@@ -229,10 +229,10 @@ namespace UnityEngine.Rendering.Universal
 
                             if (renderer != null)
                             {
-                                var material = shadowCaster.selfShadows ? selfShadowMaterial : unshadowMaterial;
+                                var material = shadowCaster.rendererSilhouette == ShadowCaster2D.RendererSilhoutteOptions.SelfShadowed ? selfShadowMaterial : unshadowMaterial;
                                 if (material != null)
                                 {
-                                    if (shadowCaster.selfShadows)
+                                    if (shadowCaster.rendererSilhouette == ShadowCaster2D.RendererSilhoutteOptions.SelfShadowed)
                                     {
                                         cmdBuffer.DrawRenderer(renderer, material, 0, pass);
                                     }
@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.Universal
                         else
                         {
                             var meshMat = shadowCaster.transform.localToWorldMatrix;
-                            var material = shadowCaster.selfShadows ? selfShadowMaterial : unshadowMaterial;
+                            var material = shadowCaster.rendererSilhouette == ShadowCaster2D.RendererSilhoutteOptions.SelfShadowed ? selfShadowMaterial : unshadowMaterial;
 
                             // Draw using the shadow mesh
                             if (material != null)
