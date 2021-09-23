@@ -423,6 +423,15 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateRenderers()
         {
+            if (m_Renderers != null)
+            {
+                for (int i = 0; i < m_Renderers.Length; ++i)
+                {
+                    if (m_Renderers[i] != null)
+                        Debug.LogError($"Creating renderers but previous instance wasn't properly destroyed: m_Renderers[{i}]");
+                }
+            }
+
             if (m_Renderers == null || m_Renderers.Length != m_RendererDataList.Length)
                 m_Renderers = new ScriptableRenderer[m_RendererDataList.Length];
 
