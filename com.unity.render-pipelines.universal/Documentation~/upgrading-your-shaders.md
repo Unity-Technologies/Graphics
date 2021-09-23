@@ -16,7 +16,7 @@ For [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html) Shaders, Unity d
 
 ## Shader mappings
 
-The table below shows which URP shaders the Unity built-in shaders convert to when you run the shader upgrader.
+The following table shows which URP shaders the Built-in Render Pipeline shaders convert to when you use the Render Pipeline Converter.
 
 | Unity built-in shader                             | Universal Render Pipeline shader          |
 | ------------------------------------------------- | ------------------------------------------- |

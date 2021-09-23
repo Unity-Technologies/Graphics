@@ -1,10 +1,6 @@
 # Render Pipeline Converter
 
-The **Render Pipeline Converter** performs the following tasks:
-
-* Converts assets made for a Built-in Render Pipeline project to assets compatible with URP.
-
-* Upgrades assets from earlier URP versions to the current URP version.
+The **Render Pipeline Converter** converts assets made for a Built-in Render Pipeline project to assets compatible with URP.
 
 > **NOTE:** The conversion process makes irreversible changes to the project. Back up your project before the conversion.
 
@@ -30,6 +26,8 @@ To convert project assets:
 
     ![Initialize converters](../Images/rp-converter/initialize.png)
 
+    **Yellow icon**: a yellow icon next to an element indicates that a user action might be required to run the conversion. Hover the mouse pointer over the icon to see the description of the issue.
+
 5. Click **Convert Assets** to start the conversion process.
 
     > **NOTE:** The conversion process makes irreversible changes to the project. Back up your project before the conversion.
@@ -40,11 +38,9 @@ To convert project assets:
 
     **Green check mark**: the conversion went without issues.
 
-    **Yellow icon**: the conversion went with a warning, you might need to do some action related to the element.
-
     **Red icon**: the conversion failed.
 
-6. Close the Render Pipeline Converter window. If the conversion went with warnings, inspect the elements with the warnings.
+6. With the converter window open, inspect the elements with the warnings. After reviewing the converted project, close the Render Pipeline Converter window.
 
 ## <a name="converters"></a>Conversion types and converters
 
@@ -82,11 +78,7 @@ Available converters:
 
 ### Built-in Render Pipeline to URP
 
-This conversion type performs the following tasks:
-
-* Converts project elements from the Built-in Render Pipeline to URP.
-
-* Upgrades assets from earlier URP versions to the current URP version.
+This conversion type converts project elements from the Built-in Render Pipeline to URP.
 
 Available converters:
 
@@ -104,4 +96,4 @@ Available converters:
 
 * **Read-only Material Converter**
 
-    This converter converts the pre-built read-only Materials that come with a Unity project. This converter indexes the project and creates the temporary `.index`, which might take a significant time.
+    This converter converts the pre-built read-only Materials that come with a Unity project. This converter indexes the project and creates the temporary `.index` file. This might take a significant time.
