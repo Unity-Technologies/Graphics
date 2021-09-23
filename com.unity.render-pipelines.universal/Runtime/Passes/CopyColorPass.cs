@@ -87,7 +87,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (destination.rt == null)
             {
-#pragma warning disable 0612 // Obsolete usage: Backwards compatibility for obsolete Setup using RenderTargetIdentifier.
                 RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
                 descriptor.msaaSamples = 1;
                 descriptor.depthBufferBits = 0;
@@ -103,7 +102,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 cmd.GetTemporaryRT(destinationID, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
-#pragma warning restore 0612
             }
             else
             {
@@ -162,14 +160,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-#pragma warning disable 0612 // Obsolete usage: Backwards compatibility for obsolete GetTemporaryRT
             if (destination.rt == null && destinationID != -1)
             {
                 cmd.ReleaseTemporaryRT(destinationID);
                 destination.Release();
                 destination = null;
             }
-#pragma warning restore 0612
         }
     }
 }

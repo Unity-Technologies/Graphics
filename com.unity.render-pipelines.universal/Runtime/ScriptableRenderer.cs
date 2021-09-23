@@ -1081,7 +1081,7 @@ namespace UnityEngine.Rendering.Universal
 
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
         {
-#pragma warning disable 0612 // Obsolete usage: Using deprecated RenderTargetIdentifiers to ensure backwards compatibility with passes set with RenderTargetIdentifier
+#pragma warning disable 0618 // Obsolete usage: Using deprecated RenderTargetIdentifiers to ensure backwards compatibility with passes set with RenderTargetIdentifier
             Camera camera = cameraData.camera;
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
 
@@ -1329,7 +1329,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
-#pragma warning restore 0612
+#pragma warning restore 0618
         }
 
         void BeginXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
