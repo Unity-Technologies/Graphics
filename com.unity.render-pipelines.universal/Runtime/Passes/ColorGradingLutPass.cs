@@ -62,16 +62,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_InternalLut = internalLut;
         }
 
-        public RenderTextureDescriptor GetDesc(ref PostProcessingData postProcessingData)
+        /// <summary>
+        /// Get a descriptor and filter mode for the required texture for this pass
+        /// </summary>
+        public void ConfigureDescriptor(in PostProcessingData postProcessingData, out RenderTextureDescriptor descriptor, out FilterMode filterMode)
         {
             bool hdr = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
             int lutHeight = postProcessingData.lutSize;
             int lutWidth = lutHeight * lutHeight;
             var format = hdr ? m_HdrLutFormat : m_LdrLutFormat;
-            var desc = new RenderTextureDescriptor(lutWidth, lutHeight, format, 0);
-            desc.vrUsage = VRTextureUsage.None; // We only need one for both eyes in VR
+            descriptor = new RenderTextureDescriptor(lutWidth, lutHeight, format, 0);
+            descriptor.vrUsage = VRTextureUsage.None; // We only need one for both eyes in VR
 
-            return desc;
+            filterMode = FilterMode.Bilinear;
         }
 
         /// <inheritdoc/>

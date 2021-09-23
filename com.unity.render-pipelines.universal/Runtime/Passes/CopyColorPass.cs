@@ -36,6 +36,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.useNativeRenderPass = false;
         }
 
+        /// <summary>
+        /// Get a descriptor and filter mode for the required texture for this pass
+        /// </summary>
         public static void ConfigureDescriptor(Downsampling downsamplingMethod, ref RenderTextureDescriptor descriptor, out FilterMode filterMode)
         {
             descriptor.msaaSamples = 1;
