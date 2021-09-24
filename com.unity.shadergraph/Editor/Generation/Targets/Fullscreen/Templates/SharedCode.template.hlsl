@@ -4,8 +4,8 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
     // Normal is not available yet, TODO: add a node to sample the normal buffer if it exists
-    float3 normalWS = 0;
-    float4 tangentWS = 0; // We can't access the tangent in screen space
+    float3 normalWS = float3(0, 0, 1);
+    float4 tangentWS = float4(0, 1, 0, 0); // We can't access the tangent in screen space
 
     $SurfaceDescriptionInputs.WorldSpaceNormal:                         // must use interpolated tangent, bitangent and normal before they are normalized in the pixel shader.
     $SurfaceDescriptionInputs.WorldSpaceNormal:                         float3 unnormalizedNormalWS = normalWS;
@@ -26,8 +26,8 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.WorldSpaceTangent:                        output.WorldSpaceTangent = renormFactor * tangentWS.xyz;
     $SurfaceDescriptionInputs.WorldSpaceBiTangent:                      output.WorldSpaceBiTangent = renormFactor * bitang;
 
-    float linearDepth = (SHADERGRAPH_SAMPLE_SCENE_DEPTH(input.texCoord0.xy));
-    float3 positionWS = ComputeWorldSpacePosition(input.texCoord0.xy, linearDepth, UNITY_MATRIX_I_VP);
+    float rawDepth = SHADERGRAPH_SAMPLE_SCENE_DEPTH(input.texCoord0.xy);
+    float3 positionWS = ComputeWorldSpacePosition(input.texCoord0.xy, rawDepth, UNITY_MATRIX_I_VP);
     float3 viewDirWS = GetWorldSpaceNormalizeViewDir(positionWS);
 
     // positionWS = float3(SHADERGRAPH_SAMPLE_SCENE_DEPTH(input.texCoord0.xy), 0, 0);

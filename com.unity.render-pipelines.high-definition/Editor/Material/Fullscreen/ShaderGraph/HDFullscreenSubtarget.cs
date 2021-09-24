@@ -4,6 +4,7 @@ using static UnityEditor.Rendering.BuiltIn.ShaderUtils;
 using UnityEditor.Rendering.BuiltIn;
 using System;
 using UnityEditor.Rendering.Fullscreen.ShaderGraph;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -16,6 +17,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.Setup(ref context);
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
         }
+
+        protected override string pipelineTag => HDRenderPipeline.k_ShaderTagName;
 
         protected override IncludeCollection pregraphIncludes => new IncludeCollection
         {

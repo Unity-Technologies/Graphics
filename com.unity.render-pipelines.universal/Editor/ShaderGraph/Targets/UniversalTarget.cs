@@ -139,6 +139,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             m_SubTargets = TargetUtils.GetSubTargets(this);
             m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
+            ProcessSubTargetDatas(m_ActiveSubTarget.value);
         }
 
         public string renderType
@@ -286,6 +287,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Setup the active SubTarget
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
             m_ActiveSubTarget.value.target = this;
+            ProcessSubTargetDatas(m_ActiveSubTarget.value);
             m_ActiveSubTarget.value.Setup(ref context);
         }
 
@@ -311,10 +313,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             // Core blocks
-            context.AddBlock(BlockFields.VertexDescription.Position);
-            context.AddBlock(BlockFields.VertexDescription.Normal);
-            context.AddBlock(BlockFields.VertexDescription.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+            if (!(m_ActiveSubTarget.value is UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget>))
+            {
+                context.AddBlock(BlockFields.VertexDescription.Position);
+                context.AddBlock(BlockFields.VertexDescription.Normal);
+                context.AddBlock(BlockFields.VertexDescription.Tangent);
+                context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+            }
 
             // SubTarget blocks
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
@@ -352,6 +357,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 registerUndo("Change Material");
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
+                ProcessSubTargetDatas(m_ActiveSubTarget.value);
                 onChange();
             });
 
@@ -508,6 +514,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var typeCollection = TypeCache.GetTypesDerivedFrom<JsonObject>();
             foreach (var type in typeCollection)
             {
+                if (type.IsGenericType)
+                    continue;
+
                 // Data requirement interfaces need generic type arguments
                 // Therefore we need to use reflections to call the method
                 var methodInfo = typeof(UniversalTarget).GetMethod(nameof(SetDataOnSubTarget));
@@ -1360,7 +1369,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kTexture = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl";
         const string kCore = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl";
         const string kLighting = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl";
-        internal const string kGraphFunctions = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl";
+        const string kGraphFunctions = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl";
         const string kVaryings = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl";
         const string kShaderPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
         const string kDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";

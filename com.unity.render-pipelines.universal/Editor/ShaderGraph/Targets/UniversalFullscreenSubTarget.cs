@@ -20,9 +20,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         // We don't need the save context / update materials for now
         public override object saveContext => null;
 
+        protected override string pipelineTag => UniversalTarget.kPipelineTag;
+
         protected override IncludeCollection pregraphIncludes => new IncludeCollection
         {
-            { CoreIncludes.kGraphFunctions, IncludeLocation.Pregraph }
+            { CoreIncludes.CorePregraph },
+            { CoreIncludes.ShaderGraphPregraph },
         };
 
         public UniversalFullscreenSubTarget()

@@ -132,6 +132,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         }
 
         protected abstract IncludeCollection pregraphIncludes { get; }
+        protected abstract string pipelineTag { get; }
 
         protected virtual Type GetDefaultShaderGUI() => typeof(FullscreenShaderGUI);
 
@@ -232,7 +233,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             var result = new SubShaderDescriptor()
             {
                 generatesPreview = true,
-                passes = new PassCollection()
+                passes = new PassCollection(),
+                pipelineTag = pipelineTag,
             };
 
             result.passes.Add(GenerateFullscreenPass(FullscreenCompatibility.Blit));
@@ -418,7 +420,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            //         // Core blocks
             context.AddBlock(FullscreenBlocks.color);
             context.AddBlock(FullscreenBlocks.depth, fullscreenData.depthWrite);
         }

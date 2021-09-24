@@ -31,9 +31,11 @@ float4 GetDrawProceduralVertexPosition(uint vertexID)
     return GetFullScreenTriangleVertexPosition(vertexID, UNITY_RAW_FAR_CLIP_VALUE);
 }
 
-float4 GetBlitVertexPosition(float3 positionOS)
+float4 GetBlitVertexPosition(uint vertexID)
 {
-    return mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, float4(positionOS, 1.0)));
+    float4 positionCS = GetQuadVertexPosition(vertexID);
+    positionCS.xy = positionCS.xy * 2 - 1;
+    return positionCS;
 }
 
 FragOutput DefaultFullscreenFragmentShader(PackedVaryings packedInput)
