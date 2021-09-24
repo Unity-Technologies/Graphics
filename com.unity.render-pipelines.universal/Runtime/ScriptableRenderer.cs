@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 XRBuiltinShaderConstants.Update(cameraData.xr, cmd, false);
-                cameraData.xrUniversal.MarkShaderProperties(cmd, false);
+                XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, false);
                 return;
             }
 #endif
@@ -966,7 +966,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             // Inform the late latching system for XR once we're done with a render pass
             if (cameraData.xr.enabled)
-                cameraData.xrUniversal.UnmarkShaderProperties(cmd);
+                XRSystemUniversal.UnmarkShaderProperties(cmd, cameraData.xrUniversal);
 #endif
         }
 
@@ -1096,7 +1096,7 @@ namespace UnityEngine.Rendering.Universal
                             int xrTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, cameraData.xr.renderTarget);
                             bool renderIntoTexture = xrTargetIndex == -1;
                             XRBuiltinShaderConstants.Update(cameraData.xr, cmd, renderIntoTexture);
-                            cameraData.xrUniversal.MarkShaderProperties(cmd, renderIntoTexture);
+                            XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, renderIntoTexture);
                         }
 #endif
                     }
@@ -1193,7 +1193,7 @@ namespace UnityEngine.Rendering.Universal
                             // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
                             bool renderIntoTexture = passColorAttachment != cameraData.xr.renderTarget;
                             XRBuiltinShaderConstants.Update(cameraData.xr, cmd, renderIntoTexture);
-                            cameraData.xrUniversal.MarkShaderProperties(cmd, renderIntoTexture);
+                            XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, renderIntoTexture);
                         }
 #endif
                     }
