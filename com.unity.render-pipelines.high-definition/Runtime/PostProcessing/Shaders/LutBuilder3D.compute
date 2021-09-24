@@ -9,9 +9,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #ifdef HDR_OUTPUT
 #define WCG_REC2020 // For now hard coded, eventually coming from settings.
-//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HDROutput.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HDROutput.hlsl"
 #endif
-
 TEXTURE3D(_LogLut3D);
 RW_TEXTURE3D(float4, _OutputTexture);
 
@@ -55,11 +54,23 @@ CBUFFER_START(cb0)
     float4 _MidSegmentB;
     float4 _ShoSegmentA;
     float4 _ShoSegmentB;
+
+    // TODO_FCC: HDR RELATED STUFF, WILL NEED TO MOVE TO WHATEVER BUILDS THE LUT.
+    float4 _HDROutputParams;
+    float4 _HDROutputParams2;
+    #define _MinNits    _HDROutputParams.x
+    #define _MaxNits    _HDROutputParams.y
+    #define _PaperWhite _HDROutputParams.z
+    #define _IsRec2020  (int)(_HDROutputParams.w) == 0
+    #define _IsRec709   (int)(_HDROutputParams.w) == 1
+    #define _IsP3       (int)(_HDROutputParams.w) == 2
+    #define _RangeReductionMode    (int)_HDROutputParams2.x
+
 CBUFFER_END
 
 float GetLuminance(float3 colorLinear)
 {
-    #if defined(TONEMAPPING_ACES)
+    #if defined(TONEMAPPING_ACES)  && !defined(HDR_OUTPUT)
     return AcesLuminance(colorLinear);
     #else
     return Luminance(colorLinear);
@@ -76,7 +87,12 @@ float EvaluateCurve(TEXTURE2D(curve), float t)
 float3 ColorGrade(float3 colorLutSpace)
 {
     // Switch back to linear
+#ifdef HDR_OUTPUT
+    // For LUT purposes, we assume 1.0 == 100 nits (max PQ value is 10k nits)
+    float3 colorLinear = PQToLinear(colorLutSpace, 100.0f);
+#else
     float3 colorLinear = LogCToLinear(colorLutSpace);
+#endif
 
     // White balance in LMS space
     float3 colorLMS = LinearToLMS(colorLinear);
@@ -84,7 +100,7 @@ float3 ColorGrade(float3 colorLutSpace)
     colorLinear = LMSToLinear(colorLMS);
 
     // Do contrast in log after white balance
-    #if defined(TONEMAPPING_ACES)
+    #if defined(TONEMAPPING_ACES)  && !defined(HDR_OUTPUT)
     float3 colorLog = ACES_to_ACEScc(unity_to_ACES(colorLinear));
     #else
     float3 colorLog = LinearToLogC(colorLinear);
@@ -92,7 +108,7 @@ float3 ColorGrade(float3 colorLutSpace)
 
     colorLog = (colorLog - ACEScc_MIDGRAY) * _HueSatCon.z + ACEScc_MIDGRAY;
 
-    #if defined(TONEMAPPING_ACES)
+    #if defined(TONEMAPPING_ACES)  && !defined(HDR_OUTPUT)
     colorLinear = ACES_to_ACEScg(ACEScc_to_ACES(colorLog));
     #else
     colorLinear = LogCToLinear(colorLog);
@@ -195,9 +211,14 @@ float3 ColorGrade(float3 colorLutSpace)
 float3 NeutralColorGrade(float3 colorLutSpace)
 {
     // Switch back to linear
+#ifdef HDR_OUTPUT
+    // For LUT purposes, we assume 1.0 == 100 nits (max PQ value is 10k nits)
+    float3 colorLinear = PQToLinear(colorLutSpace, 100.0f);
+#else
     float3 colorLinear = LogCToLinear(colorLutSpace);
+#endif
 
-    #if defined(TONEMAPPING_ACES)
+    #if defined(TONEMAPPING_ACES) && !defined(HDR_OUTPUT)
     colorLinear = ACES_to_ACEScg(unity_to_ACES(colorLinear));
     #endif
 
@@ -234,17 +255,17 @@ float3 Tonemap(float3 colorLinear)
 
 float3 ProcessColorForHDR(float3 gradedColor)
 {
-//#ifdef HDR_OUTPUT
-//
-//  // TODO_FCC: Rotate to Rec2020 and all that jazz, but consider working directly in Rec2020 space instead of back and forth from LogC
-//  // Default assuming 1000 nits but come from options.
-//  float3 rec2020Input = RotateRec709ToRec2020(gradedColor);
-//
-//  return HDRMappingFromRec709(gradedColor, 10, 400);
-//  return rec2020Input;// ApplyOETF(gradedColor);
-//#else
+#ifdef HDR_OUTPUT
+      // TODO_FCC: Rotate to Rec2020 and all that jazz, but consider working directly in Rec2020 space instead of back and forth from LogC
+      // Default assuming 1000 nits but come from options.
+#if TONEMAPPING_ACES
+    return HDRMappingFromRec709_ACES(gradedColor.rgb, _PaperWhite);
+#else
+    return HDRMappingFromRec709(gradedColor.rgb, _PaperWhite, _MinNits, _MaxNits, _RangeReductionMode);
+#endif
+#else
     return gradedColor;
-//#endif
+#endif
 }
 
 
@@ -260,6 +281,7 @@ void KBuild(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Lut space
     // We use Alexa LogC (El 1000) to store the LUT as it provides a good enough range (~58.85666)
     // and is good enough to be stored in fp16 without losing precision in the darks
+    // If HDR Output is enabled, then the LUT space is PQ.
     float3 colorLutSpace = float3(dispatchThreadId) * _Size.yyy;
 
     // Color grade & tonemap
@@ -276,9 +298,11 @@ void KBuild(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     // TODO_FCC: Better handling of tonemapping.
+#ifdef HDR_OUTPUT
+    gradedColor = ProcessColorForHDR(gradedColor);
+#else
     gradedColor = Tonemap(gradedColor);
-
-    //gradedColor = ProcessColorForHDR(gradedColor);
+#endif
 
     _OutputTexture[dispatchThreadId] = float4(max(gradedColor, 0.0), 1.0);
 }
