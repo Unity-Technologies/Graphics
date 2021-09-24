@@ -29,24 +29,23 @@ RW_TEXTURE2D_X(float, _LensFlareOcclusion);
 groupshared float localOcclusion[8][8];
 
 [numthreads(8, 8, 1)]
-void MainCS(uint3 dispatchThreadId : SV_DispatchThreadID, uint3 groupThreadID : SV_GroupThreadID, uint groupIndex : SV_GroupIndex)
+void MainCS(uint3 dispatchThreadId : SV_DispatchThreadID, uint3 groupThreadID : SV_GroupThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-    uint2 positionSS = dispatchThreadId.xy;
 
     // Row[0] is reserved to store the results
-    localOcclusion[groupThreadID.x][groupThreadID.y] = _LensFlareOcclusion[COORD_TEXTURE2D_X(positionSS + uint2(0, groupThreadID.y + 1))].x;
+    localOcclusion[groupThreadID.x][groupThreadID.y] = _LensFlareOcclusion[COORD_TEXTURE2D_X(dispatchThreadId.xy + uint2(0, 1))].x;
     GroupMemoryBarrierWithGroupSync();
 
-    if (dispatchThreadId.y < 4)
+    if (groupThreadID.y < 4)
         localOcclusion[groupThreadID.x][groupThreadID.y] = max(localOcclusion[groupThreadID.x][groupThreadID.y], localOcclusion[groupThreadID.x][groupThreadID.y + 4]);
     GroupMemoryBarrierWithGroupSync();
 
-    if (dispatchThreadId.y < 2)
+    if (groupThreadID.y < 2)
         localOcclusion[groupThreadID.x][groupThreadID.y] = max(localOcclusion[groupThreadID.x][groupThreadID.y], localOcclusion[groupThreadID.x][groupThreadID.y + 2]);
     GroupMemoryBarrierWithGroupSync();
 
-    if (dispatchThreadId.y == 0)
+    if (groupThreadID.y == 0)
     {
         _LensFlareOcclusion[COORD_TEXTURE2D_X(uint2(dispatchThreadId.x, 0))] = max(localOcclusion[groupThreadID.x][0], localOcclusion[groupThreadID.x][1]);
     }
