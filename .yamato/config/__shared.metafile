@@ -419,7 +419,7 @@ platforms:
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
-                    set ANDROID_SDK_ROOT=WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
+                    set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
                     utr <UTR_FLAGS>
         call_utr:
           - command: |5-
