@@ -114,7 +114,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
 
             if (m_Material == null)
                 return;
-            
+
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
