@@ -356,14 +356,13 @@ namespace UnityEngine.Experimental.Rendering
 
         public static void FillDataLocation(ref DataLocation loc, SphericalHarmonicsL2[] shl2, int startIndex, int count, ProbeVolumeSHBands bands)
         {
-            int numBricks = shl2.Length / kBrickProbeCountTotal;
             int shidx = startIndex;
             int bx = 0, by = 0, bz = 0;
             Color c = new Color();
 
             ValidateTemporaryBuffers(loc, bands);
 
-            for (int brickIdx = startIndex; brickIdx < (startIndex + count) && brickIdx < shl2.Length; brickIdx += kBrickProbeCountTotal)
+            for (int brickIdx = startIndex; brickIdx < (startIndex + count); brickIdx += kBrickProbeCountTotal)
             {
                 for (int z = 0; z < kBrickProbeCountPerDim; z++)
                 {
@@ -375,51 +374,70 @@ namespace UnityEngine.Experimental.Rendering
                             int iy = by + y;
                             int iz = bz + z;
 
-                            c.r = shl2[shidx][0, 0]; // L0.r
-                            c.g = shl2[shidx][1, 0]; // L0.g
-                            c.b = shl2[shidx][2, 0]; // L0.b
-                            c.a = shl2[shidx][0, 1]; // L1_R.r
-                            SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, c);
-
-                            c.r = shl2[shidx][1, 1]; // L1_G.r
-                            c.g = shl2[shidx][1, 2]; // L1_G.g
-                            c.b = shl2[shidx][1, 3]; // L1_G.b
-                            c.a = shl2[shidx][0, 2]; // L1_R.g
-                            SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, c);
-
-                            c.r = shl2[shidx][2, 1]; // L1_B.r
-                            c.g = shl2[shidx][2, 2]; // L1_B.g
-                            c.b = shl2[shidx][2, 3]; // L1_B.b
-                            c.a = shl2[shidx][0, 3]; // L1_R.b
-                            SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, c);
-
-                            if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                            // We are processing chunks at a time.
+                            // So in practice we can go over the number of SH we have in the input list.
+                            // We fill with black to avoid copying garbage in the final atlas.
+                            if (shidx >= shl2.Length)
                             {
-                                c.r = shl2[shidx][0, 4];
-                                c.g = shl2[shidx][0, 5];
-                                c.b = shl2[shidx][0, 6];
-                                c.a = shl2[shidx][0, 7];
-                                SetPixel(s_L2_0_locData, ix, iy, iz, loc.width, loc.height, c);
+                                SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, Color.black);
+                                SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, Color.black);
+                                SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, Color.black);
 
-                                c.r = shl2[shidx][1, 4];
-                                c.g = shl2[shidx][1, 5];
-                                c.b = shl2[shidx][1, 6];
-                                c.a = shl2[shidx][1, 7];
-                                SetPixel(s_L2_1_locData, ix, iy, iz, loc.width, loc.height, c);
-
-                                c.r = shl2[shidx][2, 4];
-                                c.g = shl2[shidx][2, 5];
-                                c.b = shl2[shidx][2, 6];
-                                c.a = shl2[shidx][2, 7];
-                                SetPixel(s_L2_2_locData, ix, iy, iz, loc.width, loc.height, c);
-
-                                c.r = shl2[shidx][0, 8];
-                                c.g = shl2[shidx][1, 8];
-                                c.b = shl2[shidx][2, 8];
-                                c.a = 1;
-                                SetPixel(s_L2_3_locData, ix, iy, iz, loc.width, loc.height, c);
+                                if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                                {
+                                    SetPixel(s_L2_0_locData, ix, iy, iz, loc.width, loc.height, Color.black);
+                                    SetPixel(s_L2_1_locData, ix, iy, iz, loc.width, loc.height, Color.black);
+                                    SetPixel(s_L2_2_locData, ix, iy, iz, loc.width, loc.height, Color.black);
+                                    SetPixel(s_L2_3_locData, ix, iy, iz, loc.width, loc.height, Color.black);
+                                }
                             }
+                            else
+                            {
+                                c.r = shl2[shidx][0, 0]; // L0.r
+                                c.g = shl2[shidx][1, 0]; // L0.g
+                                c.b = shl2[shidx][2, 0]; // L0.b
+                                c.a = shl2[shidx][0, 1]; // L1_R.r
+                                SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, c);
 
+                                c.r = shl2[shidx][1, 1]; // L1_G.r
+                                c.g = shl2[shidx][1, 2]; // L1_G.g
+                                c.b = shl2[shidx][1, 3]; // L1_G.b
+                                c.a = shl2[shidx][0, 2]; // L1_R.g
+                                SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, c);
+
+                                c.r = shl2[shidx][2, 1]; // L1_B.r
+                                c.g = shl2[shidx][2, 2]; // L1_B.g
+                                c.b = shl2[shidx][2, 3]; // L1_B.b
+                                c.a = shl2[shidx][0, 3]; // L1_R.b
+                                SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, c);
+
+                                if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                                {
+                                    c.r = shl2[shidx][0, 4];
+                                    c.g = shl2[shidx][0, 5];
+                                    c.b = shl2[shidx][0, 6];
+                                    c.a = shl2[shidx][0, 7];
+                                    SetPixel(s_L2_0_locData, ix, iy, iz, loc.width, loc.height, c);
+
+                                    c.r = shl2[shidx][1, 4];
+                                    c.g = shl2[shidx][1, 5];
+                                    c.b = shl2[shidx][1, 6];
+                                    c.a = shl2[shidx][1, 7];
+                                    SetPixel(s_L2_1_locData, ix, iy, iz, loc.width, loc.height, c);
+
+                                    c.r = shl2[shidx][2, 4];
+                                    c.g = shl2[shidx][2, 5];
+                                    c.b = shl2[shidx][2, 6];
+                                    c.a = shl2[shidx][2, 7];
+                                    SetPixel(s_L2_2_locData, ix, iy, iz, loc.width, loc.height, c);
+
+                                    c.r = shl2[shidx][0, 8];
+                                    c.g = shl2[shidx][1, 8];
+                                    c.b = shl2[shidx][2, 8];
+                                    c.a = 1;
+                                    SetPixel(s_L2_3_locData, ix, iy, iz, loc.width, loc.height, c);
+                                }
+                            }
                             shidx++;
                         }
                     }
