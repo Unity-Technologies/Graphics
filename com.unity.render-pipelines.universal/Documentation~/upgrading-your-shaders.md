@@ -1,15 +1,14 @@
-# Upgrading your Shaders
+# Converting your shaders
 
-If your Project uses shaders from the built-in render pipeline, and you want to [switch your Project to use the Universal Render Pipeline instead](InstallURPIntoAProject.md), you must convert those Shaders to the URP Shaders. This is because built-in Lit shaders are not compatible with URP Shaders. For an overview of the mapping between built-in shaders and URP Shaders, see [Shader mappings](#shader-mappings).
+Shaders written for the Built-in Render Pipeline are not compatible with the URP shaders.
 
-To upgrade built-in Shaders:
+For an overview of the mapping between built-in shaders and URP shaders, see [Shader mappings](#shader-mappings).
 
-1. Open your Project in Unity, and go to __Edit__ > __Rendering__ > **Materials**.
-2. According to your needs, select either __Convert All Built-in Project Materials to URP__ or __Convert Selected Built-in Materials to URP__.
+Use the [Render Pipeline Converter](features/rp-converter.md) to apply the shader mappings automatically.
 
-**Note:** These changes cannot be undone. Backup your Project before you upgrade it.
+> **NOTE:** The Render Pipeline Converter makes irreversible changes to the project. Back up your project before the conversion.
 
-**Tip:** If the Preview thumbnails in Project View are incorrect after you've upgraded, try right-clicking anywhere in the Project View window and selecting __Reimport All__.
+> **TIP:** If the preview thumbnails in the Project view are not shown correctly after the conversion, try right-clicking anywhere in the Project view and selecting __Reimport All__.
 
 For [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html) Shaders, Unity does not re-generate Materials when you re-import them, unless you click the **Generate Materials** or **Apply & Generate Materials** button.
 
@@ -17,7 +16,7 @@ For [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html) Shaders, Unity d
 
 ## Shader mappings
 
-The table below shows which URP shaders the Unity built-in shaders convert to when you run the shader upgrader.
+The following table shows which URP shaders the Built-in Render Pipeline shaders convert to when you use the Render Pipeline Converter.
 
 | Unity built-in shader                             | Universal Render Pipeline shader          |
 | ------------------------------------------------- | ------------------------------------------- |

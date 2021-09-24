@@ -416,6 +416,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix recursive rendering transmittance over the sky (case 1323945).
 - Fixed remove of the Additional Light Data when removing the Light Component.
 - Fixed remove of the Additional Camera Data when removing the Camera Component.
+- Fixed black pixel issue in AMD FidelityFX RCAS implementation
+- Fixed specular anti aliasing for layeredlit shader.
+- Fixed lens flare occlusion issues with transparent depth. It had the wrong depth bound (1365098)
+- Fixed double contribution from the clear coat when having SSR or RTR on the Lit and StackLit shaders (case 1352424).
+- Mitigate ghosting / overbluring artifacts when TAA and physically-based DoF are enabled by adjusting the internal range of blend factor values (case 1340541).
+- Fixed silhouette issue with emissive decals
+- Fixed texture fields for volume parameters accepting textures with wrong dimensions.
+- Fixed Realtime lightmap not working correctly in player with various lit shader (case 1360021)
+- Fixed unexpectedly strong contribution from directional lights in path-traced volumetric scattering (case 1304688).
+- Fixed double camera preview.
+- Fixed memory leak with XR combined occlusion meshes.
+- Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

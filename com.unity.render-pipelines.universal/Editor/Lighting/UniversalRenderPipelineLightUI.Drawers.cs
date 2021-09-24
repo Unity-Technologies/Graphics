@@ -59,7 +59,9 @@ namespace UnityEditor.Rendering.Universal
             CED.FoldoutGroup(LightUI.Styles.emissionHeader,
                 Expandable.Emission,
                 k_ExpandedState,
-                CED.Group(DrawerColor, DrawEmissionContent)),
+                CED.Group(
+                    LightUI.DrawColor,
+                    DrawEmissionContent)),
             CED.FoldoutGroup(LightUI.Styles.renderingHeader,
                 Expandable.Rendering,
                 k_ExpandedState,
@@ -243,33 +245,6 @@ namespace UnityEditor.Rendering.Universal
 
             using (new EditorGUI.IndentLevelScope())
                 serializedLight.settings.DrawArea();
-        }
-
-        static void DrawerColor(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
-        {
-            using (var changes = new EditorGUI.ChangeCheckScope())
-            {
-                if (GraphicsSettings.lightsUseLinearIntensity && GraphicsSettings.lightsUseColorTemperature)
-                {
-                    // Use the color temperature bool to create a popup dropdown to choose between the two modes.
-                    var colorTemperaturePopupValue = Convert.ToInt32(serializedLight.settings.useColorTemperature.boolValue);
-                    colorTemperaturePopupValue = EditorGUILayout.Popup(LightUI.Styles.lightAppearance, colorTemperaturePopupValue, LightUI.Styles.lightAppearanceOptions);
-                    serializedLight.settings.useColorTemperature.boolValue = Convert.ToBoolean(colorTemperaturePopupValue);
-
-                    using (new EditorGUI.IndentLevelScope())
-                    {
-                        if (serializedLight.settings.useColorTemperature.boolValue)
-                        {
-                            EditorGUILayout.PropertyField(serializedLight.settings.color, LightUI.Styles.colorFilter);
-                            k_SliderWithTexture(LightUI.Styles.colorTemperature, serializedLight.settings.colorTemperature, serializedLight.settings);
-                        }
-                        else
-                            EditorGUILayout.PropertyField(serializedLight.settings.color, LightUI.Styles.color);
-                    }
-                }
-                else
-                    EditorGUILayout.PropertyField(serializedLight.settings.color, LightUI.Styles.color);
-            }
         }
 
         static void DrawEmissionContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)

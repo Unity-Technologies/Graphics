@@ -136,6 +136,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an incorrect direction transform from view to world space [1365186]
 - Fixed the appearance (wrong text color, and not wrapped) of a warning in Node Settings [1365780]
 - Fixed the ordering of inputs on a SubGraph node to match the properties on the blackboard of the subgraph itself [1366052]
+- Fixed Parallax Occlusion Mapping node to handle non-uniformly scaled UVs such as HDRP/Lit POM [1347008].
+- Fixed ShaderGraph HDRP master preview disappearing for a few seconds when graph is modified  [1330289] (https://issuetracker.unity3d.com/issues/shadergraph-hdrp-main-preview-is-invisible-until-moved)
+- Fixed an issue where ShaderGraph "view shader" commands were opening in individual windows, and blocking Unity from closing [1367188]
+- Fixed the node searcher results to prefer names over synonyms [1367706]
 
 ## [11.0.0] - 2020-10-21
 
