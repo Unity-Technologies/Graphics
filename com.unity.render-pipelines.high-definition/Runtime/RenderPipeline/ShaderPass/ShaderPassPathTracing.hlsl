@@ -313,9 +313,6 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     else
         ComputeSurfaceScattering(pathIntersection, attributeData, inputSample);
 
-    // Apply the volume/surface pdf
-    pathIntersection.value /= pdf;
-
 #else // HAS_LIGHTLOOP
 
     ComputeSurfaceScattering(pathIntersection, attributeData, inputSample);
@@ -323,8 +320,11 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 #endif // HAS_LIGHTLOOP
 
     // Apply volumetric attenuation
-    bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
+    bool computeDirect = !sampleVolume && (currentDepth >= _RaytracingMinRecursion - 1);
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
+
+    // Apply the volume/surface pdf
+    pathIntersection.value /= pdf;
 
     if (currentDepth)
     {
