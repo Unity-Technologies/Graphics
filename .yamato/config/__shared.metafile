@@ -134,7 +134,7 @@ test_platforms:
     after:
       - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
     after_build:
-      - [OSX_OpenGlCore, iPhone_Metal, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, iPhone_Metal, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
   - type: playmode
     allow_cache: True
     utr_flags:
@@ -419,7 +419,7 @@ platforms:
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
-                    set ANDROID_SDK_ROOT=./WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
+                    set ANDROID_SDK_ROOT=WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
                     utr <UTR_FLAGS>
         call_utr:
           - command: |5-
