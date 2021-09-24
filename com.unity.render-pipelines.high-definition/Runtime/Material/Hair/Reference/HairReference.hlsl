@@ -52,8 +52,8 @@ float AzimuthalScattering(float phi, int p, float s, float gammaO, float gammaT)
     float dphi = phi - AzimuthalDirection(p, gammaO, gammaT);
 
     // Remap Phi to fit in the -PI..PI domain for the logistic.
-    while (dphi > +PI) dphi -= TWO_PI;
-    while (dphi < -PI) dphi += TWO_PI;
+    if (dphi > +PI) dphi -= TWO_PI;
+    if (dphi < -PI) dphi += TWO_PI;
 
     return TrimmedLogistic(dphi, s, -PI, PI);
 }

@@ -203,11 +203,11 @@ ReferenceBSDFData GetReferenceBSDFData(float3 L, BSDFData bsdfData)
     ZERO_INITIALIZE(ReferenceBSDFData, data);
 
 // #if HAIR_TYPE == HAIR_TYPE_TUBE
-    data.h = GetHFromTube(L, bsdfData.normalWS, bsdfData.hairStrandDirectionWS);
+//   data.h = GetHFromTube(L, bsdfData.normalWS, bsdfData.hairStrandDirectionWS);
 // #elif HAIR_TYPE == HAIR_TYPE_RIBBON
 //     data.h = GetHFromRibbon(bsdfData);
 // #endif
-    // data.h = bsdfData.h;
+    data.h = bsdfData.h;
     data.gammaO = FastASin(data.h);
 
     data.eta    = 1.55;

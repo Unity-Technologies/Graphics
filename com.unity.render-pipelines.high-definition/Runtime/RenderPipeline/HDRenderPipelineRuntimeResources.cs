@@ -358,6 +358,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader diffuseDenoiserCS;
 
 #if UNITY_EDITOR
+            // Furnace Testing (BSDF Energy Conservation)
+            [Reload("Tests/Editor/Utilities/FurnaceTests.compute")]
+            public ComputeShader furnaceTestCS;
+#endif
+
+#if UNITY_EDITOR
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
             public IEnumerable<ComputeShader> GetAllComputeShaders()
