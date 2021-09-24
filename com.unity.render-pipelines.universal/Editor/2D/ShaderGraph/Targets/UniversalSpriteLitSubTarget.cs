@@ -113,10 +113,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     {
                         { SpriteLitPasses.Lit },
                         { SpriteLitPasses.Normal },
+                        // Currently neither of these passes (selection/picking) can be last for the game view for
+                        // UI shaders to render correctly. Verify [1352225] before changing this order.
                         { CorePasses._2DSceneSelection(target) },
                         { CorePasses._2DScenePicking(target) },
-                        // Currently this pass must be last for the game view for UI shaders to render
-                        // correctly. Verify [1352225] before changing this order.
                         { SpriteLitPasses.Forward },
                     },
                 };
