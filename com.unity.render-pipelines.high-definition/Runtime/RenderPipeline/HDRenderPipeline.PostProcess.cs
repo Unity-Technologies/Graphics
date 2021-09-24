@@ -2686,7 +2686,7 @@ namespace UnityEngine.Rendering.HighDefinition
             fullresCoC = nextCoC;
         }
 
-        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, RTHandle minMaxCoCPing, RTHandle minMaxCoCPong, bool taaEnabled, RTHandle depthMinMaxAvgMSAA)
+        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, RTHandle minMaxCoCPing, RTHandle minMaxCoCPong, RTHandle scaledDof, bool taaEnabled, RTHandle depthMinMaxAvgMSAA)
         {
             // Currently Physically Based DoF is performed at "full" resolution (ie does not utilize DepthOfFieldResolution)
             // However, to produce similar results when switching between various resolutions, or dynamic resolution,
@@ -2716,9 +2716,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // The sensor scale is used to convert the CoC size from mm to screen pixels
                     float sensorScale;
                     if (dofParameters.camera.camera.gateFit == Camera.GateFitMode.Horizontal)
-                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.x) * dofParameters.camera.camera.pixelWidth;
+                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.x) * dofParameters.camera.camera.pixelWidth / (float)dofParameters.resolution;
                     else
-                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.y) * dofParameters.camera.camera.pixelHeight;
+                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.y) * dofParameters.camera.camera.pixelHeight / (float)dofParameters.resolution; ;
 
                     // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
                     // Note: Focus distance is in meters, but focalLength and sensor size are in mm.
@@ -2821,10 +2821,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, 0, 0, (float)dofParameters.resolution));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourcePyramid != null ? sourcePyramid : source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, scaledDof);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileList, minMaxCoCPing, 0);
                 BlueNoise.BindDitheredTextureSet(cmd, dofParameters.ditheredTextureSet);
-                cmd.DispatchCompute(cs, kernel, (dofParameters.viewportSize.x + 7) / 8, (dofParameters.viewportSize.y + 7) / 8, dofParameters.camera.viewCount);
+                int scaledWidth = (dofParameters.viewportSize.x / (int)dofParameters.resolution + 7) / 8;
+                int scaledHeight = (dofParameters.viewportSize.y / (int)dofParameters.resolution + 7) / 8;
+
+                cmd.DispatchCompute(cs, kernel, scaledWidth, scaledHeight, dofParameters.camera.viewCount);
+
+                HDUtils.BlitCameraTexture(cmd, scaledDof, destination);
             }
         }
 
@@ -3029,6 +3034,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             debugCocTextureScales = hdCamera.postProcessRTScalesHistory;
                         }
 
+                        passData.pongFarRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
+                        { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "Scaled DoF" });
+
                         passData.pingFarRGB = builder.CreateTransientTexture(GetPostprocessOutputHandle(renderGraph, "DoF Source Pyramid", GetPostprocessTextureFormat(), true));
 
                         float scaleFactor = 1.0f / passData.parameters.minMaxCoCTileSize;
@@ -3041,7 +3049,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         builder.SetRenderFunc(
                             (DepthofFieldData data, RenderGraphContext ctx) =>
                             {
-                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.taaEnabled, data.depthMinMaxAvgMSAA);
+                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.pongFarRGB, data.taaEnabled, data.depthMinMaxAvgMSAA);
                             });
 
                         source = passData.destination;
