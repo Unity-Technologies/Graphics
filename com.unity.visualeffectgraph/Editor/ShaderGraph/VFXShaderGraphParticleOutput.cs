@@ -749,7 +749,8 @@ namespace UnityEditor.VFX
         private static bool NeedsPositionWorldInterpolator(GraphCode graphCode)
         {
             return graphCode.requirements.requiresPosition != NeededCoordinateSpace.None
-                    || graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None;
+                    || graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None
+                    || graphCode.requirements.requiresScreenPosition;
         }
 
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
@@ -866,24 +867,22 @@ namespace UnityEditor.VFX
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Tangent) != 0)
                                     callSG.builder.AppendLine("INSG.TangentSpaceViewDirection = mul(tbn, V);");
                             }
-                        }
-
-                        if (graphCode.requirements.requiresScreenPosition
-                            || graphCode.requirements.requiresNDCPosition
-                            || graphCode.requirements.requiresPixelPosition)
-                        {
-                            callSG.builder.AppendLine("{");
-                            if (graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
-                                callSG.builder.AppendLine("float2 localPixelPosition = i.VFX_VARYING_POSCS.xy;");
-                            if (graphCode.requirements.requiresNDCPosition)
-                                callSG.builder.AppendLine("float2 localNDCPosition = localPixelPosition.xy / _ScreenParams.w;");
 
                             if (graphCode.requirements.requiresScreenPosition)
-                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(localPixelPosition, _ProjectionParams.x);");
+                            {
+                                //ScreenPosition is expected to be the raw screen pos (float4) before the w division in pixel (SharedCode.template.hlsl)
+                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(VFXTransformPositionWorldToClip(i.VFX_VARYING_POSWS), _ProjectionParams.x);");
+                            }
+                        }
+
+                        if (graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
+                        {
+                            callSG.builder.AppendLine("{");
+
                             if (graphCode.requirements.requiresNDCPosition)
-                                callSG.builder.AppendLine("INSG.NDCPosition = localPixelPosition / _ScreenParams.xy;");
+                                callSG.builder.AppendLine("INSG.NDCPosition = i.VFX_VARYING_POSCS.xy / _ScreenParams.xy;");
                             if (graphCode.requirements.requiresPixelPosition)
-                                callSG.builder.AppendLine("INSG.PixelPosition = localPixelPosition;");
+                                callSG.builder.AppendLine("INSG.PixelPosition = i.VFX_VARYING_POSCS.xy;");
                             callSG.builder.AppendLine("}");
                         }
 
