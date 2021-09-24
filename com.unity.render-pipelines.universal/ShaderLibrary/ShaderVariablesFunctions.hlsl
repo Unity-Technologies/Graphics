@@ -162,6 +162,19 @@ half OutputAlpha(half outputAlpha, half surfaceType = half(0.0))
     return surfaceType == 1 ? outputAlpha : half(1.0);
 }
 
+half3 ApplyAlphaModulate(half3 albedo, half alpha)
+{
+    // Fake alpha for multiply blend by lerping albedo towards 1 (white) using alpha.
+    // Manual adjustment for "lighter" multiply effect (similar to "premultiplied alpha")
+    // would be painting whiter pixels in the texture.
+    // This emulates that procedure in shader, so it should be applied to the base/source color.
+#if defined(_ALPHAMODULATE_ON)
+    return lerp(1, albedo, alpha);
+#else
+    return albedo;
+#endif
+}
+
 // A word on normalization of normals:
 // For better quality normals should be normalized before and after
 // interpolation.

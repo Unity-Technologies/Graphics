@@ -100,14 +100,7 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
     half alpha = texColor.a * _BaseColor.a;
 
     AlphaDiscard(alpha, _Cutoff);
-
-#if defined(_ALPHAMODULATE_ON)
-    // Fake alpha for multiply blend by lerping albedo to 1.
-    // Manual adjustment for less multiply effect (sort of "premultiplied alpha" version)
-    // would be painting whiter pixels in the texture.
-    // This emulates that procedure by whitening the base color automatically using the alpha value.
-    color = lerp(1, color, alpha);
-#endif
+    color = ApplyAlphaModulate(color, alpha);
 
     InputData inputData;
     InitializeInputData(input, inputData);
