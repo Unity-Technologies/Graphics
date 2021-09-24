@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeBrickPool
     {
-        const int kProbeIndexPoolAllocationSize = 128;
+        const int kProbePoolChunkSize = 128;
 
         [DebuggerDisplay("Chunk ({x}, {y}, {z})")]
         public struct BrickChunkAlloc
@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Pool = CreateDataLocation(width * height * depth, false, shBands, "APV", out estimatedCost);
             estimatedVMemCost = estimatedCost;
 
-            m_AvailableChunkCount = (width / (kProbeIndexPoolAllocationSize * kBrickProbeCountPerDim)) * (height / kBrickProbeCountPerDim) * (depth / kBrickProbeCountPerDim);
+            m_AvailableChunkCount = (width / (kProbePoolChunkSize * kBrickProbeCountPerDim)) * (height / kBrickProbeCountPerDim) * (depth / kBrickProbeCountPerDim);
 
             Profiler.EndSample();
         }
@@ -122,8 +122,8 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        internal static int GetChunkSize() { return kProbeIndexPoolAllocationSize; }
-        internal static int GetChunkSizeInProbeCount() { return kProbeIndexPoolAllocationSize * kBrickProbeCountTotal; }
+        internal static int GetChunkSize() { return kProbePoolChunkSize; }
+        internal static int GetChunkSizeInProbeCount() { return kProbePoolChunkSize * kBrickProbeCountTotal; }
 
         internal int GetPoolWidth() { return m_Pool.width; }
         internal int GetPoolHeight() { return m_Pool.height; }
@@ -173,7 +173,7 @@ namespace UnityEngine.Experimental.Rendering
                 outAllocations.Add(m_NextFreeChunk);
                 m_AvailableChunkCount--;
 
-                m_NextFreeChunk.x += kProbeIndexPoolAllocationSize * kBrickProbeCountPerDim;
+                m_NextFreeChunk.x += kProbePoolChunkSize * kBrickProbeCountPerDim;
                 if (m_NextFreeChunk.x >= m_Pool.width)
                 {
                     m_NextFreeChunk.x = 0;
@@ -206,7 +206,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 for (int j = 0; j < kBrickProbeCountPerDim; j++)
                 {
-                    int width = Mathf.Min(kProbeIndexPoolAllocationSize * kBrickProbeCountPerDim, source.width - src.x);
+                    int width = Mathf.Min(kProbePoolChunkSize * kBrickProbeCountPerDim, source.width - src.x);
                     Graphics.CopyTexture(source.TexL0_L1rx, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL0_L1rx, dst.z + j, 0, dst.x, dst.y);
 
                     Graphics.CopyTexture(source.TexL1_G_ry, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_G_ry, dst.z + j, 0, dst.x, dst.y);

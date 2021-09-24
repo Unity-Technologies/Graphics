@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering
     public partial class ProbeReferenceVolume
     {
         DynamicArray<CellInfo> m_LoadedCells = new DynamicArray<CellInfo>();
-        DynamicArray<CellInfo> m_UnloadedCells = new DynamicArray<CellInfo>();
+        DynamicArray<CellInfo> m_ToBeLoadedCells = new DynamicArray<CellInfo>();
         DynamicArray<CellInfo> m_TempCellToLoadList = new DynamicArray<CellInfo>();
         DynamicArray<CellInfo> m_TempCellToUnloadList = new DynamicArray<CellInfo>();
 
@@ -62,10 +62,10 @@ namespace UnityEngine.Experimental.Rendering
             // Cell position in cell space is the top left corner. So we need to shift the camera position by half a cell to make things comparable.
             var cameraPositionCellSpace = (m_FrozenCameraPosition - m_Transform.posWS) / MaxBrickSize() - Vector3.one * 0.5f;
 
-            ComputeCellCameraDistance(cameraPositionCellSpace, m_UnloadedCells);
+            ComputeCellCameraDistance(cameraPositionCellSpace, m_ToBeLoadedCells);
             ComputeCellCameraDistance(cameraPositionCellSpace, m_LoadedCells);
 
-            m_UnloadedCells.QuickSort();
+            m_ToBeLoadedCells.QuickSort();
             m_LoadedCells.QuickSort();
 
             // This is only a rough budget estimate at first.
@@ -77,10 +77,10 @@ namespace UnityEngine.Experimental.Rendering
             {
                 bool budgetReached = false;
 
-                while (m_TempCellToLoadList.size < m_NumberOfCellsLoadedPerFrame && m_TempCellToLoadList.size < m_UnloadedCells.size && !budgetReached)
+                while (m_TempCellToLoadList.size < m_NumberOfCellsLoadedPerFrame && m_TempCellToLoadList.size < m_ToBeLoadedCells.size && !budgetReached)
                 {
                     // Enough memory, we can safely load the cell.
-                    var cellInfo = m_UnloadedCells[m_TempCellToLoadList.size];
+                    var cellInfo = m_ToBeLoadedCells[m_TempCellToLoadList.size];
                     budgetReached = !TryLoadCell(cellInfo, ref shChunkBudget, ref indexChunkBudget, m_TempCellToLoadList);
                 }
 
@@ -89,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     int pendingUnloadCount = 0;
                     bool canUnloadCell = true;
-                    while (canUnloadCell && m_TempCellToLoadList.size < m_NumberOfCellsLoadedPerFrame && m_TempCellToLoadList.size < m_UnloadedCells.size)
+                    while (canUnloadCell && m_TempCellToLoadList.size < m_NumberOfCellsLoadedPerFrame && m_TempCellToLoadList.size < m_ToBeLoadedCells.size)
                     {
                         if (m_LoadedCells.size - pendingUnloadCount == 0)
                         {
@@ -98,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering
                         }
 
                         var furthestLoadedCell = m_LoadedCells[m_LoadedCells.size - pendingUnloadCount - 1];
-                        var closestUnloadedCell = m_UnloadedCells[m_TempCellToLoadList.size];
+                        var closestUnloadedCell = m_ToBeLoadedCells[m_TempCellToLoadList.size];
 
                         // Redundant work. Maybe store during first sort pass?
                         float furthestLoadedCellDistance = Vector3.Distance(furthestLoadedCell.cell.position, cameraPositionCellSpace);
@@ -129,18 +129,18 @@ namespace UnityEngine.Experimental.Rendering
             }
             else
             {
-                int cellCountToLoad = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_UnloadedCells.size);
+                int cellCountToLoad = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_ToBeLoadedCells.size);
                 for (int i = 0; i < cellCountToLoad; ++i)
                 {
-                    var cellInfo = m_UnloadedCells[m_TempCellToLoadList.size]; // m_TempCellToLoadList.size get incremented in TryLoadCell
+                    var cellInfo = m_ToBeLoadedCells[m_TempCellToLoadList.size]; // m_TempCellToLoadList.size get incremented in TryLoadCell
                     TryLoadCell(cellInfo, ref shChunkBudget, ref indexChunkBudget, m_TempCellToLoadList);
                 }
             }
 
             // Remove the cells we successfully loaded.
-            m_UnloadedCells.RemoveRange(0, m_TempCellToLoadList.size);
+            m_ToBeLoadedCells.RemoveRange(0, m_TempCellToLoadList.size);
             m_LoadedCells.AddRange(m_TempCellToLoadList);
-            m_UnloadedCells.AddRange(m_TempCellToUnloadList);
+            m_ToBeLoadedCells.AddRange(m_TempCellToUnloadList);
             m_TempCellToLoadList.Clear();
             m_TempCellToUnloadList.Clear();
         }

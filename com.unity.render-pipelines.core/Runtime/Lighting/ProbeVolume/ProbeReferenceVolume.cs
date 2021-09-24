@@ -665,11 +665,15 @@ namespace UnityEngine.Experimental.Rendering
                 cells.Remove(cell.index);
 
                 if (cellInfo.loaded)
+                {
                     m_LoadedCells.Remove(cellInfo);
+                    UnloadCell(cellInfo);
+                }
                 else
-                    m_UnloadedCells.Remove(cellInfo);
+                {
+                    m_ToBeLoadedCells.Remove(cellInfo);
+                }
 
-                UnloadCell(cellInfo);
 
                 m_CellInfoPool.Release(cellInfo);
             }
@@ -705,7 +709,7 @@ namespace UnityEngine.Experimental.Rendering
                 cellInfo.sourceAssetInstanceID = assetInstanceID;
                 cells[cell.index] = cellInfo;
 
-                m_UnloadedCells.Add(cellInfo);
+                m_ToBeLoadedCells.Add(cellInfo);
             }
         }
 
@@ -839,10 +843,10 @@ namespace UnityEngine.Experimental.Rendering
                 if (m_LoadedCells[i].sourceAssetInstanceID == assetInstanceID)
                     m_LoadedCells.RemoveAt(i);
             }
-            for (int i = m_UnloadedCells.size - 1; i >= 0; i--)
+            for (int i = m_ToBeLoadedCells.size - 1; i >= 0; i--)
             {
-                if (m_UnloadedCells[i].sourceAssetInstanceID == assetInstanceID)
-                    m_UnloadedCells.RemoveAt(i);
+                if (m_ToBeLoadedCells[i].sourceAssetInstanceID == assetInstanceID)
+                    m_ToBeLoadedCells.RemoveAt(i);
             }
 
             ClearDebugData();

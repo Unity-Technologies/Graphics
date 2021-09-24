@@ -143,6 +143,8 @@ namespace UnityEngine.Experimental.Rendering
 
         internal void UploadIndexData()
         {
+            Debug.Assert(m_UpdateMinIndex >= 0 && m_UpdateMaxIndex < m_PhysicalIndexBufferData.Length);
+
             var count = m_UpdateMaxIndex - m_UpdateMinIndex + 1;
             m_PhysicalIndexBuffer.SetData(m_PhysicalIndexBufferData, m_UpdateMinIndex, m_UpdateMinIndex, count);
             m_NeedUpdateIndexComputeBuffer = false;
