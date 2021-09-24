@@ -216,12 +216,12 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_Enable);
 
             // If ray tracing is supported display the tracing choice
-            if (HDRenderPipeline.buildPipelineSupportsRayTracing)
+            if (HDRenderPipeline.assetSupportsRayTracing)
                 PropertyField(m_Tracing, k_TracingText);
 
             // Flag to track if the ray tracing parameters were displayed
             RayCastingMode tracingMode = m_Tracing.value.GetEnumValue<RayCastingMode>();
-            bool rayTracingSettingsDisplayed = HDRenderPipeline.buildPipelineSupportsRayTracing
+            bool rayTracingSettingsDisplayed = HDRenderPipeline.assetSupportsRayTracing
                 && m_Tracing.overrideState.boolValue
                 && tracingMode != RayCastingMode.RayMarching;
 
@@ -282,7 +282,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
             // RTR
-            if (HDRenderPipeline.buildPipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
+            if (HDRenderPipeline.assetSupportsRayTracing && m_Tracing.overrideState.boolValue &&
                 m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
             {
                 settings.TryLoad<float>(ref m_MinSmoothness);
@@ -303,7 +303,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
             // RTR
-            if (HDRenderPipeline.buildPipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
+            if (HDRenderPipeline.assetSupportsRayTracing && m_Tracing.overrideState.boolValue &&
                 m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
             {
                 CopySetting(ref m_MinSmoothness, settings.lightingQualitySettings.RTRMinSmoothness[level]);
@@ -324,17 +324,17 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool QualityEnabled()
         {
             // Quality always used for SSR
-            if (!HDRenderPipeline.buildTargetSupportsRayTracing || m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
+            if (!HDRenderPipeline.assetSupportsRayTracing || m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
                 return true;
 
             // Handle the quality usage for RTR
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
 
-            // Define if the asset supports Peformance or Both Mode (Quality && Performance)
+            // Define if the asset supports Performance or Both Mode (Quality && Performance)
             bool assetSupportsPerf = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Performance;
             bool assetSupportsBoth = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both;
 
-            // Define if the volume is in Peformance or Mixed Mode
+            // Define if the volume is in Performance or Mixed Mode
             bool volumeIsInPerfOrMixed = (m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayTracing && m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance)
                 || (m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.Mixed);
 
