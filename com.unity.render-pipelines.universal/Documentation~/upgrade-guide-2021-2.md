@@ -68,11 +68,11 @@ As a result, to match exactly shadow outlines from earlier revisions, the parame
 
 ### Intermediate Texture
 
-Previously, URP would force rendering to go through an intermediate renderer if the Renderer had any Renderer Features active. On some platforms, this has significant performance implications. Due to that, Renderer Features are now expected to declare their inputs using `ScriptableRenderPass.ConfigureInput`. This information is used to decide automatically whether rendering via an intermediate texture is necessary.
+In previous URP versions, URP performed the rendering via an intermediate Renderer if the Renderer had any active Renderer Features. On some platforms, this had significant performance implications. In this release, URP mitigates the issue in the following way: URP expects Renderer Features to declare their inputs using the `ScriptableRenderPass.ConfigureInput` method. The method provides the information that URP uses to determine automatically whether rendering via an intermediate texture is necessary.
 
-For compatibility reasons, a new property **Intermediate Texture** has been added to the Universal Renderer. This allows for either using the new behaviour, or to force the use of an intermediate texture. The latter should only be used if a Renderer Feature does not declare its inputs using `ScriptableRenderPass.ConfigureInput`.
+For compatibility purpose, there is a new property **Intermediate Texture** in the Universal Renderer. If you select **Always** in the property, URP uses an intermediate texture. Selecting **Auto** enables the new behavior. Use the **Always** option only if a Renderer Feature does not declare its inputs using the `ScriptableRenderPass.ConfigureInput` method.
 
-All existing Universal Renderer assets that were using any Renderer Features (excluding those included with URP) are upgraded to force the use of an intermediate texture, such that existing setups will continue to work correctly. Any newly created Universal Renderer assets will default to the new behaviour.
+To ensure that existing projects work correctly, all existing Universal Renderer assets that were using any Renderer Features (excluding those included with URP) have the option **Always** selected in the **Intermediate Texture** property. Any newly created Universal Renderer assets have the option **Auto** selected.
 
 ## Upgrading from URP 7.0.x-7.1.x
 
