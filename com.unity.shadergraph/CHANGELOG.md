@@ -11,6 +11,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Added
  - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
+ - Added an automatically generated material subasset on ShaderGraphs.
 
 ### Changed
 
