@@ -1,5 +1,7 @@
 #pragma kernel KMain
 
+// #pragma enable_d3d11_debug_symbols
+
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -13,62 +15,42 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Reference/HairReference.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
 
-RWStructuredBuffer<float> _FurnaceTestResult;
+RWStructuredBuffer<float> _TestResult;
 
 float3 _OutgoingDirection;
+float  _BetaM;
+float  _BetaN;
 
-#define SAMPLE_COUNT 300000
-#define GROUP_SIZE   128
+#define SAMPLE_COUNT 10000000
+#define GROUP_SIZE   512
 
 // Local memory for parallel reduction.
-groupshared float F_LDS[GROUP_SIZE];
+groupshared float gs_F[GROUP_SIZE];
 
-SurfaceData ConfigureFiberSurface()
+float SampleHair(uint2 seed)
 {
-    SurfaceData surfaceData;
-    ZERO_INITIALIZE(SurfaceData, surfaceData);
-
-    // Smoothness (Longitudinal Roughness)
-    surfaceData.perceptualSmoothness = 0.3;
-
-    // Radial Smoothness (Azimuthal Roughness).
-    surfaceData.perceptualRadialSmoothness = 0.3;
-
-    // Cuticle Angle
-    surfaceData.cuticleAngle = 2;
-
-    // The theoretical fiber points in the Z-up direction.
-    surfaceData.hairStrandDirectionWS = float3(0, 0, 1);
-
-    return surfaceData;
-}
-
-float SampleHair(uint seed)
-{
-    // Configure a theoretical hair fiber to evaluate the average attenuation.
-    SurfaceData surfaceData = ConfigureFiberSurface();
-
-    // Use the conversion from the surface data to compute all of the per-lobe bsdf information.
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(uint2(0, 0), surfaceData);
+    // Configure the theoretical fiber
+    BSDFData bsdfData;
+    ZERO_INITIALIZE(BSDFData, bsdfData);
 
     // Randomize H for this sample.
-    bsdfData.h = -1 + 2 * GenerateHashedRandomFloat(seed);
+    bsdfData.h = -1 + 2 * GenerateHashedRandomFloat(seed.y);
 
-    // Override the absorption.
+    // Override the absorption. (All light should reflect or transmit as no absorption occur).
     bsdfData.absorption = 0;
 
-    // Unused in this case.
-    PreLightData preLightData;
-    ZERO_INITIALIZE(PreLightData, preLightData);
+    // Configure the roughnesses for the current test.
+    bsdfData.perceptualRoughness       = _BetaM;
+    bsdfData.perceptualRoughnessRadial = _BetaN;
 
-    float3 V = _OutgoingDirection;
-    float2 U = Hammersley2d(seed, SAMPLE_COUNT);
-    float3 L = SampleSphereUniform(U.x, U.y);
+    float2 U  = Hammersley2d(seed.x, SAMPLE_COUNT);
+    float3 wi = SampleSphereUniform(U.x, U.y);
+    float3 wo = _OutgoingDirection;
 
     // Invoke the reference fiber scattering function.
-    CBSDF cbsdf = EvaluateHairReference(V, L, bsdfData);
+    CBSDF cbsdf = EvaluateHairReference(wo, wi, bsdfData);
 
-    return (cbsdf.specR.x);
+    return Luminance(cbsdf.specR) * abs(wi.z);
 }
 
 [numthreads(GROUP_SIZE, 1, 1)]
@@ -76,25 +58,24 @@ void KMain(uint dispatchThreadId : SV_DispatchThreadID,
            uint groupThreadId    : SV_GroupThreadID,
            uint groupId          : SV_GroupID)
 {
-    uint index = groupThreadId.x;
-
-    F_LDS[index] = SampleHair(dispatchThreadId);
+    // Sample the hair for this thread, generating a unique incident direction and H value.
+    gs_F[groupThreadId] = SampleHair(uint2(dispatchThreadId, groupThreadId));
 
     GroupMemoryBarrierWithGroupSync();
 
     // Simple parallel reduction on the group.
     for (uint i = GROUP_SIZE / 2; i > 0; i >>= 1)
     {
-        if (index < i)
+        if (groupThreadId < i)
         {
-            F_LDS[index] += F_LDS[index + i];
+            gs_F[groupThreadId] += gs_F[groupThreadId + i];
         }
 
         GroupMemoryBarrierWithGroupSync();
     }
 
-    if (index == 0)
+    if (groupThreadId == 0)
     {
-        _FurnaceTestResult[groupId] = F_LDS[0];
+        _TestResult[groupId] = gs_F[0];
     }
 }

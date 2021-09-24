@@ -58,7 +58,7 @@ float ModifiedRefractionIndex(float cosThetaD)
     return 1.19 / cosThetaD + (0.36 * cosThetaD);
 }
 
-// Ref: A Practical and Controllable Hair and Fur Model for Production Path Tracing
+// Ref: A Practical and Controllable Hair and Fur Model for Production Path Tracing Eq. 9
 float3 AbsorptionFromReflectance(float3 diffuseColor, float azimuthalRoughness)
 {
     float beta  = azimuthalRoughness;
@@ -74,8 +74,8 @@ float3 AbsorptionFromReflectance(float3 diffuseColor, float azimuthalRoughness)
     return t * t;
 }
 
-// Ref: An Energy-Conserving Hair Reflectance Model
-float AbsorptionFromMelanin(float eumelanin, float pheomelanin)
+// Ref: An Energy-Conserving Hair Reflectance Model Sec. 6.1
+float3 AbsorptionFromMelanin(float eumelanin, float pheomelanin)
 {
     const float3 eA = float3(0.419, 0.697, 1.37);
     const float3 eP = float3(0.187, 0.4,   1.05);
@@ -239,6 +239,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     {
         // Cuticle Angle
         const float cuticleAngle = radians(surfaceData.cuticleAngle);
+        bsdfData.cuticleAngle    =  cuticleAngle;
         bsdfData.cuticleAngleR   = -cuticleAngle;
         bsdfData.cuticleAngleTT  =  cuticleAngle * 0.5;
         bsdfData.cuticleAngleTRT =  cuticleAngle * 1.5;
@@ -251,16 +252,16 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
         // Azimuthal Roughness
     #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
-        bsdfData.roughnessRadial = PerceptualSmoothnessToRoughness(surfaceData.perceptualRadialSmoothness);
+        bsdfData.perceptualRoughnessRadial = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualRadialSmoothness);
     #else
         // Need to provide some sensible default in case of no roughened azimuthal scattering, since currently our
         // absorption is dependent on it. 0.3 is generally a good default for human hair.
-        bsdfData.roughnessRadial = 0.3;
+        bsdfData.perceptualRoughnessRadial = 0.3;
     #endif
 
         // Absorption
     #if _ABSORPTION_FROM_COLOR
-        bsdfData.absorption = AbsorptionFromReflectance(surfaceData.diffuseColor, bsdfData.roughnessRadial);
+        bsdfData.absorption = AbsorptionFromReflectance(surfaceData.diffuseColor, bsdfData.perceptualRoughnessRadial);
     #elif _ABSORPTION_FROM_MELANIN
         bsdfData.absorption = AbsorptionFromMelanin(surfaceData.eumelanin, surfaceData.pheomelanin);
     #else
@@ -662,7 +663,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         {
         #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
             // This lobe's distribution is determined by sampling coefficients from a pre-integrated LUT of the distribution and evaluating a gaussian.
-            D = GetPreIntegratedAzimuthalScatteringTransmissionDistribution(bsdfData.roughnessRadial, cosThetaD, cosPhi);
+            D = GetPreIntegratedAzimuthalScatteringTransmissionDistribution(bsdfData.perceptualRoughnessRadial, cosThetaD, cosPhi);
         #else
             // Karis' approximation of Pixar's logisitic with scale of √0.35
             D = exp(-3.65 * cosPhi - 3.98);
@@ -682,7 +683,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT))
         {
             // This lobe's distribution is determined by Frostbite's improvement over Karis' TRT approximation (maintaining Azimuthal Roughness).
-            const float scaleFactor = saturate(1.5 * (1 - bsdfData.roughnessRadial));
+            const float scaleFactor = saturate(1.5 * (1 - bsdfData.perceptualRoughnessRadial));
             D = scaleFactor * exp(scaleFactor * (17.0 * cosPhi - 16.78));
 
             // Attenutation (Simplified for H = √3/2)

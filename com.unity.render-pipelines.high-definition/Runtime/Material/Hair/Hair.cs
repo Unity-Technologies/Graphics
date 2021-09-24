@@ -150,6 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public float lightPathLength;
 
+            public float cuticleAngle;
             public float cuticleAngleR;
             public float cuticleAngleTT;
             public float cuticleAngleTRT;
@@ -158,7 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float roughnessTT;
             public float roughnessTRT;
 
-            public float roughnessRadial;
+            public float perceptualRoughnessRadial;
 
             // Global Scattering
             public Vector4 strandCountProbe;

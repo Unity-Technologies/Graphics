@@ -1,11 +1,6 @@
 // The # of lobes to evaluate explicitly (R, TT, TRT, TRRT+..) before summing up the remainder with a residual lobe approximation.
 #define PATH_MAX 3
 
-#define HAIR_TYPE_RIBBON 1 << 0
-#define HAIR_TYPE_TUBE   1 << 1
-
-#define HAIR_TYPE HAIR_TYPE_TUBE
-
 #define SQRT_PI_OVER_8 0.62665706865775012560
 
 // Precompute the factorials (should really precompute the squared value).
@@ -36,7 +31,7 @@ struct ReferenceBSDFData
     float  betaM;  // Longitudinal Roughness
     float  betaN;  // Azimuthal Roughness
 
-    float  alpha;  // Cuticle Tilt
+    float  alpha;  // Cuticle Tilt (Radians)
     float  sinAlpha[3];
     float  cosAlpha[3];
 
@@ -56,11 +51,6 @@ struct ReferenceAngles
     float phiO;
     float phi;
 };
-
-float HyperbolicCosecant(float x)
-{
-    return rcp(sinh(x));
-}
 
 // Ref: Light Scattering from Human Hair Fibers Eq. 3
 float AzimuthalDirection(uint p, float gammaO, float gammaT)
@@ -92,7 +82,7 @@ float BesselI(float x)
     float b = 0;
 
     UNITY_UNROLL
-    for (int i = 0; i <= 10; ++i)
+    for (int i = 0; i < 10; ++i)
     {
         const float f = FACTORIAL[i];
         b += pow(x, 2.0 * i) / (pow(4, i) * f * f);
@@ -122,7 +112,7 @@ float LogBesselI(float x)
 void LongitudinalVarianceFromBeta(float beta, inout float v[PATH_MAX + 1])
 {
     // Ref: A Practical and Controllable Hair and Fur Model for Production Path Tracing Eq. 7
-    v[0] = Sq(0.726 * beta + 0.812 * Sq(beta) + 3.7 * pow(beta, 20.0));
+    v[0] = Sq(0.726 * beta + 0.812 * Sq(beta) + 3.7 * pow(abs(beta), 20.0));
     v[1] = 0.25 * v[0];
     v[2] =  4.0 * v[0];
 
@@ -133,28 +123,7 @@ void LongitudinalVarianceFromBeta(float beta, inout float v[PATH_MAX + 1])
 // Ref: A Practical and Controllable Hair and Fur Model for Production Path Tracing Eq. 8
 float LogisticScaleFromBeta(float beta)
 {
-    return SQRT_PI_OVER_8 * ((0.265 * beta) + (1.194 * beta * beta) + (5.372 * pow(beta, 22.0)));
-}
-
-// TODO: Currently we do not support ribbon in pathtracing.
-float GetHFromRibbon(BSDFData bsdfData)
-{
-    return -1;
-}
-
-float GetHFromTube(float3 L, float3 N, float3 T)
-{
-    // Angle of inclination from normal plane.
-    float sinTheta = dot(L, T);
-
-    // Project w to the normal plane.
-    float3 LProj = L - sinTheta * T;
-
-    // Find gamma in the normal plane.
-    float cosGamma = dot(LProj, N);
-
-    // Length along the fiber width.
-    return SafeSqrt(1 - Sq(cosGamma));
+    return SQRT_PI_OVER_8 * ((0.265 * beta) + (1.194 * beta * beta) + (5.372 * pow(abs(beta), 22.0)));
 }
 
 void ApplyCuticleTilts(uint p, ReferenceAngles angles, ReferenceBSDFData data, out float sinThetaO, out float cosThetaO)
@@ -186,7 +155,7 @@ void ApplyCuticleTilts(uint p, ReferenceAngles angles, ReferenceBSDFData data, o
 
 void GetAlphaScalesFromAlpha(float alpha, inout float sinAlpha[3], inout float cosAlpha[3])
 {
-    sinAlpha[0] = sin(radians(alpha));
+    sinAlpha[0] = sin(alpha);
     cosAlpha[0] = SafeSqrt(1 - Sq(sinAlpha[0]));
 
     // Get the lobe alpha terms by solving for the trigonometric double angle identities.
@@ -202,19 +171,13 @@ ReferenceBSDFData GetReferenceBSDFData(float3 L, BSDFData bsdfData)
     ReferenceBSDFData data;
     ZERO_INITIALIZE(ReferenceBSDFData, data);
 
-// #if HAIR_TYPE == HAIR_TYPE_TUBE
-//   data.h = GetHFromTube(L, bsdfData.normalWS, bsdfData.hairStrandDirectionWS);
-// #elif HAIR_TYPE == HAIR_TYPE_RIBBON
-//     data.h = GetHFromRibbon(bsdfData);
-// #endif
-    data.h = bsdfData.h;
+    data.h      = bsdfData.h;
     data.gammaO = FastASin(data.h);
-
     data.eta    = 1.55;
     data.sigmaA = bsdfData.absorption;
-    data.betaM  = 0.3;
-    data.betaN  = 0.3;
-    data.alpha  = 2.0;
+    data.betaM  = bsdfData.perceptualRoughness;
+    data.betaN  = bsdfData.perceptualRoughnessRadial;
+    data.alpha  = bsdfData.cuticleAngle;
     data.s      = LogisticScaleFromBeta(data.betaN);
 
     // Fill the list of variances from beta
@@ -231,14 +194,14 @@ ReferenceAngles GetReferenceAngles(float3 wi, float3 wo)
     ReferenceAngles angles;
     ZERO_INITIALIZE(ReferenceAngles, angles);
 
-    angles.sinThetaI = wi.z;
-    angles.sinThetaO = wo.z;
+    angles.sinThetaI = wi.x;
+    angles.sinThetaO = wo.x;
 
     angles.cosThetaI = SafeSqrt(1 - Sq(angles.sinThetaI));
     angles.cosThetaO = SafeSqrt(1 - Sq(angles.sinThetaO));
 
-    angles.phiI = FastAtan2(wi.y, wi.x);
-    angles.phiO = FastAtan2(wo.y, wo.x);
+    angles.phiI = FastAtan2(wi.z, wi.y);
+    angles.phiO = FastAtan2(wo.z, wo.y);
     angles.phi  = angles.phiI - angles.phiO;
 
     return angles;

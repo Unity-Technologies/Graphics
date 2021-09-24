@@ -1,30 +1,31 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Reference/HairReferenceCommon.hlsl"
 
-void ComputeFiberAttenuations(float cosThetaO, float eta, float h, float3 T, inout float3 Ap[PATH_MAX + 1])
+void ComputeFiberAttenuations(float cosThetaO, float eta, float h, float3 T, inout float3 A[PATH_MAX + 1])
 {
     // Reconstruct the incident angle.
     float cosGammaO = SafeSqrt(1 - Sq(h));
     float cosTheta  = cosThetaO * cosGammaO;
 
     float F0 = IorToFresnel0(eta);
+    // float F  = F_FresnelDielectric(eta, cosTheta);
     float F  = F_Schlick(F0, cosTheta);
 
     // Solve for P == 0 (Reflection at the cuticle).
-    Ap[0] = F;
+    A[0] = F;
 
     // Solve for P == 1 (Solves two air-hair boundary events and one transmission event).
-    Ap[1] = Sq(1 - F) * T;
+    A[1] = Sq(1 - F) * T;
 
     // Solve for 2 < P < PMAX
-    for (int p = 2; p < PATH_MAX; p++)
-        Ap[p] = Ap[p - 1] * T * F;
+    for (uint p = 2; p < PATH_MAX; p++)
+        A[p] = A[p - 1] * T * F;
 
     // Solve for the residual lobe PMAX < P < INFINITY
     // Ref: A Practical and Controllable Hair and Fur Model for Production Eq. 6
-    Ap[PATH_MAX] = Ap[PATH_MAX - 1] * F * T / (1 - T * F);
+    A[PATH_MAX] = A[PATH_MAX - 1] * F * T / (1 - T * F);
 }
 
-// Ref: [An Energy-Conserving Hair Reflectance Model]
+// Ref: An Energy-Conserving Hair Reflectance Model Eq. 7
 // Plot: https://www.desmos.com/calculator/jmf1ofgfdv
 float LongitudinalScattering(float cosThetaI, float cosThetaO, float sinThetaI, float sinThetaO, float v)
 {
@@ -47,27 +48,21 @@ float LongitudinalScattering(float cosThetaI, float cosThetaO, float sinThetaI, 
     return M;
 }
 
-float AzimuthalScattering(float phi, int p, float s, float gammaO, float gammaT)
+float AzimuthalScattering(float phi, uint p, float s, float gammaO, float gammaT)
 {
     float dphi = phi - AzimuthalDirection(p, gammaO, gammaT);
 
     // Remap Phi to fit in the -PI..PI domain for the logistic.
-    if (dphi > +PI) dphi -= TWO_PI;
-    if (dphi < -PI) dphi += TWO_PI;
+    while (dphi > +PI) dphi -= TWO_PI;
+    while (dphi < -PI) dphi += TWO_PI;
 
     return TrimmedLogistic(dphi, s, -PI, PI);
 }
 
-CBSDF EvaluateHairReference(float3 V, float3 L, BSDFData bsdfData)
+CBSDF EvaluateHairReference(float3 wo, float3 wi, BSDFData bsdfData)
 {
     // Initialize the BSDF invocation.
-    ReferenceBSDFData data = GetReferenceBSDFData(L, bsdfData);
-
-    // Transform to the local frame for spherical coordinates
-    float3x3 frame = GetLocalFrame(bsdfData.hairStrandDirectionWS);
-    float3 wi = mul(L, transpose(frame));
-    float3 wo = mul(V, transpose(frame));
-
+    ReferenceBSDFData data = GetReferenceBSDFData(wi, bsdfData);
     ReferenceAngles angles = GetReferenceAngles(wi, wo);
 
     // Find refracted ray angles.
@@ -92,7 +87,7 @@ CBSDF EvaluateHairReference(float3 V, float3 L, BSDFData bsdfData)
 
     float3 F = 0;
 
-    for (uint p = 0; p < PATH_MAX; p++)
+    for (uint p = 0; p < PATH_MAX; ++p)
     {
         float sinThetaO, cosThetaO;
         ApplyCuticleTilts(p, angles, data, sinThetaO, cosThetaO);
@@ -102,10 +97,10 @@ CBSDF EvaluateHairReference(float3 V, float3 L, BSDFData bsdfData)
     }
 
     // Compute the residual lobe
-    F += LongitudinalScattering(angles.cosThetaI, angles.cosThetaO, angles.sinThetaI, angles.sinThetaO, data.v[PATH_MAX]) * A[PATH_MAX] / TWO_PI;
+    F += LongitudinalScattering(angles.cosThetaI, angles.cosThetaO, angles.sinThetaI, angles.sinThetaO, data.v[PATH_MAX]) * A[PATH_MAX] * INV_TWO_PI;
 
-    if(abs(angles.cosThetaI) > 0)
-        F /= abs(angles.cosThetaI);
+    if(abs(wi.z) > 0)
+        F /= abs(wi.z);
 
     return HairFtoCBSDF(max(F, 0));
 }
