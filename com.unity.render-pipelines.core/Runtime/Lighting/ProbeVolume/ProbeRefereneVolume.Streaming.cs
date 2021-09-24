@@ -130,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering
             else
             {
                 int cellCountToLoad = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_UnloadedCells.size);
-                for (int i = 0; i < cellCount; ++i)
+                for (int i = 0; i < cellCountToLoad; ++i)
                 {
                     var cellInfo = m_UnloadedCells[m_TempCellToLoadList.size]; // m_TempCellToLoadList.size get incremented in TryLoadCell
                     TryLoadCell(cellInfo, ref shChunkBudget, ref indexChunkBudget, m_TempCellToLoadList);
