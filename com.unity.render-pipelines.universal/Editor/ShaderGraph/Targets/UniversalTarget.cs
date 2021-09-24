@@ -711,13 +711,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // setup target control via define
                 if (target.surfaceType == SurfaceType.Transparent)
+                {
                     pass.defines.Add(CoreKeywordDescriptors.SurfaceTypeTransparent, 1);
 
-                // alpha premultiply in shader only needed when alpha is different for diffuse & specular
-                if ((target.alphaMode == AlphaMode.Alpha || target.alphaMode == AlphaMode.Additive) && blendModePreserveSpecular)
-                    pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
-                else if (target.alphaMode == AlphaMode.Multiply)
-                    pass.defines.Add(CoreKeywordDescriptors.AlphaModulateOn, 1);
+                    // alpha premultiply in shader only needed when alpha is different for diffuse & specular
+                    if ((target.alphaMode == AlphaMode.Alpha || target.alphaMode == AlphaMode.Additive) && blendModePreserveSpecular)
+                        pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
+                    else if (target.alphaMode == AlphaMode.Multiply)
+                        pass.defines.Add(CoreKeywordDescriptors.AlphaModulateOn, 1);
+                }
             }
 
             AddAlphaClipControlToPass(ref pass, target);

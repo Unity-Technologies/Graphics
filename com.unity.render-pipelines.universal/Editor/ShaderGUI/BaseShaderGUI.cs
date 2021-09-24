@@ -285,17 +285,21 @@ namespace UnityEditor
             ShaderGraphPropertyDrawers.DrawShaderGraphGUI(materialEditor, properties);
         }
 
-        internal static void DrawFloatToggleProperty(GUIContent styles, MaterialProperty prop)
+        internal static void DrawFloatToggleProperty(GUIContent styles, MaterialProperty prop, int indentLevel = 0, bool isDisabled = false)
         {
             if (prop == null)
                 return;
 
+            EditorGUI.BeginDisabledGroup(isDisabled);
+            EditorGUI.indentLevel += indentLevel;
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = prop.hasMixedValue;
             bool newValue = EditorGUILayout.Toggle(styles, prop.floatValue == 1);
             if (EditorGUI.EndChangeCheck())
                 prop.floatValue = newValue ? 1.0f : 0.0f;
             EditorGUI.showMixedValue = false;
+            EditorGUI.indentLevel -= indentLevel;
+            EditorGUI.EndDisabledGroup();
         }
 
         public virtual void DrawSurfaceOptions(Material material)
@@ -309,17 +313,8 @@ namespace UnityEditor
                 {
                     BlendMode blendMode = (BlendMode)material.GetFloat(Property.BlendMode);
                     var isDisabled = blendMode == BlendMode.Multiply || blendMode == BlendMode.Premultiply;
-                    if (isDisabled)
-                        preserveSpecProp.floatValue = 0;
-
-                    EditorGUI.BeginDisabledGroup(isDisabled);
-                    EditorGUI.indentLevel += 2;
-                    EditorGUI.BeginChangeCheck();
-                    var preserveSpecEnabled = EditorGUILayout.Toggle(Styles.preserveSpecularText, preserveSpecProp.floatValue == 1);
-                    if (EditorGUI.EndChangeCheck())
-                        preserveSpecProp.floatValue = preserveSpecEnabled ? 1 : 0;
-                    EditorGUI.indentLevel -= 2;
-                    EditorGUI.EndDisabledGroup();
+                    if (!isDisabled)
+                        DrawFloatToggleProperty(Styles.preserveSpecularText, preserveSpecProp, 2, isDisabled);
                 }
             }
             DoPopup(Styles.cullingText, cullingProp, Styles.renderFaceNames);
@@ -692,7 +687,7 @@ namespace UnityEditor
                             srcBlendA = UnityEngine.Rendering.BlendMode.Zero;
                             dstBlendA = UnityEngine.Rendering.BlendMode.One;
 
-                            material.EnableKeyword("_ALPHAMODULATE_ON");
+                            material.EnableKeyword(ShaderKeywordStrings._ALPHAMODULATE_ON);
                             break;
                     }
 
@@ -705,7 +700,7 @@ namespace UnityEditor
                     if (preserveSpecular)
                     {
                         srcBlendRGB = UnityEngine.Rendering.BlendMode.One;
-                        material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+                        material.EnableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
                     }
 
                     // TODO: fog
