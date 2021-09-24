@@ -10,7 +10,9 @@ For information on converting assets made for a Built-in Render Pipeline project
 
 * The Universal Renderer asset contains the property **Rendering Path** that lets you select the Forward or the Deferred Rendering Path.
 
-* The method `ClearFlag.Depth` does not implicitely clear the Stencil buffer anymore. Use the new method `ClearFlag.Stencil`.
+* The method `ClearFlag.Depth` does not implicitly clear the Stencil buffer anymore. Use the new method `ClearFlag.Stencil`.
+
+* URP 12 implements the [Render Pipeline Converter](features/rp-converter.md) feature. This feature replaces the asset upgrade functions that were previously available at **Edit > Render Pipeline > Universal Render Pipeline > Upgrade...**
 
 ## Upgrading from URP 10.0.x–10.2.x
 
