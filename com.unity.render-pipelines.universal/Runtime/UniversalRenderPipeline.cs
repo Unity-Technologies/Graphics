@@ -531,6 +531,9 @@ namespace UnityEngine.Rendering.Universal
                     // Helper function for updating cameraData with xrPass Data
                     UpdateCameraData(ref baseCameraData, baseCameraData.xr);
 
+                    // Handle the case where camera position is modified in BeginCameraRendering
+                    xrLayout.ReconfigurePass(baseCameraData.xr, baseCamera);
+
                     // Initialize late latching
                     XRSystemUniversal.BeginLateLatching(baseCamera, baseCameraData.xrUniversal);
                 }
