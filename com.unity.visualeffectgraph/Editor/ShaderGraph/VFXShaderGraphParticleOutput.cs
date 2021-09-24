@@ -617,9 +617,7 @@ namespace UnityEditor.VFX
                         if (readsTangent || hasNormalPort) // needs tangent
                             yield return $"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper(CultureInfo.InvariantCulture)}";
 
-                        needsPosWS |= graphCode.requirements.requiresPosition != NeededCoordinateSpace.None ||
-                            graphCode.requirements.requiresScreenPosition ||
-                            graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None;
+                        needsPosWS |= NeedsPositionWorldInterpolator(graphCode);
                     }
 
                     // TODO Put that per pass ?
@@ -748,6 +746,13 @@ namespace UnityEditor.VFX
                 graphCodes.Clear();
         }
 
+        private static bool NeedsPositionWorldInterpolator(GraphCode graphCode)
+        {
+            return graphCode.requirements.requiresPosition != NeededCoordinateSpace.None
+                    || graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None
+                    || graphCode.requirements.requiresScreenPosition;
+        }
+
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get
@@ -820,7 +825,7 @@ namespace UnityEditor.VFX
                                 callSG.builder.AppendLine("INSG.TangentSpaceBiTangent = float3(0.0f, 1.0f, 0.0f);");
                         }
 
-                        if (graphCode.requirements.requiresPosition != NeededCoordinateSpace.None || graphCode.requirements.requiresScreenPosition || graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
+                        if (NeedsPositionWorldInterpolator(graphCode))
                         {
                             callSG.builder.AppendLine("float3 posRelativeWS = VFXGetPositionRWS(i.VFX_VARYING_POSWS);");
                             callSG.builder.AppendLine("float3 posAbsoluteWS = VFXGetPositionAWS(i.VFX_VARYING_POSWS);");
@@ -850,9 +855,6 @@ namespace UnityEditor.VFX
                                     callSG.builder.AppendLine("INSG.AbsoluteWorldSpacePositionPredisplacement = posAbsoluteWS;");
                             }
 
-                            if (graphCode.requirements.requiresScreenPosition)
-                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(VFXTransformPositionWorldToClip(i.VFX_VARYING_POSWS), _ProjectionParams.x);");
-
                             if (graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
                             {
                                 callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(VFXGetPositionRWS(i.VFX_VARYING_POSWS));");
@@ -865,6 +867,23 @@ namespace UnityEditor.VFX
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Tangent) != 0)
                                     callSG.builder.AppendLine("INSG.TangentSpaceViewDirection = mul(tbn, V);");
                             }
+
+                            if (graphCode.requirements.requiresScreenPosition)
+                            {
+                                //ScreenPosition is expected to be the raw screen pos (float4) before the w division in pixel (SharedCode.template.hlsl)
+                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(VFXTransformPositionWorldToClip(i.VFX_VARYING_POSWS), _ProjectionParams.x);");
+                            }
+                        }
+
+                        if (graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
+                        {
+                            callSG.builder.AppendLine("{");
+
+                            if (graphCode.requirements.requiresNDCPosition)
+                                callSG.builder.AppendLine("INSG.NDCPosition = i.VFX_VARYING_POSCS.xy / _ScreenParams.xy;");
+                            if (graphCode.requirements.requiresPixelPosition)
+                                callSG.builder.AppendLine("INSG.PixelPosition = i.VFX_VARYING_POSCS.xy;");
+                            callSG.builder.AppendLine("}");
                         }
 
                         if (graphCode.requirements.requiresMeshUVs.Contains(UVChannel.UV0))
