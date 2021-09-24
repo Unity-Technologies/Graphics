@@ -17,17 +17,13 @@ test_platforms:
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
-                    # python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph <UTR_FLAGS>
     - [OSX_OpenGLCore]: |5-
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     GIT_REVISIONDATE=`cat revdate.tmp`
                     echo %GIT_REVISIONDATE%
                     rm revdate.tmp
-                    # python3 .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph <UTR_FLAGS>
     - [OSX_Metal]: |5-
-                    # ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics/; python3 .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph -logfile ~/Editor.log <UTR_FLAGS>"
                     mkdir -p TestProjects/ShaderGraph/test-results/
-                    # scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:~/Editor.log TestProjects/ShaderGraph/test-results/Editor.log
 
     - [all]: <shared.platform.commands.call_utr>
     after:

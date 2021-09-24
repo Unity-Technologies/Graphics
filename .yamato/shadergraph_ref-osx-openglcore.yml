@@ -35,7 +35,6 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_trunk:
                   GIT_REVISIONDATE=`cat revdate.tmp`
                   echo %GIT_REVISIONDATE%
                   rm revdate.tmp
-                  # python3 .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
          retries: 2
     after:
@@ -227,7 +226,6 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_CUSTOM-REVISION
                   GIT_REVISIONDATE=`cat revdate.tmp`
                   echo %GIT_REVISIONDATE%
                   rm revdate.tmp
-                  # python3 .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
          retries: 2
     after:

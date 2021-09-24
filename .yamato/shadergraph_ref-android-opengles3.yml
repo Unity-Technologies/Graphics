@@ -33,7 +33,6 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  # python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
@@ -237,7 +236,6 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_CUSTOM-REV
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  # python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
