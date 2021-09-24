@@ -25,6 +25,7 @@ TEXTURE2D(_CurveLumVsSat);
 
 SAMPLER(sampler_LogLut3D);
 SAMPLER(sampler_LinearClamp);
+#pragma enable_d3d11_debug_symbols
 
 CBUFFER_START(cb0)
     float4 _Size;               // x: lut_size, y: 1 / (lut_size - 1), zw: unused
@@ -259,9 +260,9 @@ float3 ProcessColorForHDR(float3 gradedColor)
       // TODO_FCC: Rotate to Rec2020 and all that jazz, but consider working directly in Rec2020 space instead of back and forth from LogC
       // Default assuming 1000 nits but come from options.
 #if TONEMAPPING_ACES
-    return HDRMappingFromRec709_ACES(gradedColor.rgb, _PaperWhite);
+    return HDRMappingFromRec709_ACES(gradedColor.rgb, _PaperWhite, true);
 #else
-    return HDRMappingFromRec709(gradedColor.rgb, _PaperWhite, _MinNits, _MaxNits, _RangeReductionMode);
+    return HDRMappingFromRec709(gradedColor.rgb, _PaperWhite, _MinNits, _MaxNits, _RangeReductionMode, true);
 #endif
 #else
     return gradedColor;

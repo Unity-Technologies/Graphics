@@ -512,57 +512,6 @@ struct SegmentedSplineParams_c9
     float slopeHigh;      // log-log slope of high linear extension
 };
 
-static const SegmentedSplineParams_c9 ODT_48nits =
-{
-    // coefsLow[10]
-    { -1.6989700043, -1.6989700043, -1.4779000000, -1.2291000000, -0.8648000000, -0.4480000000, 0.0051800000, 0.4511080334, 0.9113744414, 0.9113744414},
-    // coefsHigh[10]
-    { 0.5154386965, 0.8470437783, 1.1358000000, 1.3802000000, 1.5197000000, 1.5985000000, 1.6467000000, 1.6746091357, 1.6878733390, 1.6878733390 },
-    {segmented_spline_c5_fwd(0.18*pow(2.,-6.5)),  0.02},    // minPoint
-    {segmented_spline_c5_fwd(0.18),                4.8},    // midPoint
-    {segmented_spline_c5_fwd(0.18*pow(2.,6.5)),   48.0},    // maxPoint
-    0.0,  // slopeLow
-    0.04  // slopeHigh
-};
-static const SegmentedSplineParams_c9 ODT_1000nits =
-{
-    // coefsLow[10]
-    { -4.9706219331, -3.0293780669, -2.1262, -1.5105, -1.0578, -0.4668, 0.11938, 0.7088134201, 1.2911865799, 1.2911865799 },
-    // coefsHigh[10]
-    { 0.8089132070, 1.1910867930, 1.5683, 1.9483, 2.3083, 2.6384, 2.8595, 2.9872608805, 3.0127391195, 3.0127391195 },
-    {segmented_spline_c5_fwd(0.18*pow(2.,-12.)), 0.0001},    // minPoint
-    {segmented_spline_c5_fwd(0.18),                10.0},    // midPoint
-    {segmented_spline_c5_fwd(0.18*pow(2.,10.)),  1000.0},    // maxPoint
-    3.0,  // slopeLow
-    0.06  // slopeHigh
-};
-
-static const SegmentedSplineParams_c9 ODT_2000nits =
-{
-    // coefsLow[10]
-    { -4.9706219331, -3.0293780669, -2.1262, -1.5105, -1.0578, -0.4668, 0.11938, 0.7088134201, 1.2911865799, 1.2911865799 },
-    // coefsHigh[10]
-    { 0.8019952042, 1.1980047958, 1.5943000000, 1.9973000000, 2.3783000000, 2.7684000000, 3.0515000000, 3.2746293562, 3.3274306351, 3.3274306351 },
-    {segmented_spline_c5_fwd(0.18*pow(2.,-12.)), 0.0001},    // minPoint
-    {segmented_spline_c5_fwd(0.18),                10.0},    // midPoint
-    {segmented_spline_c5_fwd(0.18*pow(2.,11.)),  2000.0},    // maxPoint
-    3.0,  // slopeLow
-    0.12  // slopeHigh
-};
-
-static const SegmentedSplineParams_c9 ODT_4000nits =
-{
-    // coefsLow[10]
-    { -4.9706219331, -3.0293780669, -2.1262, -1.5105, -1.0578, -0.4668, 0.11938, 0.7088134201, 1.2911865799, 1.2911865799 },
-    // coefsHigh[10]
-    { 0.7973186613, 1.2026813387, 1.6093000000, 2.0108000000, 2.4148000000, 2.8179000000, 3.1725000000, 3.5344995451, 3.6696204376, 3.6696204376 },
-    {segmented_spline_c5_fwd(0.18*pow(2.,-12.)), 0.0001},    // minPoint
-    {segmented_spline_c5_fwd(0.18),                10.0},    // midPoint
-    {segmented_spline_c5_fwd(0.18*pow(2.,12.)),  4000.0},    // maxPoint
-    3.0,  // slopeLow
-    0.3   // slopeHigh
-};
-
 half segmented_spline_c9_fwd(half x, SegmentedSplineParams_c9 params)
 {
     const int N_KNOTS_LOW = 8;
@@ -816,6 +765,19 @@ static const half ODT_SAT_FACTOR = 0.93;
 //
 half3 ODT_RGBmonitor_100nits_dim(half3 oces)
 {
+    const SegmentedSplineParams_c9 ODT_48nits =
+    {
+        // coefsLow[10]
+        { -1.6989700043, -1.6989700043, -1.4779000000, -1.2291000000, -0.8648000000, -0.4480000000, 0.0051800000, 0.4511080334, 0.9113744414, 0.9113744414},
+        // coefsHigh[10]
+        { 0.5154386965, 0.8470437783, 1.1358000000, 1.3802000000, 1.5197000000, 1.5985000000, 1.6467000000, 1.6746091357, 1.6878733390, 1.6878733390 },
+        {segmented_spline_c5_fwd(0.18*pow(2.,-6.5)),  0.02},    // minPoint
+        {segmented_spline_c5_fwd(0.18),                4.8},    // midPoint
+        {segmented_spline_c5_fwd(0.18*pow(2.,6.5)),   48.0},    // maxPoint
+        0.0,  // slopeLow
+        0.04  // slopeHigh
+    };
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 
@@ -914,6 +876,19 @@ half3 ODT_RGBmonitor_100nits_dim(half3 oces)
 //
 half3 ODT_RGBmonitor_D60sim_100nits_dim(half3 oces)
 {
+    const SegmentedSplineParams_c9 ODT_48nits =
+    {
+        // coefsLow[10]
+        { -1.6989700043, -1.6989700043, -1.4779000000, -1.2291000000, -0.8648000000, -0.4480000000, 0.0051800000, 0.4511080334, 0.9113744414, 0.9113744414},
+        // coefsHigh[10]
+        { 0.5154386965, 0.8470437783, 1.1358000000, 1.3802000000, 1.5197000000, 1.5985000000, 1.6467000000, 1.6746091357, 1.6878733390, 1.6878733390 },
+        {segmented_spline_c5_fwd(0.18*pow(2.,-6.5)),  0.02},    // minPoint
+        {segmented_spline_c5_fwd(0.18),                4.8},    // midPoint
+        {segmented_spline_c5_fwd(0.18*pow(2.,6.5)),   48.0},    // maxPoint
+        0.0,  // slopeLow
+        0.04  // slopeHigh
+    };
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 
@@ -1024,6 +999,19 @@ half3 ODT_RGBmonitor_D60sim_100nits_dim(half3 oces)
 //
 half3 ODT_Rec709_100nits_dim(half3 oces)
 {
+    const SegmentedSplineParams_c9 ODT_48nits =
+    {
+        // coefsLow[10]
+        { -1.6989700043, -1.6989700043, -1.4779000000, -1.2291000000, -0.8648000000, -0.4480000000, 0.0051800000, 0.4511080334, 0.9113744414, 0.9113744414},
+        // coefsHigh[10]
+        { 0.5154386965, 0.8470437783, 1.1358000000, 1.3802000000, 1.5197000000, 1.5985000000, 1.6467000000, 1.6746091357, 1.6878733390, 1.6878733390 },
+        {segmented_spline_c5_fwd(0.18*pow(2.,-6.5)),  0.02},    // minPoint
+        {segmented_spline_c5_fwd(0.18),                4.8},    // midPoint
+        {segmented_spline_c5_fwd(0.18*pow(2.,6.5)),   48.0},    // maxPoint
+        0.0,  // slopeLow
+        0.04  // slopeHigh
+    };
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 
@@ -1116,6 +1104,19 @@ half3 ODT_Rec709_100nits_dim(half3 oces)
 //
 half3 ODT_Rec709_D60sim_100nits_dim(half3 oces)
 {
+    const SegmentedSplineParams_c9 ODT_48nits =
+    {
+        // coefsLow[10]
+        { -1.6989700043, -1.6989700043, -1.4779000000, -1.2291000000, -0.8648000000, -0.4480000000, 0.0051800000, 0.4511080334, 0.9113744414, 0.9113744414},
+        // coefsHigh[10]
+        { 0.5154386965, 0.8470437783, 1.1358000000, 1.3802000000, 1.5197000000, 1.5985000000, 1.6467000000, 1.6746091357, 1.6878733390, 1.6878733390 },
+        {segmented_spline_c5_fwd(0.18*pow(2.,-6.5)),  0.02},    // minPoint
+        {segmented_spline_c5_fwd(0.18),                4.8},    // midPoint
+        {segmented_spline_c5_fwd(0.18*pow(2.,6.5)),   48.0},    // maxPoint
+        0.0,  // slopeLow
+        0.04  // slopeHigh
+    };
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 
@@ -1226,6 +1227,19 @@ half3 ODT_Rec709_D60sim_100nits_dim(half3 oces)
 
 half3 ODT_Rec2020_100nits_dim(half3 oces)
 {
+    const SegmentedSplineParams_c9 ODT_48nits =
+    {
+        // coefsLow[10]
+        { -1.6989700043, -1.6989700043, -1.4779000000, -1.2291000000, -0.8648000000, -0.4480000000, 0.0051800000, 0.4511080334, 0.9113744414, 0.9113744414},
+        // coefsHigh[10]
+        { 0.5154386965, 0.8470437783, 1.1358000000, 1.3802000000, 1.5197000000, 1.5985000000, 1.6467000000, 1.6746091357, 1.6878733390, 1.6878733390 },
+        {segmented_spline_c5_fwd(0.18*pow(2.,-6.5)),  0.02},    // minPoint
+        {segmented_spline_c5_fwd(0.18),                4.8},    // midPoint
+        {segmented_spline_c5_fwd(0.18*pow(2.,6.5)),   48.0},    // maxPoint
+        0.0,  // slopeLow
+        0.04  // slopeHigh
+    };
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 
@@ -1308,6 +1322,19 @@ half3 ODT_Rec2020_100nits_dim(half3 oces)
 //
 half3 ODT_P3DCI_48nits(half3 oces)
 {
+    const SegmentedSplineParams_c9 ODT_48nits =
+    {
+        // coefsLow[10]
+        { -1.6989700043, -1.6989700043, -1.4779000000, -1.2291000000, -0.8648000000, -0.4480000000, 0.0051800000, 0.4511080334, 0.9113744414, 0.9113744414},
+        // coefsHigh[10]
+        { 0.5154386965, 0.8470437783, 1.1358000000, 1.3802000000, 1.5197000000, 1.5985000000, 1.6467000000, 1.6746091357, 1.6878733390, 1.6878733390 },
+        {segmented_spline_c5_fwd(0.18*pow(2.,-6.5)),  0.02},    // minPoint
+        {segmented_spline_c5_fwd(0.18),                4.8},    // midPoint
+        {segmented_spline_c5_fwd(0.18*pow(2.,6.5)),   48.0},    // maxPoint
+        0.0,  // slopeLow
+        0.04  // slopeHigh
+    };
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 
@@ -1377,6 +1404,19 @@ half3 ODT_P3DCI_48nits(half3 oces)
 // IMPORTANT: This will need transforming to the final output space after unlike the standard ODT.
 half3 ODT_Rec2020_1000nits_ToLinear(half3 oces)
 {
+    const SegmentedSplineParams_c9 ODT_1000nits =
+    {
+        // coefsLow[10]
+        { -4.9706219331, -3.0293780669, -2.1262, -1.5105, -1.0578, -0.4668, 0.11938, 0.7088134201, 1.2911865799, 1.2911865799 },
+        // coefsHigh[10]
+        { 0.8089132070, 1.1910867930, 1.5683, 1.9483, 2.3083, 2.6384, 2.8595, 2.9872608805, 3.0127391195, 3.0127391195 },
+        {segmented_spline_c5_fwd(0.18*pow(2.,-12.)), 0.0001},    // minPoint
+        {segmented_spline_c5_fwd(0.18),                10.0},    // midPoint
+        {segmented_spline_c5_fwd(0.18*pow(2.,10.)),  1000.0},    // maxPoint
+        3.0,  // slopeLow
+        0.06  // slopeHigh
+    };
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 
@@ -1411,6 +1451,19 @@ half3 ODT_Rec2020_1000nits_ToLinear(half3 oces)
 
 half3 ODT_Rec2020_1000nits_ToAP1(half3 oces)
 {
+    static const SegmentedSplineParams_c9 ODT_1000nits =
+    {
+        // coefsLow[10]
+        { -4.9706219331, -3.0293780669, -2.1262, -1.5105, -1.0578, -0.4668, 0.11938, 0.7088134201, 1.2911865799, 1.2911865799 },
+        // coefsHigh[10]
+        { 0.8089132070, 1.1910867930, 1.5683, 1.9483, 2.3083, 2.6384, 2.8595, 2.9872608805, 3.0127391195, 3.0127391195 },
+        {segmented_spline_c5_fwd(0.18*pow(2.,-12.)), 0.0001},    // minPoint
+        {segmented_spline_c5_fwd(0.18),                10.0},    // midPoint
+        {segmented_spline_c5_fwd(0.18*pow(2.,10.)),  1000.0},    // maxPoint
+        3.0,  // slopeLow
+        0.06  // slopeHigh
+    };
+
     // OCES to RGB rendering space
     half3 rgbPre = mul(AP0_2_AP1_MAT, oces);
 

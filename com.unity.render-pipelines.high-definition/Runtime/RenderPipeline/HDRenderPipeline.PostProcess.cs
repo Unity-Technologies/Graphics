@@ -3946,37 +3946,38 @@ namespace UnityEngine.Rendering.HighDefinition
                     case TonemappingMode.Custom: passData.builderCS.EnableKeyword("TONEMAPPING_CUSTOM"); break;
                     case TonemappingMode.External: passData.builderCS.EnableKeyword("TONEMAPPING_EXTERNAL"); break;
                 }
-                if (TEST_HDR())
-                {
-                    passData.builderCS.EnableKeyword("HDR_OUTPUT");
-                    int colorGamut = (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec2020 || HDROutputSettings.main.displayColorGamut == ColorGamut.HDR10) ? 0 :
-                        HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709 ? 1 :
-                        (HDROutputSettings.main.displayColorGamut == ColorGamut.DisplayP3 || HDROutputSettings.main.displayColorGamut == ColorGamut.DolbyHDR) ? 2 : -1;
-
-                    var minNits = HDROutputSettings.main.minToneMapLuminance;
-                    var maxNits = HDROutputSettings.main.maxToneMapLuminance;
-                    var paperWhite = HDROutputSettings.main.paperWhiteNits;
-                    int eetfMode = (int)m_HDROutput.mode.value;
-                    if (!m_HDROutput.detectPaperWhite.value)
-                    {
-                        paperWhite = m_HDROutput.paperWhite.value;
-                    }
-                    if (!m_HDROutput.detectLimits.value)
-                    {
-                        minNits = (int)m_HDROutput.minNits.value;
-                        maxNits = (int)m_HDROutput.maxNits.value;
-                    }
-                    if (!m_HDROutput.reduceOnlyLuminance.value)
-                    {
-                        eetfMode = m_HDROutput.mode.value == RangeReductionMode.Reinhard ? 4 : 3;
-                    }
-                    passData.hdroutParameters = new Vector4(minNits, maxNits, paperWhite, colorGamut);
-                    passData.hdroutParameters2 = new Vector4(eetfMode, maxNits, paperWhite, colorGamut);
-                }
             }
             else
             {
                 passData.builderCS.EnableKeyword("TONEMAPPING_NONE");
+            }
+
+            if (TEST_HDR())
+            {
+                passData.builderCS.EnableKeyword("HDR_OUTPUT");
+                int colorGamut = (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec2020 || HDROutputSettings.main.displayColorGamut == ColorGamut.HDR10) ? 0 :
+                    HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709 ? 1 :
+                    (HDROutputSettings.main.displayColorGamut == ColorGamut.DisplayP3 || HDROutputSettings.main.displayColorGamut == ColorGamut.DolbyHDR) ? 2 : -1;
+
+                var minNits = HDROutputSettings.main.minToneMapLuminance;
+                var maxNits = HDROutputSettings.main.maxToneMapLuminance;
+                var paperWhite = HDROutputSettings.main.paperWhiteNits;
+                int eetfMode = (int)m_HDROutput.mode.value;
+                if (!m_HDROutput.detectPaperWhite.value)
+                {
+                    paperWhite = m_HDROutput.paperWhite.value;
+                }
+                if (!m_HDROutput.detectLimits.value)
+                {
+                    minNits = (int)m_HDROutput.minNits.value;
+                    maxNits = (int)m_HDROutput.maxNits.value;
+                }
+                if (!m_HDROutput.reduceOnlyLuminance.value)
+                {
+                    eetfMode = m_HDROutput.mode.value == RangeReductionMode.Reinhard ? 4 : 3;
+                }
+                passData.hdroutParameters = new Vector4(minNits, maxNits, paperWhite, colorGamut);
+                passData.hdroutParameters2 = new Vector4(eetfMode, maxNits, paperWhite, colorGamut);
             }
 
             passData.lutSize = m_LutSize;

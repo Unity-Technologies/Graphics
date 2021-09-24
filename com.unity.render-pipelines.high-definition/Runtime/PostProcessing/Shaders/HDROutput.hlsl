@@ -1,5 +1,7 @@
 // Important! This file assumes Color.hlsl has been already included.
 
+#define DEBUG_HDR_LUT_WORKFLOW 1
+
 // A bit of nomenclature that will be used in the file:
 // Gamut: It is the subset of colors that is possible to reproduce by using three specific primary colors.
 // Rec709 (ITU-R Recommendation BT709) is a HDTV standard, in our context, we mostly care about its color gamut (https://en.wikipedia.org/wiki/Rec._709). The Rec709 gamut is the same as BT1886 and sRGB.
@@ -190,16 +192,16 @@ float3 RotateICtCpToRec2020(float3 ICtCp)
 // --------------------------------------------------------------------------------------------
 
 // --------------------------------
-//  EOTF
+//  OETFs
 // --------------------------------
-// Note that the functions here are OETF, technically for applying the opposite of the PQ curve, we are mapping
+// The functions here are OETF, technically for applying the opposite of the PQ curve, we are mapping
 // from linear to PQ space as this is what the display expects.
 // See this desmos for comparisons https://www.desmos.com/calculator/5jdfc4pgtk
 #define PRECISE_PQ 0
 #define ISS_APPROX_PQ 1
 #define GTS_APPROX_PQ 2
 
-#define EOTF_CHOICE GTS_APPROX_PQ
+#define OETF_CHOICE GTS_APPROX_PQ
 
 // Ref: [Patry 2017] HDR Display Support in Infamous Second Son and Infamous First Light
 // Fastest option, but also the least accurate. Behaves well for values up to 1400 nits but then starts diverging.
@@ -221,13 +223,13 @@ float3 GTSApproxLinToPQ(float3 inputCol)
 }
 
 // IMPORTANT! This wants the input in [0...10000] range, if the method requires scaling, it is done inside this function.
-float3 EOTF(float3 inputCol)
+float3 OETF(float3 inputCol)
 {
-#if EOTF_CHOICE == PRECISE_PQ
+#if OETF_CHOICE == PRECISE_PQ
     return LinearToPQ(inputCol);
-#elif EOTF_CHOICE == ISS_APPROX_PQ
+#elif OETF_CHOICE == ISS_APPROX_PQ
     return PatryApproxLinToPQ(inputCol * 0.01f);
-#elif EOTF_CHOICE == GTS_APPROX_PQ
+#elif OETF_CHOICE == GTS_APPROX_PQ
     return GTSApproxLinToPQ(inputCol * 0.01f);
 #endif
 }
@@ -367,20 +369,23 @@ float3 HDRMappingFromRec2020(float3 Rec2020Input, float hdrBoost, float minNits,
     // The reason to have a boost factor is because the standard for SDR is peaking at 100nits, but televisions are typically 300nits
     // and the colours get boosted. If we want equivalent look in HDR a similar boost needs to happen. It might look washed out otherwise.
     float3 reducedHDR = PerformRangeReduction(Rec2020Input * hdrBoost, minNits, maxNits);
-    return EOTF(reducedHDR);
+    return OETF(reducedHDR);
 }
 
-float3 HDRMappingFromRec709(float3 Rec709Input, float hdrBoost, float minNits, float maxNits, int reductionMode = 2)
+float3 HDRMappingFromRec709(float3 Rec709Input, float hdrBoost, float minNits, float maxNits, int reductionMode, bool skipOETF = false)
 {
     float3 Rec2020Input = RotateRec709ToRec2020(Rec709Input);
     // The reason to have a boost factor is because the standard for SDR is peaking at 100nits, but televisions are typically 300nits
     // and the colours get boosted. If we want equivalent look in HDR a similar boost needs to happen. It might look washed out otherwise.
     float3 reducedHDR = PerformRangeReduction(Rec2020Input * hdrBoost, minNits, maxNits, reductionMode);
-    return EOTF(reducedHDR);
+
+    if (skipOETF) return reducedHDR;
+
+    return OETF(reducedHDR);
 }
 
 
-float3 HDRMappingFromRec709_ACES(float3 Rec709Input, float hdrBoost)
+float3 HDRMappingFromRec709_ACES(float3 Rec709Input, float hdrBoost, bool skipOETF = false)
 {
     float3 aces = unity_to_ACES(Rec709Input * hdrBoost * 0.01f);
     float3 oces = RRT(aces);
@@ -389,8 +394,9 @@ float3 HDRMappingFromRec709_ACES(float3 Rec709Input, float hdrBoost)
     const float3x3 AP1_2_Rec2020 = mul(XYZ_2_REC2020_MAT, mul(D60_2_D65_CAT, AP1_2_XYZ_MAT));
     float3 linearODT = mul(AP1_2_Rec2020, AP1ODT);
 
+    if (skipOETF) return linearODT;
 
-    return EOTF(linearODT);
+    return OETF(linearODT);
 }
 
 // --------------------------------------------------------------------------------------------
