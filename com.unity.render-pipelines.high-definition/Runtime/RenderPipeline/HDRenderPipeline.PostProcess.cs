@@ -4423,6 +4423,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.uberPostCS.EnableKeyword("GAMMA2_OUTPUT");
                 }
 
+                if (TEST_HDR())
+                {
+                    passData.uberPostCS.EnableKeyword("HDR_OUTPUT");
+                }
+
                 passData.outputColorLog = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ColorLog;
                 passData.width = postProcessViewportSize.x;
                 passData.height = postProcessViewportSize.y;
@@ -4770,6 +4775,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public bool ditheringEnabled;
 
+            public Vector4 hdroutParameters;
+            public Vector4 hdroutParameters2;
+
+            public TextureHandle inputTest;
+
             public TextureHandle source;
             public TextureHandle afterPostProcessTexture;
             public TextureHandle alphaTexture;
@@ -4814,6 +4824,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.destination = builder.WriteTexture(finalRT);
                 passData.uiBuffer = builder.ReadTexture(uiBuffer);
 
+                if (TEST_HDR())
+                {
+                    int colorGamut = (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec2020 || HDROutputSettings.main.displayColorGamut == ColorGamut.HDR10) ? 0 :
+                        HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709 ? 1 :
+                        (HDROutputSettings.main.displayColorGamut == ColorGamut.DisplayP3 || HDROutputSettings.main.displayColorGamut == ColorGamut.DolbyHDR) ? 2 : -1;
+
+                    var hdrOutput = hdCamera.volumeStack.GetComponent<HDROutputOptions>();
+
+                    var minNits = HDROutputSettings.main.minToneMapLuminance;
+                    var maxNits = HDROutputSettings.main.maxToneMapLuminance;
+                    var paperWhite = HDROutputSettings.main.paperWhiteNits;
+                    int eetfMode = (int)hdrOutput.mode.value;
+                    if (!hdrOutput.detectPaperWhite.value)
+                    {
+                        paperWhite = hdrOutput.paperWhite.value;
+                    }
+                    if (!hdrOutput.detectLimits.value)
+                    {
+                        minNits = (int)hdrOutput.minNits.value;
+                        maxNits = (int)hdrOutput.maxNits.value;
+                    }
+
+                    passData.hdroutParameters = new Vector4(minNits, maxNits, paperWhite, colorGamut);
+                    passData.hdroutParameters2 = new Vector4(eetfMode, maxNits, paperWhite, colorGamut);
+                }
+
+
                 builder.SetRenderFunc(
                     (FinalPassData data, RenderGraphContext ctx) =>
                     {
@@ -4823,6 +4860,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         finalPassMaterial.shaderKeywords = null;
                         finalPassMaterial.SetTexture(HDShaderIDs._InputTexture, data.source);
+                        finalPassMaterial.SetTexture(HDShaderIDs._HDRImageTest, defaultResources.textures.testHDR);
 
                         if (data.dynamicResIsOn)
                         {
@@ -4901,16 +4939,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             finalPassMaterial.DisableKeyword("ENABLE_ALPHA");
 
+                        // TODO: THIS IS ALL BAD, NEED TO MOVE AND MOST IMPORTANTLY AVOID CAPTURE.
                         if (TEST_HDR())
                         {
                             finalPassMaterial.EnableKeyword("HDR_OUTPUT");
-                            int colorGamut = (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec2020 || HDROutputSettings.main.displayColorGamut == ColorGamut.HDR10) ? 0 :
-                            HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709 ? 1 :
-                            (HDROutputSettings.main.displayColorGamut == ColorGamut.DisplayP3 || HDROutputSettings.main.displayColorGamut == ColorGamut.DolbyHDR) ? 2 : -1;
+                            finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams, data.hdroutParameters);
+                            finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams2, data.hdroutParameters2);
 
-                            var a = HDROutputSettings.main.maxFullFrameToneMapLuminance;
-
-                            finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams, new Vector4(HDROutputSettings.main.minToneMapLuminance, HDROutputSettings.main.maxToneMapLuminance, HDROutputSettings.main.paperWhiteNits, colorGamut));
                         }
                         else
                         {

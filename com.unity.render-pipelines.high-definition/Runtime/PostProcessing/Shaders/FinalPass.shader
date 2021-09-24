@@ -19,6 +19,7 @@ Shader "Hidden/HDRP/FinalPass"
 
         #pragma multi_compile_local_fragment _ CATMULL_ROM_4 BYPASS
         #define DEBUG_UPSCALE_POINT 0
+#define TEST_HDR_IMAGE 0
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -35,11 +36,15 @@ Shader "Hidden/HDRP/FinalPass"
   //      #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HDROutput_2.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HDROutput_3.hlsl"
         //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HDROutput_Outside.hlsl"
+#undef GRAIN
+#undef DITHER
 #endif
         #pragma enable_d3d11_debug_symbols
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D(_GrainTexture);
+        TEXTURE2D(_HDRImageTest);
+
         TEXTURE2D_X(_AfterPostProcessTexture);
         TEXTURE2D_ARRAY(_BlueNoiseTexture);
         TEXTURE2D_X(_AlphaTexture);
@@ -58,12 +63,14 @@ Shader "Hidden/HDRP/FinalPass"
 
         // TODO_FCC: HDR RELATED STUFF, WILL NEED TO MOVE TO WHATEVER BUILDS THE LUT.
         float4 _HDROutputParams;
+        float4 _HDROutputParams2;
         #define _MinNits    _HDROutputParams.x
         #define _MaxNits    _HDROutputParams.y
         #define _PaperWhite _HDROutputParams.z
         #define _IsRec2020  (int)(_HDROutputParams.w) == 0
         #define _IsRec709   (int)(_HDROutputParams.w) == 1
         #define _IsP3       (int)(_HDROutputParams.w) == 2
+        #define _RangeReductionMode    (int)_HDROutputParams2.x
 
         struct Attributes
         {
@@ -135,6 +142,10 @@ Shader "Hidden/HDRP/FinalPass"
             #endif
             #endif //FXAA
 
+#if TEST_HDR_IMAGE == 1
+            outColor.rgb = SAMPLE_TEXTURE2D(_HDRImageTest, s_linear_repeat_sampler, positionNDC).rgb;
+#endif
+
             // Saturate is only needed for dither or grain to work. Otherwise we don't saturate because output might be HDR
             // TODO_FCC: How to handle this in HDR Output?
             #if defined(GRAIN) || defined(DITHER)
@@ -180,16 +191,21 @@ Shader "Hidden/HDRP/FinalPass"
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
             #endif
 
-#if HDR_OUTPUT
 
+#if HDR_OUTPUT
             // The reason to have a boost factor is because the standard for SDR is peaking at 100nits, but televisions are typically 300nits
             // and the colours get boosted. If we want equivalent look in HDR a similar boost needs to happen. It might look washed out otherwise.
-            float paperWhiteBoost = 1.5f;// ??????? Something like this should come from calibration, so probably allow to set via script.
-            outColor.rgb = HDRMappingFromRec709(outColor.rgb, _PaperWhite * paperWhiteBoost, _MinNits, _MaxNits);
-
+            float paperWhiteBoost = 1;// ??????? Something like this should come from calibration, so probably allow to set via script AND via ux.
+         //   outColor.rgb = HDRMappingFromRec709(outColor.rgb, _PaperWhite * paperWhiteBoost, _MinNits, _MaxNits, _RangeReductionMode);
+            outColor.rgb = HDRMappingFromRec709_ACES(outColor.rgb, _PaperWhite * paperWhiteBoost);
             //// This looks really bad now, so it is likely wrong code, will come back when making stuff more ordinate.
             float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
             outColor.rgb = SceneUIComposition(uiValue, outColor.rgb, _PaperWhite * paperWhiteBoost);
+#else
+#if TEST_HDR_IMAGE == 1
+
+            outColor.rgb = NeutralTonemap(outColor.rgb);
+#endif
 #endif
 
         #if !defined(ENABLE_ALPHA)

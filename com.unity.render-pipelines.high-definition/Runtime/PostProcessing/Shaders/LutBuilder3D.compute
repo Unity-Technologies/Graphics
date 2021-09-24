@@ -276,7 +276,7 @@ void KBuild(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     // TODO_FCC: Better handling of tonemapping.
-  //  gradedColor = Tonemap(gradedColor);
+    gradedColor = Tonemap(gradedColor);
 
     //gradedColor = ProcessColorForHDR(gradedColor);
 

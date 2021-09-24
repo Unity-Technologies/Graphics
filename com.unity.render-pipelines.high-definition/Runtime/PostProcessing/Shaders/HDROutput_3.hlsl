@@ -270,8 +270,23 @@ float3 PerformRangeReduction(float3 Rec2020Input, float minNits, float maxNits)
     ICtCp.x = LinearToPQ(linearLuma);
 
     return RotateICtCpToRec2020(ICtCp); // This moves back to linear too!
-
 }
+
+float3 PerformRangeReduction(float3 Rec2020Input, float minNits, float maxNits, int mode)
+{
+    float3 ICtCp = RotateRec2020ToICtCp(Rec2020Input); // This is in PQ space.
+
+    float linearLuma = PQToLinear(ICtCp.x, MAX_PQ_VALUE);
+    if (mode == 1)
+        linearLuma = ReinhardTonemap(linearLuma, maxNits);
+    else if (mode == 2)
+        linearLuma = BT2390EETF(linearLuma, minNits, maxNits);
+
+    ICtCp.x = LinearToPQ(linearLuma);
+
+    return RotateICtCpToRec2020(ICtCp); // This moves back to linear too!
+}
+
 
 // --------------------------------------------------------------------------------------------
 
@@ -292,13 +307,27 @@ float3 HDRMappingFromRec2020(float3 Rec2020Input, float hdrBoost, float minNits,
     return EOTF(reducedHDR);
 }
 
-float3 HDRMappingFromRec709(float3 Rec709Input, float hdrBoost, float minNits, float maxNits)
+float3 HDRMappingFromRec709(float3 Rec709Input, float hdrBoost, float minNits, float maxNits, int reductionMode = 2)
 {
     float3 Rec2020Input = RotateRec709ToRec2020(Rec709Input);
     // The reason to have a boost factor is because the standard for SDR is peaking at 100nits, but televisions are typically 300nits
     // and the colours get boosted. If we want equivalent look in HDR a similar boost needs to happen. It might look washed out otherwise.
-    float3 reducedHDR = PerformRangeReduction(Rec2020Input * hdrBoost, minNits, maxNits);
+    float3 reducedHDR = PerformRangeReduction(Rec2020Input * hdrBoost, minNits, maxNits, reductionMode);
     return EOTF(reducedHDR);
+}
+
+
+float3 HDRMappingFromRec709_ACES(float3 Rec709Input, float hdrBoost)
+{
+    float3 aces = unity_to_ACES(Rec709Input * hdrBoost * 0.01f);
+    float3 oces = RRT(aces);
+    float3 AP1ODT = ODT_Rec2020_1000nits_ToAP1(oces);
+
+    const float3x3 AP1_2_Rec2020 = mul(XYZ_2_REC2020_MAT, mul(D60_2_D65_CAT, AP1_2_XYZ_MAT));
+    float3 linearODT = mul(AP1_2_Rec2020, AP1ODT);
+
+
+    return EOTF(linearODT);
 }
 
 // --------------------------------------------------------------------------------------------

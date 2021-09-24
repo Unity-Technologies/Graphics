@@ -934,6 +934,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _UVTransform = Shader.PropertyToID("_UVTransform");
         public static readonly int _UITexture = Shader.PropertyToID("_UITexture");
         public static readonly int _HDROutputParams = Shader.PropertyToID("_HDROutputParams");
+        public static readonly int _HDROutputParams2 = Shader.PropertyToID("_HDROutputParams2");
+        public static readonly int _HDRImageTest = Shader.PropertyToID("_HDRImageTest");
 
         public static readonly int _MotionVecAndDepth = Shader.PropertyToID("_MotionVecAndDepth");
         public static readonly int _TileMinMaxMotionVec = Shader.PropertyToID("_TileMinMaxMotionVec");
