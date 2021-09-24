@@ -12,6 +12,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 
 // How many lights (at most) do we support at one given shading point
 // FIXME: hardcoded limits are evil, this LightList should instead be put together in C#
@@ -759,13 +760,13 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
                     tMin = tLightMin;
                     tMax = tLightMax;
 
-                    inputSample /= wLight;
+                    inputSample = RescaleSampleUnder(inputSample, wLight);
                 }
                 else
                 {
                     lightWeight *= 1.0 - wLight;
 
-                    inputSample = (inputSample - wLight) / (1.0 - wLight);
+                    inputSample = RescaleSampleOver(inputSample, wLight);
                 }
 
                 localCount++;
@@ -793,13 +794,13 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
                     tMin = tLightMin;
                     tMax = tLightMax;
 
-                    inputSample /= wLight;
+                    inputSample = RescaleSampleUnder(inputSample, wLight);
                 }
                 else
                 {
                     lightWeight *= 1.0 - wLight;
 
-                    inputSample = (inputSample - wLight) / (1.0 - wLight);
+                    inputSample = RescaleSampleOver(inputSample, wLight);
                 }
 
                 localCount++;

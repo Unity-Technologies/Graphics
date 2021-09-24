@@ -17,7 +17,7 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
     if (!_FogEnabled || !_EnableVolumetricFog)
         return false;
 
-    // This will determin the interval in which volumetric scattering can occur
+    // This will determine the interval in which volumetric scattering can occur
     float tMin, tMax;
     float pdfVol = 1.0;
     float tFog = min(t, _MaxFogDistance);
@@ -37,7 +37,7 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
         if (tMin >= tMax)
             return false;
 
-        inputSample /= localWeight;
+        inputSample = RescaleSampleUnder(inputSample, localWeight);
         pdfVol *= localWeight * pickedLightWeight;
     }
     else
@@ -45,8 +45,7 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
         tMin = 0.0;
         tMax = tFog;
 
-        inputSample -= localWeight;
-        inputSample /= 1.0 - localWeight;
+        inputSample = RescaleSampleOver(inputSample, localWeight);
         pdfVol *= 1.0 - localWeight;
     }
 #else
@@ -62,27 +61,18 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
 
     if (inputSample >= transmittanceThreshold)
     {
-        // Re-scale the sample
-        inputSample -= transmittanceThreshold;
-        inputSample /= 1.0 - transmittanceThreshold;
-
-        // Adjust the pdf
+        inputSample = RescaleSampleOver(inputSample, transmittanceThreshold);
         pdf *= 1.0 - transmittanceThreshold;
 
         return false;
     }
 
-    // Re-scale the sample
-    inputSample /= transmittanceThreshold;
-
-    // Adjust the pdf
+    inputSample = RescaleSampleUnder(inputSample, transmittanceThreshold);
     pdf *= pdfVol * transmittanceThreshold;
 
     // Exponential sampling
     float transmittance = transmittanceTMax + inputSample * (transmittanceTMin - transmittanceTMax);
     t = -log(transmittance) / sigmaT;
-
-    // Adjust the pdf
     pdf *= sigmaT * transmittance / (transmittanceTMin - transmittanceTMax);
 
     return true;
