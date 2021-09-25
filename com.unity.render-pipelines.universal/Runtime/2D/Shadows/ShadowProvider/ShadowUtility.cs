@@ -543,7 +543,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     NativeArray <Vector3> verticesToClip = new NativeArray<Vector3>(numberOfEdges, Allocator.Temp);
                     for(int i=0;i<numberOfEdges;i++)
-                        verticesToClip[i] = inVertices[inEdges[i].v0];
+                        verticesToClip[i] = inVertices[inEdges[i+currentShapeStart].v0];
 
                     ShadowClipping.SetInputPath(verticesToClip);
                     ShadowClipping.ContractPath(-contractEdge);
