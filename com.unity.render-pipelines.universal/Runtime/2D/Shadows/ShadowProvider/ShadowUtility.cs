@@ -545,19 +545,17 @@ namespace UnityEngine.Rendering.Universal
                     for(int i=0;i<numberOfEdges;i++)
                         verticesToClip[i] = inVertices[inEdges[i+currentShapeStart].v0];
 
-                    ShadowClipping.SetInputPath(verticesToClip);
-                    ShadowClipping.ContractPath(-contractEdge);
-
-
+                    ShadowPathClipper.SetInputPath(verticesToClip);
+                    ShadowPathClipper.ContractPath(-contractEdge);
 
                     // If we have an output path copy it out
-                    if(ShadowClipping.HasOutputPaths())
+                    if(ShadowPathClipper.HasOutputPaths())
                     {
-                        int outputPathLength = ShadowClipping.GetOutputPathLength();
+                        int outputPathLength = ShadowPathClipper.GetOutputPathLength();
                         if (outputPathLength > 0)
                         {
                             outShapeStartingIndices[shapeStartIndex] = currentTempEdgeIndex;
-                            ShadowClipping.GetOutputPath(tempVertices, currentTempVertexIndex);
+                            ShadowPathClipper.GetOutputPath(tempVertices, currentTempVertexIndex);
 
                             // Create edges
                             int lastEdgeIndex = (outputPathLength - 1) + currentTempEdgeIndex;
@@ -571,8 +569,6 @@ namespace UnityEngine.Rendering.Universal
 
 
                             }
-
-                            // Copy out our vertices
                             
                             currentTempVertexIndex += outputPathLength;
                         }
