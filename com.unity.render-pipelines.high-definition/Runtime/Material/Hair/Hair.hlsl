@@ -541,12 +541,13 @@ bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 }
 
 void GetMarschnerAngle(float3 T, float3 V, float3 L,
-                       out float thetaH, out float cosThetaD, out float sinThetaI, out float cosPhi)
+                       out float thetaH, out float cosThetaD, out float sinThetaI, out float sinThetaR, out float cosPhi)
 {
-    // Optimized math for spherical coordinate angle derivation.
+    // Optimized math for spherical coordinate angle derivation in world space.
+
     // Ref: Light Scattering from Human Hair Fibers
-          sinThetaI = dot(T, L);
-    float sinThetaR = dot(T, V);
+    sinThetaI = dot(T, L);
+    sinThetaR = dot(T, V);
 
     float thetaI = FastASin(sinThetaI);
     float thetaR = FastASin(sinThetaR);
@@ -636,8 +637,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // Reminder: All of these flags are known at compile time and the compiler will strip away the unused paths.
 
         // Retrieve angles via spherical coordinates in the hair shading space.
-        float thetaH, cosThetaD, sinThetaI, cosPhi;
-        GetMarschnerAngle(T, V, L, thetaH, cosThetaD, sinThetaI, cosPhi);
+        float thetaH, cosThetaD, sinThetaI, sinThetaR, cosPhi;
+        GetMarschnerAngle(T, V, L, thetaH, cosThetaD, sinThetaI, sinThetaR, cosPhi);
 
         const float3 alpha = float3(
             bsdfData.cuticleAngleR,
@@ -651,12 +652,16 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
             bsdfData.roughnessTRT
         );
 
+        // Compute the refracted ray.(Move to function)
+        float sinThetaT = sinThetaR / 1.55;
+        float cosThetaT = SafeSqrt(1 - Sq(sinThetaT));
+
+        float cosThetaO = SafeSqrt(1 - Sq(sinThetaR));
+
         // The index of refraction that can be used to analyze scattering in the normal plane (Bravais' Law).
         float etaPrime = ModifiedRefractionIndex(cosThetaD);
 
         // Reduced absorption coefficient.
-        // Note: Technically should divide absorption by thetaT here, but comparing to reference
-        // proved a negligible difference and thus not worth the extra computation cost.
         float3 mu = bsdfData.absorption;
 
         // Various terms reused between lobe evaluation.
@@ -697,10 +702,15 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         #endif
 
             // Attenutation (Simplified for H = 0)
-            // Note: H = ~0.55 seems to be more suitable for this lobe's attenuation, but H = 0 allows us to simplify more of the math at the cost of slightly more error.
             // Plot: https://www.desmos.com/calculator/pum8esu6ot
-            F = F_Schlick(bsdfData.fresnel0, cosThetaD);
-            Tr = exp(-4 * mu);
+            float cosGammaO = SafeSqrt(1 - Sq(HAIR_H_TT));
+            float cosTheta  = cosThetaO * cosGammaO;
+            F = F_Schlick(bsdfData.fresnel0, cosTheta);
+
+            float sinGammaT = HAIR_H_TT / etaPrime;
+            float cosGammaT = SafeSqrt(1 - Sq(sinGammaT));
+            Tr = exp(-mu * (2 * cosGammaT / cosThetaT));
+
             A = Sq(1 - F) * Tr;
 
             S += M[1] * A * D;
@@ -714,8 +724,14 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
             D = scaleFactor * exp(scaleFactor * (17.0 * cosPhi - 16.78));
 
             // Attenutation (Simplified for H = √3/2)
-            F = F_Schlick(bsdfData.fresnel0, cosThetaD * 0.5);
-            Tr = exp(-2 * mu * (1 + cos(2 * FastASin(HAIR_H_TRT / etaPrime))));
+            float cosGammaO = SafeSqrt(1 - Sq(HAIR_H_TRT));
+            float cosTheta  = cosThetaO * cosGammaO;
+            F = F_Schlick(bsdfData.fresnel0, cosTheta);
+
+            float sinGammaT = HAIR_H_TRT / etaPrime;
+            float cosGammaT = SafeSqrt(1 - Sq(sinGammaT));
+            Tr = exp(-mu * (2 * cosGammaT / cosThetaT));
+
             A = Sq(1 - F) * F * Sq(Tr);
 
             S += M[2] * A * D;
@@ -723,7 +739,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
         // Transmission event is built into the model.
         // Some stubborn NaNs have cropped up due to the angle optimization, we suppress them here with a max for now.
-        cbsdf.specR = max(S, 0);
+        cbsdf.specR = max(S * abs(dot(L, bsdfData.geomNormalWS)), 0);
     #endif
 
         // Multiple Scattering
