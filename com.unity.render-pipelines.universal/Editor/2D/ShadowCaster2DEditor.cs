@@ -56,13 +56,16 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent shadowShapeContract = EditorGUIUtility.TrTextContent("Contract Edge", "This contracts the edge of the shape given by the shape provider by the specified amount");
             public static GUIContent rendererSilhouette = EditorGUIUtility.TrTextContent("Renderer Silhoutte", "Specifies how to draw the renderer used with the ShadowCaster2D");
             public static GUIContent castingSource = EditorGUIUtility.TrTextContent("Casting Source", "Specifies the source of the shape used for projected shadows");
+            public static GUIContent edgeProcessing = EditorGUIUtility.TrTextContent("Edge Processing", "Specifies the edge processing used for contraction");
         }
 
         SerializedProperty m_RendererSilhouette;
         SerializedProperty m_CastsShadows;
         SerializedProperty m_ShadowShapeProvider;
-        SerializedProperty m_ShadowShapeContract;
         SerializedProperty m_CastingSource;
+        SerializedProperty m_ShadowMesh;
+        SerializedProperty m_EdgeProcessing;
+        SerializedProperty m_ContractEdge;
 
         SortingLayerDropDown m_SortingLayerDropDown;
         CastingSourceDropDown m_CastingSourceDropDown;
@@ -74,13 +77,17 @@ namespace UnityEditor.Rendering.Universal
             m_RendererSilhouette = serializedObject.FindProperty("m_RendererSilhouette");
             m_CastsShadows = serializedObject.FindProperty("m_CastsShadows");
             m_ShadowShapeProvider = serializedObject.FindProperty("m_ShadowShapeProvider");
-            m_ShadowShapeContract = serializedObject.FindProperty("m_ShadowShapeContract");
             m_CastingSource = serializedObject.FindProperty("m_ShadowCastingSource");
+            m_ShadowMesh = serializedObject.FindProperty("m_ShadowMesh");
+            m_EdgeProcessing = m_ShadowMesh.FindPropertyRelative("m_EdgeProcessing");
+            m_ContractEdge = m_ShadowMesh.FindPropertyRelative("m_ContractEdge");
 
             m_SortingLayerDropDown = new SortingLayerDropDown();
             m_SortingLayerDropDown.OnEnable(serializedObject, "m_ApplyToSortingLayers");
 
             m_CastingSourceDropDown = new CastingSourceDropDown();
+
+            
         }
 
         public void ShadowCaster2DSceneGUI()
@@ -128,9 +135,12 @@ namespace UnityEditor.Rendering.Universal
 
             if (m_CastingSource.intValue == (int)ShadowCaster2D.ShadowCastingSources.ShapeProvider)
             {
-                EditorGUILayout.PropertyField(m_ShadowShapeContract, Styles.shadowShapeContract);
-                if (m_ShadowShapeContract.floatValue < 0)
-                    m_ShadowShapeContract.floatValue = 0;
+                EditorGUILayout.PropertyField(m_ContractEdge, Styles.shadowShapeContract);
+                if (m_ContractEdge.floatValue < 0)
+                    m_ContractEdge.floatValue = 0;
+
+               
+                EditorGUILayout.PropertyField(m_EdgeProcessing, Styles.edgeProcessing);
             }
 
             if (!HasRenderer())

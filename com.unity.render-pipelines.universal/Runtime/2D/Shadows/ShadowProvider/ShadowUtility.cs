@@ -518,5 +518,85 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
         }
+
+        static public void ClipEdges(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeIsClosedArray, float contractEdge, out NativeArray<Vector3> outVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices )
+        {
+            int k_SafeSize = 40; 
+            NativeArray<Vector3> tempVertices = new NativeArray<Vector3>(inVertices.Length * k_SafeSize, Allocator.Temp);
+            NativeArray<ShadowEdge> tempEdges = new NativeArray<ShadowEdge>(inEdges.Length * k_SafeSize, Allocator.Temp);
+            outShapeStartingIndices = new NativeArray<int>(inShapeStartingIndices.Length, Allocator.Temp);
+
+            for (int i = 0; i < outShapeStartingIndices.Length; i++)
+                outShapeStartingIndices[i] = -1;
+
+            int currentTempVertexIndex = 0;
+            int currentTempEdgeIndex = 0;
+            for (int shapeStartIndex = 0;  (shapeStartIndex < inShapeStartingIndices.Length) && (inShapeStartingIndices[shapeStartIndex] >= 0); shapeStartIndex++)
+            {
+                // If its a closed shape try and do reduction
+                int currentShapeStart = inShapeStartingIndices[shapeStartIndex];
+                bool isLastIndex = (shapeStartIndex + 1) >= inShapeStartingIndices.Length || inShapeStartingIndices[shapeStartIndex + 1] < 0;
+                int nextShapeStart = !isLastIndex ? inShapeStartingIndices[shapeStartIndex + 1] : inEdges.Length;
+                int numberOfEdges = nextShapeStart - currentShapeStart;
+
+                if (inShapeIsClosedArray[shapeStartIndex])
+                {
+                    NativeArray <Vector3> verticesToClip = new NativeArray<Vector3>(numberOfEdges, Allocator.Temp);
+                    for(int i=0;i<numberOfEdges;i++)
+                        verticesToClip[i] = inVertices[inEdges[i].v0];
+
+                    ShadowClipping.SetInputPath(verticesToClip);
+                    ShadowClipping.ContractPath(-contractEdge);
+
+
+
+                    // If we have an output path copy it out
+                    if(ShadowClipping.HasOutputPaths())
+                    {
+                        int outputPathLength = ShadowClipping.GetOutputPathLength();
+                        if (outputPathLength > 0)
+                        {
+                            outShapeStartingIndices[shapeStartIndex] = currentTempEdgeIndex;
+                            ShadowClipping.GetOutputPath(tempVertices, currentTempVertexIndex);
+
+                            // Create edges
+                            int lastEdgeIndex = (outputPathLength - 1) + currentTempEdgeIndex;
+                            for(int i=0;i<outputPathLength;i++)
+                            {
+                                int currentVertexIndex = currentTempEdgeIndex;
+                                tempEdges[currentTempEdgeIndex] = new ShadowEdge(lastEdgeIndex, currentVertexIndex);
+
+                                Debug.DrawLine(tempVertices[lastEdgeIndex], tempVertices[currentVertexIndex],Color.white ,2);
+                                lastEdgeIndex = currentTempEdgeIndex++;
+
+
+                            }
+
+                            // Copy out our vertices
+                            
+                            currentTempVertexIndex += outputPathLength;
+                        }
+                    }
+                }
+                // If its an open shape just copy it to our output
+                else
+                {
+                    // TODO:
+                }
+            }
+
+            // Copy our arrays out.
+            outVertices = new NativeArray<Vector3>(currentTempVertexIndex, Allocator.Temp);
+            outEdges = new NativeArray<ShadowEdge>(currentTempEdgeIndex, Allocator.Temp);
+
+            for (int i = 0; i < outVertices.Length; i++)
+                outVertices[i] = tempVertices[i];
+
+            for (int i = 0; i < outEdges.Length; i++)
+                outEdges[i] = tempEdges[i];
+
+            tempVertices.Dispose();
+            tempEdges.Dispose();
+        }
     }
 }

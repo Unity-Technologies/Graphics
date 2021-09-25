@@ -180,12 +180,18 @@ namespace UnityEngine.Rendering.Universal
                 cmdBuffer.ReleaseTemporaryRT(m_RenderTargets[textureIndex].id);
         }
 
+
+
         public static void SetShadowProjectionGlobals(CommandBuffer cmdBuffer, ShadowCaster2D shadowCaster)
         {
             cmdBuffer.SetGlobalVector(k_ShadowModelScaleID, shadowCaster.m_CachedLossyScale);
             cmdBuffer.SetGlobalMatrix(k_ShadowModelMatrixID, shadowCaster.m_CachedShadowMatrix);
             cmdBuffer.SetGlobalMatrix(k_ShadowModelInvMatrixID, shadowCaster.m_CachedInverseShadowMatrix);
-            cmdBuffer.SetGlobalFloat(k_ShadowContractionDistanceID, shadowCaster.contractionDistance);
+
+            //if(shadowCaster.edgeProcessing == ShadowCaster2D.EdgeProcessing.None )
+            //    cmdBuffer.SetGlobalFloat(k_ShadowContractionDistanceID, shadowCaster.contractionDistance);
+            //else
+            //    cmdBuffer.SetGlobalFloat(k_ShadowContractionDistanceID, 0f);
         }
 
 

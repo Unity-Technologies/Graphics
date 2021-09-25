@@ -43,10 +43,10 @@ namespace UnityEngine.Rendering.Universal
             SelfShadowed
         }
 
-        public enum ContractionOptions
+        public enum EdgeProcessing
         {
-            None,
-            RemoveIntersections,
+            None = ShadowMesh2D.EdgeProcessing.None,
+            Clipping = ShadowMesh2D.EdgeProcessing.Clipping,
         }
 
         [SerializeField] bool m_HasRenderer = false;
@@ -59,8 +59,6 @@ namespace UnityEngine.Rendering.Universal
         
         [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShapeProvider;
-        [SerializeField] float m_ShadowShapeContract;
-        [SerializeField] ContractionOptions m_RemoveIntersections = ContractionOptions.RemoveIntersections;
         [SerializeField] ShadowCastingSources m_ShadowCastingSource = (ShadowCastingSources)( - 1);
 
         [SerializeField] internal ShadowMesh2D   m_ShadowMesh;
@@ -70,11 +68,20 @@ namespace UnityEngine.Rendering.Universal
         internal ShadowCasterGroup2D  m_PreviousShadowCasterGroup = null;
         internal int                  m_PreviousShadowCastingSource;
         internal Component            m_PreviousShadowShapeProvider = null;
-        
+        internal float                m_PreviousContractEdge = 0;
+        internal int                  m_PreviousEdgeProcessing;
+
+        public EdgeProcessing edgeProcessing
+        {
+            get { return (EdgeProcessing)m_ShadowMesh.edgeProcessing; }
+            set { m_ShadowMesh.edgeProcessing = (ShadowMesh2D.EdgeProcessing)value; }
+        }
+
         public Mesh mesh => m_ShadowMesh.mesh;
         public BoundingSphere boundingSphere => m_ShadowMesh.boundingSphere;
 
-        public float contractionDistance { get { return m_ShadowShapeContract; } set { m_ShadowShapeContract = value; } }
+        public float contractEdge { get { return m_ShadowMesh.contractEdge; }set { m_ShadowMesh.contractEdge = value; }
+        }
 
         public Vector3[] shapePath => m_ShapePath;
         internal int shapePathHash { get { return m_ShapePathHash; } set { m_ShapePathHash = value; } }
@@ -287,6 +294,8 @@ namespace UnityEngine.Rendering.Universal
             m_HasRenderer = TryGetComponent<Renderer>(out renderer);
 
             bool rebuildMesh = LightUtility.CheckForChange((int)m_ShadowCastingSource, ref m_PreviousShadowCastingSource);
+            rebuildMesh |= LightUtility.CheckForChange((int)edgeProcessing, ref m_PreviousEdgeProcessing);
+            rebuildMesh |= edgeProcessing != EdgeProcessing.None && LightUtility.CheckForChange(contractEdge, ref m_PreviousContractEdge);
 
             if (m_ShadowMesh == null)
             {
@@ -336,38 +345,45 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_EDITOR
+        internal void DrawPreviewOutline_None(Transform transform, float contractionDistance)
+        {
+            Vector3[] vertices = mesh.vertices;
+            int[] triangles = mesh.triangles;
+            Vector4[] tangents = mesh.tangents;
+            Transform t = transform;
+
+            Handles.color = Color.white;
+            for (int i = 0; i < triangles.Length; i += 3)
+            {
+                int v0 = triangles[i];
+                int v1 = triangles[i + 1];
+                int v2 = triangles[i + 2];
+
+                Vector3 pt0 = vertices[v0];
+                Vector3 pt1 = vertices[v1];
+                Vector3 pt2 = vertices[v2];
+
+                Vector4 tan0 = tangents[v0];
+                Vector4 tan1 = tangents[v1];
+                Vector4 tan2 = tangents[v2];
+
+                Vector3 contractPt0 = new Vector3(pt0.x + contractionDistance * tan0.x, pt0.y + contractionDistance * tan0.y, 0);
+                Vector3 contractPt1 = new Vector3(pt1.x + contractionDistance * tan1.x, pt1.y + contractionDistance * tan1.y, 0);
+                Vector3 contractPt2 = new Vector3(pt2.x + contractionDistance * tan2.x, pt2.y + contractionDistance * tan2.y, 0);
+
+                Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(contractPt0), t.TransformPoint(contractPt1) });
+                Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(contractPt1), t.TransformPoint(contractPt2) });
+                Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(contractPt2), t.TransformPoint(contractPt0) });
+            }
+        }
+
+
         internal void DrawPreviewOutline()
         {
-            if (mesh != null && m_ShadowCastingSource != ShadowCastingSources.None)
+            if (m_ShadowMesh != null && mesh != null && m_ShadowCastingSource != ShadowCastingSources.None)
             {
-                Vector3[] vertices = mesh.vertices;
-                int[] triangles = mesh.triangles;
-                Vector4[] tangents = mesh.tangents;
-                Transform t = transform;
-
-                Handles.color = Color.white;
-                for (int i = 0; i < triangles.Length; i += 3)
-                {
-                    int v0 = triangles[i];
-                    int v1 = triangles[i + 1];
-                    int v2 = triangles[i + 2];
-
-                    Vector3 pt0 = vertices[v0];
-                    Vector3 pt1 = vertices[v1];
-                    Vector3 pt2 = vertices[v2];
-
-                    Vector4 tan0 = tangents[v0];
-                    Vector4 tan1 = tangents[v1];
-                    Vector4 tan2 = tangents[v2];
-
-                    Vector3 contractPt0 = new Vector3(pt0.x + contractionDistance * tan0.x, pt0.y + contractionDistance * tan0.y, 0);
-                    Vector3 contractPt1 = new Vector3(pt1.x + contractionDistance * tan1.x, pt1.y + contractionDistance * tan1.y, 0);
-                    Vector3 contractPt2 = new Vector3(pt2.x + contractionDistance * tan2.x, pt2.y + contractionDistance * tan2.y, 0);
-
-                    Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(contractPt0), t.TransformPoint(contractPt1) });
-                    Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(contractPt1), t.TransformPoint(contractPt2) });
-                    Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(contractPt2), t.TransformPoint(contractPt0) });
-                }
+                if(edgeProcessing == EdgeProcessing.None)
+                    DrawPreviewOutline_None(transform, contractEdge);
             }
         }
 
