@@ -181,22 +181,21 @@ float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3
     float3 sigmaB = (1 + db * af2);
     sigmaB *= (ab * sqrt((2 * Bf2) + Bb2)) + (ab3 * sqrt((2 * Bf2) + Bb2));
     sigmaB /= ab + (ab3 * ((2 * Bf) + (3 * Bb)));
-    // sigmaB  = Sq(sigmaB);
-
-    // Computes the average back scattering spread ( Eq. 15 ).
-    // float3 Sb = D_LongitudinalScatteringGaussian(thetaH - deltaB, sigmaB);
+    sigmaB  = sqrt(sigmaB);
 
     // Resolve the overall local scattering term ( Eq. 19 & 20 Disney ).
-    float3 fsBackDirect  = db * 2 * Ab * D_LongitudinalScatteringGaussian(thetaH - deltaB, sigmaB);
-    float3 fsBackScatter = db * 2 * Ab * D_LongitudinalScatteringGaussian(thetaH - deltaB, sigmaB + sigmaF);
+    float3 fsBackDirect  = db * 2 * Ab * D_LongitudinalScatteringGaussian(thetaH - deltaB, sigmaB) / PI;
+    float3 fsBackScatter = db * 2 * Ab * D_LongitudinalScatteringGaussian(thetaH - deltaB, sigmaB + sigmaF) / PI;
 
     // Resolve the approximated multiple scattering. (Approximate Eq. 22)
     // ------------------------------------------------------------------------------------
     const float3 MG = D_LongitudinalScatteringGaussian(thetaH - alpha, beta + sigmaF);
     const float3 fsScatter = mul(MG, NG);
 
-    const float3 Fdirect   = directFraction * (Fs + fsBackDirect);
-    const float3 Fscatter  = (Tf - directFraction) * df * (fsScatter + PI * fsBackScatter);
+    // Note: currently we multiple by a factor of 4PI to match the reference (the reference is validated against a ground truth).
+    // For now we leave it, but it would be good to explore what is causing the need for this.
+    const float3 Fdirect   = directFraction * (Fs + FOUR_PI * fsBackDirect);
+    const float3 Fscatter  = (Tf - directFraction) * df * (fsScatter + FOUR_PI * fsBackScatter);
     const float3 F         = (Fdirect + Fscatter) * sqrt(1 - Sq(sinThetaI));
 
     return max(F, 0);

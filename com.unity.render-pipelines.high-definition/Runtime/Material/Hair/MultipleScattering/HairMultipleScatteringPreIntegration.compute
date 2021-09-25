@@ -9,9 +9,6 @@
 
 // #pragma enable_d3d11_debug_symbols
 
-// Instead of indirectly setting up the angles we inform the BSDF that we will be explicitly setting them.
-// #define HAIR_OVERRIDE_ANGLE_BSDF
-
 #define DIM 64
 #define SPHERE_SAMPLES 128
 #define DPHI radians(2)
@@ -53,10 +50,13 @@ SurfaceData ConfigureFiberSurface(float diffuseColor, float perceptualSmoothness
     // surfaceData.perceptualRadialSmoothness = 0.3;
 
     // Cuticle Angle
-    surfaceData.cuticleAngle = 3;
+    surfaceData.cuticleAngle = 2;
 
-    // The theoretical fiber points in the Z-up direction.
-    surfaceData.hairStrandDirectionWS = float3(0, 0, 1);
+    // The theoretical fiber points points down the +x axis.
+    surfaceData.hairStrandDirectionWS = float3(1, 0, 0);
+
+    // Be sure to define the normal as well as it defines the hair shading basis
+    surfaceData.geomNormalWS = float3(0, 0, 1);
 
     return surfaceData;
 }
@@ -126,20 +126,20 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
            // forward (TT dominant) and one backward (R / TRT dominant) lobe. The theoretical fiber
            // is facing Z-up, the incident light is on the back hemisphere; thus, outgoing directions
            // in the front hemisphere must be negative in the X direction.
-           if (V.x < 0)
+           if (V.z < 0)
            {
                 // Contribute to the average forward scattering.
-                A.x += Fs / INV_FOUR_PI; C.x++;
+                A.x += Fs; C.x++;
            }
            else
            {
                 // Contribute to the average backward scattering.
-                A.y += Fs / INV_FOUR_PI; C.y++;
+                A.y += Fs; C.y++;
            }
        }
     }
 
-    _PreIntegratedHairFiberScatteringUAV[dispatchThreadID] = INV_PI * (A / float2(C) * 0.5);
+    _PreIntegratedHairFiberScatteringUAV[dispatchThreadID] = INV_PI * (A / float2(C * INV_FOUR_PI) * 0.5);
 }
 
 // Pre-integrate the average azimuthal scattering on the front scattering semi-circle ( Ref: Equation 25 )
@@ -181,13 +181,13 @@ void PreIntegrateAzimuthalScattering (uint2 dispatchThreadID : SV_DispatchThread
     // Configure the initial incident theta direction.
     float sinThetaI = UV.x;
 
-    // We are analyzing the front scattering, so place a viewer on the negative X axis.
-    float3 V = float3(-1, 0, 0);
+    // We are analyzing the front scattering, so place a viewer on the negative Z axis.
+    float3 V = float3(0, 0, 1);
 
     float3 A = 0;
 
     // Integrate over all incident phi.
-    for (float phi = HALF_PI; phi < PI; phi += DPHI)
+    for (float phi = -HALF_PI; phi < HALF_PI; phi += DPHI)
     {
        // Places a light on the back scattering hemisphere (due to the constriction of phi to the -pi/2 to pi/2 range).
        float3 L = SphericalToCartesian(phi, sinThetaI);
@@ -202,5 +202,5 @@ void PreIntegrateAzimuthalScattering (uint2 dispatchThreadID : SV_DispatchThread
                     cbsdfTRT.specR.x ) * DPHI;
     }
 
-    _PreIntegratedAverageHairFiberScatteringUAV[dispatchThreadID] = (2 / PI) * float4(A, 1);
+    _PreIntegratedAverageHairFiberScatteringUAV[dispatchThreadID] = float4(A, 1);
 }
