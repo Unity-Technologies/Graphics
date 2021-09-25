@@ -33,6 +33,56 @@
 #define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_LONGITUDINAL (1 << 20)
 
 //-----------------------------------------------------------------------------
+// Absorption Parameterization Mappings
+//-----------------------------------------------------------------------------
+
+// Ref: A Practical and Controllable Hair and Fur Model for Production Path Tracing Eq. 9
+float3 AbsorptionFromReflectance(float3 diffuseColor, float azimuthalRoughness)
+{
+    float beta  = azimuthalRoughness;
+    float beta2 = beta  * beta;
+    float beta3 = beta2 * beta;
+    float beta4 = beta3 * beta;
+    float beta5 = beta4 * beta;
+
+    // Least squares fit of an inverse mapping between scattering parameters and scattering albedo.
+    float denom = 5.969 - (0.215 * beta) + (2.532 * beta2) - (10.73 * beta3) + (5.574 * beta4) + (0.245 * beta5);
+
+    float3 t = log(diffuseColor) / denom;
+    return t * t;
+}
+
+// Require an inverse mapping, as we parameterize the LUTs by reflectance wavelength (or for approximation that rely on diffuse).
+float3 ReflectanceFromAbsorption(float3 absorption, float azimuthalRoughness)
+{
+    float beta  = azimuthalRoughness;
+    float beta2 = beta  * beta;
+    float beta3 = beta2 * beta;
+    float beta4 = beta3 * beta;
+    float beta5 = beta4 * beta;
+
+    // Least squares fit of an inverse mapping between scattering parameters and scattering albedo.
+    float denom = 5.969 - (0.215 * beta) + (2.532 * beta2) - (10.73 * beta3) + (5.574 * beta4) + (0.245 * beta5);
+
+    float3 t = -sqrt(absorption) * denom;
+    return exp(t);
+}
+
+// Ref: An Energy-Conserving Hair Reflectance Model Sec. 6.1
+float3 AbsorptionFromMelanin(float eumelanin, float pheomelanin)
+{
+    const float3 eA = float3(0.419, 0.697, 1.37);
+    const float3 eP = float3(0.187, 0.4,   1.05);
+
+    return (eumelanin * eA) + (pheomelanin * eP);
+}
+
+float3 ReflectanceFromMelanin(float eumelanin, float pheomelanin, float azimuthalRoughness)
+{
+    return ReflectanceFromAbsorption( AbsorptionFromMelanin(eumelanin, pheomelanin), azimuthalRoughness );
+}
+
+//-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
@@ -56,31 +106,6 @@ float ModifiedRefractionIndex(float cosThetaD)
 
     // Karis approximation for the modified refraction index for human hair (1.55)
     return 1.19 / cosThetaD + (0.36 * cosThetaD);
-}
-
-// Ref: A Practical and Controllable Hair and Fur Model for Production Path Tracing Eq. 9
-float3 AbsorptionFromReflectance(float3 diffuseColor, float azimuthalRoughness)
-{
-    float beta  = azimuthalRoughness;
-    float beta2 = beta  * beta;
-    float beta3 = beta2 * beta;
-    float beta4 = beta3 * beta;
-    float beta5 = beta4 * beta;
-
-    // Least squares fit of an inverse mapping between scattering parameters and scattering albedo.
-    float denom = 5.969 - (0.215 * beta) + (2.532 * beta2) - (10.73 * beta3) + (5.574 * beta4) + (0.245 * beta5);
-
-    float3 t = log(diffuseColor) / denom;
-    return t * t;
-}
-
-// Ref: An Energy-Conserving Hair Reflectance Model Sec. 6.1
-float3 AbsorptionFromMelanin(float eumelanin, float pheomelanin)
-{
-    const float3 eA = float3(0.419, 0.697, 1.37);
-    const float3 eP = float3(0.187, 0.4,   1.05);
-
-    return (eumelanin * eA) + (pheomelanin * eP);
 }
 
 float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
@@ -259,13 +284,15 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.perceptualRoughnessRadial = 0.3;
     #endif
 
-        // Absorption
+        // Absorption. Note: We require diffuse color to parameterize LUTs and for approximation purposes.
     #if _ABSORPTION_FROM_COLOR
-        bsdfData.absorption = AbsorptionFromReflectance(surfaceData.diffuseColor, bsdfData.perceptualRoughnessRadial);
+        bsdfData.absorption   = AbsorptionFromReflectance(surfaceData.diffuseColor, bsdfData.perceptualRoughnessRadial);
     #elif _ABSORPTION_FROM_MELANIN
-        bsdfData.absorption = AbsorptionFromMelanin(surfaceData.eumelanin, surfaceData.pheomelanin);
+        bsdfData.absorption   = AbsorptionFromMelanin(surfaceData.eumelanin, surfaceData.pheomelanin);
+        bsdfData.diffuseColor = ReflectanceFromMelanin(surfaceData.eumelanin, surfaceData.pheomelanin, bsdfData.perceptualRoughnessRadial);
     #else
-        bsdfData.absorption = surfaceData.absorption;
+        bsdfData.absorption   = surfaceData.absorption;
+        bsdfData.diffuseColor = ReflectanceFromAbsorption(bsdfData.absorption, bsdfData.perceptualRoughnessRadial);
     #endif
 
     #if _USE_ADVANCED_MULTIPLE_SCATTERING
