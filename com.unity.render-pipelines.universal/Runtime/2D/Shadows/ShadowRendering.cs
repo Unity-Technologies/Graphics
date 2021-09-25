@@ -188,10 +188,10 @@ namespace UnityEngine.Rendering.Universal
             cmdBuffer.SetGlobalMatrix(k_ShadowModelMatrixID, shadowCaster.m_CachedShadowMatrix);
             cmdBuffer.SetGlobalMatrix(k_ShadowModelInvMatrixID, shadowCaster.m_CachedInverseShadowMatrix);
 
-            //if(shadowCaster.edgeProcessing == ShadowCaster2D.EdgeProcessing.None )
-            //    cmdBuffer.SetGlobalFloat(k_ShadowContractionDistanceID, shadowCaster.contractionDistance);
-            //else
-            //    cmdBuffer.SetGlobalFloat(k_ShadowContractionDistanceID, 0f);
+            if (shadowCaster.edgeProcessing == ShadowCaster2D.EdgeProcessing.None)
+                cmdBuffer.SetGlobalFloat(k_ShadowContractionDistanceID, shadowCaster.contractEdge);
+            else
+                cmdBuffer.SetGlobalFloat(k_ShadowContractionDistanceID, 0f);
         }
 
 

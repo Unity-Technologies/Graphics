@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] Mesh m_Mesh;
         [SerializeField] BoundingSphere m_BoundingSphere;
-        [SerializeField] EdgeProcessing m_EdgeProcessing;
+        [SerializeField] EdgeProcessing m_EdgeProcessing = EdgeProcessing.Clipping;
         [SerializeField] float m_ContractEdge;
 
 
