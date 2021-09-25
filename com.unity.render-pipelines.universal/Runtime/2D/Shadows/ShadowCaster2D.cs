@@ -345,12 +345,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_EDITOR
-        internal void DrawPreviewOutline_None(Transform transform, float contractionDistance)
+        internal void DrawPreviewOutline(Transform t, float contractionDistance)
         {
             Vector3[] vertices = mesh.vertices;
             int[] triangles = mesh.triangles;
             Vector4[] tangents = mesh.tangents;
-            Transform t = transform;
 
             Handles.color = Color.white;
             for (int i = 0; i < triangles.Length; i += 3)
@@ -382,10 +381,14 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_ShadowMesh != null && mesh != null && m_ShadowCastingSource != ShadowCastingSources.None)
             {
-                if(edgeProcessing == EdgeProcessing.None)
-                    DrawPreviewOutline_None(transform, contractEdge);
+                if (edgeProcessing == EdgeProcessing.None)
+                    DrawPreviewOutline(transform, contractEdge);
+                else
+                    DrawPreviewOutline(transform, 0);
             }
         }
+
+
 
         void Reset()
         {
