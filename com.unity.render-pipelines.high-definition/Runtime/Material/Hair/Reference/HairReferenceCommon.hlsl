@@ -76,6 +76,14 @@ float TrimmedLogistic(float x, float s, float a, float b)
     return Logistic(x, s) / ( LogisticCDF(b, s) - LogisticCDF(a, s) );
 }
 
+float TrimmedLogisticSampled(float u, float s, float a, float b)
+{
+    float k = LogisticCDF(b, s) - LogisticCDF(a, s);
+    float x = -s * log(1 / (u * k + LogisticCDF(a, s)) - 1);
+
+    return clamp(x, a, b);
+}
+
 // Modified Bessel Function of the First Kind
 float BesselI(float x)
 {
@@ -166,7 +174,7 @@ void GetAlphaScalesFromAlpha(float alpha, inout float sinAlpha[3], inout float c
     }
 }
 
-ReferenceBSDFData GetReferenceBSDFData(float3 L, BSDFData bsdfData)
+ReferenceBSDFData GetReferenceBSDFData(BSDFData bsdfData)
 {
     ReferenceBSDFData data;
     ZERO_INITIALIZE(ReferenceBSDFData, data);

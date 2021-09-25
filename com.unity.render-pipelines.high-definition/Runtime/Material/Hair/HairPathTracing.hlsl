@@ -1,6 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingBSDF.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl"
 
 #define HAIR_TYPE_RIBBON 1 << 0
 #define HAIR_TYPE_TUBE   1 << 1
@@ -22,13 +23,25 @@ float GetHFromTube(float3 L, float3 N, float3 T)
     return SafeSqrt(1 - Sq(cosGamma));
 }
 
+// https://www.pbrt.org/hair.pdf
+float2 DemuxFloat(float x)
+{
+    uint64_t v = x * (1ull << 32);
+
+    uint2 bits = uint2(Compact1By1(v), Compact1By1(v >> 1));
+
+    return float2(bits.x / float(1 << 16),
+                  bits.y / float(1 << 16));
+}
+
 // --------------------------------------------------------------------------------------
 
 void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, inout BSDFData bsdfData)
 {
     // NOTE: Currently we don't support ray-aligned ribbons in the acceleration structure, so our only H-calculation routines
     // are either stochastic or derived from a tube intersection.
-#if 1
+#if 0
+    // TODO: For now disable tube derivation, seems to cause an issue with the azimuthal direction.
     bsdfData.h = GetHFromTube(-WorldRayDirection(), bsdfData.normalWS, bsdfData.hairStrandDirectionWS);
 #else
     bsdfData.h = -1 + 2 * GenerateHashedRandomFloat(uint3(pathIntersection.pixelCoord, _RaytracingSampleIndex));
@@ -61,22 +74,40 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
     float3 wi = mul(sampleDir, transpose(frame));
     float3 wo = mul(mtlData.V, transpose(frame));
 
-    CBSDF cbsdf = EvaluateHairReference(wi, wo, mtlData.bsdfData);
+    CBSDF cbsdf = EvaluateHairReference(wo, wi, mtlData.bsdfData);
 
-    result.specValue = cbsdf.specR;
-
-    // TODO: Importance Sample
-    result.specPdf = INV_FOUR_PI;
+    result.specValue = cbsdf.specR * abs(wi.z);
 }
 
 bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleDir, out MaterialResult result)
 {
     Init(result);
 
+#if 0
     // We sample the sphere due to reflective and transmittive events.
     sampleDir = SampleSphereUniform(inputSample.x, inputSample.y);
 
     EvaluateMaterial(mtlData, sampleDir, result);
+
+    result.specPdf = INV_FOUR_PI;
+#else
+    // Transform to the local frame for spherical coordinates,
+    // Note that the strand direction is assumed to lie pointing down the X axis, as this is expected by the BSDF.
+    float3x3 frame = GetLocalFrame(mtlData.bsdfData.normalWS, mtlData.bsdfData.hairStrandDirectionWS);
+    float3 wo = mul(mtlData.V, transpose(frame));
+
+    // Need four random samples, derive two extra ones from the given third.
+    float4 u = float4(
+        inputSample.xy,
+        DemuxFloat(inputSample.z)
+    );
+
+    CBSDF cbsdf = SampleHairReference(wo, sampleDir, result.specPdf, u, mtlData.bsdfData);
+    result.specValue = cbsdf.specR * abs(sampleDir.z);
+
+    // Transform back into world space.
+    sampleDir = mul(sampleDir, frame);
+#endif
 
     return true;
 }

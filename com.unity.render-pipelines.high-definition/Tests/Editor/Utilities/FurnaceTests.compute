@@ -1,4 +1,5 @@
-#pragma kernel KMain
+#pragma kernel FurnaceTest
+#pragma kernel FurnaceTestSampled
 
 // #pragma enable_d3d11_debug_symbols
 
@@ -54,9 +55,36 @@ float SampleHair(uint2 seed)
 }
 
 [numthreads(GROUP_SIZE, 1, 1)]
-void KMain(uint dispatchThreadId : SV_DispatchThreadID,
-           uint groupThreadId    : SV_GroupThreadID,
-           uint groupId          : SV_GroupID)
+void FurnaceTest(uint dispatchThreadId : SV_DispatchThreadID,
+                 uint groupThreadId    : SV_GroupThreadID,
+                 uint groupId          : SV_GroupID)
+{
+    // Sample the hair for this thread, generating a unique incident direction and H value.
+    gs_F[groupThreadId] = SampleHair(uint2(dispatchThreadId, groupThreadId));
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Simple parallel reduction on the group.
+    for (uint i = GROUP_SIZE / 2; i > 0; i >>= 1)
+    {
+        if (groupThreadId < i)
+        {
+            gs_F[groupThreadId] += gs_F[groupThreadId + i];
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    if (groupThreadId == 0)
+    {
+        _TestResult[groupId] = gs_F[0];
+    }
+}
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void FurnaceTestSampled(uint dispatchThreadId : SV_DispatchThreadID,
+                        uint groupThreadId    : SV_GroupThreadID,
+                        uint groupId          : SV_GroupID)
 {
     // Sample the hair for this thread, generating a unique incident direction and H value.
     gs_F[groupThreadId] = SampleHair(uint2(dispatchThreadId, groupThreadId));

@@ -7,7 +7,6 @@ void ComputeFiberAttenuations(float cosThetaO, float eta, float h, float3 T, ino
     float cosTheta  = cosThetaO * cosGammaO;
 
     float F0 = IorToFresnel0(eta);
-    // float F  = F_FresnelDielectric(eta, cosTheta);
     float F  = F_Schlick(F0, cosTheta);
 
     // Solve for P == 0 (Reflection at the cuticle).
@@ -23,6 +22,35 @@ void ComputeFiberAttenuations(float cosThetaO, float eta, float h, float3 T, ino
     // Solve for the residual lobe PMAX < P < INFINITY
     // Ref: A Practical and Controllable Hair and Fur Model for Production Eq. 6
     A[PATH_MAX] = A[PATH_MAX - 1] * F * T / (1 - T * F);
+}
+
+void ComputeFiberAttenuationsPDF(float cosThetaO, float3 sigmaA, float eta, float h, inout float APDF[PATH_MAX + 1])
+{
+    float sinThetaO = SafeSqrt(1 - Sq(cosThetaO));
+
+    // Compute the refracted ray
+    float sinThetaT = sinThetaO / eta;
+    float cosThetaT = SafeSqrt(1 - Sq(sinThetaT));
+
+    float etaP = sqrt(Sq(eta) - Sq(sinThetaO)) / cosThetaO;
+    float sinGammaT = h / etaP;
+    float cosGammaT = SafeSqrt(1 - Sq(sinGammaT));
+
+    // Compute transmittance of single path through the fiber using Beer's Law.
+    float3 T = exp(-sigmaA * (2 * cosGammaT / cosThetaT));
+
+    float3 A[PATH_MAX + 1];
+    ComputeFiberAttenuations(cosThetaO, eta, h, T, A);
+
+    float sumY = 0;
+
+    int i;
+
+    for (i = 0; i <= PATH_MAX; i++)
+        sumY += Luminance(A[i]);
+
+    for (i = 0; i <= PATH_MAX; i++)
+        APDF[i] = Luminance(A[i]) / sumY;
 }
 
 // Ref: An Energy-Conserving Hair Reflectance Model Eq. 7
@@ -62,7 +90,7 @@ float AzimuthalScattering(float phi, uint p, float s, float gammaO, float gammaT
 CBSDF EvaluateHairReference(float3 wo, float3 wi, BSDFData bsdfData)
 {
     // Initialize the BSDF invocation.
-    ReferenceBSDFData data = GetReferenceBSDFData(wi, bsdfData);
+    ReferenceBSDFData data = GetReferenceBSDFData(bsdfData);
     ReferenceAngles angles = GetReferenceAngles(wi, wo);
 
     // Find refracted ray angles.
@@ -78,7 +106,6 @@ CBSDF EvaluateHairReference(float3 wo, float3 wi, BSDFData bsdfData)
     float gammaT = clamp(FastASin(sinGammaT), -1, 1);
 
     // Compute transmittance of single path through the fiber using Beer's Law.
-    // Ref: The Implementation of a Hair Scattering Model Eq. 1.4
     float3 T = exp(-data.sigmaA * (2 * cosGammaT / cosThetaT));
 
     // Compute the absorptions that occur in the fiber for every path.
@@ -103,4 +130,80 @@ CBSDF EvaluateHairReference(float3 wo, float3 wi, BSDFData bsdfData)
         F /= abs(wi.z);
 
     return HairFtoCBSDF(max(F, 0));
+}
+
+CBSDF SampleHairReference(float3 wo, out float3 wi, out float pdf, float4 u, BSDFData bsdfData)
+{
+    // Initialize the BSDF invocation.
+    ReferenceBSDFData data = GetReferenceBSDFData(bsdfData);
+
+    // Compute angles only for the currently known outgoing direction.
+    ReferenceAngles angles;
+    ZERO_INITIALIZE(ReferenceAngles, angles);
+
+    angles.sinThetaO = wo.x;
+    angles.cosThetaO = SafeSqrt(1 - Sq(angles.sinThetaO));
+    angles.phiO = FastAtan2(wo.z, wo.y);
+
+    // Determine the path to sample.
+    float APDF[PATH_MAX + 1];
+    ComputeFiberAttenuationsPDF(angles.cosThetaO, data.sigmaA, data.eta, data.h, APDF);
+
+    int p;
+
+    for (p = 0; p < PATH_MAX; p++)
+    {
+        if (u.x < APDF[p])
+            break;
+
+        u.x -= APDF[p];
+    }
+
+    float sinThetaO, cosThetaO;
+    ApplyCuticleTilts(p, angles, data, sinThetaO, cosThetaO);
+
+    // Importance sample the longitudinal scattering function
+    // Ref: "Importance Sampling for Physically-Based Hair Fiber Models" Eq. 6 & 7
+    float cosTheta  = 1 + data.v[p] * log(u.y + (1 - u.y) * exp(-2 / data.v[p]));
+    float sinTheta  = SafeSqrt(1 - Sq(cosTheta));
+    float cosPhi    = cos(TWO_PI * u.z);
+    float sinThetaI = -cosTheta * sinThetaO + sinTheta * cosPhi * cosThetaO;
+    float cosThetaI = SafeSqrt(1 - Sq(sinThetaI));
+
+    // Importance sample the azimuthal scattering function
+
+    // Find the modified index of refraction.
+    float etaP = sqrt(Sq(data.eta) - Sq(angles.sinThetaO)) / angles.cosThetaO;
+
+    // Compute refracted angle gamma T (exploiting the Bravais properties of a cylinder).
+    float sinGammaT = data.h / etaP;
+    float gammaT = clamp(FastASin(sinGammaT), -1, 1);
+
+    float phi;
+
+    if (p < PATH_MAX)
+        phi = AzimuthalDirection(p, data.gammaO, gammaT) + TrimmedLogisticSampled(u.w, data.s, -PI, PI);
+    else
+        phi = TWO_PI * u.w;
+
+    // Construct the sampled direction wi.
+    float phiI = angles.phiO + phi;
+    wi = float3(sinThetaI, cosThetaI * cos(phiI), cosThetaI * sin(phiI));
+
+    // Solve the overall PDF
+    pdf = 0;
+
+    for (p = 0; p < PATH_MAX; p++)
+    {
+        float sinThetaOp, cosThetaOp;
+        ApplyCuticleTilts(p, angles, data, sinThetaOp, cosThetaOp);
+
+        pdf += LongitudinalScattering(cosThetaI, cosThetaOp, sinThetaI, sinThetaOp, data.v[p]) * APDF[p] *
+               AzimuthalScattering(phi, p, data.s, data.gammaO, gammaT);
+    }
+
+    // Don't forget the residual lobe
+    pdf += LongitudinalScattering(cosThetaI, angles.cosThetaO, sinThetaI, angles.sinThetaO, data.v[PATH_MAX]) * APDF[PATH_MAX] * INV_TWO_PI;
+
+    return EvaluateHairReference(wo, wi, bsdfData);
 }
