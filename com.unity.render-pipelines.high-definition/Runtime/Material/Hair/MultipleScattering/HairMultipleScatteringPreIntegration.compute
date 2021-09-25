@@ -4,6 +4,9 @@
 // This define is required for invoking BSDF.
 #define HAS_LIGHTLOOP
 
+// This define is required to map the reflectance to absorption for the preintegration.
+#define _ABSORPTION_FROM_COLOR 1
+
 // #pragma enable_d3d11_debug_symbols
 
 // Instead of indirectly setting up the angles we inform the BSDF that we will be explicitly setting them.
