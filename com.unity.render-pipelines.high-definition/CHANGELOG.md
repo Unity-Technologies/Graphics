@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.0] - 2021-09-24
+
+### Added
+- Added a SG node to get the main directional light direction.
+
 ## [13.0.0] - 2021-09-01
 
 ### Fixed
@@ -145,7 +150,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to render screen space global illumination in half resolution to achieve real-time compatible performance in high resolutions (case 1353727).
 - Added a built-in custom pass to draw object IDs.
 - Added an example in the documentation that shows how to use the accumulation API for high quality antialiasing (supersampling).
-- Added a SG node to get the main directional light direction.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.

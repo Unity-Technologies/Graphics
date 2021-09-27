@@ -4,6 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.0] - 2021-09-24
+
+### Changed
+
+- URP will no longer render via an intermediate texture unless actively required by a Renderer Feature. See the upgrade guide for compatibility options and how assets are upgraded.
+
 ## [13.0.0] - 2021-09-01
 ### Added
 - URP global setting for stripping post processing shader variants.
@@ -13,7 +19,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed experimental tile deferred code.
 - VFX: New shadergraph support directly on Universal target.
-- URP will no longer render via an intermediate texture unless actively required by a Renderer Feature. See the upgrade guide for compatibility options and how assets are upgraded.
 
 ### Fixed
 - Added warning for lit shader detailed abledo, if texture is not linear. [1342011](https://issuetracker.unity3d.com/issues/detail-maps-packed-differently-in-built-in-vs-urp)
