@@ -62,7 +62,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_runtime_mono_Linear_trunk:
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -125,7 +125,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_editor_mono_Linear_trunk:
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -188,7 +188,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_build_editmode_mono_Linear_trunk:
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -251,7 +251,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -314,7 +314,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-R
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -377,7 +377,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-RE
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:

@@ -37,7 +37,7 @@ URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
          retries: 2
     after:
       -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -114,7 +114,7 @@ URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_trunk:
          retries: 2
     after:
       -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -191,7 +191,7 @@ URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
          retries: 2
     after:
       -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -268,7 +268,7 @@ URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
          retries: 2
     after:
       -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:

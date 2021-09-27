@@ -39,7 +39,7 @@ Universal_Hybrid_OSX_Metal_Standalone_mono_Linear_trunk:
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -79,7 +79,7 @@ Universal_Hybrid_OSX_Metal_playmode_mono_Linear_trunk:
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -119,7 +119,7 @@ Universal_Hybrid_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -159,7 +159,7 @@ Universal_Hybrid_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
