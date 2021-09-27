@@ -44,6 +44,29 @@ float3 CustomPassLoadCameraColor(uint2 pixelCoords, float lod)
     }
 }
 
+
+float4 CustomPassSampleCustomColor(float2 uv)
+{
+    switch ((int)_CustomPassInjectionPoint)
+    {
+        default: return SampleCustomColor(uv);
+        case CUSTOMPASSINJECTIONPOINT_BEFORE_PRE_REFRACTION:
+        case CUSTOMPASSINJECTIONPOINT_BEFORE_POST_PROCESS:
+        case CUSTOMPASSINJECTIONPOINT_AFTER_POST_PROCESS: return SampleCustomColor(uv * _RTHandleScale.xy);
+    }
+}
+
+float4 CustomPassLoadCustomColor(uint2 pixelCoords)
+{
+    switch ((int)_CustomPassInjectionPoint)
+    {
+        default: return LoadCustomColor(pixelCoords);
+        case CUSTOMPASSINJECTIONPOINT_BEFORE_PRE_REFRACTION:
+        case CUSTOMPASSINJECTIONPOINT_BEFORE_POST_PROCESS:
+        case CUSTOMPASSINJECTIONPOINT_AFTER_POST_PROCESS: return LoadCustomColor(pixelCoords * _RTHandleScale.xy);
+    }
+}
+
 struct Attributes
 {
     uint vertexID : SV_VertexID;
