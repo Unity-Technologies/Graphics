@@ -1,0 +1,9 @@
+{
+  "ErrorExceptions": [
+    {
+      "ValidationTest": "Primed Library Validation",
+      "PackageVersion": "11.0.0"
+    }
+  ],
+  "WarningExceptions": []
+}

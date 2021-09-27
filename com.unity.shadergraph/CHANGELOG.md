@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
 - Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph\
 - Added View Vector Node doc
+- Added a ShaderGraph animated preview framerate throttle.
 
 ### Changed
 - Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
