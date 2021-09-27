@@ -551,9 +551,20 @@ namespace UnityEditor.Rendering.Universal
     internal class SpeedTree8Upgrader : SpeedTree8MaterialUpgrader
     {
         internal SpeedTree8Upgrader(string oldShaderName)
-            : base(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8), SpeedTree8MaterialFinalizer)
+            : base(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8), UniversalSpeedTree8MaterialFinalizer)
         {
             RenameFloat("_TwoSided", Property.CullMode);
+        }
+        static public void UniversalSpeedTree8MaterialFinalizer(Material mat)
+        {
+            SpeedTree8MaterialFinalizer(mat);
+
+            if (mat.HasFloat("_TwoSided"))
+                mat.SetFloat(Property.CullMode, mat.GetFloat("_TwoSided"));
+
+            Unity.Rendering.Universal.ShaderUtils.UpdateMaterial(mat,
+                Unity.Rendering.Universal.ShaderUtils.MaterialUpdateType.CreatedNewMaterial,
+                Unity.Rendering.Universal.ShaderUtils.ShaderID.SpeedTree8);
         }
     }
 
