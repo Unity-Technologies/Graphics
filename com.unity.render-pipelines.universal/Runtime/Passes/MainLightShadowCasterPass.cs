@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class MainLightShadowCasterPass : ScriptableRenderPass
     {
-        internal static class MainLightShadowConstantBuffer
+        public static class MainLightShadowConstantBuffer
         {
             public static int _WorldToShadow;
             public static int _ShadowParams;
@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         const int k_MaxCascades = 4;
-        internal const int k_ShadowmapBufferBits = 16;
+        const int k_ShadowmapBufferBits = 16;
         float m_CascadeBorder;
         float m_MaxShadowDistanceSq;
         int m_ShadowCasterCascadesCount;

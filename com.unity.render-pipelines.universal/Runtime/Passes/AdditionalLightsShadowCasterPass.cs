@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public partial class AdditionalLightsShadowCasterPass : ScriptableRenderPass
     {
-        internal static class AdditionalShadowsConstantBuffer
+        private static class AdditionalShadowsConstantBuffer
         {
             public static int _AdditionalLightsWorldToShadow;
             public static int _AdditionalShadowParams;
