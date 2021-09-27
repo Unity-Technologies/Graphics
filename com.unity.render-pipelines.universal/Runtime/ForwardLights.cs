@@ -359,7 +359,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 SetupShaderLightConstants(cmd, ref renderingData);
 
-                bool lightCountCheck = m_AdditionalLightsAlwaysEnabled ? true : additionalLightsCount > 0;
+                bool lightCountCheck = (m_AdditionalLightsAlwaysEnabled && renderingData.lightData.maxPerObjectAdditionalLightsCount > 0) || additionalLightsCount > 0;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
                     lightCountCheck && additionalLightsPerVertex && !useClusteredRendering);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
