@@ -40,13 +40,13 @@ namespace UnityEditor.Rendering.Universal
                     return !sceneLighting;
                 },
                 (_, __) => EditorGUILayout.HelpBox(Styles.DisabledLightWarning.text, MessageType.Warning)),
-            CED.FoldoutGroup(Styles.generalHeader,
+            CED.FoldoutGroup(LightUI.Styles.generalHeader,
                 Expandable.General,
                 k_ExpandedState,
                 DrawGeneralContent),
             CED.Conditional(
                 (serializedLight, editor) => !serializedLight.settings.lightType.hasMultipleDifferentValues && serializedLight.settings.light.type == LightType.Spot,
-                CED.FoldoutGroup(Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawSpotShapeContent)),
+                CED.FoldoutGroup(LightUI.Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawSpotShapeContent)),
             CED.Conditional(
                 (serializedLight, editor) =>
                 {
@@ -55,23 +55,21 @@ namespace UnityEditor.Rendering.Universal
                     var lightType = serializedLight.settings.light.type;
                     return lightType == LightType.Rectangle || lightType == LightType.Disc;
                 },
-                CED.FoldoutGroup(Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawAreaShapeContent)),
-            CED.FoldoutGroup(Styles.emissionHeader,
+                CED.FoldoutGroup(LightUI.Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawAreaShapeContent)),
+            CED.FoldoutGroup(LightUI.Styles.emissionHeader,
                 Expandable.Emission,
                 k_ExpandedState,
-                CED.Group(DrawerColor, DrawEmissionContent)),
-            CED.FoldoutGroup(Styles.renderingHeader,
+                CED.Group(
+                    LightUI.DrawColor,
+                    DrawEmissionContent)),
+            CED.FoldoutGroup(LightUI.Styles.renderingHeader,
                 Expandable.Rendering,
                 k_ExpandedState,
                 DrawRenderingContent),
-            CED.FoldoutGroup(Styles.shadowHeader,
+            CED.FoldoutGroup(LightUI.Styles.shadowHeader,
                 Expandable.Shadows,
                 k_ExpandedState,
-                DrawShadowsContent),
-            CED.FoldoutGroup(Styles.lightCookieHeader,
-                Expandable.LightCookie,
-                k_ExpandedState,
-                DrawLightCookieContent)
+                DrawShadowsContent)
         );
 
         static Func<int> s_SetGizmosDirty = SetGizmosDirty();
@@ -170,7 +168,7 @@ namespace UnityEditor.Rendering.Universal
                 if (lightType != LightType.Rectangle && !serializedLight.settings.isCompletelyBaked && UniversalRenderPipeline.asset.supportsLightLayers && !isInPreset)
                 {
                     EditorGUI.BeginChangeCheck();
-                    DrawLightLayerMask(serializedLight.lightLayerMask, Styles.LightLayer);
+                    DrawLightLayerMask(serializedLight.lightLayerMask, LightUI.Styles.lightLayer);
                     if (EditorGUI.EndChangeCheck())
                     {
                         if (!serializedLight.customShadowLayers.boolValue)
@@ -245,34 +243,6 @@ namespace UnityEditor.Rendering.Universal
                 serializedLight.settings.DrawArea();
         }
 
-        static void DrawerColor(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
-        {
-            using (var changes = new EditorGUI.ChangeCheckScope())
-            {
-                if (GraphicsSettings.lightsUseLinearIntensity && GraphicsSettings.lightsUseColorTemperature)
-                {
-                    // Use the color temperature bool to create a popup dropdown to choose between the two modes.
-                    var colorTemperaturePopupValue = Convert.ToInt32(serializedLight.settings.useColorTemperature.boolValue);
-                    var lightAppearanceOptions = new[] { "Color", "Filter and Temperature" };
-                    colorTemperaturePopupValue = EditorGUILayout.Popup(Styles.lightAppearance, colorTemperaturePopupValue, lightAppearanceOptions);
-                    serializedLight.settings.useColorTemperature.boolValue = Convert.ToBoolean(colorTemperaturePopupValue);
-
-                    using (new EditorGUI.IndentLevelScope())
-                    {
-                        if (serializedLight.settings.useColorTemperature.boolValue)
-                        {
-                            EditorGUILayout.PropertyField(serializedLight.settings.color, Styles.colorFilter);
-                            k_SliderWithTexture(Styles.colorTemperature, serializedLight.settings.colorTemperature, serializedLight.settings);
-                        }
-                        else
-                            EditorGUILayout.PropertyField(serializedLight.settings.color, Styles.color);
-                    }
-                }
-                else
-                    EditorGUILayout.PropertyField(serializedLight.settings.color, Styles.color);
-            }
-        }
-
         static void DrawEmissionContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
             serializedLight.settings.DrawIntensity();
@@ -290,6 +260,8 @@ namespace UnityEditor.Rendering.Universal
 #endif
                 }
             }
+
+            DrawLightCookieContent(serializedLight, owner);
         }
 
         static void DrawRenderingContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
