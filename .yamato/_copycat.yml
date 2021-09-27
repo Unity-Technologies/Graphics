@@ -12,9 +12,9 @@ nightly_katana_abv_validate:
     SRP_VERSION: "11.0.0"
   skip_checkout: true
   commands:
+    - eval "$COPYCAT_1"
     - echo "[hgunity]" >> $HOME/.hgrc # These 2 lines ask mercurial to run the oncommit formatting hook
     - echo "format.oncommit=yes" >> $HOME/.hgrc
-    - eval "$COPYCAT_1"
     - copycat vendor --revision "${GIT_TAG:-${GIT_BRANCH%%' (tag)'}}" --sha "$GIT_REVISION" "../destination/$MANIFEST"
     - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git ../gfx-sdet-tools # Needed for next step
     - python3 ../gfx-sdet-tools/scripts/srp_test_references_updater.py --srp-version $SRP_VERSION --destination-folder ../destination # Updates the test project references because packages are not located at the same relative path in <source> and <target>
@@ -36,9 +36,9 @@ vendor:
     SRP_VERSION: "11.0.0"
   skip_checkout: true
   commands:
+    - eval "$COPYCAT_1"
     - echo "[hgunity]" >> $HOME/.hgrc
     - echo "format.oncommit=yes" >> $HOME/.hgrc
-    - eval "$COPYCAT_1"
     - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git ../gfx-sdet-tools
     - copycat diff -o ../diff.patch "../destination/$MANIFEST"
     - copycat vendor --revision "${GIT_TAG:-${GIT_BRANCH%%' (tag)'}}" --sha "$GIT_REVISION" "../destination/$MANIFEST"
