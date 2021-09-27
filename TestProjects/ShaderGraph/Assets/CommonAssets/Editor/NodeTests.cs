@@ -39,8 +39,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 int incorrectPixels = ShaderGraphTestRenderer.CountPixelsNotEqual(target, new Color32(0, 255, 0, 255), false);
                 Assert.AreEqual(128*128, incorrectPixels, "Number of incorrect pixels was not zero: initial state");
 
-                //if (incorrectPixels != 0)
-                //    TestUtils.SaveToPNG(target, "Assets/CommonAssets/Graphs/TransformGraph.png");
+                if (incorrectPixels != 128 * 123)
+                    ShaderGraphTestRenderer.SaveToPNG(target, "test-results/NodeTests/TransformNodeOld_default.png");
 
                 RenderTexture.ReleaseTemporary(target);
                 yield return null;
@@ -77,8 +77,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
                         int incorrectPixels = ShaderGraphTestRenderer.CountPixelsNotEqual(target, new Color32(0, 255, 0, 255), false);
                         Assert.AreEqual(0, incorrectPixels, $"Number of incorrect pixels was not zero: {source} to {dest} ({conversionType})");
 
-                        //if (incorrectPixels != 0)
-                        //    TestUtils.SaveToPNG(target, "Assets/CommonAssets/Graphs/TransformGraph.png");
+                        if (incorrectPixels != 0)
+                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
 
                         RenderTexture.ReleaseTemporary(target);
                     }

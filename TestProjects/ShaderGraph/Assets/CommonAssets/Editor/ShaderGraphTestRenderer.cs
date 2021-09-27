@@ -57,8 +57,37 @@ public class ShaderGraphTestRenderer
         ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
     }
 
-    internal static void SaveToPNG(RenderTexture target, string path)
+    internal static void CreateDirectoriesForFilePath(string systemFilePath)
     {
+        var dirPath = Path.GetDirectoryName(systemFilePath);
+        CreateDirectories(dirPath);
+    }
+
+    internal static void CreateDirectories(string systemDirectoryPath)
+    {
+        //var systemDirectory = Application.dataPath + "/../" + directoryPath;
+        Directory.CreateDirectory(systemDirectoryPath);
+        /*
+        var dirs = directoryPath.Split('/');
+        string curpath = string.Empty;
+        foreach (var dir in dirs)
+        {
+            var parentPath = curpath;
+            curpath = curpath + dir;
+            if (!UnityEditor.AssetDatabase.IsValidFolder(curpath))
+            {
+                AssetDatabase.CreateFolder(parentPath, dir);
+            }
+            curpath = curpath + '/';
+        }
+        */
+    }
+
+    internal static void SaveToPNG(RenderTexture target, string path, bool createDirectory = true)
+    {
+        if (createDirectory)
+            CreateDirectoriesForFilePath(path);
+
         Texture2D temp = new Texture2D(target.width, target.height, TextureFormat.RGBA32, mipChain: false, linear: false);
 
         var previousRenderTexture = RenderTexture.active;
