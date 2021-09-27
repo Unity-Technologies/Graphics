@@ -439,9 +439,9 @@ MonoBehaviour:
   m_RenderShadows: 1
   m_RequiresDepthTextureOption: 2
   m_RequiresOpaqueTextureOption: 2
-  m_CameraType: 1
+  m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: 20
+  m_RendererIndex: 24
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
@@ -484,6 +484,7 @@ MonoBehaviour:
     ActivePixelTests: 7
   WaitFrames: 0
   XRCompatible: 1
+  CheckMemoryAllocation: 1
 --- !u!124 &342685565
 Behaviour:
   m_ObjectHideFlags: 0
@@ -614,6 +615,7 @@ MonoBehaviour:
     ActivePixelTests: 7
   WaitFrames: 0
   XRCompatible: 1
+  CheckMemoryAllocation: 1
 --- !u!20 &380492253
 Camera:
   m_ObjectHideFlags: 0
@@ -690,7 +692,7 @@ MonoBehaviour:
   m_CameraType: 0
   m_Cameras:
   - {fileID: 342685566}
-  m_RendererIndex: 18
+  m_RendererIndex: 22
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
@@ -995,6 +997,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
@@ -1057,7 +1060,7 @@ MonoBehaviour:
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: 19
+  m_RendererIndex: 23
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
@@ -1100,6 +1103,7 @@ MonoBehaviour:
     ActivePixelTests: 7
   WaitFrames: 0
   XRCompatible: 1
+  CheckMemoryAllocation: 1
 --- !u!124 &837201119
 Behaviour:
   m_ObjectHideFlags: 0
