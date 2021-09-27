@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Realtime lightmap not working correctly in player with various lit shader (case 1360021)
 - Fixed unexpectedly strong contribution from directional lights in path-traced volumetric scattering (case 1304688).
 - Fixed memory leak with XR combined occlusion meshes (case 1366173).
+- Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
@@ -61,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved sampling of overlapping point/area lights in path-traced volumetric scattering (case 1358777).
 - Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1346105, 1358783).
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+- Fixed minor readability issues in the ray tracing code.
 
 ## [12.0.0] - 2021-01-11
 
@@ -144,6 +146,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to render screen space global illumination in half resolution to achieve real-time compatible performance in high resolutions (case 1353727).
 - Added a built-in custom pass to draw object IDs.
 - Added an example in the documentation that shows how to use the accumulation API for high quality antialiasing (supersampling).
+- Added a SG node to get the main directional light direction.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
