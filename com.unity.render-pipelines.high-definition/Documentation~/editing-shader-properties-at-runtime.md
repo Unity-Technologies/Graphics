@@ -1,6 +1,6 @@
 # Editing shader properties at runtime
 
-Each combination of shader feature [Keyword](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants.html) used in a shader produces a different shader code to compile. This is called a shader variant. Unity tries to reduce the number of shader variants to compile by only considering the sets of kewords used in a material. Until a specific shader feature is used on a material, the corresponding shader variant does not exist. 
+Each combination of shader feature [Keyword](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants.html) used in a shader produces a different shader code to compile. This is called a shader variant. Unity tries to reduce the number of shader variants to compile by only considering the sets of keywords used in a material. Until a specific shader feature is used on a material, the corresponding shader variant does not exist. 
 
 As a result, if one tries to edit a material at runtime and change properties that affects which keywords is enabled, Unity is not able to find the shader variant and the rendering of this shader feature fails. 
 This is because the correct keywords are not enabled in the shader. 
