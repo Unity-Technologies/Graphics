@@ -527,7 +527,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,                     StructFields.VertexDescriptionInputs.WorldSpaceBiTangent),
             new FieldDependency(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,                     StructFields.VertexDescriptionInputs.WorldSpaceNormal),
 
+            // vertex shader: screen position reads from world space position, then used to calculate NDC and Pixel position
             new FieldDependency(StructFields.VertexDescriptionInputs.ScreenPosition,                                StructFields.VertexDescriptionInputs.WorldSpacePosition),
+            new FieldDependency(StructFields.VertexDescriptionInputs.NDCPosition,                                   StructFields.VertexDescriptionInputs.ScreenPosition),
+            new FieldDependency(StructFields.VertexDescriptionInputs.PixelPosition,                                 StructFields.VertexDescriptionInputs.NDCPosition),
+
             new FieldDependency(StructFields.VertexDescriptionInputs.uv0,                                           HDStructFields.AttributesMesh.uv0),
             new FieldDependency(StructFields.VertexDescriptionInputs.uv1,                                           HDStructFields.AttributesMesh.uv1),
             new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                                           HDStructFields.AttributesMesh.uv2),
@@ -586,7 +590,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,                    StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,                    StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
 
+            // pixel shader: pixel position read from vpos, then used to calculate NDC position.  Screen position calculated separately from world space position
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.PixelPosition,                                HDStructFields.FragInputs.positionPixel),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.NDCPosition,                                  StructFields.SurfaceDescriptionInputs.PixelPosition),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ScreenPosition,                               StructFields.SurfaceDescriptionInputs.WorldSpacePosition),
+
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv0,                                          HDStructFields.FragInputs.texCoord0),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv1,                                          HDStructFields.FragInputs.texCoord1),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv2,                                          HDStructFields.FragInputs.texCoord2),
@@ -1149,6 +1157,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.FragmentAndRaytracing
         };
 
         public static KeywordDescriptor ShadowsShadowmask = new KeywordDescriptor()
