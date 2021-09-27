@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed texture fields for volume parameters accepting textures with wrong dimensions.
 - Fixed Realtime lightmap not working correctly in player with various lit shader (case 1360021)
 - Fixed unexpectedly strong contribution from directional lights in path-traced volumetric scattering (case 1304688).
+- Fixed corruption in plalyer with lightmap uv when Optimize Mesh Data is enabled [1357902]
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
