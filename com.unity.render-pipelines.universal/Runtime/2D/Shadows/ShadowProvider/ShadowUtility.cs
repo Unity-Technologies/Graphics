@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.Universal
                     int additionalVerticesStart = k_AdditionalVerticesPerVertex * i + inVertices.Length;
 
                     int startingMeshIndex = k_VerticesPerTriangle * k_TrianglesPerEdge * i;
-                    // Add a degenerate rectangle 
+                    // Add a degenerate rectangle
                     outMeshIndices[startingMeshIndex] = (ushort)v0;
                     outMeshIndices[startingMeshIndex + 1] = (ushort)additionalVerticesStart;
                     outMeshIndices[startingMeshIndex + 2] = (ushort)(additionalVerticesStart + 1);
@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.Universal
             // Setup our buffers
             int meshVertexCount = inVertices.Length + 2 * inEdges.Length;                       // Each vertex will have a duplicate that can be extruded.
             int meshIndexCount = inEdges.Length * k_VerticesPerTriangle * k_TrianglesPerEdge;  // There are two triangles per edge making a degenerate rectangle (0 area)
-            
+
             NativeArray<Vector4> meshTangents = new NativeArray<Vector4>(meshVertexCount, Allocator.Temp);
             NativeArray<int> meshIndices = new NativeArray<int>(meshIndexCount, Allocator.Temp);
             NativeArray<ShadowMeshVertex> meshFinalVertices = new NativeArray<ShadowMeshVertex>(meshVertexCount, Allocator.Temp);
@@ -246,7 +246,7 @@ namespace UnityEngine.Rendering.Universal
 
             mesh.subMeshCount = 1;
             mesh.SetSubMesh(0, new SubMeshDescriptor(0, meshIndexCount));
-            
+
             meshTangents.Dispose();
             meshIndices.Dispose();
             meshFinalVertices.Dispose();
@@ -377,7 +377,7 @@ namespace UnityEngine.Rendering.Universal
                 lastIndex = indices[i + 1];
             }
 
-            tempShapeIsClosedArray[shapeCount++] = closedShapeFound; 
+            tempShapeIsClosedArray[shapeCount++] = closedShapeFound;
 
             // Copy the our data to a smaller array
             outShapeStartingIndices = new NativeArray<int>(shapeCount, Allocator.Temp);
@@ -593,6 +593,26 @@ namespace UnityEngine.Rendering.Universal
 
             tempVertices.Dispose();
             tempEdges.Dispose();
+
+        static public void CallOnBeforeRender(Component component, ShadowMesh2D shadowMesh, Matrix4x4 cameraLightFrustum)
+        {
+            if (component != null && component.TryGetComponent<IShadowShape2DProvider>(out var shapeProvider))
+            {
+                shapeProvider.OnBeforeRender(shadowMesh, cameraLightFrustum);
+            }
+            else if (shadowMesh != null && shadowMesh.mesh != null)
+            {
+                shadowMesh.mesh.Clear();
+            }
+
+        }
+
+        static public void PersistantDataCreated(Component component, ShadowMesh2D shadowMesh)
+        {
+            if (component != null && component.TryGetComponent<IShadowShape2DProvider>(out var shapeProvider))
+            {
+                shapeProvider.OnPersistantDataCreated(shadowMesh);
+            }
         }
     }
 }
