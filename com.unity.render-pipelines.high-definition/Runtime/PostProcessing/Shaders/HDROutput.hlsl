@@ -1,7 +1,5 @@
 // Important! This file assumes Color.hlsl has been already included.
 
-#define DEBUG_HDR_LUT_WORKFLOW 1
-
 // A bit of nomenclature that will be used in the file:
 // Gamut: It is the subset of colors that is possible to reproduce by using three specific primary colors.
 // Rec709 (ITU-R Recommendation BT709) is a HDTV standard, in our context, we mostly care about its color gamut (https://en.wikipedia.org/wiki/Rec._709). The Rec709 gamut is the same as BT1886 and sRGB.

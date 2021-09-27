@@ -176,12 +176,8 @@ Shader "Hidden/HDRP/FinalPass"
 
 
 #if HDR_OUTPUT // All of this needs to be done at the very final blit.
-#if !DEBUG_HDR_LUT_WORKFLOW
-            outColor.rgb = HDRMappingFromRec709(outColor.rgb, _PaperWhite, _MinNits, _MaxNits, _RangeReductionMode);
-#else
-            // Note that OETF needs to be called in final blit! If this is final blit it happens here, otherwise nah.
+
             outColor.rgb = OETF(outColor.rgb);
-#endif
 
             float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
             float uiBoost = 1.0f; // TODO_FCC: Add from editor UI
