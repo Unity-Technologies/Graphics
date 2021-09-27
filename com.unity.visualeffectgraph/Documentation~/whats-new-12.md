@@ -8,13 +8,13 @@ The following is a list of features Unity added to version 12 of the Visual Effe
 
 ### Fixed Lit Output for the Universal Render Pipeline (URP)
 
-![img](Images\banner-urp-fixed-lit-output.png)
+![img](Images/banner-urp-fixed-lit-output.png)
 
 This version of the Visual Effect Graph adds support for lit outputs in the Universal Render Pipeline (URP). You can use this to create effects that can respond to the lighting in the scene.
 
 ### 2D Renderer Support (Compute Capable Devices)
 
-![img](Images\banner-2d-renderer-support.png)
+![img](Images/banner-2d-renderer-support.png)
 
 In this version, the Visual Effect Graph has added support for the Universal Render Pipeline’s (URP) 2D Renderer. This means that you can now render effects in a 2D project and sort them along with sprites in your scene.
 
@@ -22,7 +22,7 @@ For more information, see [Rendering in the Universal Render Pipeline](https://d
 
 ### Bounds Helpers
 
-![img](Images\banner-bounds-helpers.png)
+![img](Images/banner-bounds-helpers.png)
 
 This version of the Visual Effect Graph adds helpers for setting and working with bounds. You can now record bounds in the Target GameObject window to ensure a more accurate fit. You can also set bounds automatically to make sure they are always visible.
 
@@ -32,7 +32,7 @@ For more information, see [Visual effect bounds](visual-effect-bounds.md).
 
 ### Graphics/Compute Buffer Support
 
-![img](Images\banner-graphics-compute-buffer-support.png)
+![img](Images/banner-graphics-compute-buffer-support.png)
 
 VFX version 21.2 also adds support for Graphics/Compute buffers. This makes it easier to handle and transfer large amounts of data to a Visual Effect Graph. This is particularly useful for tracking multiple GameObject positions in your graph.
 
@@ -40,7 +40,7 @@ This feature requires C# knowledge to set and handle Graphics Buffers.
 
 ### Signed Distance Field Baker
 
-![img](Images\banner-sdf-baker.png)
+![img](Images/banner-sdf-baker.png)
 
 This version includes the new Signed Distance Field (SDF) Bake Tool. To access it, navigate to **Window > Visual Effects > Utilities > SDF Bake Tool**. You can use this tool to quickly turn meshes and prefabs into SDF assets which you can use to create various effects, such as custom collisions, or to make particles conform to a particular shape.
 
@@ -55,13 +55,13 @@ The following is a list of improvements Unity made to the Visual Effect Graph in
 
 ### Transform Shape
 
-![img](Images\banner-transform-shape.gif)
+![img](Images/banner-transform-shape.gif)
 
 This VFX graph version adds a transform to various shape blocks and operators to make them easier to use and to give you more precise control. For example, you can use this transform to rotate a Position Circle block to make the circle shape face a new direction, or to scale the shape of a sphere collision block on one axis to collide with an ellipse.
 
 ### Upgraded ShaderGraph integration
 
-![img](Images\banner-upgraded-shadergraph.png)
+![img](Images/banner-upgraded-shadergraph.png)
 
 This VFX graph version improves how Shader Graph and the Visual Effect Graph integrate with each other in both the Universal Render Pipeline (URP) and the High Definition Render Pipeline (HDRP).
 
@@ -73,7 +73,7 @@ This gives you access to many powerful tools, including the following:
 
 ### Attachment Workflow
 
-![img](Images\banner-attachment-workflow.png)
+![img](Images/banner-attachment-workflow.png)
 
 VFX graph 12.0 includes a new workflow to attach visual effects to their instances in a scene: When a Visual Effect Asset is open in the Visual Effect window, it automatically attaches itself to an instance when you select it.
 
@@ -83,7 +83,7 @@ When an effect is attached, you can use various helper tools and use it to visua
 
 ### URP High End Mobile Support (Compute Capable Devices)
 
-![img](Images\banner-urp-mobile.png)
+![img](Images/banner-urp-mobile.png)
 
 This version of the Visual Effect Graph applies a number of fixes and stability improvements to allow you to use visual effects on a range of mobile compute-capable devices and XR platforms.
 
