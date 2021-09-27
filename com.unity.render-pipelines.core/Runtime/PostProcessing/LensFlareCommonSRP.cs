@@ -365,6 +365,7 @@ namespace UnityEngine.Rendering
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
             RenderTexture depthBuffer,
+            bool taaEnabled,
             int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
             Vector2 vScreenRatio;
@@ -375,8 +376,6 @@ namespace UnityEngine.Rendering
             Vector2 screenSize = new Vector2(actualWidth, actualHeight);
             float screenRatio = screenSize.x / screenSize.y;
             vScreenRatio = new Vector2(screenRatio, 1.0f);
-
-            Rendering.CoreUtils.SetRenderTarget(cmd, occlusionRT);
 
 #if UNITY_EDITOR
             if (cam.cameraType == CameraType.SceneView)
@@ -393,10 +392,18 @@ namespace UnityEngine.Rendering
             }
 #endif
 
+            Rendering.CoreUtils.SetRenderTarget(cmd, occlusionRT);
+            if (!taaEnabled)
+            {
+                cmd.ClearRenderTarget(false, true, Color.black);
+            }
+
             float dx = 1.0f / ((float)maxLensFlareWithOcclusion);
             float dy = 1.0f / ((float)(maxLensFlareWithOcclusionTemporalSample + 1 * mergeNeeded));
             float halfx = 0.5f / ((float)maxLensFlareWithOcclusion);
             float halfy = 0.5f / ((float)(maxLensFlareWithOcclusionTemporalSample + 1 * mergeNeeded));
+
+            int taaValue = taaEnabled ? 1 : 0;
 
             int occlusionIndex = 0;
             foreach (LensFlareComponentSRP comp in lensFlares.GetData())
@@ -496,7 +503,7 @@ namespace UnityEngine.Rendering
                 cmd.SetGlobalVector(_FlareData0, flareData0);
                 cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, 0.0f, 0.0f));
 
-                cmd.SetViewport(new Rect() { x = occlusionIndex, y = frameIdx + 1 * mergeNeeded, width = 1, height = 1 });
+                cmd.SetViewport(new Rect() { x = occlusionIndex, y = (frameIdx + 1 * mergeNeeded) * taaValue, width = 1, height = 1 });
 
                 UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, 4);
                 ++occlusionIndex;
@@ -535,7 +542,6 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
-            //Rendering.RenderTargetIdentifier occlusion,
             Rendering.RenderTargetIdentifier colorBuffer,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
             int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,

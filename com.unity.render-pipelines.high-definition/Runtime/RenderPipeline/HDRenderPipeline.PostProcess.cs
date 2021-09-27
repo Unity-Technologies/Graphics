@@ -469,8 +469,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_PostProcessEnabled || m_AntialiasingFS)
             {
-                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer);
-                LensFlareMergeOcclusionDataDrivenPass(renderGraph, hdCamera);
+                bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, taaEnabled);
+                if (taaEnabled)
+                {
+                    LensFlareMergeOcclusionDataDrivenPass(renderGraph, hdCamera, taaEnabled);
+                }
 
                 source = StopNaNsPass(renderGraph, hdCamera, source);
 
@@ -3080,7 +3084,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2Int viewport;
         }
 
-        void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer)
+        void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, bool taaEnabled)
         {
             if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
@@ -3107,7 +3111,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit, ShaderConfig.s_CameraRelativeRendering != 0,
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
                                 data.hdCamera.mainViewConstants.viewProjMatrix,
-                                ctx.cmd, data.depthBuffer,
+                                ctx.cmd, data.depthBuffer, taaEnabled,
                                 HDShaderIDs._FlareOcclusionTex, HDShaderIDs._FlareOcclusionIndex, HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
                                 HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4);
                         });
@@ -3115,7 +3119,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void LensFlareMergeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera)
+        void LensFlareMergeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, bool taaEnabled)
         {
             if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
