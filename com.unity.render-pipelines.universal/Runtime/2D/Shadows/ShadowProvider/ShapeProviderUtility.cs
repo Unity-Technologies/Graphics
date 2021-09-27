@@ -9,10 +9,9 @@ namespace UnityEngine.Rendering.Universal
     {
         static public void CallOnBeforeRender(Component component, ShadowMesh2D shadowMesh, Matrix4x4 cameraLightFrustum)
         {
-            IShadowShape2DProvider provider = component as IShadowShape2DProvider;
-            if (provider != null)
+            if (component != null  && component.TryGetComponent<IShadowShape2DProvider>(out var shapeProvider))
             {
-                provider.OnBeforeRender(shadowMesh, cameraLightFrustum);
+                shapeProvider.OnBeforeRender(shadowMesh, cameraLightFrustum);
             }
             else if (shadowMesh != null && shadowMesh.mesh != null)
             {
@@ -23,8 +22,7 @@ namespace UnityEngine.Rendering.Universal
 
         static public void PersistantDataCreated(Component component, ShadowMesh2D shadowMesh)
         {
-            IShadowShape2DProvider shapeProvider = component as IShadowShape2DProvider;
-            if (shapeProvider != null)
+            if (component != null && component.TryGetComponent<IShadowShape2DProvider>(out var shapeProvider))
             {
                 shapeProvider.OnPersistantDataCreated(shadowMesh);
             }

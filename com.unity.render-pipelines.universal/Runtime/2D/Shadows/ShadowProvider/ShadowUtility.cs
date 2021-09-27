@@ -519,9 +519,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static public void ClipEdges(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeIsClosedArray, float contractEdge, out NativeArray<Vector3> outVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices )
+        static public void ClipEdges(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeIsClosedArray, float contractEdge, out NativeArray<Vector3> outVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices)
         {
-            int k_SafeSize = 40; 
+            int k_SafeSize = 40;
             NativeArray<Vector3> tempVertices = new NativeArray<Vector3>(inVertices.Length * k_SafeSize, Allocator.Temp);
             NativeArray<ShadowEdge> tempEdges = new NativeArray<ShadowEdge>(inEdges.Length * k_SafeSize, Allocator.Temp);
             outShapeStartingIndices = new NativeArray<int>(inShapeStartingIndices.Length, Allocator.Temp);
@@ -531,7 +531,7 @@ namespace UnityEngine.Rendering.Universal
 
             int currentTempVertexIndex = 0;
             int currentTempEdgeIndex = 0;
-            for (int shapeStartIndex = 0;  (shapeStartIndex < inShapeStartingIndices.Length) && (inShapeStartingIndices[shapeStartIndex] >= 0); shapeStartIndex++)
+            for (int shapeStartIndex = 0; (shapeStartIndex < inShapeStartingIndices.Length) && (inShapeStartingIndices[shapeStartIndex] >= 0); shapeStartIndex++)
             {
                 // If its a closed shape try and do reduction
                 int currentShapeStart = inShapeStartingIndices[shapeStartIndex];
@@ -541,15 +541,15 @@ namespace UnityEngine.Rendering.Universal
 
                 if (inShapeIsClosedArray[shapeStartIndex])
                 {
-                    NativeArray <Vector3> verticesToClip = new NativeArray<Vector3>(numberOfEdges, Allocator.Temp);
-                    for(int i=0;i<numberOfEdges;i++)
-                        verticesToClip[i] = inVertices[inEdges[i+currentShapeStart].v0];
+                    NativeArray<Vector3> verticesToClip = new NativeArray<Vector3>(numberOfEdges, Allocator.Temp);
+                    for (int i = 0; i < numberOfEdges; i++)
+                        verticesToClip[i] = inVertices[inEdges[i + currentShapeStart].v0];
 
                     ShadowPathClipper.SetInputPath(verticesToClip);
                     ShadowPathClipper.ContractPath(-contractEdge);
 
                     // If we have an output path copy it out
-                    if(ShadowPathClipper.HasOutputPaths())
+                    if (ShadowPathClipper.HasOutputPaths())
                     {
                         int outputPathLength = ShadowPathClipper.GetOutputPathLength();
                         if (outputPathLength > 0)
@@ -559,17 +559,17 @@ namespace UnityEngine.Rendering.Universal
 
                             // Create edges
                             int lastEdgeIndex = (outputPathLength - 1) + currentTempEdgeIndex;
-                            for(int i=0;i<outputPathLength;i++)
+                            for (int i = 0; i < outputPathLength; i++)
                             {
                                 int currentVertexIndex = currentTempEdgeIndex;
                                 tempEdges[currentTempEdgeIndex] = new ShadowEdge(lastEdgeIndex, currentVertexIndex);
 
-                                Debug.DrawLine(tempVertices[lastEdgeIndex], tempVertices[currentVertexIndex],Color.white ,2);
+                                Debug.DrawLine(tempVertices[lastEdgeIndex], tempVertices[currentVertexIndex], Color.white, 2);
                                 lastEdgeIndex = currentTempEdgeIndex++;
 
 
                             }
-                            
+
                             currentTempVertexIndex += outputPathLength;
                         }
                     }
@@ -593,26 +593,6 @@ namespace UnityEngine.Rendering.Universal
 
             tempVertices.Dispose();
             tempEdges.Dispose();
-
-        static public void CallOnBeforeRender(Component component, ShadowMesh2D shadowMesh, Matrix4x4 cameraLightFrustum)
-        {
-            if (component != null && component.TryGetComponent<IShadowShape2DProvider>(out var shapeProvider))
-            {
-                shapeProvider.OnBeforeRender(shadowMesh, cameraLightFrustum);
-            }
-            else if (shadowMesh != null && shadowMesh.mesh != null)
-            {
-                shadowMesh.mesh.Clear();
-            }
-
-        }
-
-        static public void PersistantDataCreated(Component component, ShadowMesh2D shadowMesh)
-        {
-            if (component != null && component.TryGetComponent<IShadowShape2DProvider>(out var shapeProvider))
-            {
-                shapeProvider.OnPersistantDataCreated(shadowMesh);
-            }
         }
     }
 }
