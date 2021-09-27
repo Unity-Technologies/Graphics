@@ -13,6 +13,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
 {
     class NodeTests
     {
+        const int res = 128;
+
         [UnityTest]
         public IEnumerator TransformV1MatchesOldTransform()
         {
@@ -30,16 +32,18 @@ namespace UnityEditor.ShaderGraph.UnitTests
             // first check that it renders red in the initial state, to check that the test works
             // (graph is initially set up with non-matching transforms)
             {
-                RenderTextureDescriptor descriptor = new RenderTextureDescriptor(128, 128, GraphicsFormat.R8G8B8A8_SRGB, depthBufferBits: 32);
+                RenderTextureDescriptor descriptor = new RenderTextureDescriptor(res, res, GraphicsFormat.R8G8B8A8_SRGB, depthBufferBits: 32);
                 var target = RenderTexture.GetTemporary(descriptor);
 
                 // use a non-standard transform, so that view, object, etc. transforms are non trivial
                 renderer.RenderQuadPreview(graph, target, new Vector3(1.24699998f, 1.51900005f, 0.328999996f), new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f), useSRP: true);
 
                 int incorrectPixels = ShaderGraphTestRenderer.CountPixelsNotEqual(target, new Color32(0, 255, 0, 255), false);
-                Assert.AreEqual(128*128, incorrectPixels, "Number of incorrect pixels was not zero: initial state");
+                Debug.Log($"Initial state: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
 
-                if (incorrectPixels != 128 * 123)
+                Assert.AreEqual(res * res, incorrectPixels, $"Initial state should have {res * res} failing pixels");
+
+                if (incorrectPixels != res * res)
                     ShaderGraphTestRenderer.SaveToPNG(target, "test-results/NodeTests/TransformNodeOld_default.png");
 
                 RenderTexture.ReleaseTemporary(target);
@@ -66,7 +70,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                         old.conversion = new CoordinateSpaceConversion(source, dest);
                         old.conversionType = conversionType;
 
-                        RenderTextureDescriptor descriptor = new RenderTextureDescriptor(128, 128, GraphicsFormat.R8G8B8A8_SRGB, depthBufferBits: 32);
+                        RenderTextureDescriptor descriptor = new RenderTextureDescriptor(res, res, GraphicsFormat.R8G8B8A8_SRGB, depthBufferBits: 32);
                         var target = RenderTexture.GetTemporary(descriptor);
 
                         // Debug.Log($"Tested: {source} to {dest} ({conversionType})");
@@ -75,10 +79,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
                         renderer.RenderQuadPreview(graph, target, new Vector3(1.24699998f, 1.51900005f, 4.328999996f), new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f), useSRP: true);
 
                         int incorrectPixels = ShaderGraphTestRenderer.CountPixelsNotEqual(target, new Color32(0, 255, 0, 255), false);
-                        Assert.AreEqual(0, incorrectPixels, $"Number of incorrect pixels was not zero: {source} to {dest} ({conversionType})");
+                        Debug.Log($"{source} to {dest} ({conversionType}: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
 
-                        if (incorrectPixels != 0)
-                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
+                        Assert.AreEqual(0, incorrectPixels, $"Incorrect pixels detected: {source} to {dest} ({conversionType})");
+
+                        // if (incorrectPixels != 0)
+                        ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
 
                         RenderTexture.ReleaseTemporary(target);
                     }
