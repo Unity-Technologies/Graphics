@@ -26,8 +26,6 @@ Extra_VFX_URP_2020.3:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_2020.3
-         rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_2020.3
          rerun: on_new_revision
 VFX_URP_2020.3:
@@ -60,8 +58,6 @@ Extra_VFX_URP_CUSTOM-REVISION:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 VFX_URP_CUSTOM-REVISION:

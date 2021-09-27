@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.8.0] - 2021-09-20
 
 ### Fixed
+- Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
 - Fixed error in SSGI when disabling decals (case 1365521).
 
 ## [10.7.0] - 2021-07-02
