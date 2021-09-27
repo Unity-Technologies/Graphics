@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.PostProcessing
         /// and is especially useful to optimize volume traversal. You should always have your
         /// volumes in dedicated layers instead of the default one for best performances.
         /// </summary>
-        public LayerMask volumeLayer;
+        public LayerMask volumeLayer = 1;
 
         /// <summary>
         /// If <c>true</c>, it will kill any invalid / NaN pixel and replace it with a black color
