@@ -114,13 +114,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         surface.clearCoatSmoothness = saturate(surfaceDescription.CoatSmoothness);
     #endif
 
-    #if defined(_ALPHAMODULATE_ON)
-    // Fake alpha for multiply blend by lerping albedo to 1.
-    // Manual adjustment for less multiply effect (sort of "premultiplied alpha" version)
-    // would be painting whiter pixels in the texture.
-    // This emulates that procedure by whitening the "base color" automatically using the alpha value.
-    surface.albedo = lerp(1, surface.albedo, surface.alpha);
-    #endif
+    surface.albedo = ApplyAlphaModulate(surface.albedo, surface.alpha);
 
 #ifdef _DBUFFER
     ApplyDecalToSurfaceData(unpacked.positionCS, surface, inputData);
