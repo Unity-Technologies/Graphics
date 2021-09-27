@@ -1137,7 +1137,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global
-            // Caution: 'Optimize Mesh Data' strip away attributes uv1/uv2 without the keyword set on the vertex stage. - so do'nt define stage frequency here
+            // Caution: 'Optimize Mesh Data' strip away attributes uv1/uv2 without the keyword set on the vertex stage. - so don't define stage frequency here.
         };
 
         public static KeywordDescriptor DirectionalLightmapCombined = new KeywordDescriptor()
