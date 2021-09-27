@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved AMD FidelityFX shaders to core
 - Improved sampling of overlapping point/area lights in path-traced volumetric scattering (case 1358777).
 - Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1346105, 1358783).
+- MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
 
 ## [12.0.0] - 2021-01-11
 
