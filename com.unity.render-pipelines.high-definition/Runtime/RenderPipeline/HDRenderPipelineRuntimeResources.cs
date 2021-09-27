@@ -315,6 +315,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader lensFlareDataDrivenPS;
             [Reload("Runtime/PostProcessing/Shaders/DLSSBiasColorMask.shader")]
             public Shader DLSSBiasColorMaskPS;
+            [Reload("Runtime/PostProcessing/Shaders/CompositeWithUIAndOETF.shader")]
+            public Shader compositeUIAndOETFApplyPS;
 
             // Physically based DoF
             [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]

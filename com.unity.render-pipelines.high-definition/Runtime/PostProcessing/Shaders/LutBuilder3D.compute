@@ -25,7 +25,6 @@ TEXTURE2D(_CurveLumVsSat);
 
 SAMPLER(sampler_LogLut3D);
 SAMPLER(sampler_LinearClamp);
-#pragma enable_d3d11_debug_symbols
 
 CBUFFER_START(cb0)
     float4 _Size;               // x: lut_size, y: 1 / (lut_size - 1), zw: unused

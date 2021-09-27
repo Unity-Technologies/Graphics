@@ -4839,7 +4839,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.viewportSize = postProcessViewportSize;
 
                 // Film Grain
-                passData.filmGrainEnabled = m_FilmGrain.IsActive() && m_FilmGrainFS;
+                passData.filmGrainEnabled = m_FilmGrain.IsActive() && m_FilmGrainFS && !TEST_HDR();
                 if (m_FilmGrain.type.value != FilmGrainLookup.Custom)
                     passData.filmGrainTexture = defaultResources.textures.filmGrainTex[(int)m_FilmGrain.type.value];
                 else
@@ -4848,7 +4848,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.filmGrainResponse = m_FilmGrain.response.value;
 
                 // Dithering
-                passData.ditheringEnabled = hdCamera.dithering && m_DitheringFS;
+                passData.ditheringEnabled = hdCamera.dithering && m_DitheringFS && !TEST_HDR();
 
                 passData.source = builder.ReadTexture(source);
                 passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
@@ -4895,7 +4895,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         finalPassMaterial.shaderKeywords = null;
                         finalPassMaterial.SetTexture(HDShaderIDs._InputTexture, data.source);
-                        finalPassMaterial.SetTexture(HDShaderIDs._HDRImageTest, defaultResources.textures.testHDR);
 
                         if (data.dynamicResIsOn)
                         {
@@ -4975,7 +4974,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             finalPassMaterial.DisableKeyword("ENABLE_ALPHA");
 
                         // TODO: THIS IS ALL BAD, NEED TO MOVE AND MOST IMPORTANTLY AVOID CAPTURE.
-                        if (TEST_HDR())
+                        if (TEST_HDR() && HDUtils.PostProcessIsFinalPass(data.hdCamera))
                         {
                             finalPassMaterial.EnableKeyword("HDR_OUTPUT");
                             finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams, data.hdroutParameters);

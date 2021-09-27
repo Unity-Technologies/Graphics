@@ -107,6 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_SsrAccumulateKernel = -1;
 
         Material m_ApplyDistortionMaterial;
+        Material m_FinalBlitWithOETF;
 
         Material m_ClearStencilBufferMaterial;
 
@@ -410,6 +411,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
 
             m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.applyDistortionPS);
+            m_FinalBlitWithOETF = CoreUtils.CreateEngineMaterial(defaultResources.shaders.compositeUIAndOETFApplyPS);
+
 
             m_ClearStencilBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.clearStencilBufferPS);
 
@@ -770,6 +773,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_UpsampleTransparency);
             CoreUtils.Destroy(m_ApplyDistortionMaterial);
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
+            CoreUtils.Destroy(m_FinalBlitWithOETF);
 
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();

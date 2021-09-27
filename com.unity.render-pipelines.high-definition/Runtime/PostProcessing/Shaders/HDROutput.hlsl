@@ -59,9 +59,9 @@ float3 LinearToPQ(float3 value)
 
 float PQToLinear(float value)
 {
-    float Em2 = PositivePow(value, 1 / PQ_M);
+    float Em2 = PositivePow(value, 1.0f / PQ_M);
     float X = (max(0.0, Em2 - PQ_C1)) / (PQ_C2 - PQ_C3 * Em2);
-    return pow(X, 1 / PQ_N);
+    return PositivePow(X, 1.0f / PQ_N);
 }
 
 float PQToLinear(float value, float maxPQValue)
@@ -213,7 +213,7 @@ float3 PatryApproxLinToPQ(float3 x)
 }
 
 //  Ref: [Uchimura and Suzuki 2018] Practical HDR and Wide Color Techniques in Gran Turismo Sport
-// Slower than Infamous approx, but more precise ( https://www.desmos.com/calculator/0n402k2syc ) in the full [0... 10 000] range, but still faster than reference
+// Slower than Infamous approx, but more precise ( https://www.desmos.com/calculator/up4wwozghk ) in the full [0... 10 000] range, but still faster than reference
 // IMPORTANT! It requires the input to be scaled from [0 ... 10000] to [0...100]!
 float3 GTSApproxLinToPQ(float3 inputCol)
 {
@@ -234,7 +234,7 @@ float3 OETF(float3 inputCol)
 #endif
 }
 
-#define LIN_TO_PQ_FOR_LUT GTS_APPROX_PQ // GTS is close enough https://www.desmos.com/calculator/5jdfc4pgtk
+#define LIN_TO_PQ_FOR_LUT GTS_APPROX_PQ // GTS is close enough https://www.desmos.com/calculator/up4wwozghk
 float3 LinearToPQForLUT(float3 inputCol)
 {
 #if LIN_TO_PQ_FOR_LUT == PRECISE_PQ
