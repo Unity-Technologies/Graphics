@@ -59,7 +59,7 @@ HairScatteringData GetHairScatteringData(BSDFData bsdfData, float3 alpha, float3
         float2 B = SAMPLE_TEXTURE3D_LOD(_PreIntegratedHairFiberScattering, s_linear_clamp_sampler, float3(X, Y, Z.b), 0).xy;
 
         scatteringData.averageScattering[FRONT] = float3(R.x, G.x, B.x);
-        scatteringData.averageScattering[BACK]  = float3(R.y, G.y, B.y);
+        scatteringData.averageScattering[BACK]  = PI * float3(R.y, G.y, B.y);
     }
 
     // 2) Sample the average azimuthal scattering
@@ -115,10 +115,14 @@ float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3
     const float3 ab   = hairScatteringData.averageScattering[BACK];
     const float3 sf   = hairScatteringData.averageShift[FRONT];
     const float3 sb   = hairScatteringData.averageShift[BACK];
-    const float3 Bf   = hairScatteringData.averageVariance[FRONT];
-    const float3 Bb   = hairScatteringData.averageVariance[BACK];
+
+    // Note, for now remove the square, there seems to be a discrepancy in the gaussian used in the paper and the one we use
+    // for longitudinal scattering. We should revisit this later and audit the gaussian / std dev / variances.
+    const float3 Bf   = sqrt(hairScatteringData.averageVariance[FRONT]);
+    const float3 Bb   = sqrt(hairScatteringData.averageVariance[BACK]);
     const float3 Bf2  = Sq(Bf);
     const float3 Bb2  = Sq(Bb);
+
     const float3x3 NG = hairScatteringData.NG;
 
     // Global scattering.
@@ -181,7 +185,7 @@ float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3
     float3 sigmaB = (1 + db * af2);
     sigmaB *= (ab * sqrt((2 * Bf2) + Bb2)) + (ab3 * sqrt((2 * Bf2) + Bb2));
     sigmaB /= ab + (ab3 * ((2 * Bf) + (3 * Bb)));
-    sigmaB  = sqrt(sigmaB);
+    sigmaB  = Sq(sigmaB);
 
     // Resolve the overall local scattering term ( Eq. 19 & 20 Disney ).
     float3 fsBackDirect  = db * 2 * Ab * D_LongitudinalScatteringGaussian(thetaH - deltaB, sigmaB) / PI;
@@ -192,11 +196,9 @@ float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3
     const float3 MG = D_LongitudinalScatteringGaussian(thetaH - alpha, beta + sigmaF);
     const float3 fsScatter = mul(MG, NG);
 
-    // Note: currently we multiple by a factor of 4PI to match the reference (the reference is validated against a ground truth).
-    // For now we leave it, but it would be good to explore what is causing the need for this.
-    const float3 Fdirect   = directFraction * (Fs + FOUR_PI * fsBackDirect);
-    const float3 Fscatter  = (Tf - directFraction) * df * (fsScatter + FOUR_PI * fsBackScatter);
-    const float3 F         = (Fdirect + Fscatter) * sqrt(1 - Sq(sinThetaI));
+    const float3 Fdirect   = directFraction * (Fs + fsBackDirect);
+    const float3 Fscatter  = (Tf - directFraction) * df * (fsScatter + PI * fsBackScatter);
+    const float3 F         = (Fdirect + Fscatter);
 
     return max(F, 0);
 

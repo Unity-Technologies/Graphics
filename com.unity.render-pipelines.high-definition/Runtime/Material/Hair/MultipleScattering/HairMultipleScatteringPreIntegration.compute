@@ -7,7 +7,7 @@
 // This define is required to map the reflectance to absorption for the preintegration.
 #define _ABSORPTION_FROM_COLOR 1
 
-// #pragma enable_d3d11_debug_symbols
+#pragma enable_d3d11_debug_symbols
 
 #define DIM 64
 #define SPHERE_SAMPLES 128
@@ -117,15 +117,19 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
            // Places a light on the back scattering hemisphere (due to the constriction of phi to the -pi/2 to pi/2 range).
            float3 L = SphericalToCartesian(phi, sinThetaI);
 
+           // Account for the fiber pointing in the +x axis
+           L = L.zyx;
+
            // Invoke the fiber scattering function.
+           // Note, we could use our importance sampled reference here but due to how long it takes to compile, don't.
            CBSDF cbsdf = EvaluateBSDF(V, L, preLightData, bsdfData);
            const float Fs = cbsdf.specR.x;
 
            // Sort the energy based on which hemisphere the outgoing direction was measured from.
            // Doing this effectively simplifies the complex longitudinal scattering lobes into one
            // forward (TT dominant) and one backward (R / TRT dominant) lobe. The theoretical fiber
-           // is facing Z-up, the incident light is on the back hemisphere; thus, outgoing directions
-           // in the front hemisphere must be negative in the X direction.
+           // is facing +X, the incident light is on the back hemisphere; thus, outgoing directions
+           // in the front hemisphere must be negative in the Z direction.
            if (V.z < 0)
            {
                 // Contribute to the average forward scattering.
@@ -182,7 +186,7 @@ void PreIntegrateAzimuthalScattering (uint2 dispatchThreadID : SV_DispatchThread
     float sinThetaI = UV.x;
 
     // We are analyzing the front scattering, so place a viewer on the negative Z axis.
-    float3 V = float3(0, 0, 1);
+    float3 V = float3(0, 0, -1);
 
     float3 A = 0;
 
@@ -191,6 +195,9 @@ void PreIntegrateAzimuthalScattering (uint2 dispatchThreadID : SV_DispatchThread
     {
        // Places a light on the back scattering hemisphere (due to the constriction of phi to the -pi/2 to pi/2 range).
        float3 L = SphericalToCartesian(phi, sinThetaI);
+
+       // Account for the fiber pointing in the +x axis
+       L = L.zyx;
 
        // Invoke the fiber scattering function.
        CBSDF cbsdfR   = EvaluateBSDF(V, L, preLightData, bsdfDataR);
@@ -202,5 +209,5 @@ void PreIntegrateAzimuthalScattering (uint2 dispatchThreadID : SV_DispatchThread
                     cbsdfTRT.specR.x ) * DPHI;
     }
 
-    _PreIntegratedAverageHairFiberScatteringUAV[dispatchThreadID] = float4(A, 1);
+    _PreIntegratedAverageHairFiberScatteringUAV[dispatchThreadID] = INV_PI * float4(A, 1);
 }
