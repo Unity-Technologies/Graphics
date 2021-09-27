@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
 - Fixed the volume not being assigned on some scene templates.
 - Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
+- Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
