@@ -41,10 +41,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 int incorrectPixels = ShaderGraphTestRenderer.CountPixelsNotEqual(target, new Color32(0, 255, 0, 255), false);
                 Debug.Log($"Initial state: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
 
-                Assert.AreEqual(res * res, incorrectPixels, $"Initial state should have {res * res} failing pixels");
-
                 if (incorrectPixels != res * res)
                     ShaderGraphTestRenderer.SaveToPNG(target, "test-results/NodeTests/TransformNodeOld_default.png");
+
+                Assert.AreEqual(res * res, incorrectPixels, $"Initial state should have {res * res} failing pixels");
 
                 RenderTexture.ReleaseTemporary(target);
                 yield return null;
@@ -81,10 +81,18 @@ namespace UnityEditor.ShaderGraph.UnitTests
                         int incorrectPixels = ShaderGraphTestRenderer.CountPixelsNotEqual(target, new Color32(0, 255, 0, 255), false);
                         Debug.Log($"{source} to {dest} ({conversionType}: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
 
-                        Assert.AreEqual(0, incorrectPixels, $"Incorrect pixels detected: {source} to {dest} ({conversionType})");
+                        if (incorrectPixels != 0)
+                        {
+                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
 
-                        // if (incorrectPixels != 0)
-                        ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
+                            renderer.RenderQuadPreview(graph, target, new Vector3(1.24699998f, 1.51900005f, 4.328999996f), new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f), useSRP: true, ShaderGraphTestRenderer.Mode.EXPECTED);
+                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}_EXPECTED.png");
+
+                            renderer.RenderQuadPreview(graph, target, new Vector3(1.24699998f, 1.51900005f, 4.328999996f), new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f), useSRP: true, ShaderGraphTestRenderer.Mode.ACTUAL);
+                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}_ACTUAL.png");
+                        }
+
+                        Assert.AreEqual(0, incorrectPixels, $"Incorrect pixels detected: {source} to {dest} ({conversionType})");
 
                         RenderTexture.ReleaseTemporary(target);
                     }

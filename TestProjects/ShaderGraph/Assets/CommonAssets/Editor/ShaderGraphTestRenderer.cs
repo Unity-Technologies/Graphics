@@ -136,7 +136,22 @@ public class ShaderGraphTestRenderer
         RenderQuadPreview(graph, target, Vector3.zero, Quaternion.identity, useSRP);
     }
 
-    internal void RenderQuadPreview(GraphData graph, RenderTexture target, Vector3 scenePosition, Quaternion sceneRotation, bool useSRP = false)
+    internal enum Mode
+    {
+        COMPARE,
+        EXPECTED,
+        ACTUAL
+    }
+
+    void SetKeyword(Material mat, string keyword, bool enabled)
+    {
+        if (enabled)
+            mat.EnableKeyword(keyword);
+        else
+            mat.DisableKeyword(keyword);
+    }
+
+    internal void RenderQuadPreview(GraphData graph, RenderTexture target, Vector3 scenePosition, Quaternion sceneRotation, bool useSRP = false, Mode mode = Mode.COMPARE)
     {
         var camXform = previewScene.camera.transform;
 
@@ -153,6 +168,10 @@ public class ShaderGraphTestRenderer
         // build the shader
         var shader = BuildShaderGraph(graph, "Test Shader");
         var mat = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
+
+        SetKeyword(mat, "_MODE_COMPARE", (mode == Mode.COMPARE));
+        SetKeyword(mat, "_MODE_EXPECTED", (mode == Mode.EXPECTED));
+        SetKeyword(mat, "_MODE_ACTUAL", (mode == Mode.ACTUAL));
 
         var quadMatrix = Matrix4x4.TRS(camXform.position + camXform.forward * 2, camXform.rotation, Vector3.one);
 
