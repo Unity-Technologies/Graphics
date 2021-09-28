@@ -286,7 +286,9 @@ namespace UnityEditor.Rendering
 
         void ApplyState(string queryPath, DebugState state)
         {
-            if (!(DebugManager.instance.GetItem(queryPath) is DebugUI.IValueField widget))
+            if (state == null ||
+                state.GetValue() == null ||
+                !(DebugManager.instance.GetItem(queryPath) is DebugUI.IValueField widget))
                 return;
 
             widget.SetValue(state.GetValue());

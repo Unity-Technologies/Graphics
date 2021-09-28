@@ -9,7 +9,7 @@ using UnityEngine.Assertions;
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable, ReloadGroup, ExcludeFromPreset]
-    public class UniversalRendererData : ScriptableRendererData
+    public class UniversalRendererData : ScriptableRendererData, ISerializationCallbackReceiver
     {
 #if UNITY_EDITOR
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
@@ -78,6 +78,8 @@ namespace UnityEngine.Rendering.Universal
 
         public ShaderResources shaders = null;
 
+        const int k_LatestAssetVersion = 1;
+        [SerializeField] int m_AssetVersion = 0;
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
@@ -85,10 +87,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
         [SerializeField] bool m_AccurateGbufferNormals = false;
-        //[SerializeField] bool m_TiledDeferredShading = false;
         [SerializeField] bool m_ClusteredRendering = false;
         const TileSize k_DefaultTileSize = TileSize._32;
         [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
+        [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Auto;
 
         protected override ScriptableRenderer Create()
         {
@@ -188,18 +190,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        /*
-        public bool tiledDeferredShading
-        {
-            get => m_TiledDeferredShading;
-            set
-            {
-                SetDirty();
-                m_TiledDeferredShading = value;
-            }
-        }
-        */
-
         internal bool clusteredRendering
         {
             get => m_ClusteredRendering;
@@ -218,6 +208,19 @@ namespace UnityEngine.Rendering.Universal
                 Assert.IsTrue(value.IsValid());
                 SetDirty();
                 m_TileSize = value;
+            }
+        }
+
+        /// <summary>
+        /// Controls when URP renders via an intermediate texture.
+        /// </summary>
+        public IntermediateTextureMode intermediateTextureMode
+        {
+            get => m_IntermediateTextureMode;
+            set
+            {
+                SetDirty();
+                m_IntermediateTextureMode = value;
             }
         }
 
@@ -252,6 +255,43 @@ namespace UnityEngine.Rendering.Universal
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif
 #endif
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            m_AssetVersion = k_LatestAssetVersion;
+        }
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (m_AssetVersion <= 0)
+            {
+                var anyNonUrpRendererFeatures = false;
+
+                foreach (var feature in m_RendererFeatures)
+                {
+                    try
+                    {
+                        if (feature.GetType().Assembly == typeof(UniversalRendererData).Assembly)
+                        {
+                            continue;
+                        }
+                    }
+                    catch
+                    {
+                        // If we hit any exceptions while poking around assemblies,
+                        // conservatively assume there was a non URP renderer feature.
+                    }
+
+                    anyNonUrpRendererFeatures = true;
+                }
+
+                // Replicate old intermediate texture behaviour in case of any non-URP renderer features,
+                // where we cannot know if they properly declare needed inputs.
+                m_IntermediateTextureMode = anyNonUrpRendererFeatures ? IntermediateTextureMode.Always : IntermediateTextureMode.Auto;
+            }
+
+            m_AssetVersion = k_LatestAssetVersion;
         }
     }
 }

@@ -4,9 +4,6 @@
 // Otherwise those parameters are not bound correctly at runtime.
 // ===========================================================================
 
-TEXTURE2D(_DistortionVectorMap);
-SAMPLER(sampler_DistortionVectorMap);
-
 TEXTURE2D(_EmissiveColorMap);
 SAMPLER(sampler_EmissiveColorMap);
 
@@ -108,12 +105,6 @@ float _AlphaCutoffShadow;
 float _AlphaCutoffPrepass;
 float _AlphaCutoffPostpass;
 float4 _DoubleSidedConstants;
-float _DistortionScale;
-float _DistortionVectorScale;
-float _DistortionVectorBias;
-float _DistortionBlurScale;
-float _DistortionBlurRemapMin;
-float _DistortionBlurRemapMax;
 float _BlendMode;
 float _EnableBlendModePreserveSpecularLighting;
 
@@ -142,13 +133,6 @@ float _TexWorldScaleEmissive;
 float4 _UVMappingMaskEmissive;
 
 float4 _InvPrimScale; // Only XY are used
-
-// Wind
-float _InitialBend;
-float _Stiffness;
-float _Drag;
-float _ShiverDrag;
-float _ShiverDirectionality;
 
 // Specular AA
 float _EnableGeometricSpecularAA;
@@ -293,12 +277,15 @@ float _TessellationObjectScale;
 float _TessellationTilingScale;
 #endif
 
+
+
+CBUFFER_END
+
 // Following three variables are feeded by the C++ Editor for Scene selection
+// It need to be outside the UnityPerMaterial buffer to have Material compatible with SRP Batcher
 int _ObjectId;
 int _PassValue;
 float4 _SelectionID;
-
-CBUFFER_END
 
 #if defined(UNITY_DOTS_INSTANCING_ENABLED)
 #if defined(LAYERED_LIT_SHADER)
