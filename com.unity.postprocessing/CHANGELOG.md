@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [3.1.2] - 2021-02-06
 
 ### Fixed
+- Fix Right eye in stereo camera to be shifted when TAA is enabled.
+
+## [3.1.2] - 2021-02-06
+
+### Fixed
 - Catch thrown errors in `PostProcessEffectRenderer`, preventing resources allocation leaks and crash (case 1221972)
 - Fixed error thrown when changing post process layer right after creation or before destruction.
 - Fix FXAA when render-target has no alpha channel (case 1344618) (case 1351502)

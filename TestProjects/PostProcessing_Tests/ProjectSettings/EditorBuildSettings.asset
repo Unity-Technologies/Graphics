@@ -56,12 +56,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/0204_Std_ChromaticAberration_Fast.unity
     guid: 67ebc51e0232d4f46adb6df29c706b2f
-  - enabled: 0
-    path: Assets/Scenes/0205_Std_Grain.unity
-    guid: 3d2eea8d8ffb76d4b8abc012bf6627b2
-  - enabled: 0
-    path: Assets/Scenes/0206_Std_Grain_Colored.unity
-    guid: dfbf9e7d264fdce44bb4a952aabf030b
   - enabled: 1
     path: Assets/Scenes/0207_Std_Bloom_HDR.unity
     guid: edaa614f090132445a515f3e39620c3f
@@ -101,9 +95,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/0219_Std_MSVO_Deferred_AmbientOnly.unity
     guid: 0a403a555c661d84e93e7a04b621ebc3
-  - enabled: 0
-    path: Assets/Scenes/0220_Std_DepthOfField.unity
-    guid: a8e52b8f23d8409458a97be96b2438bd
   - enabled: 1
     path: Assets/Scenes/0221_Std_AutoExposure.unity
     guid: 3a2942cf3510f7f44ad7d1725edba64e
