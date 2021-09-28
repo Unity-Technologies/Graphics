@@ -33,10 +33,11 @@ float _Smoothness;
 float _AO;
 float _Metallic;
 
-#ifdef SCENEPICKINGPASS
-    float4 _SelectionID;
-#endif
-
 CBUFFER_END
+
+// Following three variables are feeded by the C++ Editor for Scene selection
+#ifdef SCENEPICKINGPASS
+float4 _SelectionID;
+#endif
 
 #endif

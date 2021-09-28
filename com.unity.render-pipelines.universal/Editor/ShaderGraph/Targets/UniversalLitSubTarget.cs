@@ -309,9 +309,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 else
                     result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.DOTSInstanced));
                 result.passes.Add(PassVariant(LitPasses.Meta(target), CorePragmas.DOTSDefault));
-                result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.DOTSDefault));
+                // Currently neither of these passes (selection/picking) can be last for the game view for
+                // UI shaders to render correctly. Verify [1352225] before changing this order.
                 result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DOTSDefault));
                 result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DOTSDefault));
+
+                result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.DOTSDefault));
 
                 return result;
             }
@@ -350,9 +353,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 else
                     result.passes.Add(CorePasses.DepthNormal(target));
                 result.passes.Add(LitPasses.Meta(target));
-                result.passes.Add(LitPasses._2D(target));
+                // Currently neither of these passes (selection/picking) can be last for the game view for
+                // UI shaders to render correctly. Verify [1352225] before changing this order.
                 result.passes.Add(CorePasses.SceneSelection(target));
                 result.passes.Add(CorePasses.ScenePicking(target));
+
+                result.passes.Add(LitPasses._2D(target));
 
                 return result;
             }
