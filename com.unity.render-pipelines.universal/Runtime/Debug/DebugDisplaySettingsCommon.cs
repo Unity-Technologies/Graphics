@@ -1,10 +1,28 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
     class DebugDisplaySettingsCommon : IDebugDisplaySettingsData
     {
+        internal static class WidgetFactory
+        {
+            internal static DebugUI.Widget CreateMissingDebugShadersWarning() => new DebugUI.MessageBox
+            {
+                displayName = "Warning: the debug shader variants are missing. Ensure that the \"Strip Debug Variants\" option is disabled in URP Global Settings.",
+                style = DebugUI.MessageBox.Style.Warning,
+                isHiddenCallback = () =>
+                {
+#if UNITY_EDITOR
+                    return true;
+#else
+                    if (UniversalRenderPipelineGlobalSettings.instance != null)
+                        return !UniversalRenderPipelineGlobalSettings.instance.stripDebugVariants;
+                    return true;
+#endif
+                }
+            };
+        }
+
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override string PanelName => "Frequently Used";
@@ -13,7 +31,10 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel()
             {
-                var materialSettingsData = DebugDisplaySettings.Instance.MaterialSettings;
+                AddWidget(WidgetFactory.CreateMissingDebugShadersWarning());
+
+                var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
+                var materialSettingsData = debugDisplaySettings.MaterialSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Filters",
@@ -33,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                var lightingSettingsData = DebugDisplaySettings.Instance.LightingSettings;
+                var lightingSettingsData = debugDisplaySettings.LightingSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Lighting Debug Modes",
@@ -54,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                var renderingSettingsData = DebugDisplaySettings.Instance.RenderingSettings;
+                var renderingSettingsData = debugDisplaySettings.RenderingSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Rendering Debug",
@@ -66,6 +87,7 @@ namespace UnityEngine.Rendering.Universal
                         DebugDisplaySettingsRendering.WidgetFactory.CreateMSAA(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreatePostProcessing(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateAdditionalWireframeShaderViews(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateWireframeNotSupportedWarning(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateOverdraw(renderingSettingsData)
                     },
                     contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem>()
@@ -81,11 +103,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region IDebugDisplaySettingsData
-
-        public bool AreAnySettingsActive => DebugDisplaySettings.Instance.AreAnySettingsActive;
-        public bool IsPostProcessingAllowed => DebugDisplaySettings.Instance.IsPostProcessingAllowed;
-        public bool IsLightingActive => DebugDisplaySettings.Instance.IsLightingActive;
-        public bool TryGetScreenClearColor(ref Color color) => DebugDisplaySettings.Instance.TryGetScreenClearColor(ref color);
+        UniversalRenderPipelineDebugDisplaySettings debugDisplaySettings => UniversalRenderPipelineDebugDisplaySettings.Instance;
+        public bool AreAnySettingsActive => debugDisplaySettings.AreAnySettingsActive;
+        public bool IsPostProcessingAllowed => debugDisplaySettings.IsPostProcessingAllowed;
+        public bool IsLightingActive => debugDisplaySettings.IsLightingActive;
+        public bool TryGetScreenClearColor(ref Color color) => debugDisplaySettings.TryGetScreenClearColor(ref color);
 
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
