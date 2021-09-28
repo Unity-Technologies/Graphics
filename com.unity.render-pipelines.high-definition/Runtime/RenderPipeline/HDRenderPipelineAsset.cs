@@ -218,12 +218,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #endif
-
-        /// <summary>HDRP default UI material.</summary>
-        // TODO_FCC: Enable when ready.
-        public override Material defaultUIMaterial
-            => globalSettings?.renderPipelineResources?.materials.defaultUIMat;
-
         /// <summary>
         /// Indicates if virtual texturing is currently enabled for this render pipeline instance.
         /// </summary>

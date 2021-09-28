@@ -499,7 +499,8 @@ float3 HDRMappingFromRec709_ACES(float3 Rec709Input, float hdrBoost, bool skipOE
 float3 SceneUIComposition(float4 uiSample, float3 pqSceneColor, float paperWhite)
 {
     // Undo the pre multiply.
-    uiSample.rgb = uiSample.rgb / (uiSample.a == 0.0 ? 1.0 : uiSample.a);
+    uiSample.rgb = uiSample.rgb / (uiSample.a == 0.0f ? 1.0 : uiSample.a);
+
 #ifdef HDR_OUTPUT_SCRGB
     uiSample.rgb = OETF(uiSample.rgb * paperWhite);
     // TODO: At some point investigate this better.

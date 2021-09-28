@@ -33,7 +33,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 var camera = hdCamera.camera;
                 var cullingResults = renderRequest.cullingResults.cullingResults;
                 var customPassCullingResults = renderRequest.cullingResults.customPassCullingResults ?? cullingResults;
-                var uiCullingResult = renderRequest.cullingResults.uiCullingResults;
                 bool msaa = hdCamera.msaaEnabled;
                 var target = renderRequest.target;
 
@@ -196,10 +195,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
 
                     colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput,
-                        shadowResult, cullingResults, customPassCullingResults, uiCullingResult, aovRequest, aovCustomPassBuffers);
+                        shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
 
                     // TODO_FCC: TMP, MOVE FROM HERE. ALSO CONSIDER THAT FOR V1 WE MIGHT WANT TO ONLY SEPARATE OVERLAYS?
-                    uiBuffer = RenderTransparentUI(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, uiCullingResult);
+                    uiBuffer = RenderTransparentUI(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
 
                     if (NeedMotionVectorForTransparent(hdCamera.frameSettings))
                     {
@@ -874,22 +873,19 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderOffscreenUIData
         {
             public Camera camera;
-            public RendererListHandle rendererList;
             public FrameSettings frameSettings;
         }
 
         TextureHandle CreateOffscreenUIBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.clear, msaaSamples = msaaSamples, name = "UI Buffer" });
+            { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.clear, msaaSamples = msaaSamples, name = "UI Buffer" });
         }
 
 
-        // TODO_FCC: IMPORTANT! HANDLE OPAQUE UI, WRITE ON SAME BUFFER BUT BEFORE HAND? WE ARE ASSUME ALL UNLIT?
         TextureHandle RenderTransparentUI(RenderGraph renderGraph,
             HDCamera hdCamera,
-            TextureHandle depthBuffer,
-            CullingResults cullResults)
+            TextureHandle depthBuffer)
         {
             var output = renderGraph.defaultResources.blackTextureXR;
             if (TEST_HDR() && SupportedRenderingFeatures.active.rendersUIOverlay)
@@ -900,15 +896,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
                     passData.camera = hdCamera.camera;
-                    passData.rendererList = renderGraph.CreateRendererList(CreateTransparentRendererListDesc(cullResults, hdCamera.camera, m_AllTransparentPassNames, m_CurrentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllTransparent));
-                    passData.rendererList = builder.UseRendererList(passData.rendererList);
                     passData.frameSettings = hdCamera.frameSettings;
 
                     builder.SetRenderFunc((RenderOffscreenUIData data, RenderGraphContext context) =>
                     {
-                        // Do we want only overlays? If not do we want to disable TAA for this? How do we do?
-                        // How do we handle exposure etc? For now disabled. But it works as a concept.
-                        //RenderForwardRendererList(data.frameSettings, data.rendererList, false, context.renderContext, context.cmd);
                         context.renderContext.ExecuteCommandBuffer(context.cmd);
                         context.cmd.Clear();
                         context.renderContext.DrawUIOverlay(data.camera);
@@ -1220,7 +1211,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowResult shadowResult,
             CullingResults cullingResults,
             CullingResults customPassCullingResults,
-            CullingResults uiCullingResult,
             AOVRequestData aovRequest,
             List<RTHandle> aovCustomPassBuffers)
         {

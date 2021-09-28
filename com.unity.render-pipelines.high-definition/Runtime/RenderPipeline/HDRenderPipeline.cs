@@ -239,30 +239,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return HDROutputSettings.main.active;
         }
 
-        static bool TEST_SEPARATEUICULLING()
-        {
-            return TEST_HDR() && false;
-        }
-
-        internal void UpdateUIMaterialBlendMode(CommandBuffer cmd)
-        {
-            // TODO: THIS DOESN'T WORK!defaultUIMaterial is editor only... We should find another way, likely a global variables via shader variables.
-            if (TEST_HDR())
-            {
-                cmd.SetGlobalInt("_UISrcColorBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                cmd.SetGlobalInt("_UIDstColorBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                cmd.SetGlobalInt("_UISrcAlphaBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                cmd.SetGlobalInt("_UIDstAlphaBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            }
-            else
-            {
-                cmd.SetGlobalInt("_UISrcColorBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                cmd.SetGlobalInt("_UIDstColorBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                cmd.SetGlobalInt("_UISrcAlphaBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                cmd.SetGlobalInt("_UIDstAlphaBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            }
-        }
-
         readonly SkyManager m_SkyManager = new SkyManager();
         internal SkyManager skyManager { get { return m_SkyManager; } }
 
@@ -1321,10 +1297,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (needCulling)
                         {
-                            var uiLayerMask = TEST_SEPARATEUICULLING() ? m_Asset.currentPlatformRenderPipelineSettings.uiLayer : (LayerMask)0;
-                            // TODO_FCC For test, enable to see if it renders to separate without having HDR
-                            // uiLayerMask = m_Asset.currentPlatformRenderPipelineSettings.uiLayer;
-                            skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, uiLayerMask, ref cullingResults);
+                            skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, ref cullingResults);
                         }
                     }
 
@@ -1612,10 +1585,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         var _cullingResults = UnsafeGenericPool<HDCullingResults>.Get();
                         _cullingResults.Reset();
 
-                        var uiLayerMask = TEST_SEPARATEUICULLING() ? m_Asset.currentPlatformRenderPipelineSettings.uiLayer : (LayerMask)0;
-                        // TODO_FCC For test, enable to see if it renders to separate without having HDR
-                        // uiLayerMask = m_Asset.currentPlatformRenderPipelineSettings.uiLayer;
-
                         if (!(TryCalculateFrameParameters(
                             camera,
                             XRSystem.emptyPass,
@@ -1624,7 +1593,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             out var cullingParameters
                         )
                               && TryCull(
-                                  camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, uiLayerMask,
+                                  camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset,
                                   ref _cullingResults
                               )
                         ))
@@ -1859,8 +1828,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             var renderRequest = renderRequests[renderRequestIndex];
 
                             var cmd = CommandBufferPool.Get("");
-                            // If we are in HDR output mode we need to update the default UI blend mode accordingly
-                            UpdateUIMaterialBlendMode(cmd);
 
                             // TODO: Avoid the intermediate target and render directly into final target
                             //  CommandBuffer.Blit does not work on Cubemap faces
@@ -2375,7 +2342,6 @@ namespace UnityEngine.Rendering.HighDefinition
             SkyManager skyManager,
             ScriptableCullingParameters cullingParams,
             HDRenderPipelineAsset hdrp,
-            LayerMask uiLayerMask,
             ref HDCullingResults cullingResults
         )
         {
@@ -2431,13 +2397,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyManager.UpdateCurrentSkySettings(hdCamera);
                 skyManager.SetupAmbientProbe(hdCamera);
 
-                // TODO_FCC: Comment the following if condition to test.
-                uint castedLayerMask = (uint)(int)uiLayerMask;
-                if (TEST_HDR())
-                {
-                    cullingParams.cullingMask &= ~castedLayerMask;
-                }
-
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
                     OverrideCullingForRayTracing(hdCamera, camera, ref cullingParams);
@@ -2455,15 +2414,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         cullingResults.customPassCullingResults = CustomPassVolume.Cull(renderContext, hdCamera);
                     }
                 }
-
-
-                if (TEST_HDR())
-                {
-                    cullingParams.cullingMask = castedLayerMask;
-                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.UICullResults)))
-                        cullingResults.uiCullingResults = renderContext.Cull(ref cullingParams);
-                }
-
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe) && hdProbeCullState.cullingGroup != null)
                     HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);
