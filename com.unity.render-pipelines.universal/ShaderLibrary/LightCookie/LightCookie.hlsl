@@ -17,7 +17,7 @@ float2 ComputeLightCookieUVDirectional(float4x4 worldToLight, float3 samplePosit
 {
     // Translate and rotate 'positionWS' into the light space.
     // Project point to light "view" plane, i.e. discard Z.
-    float2 positionLS   = mul(worldToLight, float4(samplePositionWS, 1)).xy;
+    float2 positionLS = mul(worldToLight, float4(samplePositionWS, 1)).xy;
 
     // Remap [-1, 1] to [0, 1]
     // (implies the transform has ortho projection mapping world space box to [-1, 1])
@@ -70,6 +70,9 @@ float2 ComputeLightCookieUVPoint(float4x4 worldToLight, float3 samplePositionWS,
 
 real3 SampleMainLightCookie(float3 samplePositionWS)
 {
+    if(!IsMainLightCookieEnabled())
+        return real3(1,1,1);
+
     float2 uv = ComputeLightCookieUVDirectional(_MainLightWorldToLight, samplePositionWS, float4(1, 1, 0, 0), URP_TEXTURE_WRAP_MODE_NONE);
     real4 color = SampleMainLightCookieTexture(uv);
 
