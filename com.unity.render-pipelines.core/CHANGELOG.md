@@ -12,6 +12,10 @@ The version number for this package has increased due to a version update of a r
 ### Added
 - Debug Panels Framework See `IDebugDisplaySettingsQuery`.
 - New `IVolumeDebugSettings` interface and `VolumeDebugSettings<T>` class that stores the information for the Volumes Debug Panel.
+- Added AMD FidelityFX shaders which were originally in HDRP
+
+### Fixed
+- Fixed black pixel issue in AMD FidelityFX RCAS implementation
 
 ## [12.0.0] - 2021-01-11
 

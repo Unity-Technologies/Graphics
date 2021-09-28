@@ -14,6 +14,8 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireBitangent
         , IMayRequireMeshUV
         , IMayRequireScreenPosition
+        , IMayRequireNDCPosition
+        , IMayRequirePixelPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
         , IMayRequirePositionPredisplacement
@@ -239,6 +241,30 @@ namespace UnityEditor.ShaderGraph
 
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresScreenPosition;
+        }
+
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability)
+        {
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+                return false;
+
+            if (m_Descriptor.control == null)
+                return false;
+
+            var requirements = m_Descriptor.control.GetRequirements();
+            return requirements.requiresNDCPosition;
+        }
+
+        public bool RequiresPixelPosition(ShaderStageCapability stageCapability)
+        {
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+                return false;
+
+            if (m_Descriptor.control == null)
+                return false;
+
+            var requirements = m_Descriptor.control.GetRequirements();
+            return requirements.requiresPixelPosition;
         }
 
         public bool RequiresVertexColor(ShaderStageCapability stageCapability)
