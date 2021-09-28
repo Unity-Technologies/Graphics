@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // scaleBias.w = unused
                     // In game view final target acts as back buffer were target is not flipped
                     bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination == RenderTargetHandle.CameraTarget);
-                    bool yflip = (cameraData.IsCameraProjectionMatrixFlipped() && cameraData.renderType != CameraRenderType.Overlay) && !isGameViewFinalTarget;
+                    bool yflip = (cameraData.IsCameraProjectionMatrixFlipped()) && !isGameViewFinalTarget;
                     float flipSign = yflip ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
                         ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
