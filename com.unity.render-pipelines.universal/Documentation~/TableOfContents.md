@@ -7,6 +7,8 @@
 * [Getting started](InstallingAndConfiguringURP.md)
   * [Create a Project from a Template](creating-a-new-project-with-urp.md)
   * [Install URP into an existing Project](InstallURPIntoAProject.md)
+  * [Package samples](package-samples.md)
+    * [URP Package Samples](package-sample-urp-package-samples.md)
 * [Render Pipeline Concepts](urp-concepts.md)
   * [The URP Asset](universalrp-asset.md)
   * [URP Global Settings](urp-global-settings.md)
