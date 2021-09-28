@@ -136,7 +136,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     // Blit has logic to flip projection matrix when rendering to render texture.
                     // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
-                    // However special exception is done by Overlay camera which doesn't have _ProjectionParams.x set up
                     // If you replace this Blit with a Draw* that sets projection matrix double check
                     // to also update shader.
                     // scaleBias.x = flipSign
