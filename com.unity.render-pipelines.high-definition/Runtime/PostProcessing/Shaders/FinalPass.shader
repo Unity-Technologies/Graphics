@@ -169,19 +169,23 @@ Shader "Hidden/HDRP/FinalPass"
             // Apply AfterPostProcess target
             #if APPLY_AFTER_POST
             float4 afterPostColor = SAMPLE_TEXTURE2D_X_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
+            #ifdef HDR_OUTPUT
+                afterPostColor.rgb = ProcessUIForHDR(afterPostColor.rgb, _PaperWhite, _MaxNits);
+            #endif
             // After post objects are blended according to the method described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
             #endif
 
 
-#ifdef HDR_OUTPUT // All of this needs to be done at the very final blit.
+            #ifdef HDR_OUTPUT
+            // Screen space overlay blending.
+            {
+                float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
+                outColor.rgb = SceneUIComposition(uiValue, outColor.rgb, _PaperWhite, _MaxNits);
 
-            outColor.rgb = OETF(outColor.rgb);
-
-            float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
-            float uiBoost = 1.0f; // TODO_FCC: Add from editor UI
-            outColor.rgb = SceneUIComposition(uiValue, outColor.rgb, _PaperWhite * uiBoost);
-#endif
+                outColor.rgb = OETF(outColor.rgb);
+            }
+            #endif
 
         #if !defined(ENABLE_ALPHA)
             return float4(outColor, outAlpha);

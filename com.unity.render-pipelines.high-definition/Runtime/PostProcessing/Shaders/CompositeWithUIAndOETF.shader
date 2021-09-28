@@ -6,6 +6,7 @@ Shader "Hidden/HDRP/CompositeUI"
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma editor_sync_compilation
         #pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB
+        #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -14,6 +15,7 @@ Shader "Hidden/HDRP/CompositeUI"
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_UITexture);
+        TEXTURE2D_X(_AfterPostProcessTexture);
 
         CBUFFER_START(cb)
             float4 _HDROutputParams;
@@ -57,15 +59,20 @@ Shader "Hidden/HDRP/CompositeUI"
             // We need to flip y
             uv.y = 1.0f - uv.y;
 
-            float4 sceneColor = SAMPLE_TEXTURE2D_X(_InputTexture, s_point_clamp_sampler, uv);
-            sceneColor.rgb = OETF(sceneColor.rgb);
+            float4 outColor = SAMPLE_TEXTURE2D_X(_InputTexture, s_point_clamp_sampler, uv);
+            // Apply AfterPostProcess target
+            #if APPLY_AFTER_POST
+            float4 afterPostColor = SAMPLE_TEXTURE2D_X_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, uv, 0);
+            afterPostColor.rgb = ProcessUIForHDR(afterPostColor.rgb, _PaperWhite, _MaxNits);
+            // After post objects are blended according to the method described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+            outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
+            #endif
 
-            float4 uiValue = SAMPLE_TEXTURE2D_X(_UITexture, s_point_clamp_sampler, uv);
+            float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, uv, 0);
+            outColor.rgb = SceneUIComposition(uiValue, outColor.rgb, _PaperWhite, _MaxNits);
+            outColor.rgb = OETF(outColor.rgb);
 
-            float uiBoost = 1.0f; // TODO_FCC: Add from editor UI
-            sceneColor.rgb = SceneUIComposition(uiValue, sceneColor.rgb, _PaperWhite * uiBoost);
-
-            return sceneColor;
+            return outColor;
         }
     ENDHLSL
 

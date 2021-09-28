@@ -436,11 +436,11 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle inputColor,
             TextureHandle backBuffer,
             TextureHandle uiBuffer,
+            TextureHandle afterPostProcessBuffer,
             CullingResults cullResults,
             HDCamera hdCamera)
         {
             bool postPRocessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera);
-            TextureHandle afterPostProcessBuffer = RenderAfterPostProcessObjects(renderGraph, hdCamera, cullResults, prepassOutput);
             TextureHandle dest = postPRocessIsFinalPass ? backBuffer : renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, false, true) { colorFormat = GetColorBufferFormat(), name = "Intermediate Postprocess buffer" });
 
@@ -584,61 +584,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
         }
-
-        #region AfterPostProcess
-        class AfterPostProcessPassData
-        {
-            public ShaderVariablesGlobal globalCB;
-            public HDCamera hdCamera;
-            public RendererListHandle opaqueAfterPostprocessRL;
-            public RendererListHandle transparentAfterPostprocessRL;
-        }
-
-        TextureHandle RenderAfterPostProcessObjects(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults, in PrepassOutput prepassOutput)
-        {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
-                return renderGraph.defaultResources.blackTextureXR;
-
-            // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
-            using (var builder = renderGraph.AddRenderPass<AfterPostProcessPassData>("After Post-Process Objects", out var passData, ProfilingSampler.Get(HDProfileId.AfterPostProcessingObjects)))
-            {
-                bool useDepthBuffer = !hdCamera.RequiresCameraJitter() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA);
-
-                passData.globalCB = m_ShaderVariablesGlobalCB;
-                passData.hdCamera = hdCamera;
-                passData.opaqueAfterPostprocessRL = builder.UseRendererList(renderGraph.CreateRendererList(
-                    CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_ForwardOnlyName, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque)));
-                passData.transparentAfterPostprocessRL = builder.UseRendererList(renderGraph.CreateRendererList(
-                    CreateTransparentRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_ForwardOnlyName, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent)));
-
-                var output = builder.UseColorBuffer(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.black, name = "OffScreen AfterPostProcess" }), 0);
-                if (useDepthBuffer)
-                    builder.UseDepthBuffer(prepassOutput.resolvedDepthBuffer, DepthAccess.ReadWrite);
-
-                // If the pass is culled at runtime from the RendererList API, set the appropriate fall-back for the output
-                // Here we need an opaque black texture as default (alpha = 1) due to the way the output of this pass is composed with the post-process output (see FinalPass.shader)
-                output.SetFallBackResource(renderGraph.defaultResources.blackTextureXR);
-
-                builder.SetRenderFunc(
-                    (AfterPostProcessPassData data, RenderGraphContext ctx) =>
-                    {
-                        UpdateOffscreenRenderingConstants(ref data.globalCB, true, 1.0f);
-                        ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
-
-                        DrawOpaqueRendererList(ctx.renderContext, ctx.cmd, data.hdCamera.frameSettings, data.opaqueAfterPostprocessRL);
-                        // Setup off-screen transparency here
-                        DrawTransparentRendererList(ctx.renderContext, ctx.cmd, data.hdCamera.frameSettings, data.transparentAfterPostprocessRL);
-
-                        UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1.0f);
-                        ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
-                    });
-
-                return output;
-            }
-        }
-
-        #endregion
 
         #region DLSS
         class DLSSColorMaskPassData
@@ -4981,8 +4926,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             finalPassMaterial.DisableKeyword("ENABLE_ALPHA");
 
+                        bool processHDR = TEST_HDR() && HDUtils.PostProcessIsFinalPass(data.hdCamera);
                         // TODO: THIS IS ALL BAD, NEED TO MOVE AND MOST IMPORTANTLY AVOID CAPTURE.
-                        if (TEST_HDR() && HDUtils.PostProcessIsFinalPass(data.hdCamera))
+                        if (processHDR)
                         {
                             if (HDROutputSettings.main.active && HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709)
                             {
@@ -5018,7 +4964,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             backBufferRect.x = backBufferRect.y = 0;
                         }
 
-                        if (data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
+                        if (processHDR && data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
+                        {
+                            finalPassMaterial.EnableKeyword("APPLY_AFTER_POST");
+                            finalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, data.afterPostProcessTexture);
+                        }
+                        else if (!TEST_HDR() && data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
                         {
                             finalPassMaterial.EnableKeyword("APPLY_AFTER_POST");
                             finalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, data.afterPostProcessTexture);

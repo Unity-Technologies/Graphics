@@ -496,23 +496,23 @@ float3 HDRMappingFromRec709_ACES(float3 Rec709Input, float hdrBoost, bool skipOE
 // UI Related functions
 // --------------------------------
 
-float3 SceneUIComposition(float4 uiSample, float3 pqSceneColor, float paperWhite)
+float3 ProcessUIForHDR(float3 uiSample, float paperWhite, float maxNits)
+{
+#ifdef HDR_OUTPUT_SCRGB
+    uiSample.rgb = (uiSample.rgb * paperWhite);
+#else
+    uiSample.rgb = RotateRec709ToRec2020(uiSample.rgb);
+    uiSample.rgb *= paperWhite;
+#endif
+    return uiSample.rgb;
+}
+
+float3 SceneUIComposition(float4 uiSample, float3 sceneColor, float paperWhite, float maxNits)
 {
     // Undo the pre multiply.
     uiSample.rgb = uiSample.rgb / (uiSample.a == 0.0f ? 1.0 : uiSample.a);
-
-#ifdef HDR_OUTPUT_SCRGB
-    uiSample.rgb = OETF(uiSample.rgb * paperWhite);
-    // TODO: At some point investigate this better.
-    float3 blendedVal = LinearToSRGB(uiSample.rgb) * uiSample.a + LinearToSRGB(pqSceneColor.rgb) * (1.0f - uiSample.a);
-    return SRGBToLinear(blendedVal);
-#else
-    uiSample.rgb = RotateRec709ToRec2020(uiSample.rgb);
-    // TODO: Should we use an approximation here?
-    uiSample.rgb = LinearToPQ(uiSample.rgb, (MAX_PQ_VALUE / paperWhite));
-    return uiSample.rgb * uiSample.a + pqSceneColor.rgb * (1.0f - uiSample.a);
-#endif
-
+    uiSample.rgb = ProcessUIForHDR(uiSample.rgb, paperWhite, maxNits);
+    return uiSample.rgb * uiSample.a + sceneColor.rgb * (1.0f - uiSample.a);
 }
 
 // --------------------------------------------------------------------------------------------
