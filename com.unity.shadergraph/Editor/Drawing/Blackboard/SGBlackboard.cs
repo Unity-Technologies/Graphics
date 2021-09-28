@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void SetCurrentVariantUsage(int currentVariantCount, int maxVariantCount)
         {
-            if(currentVariantCount < maxVariantCount &&  m_VariantExceededHelpBox != null)
+            if (currentVariantCount < maxVariantCount &&  m_VariantExceededHelpBox != null)
             {
                 RemoveAt(0);
                 m_VariantExceededHelpBox = null;

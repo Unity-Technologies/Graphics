@@ -294,7 +294,7 @@ namespace UnityEditor.ShaderGraph
                     var prop = propertiesList.Find(p => p.guid == child.guid);
                     // Not all properties in the category are actually on the graph.
                     // In particular, it seems as if keywords are not properties on sub-graphs.
-                    if(prop != null)
+                    if (prop != null)
                         orderedProperties.Add(prop);
                 }
             }
