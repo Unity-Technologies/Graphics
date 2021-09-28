@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
         Vector4 m_DebugRenderTargetPixelRect;
         RenderTargetIdentifier m_DebugRenderTargetIdentifier;
 
-        readonly DebugDisplaySettings m_DebugDisplaySettings;
+        readonly UniversalRenderPipelineDebugDisplaySettings m_DebugDisplaySettings;
 
         DebugDisplaySettingsLighting LightingSettings => m_DebugDisplaySettings.LightingSettings;
         DebugDisplaySettingsMaterial MaterialSettings => m_DebugDisplaySettings.MaterialSettings;
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         internal Material ReplacementMaterial => m_ReplacementMaterial;
-        internal DebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
+        internal UniversalRenderPipelineDebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
 
         internal bool IsScreenClearNeeded
         {
@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Shader debugReplacementShader = scriptableRendererData.debugShaders.debugReplacementPS;
 
-            m_DebugDisplaySettings = DebugDisplaySettings.Instance;
+            m_DebugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
 
             m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
         }
