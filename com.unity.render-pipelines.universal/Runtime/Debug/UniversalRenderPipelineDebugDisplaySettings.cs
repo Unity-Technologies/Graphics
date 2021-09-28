@@ -101,5 +101,11 @@ namespace UnityEngine.Rendering.Universal
             LightingSettings = Add(new DebugDisplaySettingsLighting());
             RenderingSettings = Add(new DebugDisplaySettingsRendering());
         }
+
+        internal void UpdateFrameTiming()
+        {
+            if (DisplayStats != null)
+                DisplayStats.UpdateFrameTiming();
+        }
     }
 }

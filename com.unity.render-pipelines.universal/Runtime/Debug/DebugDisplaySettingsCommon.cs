@@ -103,6 +103,12 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region IDebugDisplaySettingsData
+
+        public bool AreAnySettingsActive => false;
+        public bool IsPostProcessingAllowed => true;
+        public bool IsLightingActive => true;
+        public bool TryGetScreenClearColor(ref Color _) => false;
+
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
             return new SettingsPanel();

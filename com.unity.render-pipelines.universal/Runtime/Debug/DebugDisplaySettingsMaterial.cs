@@ -3,7 +3,7 @@ using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
 namespace UnityEngine.Rendering.Universal
 {
-    class DebugDisplaySettingsMaterial : IDebugDisplaySettingsData, IDebugDisplaySettingsQuery
+    class DebugDisplaySettingsMaterial : IDebugDisplaySettingsData
     {
         #region Material validation
         internal enum AlbedoDebugValidationPreset

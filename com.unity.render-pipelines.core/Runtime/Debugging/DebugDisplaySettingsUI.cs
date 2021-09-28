@@ -74,10 +74,5 @@ namespace UnityEngine.Rendering
         }
 
         #endregion
-
-        public void UpdateFrameTiming()
-        {
-            m_Settings.DisplayStats.UpdateFrameTiming();
-        }
     }
 }

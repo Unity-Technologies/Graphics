@@ -3,7 +3,7 @@ using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
 namespace UnityEngine.Rendering.Universal
 {
-    class DebugDisplaySettingsLighting : IDebugDisplaySettingsData, IDebugDisplaySettingsQuery
+    class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
     {
         internal DebugLightingMode DebugLightingMode { get; private set; }
         internal DebugLightingFeatureFlags DebugLightingFeatureFlagsMask { get; private set; }

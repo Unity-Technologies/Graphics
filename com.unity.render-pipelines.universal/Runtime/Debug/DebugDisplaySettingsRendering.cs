@@ -4,7 +4,7 @@ using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
 namespace UnityEngine.Rendering.Universal
 {
-    class DebugDisplaySettingsRendering : IDebugDisplaySettingsData, IDebugDisplaySettingsQuery
+    class DebugDisplaySettingsRendering : IDebugDisplaySettingsData
     {
         // Under the hood, the implementation uses a single enum (DebugSceneOverrideMode). For UI, we have split
         // this enum into WireframeMode and a separate Overdraw boolean.

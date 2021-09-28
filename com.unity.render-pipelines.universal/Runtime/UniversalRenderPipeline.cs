@@ -257,7 +257,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.isAnyDebugUIActive)
-                m_DebugDisplaySettingsUI.UpdateFrameTiming();
+                UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateFrameTiming();
 #endif
 
             SortCameras(cameras);
