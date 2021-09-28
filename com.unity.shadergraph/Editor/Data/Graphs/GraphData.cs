@@ -311,18 +311,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        Material m_Material;
-
-        public Material material
-        {
-            get
-            {
-                if (m_Material == null)
-                    m_Material = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(assetGuid));
-                return m_Material;
-            }
-        }
-
         public MessageManager messageManager { get; set; }
         public bool isSubGraph { get; set; }
 
