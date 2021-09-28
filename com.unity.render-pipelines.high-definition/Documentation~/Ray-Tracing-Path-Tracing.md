@@ -54,35 +54,40 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 ## Materials parameterization
 
-Some phenomena like refraction, absorption in transmissive objects, or subsurface scattering, can be expressed more naturally in a path tracing setting than in its rasterized counterpart, and as such require less material parameters (e.g. additional thickness information, expected shape of the refractive object, ...). For that reason, some parameters have no effect in path tracing, while others bear a slightly different meaning.
+HDRP can perform effects like light refraction and absorption in transmissive objects, or subsurface scattering, more easily when you use path tracing setting than in rasterization . This means they need fewer Material parameters (e.g. additional thickness information, expected shape of the refractive object, ...). For that reason, some parameters have no effect in path tracing, and some parameters change behaviour. For more information, see [Refraction models](#).
 
-### Refraction model
+<a name="Refraction-models"></a>
 
-In the Lit family of materials, when the surface type is set to *Transparent*, you can select between *None*, *Box*, *Sphere* or *Thin* refraction models.
+### Refraction models
 
-For path tracing, the distinction between *Box* or *Sphere* makes no sense (as rays can intersect the real objects in the scene), and both effectively carry the common meaning of a *thick* mode, to be used on solid objects represented by a closed surface. On the other hand, *Thin* conveys the same idea as its rasterized version, and *None* is a special case of thin refractive surface, hardcoded to be fully smooth to simulate alpha blending. Additionally, transparent surfaces should be *Double-Sided*, so that they get intersected from both sides, and normal mode should be selected appropriately for each situation, as described right below.
+Path tracing changes the way refraction models behave. The table below describes how each refraction model behaves when you enable path tracing. To change the type of refraction model a Lit Material uses, set its **Surface type** to **Transparent** then select a method from the **Refraction model** drop down.
 
-| Refraction model  | Path tracing meaning                              | Surface sidedness                                 |
-|-------------------|---------------------------------------------------|---------------------------------------------------|
-| *Box* or *Sphere* | *Thick* object (e.g magnifying paperweight)       | Double sided, with *None* normal mode             |
-| *Thin*            | *Thin* object (e.g soap bubble or window)         | Double sided, with *Flip* or *Mirror* normal mode |
-| *None*            | *Thin* object, with smoothness = 1 and no Fresnel | Double sided, with *Flip* or *Mirror* normal mode |
+| Refraction model | Path tracing behavior                                        | Compatible Surface sides                                     |
+| ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **Box**          | A box-shaped model where incident light enters through a flat surface and leaves through a flat surface.<br/><br/>Suitable for thick objects like a paperweight or a crystal ball. | A double-sided Material that has its **Normal mode** set to **None**. |
+| **Sphere**       | A sphere-shaped model that produces a magnifying glass-like effect to refraction. <br/><br/>Suitable for thick objects like a paperweight or a crystal ball. | A double-sided Material that has its **Normal mode** set to **None**. |
+| **Thin**         | A thin box surface type, similar to **Box** with a fixed thickness of 5cm. Select this for thin window-like surfaces. <br/>The behaviour of the **Thin** refraction model does not change with path tracing enabled .<br/><br/>Suitable for thin objects like a soap bubble or a window. | A double-sided Material that has its **Normal mode** set to  **Flip** or **Mirror**. |
+| **None**         | A thin refractive surface, hardcoded to be fully smooth to simulate alpha blending.<br/>The behaviour of the **None **refraction model does not change with path tracing enabled .<br/><br/>Suitable for thin objects like a soap bubble or a window. | A double-sided Material that has its **Normal mode** set to  **Flip** or **Mirror**. |
 
-The reason why normal mode should be set to *None* for *thick* objects, is that we want the intersection with a front normal to represent entering the medium (say, from air into glass), but also the back normal to represent leaving it.
+##### **Notes:**
+
+- When you enable path tracing there is no practical difference between the **Box** and **Sphere** models. This is because rays can intersect GameObjects in the scene.
+- Assign a double-sided Material to transparent surfaces so that rays intersect them from both sides.
+- **Normal mode** should be set to **None** for thick objects. This is so the ray can intersect with a front normal to represent entering the medium (for example, from air into glass), and the back normal to represent leaving it.
 
 ### Subsurface scattering
 
-In path tracing, the *Transmission* option of subsurface scattering will only take effect if the surface is also set to be *Double-Sided* (any normal mode will do), in which case it will receive light from both sides.
+When you use path tracing, the **Transmission** option of subsurface scattering only takes effect if the surface Material is also set to be **Double-Sided**.  This means the surface can receive light from both sides.
 
-Here is an example of a sheet of fabric, lit from below by a point light:
+The following example images display the difference between of a sheet of fabric lit from below by a point light with a single-sided surface and double-sided surface:
 
 ![](Images/Path-traced-SSS-Single-sided.png)
 
-Single-sided or no Transmission
+Single-sided with no Transmission.
 
 ![](Images/Path-traced-SSS-Double-sided.png)
 
-Double-sided + Transmission
+Double-sided with Transmission.
 
 ## Limitations
 
