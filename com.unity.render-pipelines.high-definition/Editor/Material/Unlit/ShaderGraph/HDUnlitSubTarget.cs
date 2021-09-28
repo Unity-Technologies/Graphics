@@ -23,8 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         static string[] passTemplateMaterialDirectories = new string[]
         {
-            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/",
-            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/"
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
@@ -32,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string customInspector => "Rendering.HighDefinition.HDUnlitGUI";
+        internal override MaterialResetter setupMaterialKeywordsAndPassFunc => UnlitShaderGraphGUI.SetupUnlitKeywordsAndPass;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Unlit SubShader", "");
         protected override string raytracingInclude => CoreIncludes.kUnlitRaytracing;
         protected override string subShaderInclude => CoreIncludes.kUnlit;
@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_UnlitData = value;
         }
 
-        public static FieldDescriptor EnableShadowMatte =        new FieldDescriptor(string.Empty, "EnableShadowMatte", "_ENABLE_SHADOW_MATTE");
+        public static FieldDescriptor EnableShadowMatte = new FieldDescriptor(string.Empty, "EnableShadowMatte", "_ENABLE_SHADOW_MATTE");
 
         protected override SubShaderDescriptor GetSubShaderDescriptor()
         {

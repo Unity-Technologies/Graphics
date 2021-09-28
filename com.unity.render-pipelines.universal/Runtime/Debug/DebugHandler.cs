@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
         Vector4 m_DebugRenderTargetPixelRect;
         RenderTargetIdentifier m_DebugRenderTargetIdentifier;
 
-        readonly DebugDisplaySettings m_DebugDisplaySettings;
+        readonly UniversalRenderPipelineDebugDisplaySettings m_DebugDisplaySettings;
 
         DebugDisplaySettingsLighting LightingSettings => m_DebugDisplaySettings.LightingSettings;
         DebugDisplaySettingsMaterial MaterialSettings => m_DebugDisplaySettings.MaterialSettings;
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         internal Material ReplacementMaterial => m_ReplacementMaterial;
-        internal DebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
+        internal UniversalRenderPipelineDebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
 
         internal bool IsScreenClearNeeded
         {
@@ -96,11 +96,19 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal bool IsRenderPassSupported
+        {
+            get
+            {
+                return RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.None || RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.Overdraw;
+            }
+        }
+
         internal DebugHandler(ScriptableRendererData scriptableRendererData)
         {
             Shader debugReplacementShader = scriptableRendererData.debugShaders.debugReplacementPS;
 
-            m_DebugDisplaySettings = DebugDisplaySettings.Instance;
+            m_DebugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
 
             m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
         }
@@ -110,10 +118,15 @@ namespace UnityEngine.Rendering.Universal
             return !cameraData.isPreviewCamera && AreAnySettingsActive;
         }
 
-        internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode, out int outputHeight)
+        internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode)
+        {
+            return TryGetFullscreenDebugMode(out debugFullScreenMode, out _);
+        }
+
+        internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode, out int textureHeightPercent)
         {
             debugFullScreenMode = RenderingSettings.debugFullScreenMode;
-            outputHeight = RenderingSettings.debugFullScreenModeOutputSize;
+            textureHeightPercent = RenderingSettings.debugFullScreenModeOutputSizeScreenPercent;
             return debugFullScreenMode != DebugFullScreenMode.None;
         }
 

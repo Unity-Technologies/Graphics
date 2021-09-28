@@ -44,8 +44,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override bool IsActive() => true;
 
+        internal GUID subTargetGuid { get { return subTargetAssetGuid; } }
         protected abstract ShaderID shaderID { get; }
+
         protected abstract string customInspector { get; }
+        internal abstract MaterialResetter setupMaterialKeywordsAndPassFunc { get; }
+
         protected abstract GUID subTargetAssetGuid { get; }
         protected abstract string renderType { get; }
         protected abstract string renderQueue { get; }
@@ -66,7 +70,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
             hdMetadata.shaderID = shaderID;
+            hdMetadata.subTargetGuid = subTargetGuid;
             hdMetadata.migrateFromOldCrossPipelineSG = m_MigrateFromOldCrossPipelineSG;
+            hdMetadata.hdSubTargetVersion = systemData.version;
             return hdMetadata;
         }
 
@@ -91,28 +97,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
         }
 
+        /// <summary>
+        /// Override this method to handle subtarget specific migration (ie including private versioning)
+        /// in inherited subtargets
+        /// </summary>
+        internal virtual void Migrate()
+        {
+            if (migrationSteps.Migrate(this))
+                OnBeforeSerialize();
+        }
+
         static readonly GUID kSourceCodeGuid = new GUID("c09e6e9062cbd5a48900c48a0c2ed1c2");  // HDSubTarget.cs
 
         public override void Setup(ref TargetSetupContext context)
         {
+            Migrate();
+
+            systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
-            var inspector = TargetsVFX() ? VFXHDRPSubTarget.Inspector : customInspector;
+            var inspector = TargetsVFX() ? typeof(VFXShaderGraphGUI).FullName : customInspector;
             if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))
                 context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
-
-            if (migrationSteps.Migrate(this))
-                OnBeforeSerialize();
-
-            // Migration hack to have the case where SG doesn't have version yet but is already upgraded to the stack system
-            if (!systemData.firstTimeMigrationExecuted)
-            {
-                // Force the initial migration step
-                MigrateTo(ShaderGraphVersion.FirstTimeMigration);
-                systemData.firstTimeMigrationExecuted = true;
-                OnBeforeSerialize();
-                systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
-            }
 
             foreach (var subShader in EnumerateSubShaders())
             {
@@ -123,6 +129,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 context.AddSubShader(patchedSubShader);
             }
         }
+
+        private static readonly string[] s_SharedTemplatePath =
+        {
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/",
+            $"{HDUtils.GetVFXPath()}/Editor/ShaderGraph/Templates"
+        };
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
@@ -138,7 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var passDescriptor = passes[i].descriptor;
                 passDescriptor.passTemplatePath = templatePath;
-                passDescriptor.sharedTemplateDirectories = templateMaterialDirectories;
+                passDescriptor.sharedTemplateDirectories = s_SharedTemplatePath.Concat(templateMaterialDirectories).ToArray();
 
                 // Add the subShader to enable fields that depends on it
                 var originalRequireFields = passDescriptor.requiredFields;
@@ -195,7 +207,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return subShaderDescriptor;
         }
 
-        protected virtual void CollectPassKeywords(ref PassDescriptor pass) {}
+        protected virtual void CollectPassKeywords(ref PassDescriptor pass) { }
 
         public override void GetFields(ref TargetFieldContext context)
         {

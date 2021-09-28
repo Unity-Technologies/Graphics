@@ -54,7 +54,7 @@ Once per frame, Unity performs the following operations:
 
 Unity can render an Overlay Camera’s view multiple times during a frame - either because the Overlay Camera appears in more than one Camera Stack, or because the Overlay Camera appears in the same Camera Stack more than once. When this happens, Unity does not reuse any element of the culling or rendering operation. The operations are repeated in full, in the order detailed above.
 
-__Important note:__ In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Forward Renderer. Overlay Cameras will not perform any part of their rendering loop if using the 2D Renderer.
+__Important note:__ In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Universal Renderer. Overlay Cameras will not perform any part of their rendering loop if using the 2D Renderer.
 <a name="overdraw"></a>
 ## Overdraw
 

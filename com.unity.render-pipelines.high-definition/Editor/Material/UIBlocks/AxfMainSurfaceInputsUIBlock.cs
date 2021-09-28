@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent rayTracingTexFilteringScaleText = new GUIContent("Texture Filtering In Raytracing", "Texture filtering works differently in raytracing. To help with aliasing you can adjust this from 0 (no filtering) to 1 (maximum filtering)");
         }
-        static readonly string[]    MappingModeNames = Enum.GetNames(typeof(AxFMappingMode));
+        static readonly string[] MappingModeNames = Enum.GetNames(typeof(AxFMappingMode));
 
         static string m_MappingModeText = "_MappingMode";
         MaterialProperty m_MappingMode = null;
@@ -56,14 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         protected override void OnGUIOpen()
         {
-            EditorGUI.BeginChangeCheck();
-            float val = EditorGUILayout.Popup(Styles.mappingModeText, (int)m_MappingMode.floatValue, MappingModeNames);
-            if (EditorGUI.EndChangeCheck())
-            {
-                Material material = materialEditor.target as Material;
-                Undo.RecordObject(material, "Change Mapping Mode");
-                m_MappingMode.floatValue = val;
-            }
+            materialEditor.PopupShaderProperty(m_MappingMode, Styles.mappingModeText, MappingModeNames);
 
             AxFMappingMode mappingMode = (AxFMappingMode)m_MappingMode.floatValue;
             m_MappingMask.vectorValue = AxFGUI.AxFMappingModeToMask(mappingMode);

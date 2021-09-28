@@ -14,7 +14,7 @@
 #if defined(_REQUIRE_UV2) || defined(_REQUIRE_UV3) || defined(DYNAMICLIGHTMAP_ON) || defined(DEBUG_DISPLAY) || (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
 #define ATTRIBUTES_NEED_TEXCOORD2
 #endif
-#if defined(_REQUIRE_UV3) || defined(DEBUG_DISPLAY)
+#if defined(_REQUIRE_UV3) || defined(DEBUG_DISPLAY) || defined(EDITOR_VISUALIZATION)
 #define ATTRIBUTES_NEED_TEXCOORD3
 #endif
 

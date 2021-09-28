@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
     [CanEditMultipleObjects]
 #endif
-    [AddComponentMenu("Rendering/Decal Projector")]
+    [AddComponentMenu("Rendering/URP Decal Projector")]
     public class DecalProjector : MonoBehaviour
     {
         internal delegate void DecalProjectorAction(DecalProjector decalProjector);

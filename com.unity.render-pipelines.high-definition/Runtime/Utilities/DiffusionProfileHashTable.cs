@@ -15,6 +15,31 @@ namespace UnityEditor.Rendering.HighDefinition
         [System.NonSerialized]
         static Dictionary<int,  uint>           diffusionProfileHashes = new Dictionary<int, uint>();
 
+        // Stable hash to avoid having different result after upgrading mono
+        // Source: https://github.com/Unity-Technologies/mono/blob/unity-2021.2-mbe-pre-upgrade/mcs/class/referencesource/mscorlib/system/string.cs#L824
+        unsafe static int MonoStringHash(string guid)
+        {
+            fixed(char *src = guid)
+            {
+                int hash1 = 5381;
+                int hash2 = hash1;
+
+                int     c;
+                char *s = src;
+                while ((c = s[0]) != 0)
+                {
+                    hash1 = ((hash1 << 5) + hash1) ^ c;
+                    c = s[1];
+                    if (c == 0)
+                        break;
+                    hash2 = ((hash2 << 5) + hash2) ^ c;
+                    s += 2;
+                }
+
+                return hash1 + (hash2 * 1566083941);
+            }
+        }
+
         static uint GetDiffusionProfileHash(DiffusionProfileSettings asset)
         {
             string assetPath = AssetDatabase.GetAssetPath(asset);
@@ -23,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (String.IsNullOrEmpty(assetPath))
                 return 0;
 
-            uint hash32 = (uint)AssetDatabase.AssetPathToGUID(assetPath).GetHashCode();
+            uint hash32 = (uint)MonoStringHash(AssetDatabase.AssetPathToGUID(assetPath));
             uint mantissa = hash32 & 0x7FFFFF;
             uint exponent = 0b10000000; // 0 as exponent
 

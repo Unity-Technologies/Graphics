@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var result = RenderTexture.GetTemporary(resolution * 6, resolution, 0, source.format);
                     var cmd = new CommandBuffer();
                     for (var i = 0; i < 6; ++i)
-                        cmd.CopyTexture(source, i, 0,  0, 0, resolution, resolution, result, 0, 0, i * resolution, 0);
+                        cmd.CopyTexture(source, i, 0, 0, 0, resolution, resolution, result, 0, 0, i * resolution, 0);
                     Graphics.ExecuteCommandBuffer(cmd);
 
                     var t2D = new Texture2D(resolution * 6, resolution, format, TextureCreationFlags.None);

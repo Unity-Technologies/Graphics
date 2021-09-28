@@ -274,6 +274,17 @@
 #endif
 
 // ----------------------------------------------------------------------------
+// Global Constant buffers API definitions
+// ----------------------------------------------------------------------------
+#if (SHADER_STAGE_RAY_TRACING && UNITY_RAY_TRACING_GLOBAL_RESOURCES)
+    #define GLOBAL_RESOURCE(type, name, reg) type name : register(reg, space1);
+    #define GLOBAL_CBUFFER_START(name, reg) cbuffer name : register(reg, space1) {
+#else
+    #define GLOBAL_RESOURCE(type, name, reg) type name;
+    #define GLOBAL_CBUFFER_START(name, reg) CBUFFER_START(name)
+#endif
+
+// ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
 // ----------------------------------------------------------------------------
 
@@ -1356,6 +1367,7 @@ float2 GetFullScreenTriangleTexCoord(uint vertexID)
 
 float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
 {
+    // note: the triangle vertex position coordinates are x2 so the returned UV coordinates are in range -1, 1 on the screen.
     float2 uv = float2((vertexID << 1) & 2, vertexID & 2);
     return float4(uv * 2.0 - 1.0, z, 1.0);
 }

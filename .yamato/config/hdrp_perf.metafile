@@ -22,7 +22,8 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
-      - [all]: git checkout %GIT_BRANCH%
+      - [all]:
+        - command: git checkout %GIT_BRANCH%
       - [all]: <shared.platform.commands.call_utr_without_git>
         flags:
           - [all]: --testfilter=Memory
@@ -30,32 +31,17 @@ test_platforms:
           - [all]: --timeout=7200
           - [all]: --platform=StandaloneWindows64
           - [all]: --loglevel=verbose
-  - type: playmode
-    name: performance_memory_cache
-    add_artifacts:
-      - artifacts.logs.paths: "PrebuildLog/**"
-    commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
-      - [all]: <shared.platform.commands.setup_utr>
-      - [all]: <shared.platform.commands.unity_downloader_cli>
-      - [all]: git checkout %GIT_BRANCH%
-      - [all]: <shared.platform.commands.call_utr_without_git>
-        flags:
-          - [all]: --testfilter=Memory
-          - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
-          - [all]: --timeout=14400
-          - [all]: --platform=StandaloneWindows64
-          - [all]: --loglevel=verbose
-          - [all]: <reuse_blocks.cache_server>
   - type: editmode
     name: performance_run_build
+    allow_cache: True
     add_artifacts:
       - artifacts.logs.paths: "PrebuildLog/**"
     commands:
       - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
-      - [all]: git checkout %GIT_BRANCH%
+      - [all]:
+        - command: git checkout %GIT_BRANCH%
       - [all]: <shared.platform.commands.call_utr_without_git>
         flags:
           - [all]: --testfilter=Build
@@ -63,25 +49,7 @@ test_platforms:
           - [all]: --timeout=14400
           - [all]: --platform=editmode
           - [all]: --loglevel=verbose
-  - type: editmode
-    name: performance_run_build_cache
-    add_artifacts:
-      - artifacts.logs.paths: "PrebuildLog/**"
-    commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
-      - [all]: <shared.platform.commands.setup_utr>
-      - [all]: <shared.platform.commands.unity_downloader_cli>
-      - [all]: git checkout %GIT_BRANCH%
-      - [all]: <shared.platform.commands.call_utr_without_git>
-        flags:
-          - [all]: --testfilter=Build
-          - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
-          - [all]: --timeout=14400
-          - [all]: --platform=editmode
-          - [all]: --loglevel=verbose
-          - [all]: <reuse_blocks.cache_server>
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:
@@ -103,16 +71,14 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_memory_cache
-        - performance_run_build_cache
-nightly:
-  dependencies:
-    - project: HDRP_PerformanceTests
-      pr: true
+
+jobs:
+  - name: <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_memory
+          - performance_run_build

@@ -2,6 +2,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.LookDev;
 using UnityEditorInternal;
 using UnityEngine;
+using System.Linq;
 
 namespace UnityEditor.Rendering.LookDev
 {
@@ -32,6 +33,11 @@ namespace UnityEditor.Rendering.LookDev
             {
                 if (s_CurrentContext == null || s_CurrentContext.Equals(null))
                 {
+                    // In case the context is still alive somewhere but the static reference has been lost, we can find the object back with this
+                    s_CurrentContext = TryFindCurrentContext();
+                    if (s_CurrentContext != null)
+                        return s_CurrentContext;
+
                     s_CurrentContext = LoadConfigInternal();
                     if (s_CurrentContext == null)
                         s_CurrentContext = defaultContext;
@@ -43,11 +49,22 @@ namespace UnityEditor.Rendering.LookDev
             private set => s_CurrentContext = value;
         }
 
+        static Context TryFindCurrentContext()
+        {
+            Context context = s_CurrentContext;
+
+            if (context != null)
+                return context;
+
+            return Resources.FindObjectsOfTypeAll<Context>().FirstOrDefault();
+        }
+
         static Context defaultContext
         {
             get
             {
                 var context = UnityEngine.ScriptableObject.CreateInstance<Context>();
+                context.hideFlags = HideFlags.HideAndDontSave;
                 context.Init();
                 return context;
             }
@@ -132,7 +149,7 @@ namespace UnityEditor.Rendering.LookDev
 
             // Lookdev Initialize can be called when the window is re-created by the editor layout system.
             // In that case, the current context won't be null and there might be objects to reload from the temp ID
-            ConfigureLookDev(reloadWithTemporaryID: s_CurrentContext != null);
+            ConfigureLookDev(reloadWithTemporaryID: TryFindCurrentContext() != null);
         }
 
         [Callbacks.DidReloadScripts]

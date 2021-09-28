@@ -20,11 +20,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public enum Features
         {
             /// <summary>Displays the standard detail inputs UI.</summary>
-            None                = 0,
+            None = 0,
             /// <summary>Replaces the header by a sub-header. This is useful for layered material UI</summary>
-            SubHeader           = 1 << 1,
+            SubHeader = 1 << 1,
             /// <summary>Display the standard Detail Inputs UI.</summary>
-            All                 = ~0 ^ SubHeader // By default we don't want to have a sub-header
+            All = ~0 ^ SubHeader // By default we don't want to have a sub-header
         }
 
         internal class Styles
@@ -58,12 +58,13 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kUVBase = "_UVBase";
         MaterialProperty displacementMode = null;
         const string kDisplacementMode = "_DisplacementMode";
+        MaterialProperty tessellationMode = null;
 
-        Features    m_Features;
-        int         m_LayerIndex;
-        int         m_LayerCount;
+        Features m_Features;
+        int m_LayerIndex;
+        int m_LayerCount;
 
-        bool        isLayeredLit => m_LayerCount > 1;
+        bool isLayeredLit => m_LayerCount > 1;
 
         /// <summary>
         /// Constructs a DetailInputsUIBlock base on the parameters.
@@ -94,6 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             detailSmoothnessScale = FindPropertyLayered(kDetailSmoothnessScale, m_LayerCount);
             UVBase = FindPropertyLayered(kUVBase, m_LayerCount);
             displacementMode = FindProperty(kDisplacementMode);
+            tessellationMode = FindProperty(kTessellationMode);
         }
 
         /// <summary>
@@ -141,7 +143,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel--;
 
                 materialEditor.TextureScaleOffsetProperty(detailMap[m_LayerIndex]);
-                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[m_LayerIndex].floatValue != UVBase[m_LayerIndex].floatValue))
+                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[m_LayerIndex].floatValue != UVBase[m_LayerIndex].floatValue) &&
+                    tessellationMode == null)
                 {
                     if (materials.All(m => m.GetTexture(isLayeredLit ? kDetailMap + m_LayerIndex : kDetailMap)))
                         EditorGUILayout.HelpBox(Styles.perPixelDisplacementDetailsWarning.text, MessageType.Warning);

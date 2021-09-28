@@ -85,7 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (mode == (int)DepthOfFieldMode.Off)
                 return;
 
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 // Draw the focus mode controls
                 DrawFocusSettings(mode);
@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             base.OnInspectorGUI();
 
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 // Draw the quality controls
                 DrawQualitySettings();

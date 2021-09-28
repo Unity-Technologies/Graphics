@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             textSize,
         }
 
-        public Change change {get; protected set; }
+        public Change change { get; protected set; }
     }
 
     class StickyNote : GraphElement, ISGResizable
@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public TextSize textSize
         {
-            get {return m_TextSize; }
+            get { return m_TextSize; }
             set
             {
                 if (m_TextSize != value)
@@ -208,7 +208,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             tpl.CloneTree(this);
 
-            capabilities = Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable | Capabilities.Selectable;
+            capabilities = Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable | Capabilities.Selectable | Capabilities.Copiable | Capabilities.Groupable;
 
             m_Title = this.Q<Label>(name: "title");
             if (m_Title != null)
@@ -243,6 +243,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddToClassList("selectable");
             UpdateThemeClasses();
             UpdateSizeClasses();
+            // Manually set the layer of the sticky note so it's always on top. This used to be in the uss
+            // but that causes issues with re-laying out at times that can do weird things to selection.
+            this.layer = -100;
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
@@ -269,7 +272,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.AppendAction("Fit To Text", OnFitToText, e => DropdownMenuAction.Status.Normal);
                 evt.menu.AppendSeparator();
 
-                evt.menu.AppendAction("Delete",  OnDelete, e => DropdownMenuAction.Status.Normal);
+                evt.menu.AppendAction("Delete", OnDelete, e => DropdownMenuAction.Status.Normal);
                 evt.menu.AppendSeparator();
             }
         }
@@ -310,7 +313,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public string contents
         {
-            get {return m_Contents.text; }
+            get { return m_Contents.text; }
             set
             {
                 if (m_Contents != null)
@@ -321,7 +324,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
         public new string title
         {
-            get {return m_Title.text; }
+            get { return m_Title.text; }
             set
             {
                 if (m_Title != null)

@@ -48,6 +48,9 @@ Shader "Hidden/HDRP/ScreenSpaceShadows"
 
             PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
+            // Adjust world-space position for XR single-pass and camera relative
+            ApplyCameraRelativeXR(posInput.positionWS);
+
             // Init shadow context
             LightLoopContext context;
             context.shadowContext = InitShadowContext();

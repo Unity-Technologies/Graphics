@@ -34,11 +34,10 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 // A set of Defines to fine-tune the algorithm
 #define ADAPTIVE_SAMPLING
 #define STRATIFY
-#define FORCE_POINT_SAMPLING
 #define RING_OCCLUSION
 #define PER_TILE_BG_FG_CLASSIFICATION
 #define PHYSICAL_WEIGHTS
-
+#define FORCE_POINT_SAMPLING
 
 #define GROUP_RES  8u
 #define GROUP_SIZE (GROUP_RES * GROUP_RES)
@@ -73,9 +72,16 @@ float GetCoCRadius(int2 positionSS)
 CTYPE GetColorSample(float2 sampleTC, float lod)
 {
 #ifndef FORCE_POINT_SAMPLING
-    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(sampleTC * _PostProcessScreenSize.zw), lod).CTYPE_SWIZZLE;
+    float texelsToClamp = (1u << (uint)ceil(lod)) + 1;
+    float2 uv = ClampAndScaleUVPostProcessTexture(sampleTC * _PostProcessScreenSize.zw, _PostProcessScreenSize.zw, texelsToClamp);
+
+    // Trilinear sampling can introduce some "leaking" between in-focus and out-of-focus regions, hence why we force point
+    // sampling. Ideally, this choice should be per-tile (use trilinear only in tiles without in-focus pixels), but until
+    // we do this, it is more safe to point sample.
+    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, uv, lod).CTYPE_SWIZZLE;
 #else
-    return LOAD_TEXTURE2D_X(_InputTexture, sampleTC).CTYPE_SWIZZLE;
+    float2 uv = ClampAndScaleUVPostProcessTextureForPoint((sampleTC + 0.5) * _PostProcessScreenSize.zw);
+    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, uv, 0.0).CTYPE_SWIZZLE;
 #endif
 }
 

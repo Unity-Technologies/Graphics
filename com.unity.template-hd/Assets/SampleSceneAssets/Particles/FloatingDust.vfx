@@ -169,9 +169,8 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 6
+  m_GraphVersion: 8
   m_ResourceVersion: 1
-  m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
 --- !u!2058629511 &8926484042661614527
@@ -656,6 +655,8 @@ MonoBehaviour:
   capacity: 500
   stripCapacity: 16
   particlePerStripCount: 16
+  needsComputeBounds: 0
+  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614569
 MonoBehaviour:
@@ -1108,9 +1109,9 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 8926484042661614842}
   - {fileID: 8926484042661614770}
   - {fileID: 8926484042661614771}
+  - {fileID: 8926484042661614842}
   - {fileID: 8926484042661614772}
   m_OutputSlots: []
   m_Label: 
@@ -1124,6 +1125,8 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 1
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661614601}
   cullMode: 0
@@ -1139,17 +1142,21 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
-  materialType: 4
-  onlyAmbientLighting: 0
-  diffusionProfileAsset: {fileID: 11400000, guid: 78322c7f82657514ebe48203160e3f39, type: 2}
-  multiplyThicknessWithAlpha: 0
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   useBaseColorMap: 3
   useMaskMap: 0
   useNormalMap: 0
   useEmissiveMap: 0
   colorMode: 1
   useEmissive: 0
+  materialType: 4
+  onlyAmbientLighting: 0
+  diffusionProfileAsset: {fileID: 11400000, guid: 78322c7f82657514ebe48203160e3f39, type: 2}
+  multiplyThicknessWithAlpha: 0
   doubleSided: 0
   preserveSpecularLighting: 0
   enableShadows: 1
@@ -3180,6 +3187,7 @@ MonoBehaviour:
   m_Disabled: 0
   cullWhenFaded: 1
   fadeMode: 2
+  affectShadows: 0
 --- !u!114 &8926484042661614854
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3275,6 +3283,7 @@ MonoBehaviour:
   m_Disabled: 0
   cullWhenFaded: 1
   fadeMode: 2
+  affectShadows: 0
 --- !u!114 &8926484042661614857
 MonoBehaviour:
   m_ObjectHideFlags: 0

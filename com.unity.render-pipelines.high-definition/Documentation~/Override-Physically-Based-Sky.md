@@ -27,6 +27,8 @@ Next, set the Volume to use **Physically Based Sky**. The [Visual Environment](O
 
 To change how much the atmosphere attenuates light, you can change the density of both air and aerosol molecules (participating media) in the atmosphere. You can also use aerosols to simulate real-world pollution or fog.
 
+**Note**: HDRP only takes into account Lights that have **Affect Physically Based Sky** enabled. After Unity bakes the lighting in your project, Physically Based Sky ignores all Lights that have their **Mode** property set to **Baked**. To fix this, set the **Mode** to **Realtime** or **Mixed**.
+
 **Note:** When Unity initializes a Physically Based Sky, it performs a resource-intensive operation which can cause the frame rate of your project to drop for a few frames. Once Unity has completed this operation, it stores the data in a cache to access the next time Unity initializes this volume. However, you may experience this frame rate drop if you have two Physically Based Sky volumes with different properties and switch between them.
 
 ![](Images/Override-PhysicallyBasedSky4.png)

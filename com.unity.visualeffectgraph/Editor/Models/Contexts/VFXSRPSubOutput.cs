@@ -28,7 +28,7 @@ namespace UnityEditor.VFX
         public virtual bool supportsMaterialOffset { get { return true; } }
 
         // Sealed override as SRP suboutputs cannot have dependencies
-        public sealed override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true) {}
+        public sealed override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true) { }
 
         public virtual string GetBlendModeStr()
         {

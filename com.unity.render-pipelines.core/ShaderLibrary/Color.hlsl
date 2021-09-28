@@ -76,6 +76,9 @@ real4 LinearToGamma22(real4 c)
 // sRGB
 real SRGBToLinear(real c)
 {
+#if defined(UNITY_COLORSPACE_GAMMA) && REAL_IS_HALF
+    c = min(c, 100.0); // Make sure not to exceed HALF_MAX after the pow() below
+#endif
     real linearRGBLo  = c / 12.92;
     real linearRGBHi  = PositivePow((c + 0.055) / 1.055, 2.4);
     real linearRGB    = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
@@ -84,6 +87,9 @@ real SRGBToLinear(real c)
 
 real2 SRGBToLinear(real2 c)
 {
+#if defined(UNITY_COLORSPACE_GAMMA) && REAL_IS_HALF
+    c = min(c, 100.0); // Make sure not to exceed HALF_MAX after the pow() below
+#endif
     real2 linearRGBLo  = c / 12.92;
     real2 linearRGBHi  = PositivePow((c + 0.055) / 1.055, real2(2.4, 2.4));
     real2 linearRGB    = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
@@ -92,6 +98,9 @@ real2 SRGBToLinear(real2 c)
 
 real3 SRGBToLinear(real3 c)
 {
+#if defined(UNITY_COLORSPACE_GAMMA) && REAL_IS_HALF
+    c = min(c, 100.0); // Make sure not to exceed HALF_MAX after the pow() below
+#endif
     real3 linearRGBLo  = c / 12.92;
     real3 linearRGBHi  = PositivePow((c + 0.055) / 1.055, real3(2.4, 2.4, 2.4));
     real3 linearRGB    = (c <= 0.04045) ? linearRGBLo : linearRGBHi;

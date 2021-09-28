@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000004, guid: 591063e98b6d10d40a345a1d269d683f,
+  m_LightingDataAsset: {fileID: 112000002, guid: 591063e98b6d10d40a345a1d269d683f,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 0cdb427b9eae0e1478b0eb3268fa1b7c,
     type: 2}
@@ -633,6 +633,7 @@ MonoBehaviour:
     m_Iso: 200
     m_ShutterSpeed: 0.005
     m_Aperture: 16
+    m_FocusDistance: 10
     m_BladeCount: 5
     m_Curvature: {x: 2, y: 11}
     m_BarrelClipping: 0.25

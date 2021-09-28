@@ -53,7 +53,7 @@ class VFXManagerEditor : Editor
 
         GUI.enabled = AssetDatabase.IsOpenForEdit(target, StatusQueryOptions.UseCachedIfPossible);
 
-        EditorGUILayout.LabelField("Current Scriptable Render Pipeline: " + VFXLibrary.currentSRPBinder.SRPAssetTypeStr);
+        EditorGUILayout.LabelField("Current Scriptable Render Pipeline: " + VFXLibrary.currentSRPBinder?.SRPAssetTypeStr);
 
         foreach (var property in m_TimeProperties)
         {
@@ -124,10 +124,10 @@ class VFXManagerEditor : Editor
         SerializedObject obj = new SerializedObject(vfxmanager);
         bool shaderModified = false;
 
-        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_IndirectShader",     "Packages/com.unity.visualeffectgraph/Shaders/VFXFillIndirectArgs.compute");
-        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_CopyBufferShader",   "Packages/com.unity.visualeffectgraph/Shaders/VFXCopyBuffer.compute");
-        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_SortShader",         "Packages/com.unity.visualeffectgraph/Shaders/Sort.compute");
-        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_StripUpdateShader",  "Packages/com.unity.visualeffectgraph/Shaders/UpdateStrips.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_IndirectShader", "Packages/com.unity.visualeffectgraph/Shaders/VFXFillIndirectArgs.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_CopyBufferShader", "Packages/com.unity.visualeffectgraph/Shaders/VFXCopyBuffer.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_SortShader", "Packages/com.unity.visualeffectgraph/Shaders/Sort.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_StripUpdateShader", "Packages/com.unity.visualeffectgraph/Shaders/UpdateStrips.compute");
         bool runtimeResourcesModified = false;
         runtimeResourcesModified = SetRuntimeResourcesIfNeeded(obj);
 

@@ -10,6 +10,7 @@ public class BakeProbes : MonoBehaviour
 
     IEnumerator Start()
     {
+#if UNITY_EDITOR
         yield return new WaitForSeconds(0.5f);
         foreach (var probe in refProbe)
         {
@@ -20,6 +21,6 @@ public class BakeProbes : MonoBehaviour
             addRefData.bakedTexture = texture;
             yield return null;
         }
+#endif
     }
-
 }

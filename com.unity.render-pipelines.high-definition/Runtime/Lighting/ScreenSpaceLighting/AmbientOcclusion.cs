@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the ambient occlusion.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Ambient Occlusion", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Override-Ambient-Occlusion")]
     public sealed class AmbientOcclusion : VolumeComponentWithQuality
     {
@@ -196,6 +196,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_DirectionCount.value = value; }
         }
+
+        /// <summary>
+        /// When enabled, the occluder's movement should be considered a valid rejection condition.
+        /// </summary>
+        [AdditionalProperty]
+        public BoolParameter occluderMotionRejection = new BoolParameter(true);
+
+        /// <summary>
+        /// When enabled, the receiver's movement should be considered a valid rejection condition.
+        /// </summary>
+        [AdditionalProperty]
+        public BoolParameter receiverMotionRejection = new BoolParameter(true);
 
         // SSAO
         [SerializeField, FormerlySerializedAs("stepCount")]

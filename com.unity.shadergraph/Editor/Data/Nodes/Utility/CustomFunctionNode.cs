@@ -68,6 +68,7 @@ namespace UnityEditor.ShaderGraph
         public CustomFunctionNode()
         {
             UpdateNodeName();
+            synonyms = new string[] { "code", "HLSL" };
         }
 
         void UpdateNodeName()
@@ -170,7 +171,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 // call function
-                sb.AppendIndentation();
+                sb.TryAppendIndentation();
                 sb.Append(hlslFunctionName);
                 sb.Append("(");
                 bool first = true;
@@ -221,15 +222,15 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Texture2D:
                 {
                     var slotVariable = GetVariableNameForSlot(slot.id);
-                    sb.AppendIndentation();
+                    sb.TryAppendIndentation();
                     sb.Append(slotVariable);
                     sb.Append(".samplerstate = default_sampler_Linear_Repeat;");
                     sb.AppendNewLine();
-                    sb.AppendIndentation();
+                    sb.TryAppendIndentation();
                     sb.Append(slotVariable);
                     sb.Append(".texelSize = float4(1.0f/128.0f, 1.0f/128.0f, 128.0f, 128.0f);");
                     sb.AppendNewLine();
-                    sb.AppendIndentation();
+                    sb.TryAppendIndentation();
                     sb.Append(slotVariable);
                     sb.Append(".scaleTranslate = float4(1.0f, 1.0f, 0.0f, 0.0f);");
                     sb.AppendNewLine();
@@ -240,7 +241,7 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Cubemap:
                 {
                     var slotVariable = GetVariableNameForSlot(slot.id);
-                    sb.AppendIndentation();
+                    sb.TryAppendIndentation();
                     sb.Append(slotVariable);
                     sb.Append(".samplerstate = default_sampler_Linear_Repeat;");
                     sb.AppendNewLine();

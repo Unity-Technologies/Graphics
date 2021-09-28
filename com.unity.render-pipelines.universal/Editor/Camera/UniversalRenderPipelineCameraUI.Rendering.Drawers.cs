@@ -1,5 +1,4 @@
 using System.Linq;
-using NUnit.Framework.Constraints;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -100,13 +99,14 @@ namespace UnityEditor.Rendering.Universal
                     ),
                 PostProcessingWarningDrawer,
                 CED.Group(
-                    DrawerRenderingClearDepth
+                    DrawerRenderingClearDepth,
+                    DrawerRenderingRenderShadows
                 )
             );
 
             public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
                 CameraUI.Rendering.Styles.header,
-                CameraUI.Expandable.Rendering,
+                Expandable.Rendering,
                 k_ExpandedState,
                 FoldoutOption.Indent,
                 PostProcessingWarningInit,
@@ -116,7 +116,17 @@ namespace UnityEditor.Rendering.Universal
                 BaseCameraRenderTypeDrawer,
                 OverlayCameraRenderTypeDrawer,
                 CED.Group(
-                    DrawerRenderingRenderShadows,
+                    CameraUI.Rendering.Drawer_Rendering_CullingMask,
+                    CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
+                )
+            );
+
+            public static readonly CED.IDrawer DrawerPreset = CED.FoldoutGroup(
+                CameraUI.Rendering.Styles.header,
+                Expandable.Rendering,
+                k_ExpandedState,
+                FoldoutOption.Indent,
+                CED.Group(
                     CameraUI.Rendering.Drawer_Rendering_CullingMask,
                     CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
                 )

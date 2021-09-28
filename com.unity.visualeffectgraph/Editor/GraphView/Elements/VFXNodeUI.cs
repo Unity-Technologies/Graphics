@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VisualElement settingsContainer {get; private set; }
+        public VisualElement settingsContainer { get; private set; }
         private List<PropertyRM> m_Settings = new List<PropertyRM>();
 
 

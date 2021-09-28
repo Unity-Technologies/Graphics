@@ -74,6 +74,7 @@ For information on the properties in this section, see the [Tessellation documen
 [!include[](snippets/shader-properties/emission-inputs/emission-intensity.md)]
 [!include[](snippets/shader-properties/emission-inputs/exposure-weight.md)]
 [!include[](snippets/shader-properties/emission-inputs/emission-multiply-with-base.md)]
+[!include[](snippets/shader-properties/emission-inputs/global-illumination.md)]
 </table>
 
 
@@ -84,9 +85,6 @@ For information on the properties in this section, see the [Tessellation documen
 <th>Description</th>
 </tr>
 [!include[](snippets/shader-properties/advanced-options/enable-gpu-instancing.md)]
-[!include[](snippets/shader-properties/advanced-options/baked-emission.md)]
-[!include[](snippets/shader-properties/advanced-options/motion-vector-for-vertex-animation.md)]
 [!include[](snippets/shader-properties/advanced-options/specular-occlusion-mode.md)]
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
-[!include[](snippets/shader-properties/advanced-options/force-forward-emissive.md)]
 </table>

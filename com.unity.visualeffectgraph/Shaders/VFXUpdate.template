@@ -20,7 +20,7 @@ RWStructuredBuffer<uint> stripDataBuffer;
 #endif
 
 #if VFX_USE_STRIPALIVE_CURRENT
-Buffer<uint> attachedStripDataBuffer;
+StructuredBuffer<uint> attachedStripDataBuffer;
 #endif
 
 CBUFFER_START(updateParams)
@@ -45,8 +45,8 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
 	if (id < nbMax)
 	{
-        Attributes attributes = (Attributes)0;
-		SourceAttributes sourceAttributes = (SourceAttributes)0;
+        VFXAttributes attributes = (VFXAttributes)0;
+		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
 #if VFX_USE_ALIVE_CURRENT
 		${VFXLoadAttributes:{alive|stripAlive}}

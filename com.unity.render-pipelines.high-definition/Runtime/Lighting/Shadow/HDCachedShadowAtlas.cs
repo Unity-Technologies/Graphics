@@ -8,7 +8,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static private int s_InitialCapacity = 256;
 
         // Constants.
-        private const int m_MinSlotSize = 64;
         private const int m_MaxShadowsPerLight = 6;
 
 
@@ -38,11 +37,11 @@ namespace UnityEngine.Rendering.HighDefinition
             TempOccupied        //  Used when checking if it will fit.
         }
 
-        private int m_AtlasResolutionInSlots;       // Atlas Resolution / m_MinSlotSize
+        private int m_AtlasResolutionInSlots;       // Atlas Resolution / k_MinSlotSize
 
         private bool m_NeedOptimalPacking = true;   // Whenever this is set to true, the pending lights are sorted before insertion.
 
-        private List<SlotValue> m_AtlasSlots;            // One entry per slot (of size m_MinSlotSize) true if occupied, false if free.
+        private List<SlotValue> m_AtlasSlots;            // One entry per slot (of size k_MinSlotSize) true if occupied, false if free.
 
         // Note: Some of these could be simple lists, but since we might need to search by index some of them and we want to avoid GC alloc, a dictionary is easier.
         // This also mean slightly worse performance, however hopefully the number of cached shadow lights is not huge at any tie.
@@ -82,7 +81,7 @@ namespace UnityEngine.Rendering.HighDefinition
             base.InitAtlas(atlasInitParams);
             m_IsACacheForShadows = true;
 
-            m_AtlasResolutionInSlots = HDUtils.DivRoundUp(width, m_MinSlotSize);
+            m_AtlasResolutionInSlots = HDUtils.DivRoundUp(width, HDCachedShadowManager.k_MinSlotSize);
             m_AtlasSlots = new List<SlotValue>(m_AtlasResolutionInSlots * m_AtlasResolutionInSlots);
             for (int i = 0; i < m_AtlasResolutionInSlots * m_AtlasResolutionInSlots; ++i)
             {
@@ -166,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool FindSlotInAtlas(int resolution, bool tempFill, out int x, out int y)
         {
-            int numEntries = HDUtils.DivRoundUp(resolution, m_MinSlotSize);
+            int numEntries = HDUtils.DivRoundUp(resolution, HDCachedShadowManager.k_MinSlotSize);
             for (int j = 0; j < m_AtlasResolutionInSlots; ++j)
             {
                 for (int i = 0; i < m_AtlasResolutionInSlots; ++i)
@@ -191,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void FreeTempFilled(int x, int y, int resolution)
         {
-            int numEntries = HDUtils.DivRoundUp(resolution, m_MinSlotSize);
+            int numEntries = HDUtils.DivRoundUp(resolution, HDCachedShadowManager.k_MinSlotSize);
             for (int j = y; j < y + numEntries; ++j)
             {
                 for (int i = x; i < x + numEntries; ++i)
@@ -213,7 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (FindSlotInAtlas(resolution, out x, out y))
             {
-                int numEntries = HDUtils.DivRoundUp(resolution, m_MinSlotSize);
+                int numEntries = HDUtils.DivRoundUp(resolution, HDCachedShadowManager.k_MinSlotSize);
                 FillEntries(x, y, numEntries);
                 return true;
             }
@@ -281,7 +280,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_ShadowsPendingRendering.Remove(shadowIdx);
                     m_ShadowsWithValidData.Remove(shadowIdx);
 
-                    MarkEntries((int)recordToRemove.offsetInAtlas.z, (int)recordToRemove.offsetInAtlas.w, HDUtils.DivRoundUp(recordToRemove.viewportSize, m_MinSlotSize), SlotValue.Free);
+                    MarkEntries((int)recordToRemove.offsetInAtlas.z, (int)recordToRemove.offsetInAtlas.w, HDUtils.DivRoundUp(recordToRemove.viewportSize, HDCachedShadowManager.k_MinSlotSize), SlotValue.Free);
                     m_CanTryPlacement = true;
                 }
             }
@@ -350,8 +349,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     record.shadowIndex = currentLightData.lightIdxForCachedShadows + i;
                     record.viewportSize = resolution;
                     record.offsetInAtlas = new Vector4(-1, -1, -1, -1); // Will be set later.
-                    // Only situation in which we allow not to render on placement if it is OnDemand and onDomandShadowRenderOnPlacement is false
-                    record.rendersOnPlacement = (currentLightData.shadowUpdateMode == ShadowUpdateMode.OnDemand) ? (currentLightData.forceRenderOnPlacement || currentLightData.onDomandShadowRenderOnPlacement) : true;
+                    // Only situation in which we allow not to render on placement if it is OnDemand and onDemandShadowRenderOnPlacement is false
+                    record.rendersOnPlacement = (currentLightData.shadowUpdateMode == ShadowUpdateMode.OnDemand) ? (currentLightData.forceRenderOnPlacement || currentLightData.onDemandShadowRenderOnPlacement) : true;
                     currentLightData.forceRenderOnPlacement = false; // reset the force flag as we scheduled the rendering forcefully already.
                     recordList.Add(record);
                 }
@@ -390,7 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var record = m_TempListForPlacement[startIdx + j];
 
-                    record.offsetInAtlas = new Vector4(placements[j].x * m_MinSlotSize, placements[j].y * m_MinSlotSize, placements[j].x, placements[j].y);
+                    record.offsetInAtlas = new Vector4(placements[j].x * HDCachedShadowManager.k_MinSlotSize, placements[j].y * HDCachedShadowManager.k_MinSlotSize, placements[j].x, placements[j].y);
 
                     if (record.rendersOnPlacement)
                     {
@@ -403,7 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (successfullyPlaced > 0)   // Couldn't place them all, but we placed something, so we revert those placements.
             {
-                int numEntries = HDUtils.DivRoundUp(m_TempListForPlacement[startIdx].viewportSize, m_MinSlotSize);
+                int numEntries = HDUtils.DivRoundUp(m_TempListForPlacement[startIdx].viewportSize, HDCachedShadowManager.k_MinSlotSize);
                 for (int j = 0; j < successfullyPlaced; ++j)
                 {
                     MarkEntries(placements[j].x, placements[j].y, numEntries, SlotValue.Free);
@@ -444,7 +443,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (fit)
                     {
                         // Convert offset to atlas offset.
-                        record.offsetInAtlas = new Vector4(x * m_MinSlotSize, y * m_MinSlotSize, x, y);
+                        record.offsetInAtlas = new Vector4(x * HDCachedShadowManager.k_MinSlotSize, y * HDCachedShadowManager.k_MinSlotSize, x, y);
 
                         if (record.rendersOnPlacement)
                         {

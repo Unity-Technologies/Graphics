@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Rendering.Universal.Converters;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -10,7 +11,8 @@ namespace UnityEditor.Rendering.Universal
     {
         public override string name => "Material Upgrade";
         public override string info => "This will upgrade your materials.";
-        public override Type conversion => typeof(BuiltInToURPConverterContainer);
+        public override int priority => -1000;
+        public override Type container => typeof(BuiltInToURPConverterContainer);
 
         List<string> m_AssetsToConvert = new List<string>();
 
@@ -18,6 +20,8 @@ namespace UnityEditor.Rendering.Universal
 
         static List<MaterialUpgrader> m_Upgraders;
         private static HashSet<string> m_ShaderNamesToIgnore;
+
+        public IReadOnlyList<MaterialUpgrader> upgraders => m_Upgraders;
         static UniversalRenderPipelineMaterialUpgrader()
         {
             m_Upgraders = new List<MaterialUpgrader>();
@@ -27,7 +31,6 @@ namespace UnityEditor.Rendering.Universal
             GetShaderNamesToIgnore(ref m_ShaderNamesToIgnore);
         }
 
-        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority)]
         private static void UpgradeProjectMaterials()
         {
             m_Upgraders = new List<MaterialUpgrader>();
@@ -41,7 +44,6 @@ namespace UnityEditor.Rendering.Universal
             AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(m_Upgraders, "Upgrade Animation Clips to URP Materials");
         }
 
-        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 1)]
         private static void UpgradeSelectedMaterials()
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
@@ -201,7 +203,7 @@ namespace UnityEditor.Rendering.Universal
             return !shaderNamesToIgnore.Contains(material.shader.name);
         }
 
-        public override void OnInitialize(InitializeConverterContext context, Action calback)
+        public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
             foreach (string path in AssetDatabase.GetAllAssetPaths())
             {
@@ -228,7 +230,7 @@ namespace UnityEditor.Rendering.Universal
                     context.AddAssetToConvert(desc);
                 }
             }
-            calback.Invoke();
+            callback.Invoke();
         }
 
         public override void OnRun(ref RunItemContext context)
@@ -371,6 +373,7 @@ namespace UnityEditor.Rendering.Universal
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicGlossMap"));
             UpdateSurfaceTypeAndBlendMode(material);
+            UpdateDetailScaleOffset(material);
             BaseShaderGUI.SetupMaterialBlendMode(material);
         }
 
@@ -389,7 +392,22 @@ namespace UnityEditor.Rendering.Universal
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_SpecGlossMap"));
             CoreUtils.SetKeyword(material, "_SPECULAR_SETUP", true);
             UpdateSurfaceTypeAndBlendMode(material);
+            UpdateDetailScaleOffset(material);
             BaseShaderGUI.SetupMaterialBlendMode(material);
+        }
+
+        static void UpdateDetailScaleOffset(Material material)
+        {
+            // In URP details tile/offset is multipied with base tile/offset, where in builtin is not
+            // Basically we setup new tile/offset values that in shader they would result in same values as in builtin
+            // This archieved with inverted calculation where scale=detailScale/baseScale and tile=detailOffset-baseOffset*scale
+            var baseScale = material.GetTextureScale("_BaseMap");
+            var baseOffset = material.GetTextureOffset("_BaseMap");
+            var detailScale = material.GetTextureScale("_DetailAlbedoMap");
+            var detailOffset = material.GetTextureOffset("_DetailAlbedoMap");
+            var scale = new Vector2(baseScale.x == 0 ? 0 : detailScale.x / baseScale.x, baseScale.y == 0 ? 0 : detailScale.y / baseScale.y);
+            material.SetTextureScale("_DetailAlbedoMap", scale);
+            material.SetTextureOffset("_DetailAlbedoMap", new Vector2((detailOffset.x - baseOffset.x * scale.x), (detailOffset.y - baseOffset.y * scale.y)));
         }
 
         // Converts from legacy RenderingMode to new SurfaceType and BlendMode

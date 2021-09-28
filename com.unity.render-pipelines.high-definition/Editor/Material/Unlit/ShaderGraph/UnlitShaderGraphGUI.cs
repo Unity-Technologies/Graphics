@@ -32,11 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="props">The list of properties the material has.</param>
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                m_UIBlocks.OnGUI(materialEditor, props);
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, m_UIBlocks.materials);
-            }
+            m_UIBlocks.OnGUI(materialEditor, props);
         }
 
         /// <summary>
@@ -53,6 +49,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Sets up the keywords and passes for the current selected material.
         /// </summary>
         /// <param name="material">The selected material.</param>
-        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupUnlitKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => SetupUnlitKeywordsAndPass(material);
     }
 }

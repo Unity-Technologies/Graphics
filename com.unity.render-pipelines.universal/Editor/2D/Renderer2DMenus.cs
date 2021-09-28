@@ -23,9 +23,7 @@ namespace UnityEditor.Rendering.Universal
 
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var instance = CreateInstance<Renderer2DData>();
-                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
-                AssetDatabase.CreateAsset(instance, pathName);
+                var instance = UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType._2DRenderer, false) as Renderer2DData;
                 Selection.activeObject = instance;
 
                 onCreated?.Invoke(instance);
@@ -76,7 +74,7 @@ namespace UnityEditor.Rendering.Universal
             Selection.activeGameObject = go;
         }
 
-        static void CreateLight(MenuCommand menuCommand, Light2D.LightType type, Vector3[] shapePath = null)
+        static Light2D CreateLight(MenuCommand menuCommand, Light2D.LightType type, Vector3[] shapePath = null)
         {
             GameObject go = ObjectFactory.CreateGameObject("Light 2D", typeof(Light2D));
             Light2D light2D = go.GetComponent<Light2D>();
@@ -93,6 +91,8 @@ namespace UnityEditor.Rendering.Universal
             lightData.instance_id = light2D.GetInstanceID();
             lightData.light_type = light2D.lightType;
             Analytics.Renderer2DAnalytics.instance.SendData(Analytics.AnalyticsDataTypes.k_LightDataString, lightData);
+
+            return light2D;
         }
 
         static bool CreateLightValidation()
@@ -133,7 +133,8 @@ namespace UnityEditor.Rendering.Universal
         [MenuItem("GameObject/Light/Sprite Light 2D", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.gameObjectMenuPriority + 1)]
         static void CreateSpriteLight2D(MenuCommand menuCommand)
         {
-            CreateLight(menuCommand, Light2D.LightType.Sprite);
+            Light2D light = CreateLight(menuCommand, Light2D.LightType.Sprite);
+            ResourceReloader.ReloadAllNullIn(light, UniversalRenderPipelineAsset.packagePath);
         }
 
         [MenuItem("GameObject/Light/Spot Light 2D", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.gameObjectMenuPriority + 2)]
@@ -142,7 +143,7 @@ namespace UnityEditor.Rendering.Universal
             CreateLight(menuCommand, Light2D.LightType.Point);
         }
 
-        [MenuItem("GameObject/Light/Global Light 2D",  priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.gameObjectMenuPriority + 3)]
+        [MenuItem("GameObject/Light/Global Light 2D", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.gameObjectMenuPriority + 3)]
         static void CreateGlobalLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, Light2D.LightType.Global);
@@ -175,10 +176,10 @@ namespace UnityEditor.Rendering.Universal
         static void CreateUniversalPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, UniversalRenderPipelineAsset.CreateInstance<CreateUniversalPipelineAsset>(),
-                "UniversalRenderPipelineAsset.asset", null, null);
+                "New Universal Render Pipeline Asset.asset", null, null);
         }
 
-        [MenuItem("Assets/Create/Rendering/URP 2D Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
+        [MenuItem("Assets/Create/Rendering/URP 2D Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]
         static void Create2DRendererData()
         {
             Renderer2DMenus.Create2DRendererData((instance) =>

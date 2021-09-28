@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.Universal
         Depth = 1 << 0,
         Normal = 1 << 1,
         Color = 1 << 2,
+        Motion = 1 << 3
     }
 
     // Note: Spaced built-in events so we can add events in between them
@@ -162,6 +163,16 @@ namespace UnityEngine.Rendering.Universal
             get => m_DepthStoreAction;
         }
 
+        internal bool[] overriddenColorStoreActions
+        {
+            get => m_OverriddenColorStoreActions;
+        }
+
+        internal bool overriddenDepthStoreAction
+        {
+            get => m_OverriddenDepthStoreAction;
+        }
+
         /// <summary>
         /// The input requirements for the <c>ScriptableRenderPass</c>, which has been set using <c>ConfigureInput</c>
         /// </summary>
@@ -183,6 +194,11 @@ namespace UnityEngine.Rendering.Universal
 
         RenderBufferStoreAction[] m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store };
         RenderBufferStoreAction m_DepthStoreAction = RenderBufferStoreAction.Store;
+
+        // by default all store actions are Store. The overridden flags are used to keep track of explicitly requested store actions, to
+        // help figuring out the correct final store action for merged render passes when using the RenderPass API.
+        private bool[] m_OverriddenColorStoreActions = new bool[] { false };
+        private bool m_OverriddenDepthStoreAction = false;
 
         /// <summary>
         /// A ProfilingSampler for the entire render pass. Used as a profiling name by <c>ScriptableRenderer</c> when executing the pass.
@@ -209,7 +225,7 @@ namespace UnityEngine.Rendering.Universal
         internal NativeArray<int> m_InputAttachmentIndices;
 
         internal GraphicsFormat[] renderTargetFormat { get; set; }
-        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
+        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] { BuiltinRenderTextureType.CameraTarget };
         internal RenderTargetIdentifier[] m_InputAttachments = new RenderTargetIdentifier[8];
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
@@ -227,11 +243,13 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
-            m_InputAttachments = new RenderTargetIdentifier[] {-1, -1, -1, -1, -1, -1, -1, -1};
+            m_ColorAttachments = new RenderTargetIdentifier[] { BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0 };
+            m_InputAttachments = new RenderTargetIdentifier[] { -1, -1, -1, -1, -1, -1, -1, -1 };
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store, 0, 0, 0, 0, 0, 0, 0 };
             m_DepthStoreAction = RenderBufferStoreAction.Store;
+            m_OverriddenColorStoreActions = new bool[] { false, false, false, false, false, false, false, false };
+            m_OverriddenDepthStoreAction = false;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -261,23 +279,39 @@ namespace UnityEngine.Rendering.Universal
             m_Input = passInput;
         }
 
+        /// <summary>
+        /// Configures the Store Action for a color attachment of this render pass.
+        /// </summary>
+        /// <param name="storeAction">RenderBufferStoreAction to use</param>
+        /// <param name="attachmentIndex">Index of the color attachment</param>
         public void ConfigureColorStoreAction(RenderBufferStoreAction storeAction, uint attachmentIndex = 0)
         {
             m_ColorStoreActions[attachmentIndex] = storeAction;
+            m_OverriddenColorStoreActions[attachmentIndex] = true;
         }
 
+        /// <summary>
+        /// Configures the Store Actions for all the color attachments of this render pass.
+        /// </summary>
+        /// <param name="storeActions">Array of RenderBufferStoreActions to use</param>
         public void ConfigureColorStoreActions(RenderBufferStoreAction[] storeActions)
         {
             int count = Math.Min(storeActions.Length, m_ColorStoreActions.Length);
             for (uint i = 0; i < count; ++i)
             {
                 m_ColorStoreActions[i] = storeActions[i];
+                m_OverriddenColorStoreActions[i] = true;
             }
         }
 
+        /// <summary>
+        /// Configures the Store Action for the depth attachment of this render pass.
+        /// </summary>
+        /// <param name="storeAction">RenderBufferStoreAction to use</param>
         public void ConfigureDepthStoreAction(RenderBufferStoreAction storeAction)
         {
             m_DepthStoreAction = storeAction;
+            m_OverriddenDepthStoreAction = true;
         }
 
         internal void ConfigureInputAttachments(RenderTargetIdentifier input)
@@ -356,6 +390,11 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
                 renderTargetFormat[i] = GraphicsFormat.None;
 
+            if (depth == true && !GraphicsFormatUtility.IsDepthFormat(format))
+            {
+                throw new ArgumentException("When configuring a depth only target the passed in format must be a depth format.");
+            }
+
             renderTargetWidth = width;
             renderTargetHeight = height;
             renderTargetSampleCount = sampleCount;
@@ -397,7 +436,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ConfigureTarget"/>
         /// <seealso cref="ConfigureClear"/>
         public virtual void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {}
+        { }
 
         /// <summary>
         /// This method is called by the renderer before executing the render pass.
@@ -410,7 +449,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ConfigureTarget"/>
         /// <seealso cref="ConfigureClear"/>
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        {}
+        { }
 
 
         /// <summary>
@@ -433,7 +472,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void OnFinishCameraStackRendering(CommandBuffer cmd)
-        {}
+        { }
 
         /// <summary>
         /// Execute the pass. This is where custom rendering occurs. Specific details are left to the implementation
@@ -456,6 +495,21 @@ namespace UnityEngine.Rendering.Universal
         {
             ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
             cmd.Blit(source, destination, material, passIndex);
+        }
+
+        /// <summary>
+        /// Add a blit command to the context for execution. This applies the material to the color target.
+        /// </summary>
+        /// <param name="cmd">Command buffer to record command for execution.</param>
+        /// <param name="data">RenderingData to access the active renderer.</param>
+        /// <param name="material">Material to use.</param>
+        /// <param name="passIndex">Shader pass to use. Default is 0.</param>
+        public void Blit(CommandBuffer cmd, ref RenderingData data, Material material, int passIndex = 0)
+        {
+            var renderer = data.cameraData.renderer;
+
+            Blit(cmd, renderer.cameraColorTarget, renderer.GetCameraColorFrontBuffer(cmd), material, passIndex);
+            renderer.SwapColorBuffer(cmd);
         }
 
         /// <summary>
@@ -505,12 +559,12 @@ namespace UnityEngine.Rendering.Universal
             return settings;
         }
 
-        public static bool operator<(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
+        public static bool operator <(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent < rhs.renderPassEvent;
         }
 
-        public static bool operator>(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
+        public static bool operator >(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent > rhs.renderPassEvent;
         }

@@ -33,11 +33,12 @@ namespace UnityEditor
             if (updateType == MaterialUpdateType.CreatedNewMaterial)
                 material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
 
-            BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue: false);
+            bool automaticRenderQueue = GetAutomaticQueueControlSetting(material);
+            BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue);
             LitGUI.SetupSpecularWorkflowKeyword(material, out bool isSpecularWorkflow);
         }
 
-        public override void MaterialChanged(Material material)
+        public override void ValidateMaterial(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
@@ -54,16 +55,8 @@ namespace UnityEditor
             EditorGUIUtility.labelWidth = 0f;
 
             // Detect any changes to the material
-            EditorGUI.BeginChangeCheck();
             if (workflowMode != null)
-            {
                 DoPopup(LitGUI.Styles.workflowModeText, workflowMode, Enum.GetNames(typeof(LitGUI.WorkflowMode)));
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var obj in blendModeProp.targets)
-                    MaterialChanged((Material)obj);
-            }
             base.DrawSurfaceOptions(material);
         }
 
@@ -75,7 +68,10 @@ namespace UnityEditor
 
         public override void DrawAdvancedOptions(Material material)
         {
-            materialEditor.RenderQueueField();
+            // Always show the queue control field.  Only show the render queue field if queue control is set to user override
+            DoPopup(Styles.queueControl, queueControlProp, Styles.queueControlNames);
+            if (material.HasProperty(Property.QueueControl) && material.GetFloat(Property.QueueControl) == (float)QueueControl.UserOverride)
+                materialEditor.RenderQueueField();
             base.DrawAdvancedOptions(material);
 
             // ignore emission color for shadergraphs, because shadergraphs don't have a hard-coded emission property, it's up to the user

@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         public override bool isDefaultValue => cubemap == null;
 
         public CubemapInputMaterialSlot()
-        {}
+        { }
 
         public CubemapInputMaterialSlot(
             int slotId,
@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
             ShaderStageCapability stageCapability = ShaderStageCapability.All,
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, stageCapability, hidden)
-        {}
+        { }
 
         public override VisualElement InstantiateControl()
         {

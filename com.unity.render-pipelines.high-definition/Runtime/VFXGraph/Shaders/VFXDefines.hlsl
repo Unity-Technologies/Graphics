@@ -46,3 +46,5 @@
 #define CameraBuffer Texture2D
 #define VFXSamplerCameraBuffer VFXSampler2D
 #endif
+
+#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(name, type) name

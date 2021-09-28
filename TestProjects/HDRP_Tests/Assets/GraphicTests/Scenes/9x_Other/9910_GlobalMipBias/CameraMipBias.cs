@@ -15,7 +15,7 @@ public class CameraMipBias : MonoBehaviour
     {
         if (m_camData != null)
             return;
-        
+
         m_camData = GetComponentInParent<HDAdditionalCameraData>();
     }
 

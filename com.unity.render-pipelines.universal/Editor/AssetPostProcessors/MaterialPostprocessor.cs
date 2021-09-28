@@ -287,7 +287,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         static void UpgradeV4(Material material, ShaderID shaderID)
-        {}
+        { }
 
         static void UpgradeV5(Material material, ShaderID shaderID)
         {
@@ -390,7 +390,7 @@ namespace UnityEditor.Rendering.Universal
                 throw new ArgumentNullException("material");
 
             var smoothnessSource = 1 - (int)material.GetFloat("_GlossinessSource");
-            material.SetFloat("_SmoothnessSource" , smoothnessSource);
+            material.SetFloat("_SmoothnessSource", smoothnessSource);
             if (material.GetTexture("_SpecGlossMap") == null)
             {
                 var col = material.GetColor("_SpecColor");

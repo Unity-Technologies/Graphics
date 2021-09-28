@@ -172,14 +172,14 @@ namespace UnityEditor.VFX.UI
                 var worldClipProp = typeof(VisualElement).GetMethod("get_worldClip", BindingFlags.NonPublic | BindingFlags.Instance);
                 if (worldClipProp != null)
                 {
-                    return delegate(VisualElement elt)
+                    return delegate (VisualElement elt)
                     {
                         return (Rect)worldClipProp.Invoke(elt, null);
                     };
                 }
 
                 Debug.LogError("could not retrieve get_worldClip");
-                return delegate(VisualElement elt)
+                return delegate (VisualElement elt)
                 {
                     return new Rect();
                 };
@@ -923,7 +923,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            return () => {};
+            return () => { };
         }
 
         Action<EventBase> CapacitySetter(string systemName, out bool isSystemInSubGraph)
@@ -947,7 +947,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
             isSystemInSubGraph = false;
-            return (e) => {};
+            return (e) => { };
         }
 
         void UpdateSystemInfoEntry(int systemId, VFXParticleSystemInfo stat)

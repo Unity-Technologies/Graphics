@@ -1,8 +1,8 @@
 # Debugging ray-traced effects
 
-The High Definition Render Pipeline (HDRP) includes the [Render Pipeline Debugger window](Render-Pipeline-Debug-Window.md), which you can use to debug and understand ray-traced effect in HDRP. To debug raytraced effects:
+The High Definition Render Pipeline (HDRP) includes the [Rendering Debugger window](Render-Pipeline-Debug-Window.md), which you can use to debug and understand ray-traced effect in HDRP. To debug raytraced effects:
 
-1. Open the debug menu, select **Window > Analysis > Render Pipeline Debugger**.
+1. Open the debug menu, select **Window > Analysis > Rendering Debugger**.
 2. Select the **Lighting** panel.
 3. Use the **Fullscreen Debug Mode** drop-down menu to select which ray tracing effect to debug.
 

@@ -11,9 +11,13 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         void OnSceneGUI()
         {
-            var c = (Camera)target;
+            if (HDRenderPipeline.currentPipeline == null)
+                return;
 
-            if (!UnityEditor.Rendering.CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
+            if (!(target is Camera c) || c == null)
+                return;
+
+            if (!CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
                 return;
 
             SceneViewOverlay_Window(EditorGUIUtility.TrTextContent("Camera Preview"), OnOverlayGUI, -100, target);
@@ -23,6 +27,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void OnOverlayGUI(Object target, SceneView sceneView)
         {
+            if (HDRenderPipeline.currentPipeline == null)
+                return;
+
             UnityEditor.Rendering.CameraEditorUtils.DrawCameraSceneViewOverlay(target, sceneView, InitializePreviewCamera);
         }
 

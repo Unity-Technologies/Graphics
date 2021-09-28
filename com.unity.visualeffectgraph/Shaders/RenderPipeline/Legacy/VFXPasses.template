@@ -1,3 +1,0 @@
-${VFXBegin:VFXPassForward}"ForwardBase"${VFXEnd}
-${VFXBegin:VFXPassShadow}"ShadowCaster"${VFXEnd}
-${VFXBegin:VFXPassVelocity}"MotionVectors"${VFXEnd}

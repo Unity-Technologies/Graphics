@@ -57,17 +57,17 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_FadeFactor;
         SerializedProperty m_DecalLayerMask;
 
-        int layerMask => (target as Component).gameObject.layer;
+        int layerMask => (target as DecalProjector).cachedEditorLayer;
         bool layerMaskHasMultipleValue
         {
             get
             {
                 if (targets.Length < 2)
                     return false;
-                int layerMask = (targets[0] as Component).gameObject.layer;
+                int layerMask = (targets[0] as DecalProjector).cachedEditorLayer;
                 for (int index = 0; index < targets.Length; ++index)
                 {
-                    if ((targets[index] as Component).gameObject.layer != layerMask)
+                    if ((targets[index] as DecalProjector).cachedEditorLayer != layerMask)
                         return true;
                 }
                 return false;
@@ -341,7 +341,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Smoothly update the decal image projected
-                    DecalSystem.instance.UpdateCachedData(decalProjector.Handle, decalProjector.GetCachedDecalData());
+                    DecalSystem.instance.UpdateCachedData(decalProjector.Handle, decalProjector);
                 }
             }
         }
@@ -534,7 +534,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (float.IsNaN(saved[axe]))
                 {
                     float oldSize = currentTarget.m_Size[axe];
-                    saved[axe] =  Mathf.Abs(oldSize) <= Mathf.Epsilon ? 0f : currentTarget.m_Offset[axe] / oldSize;
+                    saved[axe] = Mathf.Abs(oldSize) <= Mathf.Epsilon ? 0f : currentTarget.m_Offset[axe] / oldSize;
                     ratioSizePivotPositionSaved[currentTarget] = saved;
                 }
 
@@ -755,7 +755,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ChangeEditMode(k_EditUVAndPivot, GetBoundsGetter(activeDecalProjector)(), FindEditorFromSelection());
         }
 
-        [Shortcut("HDRP/Decal: Handle swap between cropping and stretching UV", typeof(SceneView), KeyCode.W, ShortcutModifiers.Action)]
+        [Shortcut("HDRP/Decal: Handle swap between cropping and stretching UV", typeof(SceneView), KeyCode.Keypad4, ShortcutModifiers.Action)]
         static void SwappingEditUVMode(ShortcutArguments args)
         {
             //If editor is not there, then the selected GameObject does not contains a DecalProjector

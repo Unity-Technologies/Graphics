@@ -7,7 +7,6 @@ using UnityEditor;
 namespace UnityEngine.Experimental.Rendering
 {
     using Brick = ProbeBrickIndex.Brick;
-    using Flags = ProbeReferenceVolume.BrickFlags;
     using RefTrans = ProbeReferenceVolume.RefVolTransform;
 
     internal static class ProbeVolumePositioning
@@ -15,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering
         internal static Vector3[] m_Axes = new Vector3[6];
 
         // TODO: Take refvol translation and rotation into account
-        public static ProbeReferenceVolume.Volume CalculateBrickVolume(ref RefTrans refTrans, Brick brick)
+        public static ProbeReferenceVolume.Volume CalculateBrickVolume(in RefTrans refTrans, Brick brick)
         {
             float scaledSize = Mathf.Pow(3, brick.subdivisionLevel);
             Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position);
@@ -30,13 +29,13 @@ namespace UnityEngine.Experimental.Rendering
             return bounds;
         }
 
-        public static bool OBBIntersect(ref RefTrans refTrans, Brick brick, ref ProbeReferenceVolume.Volume volume)
+        public static bool OBBIntersect(in RefTrans refTrans, Brick brick, in ProbeReferenceVolume.Volume volume)
         {
-            var transformed = CalculateBrickVolume(ref refTrans, brick);
-            return OBBIntersect(ref transformed, ref volume);
+            var transformed = CalculateBrickVolume(in refTrans, brick);
+            return OBBIntersect(in transformed, in volume);
         }
 
-        public static bool OBBIntersect(ref ProbeReferenceVolume.Volume a, ref ProbeReferenceVolume.Volume b)
+        public static bool OBBIntersect(in ProbeReferenceVolume.Volume a, in ProbeReferenceVolume.Volume b)
         {
             // First we test if the bounding spheres intersects, in which case we case do the more complex OBB test
             a.CalculateCenterAndSize(out var aCenter, out var aSize);
@@ -56,8 +55,8 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (Vector3 axis in m_Axes)
             {
-                Vector2 aProj = ProjectOBB(ref a, axis);
-                Vector2 bProj = ProjectOBB(ref b, axis);
+                Vector2 aProj = ProjectOBB(in a, axis);
+                Vector2 bProj = ProjectOBB(in b, axis);
 
                 if (aProj.y < bProj.x || bProj.y < aProj.x)
                 {
@@ -68,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering
             return true;
         }
 
-        static Vector2 ProjectOBB(ref ProbeReferenceVolume.Volume a, Vector3 axis)
+        static Vector2 ProjectOBB(in ProbeReferenceVolume.Volume a, Vector3 axis)
         {
             float min = Vector3.Dot(axis, a.corner);
             float max = min;

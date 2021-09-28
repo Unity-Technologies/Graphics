@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
         public override bool implementsMotionVector { get { return true; } }
-        public override CullMode defaultCullMode { get { return CullMode.Back;  } }
+        public override CullMode defaultCullMode { get { return CullMode.Back; } }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Range(1, 4), Tooltip("Specifies the number of different meshes (up to 4). Mesh per particle can be specified with the meshIndex attribute."), SerializeField]
         private uint MeshCount = 1;

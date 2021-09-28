@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Exposed Properties");
         }
 
-        Features    m_Features;
+        Features m_Features;
 
         /// <summary>
         /// Constructs a ShaderGraphUIBlock based on the parameters.
@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Loads the material properties for the block.
         /// </summary>
-        public override void LoadMaterialProperties() {}
+        public override void LoadMaterialProperties() { }
 
         MaterialProperty[] oldProperties;
 
@@ -106,13 +106,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((m_Features & Features.ExposedProperties) != 0)
                 PropertiesDefaultGUI(properties);
 
-            // If we change a property in a shadergraph, we trigger a material keyword reset
-            if (CheckPropertyChanged(properties))
-            {
-                foreach (var material in materials)
-                    HDShaderUtils.ResetMaterialKeywords(material);
-            }
-
             if ((m_Features & Features.DiffusionProfileAsset) != 0)
                 DrawDiffusionProfileUI();
 
@@ -141,13 +134,13 @@ namespace UnityEditor.Rendering.HighDefinition
             uint uValue = HDShadowUtils.Asuint(value);
             uint filter = uValue & mantissa;
 
-            bool shadowFilterPoint  = (filter & (uint)LightFeatureFlags.Punctual)       != 0;
-            bool shadowFilterDir    = (filter & (uint)LightFeatureFlags.Directional)    != 0;
-            bool shadowFilterRect   = (filter & (uint)LightFeatureFlags.Area)           != 0;
+            bool shadowFilterPoint = (filter & (uint)LightFeatureFlags.Punctual) != 0;
+            bool shadowFilterDir = (filter & (uint)LightFeatureFlags.Directional) != 0;
+            bool shadowFilterRect = (filter & (uint)LightFeatureFlags.Area) != 0;
             uint finalFlag = 0x00000000;
-            finalFlag |= EditorGUILayout.Toggle("Point/Spot Shadow",    shadowFilterPoint) ? (uint)LightFeatureFlags.Punctual    : 0x00000000u;
-            finalFlag |= EditorGUILayout.Toggle("Directional Shadow",   shadowFilterDir)   ? (uint)LightFeatureFlags.Directional : 0x00000000u;
-            finalFlag |= EditorGUILayout.Toggle("Area Shadow",          shadowFilterRect)  ? (uint)LightFeatureFlags.Area        : 0x00000000u;
+            finalFlag |= EditorGUILayout.Toggle("Point/Spot Shadow", shadowFilterPoint) ? (uint)LightFeatureFlags.Punctual : 0x00000000u;
+            finalFlag |= EditorGUILayout.Toggle("Directional Shadow", shadowFilterDir) ? (uint)LightFeatureFlags.Directional : 0x00000000u;
+            finalFlag |= EditorGUILayout.Toggle("Area Shadow", shadowFilterRect) ? (uint)LightFeatureFlags.Area : 0x00000000u;
             finalFlag &= mantissa;
             finalFlag |= exponent;
 

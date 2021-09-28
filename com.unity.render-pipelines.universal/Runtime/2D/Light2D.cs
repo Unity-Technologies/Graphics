@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Serialization;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.U2D;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
 #endif
@@ -15,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     [AddComponentMenu("Rendering/2D/Light 2D")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
-    public sealed partial class Light2D : MonoBehaviour, ISerializationCallbackReceiver
+    public sealed partial class Light2D : Light2DBase, ISerializationCallbackReceiver
     {
         /// <summary>
         /// Deprecated Light types that are no supported. Please migrate to either Freeform or Point lights.
@@ -146,6 +147,7 @@ namespace UnityEngine.Rendering.Universal
         [Range(0, 1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.75f;
 
+
         Mesh m_Mesh;
 
         [SerializeField]
@@ -160,6 +162,8 @@ namespace UnityEngine.Rendering.Universal
 
         // Transients
         int m_PreviousLightCookieSprite;
+        internal Vector3 m_CachedPosition;
+
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
@@ -179,6 +183,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal bool hasCachedMesh => (vertices.Length > 1 && indices.Length > 1);
+
 
         /// <summary>
         /// The light's current type
@@ -256,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
         public float falloffIntensity => m_FalloffIntensity;
 
         [Obsolete]
-        public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; }}
+        public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; } }
 
         /// <summary>
         /// Returns the overlap operation mode.
@@ -280,6 +285,12 @@ namespace UnityEngine.Rendering.Universal
 
         public bool renderVolumetricShadows => volumetricShadowsEnabled && shadowVolumeIntensity > 0;
 
+
+        internal void CacheValues()
+        {
+            m_CachedPosition = transform.position;
+        }
+
         internal int GetTopMostLitLayer()
         {
             var largestIndex = Int32.MinValue;
@@ -299,6 +310,16 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return largestIndex;
+        }
+
+        internal Bounds UpdateSpriteMesh()
+        {
+            if (m_LightCookieSprite == null && (m_Vertices.Length != 1 || m_Triangles.Length != 1))
+            {
+                m_Vertices = new LightUtility.LightMeshVertex[1];
+                m_Triangles = new ushort[1];
+            }
+            return LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite);
         }
 
         internal void UpdateMesh(bool forceUpdate)
@@ -325,7 +346,7 @@ namespace UnityEngine.Rendering.Universal
                         m_LocalBounds = LightUtility.GenerateParametricMesh(this, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                         break;
                     case LightType.Sprite:
-                        m_LocalBounds = LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite);
+                        m_LocalBounds = UpdateSpriteMesh();
                         break;
                     case LightType.Point:
                         m_LocalBounds = LightUtility.GenerateParametricMesh(this, 1.412135f, 0, 0, 4);
@@ -364,13 +385,16 @@ namespace UnityEngine.Rendering.Universal
 
         private void Awake()
         {
-            bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
-            UpdateMesh(updateMesh);
-            if (hasCachedMesh)
+            if (m_LightCookieSprite != null)
             {
-                lightMesh.SetVertexBufferParams(vertices.Length, LightUtility.LightMeshVertex.VertexLayout);
-                lightMesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
-                lightMesh.SetIndices(indices, MeshTopology.Triangles, 0, false);
+                bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
+                UpdateMesh(updateMesh);
+                if (hasCachedMesh)
+                {
+                    lightMesh.SetVertexBufferParams(vertices.Length, LightUtility.LightMeshVertex.VertexLayout);
+                    lightMesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
+                    lightMesh.SetIndices(indices, MeshTopology.Triangles, 0, false);
+                }
             }
         }
 

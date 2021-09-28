@@ -13,7 +13,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class AbstractMaterialNode : JsonObject, IGroupItem
+    abstract class AbstractMaterialNode : JsonObject, IGroupItem, IRectInterface
     {
         [SerializeField]
         JsonRef<GroupData> m_Group = null;
@@ -32,6 +32,9 @@ namespace UnityEditor.ShaderGraph
 
         [NonSerialized]
         bool m_IsActive = true;
+
+        [NonSerialized]
+        bool m_WasUsedByGenerator = false;
 
         [SerializeField]
         List<JsonData<MaterialSlot>> m_Slots = new List<JsonData<MaterialSlot>>();
@@ -91,6 +94,17 @@ namespace UnityEditor.ShaderGraph
             {
                 m_DrawState = value;
                 Dirty(ModificationScope.Layout);
+            }
+        }
+
+        Rect IRectInterface.rect
+        {
+            get => drawState.position;
+            set
+            {
+                var state = drawState;
+                state.position = value;
+                drawState = state;
             }
         }
 
@@ -175,6 +189,16 @@ namespace UnityEditor.ShaderGraph
         public virtual bool isActive
         {
             get { return m_IsActive; }
+        }
+
+        internal virtual bool wasUsedByGenerator
+        {
+            get { return m_WasUsedByGenerator; }
+        }
+
+        internal void SetUsedByGenerator()
+        {
+            m_WasUsedByGenerator = true;
         }
 
         //There are times when isActive needs to be set to a value explicitly, and
@@ -330,6 +354,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public virtual void GetInputSlots<T>(MaterialSlot startingSlot, List<T> foundSlots) where T : MaterialSlot
+        {
+            GetInputSlots(foundSlots);
+        }
+
         public void GetOutputSlots<T>(List<T> foundSlots) where T : MaterialSlot
         {
             foreach (var slot in m_Slots.SelectValue())
@@ -339,6 +368,11 @@ namespace UnityEditor.ShaderGraph
                     foundSlots.Add(materialSlot);
                 }
             }
+        }
+
+        public virtual void GetOutputSlots<T>(MaterialSlot startingSlot, List<T> foundSlots) where T : MaterialSlot
+        {
+            GetOutputSlots(foundSlots);
         }
 
         public void GetSlots<T>(List<T> foundSlots) where T : MaterialSlot
@@ -428,7 +462,7 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
-        protected internal virtual string GetOutputForSlot(SlotReference fromSocketRef,  ConcreteSlotValueType valueType, GenerationMode generationMode)
+        protected internal virtual string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
         {
             var slot = FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
             if (slot == null)
@@ -839,8 +873,9 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void SetSlotOrder(List<int> desiredOrderSlotIds)
+        public bool SetSlotOrder(List<int> desiredOrderSlotIds)
         {
+            bool changed = false;
             int writeIndex = 0;
             for (int orderIndex = 0; orderIndex < desiredOrderSlotIds.Count; orderIndex++)
             {
@@ -858,10 +893,12 @@ namespace UnityEditor.ShaderGraph
                         var slot = m_Slots[matchIndex];
                         m_Slots[matchIndex] = m_Slots[writeIndex];
                         m_Slots[writeIndex] = slot;
+                        changed = true;
                     }
                     writeIndex++;
                 }
             }
+            return changed;
         }
 
         public SlotReference GetSlotReference(int slotId)
@@ -914,7 +951,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public virtual void UpdateNodeAfterDeserialization()
-        {}
+        { }
 
         public bool IsSlotConnected(int slotId)
         {
@@ -922,7 +959,7 @@ namespace UnityEditor.ShaderGraph
             return slot != null && owner.GetEdges(slot.slotReference).Any();
         }
 
-        public virtual void Setup() {}
+        public virtual void Setup() { }
 
         protected void EnqueSlotsForSerialization()
         {

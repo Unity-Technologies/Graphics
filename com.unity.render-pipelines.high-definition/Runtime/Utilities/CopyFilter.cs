@@ -61,13 +61,13 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public ExcludeCopyAttribute()
             : base(Filter.Exclude)
-        {}
+        { }
     }
 
     sealed class ValueCopyAttribute : CopyFilterAttribute
     {
         public ValueCopyAttribute()
             : base(Filter.CheckContent)
-        {}
+        { }
     }
 }

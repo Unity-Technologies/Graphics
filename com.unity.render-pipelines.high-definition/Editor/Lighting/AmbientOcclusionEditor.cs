@@ -28,12 +28,14 @@ namespace UnityEditor.Rendering.HighDefinition
         // Ray Tracing parameters
         SerializedDataParameter m_RayTracing;
         SerializedDataParameter m_LayerMask;
+        SerializedDataParameter m_OccluderMotionRejection;
+        SerializedDataParameter m_ReceiverMotionRejection;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_Denoise;
         SerializedDataParameter m_DenoiserRadius;
 
-        public override bool hasAdditionalProperties => (m_RayTracing == null || !(HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue));
+        public override bool hasAdditionalProperties => true;
 
         public override void OnEnable()
         {
@@ -55,6 +57,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
+            m_OccluderMotionRejection = Unpack(o.Find(x => x.occluderMotionRejection));
+            m_ReceiverMotionRejection = Unpack(o.Find(x => x.receiverMotionRejection));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
             m_Denoise = Unpack(o.Find(x => x.denoise));
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
@@ -72,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            if (HDRenderPipeline.pipelineSupportsRayTracing)
+            if (HDRenderPipeline.buildPipelineSupportsRayTracing)
                 PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced ambient occlusion."));
 
             // Shared attributes
@@ -80,23 +84,26 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_DirectLightingStrength, EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient light affects occlusion."));
 
             // If ray tracing is supported and it is enabled on this volume, display the ray tracing options.
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+            if (HDRenderPipeline.buildPipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
                 PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for ambient occlusion."));
                 base.OnInspectorGUI(); // Quality Setting
                 using (new QualityScope(this))
                 {
-                    using (new HDEditorUtils.IndentScope())
+                    using (new IndentLevelScope())
                     {
                         PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of ambient occlusion rays. The higher this value is, the more expensive ray traced ambient occlusion is."));
                         PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for ray traced ambient occlusion."));
                         PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced ambient occlusion."));
                         {
-                            using (new HDEditorUtils.IndentScope())
+                            using (new IndentLevelScope())
                                 PropertyField(m_DenoiserRadius, EditorGUIUtility.TrTextContent("Denoiser Radius", "Radius parameter for the denoising."));
                         }
                     }
                 }
+
+                PropertyField(m_OccluderMotionRejection, EditorGUIUtility.TrTextContent("Occluder Motion Rejection", "When enabled, the occluder's movement should be considered a valid rejection condition."));
+                PropertyField(m_ReceiverMotionRejection, EditorGUIUtility.TrTextContent("Receiver Motion Rejection", "When enabled, the receiver's movement should be considered a valid rejection condition."));
             }
             else
             {
@@ -106,7 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 using (new QualityScope(this))
                 {
-                    using (new HDEditorUtils.IndentScope())
+                    using (new IndentLevelScope())
                     {
                         PropertyField(m_MaximumRadiusInPixels, EditorGUIUtility.TrTextContent("Maximum Radius In Pixels", "This poses a maximum radius in pixels that we consider. It is very important to keep this as tight as possible to preserve good performance. Note that this is the value used for 1080p when *not* running the effect at full resolution, it will be scaled accordingly for other resolutions."));
                         PropertyField(m_FullResolution, EditorGUIUtility.TrTextContent("Full Resolution", "The effect runs at full resolution. This increases quality, but also decreases performance significantly."));
@@ -115,7 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     PropertyField(m_TemporalAccumulation, EditorGUIUtility.TrTextContent("Temporal Accumulation", "Whether the results are accumulated over time or not. This can get better results cheaper, but it can lead to temporal artifacts. Requires Motion Vectors to be enabled."));
 
-                    using (new HDEditorUtils.IndentScope())
+                    using (new IndentLevelScope())
                     {
                         if (!m_TemporalAccumulation.value.boolValue)
                         {

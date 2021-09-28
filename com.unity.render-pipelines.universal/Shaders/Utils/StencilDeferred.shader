@@ -28,21 +28,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
     HLSLINCLUDE
 
-    // _ADDITIONAL_LIGHT_SHADOWS is shader keyword globally enabled for a range of render-passes.
-    // When rendering deferred lights, we need to set/unset this flag dynamically for each deferred
-    // light, however there is no way to restore the value of the keyword, whch is needed by the
-    // forward transparent pass. The workaround is to use a new shader keyword
-    // _DEFERRED_LIGHT_SHADOWS to set _ADDITIONAL_LIGHT_SHADOWS as a #define, so that
-    // the "state" of the keyword itself is unchanged.
-    #ifdef _DEFERRED_LIGHT_SHADOWS
-    #define _ADDITIONAL_LIGHT_SHADOWS 1
-    #endif
-
-    // Same comment as for _DEFERRED_LIGHT_SHADOWS/_ADDITIONAL_LIGHT_SHADOWS above.
-    #ifdef _DEFERRED_SHADOWS_SOFT
-    #define _SHADOWS_SOFT 1
-    #endif
-
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
@@ -133,21 +118,20 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     FRAMEBUFFER_INPUT_HALF(GBUFFER1);
     FRAMEBUFFER_INPUT_HALF(GBUFFER2);
     FRAMEBUFFER_INPUT_FLOAT(GBUFFER3);
-
-    #ifdef GBUFFER_OPTIONAL_SLOT_1
-    TEXTURE2D_X_HALF(_GBuffer5);
-    #endif
-    #ifdef GBUFFER_OPTIONAL_SLOT_2
-    TEXTURE2D_X(_GBuffer6);
-    #endif
 #else
     #ifdef GBUFFER_OPTIONAL_SLOT_1
     TEXTURE2D_X_HALF(_GBuffer4);
     #endif
-    #ifdef GBUFFER_OPTIONAL_SLOT_2
+#endif
+
+    #if defined(GBUFFER_OPTIONAL_SLOT_2) && _RENDER_PASS_ENABLED
+    TEXTURE2D_X_HALF(_GBuffer5);
+    #elif defined(GBUFFER_OPTIONAL_SLOT_2)
     TEXTURE2D_X(_GBuffer5);
     #endif
-#endif
+    #ifdef GBUFFER_OPTIONAL_SLOT_3
+    TEXTURE2D_X(_GBuffer6);
+    #endif
 
     float4x4 _ScreenToWorld[2];
     SamplerState my_point_clamp_sampler;
@@ -187,18 +171,18 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
                 if (!materialReceiveShadowsOff)
                 {
-                    #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-                        #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
-                            float4 shadowCoord = float4(screen_uv, 0.0, 1.0);
-                        #else
-                            float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
-                        #endif
-                        unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
+                    #if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)
+                        float4 shadowCoord = float4(screen_uv, 0.0, 1.0);
+                    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+                        float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
+                    #else
+                        float4 shadowCoord = float4(0, 0, 0, 0);
                     #endif
+                    unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
                 }
 
                 #if defined(_LIGHT_COOKIES)
-                    real3 cookieColor = URP_LightCookie_SampleMainLightCookie(posWS);
+                    real3 cookieColor = SampleMainLightCookie(posWS);
                     unityLight.color *= float4(cookieColor, 1);
                 #endif
             #else
@@ -210,7 +194,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
                 if (!materialReceiveShadowsOff)
                 {
-                    #if defined(_DEFERRED_LIGHT_SHADOWS)
+                    #if defined(_ADDITIONAL_LIGHT_SHADOWS)
                         unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, _LightDirection, shadowMask, _LightOcclusionProbInfo);
                     #endif
                 }
@@ -227,22 +211,22 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             light.layerMask = lightLayerMask;
             unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff);
 
-            #ifdef _DEFERRED_ADDITIONAL_LIGHT_COOKIES
-                // Enable/disable is done toggling the keyword _DEFERRED_ADDITIONAL_LIGHT_COOKIES, but we could do a "static if" instead if required.
+            #ifdef _LIGHT_COOKIES
+                // Enable/disable is done toggling the keyword _LIGHT_COOKIES, but we could do a "static if" instead if required.
                 // if(_CookieLightIndex >= 0)
                 {
-                    float4 cookieUvRect = URP_LightCookie_GetAtlasUVRect(_CookieLightIndex);
-                    float4x4 worldToLight = URP_LightCookie_GetWorldToLightMatrix(_CookieLightIndex);
+                    float4 cookieUvRect = GetLightCookieAtlasUVRect(_CookieLightIndex);
+                    float4x4 worldToLight = GetLightCookieWorldToLightMatrix(_CookieLightIndex);
                     float2 cookieUv = float2(0,0);
                     #if defined(_SPOT)
-                        cookieUv = URP_LightCookie_ComputeUVSpot(worldToLight, posWS, cookieUvRect);
+                        cookieUv = ComputeLightCookieUVSpot(worldToLight, posWS, cookieUvRect);
                     #endif
                     #if defined(_POINT)
-                        cookieUv = URP_LightCookie_ComputeUVPoint(worldToLight, posWS, cookieUvRect);
+                        cookieUv = ComputeLightCookieUVPoint(worldToLight, posWS, cookieUvRect);
                     #endif
-                    half4 cookieColor = URP_LightCookie_SampleAdditionalLightsTexture(cookieUv);
-                    cookieColor = half4(URP_LightCookie_AdditionalLightsTextureIsRGBFormat() ? cookieColor.rgb
-                                        : URP_LightCookie_AdditionalLightsTextureIsAlphaFormat() ? cookieColor.aaa
+                    half4 cookieColor = SampleAdditionalLightsCookieAtlasTexture(cookieUv);
+                    cookieColor = half4(IsAdditionalLightsCookieAtlasTextureRGBFormat() ? cookieColor.rgb
+                                        : IsAdditionalLightsCookieAtlasTextureAlphaFormat() ? cookieColor.aaa
                                         : cookieColor.rrr, 1);
                     unityLight.color *= cookieColor;
                 }
@@ -439,10 +423,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
+            #pragma multi_compile_fragment _DEFERRED_STENCIL
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _LIT
-            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _DEFERRED_SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
@@ -450,7 +435,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -485,10 +470,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
+            #pragma multi_compile_fragment _DEFERRED_STENCIL
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _SIMPLELIT
-            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _DEFERRED_SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
@@ -496,7 +482,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -530,13 +516,14 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
+            #pragma multi_compile_fragment _DEFERRED_STENCIL
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _LIT
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
-            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _DEFERRED_SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
@@ -578,13 +565,14 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
+            #pragma multi_compile_fragment _DEFERRED_STENCIL
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _SIMPLELIT
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
-            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _DEFERRED_SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT

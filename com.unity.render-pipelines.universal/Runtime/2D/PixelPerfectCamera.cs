@@ -32,6 +32,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             UpscaleRenderTexture
         }
 
+        public enum PixelPerfectFilterMode
+        {
+            RetroAA,
+            Point,
+        }
+
         public enum ComponentVersions
         {
             Version_Unserialized = 0,
@@ -45,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #endif
 
         public CropFrame cropFrame { get { return m_CropFrame; } set { m_CropFrame = value; } }
-        public GridSnapping gridSnapping { get { return m_GridSnapping;} set { m_GridSnapping = value; } }
+        public GridSnapping gridSnapping { get { return m_GridSnapping; } set { m_GridSnapping = value; } }
 
         public float orthographicSize { get { return m_Internal.orthoSize; } }
 
@@ -197,6 +203,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
+        public bool requiresUpscalePass
+        {
+            get
+            {
+                return m_Internal.requiresUpscaling;
+            }
+        }
+
         /// <summary>
         /// Round a arbitrary position to an integer pixel position. Works in world space.
         /// </summary>
@@ -234,12 +248,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return m_Internal.CorrectCinemachineOrthoSize(targetOrthoSize);
         }
 
-        [SerializeField] int    m_AssetsPPU         = 100;
-        [SerializeField] int    m_RefResolutionX    = 320;
-        [SerializeField] int    m_RefResolutionY    = 180;
+        [SerializeField] int m_AssetsPPU = 100;
+        [SerializeField] int m_RefResolutionX = 320;
+        [SerializeField] int m_RefResolutionY = 180;
 
         [SerializeField] CropFrame m_CropFrame;
         [SerializeField] GridSnapping m_GridSnapping;
+        [SerializeField] PixelPerfectFilterMode m_FilterMode = PixelPerfectFilterMode.RetroAA;
 
         // These are obsolete. They are here only for migration.
 #if UNITY_EDITOR
@@ -258,7 +273,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             get
             {
-                return m_Internal.useStretchFill ? FilterMode.Bilinear : FilterMode.Point;
+                return m_FilterMode == PixelPerfectFilterMode.RetroAA ? FilterMode.Bilinear : FilterMode.Point;
             }
         }
 
@@ -296,35 +311,36 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Camera = GetComponent<Camera>();
             m_Internal = new PixelPerfectCameraInternal(this);
 
-
             // Case 1249076: Initialize internals immediately after the scene is loaded,
             // as the Cinemachine extension may need them before OnBeginContextRendering is called.
-            var rtSize = cameraRTSize;
-            m_Internal.CalculateCameraProperties(rtSize.x, rtSize.y);
+            UpdateCameraProperties();
         }
 
-        void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
+        void UpdateCameraProperties()
         {
             var rtSize = cameraRTSize;
             m_Internal.CalculateCameraProperties(rtSize.x, rtSize.y);
-
-            PixelSnap();
 
             if (m_Internal.useOffscreenRT)
                 m_Camera.pixelRect = m_Internal.CalculateFinalBlitPixelRect(rtSize.x, rtSize.y);
             else
                 m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
-
-            if (!m_CinemachineCompatibilityMode)
-            {
-                m_Camera.orthographicSize = m_Internal.orthoSize;
-            }
         }
 
         void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
             if (camera == m_Camera)
+            {
+                UpdateCameraProperties();
+                PixelSnap();
+
+                if (!m_CinemachineCompatibilityMode)
+                {
+                    m_Camera.orthographicSize = m_Internal.orthoSize;
+                }
+
                 UnityEngine.U2D.PixelPerfectRendering.pixelSnapSpacing = m_Internal.unitsPerPixel;
+            }
         }
 
         void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
@@ -337,14 +353,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             m_CinemachineCompatibilityMode = false;
 
-            RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
         }
 
         internal void OnDisable()
         {
-            RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
 

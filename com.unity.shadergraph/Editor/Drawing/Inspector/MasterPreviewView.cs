@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             get { return m_Preview; }
         }
 
-        List<string> m_DoNotShowPrimitives = new List<string>(new string[] {PrimitiveType.Plane.ToString()});
+        List<string> m_DoNotShowPrimitives = new List<string>(new string[] { PrimitiveType.Plane.ToString() });
 
         static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             }
             Add(topContainer);
 
-            m_Preview = new VisualElement {name = "middle"};
+            m_Preview = new VisualElement { name = "middle" };
             {
                 m_PreviewTextureView = CreatePreview(Texture2D.blackTexture);
                 m_PreviewScrollPosition = new Vector2(0f, 0f);
@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 texture = m_PreviewRenderHandle.texture;
             }
 
-            var image = new Image { name = "preview", image = texture };
+            var image = new Image { name = "preview", image = texture, scaleMode = ScaleMode.ScaleAndCrop };
             image.AddManipulator(new Draggable(OnMouseDragPreviewMesh, true));
             image.AddManipulator((IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu));
             return image;
@@ -123,6 +123,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 evt.menu.AppendAction(primitiveTypeName, e => ChangePrimitiveMesh(primitiveTypeName), DropdownMenuAction.AlwaysEnabled);
             }
 
+            evt.menu.AppendAction("Sprite", e => ChangeMeshSprite(), DropdownMenuAction.AlwaysEnabled);
             evt.menu.AppendAction("Custom Mesh", e => ChangeMeshCustom(), DropdownMenuAction.AlwaysEnabled);
         }
 
@@ -155,6 +156,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_PreviewScrollPosition = Vector2.zero;
             }
 
+            m_Graph.previewData.preventRotation = false;
             m_Graph.previewData.serializedMesh.mesh = changedMesh;
         }
 
@@ -172,9 +174,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             ChangeMesh(mesh);
         }
 
+        void ChangeMeshSprite()
+        {
+            ChangePrimitiveMesh(PrimitiveType.Quad.ToString());
+
+            m_Graph.previewData.rotation = Quaternion.identity;
+            m_Graph.previewData.preventRotation = true;
+        }
+
         void ChangeMeshCustom()
         {
-            MethodInfo ShowMethod = s_ObjectSelector.GetMethod("Show", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly, Type.DefaultBinder, new[] {typeof(Object), typeof(Type), typeof(Object), typeof(bool), typeof(List<int>), typeof(Action<Object>), typeof(Action<Object>)}, new ParameterModifier[7]);
+            MethodInfo ShowMethod = s_ObjectSelector.GetMethod("Show", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly, Type.DefaultBinder, new[] { typeof(Object), typeof(Type), typeof(Object), typeof(bool), typeof(List<int>), typeof(Action<Object>), typeof(Action<Object>) }, new ParameterModifier[7]);
             m_PreviousMesh = m_Graph.previewData.serializedMesh.mesh;
             ShowMethod.Invoke(Get(), new object[] { null, typeof(Mesh), null, false, null, (Action<Object>)OnMeshChanged, (Action<Object>)OnMeshChanged });
         }
@@ -214,6 +224,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void OnMouseDragPreviewMesh(Vector2 deltaMouse)
         {
+            if (m_Graph.previewData.preventRotation) return;
+
             Vector2 previewSize = m_PreviewTextureView.contentRect.size;
 
             m_PreviewScrollPosition -= deltaMouse * (Event.current.shift ? 3f : 1f) / Mathf.Min(previewSize.x, previewSize.y) * 140f;

@@ -36,8 +36,8 @@ namespace UnityEditor.VFX
             }
 
             if (expression.valueType == VFXValueType.Float2
-                ||  expression.valueType == VFXValueType.Float3
-                ||  expression.valueType == VFXValueType.Float4)
+                || expression.valueType == VFXValueType.Float3
+                || expression.valueType == VFXValueType.Float4)
             {
                 return new VFXExpressionCastFloatToUint(expression.x);
             }

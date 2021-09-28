@@ -98,10 +98,23 @@ struct TextureUVMapping
 #endif
 
 #define GETSURFACEANDBUILTINDATA_RAYCONE_PARAM ((RayCone)0)
+
+#if !defined(SHADER_API_VULKAN)
 #define AXF_CALCULATE_TEXTURE2D_LOD(a,b,c,duvdx,duvdy,scales,texelSize,rayCone) CALCULATE_TEXTURE2D_LOD(a,b,c)
+#else
+// case 1335737: For Vulkan, our HLSLcc is missing an overloaded version when the texture object is a Texture2DArray.
+// This won't create a problem anyway if we use gradients instead of LOD sampling, we just make sure the shader is
+// configured as such on this platform. We also place a dummy macro since although eventually optimized out, HLSLcc
+// will fail before the optimization prunes it out.
+#define AXF_CALCULATE_TEXTURE2D_LOD(a,b,c,duvdx,duvdy,scales,texelSize,rayCone) (0)
+
+#ifndef FLAKES_USE_DDXDDY
+#define FLAKES_USE_DDXDDY
+#endif
+
+#endif // #if !defined(SHADER_API_VULKAN)
 
 #else
-
 //-----------------------------------------------------------------------------
 //defined(SHADER_STAGE_RAY_TRACING)
 
@@ -636,8 +649,17 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // The AxF models include both a general coloring term that they call "specular color" while the f0 is actually another term,
     // seemingly always scalar:
+#ifndef DEBUG_DISPLAY
     surfaceData.fresnel0 = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_FresnelMap, sampler_SVBRDF_FresnelMap, uvMapping).x;
     surfaceData.height_mm = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_HeightMap, sampler_SVBRDF_HeightMap, uvMapping).x * _SVBRDF_HeightMapMaxMM;
+#else
+    // [case 1333780]: For debug display we run out of samplers (max 16 on dx11/ps5.0) in certain configurations for two reasons:
+    // - An extra sampler is used for mat cap
+    // - The auto-generated debug code can visualize all texture properties so nothing is stripped out (unlike the non-debug case)
+    // To save sampler states in Debug, we reuse the sampler state of the color map for some other maps too.
+    surfaceData.fresnel0 = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_FresnelMap, sampler_SVBRDF_DiffuseColorMap, uvMapping).x;
+    surfaceData.height_mm = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_HeightMap, sampler_SVBRDF_DiffuseColorMap, uvMapping).x * _SVBRDF_HeightMapMaxMM;
+#endif
     // Our importer range remaps the [-HALF_PI, HALF_PI) range to [0,1). We map back here:
     surfaceData.anisotropyAngle =
         HALF_PI * (2.0 * AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_AnisoRotationMap, sampler_SVBRDF_AnisoRotationMap, uvMapping).x - 1.0);

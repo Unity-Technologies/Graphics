@@ -347,6 +347,9 @@ namespace UnityEngine.Rendering
             // Traverse all volumes
             foreach (var volume in volumes)
             {
+                if (volume == null)
+                    continue;
+
 #if UNITY_EDITOR
                 // Skip volumes that aren't in the scene currently displayed in the scene view
                 if (!IsVolumeRenderedByCamera(volume, camera))
@@ -417,6 +420,7 @@ namespace UnityEngine.Rendering
         public Volume[] GetVolumes(LayerMask layerMask)
         {
             var volumes = GrabVolumes(layerMask);
+            volumes.RemoveAll(v => v == null);
             return volumes.ToArray();
         }
 
@@ -495,11 +499,11 @@ namespace UnityEngine.Rendering
         /// Constructs a scope in which a Camera filters a Volume.
         /// </summary>
         /// <param name="unused">Unused parameter.</param>
-        public VolumeIsolationScope(bool unused) {}
+        public VolumeIsolationScope(bool unused) { }
 
         /// <summary>
         /// Stops the Camera from filtering a Volume.
         /// </summary>
-        void IDisposable.Dispose() {}
+        void IDisposable.Dispose() { }
     }
 }

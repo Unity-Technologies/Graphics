@@ -158,8 +158,8 @@ namespace UnityEngine.Rendering
         /// <param name="right">Left boundary.</param>
         public static unsafe void QuickSort(uint[] arr, int left, int right)
         {
-            fixed(uint* ptr = arr)
-            CoreUnsafeUtils.QuickSort<uint, uint, UintKeyGetter>(ptr, left, right);
+            fixed (uint* ptr = arr)
+                CoreUnsafeUtils.QuickSort<uint, uint, UintKeyGetter>(ptr, left, right);
         }
 
         /// <summary>

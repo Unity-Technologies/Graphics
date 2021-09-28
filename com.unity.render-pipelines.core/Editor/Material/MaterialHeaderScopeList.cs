@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -27,9 +28,16 @@ namespace UnityEditor.Rendering
         /// <param name="title"><see cref="GUIContent"/> The title of the scope</param>
         /// <param name="expandable">The mask identifying the scope</param>
         /// <param name="action">The action that will be drawn if the scope is expanded</param>
-        public void RegisterHeaderScope(GUIContent title, uint expandable, Action<Material> action)
+        public void RegisterHeaderScope<TEnum>(GUIContent title, TEnum expandable, Action<Material> action)
+            where TEnum : struct, IConvertible
         {
-            m_Items.Add(new MaterialHeaderScopeItem() {headerTitle = title, expandable = expandable, drawMaterialScope = action});
+            m_Items.Add(new MaterialHeaderScopeItem()
+            {
+                headerTitle = title,
+                expandable = Convert.ToUInt32(expandable),
+                drawMaterialScope = action,
+                url = DocumentationUtils.GetHelpURL<TEnum>(expandable)
+            });
         }
 
         /// <summary>
@@ -47,7 +55,12 @@ namespace UnityEditor.Rendering
 
             foreach (var item in m_Items)
             {
-                using var header = new MaterialHeaderScope(item.headerTitle, item.expandable, materialEditor, defaultExpandedState: m_DefaultExpandedState);
+                using var header = new MaterialHeaderScope(
+                    item.headerTitle,
+                    item.expandable,
+                    materialEditor,
+                    defaultExpandedState: m_DefaultExpandedState,
+                    documentationURL: item.url);
                 if (!header.expanded)
                     continue;
 

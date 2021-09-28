@@ -98,7 +98,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 decalNormalBufferHP = false,
                 msaaSampleCount = MSAASamples.None,
                 supportMotionVectors = true,
-                supportRuntimeDebugDisplay = false,
                 supportRuntimeAOVAPI = false,
                 supportDitheringCrossFade = true,
                 supportTerrainHole = false,
@@ -320,8 +319,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Support motion vectors.</summary>
         public bool supportMotionVectors;
+
         /// <summary>Support runtime debug display.</summary>
-        public bool supportRuntimeDebugDisplay;
+        public bool supportRuntimeDebugDisplay
+        {
+            get => HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
+            set => HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay = value;
+        }
         /// <summary>Support runtime AOV API.</summary>
         public bool supportRuntimeAOVAPI;
         /// <summary>Support dithered cross-fade.</summary>
@@ -367,7 +371,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Global lighting quality settings.</summary>
         public GlobalLightingQualitySettings lightingQualitySettings;
 
-    #pragma warning disable 618 // Type or member is obsolete
+#pragma warning disable 618 // Type or member is obsolete
         [Obsolete("For data migration")]
         internal bool m_ObsoleteincreaseSssSampleCount;
 
@@ -420,6 +424,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         [FormerlySerializedAs("decalLayerName7"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteDecalLayerName7;
-    #pragma warning restore 618
+
+        [SerializeField]
+        [FormerlySerializedAs("supportRuntimeDebugDisplay"), Obsolete("Moved to HDGlobal Settings")]
+        internal bool m_ObsoleteSupportRuntimeDebugDisplay;
+#pragma warning restore 618
     }
 }

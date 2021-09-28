@@ -216,41 +216,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             ENDHLSL
         }
 
-        // This pass is used when drawing to a _CameraNormalsTexture texture
-        Pass
-        {
-            Name "DepthNormals"
-            Tags{"LightMode" = "DepthNormals"}
-
-            ZWrite On
-            Cull[_Cull]
-
-            HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
-
-            #pragma vertex DepthNormalsVertex
-            #pragma fragment DepthNormalsFragment
-
-            // -------------------------------------
-            // Material Keywords
-            #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local _PARALLAXMAP
-            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-
-            //--------------------------------------
-            // GPU Instancing
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitDepthNormalsPass.hlsl"
-            ENDHLSL
-        }
-
-        // Same as DepthNormals pass, but used for deferred renderer and forwardOnly materials.
+        // This pass is used when drawing to a _CameraNormalsTexture texture with the forward renderer or the depthNormal prepass with the deferred renderer.
         Pass
         {
             Name "DepthNormalsOnly"
@@ -301,7 +267,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
-            #pragma fragment UniversalFragmentMeta
+            #pragma fragment UniversalFragmentMetaLit
 
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
             #pragma shader_feature_local_fragment _EMISSION
@@ -309,6 +275,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
+            #pragma shader_feature EDITOR_VISUALIZATION
 
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
 
@@ -523,7 +490,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
-            #pragma fragment UniversalFragmentMeta
+            #pragma fragment UniversalFragmentMetaLit
 
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
             #pragma shader_feature_local_fragment _EMISSION
@@ -533,6 +500,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
 
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
+            #pragma shader_feature EDITOR_VISUALIZATION
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitMetaPass.hlsl"

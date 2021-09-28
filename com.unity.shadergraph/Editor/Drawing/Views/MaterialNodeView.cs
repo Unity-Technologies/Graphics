@@ -718,47 +718,42 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void OnMouseHover(EventBase evt)
+        SGBlackboardRow GetAssociatedBlackboardRow()
         {
             var graphEditorView = GetFirstAncestorOfType<GraphEditorView>();
             if (graphEditorView == null)
-                return;
+                return null;
 
             var blackboardController = graphEditorView.blackboardController;
             if (blackboardController == null)
-                return;
+                return null;
 
-            // Keyword nodes should be highlighted when Blackboard entry is hovered
-            // TODO: Move to new NodeView type when keyword node has unique style
             if (node is KeywordNode keywordNode)
             {
-                var keywordRow = blackboardController.GetBlackboardRow(keywordNode.keyword);
-                if (keywordRow != null)
-                {
-                    if (evt.eventTypeId == MouseEnterEvent.TypeId())
-                    {
-                        keywordRow.AddToClassList("hovered");
-                    }
-                    else
-                    {
-                        keywordRow.RemoveFromClassList("hovered");
-                    }
-                }
+                return blackboardController.GetBlackboardRow(keywordNode.keyword);
             }
 
             if (node is DropdownNode dropdownNode)
             {
-                var dropdownRow = blackboardController.GetBlackboardRow(dropdownNode.dropdown);
-                if (dropdownRow != null)
+                return blackboardController.GetBlackboardRow(dropdownNode.dropdown);
+            }
+            return null;
+        }
+
+        void OnMouseHover(EventBase evt)
+        {
+            // Keyword/Dropdown nodes should be highlighted when Blackboard entry is hovered
+            // TODO: Move to new NodeView type when keyword node has unique style
+            var blackboardRow = GetAssociatedBlackboardRow();
+            if (blackboardRow != null)
+            {
+                if (evt.eventTypeId == MouseEnterEvent.TypeId())
                 {
-                    if (evt.eventTypeId == MouseEnterEvent.TypeId())
-                    {
-                        dropdownRow.AddToClassList("hovered");
-                    }
-                    else
-                    {
-                        dropdownRow.RemoveFromClassList("hovered");
-                    }
+                    blackboardRow.AddToClassList("hovered");
+                }
+                else
+                {
+                    blackboardRow.RemoveFromClassList("hovered");
                 }
             }
         }
@@ -791,6 +786,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var portInputView in inputContainer.Query<PortInputView>().ToList())
                 portInputView.Dispose();
+
+            var propRow = GetAssociatedBlackboardRow();
+            // If this node view is deleted, remove highlighting from associated blackboard row
+            if (propRow != null)
+            {
+                propRow.RemoveFromClassList("hovered");
+            }
 
             node = null;
             userData = null;

@@ -50,18 +50,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_UndoRedoPerformedMethodInfo = graphViewType?.GetMethod("UndoRedoPerformed",
                 BindingFlags.FlattenHierarchy | BindingFlags.Instance | BindingFlags.NonPublic,
                 null,
-                new Type[] {},
+                new Type[] { },
                 null);
         }
 
         protected override bool canCutSelection
         {
-            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCutNode) || selection.OfType<Group>().Any() || selection.OfType<SGBlackboardField>().Any() || selection.OfType<SGBlackboardCategory>().Any(); }
+            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCutNode) || selection.OfType<Group>().Any() || selection.OfType<SGBlackboardField>().Any() || selection.OfType<SGBlackboardCategory>().Any() || selection.OfType<StickyNote>().Any(); }
         }
 
         protected override bool canCopySelection
         {
-            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCopyNode) || selection.OfType<Group>().Any() || selection.OfType<SGBlackboardField>().Any() || selection.OfType<SGBlackboardCategory>().Any(); }
+            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCopyNode) || selection.OfType<Group>().Any() || selection.OfType<SGBlackboardField>().Any() || selection.OfType<SGBlackboardCategory>().Any() || selection.OfType<StickyNote>().Any(); }
         }
 
         public MaterialGraphView(GraphData graph, Action previewUpdateDelegate) : this()
@@ -111,10 +111,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             graph.UpdateActiveBlocks(activeBlocks);
             this.m_PreviewManagerUpdateDelegate();
-            //Quick bugfix for 1327208. Can be fixed properly with GTF
-            Inspector.InspectorView.forceNodeView = false;
             this.m_InspectorUpdateDelegate();
-            Inspector.InspectorView.forceNodeView = true;
         }
 
         void ChangePrecision(GraphPrecision newGraphDefaultPrecision)
@@ -170,7 +167,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return compatibleAnchors;
 
             var startStage = startSlot.stageCapability;
-            if (startStage == ShaderStageCapability.All)
+            // If this is a sub-graph node we always have to check the effective stage as we might have to trace back through the sub-graph
+            if (startStage == ShaderStageCapability.All || startSlot.owner is SubGraphNode)
                 startStage = NodeUtils.GetEffectiveShaderStageCapability(startSlot, true) & NodeUtils.GetEffectiveShaderStageCapability(startSlot, false);
 
             foreach (var candidateAnchor in ports.ToList())
@@ -183,10 +181,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (startStage != ShaderStageCapability.All)
                 {
                     var candidateStage = candidateSlot.stageCapability;
-                    if (candidateStage == ShaderStageCapability.All)
+                    if (candidateStage == ShaderStageCapability.All || candidateSlot.owner is SubGraphNode)
                         candidateStage = NodeUtils.GetEffectiveShaderStageCapability(candidateSlot, true)
                             & NodeUtils.GetEffectiveShaderStageCapability(candidateSlot, false);
                     if (candidateStage != ShaderStageCapability.All && candidateStage != startStage)
+                        continue;
+
+                    // None stage can only connect to All stage, otherwise you can connect invalid connections
+                    if (startStage == ShaderStageCapability.None && candidateStage != ShaderStageCapability.All)
                         continue;
                 }
 
@@ -381,6 +383,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.AppendAction("Duplicate %d", (e) => DuplicateSelection(), (a) => canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
 
+            // Sticky notes aren't given these context menus in GraphView because it checks for specific types.
+            // We can manually add them back in here (although the context menu ordering is different).
+            if (evt.target is StickyNote)
+            {
+                evt.menu.AppendAction("Copy %d", (e) => CopySelectionCallback(), (a) => canCopySelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                evt.menu.AppendAction("Cut %d", (e) => CutSelectionCallback(), (a) => canCutSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                evt.menu.AppendAction("Duplicate %d", (e) => DuplicateSelectionCallback(), (a) => canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+            }
+
             // Contextual menu
             if (evt.target is Edge)
             {
@@ -536,7 +547,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             graph.owner.RegisterCompleteObjectUndo("Delete Group and Contents");
             var groupItems = graph.GetItemsInGroup(data);
-            graph.RemoveElements(groupItems.OfType<AbstractMaterialNode>().ToArray(), new IEdge[] {}, new[] {data}, groupItems.OfType<StickyNoteData>().ToArray());
+            graph.RemoveElements(groupItems.OfType<AbstractMaterialNode>().ToArray(), new IEdge[] { }, new[] { data }, groupItems.OfType<StickyNoteData>().ToArray());
         }
 
         private void InitializePrecisionSubMenu(ContextualMenuPopulateEvent evt)
@@ -616,7 +627,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // Color Picker is internal :(
             var t = typeof(EditorWindow).Assembly.GetTypes().FirstOrDefault(ty => ty.Name == "ColorPicker");
-            var m = t?.GetMethod("Show", new[] {typeof(Action<Color>), typeof(Color), typeof(bool), typeof(bool)});
+            var m = t?.GetMethod("Show", new[] { typeof(Action<Color>), typeof(Color), typeof(bool), typeof(bool) });
             if (m == null)
             {
                 Debug.LogWarning("Could not invoke Color Picker for ShaderGraph.");
@@ -644,7 +655,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graph.owner.RegisterCompleteObjectUndo("Change Node Color");
-            m.Invoke(null, new object[] {(Action<Color>)ApplyColor, defaultColor, true, false});
+            m.Invoke(null, new object[] { (Action<Color>)ApplyColor, defaultColor, true, false });
         }
 
         protected override bool canDeleteSelection
@@ -677,7 +688,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             position = contentViewContainer.WorldToLocal(position);
             string title = "New Note";
             string content = "Write something here";
-            var stickyNoteData  = new StickyNoteData(title, content, new Rect(position.x, position.y, 200, 160));
+            var stickyNoteData = new StickyNoteData(title, content, new Rect(position.x, position.y, 200, 160));
             graph.owner.RegisterCompleteObjectUndo("Create Sticky Note");
             graph.AddStickyNote(stickyNoteData);
         }
@@ -1065,7 +1076,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         // Updates selected graph elements after undo/redo
         internal void RestorePersistentSelectionAfterUndoRedo()
         {
-            m_UndoRedoPerformedMethodInfo?.Invoke(this, new object[] {});
+            m_UndoRedoPerformedMethodInfo?.Invoke(this, new object[] { });
         }
 
         #region Drag and drop
@@ -1300,8 +1311,33 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var blackboardController = graphView.GetFirstAncestorOfType<GraphEditorView>().blackboardController;
 
-            // Get the position to insert the new shader inputs per category.t
+            // Get the position to insert the new shader inputs per category
             int insertionIndex = blackboardController.GetInsertionIndexForPaste();
+
+            // Any child of the categories need to be removed from selection as well (there's a Graphview issue where these don't get properly added to selection before the duplication sometimes, have to do it manually)
+            foreach (var selectable in graphView.selection)
+            {
+                if (selectable is SGBlackboardCategory blackboardCategory)
+                {
+                    foreach (var blackboardChild in blackboardCategory.Children())
+                    {
+                        if (blackboardChild is SGBlackboardRow blackboardRow)
+                        {
+                            var blackboardField = blackboardRow.Q<SGBlackboardField>();
+                            if (blackboardField != null)
+                            {
+                                blackboardField.selected = false;
+                                blackboardField.OnUnselected();
+                            }
+                        }
+                    }
+                }
+            }
+
+            var cachedSelection = graphView.selection.ToList();
+
+            // Before copy-pasting, clear all current selections so the duplicated items may be selected instead
+            graphView.ClearSelectionNoUndoRecord();
 
             // Make new inputs from the copied graph
             foreach (ShaderInput input in copyGraph.inputs)
@@ -1321,14 +1357,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
 
-                // In the specific case of just an input being selected to copy but some other category than the one containing it being selected, we want to copy it to the default category
+                // In the specific case of just an input being selected to copy but some other category than the one containing it was selected, we want to copy it to the default category
                 if (associatedCategoryGuid != String.Empty)
                 {
-                    foreach (var selection in graphView.selection)
+                    foreach (var selection in cachedSelection)
                     {
                         if (selection is SGBlackboardCategory blackboardCategory && blackboardCategory.viewModel.associatedCategoryGuid != associatedCategoryGuid)
                         {
                             associatedCategoryGuid = String.Empty;
+                            // Also ensures it is added to the end of the default category
+                            insertionIndex = -1;
                         }
                     }
                 }
@@ -1337,8 +1375,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (copyGraph.copyPasteGraphSource == CopyPasteGraphSource.Duplicate)
                 {
                     associatedCategoryGuid = graphView.graph.FindCategoryForInput(input);
-                    // Also ensures it is added to the end of the category
-                    insertionIndex = -1;
                 }
 
                 var copyShaderInputAction = new CopyShaderInputAction { shaderInputToCopy = input, containingCategoryGuid = associatedCategoryGuid };
@@ -1419,12 +1455,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var nodeList = copyGraph.GetNodes<AbstractMaterialNode>();
 
-                    ClampNodesWithinView(graphView, nodeList);
+                    ClampNodesWithinView(graphView, new List<IRectInterface>().Union(nodeList).Union(copyGraph.stickyNotes));
 
                     graphView.graph.PasteGraph(copyGraph, remappedNodes, remappedEdges);
 
                     // Add new elements to selection
-                    graphView.ClearSelection();
                     graphView.graphElements.ForEach(element =>
                     {
                         if (element is Edge edge && remappedEdges.Contains(edge.userData as IEdge))
@@ -1437,22 +1472,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private static void ClampNodesWithinView(MaterialGraphView graphView, IEnumerable<AbstractMaterialNode> nodeList)
+        private static void ClampNodesWithinView(MaterialGraphView graphView, IEnumerable<IRectInterface> rectList)
         {
-            // Compute the centroid of the copied nodes at their original positions
-            var nodePositions = nodeList.Select(n => n.drawState.position.position);
-            var centroid = UIUtilities.CalculateCentroid(nodePositions);
+            // Compute the centroid of the copied elements at their original positions
+            var positions = rectList.Select(n => n.rect.position);
+            var centroid = UIUtilities.CalculateCentroid(positions);
 
             /* Ensure nodes get pasted at cursor */
             var graphMousePosition = graphView.contentViewContainer.WorldToLocal(graphView.cachedMousePosition);
             var copiedNodesOrigin = graphMousePosition;
             float xMin = float.MaxValue, xMax = float.MinValue, yMin = float.MaxValue, yMax = float.MinValue;
 
-            // Calculate bounding rectangle min and max coordinates for these nodes, to use in clamping later
-            foreach (var node in nodeList)
+            // Calculate bounding rectangle min and max coordinates for these elements, to use in clamping later
+            foreach (var element in rectList)
             {
-                var drawState = node.drawState;
-                var position = drawState.position;
+                var position = element.rect.position;
                 xMin = Mathf.Min(xMin, position.x);
                 yMin = Mathf.Min(yMin, position.y);
                 xMax = Mathf.Max(xMax, position.x);
@@ -1473,7 +1507,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if ((Mathf.Abs(mouseOffset.x) + widthThreshold > graphViewScaledHalfWidth ||
                  (Mathf.Abs(mouseOffset.y) + heightThreshold > graphViewScaledHalfHeight)))
             {
-                // Out of bounds - Adjust taking into account the size of the bounding box around nodes and the current graph zoom level
+                // Out of bounds - Adjust taking into account the size of the bounding box around elements and the current graph zoom level
                 var adjustedPositionX = (xMax - xMin) + widthThreshold * zoomAdjustedViewScale;
                 var adjustedPositionY = (yMax - yMin) + heightThreshold * zoomAdjustedViewScale;
                 adjustedPositionY *= -1.0f * Mathf.Sign(copiedNodesOrigin.y);
@@ -1482,18 +1516,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 copiedNodesOrigin.y += adjustedPositionY;
             }
 
-            foreach (var node in nodeList)
+            foreach (var element in rectList)
             {
-                var drawState = node.drawState;
-                var position = drawState.position;
+                var rect = element.rect;
 
                 // Get the relative offset from the calculated centroid
-                var relativeOffsetFromCentroid = position.position - centroid;
-                // Reapply that offset to ensure node positions are consistent when multiple nodes are copied
-                position.x = copiedNodesOrigin.x + relativeOffsetFromCentroid.x;
-                position.y = copiedNodesOrigin.y + relativeOffsetFromCentroid.y;
-                drawState.position = position;
-                node.drawState = drawState;
+                var relativeOffsetFromCentroid = rect.position - centroid;
+                // Reapply that offset to ensure element positions are consistent when multiple elements are copied
+                rect.x = copiedNodesOrigin.x + relativeOffsetFromCentroid.x;
+                rect.y = copiedNodesOrigin.y + relativeOffsetFromCentroid.y;
+                element.rect = rect;
             }
         }
     }

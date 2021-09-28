@@ -29,11 +29,7 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// This widget will force the Debug Editor Window refresh.
             /// </summary>
-            EditorForceUpdate = 1 << 3,
-            /// <summary>
-            /// This widget is not currently displayed (e.g. due to state of other widgets).
-            /// </summary>
-            IsHidden = 1 << 4
+            EditorForceUpdate = 1 << 3
         }
 
         /// <summary>
@@ -81,6 +77,11 @@ namespace UnityEngine.Rendering
             public string displayName { get; set; }
 
             /// <summary>
+            /// Tooltip.
+            /// </summary>
+            public string tooltip { get; set; }
+
+            /// <summary>
             /// Path of the widget.
             /// </summary>
             public string queryPath { get; private set; }
@@ -101,19 +102,14 @@ namespace UnityEngine.Rendering
             public bool isInactiveInEditor => (isRuntimeOnly && !Application.isPlaying);
 
             /// <summary>
-            /// True if the widget has been hidden at runtime (e.g. due to state of other widgets).
+            /// Optional delegate that can be used to conditionally hide widgets at runtime (e.g. due to state of other widgets).
             /// </summary>
-            public bool isHidden
-            {
-                get => flags.HasFlag(Flags.IsHidden);
-                set
-                {
-                    if (value)
-                        flags |= Flags.IsHidden;
-                    else
-                        flags &= ~Flags.IsHidden;
-                }
-            }
+            public Func<bool> isHiddenCallback;
+
+            /// <summary>
+            /// If <see cref="isHiddenCallback">shouldHideDelegate</see> has been set and returns true, the widget is hidden from the UI.
+            /// </summary>
+            public bool isHidden => isHiddenCallback?.Invoke() ?? false;
 
             internal virtual void GenerateQueryPath()
             {
@@ -130,6 +126,27 @@ namespace UnityEngine.Rendering
             public override int GetHashCode()
             {
                 return queryPath.GetHashCode();
+            }
+
+            /// <summary>
+            /// Helper struct to allow more compact initialization of widgets.
+            /// </summary>
+            public struct NameAndTooltip
+            {
+                public string name;
+                public string tooltip;
+            }
+
+            /// <summary>
+            /// Helper setter to allow more compact initialization of widgets.
+            /// </summary>
+            public NameAndTooltip nameAndTooltip
+            {
+                set
+                {
+                    displayName = value.name;
+                    tooltip = value.tooltip;
+                }
             }
         }
 
