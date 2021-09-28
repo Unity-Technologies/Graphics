@@ -443,6 +443,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Allow negative wind speed parameter.
 - Fixed custom pass custom buffer not bound after being created inside a custom pass.
 - Fixed silhouette issue with emissive decals
+- Fixed scaling issues with dynamic resolution and the CustomPassSampleCameraColor function.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
