@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering
 {
     public class DebugDisplaySettingsUI : IDebugData
     {
         private IEnumerable<IDebugDisplaySettingsPanelDisposable> m_DisposablePanels;
-        private DebugDisplaySettings m_Settings;
+        private IDebugDisplaySettings m_Settings;
 
         private void Reset()
         {
@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void RegisterDebug(DebugDisplaySettings settings)
+        public void RegisterDebug(IDebugDisplaySettings settings)
         {
             DebugManager debugManager = DebugManager.instance;
             List<IDebugDisplaySettingsPanelDisposable> panels = new List<IDebugDisplaySettingsPanelDisposable>();

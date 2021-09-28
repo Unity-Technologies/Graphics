@@ -48,12 +48,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed specular anti aliasing for layeredlit shader.
 - Fixed lens flare occlusion issues with transparent depth. It had the wrong depth bound (1365098)
 - Fixed double contribution from the clear coat when having SSR or RTR on the Lit and StackLit shaders (case 1352424).
+- Fixed texture fields for volume parameters accepting textures with wrong dimensions.
+- Fixed Realtime lightmap not working correctly in player with various lit shader (case 1360021)
+- Fixed unexpectedly strong contribution from directional lights in path-traced volumetric scattering (case 1304688).
+- Fixed memory leak with XR combined occlusion meshes (case 1366173).
+- Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
+- Fixed the volume not being assigned on some scene templates.
+- Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
+- Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
 - Surface ReflectionTypeLoadExceptions in HDUtils.GetRenderPipelineMaterialList(). Without surfacing these exceptions, developers cannot act on any underlying reflection errors in the HDRP assembly.
 - Improved the DynamicArray class by adding several utility APIs.
 - Moved AMD FidelityFX shaders to core
+- Improved sampling of overlapping point/area lights in path-traced volumetric scattering (case 1358777).
+- Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1346105, 1358783).
+- Fixed minor readability issues in the ray tracing code.
 
 ## [12.0.0] - 2021-01-11
 
@@ -137,6 +148,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to render screen space global illumination in half resolution to achieve real-time compatible performance in high resolutions (case 1353727).
 - Added a built-in custom pass to draw object IDs.
 - Added an example in the documentation that shows how to use the accumulation API for high quality antialiasing (supersampling).
+- Added a SG node to get the main directional light direction.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
