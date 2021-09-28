@@ -1,5 +1,8 @@
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Debug UI panel interface
+    /// </summary>
     public interface IDebugDisplaySettingsData : IDebugDisplaySettingsQuery
     {
         /// <summary>
