@@ -15,6 +15,9 @@ namespace UnityEditor.ShaderGraph.UnitTests
     {
         const int res = 128;
 
+        readonly Vector3 testPosition = new Vector3(0.24699998f, 0.51900005f, 0.328999996f);
+        readonly Quaternion testRotation = new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f);
+
         [UnityTest]
         public IEnumerator TransformV1MatchesOldTransform()
         {
@@ -36,7 +39,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var target = RenderTexture.GetTemporary(descriptor);
 
                 // use a non-standard transform, so that view, object, etc. transforms are non trivial
-                renderer.RenderQuadPreview(graph, target, new Vector3(1.24699998f, 1.51900005f, 0.328999996f), new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f), useSRP: true);
+                renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true);
 
                 int incorrectPixels = ShaderGraphTestRenderer.CountPixelsNotEqual(target, new Color32(0, 255, 0, 255), false);
                 Debug.Log($"Initial state: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
@@ -76,19 +79,19 @@ namespace UnityEditor.ShaderGraph.UnitTests
                         // Debug.Log($"Tested: {source} to {dest} ({conversionType})");
 
                         // use a non-standard transform, so that view, object, etc. transforms are non trivial
-                        renderer.RenderQuadPreview(graph, target, new Vector3(1.24699998f, 1.51900005f, 4.328999996f), new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f), useSRP: true);
+                        renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true);
 
                         int incorrectPixels = ShaderGraphTestRenderer.CountPixelsNotEqual(target, new Color32(0, 255, 0, 255), false);
                         Debug.Log($"{source} to {dest} ({conversionType}: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
 
-                        if (incorrectPixels != 0)
+                        // if (incorrectPixels != 0)
                         {
                             ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
 
-                            renderer.RenderQuadPreview(graph, target, new Vector3(1.24699998f, 1.51900005f, 4.328999996f), new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f), useSRP: true, ShaderGraphTestRenderer.Mode.EXPECTED);
+                            renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true, ShaderGraphTestRenderer.Mode.EXPECTED);
                             ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}_EXPECTED.png");
 
-                            renderer.RenderQuadPreview(graph, target, new Vector3(1.24699998f, 1.51900005f, 4.328999996f), new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f), useSRP: true, ShaderGraphTestRenderer.Mode.ACTUAL);
+                            renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true, ShaderGraphTestRenderer.Mode.ACTUAL);
                             ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}_ACTUAL.png");
                         }
 
@@ -99,7 +102,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
                     // have to yield to let a frame pass
                     // unity only releases some resources at the end of a frame
-                    // and if you do too many renders in a frame it will run out                        
+                    // and if you do too many renders in a frame it will run out
                     yield return null;
                 }
             }
