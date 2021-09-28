@@ -6,6 +6,9 @@ A thread map is a Texture with 4 channels. Like a detail map, a thread map conta
 
 For more information on Detail maps, see [Secondary Maps (Detail Maps) & Detail Mask](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterDetail.html) in the Unity User Manual.
 
+> [!NOTE]
+> The ThreadMapDetail node is a Subgraph node: it represents a Subgraph instead of directly representing shader code. Double-click the node to view the Subgraph.
+
 ## Ports
 
 <table>
@@ -132,6 +135,3 @@ For more information on Detail maps, see [Secondary Maps (Detail Maps) & Detail 
 </tr>
 </tbody>
 </table>
-
-
-## Generated code example

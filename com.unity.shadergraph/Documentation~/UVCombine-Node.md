@@ -2,6 +2,9 @@
 
 The UVCombine node lets you select which UV channel you want to use for mapping your shader to an object in your application. You can also choose to apply tiling and offset to your UV coordinates.
 
+> [!NOTE]
+> The UVCombine node is a Subgraph node: it represents a Subgraph instead of directly representing shader code. Double-click the node to view the Subgraph.
+
 ## Ports
 
 <table>
@@ -44,8 +47,3 @@ The UVCombine node lets you select which UV channel you want to use for mapping 
 </tr>
 </tbody>
 </table>
-
-
-
-
-## Generated code example
