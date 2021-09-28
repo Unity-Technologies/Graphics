@@ -14,3 +14,12 @@ This functionality is not compatible with Virtual Streaming Texture properties.
 6. Use the Sub Graph in your graph.
 
 If you disable the **Custom Binding** setting, the **Property** disconnects from this node, and Unity displays a warning.
+
+## Ports
+
+| **Name**     | **Direction** | **Type** | **Description** |
+| :---         | :---          | :------  | :----------     |
+| Input        | Input         | Property |                 |
+| Connected    | Input         |          |                 |
+| NotConnected | Input         |          |                 |
+| Out          | Output        |          |                 |
