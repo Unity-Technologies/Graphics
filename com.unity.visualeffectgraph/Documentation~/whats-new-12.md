@@ -12,15 +12,15 @@ The following is a list of features Unity added to version 12 of the Visual Effe
 
 This version of the Visual Effect Graph adds support for lit outputs in the Universal Render Pipeline (URP). You can use this to create effects that can respond to the lighting in the scene.
 
-### 2D Renderer Support (Compute Capable Devices)
+### 2D Renderer support (compute-capable devices)
 
 ![img](Images/banner-2d-renderer-support.png)
 
 In this version, the Visual Effect Graph has added support for the Universal Render Pipeline’s (URP) 2D Renderer. This means that you can now render effects in a 2D project and sort them along with sprites in your scene.
 
-For more information, see [Rendering in the Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest?/manual/rendering-in-universalrp.html).
+For more information, see [Rendering in the Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/manual/rendering-in-universalrp.html).
 
-### Bounds Helpers
+### Bounds helpers
 
 ![img](Images/banner-bounds-helpers.png)
 
@@ -30,15 +30,15 @@ This feature helps you create accurate bounds that match their systems so that e
 
 For more information, see [Visual effect bounds](visual-effect-bounds.md).
 
-### Graphics/Compute Buffer Support
+### Graphics buffer bupport
 
 ![img](Images/banner-graphics-compute-buffer-support.png)
 
-VFX version 21.2 also adds support for Graphics/Compute buffers. This makes it easier to handle and transfer large amounts of data to a Visual Effect Graph. This is particularly useful for tracking multiple GameObject positions in your graph.
+VFX version 12.0 also adds support for Graphics buffers. This makes it easier to handle and transfer large amounts of data to a Visual Effect Graph. This is particularly useful for tracking multiple GameObject positions in your graph.
 
 This feature requires C# knowledge to set and handle Graphics Buffers.
 
-### Signed Distance Field Baker
+### Signed Distance Field Bake Tool
 
 ![img](Images/banner-sdf-baker.png)
 
@@ -47,6 +47,10 @@ This version includes the new Signed Distance Field (SDF) Bake Tool. To access i
 For more information, see [Signed Distance Fields in the Visual Effect Graph](sdf-in-vfx-graph.md).
 
 ### HDRP Decal Output
+
+![img](Images/banner-HDRP-decal.png)
+
+This version of VFX graph adds a Lit Decal output that allows you to use lit particle decals in the High Definition Render Pipeline (HDRP). You can use this to create many effects; for example, to add dirt or damage on multiple surfaces in your scene.
 
 
 ## Updated
@@ -57,7 +61,7 @@ The following is a list of improvements Unity made to the Visual Effect Graph in
 
 ![img](Images/banner-transform-shape.gif)
 
-This VFX graph version adds a transform to various shape blocks and operators to make them easier to use and to give you more precise control. For example, you can use this transform to rotate a Position Circle block to make the circle shape face a new direction, or to scale the shape of a sphere collision block on one axis to collide with an ellipse.
+This VFX graph version adds a transform to various shape blocks and operators to make them easier to use and to give you more precise control. For example, you can use this transform to rotate a Position Circle block to make the circle shape face a new direction, or to scale the shape of a sphere collision block on one axis to collide with an ellipsoid.
 
 ### Upgraded ShaderGraph integration
 
@@ -71,7 +75,7 @@ This gives you access to many powerful tools, including the following:
 - You can now modify particles at the vertex stage. This is useful for detailed effects. For example, you could animate bird wings in a flock.
 - You can now use existing Shader Graphs for both regular Materials and visual effects. To make this possible, the dedicated Visual Effect target is now deprecated.
 
-### Attachment Workflow
+### Attachment workflow
 
 ![img](Images/banner-attachment-workflow.png)
 
@@ -81,7 +85,7 @@ When an effect is attached, you can use various helper tools and use it to visua
 
 
 
-### URP High End Mobile Support (Compute Capable Devices)
+### URP high-end mobile support (compute-capable devices)
 
 ![img](Images/banner-urp-mobile.png)
 
