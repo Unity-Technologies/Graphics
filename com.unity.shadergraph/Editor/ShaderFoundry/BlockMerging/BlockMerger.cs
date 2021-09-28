@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderFoundry
                     // Make sure a field exists on the merged input instance
                     matchingField = FindOrCreateVariableInstance(mergedInputInstance, input, referenceName, displayName);
 
-                    // Propagate the override up to the new variable. This override is used to know know how the linking is supposed to work at an subsequent merges.
+                    // Propagate the override up to the new variable. This override is used to know know how the linking is supposed to work at subsequent merges.
                     // Note: Don't do this if there's a backing property as the override would provide no new information
                     if(!hasBackingProperty)
                         mergedInputInstance.AddOverride(matchingField.ReferenceName, inputNameData);
@@ -287,7 +287,7 @@ namespace UnityEditor.ShaderFoundry
                     if (match != null)
                         DeclareMatchAssignment(match);
                 }
-                block.EntryPointFunction.AddCallStatementWithNewReturn(fnBuilder, blockOutputInstance.ReferenceName, blockInputInstance.ReferenceName);
+                fnBuilder.AddCallStatementWithNewReturn(block.EntryPointFunction, blockOutputInstance.ReferenceName, blockInputInstance.ReferenceName);
 
                 // Add a newline between blocks for readability
                 fnBuilder.NewLine();

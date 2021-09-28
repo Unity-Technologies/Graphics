@@ -174,7 +174,7 @@ namespace UnityEditor.ShaderFoundry
             builder.Add(m_EndParenthesisToken);
         }
 
-        internal static void AddCallStatementWithReturn(this ShaderFunction function, ShaderBuilder builder, string returnVariableName, params string[] arguments)
+        internal static void AddCallStatementWithReturn(this ShaderBuilder builder, ShaderFunction function, string returnVariableName, params string[] arguments)
         {
             builder.Indentation();
             builder.Add(returnVariableName);
@@ -183,7 +183,7 @@ namespace UnityEditor.ShaderFoundry
             builder.Add(m_SemicolonToken);
 
         }
-        internal static void AddCallStatementWithNewReturn(this ShaderFunction function, ShaderBuilder builder, string returnVariableName, params string[] arguments)
+        internal static void AddCallStatementWithNewReturn(this ShaderBuilder builder, ShaderFunction function, string returnVariableName, params string[] arguments)
         {
             builder.Indentation();
             builder.AddVariableDeclarationString(function.ReturnType, returnVariableName);
@@ -296,7 +296,7 @@ namespace UnityEditor.ShaderFoundry
             foreach (var item in block.ReferencedTypes)
                 builder.AddReferencedType(item);
             foreach (var item in block.Functions)
-                builder.AddFunction(item);
+                builder.AddReferencedFunction(item);
             foreach (var item in block.ReferencedFunctions)
                 builder.AddReferencedFunction(item);
         }
