@@ -16,6 +16,8 @@ nightly_katana_abv_validate:
     - echo "[hgunity]" >> $HOME/.hgrc # These 2 lines ask mercurial to run the oncommit formatting hook
     - echo "format.oncommit=yes" >> $HOME/.hgrc
     - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git ../gfx-sdet-tools
+    - sudo apt-get update
+    - sudo apt-get -y install python3-pip
     - pip3 install unidiff
     - copycat vendor --revision "${GIT_TAG:-${GIT_BRANCH%%' (tag)'}}" --sha "$GIT_REVISION" "../destination/$MANIFEST"
     - python3 ../gfx-sdet-tools/scripts/srp_test_references_updater.py --srp-version $SRP_VERSION --destination-folder ../destination # Updates the test project references because packages are not located at the same relative path in <source> and <target>
@@ -41,6 +43,8 @@ vendor:
     - echo "[hgunity]" >> $HOME/.hgrc
     - echo "format.oncommit=yes" >> $HOME/.hgrc
     - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git ../gfx-sdet-tools
+    - sudo apt-get update
+    - sudo apt-get -y install python3-pip
     - pip3 install unidiff
     - copycat diff -o ../diff.patch "../destination/$MANIFEST"
     - copycat vendor --revision "${GIT_TAG:-${GIT_BRANCH%%' (tag)'}}" --sha "$GIT_REVISION" "../destination/$MANIFEST"
