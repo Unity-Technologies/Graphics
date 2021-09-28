@@ -23,7 +23,7 @@ Material:
   m_Name: Broadleaf_Desktop_Field_Billboard
   m_Shader: {fileID: -6465566751694194690, guid: 9920c1f1781549a46ba081a2a15a16ec,
     type: 3}
-  m_ShaderKeywords: BACKFACE_NORMAL_MODE_MIRROR EFFECT_BILLBOARD _WINDQUALITY_BEST
+  m_ShaderKeywords: BACKFACE_NORMAL_MODE_MIRROR EFFECT_BILLBOARD _WINDQUALITY_FASTEST
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 1
@@ -79,7 +79,7 @@ Material:
     - _SubsurfaceIndirect: 0.25
     - _SubsurfaceKwToggle: 0
     - _TwoSided: 2
-    - _WINDQUALITY: 4
+    - _WINDQUALITY: 1
     - _WindQuality: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
