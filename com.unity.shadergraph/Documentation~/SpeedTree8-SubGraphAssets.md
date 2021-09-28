@@ -1,4 +1,4 @@
-# SpeedTree Sub Graph Assets
+# SpeedTree 8 Sub Graph Assets
 
 ## Prerequisite information
 This documentation assumes that you are already familiar with the concepts described in the following pages:
@@ -7,7 +7,7 @@ This documentation assumes that you are already familiar with the concepts descr
 * [Sub Graph Assets](Sub-graph-Asset.md)
 * [Keywords](Keywords.md)
 
-The documentation on [ShaderLab material properties](https://docs.unity3d.com/Manual/SL-Properties.html) might also be contextually helpful (however, note that Shader Graph includes material properties not present in ShaderLab).
+The documentation on [ShaderLab material properties](https://docs.unity3d.com/Manual/SL-Properties.html) might also be contextually helpful.
 
 ## Description
 [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html) is a third-party solution that includes both ready-to-use tree assets, and modeling software for creating your own tree assets.
@@ -47,7 +47,7 @@ To improve the visual diversity of SpeedTrees, you can use this Sub Graph Asset 
 |-----------------------|---------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `_OldHueVarBehavior`    | URP                 | To match the behavior of URP-specific and Built-In SpeedTree 8 shaders. | Uses the pseudorandom hue variation intensity value to [parameterize](https://en.wikipedia.org/wiki/Parametrization_(geometry)) the [linear interpolation](https://en.wikipedia.org/wiki/Linear_interpolation) between the basemap color (t=0) and HueVariation color (t=1) .                               |
 | `_HueVariationColor`    | URP, HDRP           | To provide SpeedTrees with more hue diversity.                          | Uses the pseudorandom hue variation intensity value as its opacity and applies that to the basemap color as an [overlay blend](https://docs.unity3d.com/2021.2/Documentation/Manual/SL-BlendOp.html). A more subtle effect than that provided by `_OldHueBehavior`. |
-| `EFFECT_HUE_VARIATION`  | N/A                 | N/A                                                                     | Not used in these SpeedTree 8 Shader Graphs, in order to comply with the default shader variant limit.                                                                                    |
+| `EFFECT_HUE_VARIATION`  | N/A                 | N/A                                                                     | This keyword was used in handwritten SpeedTree 8 shaders, but it's not used in these SpeedTree 8 Shader Graphs. This is to ensure compliance with the default shader variant limit.                                                                                    |
 |  `_HueVariationKwToggle` | URP, HDRP, Built-In | Only to support upgrade functionality.                                  | See [SpeedTreeImporter.hueVariation](https://docs.unity3d.com/ScriptReference/SpeedTreeImporter-hueVariation.html).
 
 ### Crossfading between levels of detail (LODs)
