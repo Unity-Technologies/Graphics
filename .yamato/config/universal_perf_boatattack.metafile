@@ -66,6 +66,7 @@ reuse_blocks:
 
 
 test_platforms:
+
   - type: Standalone
     name: performance_playmode_runtime
     allow_cache: False
@@ -96,7 +97,7 @@ test_platforms:
           - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: --player-load-path=playersMedium
           - [OSX_Metal]: --testfilter=Medium
           - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
@@ -309,13 +310,13 @@ platforms:
         image: mobile/android-execution-r19:stable
         flavor: b1.large
       standalone_build:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        type: Unity::mobile::android
+        image: mobile/android-execution-r19:stable
         flavor: b1.large
       performance_build_editmode:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
+        type: Unity::mobile::android
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
   - name: iPhone
     apis:
       - name: Metal
