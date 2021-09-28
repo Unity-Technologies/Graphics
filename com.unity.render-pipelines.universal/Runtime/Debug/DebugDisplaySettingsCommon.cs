@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -32,11 +31,10 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel()
             {
-                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
-                
+                AddWidget(WidgetFactory.CreateMissingDebugShadersWarning());
+
                 var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
                 var materialSettingsData = debugDisplaySettings.MaterialSettings;
-                
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Filters",
