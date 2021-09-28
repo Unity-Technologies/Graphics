@@ -38,7 +38,7 @@ half3 SampleSH(half3 normalWS)
     SHCoefficients[5] = unity_SHBb;
     SHCoefficients[6] = unity_SHC;
 
-    return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS));
+    return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS)) * GetCurrentExposureMultiplier();
 }
 
 // SH Vertex Evaluation. Depending on target SH sampling might be
@@ -122,14 +122,14 @@ half3 SampleLightmap(float2 staticLightmapUV, float2 dynamicLightmapUV, half3 no
         dynamicLightmapUV, transformCoords, false, decodeInstructions);
 #endif
 
-    return diffuseLighting;
+    return diffuseLighting * GetCurrentExposureMultiplier();
 }
 
 // Legacy version of SampleLightmap where Realtime GI is not supported.
 half3 SampleLightmap(float2 staticLightmapUV, half3 normalWS)
 {
     float2 dummyDynamicLightmapUV = float2(0,0);
-    half3 result = SampleLightmap(staticLightmapUV, dummyDynamicLightmapUV, normalWS);
+    half3 result = SampleLightmap(staticLightmapUV, dummyDynamicLightmapUV, normalWS) * GetCurrentExposureMultiplier();
     return result;
 }
 
