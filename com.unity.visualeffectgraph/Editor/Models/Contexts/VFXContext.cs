@@ -260,8 +260,8 @@ namespace UnityEditor.VFX
                 to.m_InputFlowSlot[toIndex].link.Any(o => o.context == from && o.slotIndex == fromIndex))
                 return false;
 
-            //Special incorrect case, GPUEvent use the same type than Spawner which leads to an unexpected allowed link.
-            if (from.m_ContextType == VFXContextType.SpawnerGPU && to.m_ContextType == VFXContextType.OutputEvent)
+            //Special incorrect case, GPUEvent use the same type than Spawner which leads to an unexpected allowed link on output & spawner.
+            if (from.m_ContextType == VFXContextType.SpawnerGPU && to.m_ContextType != VFXContextType.Init)
                 return false;
 
             //Can't connect directly event to context to OutputEvent

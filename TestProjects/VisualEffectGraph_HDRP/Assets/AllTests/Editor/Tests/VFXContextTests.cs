@@ -204,6 +204,14 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void Link_Fail_From_GPUEvent_To_Spawn()
+        {
+            var from = ScriptableObject.CreateInstance<VFXBasicGPUEvent>();
+            var to = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            Assert.IsFalse(VFXContext.CanLink(from, to));
+        }
+
+        [Test]
         public void MultiLink_Spawn_And_Event_To_Initialize()
         {
             var from1 = ScriptableObject.CreateInstance<VFXBasicSpawner>();
