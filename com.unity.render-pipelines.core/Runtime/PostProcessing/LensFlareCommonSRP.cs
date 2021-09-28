@@ -34,7 +34,10 @@ namespace UnityEngine.Rendering
         static public void Dispose()
         {
             if (occlusionRT != null)
+            {
                 RTHandles.Release(occlusionRT);
+                occlusionRT = null;
+            }
         }
 
         /// <summary>
@@ -348,9 +351,13 @@ namespace UnityEngine.Rendering
         /// <param name="usePanini">Set if use Panani Projection</param>
         /// <param name="paniniDistance">Distance used for Panini projection</param>
         /// <param name="paniniCropToFit">CropToFit parameter used for Panini projection</param>
+        /// <param name="isCameraRelative">Set if camera is relative</param>
+        /// <param name="cameraPositionWS">Camera World Space position</param>
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
-        /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
+        /// <param name="taaEnabled">Set if TAA is enabled</param>
+        /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
+        /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
         /// <param name="_FlareTex">ShaderID for the FlareTex</param>
         /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
         /// <param name="_FlareData0">ShaderID for the FlareData0</param>
@@ -364,7 +371,6 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
-            RenderTexture depthBuffer,
             bool taaEnabled,
             int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
@@ -420,7 +426,8 @@ namespace UnityEngine.Rendering
                     data.elements == null ||
                     data.elements.Length == 0 ||
                     !comp.useOcclusion ||
-                    (comp.useOcclusion && comp.sampleCount == 0))
+                    (comp.useOcclusion && comp.sampleCount == 0) ||
+                    comp.intensity <= 0.0f)
                     continue;
 
                 Light light = comp.GetComponent<Light>();
@@ -524,10 +531,14 @@ namespace UnityEngine.Rendering
         /// <param name="usePanini">Set if use Panani Projection</param>
         /// <param name="paniniDistance">Distance used for Panini projection</param>
         /// <param name="paniniCropToFit">CropToFit parameter used for Panini projection</param>
+        /// <param name="isCameraRelative">Set if camera is relative</param>
+        /// <param name="cameraPositionWS">Camera World Space position</param>
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
+        /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
+        /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
         /// <param name="_FlareTex">ShaderID for the FlareTex</param>
         /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
         /// <param name="_FlareData0">ShaderID for the FlareData0</param>
@@ -592,7 +603,8 @@ namespace UnityEngine.Rendering
                     !comp.gameObject.activeInHierarchy ||
                     data == null ||
                     data.elements == null ||
-                    data.elements.Length == 0)
+                    data.elements.Length == 0 ||
+                    comp.intensity <= 0.0f)
                     continue;
 
                 Light light = comp.GetComponent<Light>();
@@ -675,7 +687,8 @@ namespace UnityEngine.Rendering
                         element.visible == false ||
                         (element.lensFlareTexture == null && element.flareType == SRPLensFlareType.Image) ||
                         element.localIntensity <= 0.0f ||
-                        element.count <= 0)
+                        element.count <= 0 ||
+                        element.localIntensity <= 0.0f)
                         continue;
 
                     Color colorModulation = globalColorModulation;
@@ -689,6 +702,15 @@ namespace UnityEngine.Rendering
 
                     Color curColor = colorModulation;
                     Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
+                    Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
+                    float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
+                    float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
+
+                    float currentIntensity = comp.intensity * element.localIntensity * radialsScaleRadius * distanceAttenuation;
+
+                    if (currentIntensity <= 0.0f)
+                        continue;
+
                     Texture texture = element.lensFlareTexture;
                     float usedAspectRatio;
                     if (element.flareType == SRPLensFlareType.Image)
@@ -697,9 +719,6 @@ namespace UnityEngine.Rendering
                         usedAspectRatio = 1.0f;
 
                     float rotation = element.rotation;
-                    Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
-                    float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
-                    float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
 
                     Vector2 elemSizeXY;
                     if (element.preserveAspectRatio)
@@ -721,11 +740,6 @@ namespace UnityEngine.Rendering
                     Vector2 size = new Vector2(elemSizeXY.x, elemSizeXY.y);
                     float combinedScale = scaleByDistance * scaleSize * element.uniformScale * comp.scale;
                     size *= combinedScale;
-
-                    float currentIntensity = comp.intensity * element.localIntensity * radialsScaleRadius * distanceAttenuation;
-
-                    if (currentIntensity <= 0.0f)
-                        continue;
 
                     curColor *= element.tint;
                     curColor *= currentIntensity;
