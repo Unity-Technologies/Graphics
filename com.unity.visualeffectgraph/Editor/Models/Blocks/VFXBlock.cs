@@ -22,19 +22,23 @@ namespace UnityEditor.VFX
 
         private VFXData m_TransientData = null;
 
+        // Deprecated. But has to keep around it to initialize slot field 
         [SerializeField]
-        protected bool m_Disabled = false;
+        private bool m_Disabled = false;
 
         [SerializeField]
         VFXSlot enabledSlot;
 
         public bool enabled
         {
-            get { return !m_Disabled; }
+            get { return (bool)(enabledSlot.value); }
             set
             {
-                m_Disabled = !value;
-                Invalidate(InvalidationCause.kEnableChanged);
+                if (value != enabled)
+                {
+                    enabledSlot.value = value;
+                    Invalidate(InvalidationCause.kEnableChanged);
+                }
             }
         }
         public virtual bool isValid
