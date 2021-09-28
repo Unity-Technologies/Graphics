@@ -51,19 +51,19 @@ namespace UnityEngine.Rendering
                 var currentPipelineType = currentPipeline.GetType();
                 foreach (var component in components)
                 {
-                    SetIsSupportedOnCurrentPipeline(component, currentPipelineType);
+                    SetIsSupportedOnPipeline(component, currentPipelineType);
                 }
             }
         }
 
-        void SetIsSupportedOnCurrentPipeline(VolumeComponent component, Type currentPipelineType)
+        void SetIsSupportedOnPipeline(VolumeComponent component, Type renderPipelineType)
         {
             bool supportedOnCurrentPipeline = true;
 
             // Get the supported pipelines for the volume component
             if (component.GetType().GetCustomAttribute(typeof(VolumeComponentMenuForRenderPipeline), false) is VolumeComponentMenuForRenderPipeline supportedOn)
             {
-                supportedOnCurrentPipeline = supportedOn.pipelineTypes.Contains(currentPipelineType);
+                supportedOnCurrentPipeline = supportedOn.pipelineTypes.Contains(renderPipelineType);
             }
             component.supportedOnCurrentPipeline = supportedOnCurrentPipeline;
         }
@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering
             if (currentPipeline != null)
             {
                 var currentPipelineType = currentPipeline.GetType();
-                SetIsSupportedOnCurrentPipeline(component, currentPipeline.GetType());
+                SetIsSupportedOnPipeline(component, currentPipeline.GetType());
             }
 
             components.Add(component);
