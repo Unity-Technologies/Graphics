@@ -200,10 +200,15 @@ Pass
 
     // --------------------------------------------------
     // Build Graph Inputs
-
-	$features.graphVFX:     $include("VFX/Config.template.hlsl")
+    #ifdef HAVE_VFX_MODIFICATION
+    #define VFX_SRP_ATTRIBUTES AttributesMesh
+    #define VaryingsMeshType VaryingsMeshToPS
+    #define VFX_SRP_VARYINGS VaryingsMeshType
+    #define VFX_SRP_SURFACE_INPUTS FragInputs
+    #endif
+    $features.graphVFX:     $include("VFXConfig.template.hlsl")
     $features.graphVertex:  $include("Vertex.template.hlsl")
-	$features.graphTessellation:  $include("Tessellation.template.hlsl")
+    $features.graphTessellation:  $include("Tessellation.template.hlsl")
     $features.graphPixel:   $include("Pixel.template.hlsl")
 
     // --------------------------------------------------

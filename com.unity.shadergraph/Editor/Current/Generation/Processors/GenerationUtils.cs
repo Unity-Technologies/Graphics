@@ -384,6 +384,9 @@ namespace UnityEditor.ShaderGraph
             return new ConditionalField[]
             {
                 new ConditionalField(StructFields.VertexDescriptionInputs.ScreenPosition,                               requirements.requiresScreenPosition),
+                new ConditionalField(StructFields.VertexDescriptionInputs.NDCPosition,                                  requirements.requiresNDCPosition),
+                new ConditionalField(StructFields.VertexDescriptionInputs.PixelPosition,                                requirements.requiresPixelPosition),
+
                 new ConditionalField(StructFields.VertexDescriptionInputs.VertexColor,                                  requirements.requiresVertexColor),
 
                 new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceNormal,                            (requirements.requiresNormal & NeededCoordinateSpace.Object) > 0),
@@ -439,6 +442,9 @@ namespace UnityEditor.ShaderGraph
             return new ConditionalField[]
             {
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ScreenPosition,                              requirements.requiresScreenPosition),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.NDCPosition,                                 requirements.requiresNDCPosition),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.PixelPosition,                               requirements.requiresPixelPosition),
+
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexColor,                                 requirements.requiresVertexColor),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.FaceSign,                                    requirements.requiresFaceSign),
 
@@ -746,6 +752,12 @@ namespace UnityEditor.ShaderGraph
                 if (requirements.requiresScreenPosition)
                     sb.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
 
+                if (requirements.requiresNDCPosition)
+                    sb.AppendLine("float2 {0};", ShaderGeneratorNames.NDCPosition);
+
+                if (requirements.requiresPixelPosition)
+                    sb.AppendLine("float2 {0};", ShaderGeneratorNames.PixelPosition);
+
                 if (requirements.requiresFaceSign)
                     sb.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
 
@@ -786,6 +798,12 @@ namespace UnityEditor.ShaderGraph
 
             if (requirements.requiresScreenPosition)
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.ScreenPosition} = IN.{ShaderGeneratorNames.ScreenPosition};");
+
+            if (requirements.requiresNDCPosition)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.NDCPosition} = IN.{ShaderGeneratorNames.NDCPosition};");
+
+            if (requirements.requiresPixelPosition)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.PixelPosition} = IN.{ShaderGeneratorNames.PixelPosition};");
 
             if (requirements.requiresFaceSign)
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.FaceSign} = IN.{ShaderGeneratorNames.FaceSign};");

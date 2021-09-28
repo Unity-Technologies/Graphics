@@ -399,8 +399,8 @@ float3 AnimateFineNoisePosition(float3 positionPS)
 
 void GetCloudCoverageData(float3 positionPS, out CloudCoverageData data)
 {
-    // Convert the position into dome space
-    float2 normalizedPosition = AnimateCloudMapPosition(positionPS).xz / _NormalizationFactor * _CloudMapTiling.xy + _CloudMapTiling.zw;
+    // Convert the position into dome space and center the texture is centered above (0, 0, 0)
+    float2 normalizedPosition = AnimateCloudMapPosition(positionPS).xz / _NormalizationFactor * _CloudMapTiling.xy + _CloudMapTiling.zw - 0.5;
     // Read the data from the texture
     float4 cloudMapData =  SAMPLE_TEXTURE2D_LOD(_CloudMapTexture, s_linear_repeat_sampler, float2(normalizedPosition), 0);
     data.coverage = float2(cloudMapData.x, cloudMapData.x * cloudMapData.x);

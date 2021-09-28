@@ -1850,33 +1850,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class BindCustomPassBuffersPassData
-        {
-            public Lazy<RTHandle> customColorTexture;
-            public Lazy<RTHandle> customDepthTexture;
-        }
-
-        void BindCustomPassBuffers(RenderGraph renderGraph, HDCamera hdCamera)
-        {
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
-            {
-                using (var builder = renderGraph.AddRenderPass<BindCustomPassBuffersPassData>("Bind Custom Pass Buffers", out var passData))
-                {
-                    passData.customColorTexture = m_CustomPassColorBuffer;
-                    passData.customDepthTexture = m_CustomPassDepthBuffer;
-
-                    builder.SetRenderFunc(
-                        (BindCustomPassBuffersPassData data, RenderGraphContext ctx) =>
-                        {
-                            if (data.customColorTexture.IsValueCreated)
-                                ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomColorTexture, data.customColorTexture.Value);
-                            if (data.customDepthTexture.IsValueCreated)
-                                ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, data.customDepthTexture.Value);
-                        });
-                }
-            }
-        }
-
 #if UNITY_EDITOR
         class RenderWireOverlayPassData
         {
