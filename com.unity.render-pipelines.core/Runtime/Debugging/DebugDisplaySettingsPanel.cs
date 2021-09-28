@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering
 {
     public abstract class DebugDisplaySettingsPanel : IDebugDisplaySettingsPanelDisposable
     {
@@ -14,9 +14,14 @@ namespace UnityEngine.Rendering.Universal
             m_Widgets.Add(widget);
         }
 
-        public void Dispose()
+        protected void Clear()
         {
             m_Widgets.Clear();
+        }
+
+        public void Dispose()
+        {
+            Clear();
         }
     }
 }
