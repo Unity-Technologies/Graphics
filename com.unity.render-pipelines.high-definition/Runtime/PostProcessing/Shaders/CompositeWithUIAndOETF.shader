@@ -24,9 +24,6 @@ Shader "Hidden/HDRP/CompositeUI"
         #define _MinNits    _HDROutputParams.x
         #define _MaxNits    _HDROutputParams.y
         #define _PaperWhite _HDROutputParams.z
-        #define _IsRec2020  (int)(_HDROutputParams.w) == 0
-        #define _IsRec709   (int)(_HDROutputParams.w) == 1
-        #define _IsP3       (int)(_HDROutputParams.w) == 2
 
         struct Attributes
         {

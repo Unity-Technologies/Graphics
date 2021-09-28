@@ -417,22 +417,21 @@ float3 PerformRangeReduction(float3 input, float minNits, float maxNits, int mod
     }
     else
     {
+        float3 outC = 0;
+
         if (mode == 3)
         {
-            float3 outC = 0;
-            outC.x = BT2390EETF(input.x, minNits, maxNits);
-            outC.y = BT2390EETF(input.y, minNits, maxNits);
-            outC.z = BT2390EETF(input.z, minNits, maxNits);
-            return outC;
-        }
-        else if (mode == 4)
-        {
-            float3 outC = 0;
             outC.x = ReinhardTonemap(input.x, maxNits);
             outC.y = ReinhardTonemap(input.y, maxNits);
             outC.z = ReinhardTonemap(input.z, maxNits);
-            return outC;
         }
+        else if (mode == 4)
+        {
+            outC.x = BT2390EETF(input.x, minNits, maxNits);
+            outC.y = BT2390EETF(input.y, minNits, maxNits);
+            outC.z = BT2390EETF(input.z, minNits, maxNits);
+        }
+        return outC;
     }
     return 0;
 }

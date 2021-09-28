@@ -127,7 +127,6 @@ namespace UnityEngine.Rendering.HighDefinition
         LiftGammaGain m_LiftGammaGain;
         ShadowsMidtonesHighlights m_ShadowsMidtonesHighlights;
         ColorCurves m_Curves;
-        HDROutputOptions m_HDROutput;
         FilmGrain m_FilmGrain;
         PathTracing m_PathTracing;
 
@@ -336,7 +335,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ChannelMixer = stack.GetComponent<ChannelMixer>();
             m_SplitToning = stack.GetComponent<SplitToning>();
             m_LiftGammaGain = stack.GetComponent<LiftGammaGain>();
-            m_HDROutput = stack.GetComponent<HDROutputOptions>();
             m_ShadowsMidtonesHighlights = stack.GetComponent<ShadowsMidtonesHighlights>();
             m_Curves = stack.GetComponent<ColorCurves>();
             m_FilmGrain = stack.GetComponent<FilmGrain>();
@@ -3899,10 +3897,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (TEST_HDR())
             {
-                int colorGamut = (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec2020 || HDROutputSettings.main.displayColorGamut == ColorGamut.HDR10) ? 0 :
-                    HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709 ? 1 :
-                    (HDROutputSettings.main.displayColorGamut == ColorGamut.DisplayP3 || HDROutputSettings.main.displayColorGamut == ColorGamut.DolbyHDR) ? 2 : -1;
-
                 if (HDROutputSettings.main.active && HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709)
                 {
                     passData.builderCS.EnableKeyword("HDR_OUTPUT_SCRGB");
@@ -3915,22 +3909,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 var minNits = HDROutputSettings.main.minToneMapLuminance;
                 var maxNits = HDROutputSettings.main.maxToneMapLuminance;
                 var paperWhite = HDROutputSettings.main.paperWhiteNits;
-                int eetfMode = (int)m_HDROutput.mode.value;
-                if (!m_HDROutput.detectPaperWhite.value)
+                int eetfMode = 0;
+                if (m_Tonemapping.mode.value == TonemappingMode.Neutral ||
+                    m_Tonemapping.mode.value == TonemappingMode.Custom ||
+                    m_Tonemapping.mode.value == TonemappingMode.External)
                 {
-                    paperWhite = m_HDROutput.paperWhite.value;
+                    eetfMode = (int)m_Tonemapping.neutralHDRRangeReductionMode.value +
+                        ((m_Tonemapping.tonemapOnlyLuminance.value) ? 0 : 2);
                 }
-                if (!m_HDROutput.detectLimits.value)
+                if (!m_Tonemapping.detectPaperWhite.value)
                 {
-                    minNits = (int)m_HDROutput.minNits.value;
-                    maxNits = (int)m_HDROutput.maxNits.value;
+                    paperWhite = m_Tonemapping.paperWhite.value;
                 }
-                if (!m_HDROutput.reduceOnlyLuminance.value)
+                if (!m_Tonemapping.detectBrightnessLimits.value)
                 {
-                    eetfMode = m_HDROutput.mode.value == RangeReductionMode.Reinhard ? 4 : 3;
+                    minNits = (int)m_Tonemapping.minNits.value;
+                    maxNits = (int)m_Tonemapping.maxNits.value;
                 }
-                passData.hdroutParameters = new Vector4(minNits, maxNits, paperWhite, colorGamut);
-                passData.hdroutParameters2 = new Vector4(eetfMode, maxNits, paperWhite, colorGamut);
+
+                passData.hdroutParameters = new Vector4(minNits, maxNits, paperWhite, 0);
+                passData.hdroutParameters2 = new Vector4(eetfMode, maxNits, paperWhite, 0);
             }
 
             passData.lutSize = m_LutSize;
@@ -4811,31 +4809,29 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (TEST_HDR())
                 {
-                    int colorGamut = (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec2020 || HDROutputSettings.main.displayColorGamut == ColorGamut.HDR10) ? 0 :
-                        HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709 ? 1 :
-                        (HDROutputSettings.main.displayColorGamut == ColorGamut.DisplayP3 || HDROutputSettings.main.displayColorGamut == ColorGamut.DolbyHDR) ? 2 : -1;
-
-                    var hdrOutput = hdCamera.volumeStack.GetComponent<HDROutputOptions>();
-
                     var minNits = HDROutputSettings.main.minToneMapLuminance;
                     var maxNits = HDROutputSettings.main.maxToneMapLuminance;
                     var paperWhite = HDROutputSettings.main.paperWhiteNits;
-                    int eetfMode = (int)hdrOutput.mode.value;
-                    if (!hdrOutput.detectPaperWhite.value)
+                    int eetfMode = 0;
+                    if (m_Tonemapping.mode.value == TonemappingMode.Neutral ||
+                        m_Tonemapping.mode.value == TonemappingMode.Custom ||
+                        m_Tonemapping.mode.value == TonemappingMode.External)
                     {
-                        paperWhite = hdrOutput.paperWhite.value;
+                        eetfMode = (int)m_Tonemapping.neutralHDRRangeReductionMode.value +
+                            ((m_Tonemapping.tonemapOnlyLuminance.value) ? 0 : 2);
                     }
-                    if (!hdrOutput.detectLimits.value)
+                    if (!m_Tonemapping.detectPaperWhite.value)
                     {
-                        minNits = (int)hdrOutput.minNits.value;
-                        maxNits = (int)hdrOutput.maxNits.value;
+                        paperWhite = m_Tonemapping.paperWhite.value;
                     }
-                    if (!hdrOutput.reduceOnlyLuminance.value)
+                    if (!m_Tonemapping.detectBrightnessLimits.value)
                     {
-                        eetfMode = hdrOutput.mode.value == RangeReductionMode.Reinhard ? 4 : 3;
+                        minNits = (int)m_Tonemapping.minNits.value;
+                        maxNits = (int)m_Tonemapping.maxNits.value;
                     }
-                    passData.hdroutParameters = new Vector4(minNits, maxNits, paperWhite, colorGamut);
-                    passData.hdroutParameters2 = new Vector4(eetfMode, maxNits, paperWhite, colorGamut);
+
+                    passData.hdroutParameters = new Vector4(minNits, maxNits, paperWhite, 0);
+                    passData.hdroutParameters2 = new Vector4(eetfMode, maxNits, paperWhite, 0);
                 }
 
 

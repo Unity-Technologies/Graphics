@@ -199,22 +199,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
         }
 
-        static void SetHDROutputState(HDCamera camera)
-        {
-            var hdrOutput = camera.volumeStack.GetComponent<HDROutputOptions>();
-            if (HDROutputSettings.main.available)
-            {
-                HDROutputSettings.main.automaticHDRTonemapping = false;
-                HDROutputSettings.main.RequestHDRModeChange(hdrOutput.enable.value);
-            }
-        }
-
         // TODO_FCC: THIS IS NEEDED FOR TESTING, REPLACE WITH HDROutputSettings.main.active LATER
         static bool TEST_HDR()
         {
             if (HDROutputSettings.main.available)
             {
-                //Debug.Log("Available");
+                //  Debug.Log("Available");
             }
 
             if (HDROutputSettings.main.available && SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported))
@@ -1982,8 +1972,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Updates RTHandle
             hdCamera.BeginRender(cmd);
-
-            SetHDROutputState(hdCamera);
 
             if (m_RayTracingSupported)
             {

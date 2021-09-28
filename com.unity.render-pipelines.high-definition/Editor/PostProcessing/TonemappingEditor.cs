@@ -20,6 +20,16 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_LutTexture;
         SerializedDataParameter m_LutContribution;
 
+        // HDR Mode.
+        SerializedDataParameter m_NeutralHDRRangeReductionMode;
+        SerializedDataParameter m_HDRReduceLuminanceOnly;
+        SerializedDataParameter m_HDRDetectPaperWhite;
+        SerializedDataParameter m_HDRPaperwhite;
+        SerializedDataParameter m_HDRDetectNitLimits;
+        SerializedDataParameter m_HDRMinNits;
+        SerializedDataParameter m_HDRMaxNits;
+        public override bool hasAdditionalProperties => true;
+
         // Curve drawing utilities
         readonly HableCurve m_HableCurve = new HableCurve();
         Rect m_CurveRect;
@@ -40,6 +50,14 @@ namespace UnityEditor.Rendering.HighDefinition
             m_LutTexture = Unpack(o.Find(x => x.lutTexture));
             m_LutContribution = Unpack(o.Find(x => x.lutContribution));
 
+            m_NeutralHDRRangeReductionMode = Unpack(o.Find(x => x.neutralHDRRangeReductionMode));
+            m_HDRReduceLuminanceOnly = Unpack(o.Find(x => x.tonemapOnlyLuminance));
+            m_HDRDetectPaperWhite = Unpack(o.Find(x => x.detectPaperWhite));
+            m_HDRPaperwhite = Unpack(o.Find(x => x.paperWhite));
+            m_HDRDetectNitLimits = Unpack(o.Find(x => x.detectBrightnessLimits));
+            m_HDRMinNits = Unpack(o.Find(x => x.minNits));
+            m_HDRMaxNits = Unpack(o.Find(x => x.maxNits));
+
             m_Material = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/Custom Tonemapper Curve"));
         }
 
@@ -54,6 +72,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            bool hdrInPlayerSettings = UnityEditor.PlayerSettings.useHDRDisplay;
+
             PropertyField(m_Mode);
 
             // Draw a curve for the custom tonemapping mode to make it easier to tweak visually
@@ -124,6 +144,38 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_LutContribution, EditorGUIUtility.TrTextContent("Contribution"));
 
                 EditorGUILayout.HelpBox("Use \"Edit > Rendering > Render Selected HDRP Camera to Log EXR\" to export a log-encoded frame for external grading.", MessageType.Info);
+            }
+
+            if (hdrInPlayerSettings)
+            {
+                EditorGUILayout.LabelField("HDR Output");
+                int hdrTonemapMode = m_Mode.value.intValue;
+                if (m_Mode.value.intValue == (int)TonemappingMode.Custom || m_Mode.value.intValue == (int)TonemappingMode.External)
+                {
+                    EditorGUILayout.HelpBox("The selected tonmapping mode is not supported in HDR Output mode. It will fall-back to neutral tonmapping when outputting to HDR devices.", MessageType.Warning);
+                    hdrTonemapMode = (int)TonemappingMode.Neutral;
+                }
+
+                if (hdrTonemapMode == (int)TonemappingMode.Neutral)
+                {
+                    PropertyField(m_NeutralHDRRangeReductionMode);
+                    PropertyField(m_HDRReduceLuminanceOnly);
+                    PropertyField(m_HDRDetectPaperWhite);
+                    EditorGUI.indentLevel++;
+                    using (new EditorGUI.DisabledScope(m_HDRDetectPaperWhite.value.boolValue))
+                    {
+                        PropertyField(m_HDRPaperwhite);
+                    }
+                    EditorGUI.indentLevel--;
+                    PropertyField(m_HDRDetectNitLimits);
+                    EditorGUI.indentLevel++;
+                    using (new EditorGUI.DisabledScope(m_HDRDetectNitLimits.value.boolValue))
+                    {
+                        PropertyField(m_HDRMinNits);
+                        PropertyField(m_HDRMaxNits);
+                    }
+                    EditorGUI.indentLevel--;
+                }
             }
         }
 
