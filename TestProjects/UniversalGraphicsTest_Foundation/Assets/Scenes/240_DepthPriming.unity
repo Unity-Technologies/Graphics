@@ -439,7 +439,7 @@ MonoBehaviour:
   m_RenderShadows: 1
   m_RequiresDepthTextureOption: 2
   m_RequiresOpaqueTextureOption: 2
-  m_CameraType: 0
+  m_CameraType: 1
   m_Cameras: []
   m_RendererIndex: 24
   m_VolumeLayerMask:
@@ -933,12 +933,12 @@ GameObject:
   - component: {fileID: 798865922}
   - component: {fileID: 798865921}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: Canvas | Disabled due to inconsistent behavior
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &798865921
 MonoBehaviour:
   m_ObjectHideFlags: 0
