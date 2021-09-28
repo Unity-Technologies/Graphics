@@ -5,6 +5,7 @@ Shader "Hidden/HDRP/CompositeUI"
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma editor_sync_compilation
+        #pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -57,12 +58,12 @@ Shader "Hidden/HDRP/CompositeUI"
             uv.y = 1.0f - uv.y;
 
             float4 sceneColor = SAMPLE_TEXTURE2D_X(_InputTexture, s_point_clamp_sampler, uv);
-
             sceneColor.rgb = OETF(sceneColor.rgb);
 
-            float4 uiSample = SAMPLE_TEXTURE2D_X(_UITexture, s_point_clamp_sampler, uv);
+            float4 uiValue = SAMPLE_TEXTURE2D_X(_UITexture, s_point_clamp_sampler, uv);
+
             float uiBoost = 1.0f; // TODO_FCC: Add from editor UI
-            sceneColor.rgb = SceneUIComposition(uiSample, sceneColor.rgb, _PaperWhite * uiBoost);
+            sceneColor.rgb = SceneUIComposition(uiValue, sceneColor.rgb, _PaperWhite * uiBoost);
 
             return sceneColor;
         }

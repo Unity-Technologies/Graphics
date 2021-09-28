@@ -1,5 +1,9 @@
 // Important! This file assumes Color.hlsl has been already included.
 
+#if defined(HDR_OUTPUT_REC2020) || defined(HDR_OUTPUT_SCRGB)
+#define HDR_OUTPUT
+#endif
+
 // A bit of nomenclature that will be used in the file:
 // Gamut: It is the subset of colors that is possible to reproduce by using three specific primary colors.
 // Rec709 (ITU-R Recommendation BT709) is a HDTV standard, in our context, we mostly care about its color gamut (https://en.wikipedia.org/wiki/Rec._709). The Rec709 gamut is the same as BT1886 and sRGB.
@@ -12,8 +16,8 @@
 // OETF (Optical Eelectro Transfer Function): This is a function to goes from optical (linear light) to electro (signal transmitted to the display).
 // EOTF (Eelectro Optical  Transfer Function): The inverse of the OETF, used by the TV/Monitor.
 // EETF (Eelectro-Electro Transfer Function): This is generally just a remapping function, we use the BT2390 EETF to perform range reduction based on the actual display.
-// PQ (Perceptual Quantizer): the EOTF used for HDR TVs. It works in the range [0, 10000] nits. Important to keep in mind that this represents an absolute intensity and not relative as for SDR. Sometimes this can be referenced as ST2084. As OETF we'll use the inverse of the PQ curve.
-
+// PQ (Perceptual Quantizer): the EOTF used for HDR10 TVs. It works in the range [0, 10000] nits. Important to keep in mind that this represents an absolute intensity and not relative as for SDR. Sometimes this can be referenced as ST2084. As OETF we'll use the inverse of the PQ curve.
+// scRGB: a wide color gamut that uses same color space and white point as sRGB, but with much wider coordinates. Used on windows when 16 bit depth is selected. Most of the color space is imaginary colors. Works differently than with PQ.
 
 // --------------------------------
 //  Perceptual Quantizer (PQ) / ST 2084
@@ -116,6 +120,24 @@ float3 RotateRec2020ToRec709(float3 Rec2020Input)
     return mul(Rec2020ToRec709Mat, Rec2020Input);
 }
 
+float3 RotateRec709ToOutputSpace(float3 Rec709Input)
+{
+#ifdef HDR_OUTPUT_SCRGB
+    return Rec709Input;
+#else
+    return RotateRec709ToRec2020(Rec709Input);
+#endif
+}
+
+float3 RotateRec2020ToOutputSpace(float3 Rec2020Input)
+{
+#ifdef HDR_OUTPUT_SCRGB
+    return RotateRec2020ToRec709(Rec2020Input);
+#else
+    return Rec2020Input;
+#endif
+}
+
 float3 RotateRec2020ToLMS(float3 Rec2020Input)
 {
     static const float3x3 Rec2020ToLMSMat =
@@ -126,6 +148,17 @@ float3 RotateRec2020ToLMS(float3 Rec2020Input)
     };
 
     return mul(Rec2020ToLMSMat, Rec2020Input);
+}
+
+float3 Rotate709ToLMS(float3 Rec709Input)
+{
+    static const float3x3 Rec709ToLMSMat =
+    {
+         0.412109375,     0.52392578125, 0.06396484375,
+         0.166748046875,  0.720458984375, 0.11279296875,
+         0.024169921875,  0.075439453125, 0.900390625
+    };
+    return mul(Rec709ToLMSMat, Rec709Input);
 }
 
 // Ref: ICtCp Dolby white paper (https://www.dolby.com/us/en/technologies/dolby-vision/ictcp-white-paper.pdf)
@@ -140,11 +173,28 @@ float3 RotatePQLMSToICtCp(float3 LMSInput)
     return mul(PQLMSToICtCpMat, LMSInput);
 }
 
+float3 RotateLMSToICtCp(float3 lms)
+{
+    float3 PQLMS = LinearToPQ(max(0.0f, lms));
+    return RotatePQLMSToICtCp(PQLMS);
+}
+
 float3 RotateRec2020ToICtCp(float3 Rec2020)
 {
     float3 lms = RotateRec2020ToLMS(Rec2020);
     float3 PQLMS = LinearToPQ(max(0.0f, lms));
     return RotatePQLMSToICtCp(PQLMS);
+}
+
+
+
+float3 RotateOutputSpaceToICtCp(float3 inputColor)
+{
+    // TODO: Do the conversion directly from Rec709 (bake matrix Rec709 -> XYZ -> LMS)
+#ifdef HDR_OUTPUT_SCRGB
+    inputColor = RotateRec709ToRec2020(inputColor);
+#endif
+    return RotateRec2020ToICtCp(inputColor);
 }
 
 float3 RotateLMSToXYZ(float3 LMSInput)
@@ -168,6 +218,12 @@ float3 RotateXYZToRec2020(float3 XYZ)
     return mul(XYZToRec2020Mat, XYZ);
 }
 
+float3 RotateXYZToRec709(float3 XYZ)
+{
+    return mul(XYZ_2_REC709_MAT, XYZ);
+}
+
+
 float3 RotateICtCpToPQLMS(float3 ICtCp)
 {
     static const float3x3 ICtCpToPQLMSMat = float3x3(
@@ -179,12 +235,30 @@ float3 RotateICtCpToPQLMS(float3 ICtCp)
     return mul(ICtCpToPQLMSMat, ICtCp);
 }
 
-float3 RotateICtCpToRec2020(float3 ICtCp)
+float3 RotateICtCpToXYZ(float3 ICtCp)
 {
     float3 PQLMS = RotateICtCpToPQLMS(ICtCp);
     float3 LMS = PQToLinear(PQLMS, MAX_PQ_VALUE);
-    float3 XYZ = RotateLMSToXYZ(LMS);
-    return RotateXYZToRec2020(XYZ);
+    return RotateLMSToXYZ(LMS);
+}
+
+float3 RotateICtCpToRec2020(float3 ICtCp)
+{
+    return RotateXYZToRec2020(RotateICtCpToXYZ(ICtCp));
+}
+
+float3 RotateICtCpToRec709(float3 ICtCp)
+{
+    return RotateXYZToRec709(RotateICtCpToXYZ(ICtCp));
+}
+
+float3 RotateICtCpToOutputSpace(float3 ICtCp)
+{
+#ifdef HDR_OUTPUT_SCRGB
+    return RotateICtCpToRec709(ICtCp);
+#elif defined(HDR_OUTPUT_REC2020)
+    return RotateICtCpToRec2020(ICtCp);
+#endif
 }
 
 // --------------------------------------------------------------------------------------------
@@ -223,13 +297,20 @@ float3 GTSApproxLinToPQ(float3 inputCol)
 // IMPORTANT! This wants the input in [0...10000] range, if the method requires scaling, it is done inside this function.
 float3 OETF(float3 inputCol)
 {
-#if OETF_CHOICE == PRECISE_PQ
+#ifdef HDR_OUTPUT_SCRGB
+    // IMPORTANT! This assumes that the maximum nits is always higher or same as 80.0f. Seems like a sensible choice, but revisit if we find weird use cases (just min with the the max nits).
+    // We need to map the value 1 to 80 nits.
+    return inputCol / 80.0f;
+#else
+    #if OETF_CHOICE == PRECISE_PQ
     return LinearToPQ(inputCol);
-#elif OETF_CHOICE == ISS_APPROX_PQ
+    #elif OETF_CHOICE == ISS_APPROX_PQ
     return PatryApproxLinToPQ(inputCol * 0.01f);
-#elif OETF_CHOICE == GTS_APPROX_PQ
+    #elif OETF_CHOICE == GTS_APPROX_PQ
     return GTSApproxLinToPQ(inputCol * 0.01f);
+    #endif
 #endif
+
 }
 
 #define LIN_TO_PQ_FOR_LUT GTS_APPROX_PQ // GTS is close enough https://www.desmos.com/calculator/up4wwozghk
@@ -303,9 +384,9 @@ float BT2390EETF(float x, float minLimit, float maxLimit)
 }
 
 
-float3 PerformRangeReduction(float3 Rec2020Input, float minNits, float maxNits)
+float3 PerformRangeReduction(float3 input, float minNits, float maxNits)
 {
-    float3 ICtCp = RotateRec2020ToICtCp(Rec2020Input); // This is in PQ space.
+    float3 ICtCp = RotateOutputSpaceToICtCp(input); // This is in PQ space.
     float linearLuma = PQToLinear(ICtCp.x, MAX_PQ_VALUE);
 #if RANGE_REDUCTION == REINHARD
     linearLuma = ReinhardTonemap(linearLuma, maxNits);
@@ -315,39 +396,45 @@ float3 PerformRangeReduction(float3 Rec2020Input, float minNits, float maxNits)
     ICtCp.x = LinearToPQ(linearLuma);
 
 
-    return RotateICtCpToRec2020(ICtCp); // This moves back to linear too!
+    return RotateICtCpToOutputSpace(ICtCp); // This moves back to linear too!
 }
 
-float3 PerformRangeReduction(float3 Rec2020Input, float minNits, float maxNits, int mode)
+float3 PerformRangeReduction(float3 input, float minNits, float maxNits, int mode)
 {
-    float3 ICtCp = RotateRec2020ToICtCp(Rec2020Input); // This is in PQ space.
-
-    float linearLuma = PQToLinear(ICtCp.x, MAX_PQ_VALUE);
-    if (mode == 1)
-        linearLuma = ReinhardTonemap(linearLuma, maxNits);
-    else if (mode == 2)
-        linearLuma = BT2390EETF(linearLuma, minNits, maxNits);
-
-    ICtCp.x = LinearToPQ(linearLuma);
-
-    if (mode == 3)
+    if (mode < 3) // Only luminance.
     {
-        float3 outC = 0;
-        outC.x = BT2390EETF(Rec2020Input.x, minNits, maxNits);
-        outC.y = BT2390EETF(Rec2020Input.y, minNits, maxNits);
-        outC.z = BT2390EETF(Rec2020Input.z, minNits, maxNits);
-        return outC;
-    }
-    else if (mode == 4)
-    {
-        float3 outC = 0;
-        outC.x = ReinhardTonemap(Rec2020Input.x, maxNits);
-        outC.y = ReinhardTonemap(Rec2020Input.y, maxNits);
-        outC.z = ReinhardTonemap(Rec2020Input.z, maxNits);
-        return outC;
-    }
+        float3 ICtCp = RotateOutputSpaceToICtCp(input); // This is in PQ space.
 
-    return RotateICtCpToRec2020(ICtCp); // This moves back to linear too!
+        float linearLuma = PQToLinear(ICtCp.x, MAX_PQ_VALUE);
+        if (mode == 1)
+            linearLuma = ReinhardTonemap(linearLuma, maxNits);
+        else if (mode == 2)
+            linearLuma = BT2390EETF(linearLuma, minNits, maxNits);
+
+        ICtCp.x = LinearToPQ(linearLuma);
+
+        return RotateICtCpToOutputSpace(ICtCp); // This moves back to linear too!
+    }
+    else
+    {
+        if (mode == 3)
+        {
+            float3 outC = 0;
+            outC.x = BT2390EETF(input.x, minNits, maxNits);
+            outC.y = BT2390EETF(input.y, minNits, maxNits);
+            outC.z = BT2390EETF(input.z, minNits, maxNits);
+            return outC;
+        }
+        else if (mode == 4)
+        {
+            float3 outC = 0;
+            outC.x = ReinhardTonemap(input.x, maxNits);
+            outC.y = ReinhardTonemap(input.y, maxNits);
+            outC.z = ReinhardTonemap(input.z, maxNits);
+            return outC;
+        }
+    }
+    return 0;
 }
 
 
@@ -359,23 +446,24 @@ float3 PerformRangeReduction(float3 Rec2020Input, float minNits, float maxNits, 
 // These functions are aggregate of most of what we have above. You can think of this as the public API of the HDR Output library.
 // Note that throughout HDRP we are assuming that when it comes to the final pass adjustements, our tonemapper has *NOT*
 // performed range reduction and everything is assumed to be displayed on a reference 10k nits display and everything post-tonemapping
-// is in the Rec 2020 color space. However we still provide options in case we get a Rec709 input, this will just rotate to Rec2020 and
-// procede with the expected pipeline.
+// is in either the Rec 2020 or Rec709 color space. The Rec709 version just rotate to Rec2020 before going forward if required by the output device.
 
 float3 HDRMappingFromRec2020(float3 Rec2020Input, float hdrBoost, float minNits, float maxNits)
 {
+    float3 outputSpaceInput = RotateRec2020ToOutputSpace(Rec2020Input);
+
     // The reason to have a boost factor is because the standard for SDR is peaking at 100nits, but televisions are typically 300nits
     // and the colours get boosted. If we want equivalent look in HDR a similar boost needs to happen. It might look washed out otherwise.
-    float3 reducedHDR = PerformRangeReduction(Rec2020Input * hdrBoost, minNits, maxNits);
+    float3 reducedHDR = PerformRangeReduction(outputSpaceInput * hdrBoost, minNits, maxNits);
     return OETF(reducedHDR);
 }
 
 float3 HDRMappingFromRec709(float3 Rec709Input, float hdrBoost, float minNits, float maxNits, int reductionMode, bool skipOETF = false)
 {
-    float3 Rec2020Input = RotateRec709ToRec2020(Rec709Input);
+    float3 outputSpaceInput = RotateRec709ToOutputSpace(Rec709Input);
     // The reason to have a boost factor is because the standard for SDR is peaking at 100nits, but televisions are typically 300nits
     // and the colours get boosted. If we want equivalent look in HDR a similar boost needs to happen. It might look washed out otherwise.
-    float3 reducedHDR = PerformRangeReduction(Rec2020Input * hdrBoost, minNits, maxNits, reductionMode);
+    float3 reducedHDR = PerformRangeReduction(outputSpaceInput * hdrBoost, minNits, maxNits, reductionMode);
 
     if (skipOETF) return reducedHDR;
 
@@ -387,11 +475,16 @@ float3 HDRMappingFromRec709_ACES(float3 Rec709Input, float hdrBoost, bool skipOE
 {
     float3 aces = unity_to_ACES(Rec709Input * hdrBoost * 0.01f);
     float3 oces = RRT(aces);
-    float3 AP1ODT = ODT_Rec2020_1000nits_ToAP1(oces);
+    float3 AP1ODT = ODT_1000nits_ToAP1(oces);
 
+    float3 linearODT = 0;
+#if defined(HDR_OUTPUT_SCRGB)
+    const float3x3 AP1_2_Rec709 = mul(XYZ_2_REC709_MAT, mul(D60_2_D65_CAT, AP1_2_XYZ_MAT));
+    linearODT = mul(AP1_2_Rec709, AP1ODT);
+#else
     const float3x3 AP1_2_Rec2020 = mul(XYZ_2_REC2020_MAT, mul(D60_2_D65_CAT, AP1_2_XYZ_MAT));
-    float3 linearODT = mul(AP1_2_Rec2020, AP1ODT);
-
+    linearODT = mul(AP1_2_Rec2020, AP1ODT);
+#endif
     if (skipOETF) return linearODT;
 
     return OETF(linearODT);
@@ -403,14 +496,22 @@ float3 HDRMappingFromRec709_ACES(float3 Rec709Input, float hdrBoost, bool skipOE
 // UI Related functions
 // --------------------------------
 
-// Assumes UI is linear at this point ? Is it true?
 float3 SceneUIComposition(float4 uiSample, float3 pqSceneColor, float paperWhite)
 {
-    uiSample.rgb = RotateRec709ToRec2020(uiSample.rgb / (uiSample.a == 0.0 ? 1.0 : uiSample.a));
+    // Undo the pre multiply.
+    uiSample.rgb = uiSample.rgb / (uiSample.a == 0.0 ? 1.0 : uiSample.a);
+#ifdef HDR_OUTPUT_SCRGB
+    uiSample.rgb = OETF(uiSample.rgb * paperWhite);
+    // TODO: At some point investigate this better.
+    float3 blendedVal = LinearToSRGB(uiSample.rgb) * uiSample.a + LinearToSRGB(pqSceneColor.rgb) * (1.0f - uiSample.a);
+    return SRGBToLinear(blendedVal);
+#else
+    uiSample.rgb = RotateRec709ToRec2020(uiSample.rgb);
     // TODO: Should we use an approximation here?
     uiSample.rgb = LinearToPQ(uiSample.rgb, (MAX_PQ_VALUE / paperWhite));
-    uiSample.rgb *= uiSample.a;
-    return uiSample.rgb + pqSceneColor.rgb * (1.0f - uiSample.a);
+    return uiSample.rgb * uiSample.a + pqSceneColor.rgb * (1.0f - uiSample.a);
+#endif
+
 }
 
 // --------------------------------------------------------------------------------------------

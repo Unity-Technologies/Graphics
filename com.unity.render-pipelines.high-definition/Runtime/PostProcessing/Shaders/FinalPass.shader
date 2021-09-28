@@ -11,7 +11,7 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile_local_fragment _ DITHER
         #pragma multi_compile_local_fragment _ ENABLE_ALPHA
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
-        #pragma multi_compile_local _ HDR_OUTPUT
+        #pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB
 
         #pragma multi_compile_local_fragment _ CATMULL_ROM_4 BYPASS
         #define DEBUG_UPSCALE_POINT 0
@@ -22,8 +22,7 @@ Shader "Hidden/HDRP/FinalPass"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
-#ifdef HDR_OUTPUT
-        #define WCG_REC2020 // For now hard coded, eventually coming from settings.
+#if defined(HDR_OUTPUT_REC2020) || defined(HDR_OUTPUT_SCRGB)
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HDROutput.hlsl"
 #endif
         #pragma enable_d3d11_debug_symbols
@@ -175,7 +174,7 @@ Shader "Hidden/HDRP/FinalPass"
             #endif
 
 
-#if HDR_OUTPUT // All of this needs to be done at the very final blit.
+#ifdef HDR_OUTPUT // All of this needs to be done at the very final blit.
 
             outColor.rgb = OETF(outColor.rgb);
 

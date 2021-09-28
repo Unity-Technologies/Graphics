@@ -1449,7 +1449,7 @@ half3 ODT_Rec2020_1000nits_ToLinear(half3 oces)
     return linearCV;
 }
 
-half3 ODT_Rec2020_1000nits_ToAP1(half3 oces)
+half3 ODT_1000nits_ToAP1(half3 oces)
 {
     static const SegmentedSplineParams_c9 ODT_1000nits =
     {
