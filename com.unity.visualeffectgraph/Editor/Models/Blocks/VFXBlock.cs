@@ -25,6 +25,9 @@ namespace UnityEditor.VFX
         [SerializeField]
         protected bool m_Disabled = false;
 
+        [SerializeField]
+        VFXSlot enabledSlot;
+
         public bool enabled
         {
             get { return !m_Disabled; }
@@ -57,8 +60,28 @@ namespace UnityEditor.VFX
         public abstract VFXDataType compatibleData { get; }
         public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); } }
+        public VFXExpression enabledExpression => enabledSlot.GetExpression();
         public virtual IEnumerable<string> includes { get { return Enumerable.Empty<string>(); } }
         public virtual string source { get { return null; } }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+
+            if (enabledSlot == null)
+            {
+                var prop = new VFXPropertyWithValue(new VFXProperty(typeof(bool), "enabled"), !m_Disabled);
+                enabledSlot = VFXSlot.Create(prop, VFXSlot.Direction.kInput);
+                enabledSlot.SetOwner(this);
+            }
+        }
+
+        public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
+        {
+            base.CollectDependencies(objs, ownedOnly);
+            objs.Add(enabledSlot);
+            enabledSlot.CollectDependencies(objs, ownedOnly);
+        }
 
         public IEnumerable<VFXAttributeInfo> mergedAttributes
         {

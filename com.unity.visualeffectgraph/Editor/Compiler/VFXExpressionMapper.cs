@@ -55,6 +55,7 @@ namespace UnityEditor.VFX
             int cpt = 0;
             foreach (var block in blocks)
             {
+                mapper.AddExpression(block.enabledExpression, "enabled", cpt);
                 mapper.AddExpressions(block.parameters, cpt++);
             }
             return mapper;
