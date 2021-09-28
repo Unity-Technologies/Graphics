@@ -114,12 +114,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         SSS::Result subsurfaceResult;
         float3 meanFreePath = 0.001 / (_ShapeParamsAndMaxScatterDists[mtlData.bsdfData.diffusionProfileIndex].rgb * _WorldScalesAndFilterRadiiAndThicknessRemaps[mtlData.bsdfData.diffusionProfileIndex].x);
 
-#ifdef _MATERIAL_FEATURE_TRANSMISSION
-        bool isThin = true;
-#else
-        bool isThin = false;
-#endif
-        if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult, isThin))
+        if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult))
             return false;
 
         shadingPosition = subsurfaceResult.exitPosition;

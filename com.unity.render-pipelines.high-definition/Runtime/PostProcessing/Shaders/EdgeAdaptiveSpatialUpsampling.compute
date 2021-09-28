@@ -10,7 +10,7 @@
 #define A_HLSL 1
 #define FSR_EASU_F 1
 
-#include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/ffx/ffx_a.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ffx_a.hlsl"
 
 // 4 elements:
 // [0] = const0
@@ -32,7 +32,7 @@ AF4 FsrEasuGF(AF2 p){ return GATHER_GREEN_TEXTURE2D_X(_InputTexture, s_linear_cl
 AF4 FsrEasuBF(AF2 p){ return GATHER_BLUE_TEXTURE2D_X (_InputTexture, s_linear_clamp_sampler, p); }
 
 
-#include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/ffx/ffx_fsr1.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ffx_fsr1.hlsl"
 
 [numthreads(64, 1, 1)]
 void KMain(uint3 LocalThreadId : SV_GroupThreadID, uint3 WorkGroupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)

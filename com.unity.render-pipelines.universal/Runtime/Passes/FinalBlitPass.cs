@@ -97,7 +97,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
                     cmd.Blit(m_Source, cameraTarget, m_BlitMaterial);
-                    cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
                 }
                 else
                 {
@@ -117,7 +116,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetViewport(cameraData.pixelRect);
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                     cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-                    cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
                 }
             }
 

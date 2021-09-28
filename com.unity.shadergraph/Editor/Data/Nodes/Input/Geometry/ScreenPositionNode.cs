@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Geometry", "Screen Position")]
-    class ScreenPositionNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireScreenPosition, IMayRequireNDCPosition, IMayRequirePixelPosition
+    class ScreenPositionNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireScreenPosition
     {
         public ScreenPositionNode()
         {
@@ -46,19 +46,9 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine(string.Format("$precision4 {0} = {1};", GetVariableNameForSlot(kOutputSlotId), m_ScreenSpaceType.ToValueAsVariable()));
         }
 
-        bool IMayRequireScreenPosition.RequiresScreenPosition(ShaderStageCapability stageCapability)
+        public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
-            return screenSpaceType.RequiresScreenPosition();
-        }
-
-        bool IMayRequireNDCPosition.RequiresNDCPosition(ShaderStageCapability stageCapability)
-        {
-            return screenSpaceType.RequiresNDCPosition();
-        }
-
-        bool IMayRequirePixelPosition.RequiresPixelPosition(ShaderStageCapability stageCapability)
-        {
-            return screenSpaceType.RequiresPixelPosition();
+            return true;
         }
     }
 }

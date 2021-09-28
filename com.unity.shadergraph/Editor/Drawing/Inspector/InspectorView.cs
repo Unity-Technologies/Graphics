@@ -15,13 +15,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         const float k_InspectorUpdateInterval = 0.25f;
         const int k_InspectorElementLimit = 20;
 
-        bool m_GraphSettingsTabFocused = false;
-
         int m_CurrentlyInspectedElementsCount = 0;
 
         readonly List<Type> m_PropertyDrawerList = new List<Type>();
-
-        HashSet<IInspectable> cachedInspectables = new();
 
         // There's persistent data that is stored in the graph settings property drawer that we need to hold onto between interactions
         IPropertyDrawer m_graphSettingsPropertyDrawer = new GraphDataPropertyDrawer();
@@ -37,6 +33,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         protected VisualElement m_NodeSettingsContainer;
 
         Label m_MaxItemsMessageLabel;
+
+        internal static bool forceNodeView = true;
 
         void RegisterPropertyDrawer(Type newPropertyDrawerType)
         {
@@ -85,8 +83,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_MaxItemsMessageLabel = m_GraphInspectorView.Q<Label>("maxItemsMessageLabel");
             m_ContentContainer.Add(m_GraphInspectorView);
             m_ScrollView = this.Q<ScrollView>();
-            m_GraphInspectorView.Q<TabButton>("GraphSettingsButton").OnSelect += GraphSettingsTabClicked;
-            m_GraphInspectorView.Q<TabButton>("NodeSettingsButton").OnSelect += NodeSettingsTabClicked;
+            m_GraphInspectorView.Q<TabButton>("GraphSettingsButton").OnSelect += SetScrollModeHorizontal;
+            m_GraphInspectorView.Q<TabButton>("NodeSettingsButton").OnSelect += SetScrollModeHorizontalVertical;
 
             isWindowScrollable = true;
             isWindowResizable = true;
@@ -102,15 +100,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("GraphSettingsButton"));
         }
 
-        void GraphSettingsTabClicked(TabButton button)
+        void SetScrollModeHorizontal(TabButton button)
         {
-            m_GraphSettingsTabFocused = true;
             m_ScrollView.mode = ScrollViewMode.Vertical;
         }
 
-        void NodeSettingsTabClicked(TabButton button)
+        void SetScrollModeHorizontalVertical(TabButton button)
         {
-            m_GraphSettingsTabFocused = false;
             m_ScrollView.mode = ScrollViewMode.VerticalAndHorizontal;
         }
 
@@ -134,41 +130,28 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             ShowGraphSettings_Internal(m_GraphSettingsContainer);
 
             m_NodeSettingsContainer.Clear();
+            m_CurrentlyInspectedElementsCount = 0;
 
             try
             {
                 bool anySelectables = false;
-                int currentInspectablesCount = 0;
-                var currentInspectables = new HashSet<IInspectable>();
                 foreach (var selectable in selection)
                 {
                     if (selectable is IInspectable inspectable)
                     {
                         DrawInspectable(m_NodeSettingsContainer, inspectable);
-                        currentInspectablesCount++;
+                        m_CurrentlyInspectedElementsCount++;
                         anySelectables = true;
-                        currentInspectables.Add(inspectable);
                     }
 
-                    if (currentInspectablesCount == k_InspectorElementLimit)
+                    if (m_CurrentlyInspectedElementsCount == k_InspectorElementLimit)
                     {
                         m_NodeSettingsContainer.Add(m_MaxItemsMessageLabel);
                         m_MaxItemsMessageLabel.style.visibility = Visibility.Visible;
                         break;
                     }
                 }
-
-                // If we have changed our inspector selection while the graph settings tab was focused, we want to switch back to the node settings tab, so invalidate the flag
-                foreach (var currentInspectable in currentInspectables)
-                {
-                    if (cachedInspectables.Contains(currentInspectable) == false)
-                        m_GraphSettingsTabFocused = false;
-                }
-
-                cachedInspectables = currentInspectables;
-                m_CurrentlyInspectedElementsCount = currentInspectablesCount;
-
-                if (anySelectables && !m_GraphSettingsTabFocused)
+                if (anySelectables && forceNodeView)
                 {
                     // Anything selectable in the graph (GraphSettings not included) is only ever interacted with through the
                     // Node Settings tab so we can make the assumption they want to see that tab
@@ -197,20 +180,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         internal void HandleGraphChanges()
         {
             float timePassed = (float)(EditorApplication.timeSinceStartup % k_InspectorUpdateInterval);
-
-            int currentInspectablesCount = 0;
-            foreach (var selectable in selection)
-            {
-                if (selectable is IInspectable)
-                    currentInspectablesCount++;
-            }
-
             // Don't update for selections beyond a certain amount as they are no longer visible in the inspector past a certain point and only cost performance as the user performs operations
-            if (timePassed < 0.01f && selection.Count < k_InspectorElementLimit && currentInspectablesCount != m_CurrentlyInspectedElementsCount)
-            {
-                m_GraphSettingsTabFocused = false;
+            if (timePassed < 0.01f && selection.Count < k_InspectorElementLimit && selection.Count != m_CurrentlyInspectedElementsCount)
                 Update();
-            }
         }
 
         void TriggerInspectorUpdate()

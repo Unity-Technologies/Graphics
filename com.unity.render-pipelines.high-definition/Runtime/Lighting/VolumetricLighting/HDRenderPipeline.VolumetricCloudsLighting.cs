@@ -92,9 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.UndoCosineRescaling(m_CloudsAmbientProbe);
                 probeSH = SphericalHarmonicMath.RescaleCoefficients(probeSH, settings.ambientLightProbeDimmer.value);
-                ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(m_PhaseZHClouds, 0.0f);
-                SphericalHarmonicsL2 finalSH = SphericalHarmonicMath.PremultiplyCoefficients(SphericalHarmonicMath.Convolve(probeSH, m_PhaseZHClouds));
-                SphericalHarmonicMath.PackCoefficients(m_PackedCoeffsClouds, finalSH);
+                SphericalHarmonicMath.PackCoefficients(m_PackedCoeffsClouds, probeSH);
 
                 // Evaluate the probe at the top and bottom (above and under the clouds)
                 cb._AmbientProbeTop = EvaluateAmbientProbe(Vector3.down);
@@ -147,23 +145,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (VolumetricCloudsAmbientProbeData data, RenderGraphContext ctx) =>
                     {
-                        if (data.skyRenderer != null)
-                        {
-                            // Render the sky into a low resolution cubemap
-                            data.skyManager.RenderSkyOnlyToCubemap(ctx.cmd, data.skyCubemap, false, data.skyRenderer);
+                        // Render the sky into a low resolution cubemap
+                        data.skyManager.RenderSkyOnlyToCubemap(ctx.cmd, data.skyCubemap, false, data.skyRenderer);
 
-                            // Evaluate the probe
-                            ctx.cmd.SetComputeTextureParam(data.computeProbeCS, data.kernel, m_AmbientProbeInputCubemap, data.skyCubemap);
-                            ctx.cmd.SetComputeBufferParam(data.computeProbeCS, data.kernel, m_AmbientProbeOutputBufferParam, data.ambientProbeBuffer);
-                            ctx.cmd.DispatchCompute(data.computeProbeCS, data.kernel, 1, 1, 1);
+                        // Evaluate the probe
+                        ctx.cmd.SetComputeTextureParam(data.computeProbeCS, data.kernel, m_AmbientProbeInputCubemap, data.skyCubemap);
+                        ctx.cmd.SetComputeBufferParam(data.computeProbeCS, data.kernel, m_AmbientProbeOutputBufferParam, data.ambientProbeBuffer);
+                        ctx.cmd.DispatchCompute(data.computeProbeCS, data.kernel, 1, 1, 1);
 
-                            // Enqueue the read back
-                            ctx.cmd.RequestAsyncReadback(data.ambientProbeBuffer, OnComputeAmbientProbeDone);
-                        }
-                        else
-                        {
-                            m_CloudsAmbientProbeIsReady = false;
-                        }
+                        // Enqueue the read back
+                        ctx.cmd.RequestAsyncReadback(data.ambientProbeBuffer, OnComputeAmbientProbeDone);
                     });
             }
         }

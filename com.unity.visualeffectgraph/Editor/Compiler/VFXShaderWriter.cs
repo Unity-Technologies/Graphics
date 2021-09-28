@@ -331,7 +331,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void WriteTexture(VFXUniformMapper mapper, IEnumerable<string> skipNames = null)
+        public void WriteTexture(VFXUniformMapper mapper)
         {
             foreach (var texture in mapper.textures)
             {
@@ -339,9 +339,6 @@ namespace UnityEditor.VFX
                 // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
                 for (int i = 0; i < names.Count; ++i)
                 {
-                    if (skipNames != null && skipNames.Contains(names[i]))
-                        continue;
-
                     WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), names[i]);
                     if (VFXExpression.IsTexture(texture.valueType)) //Mesh doesn't require a sampler or texel helper
                     {

@@ -11,7 +11,7 @@
 #define A_HLSL 1
 #define FSR_RCAS_F 1
 
-#include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/ffx/ffx_a.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ffx_a.hlsl"
 
 // one element:
 // [0] = const0
@@ -26,7 +26,7 @@ RW_TEXTURE2D_X(float4, _OutputTexture);
 AF4 FsrRcasLoadF(ASU2 p)  {return _InputTexture[COORD_TEXTURE2D_X(p)]; }
 void FsrRcasInputF(inout AF1 r,inout AF1 g,inout AF1 b) {}
 
-#include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/ffx/ffx_fsr1.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ffx_fsr1.hlsl"
 
 void WritePix(AU2 gxy, AF4 casPix)
 {

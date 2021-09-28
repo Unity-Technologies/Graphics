@@ -633,11 +633,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void QueueSHBaking()
         {
-            if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp))
+            var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+            if (hdrp != null)
+            {
+                if (!hdrp.currentPlatformRenderPipelineSettings.supportProbeVolume) return;
+            }
+            else
+            {
                 return;
-
-            if (!hdrp.currentPlatformRenderPipelineSettings.supportProbeVolume)
-                return;
+            }
 
             Vector3 capturePositionWS = ComputeCapturePositionWS();
             if (m_SHRequestID < 0)

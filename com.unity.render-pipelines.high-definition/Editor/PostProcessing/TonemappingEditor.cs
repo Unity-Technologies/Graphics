@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 var lut = m_LutTexture.value.objectReferenceValue;
                 if (lut != null && !((Tonemapping)target).ValidateLUT())
-                    EditorGUILayout.HelpBox("Invalid lookup texture. It must be a 3D Texture or a Render Texture and have the same size as set in the HDRP settings.", MessageType.Warning);
+                    EditorGUILayout.HelpBox("Invalid lookup texture. It must be a 3D texture or render texture with the same size as set in the HDRP settings.", MessageType.Warning);
 
                 PropertyField(m_LutContribution, EditorGUIUtility.TrTextContent("Contribution"));
 

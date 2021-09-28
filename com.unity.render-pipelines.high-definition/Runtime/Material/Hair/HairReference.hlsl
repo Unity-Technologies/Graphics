@@ -126,9 +126,9 @@ float3 Attenuation(uint p, float h, float LdotV, float thetaD, float etaPrime, f
         // A = pow(1 - f, 2.0) * pow(f, p - 1) * pow(T, p);
 
         if (p == 1)
-            A = Sq(1 - f) * T;
+            A = pow(1 - f, 2.0) * T;
         else
-            A = Sq(1 - f) * f * Sq(T);
+            A = pow(1 - f, 2.0) * f * (T * T);
     }
 
     return A;
@@ -261,7 +261,7 @@ float LongitudinalScattering(uint p, ReferenceInputs inputs)
     }
 #else
     const float thetaH = 0.5 * (thetaI + thetaR);
-    M = D_LongitudinalScatteringGaussian(thetaH - inputs.shifts[p], v).x;
+    M = D_LongitudinalScatteringGaussian(thetaH - inputs.shifts[p], v);
 #endif
 
     return M;
@@ -345,9 +345,10 @@ CBSDF EvaluateMarschnerReference(float3 V, float3 L, BSDFData bsdfData)
     // Factored lobe representation. Sigma Sp(thetai, thetao, phi) = Mp(thetai, thetao) * Np(phi).
     for (uint p = 0; p < 3; p++)
     {
-        if (p == 0 && HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R))   continue;
-        if (p == 1 && HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT))  continue;
-        if (p == 2 && HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT)) continue;
+        // TEMP: Lobe (R, TT, TRT, TRRT) selection
+        // if (p == 0) continue;
+        // if (p == 1) continue;
+        // if (p == 2) continue;
 
         S += LongitudinalScattering(p, inputs) * AzimuthalScattering(p, inputs);
     }

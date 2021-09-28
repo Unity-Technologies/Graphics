@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Current transparency debug settings.</summary>
             public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
             /// <summary>Current volume debug settings.</summary>
-            public IVolumeDebugSettings volumeDebugSettings = new HDVolumeDebugSettings();
+            public VolumeDebugSettings volumeDebugSettings = new VolumeDebugSettings();
             /// <summary>Index of screen space shadow to display.</summary>
             public uint screenSpaceShadowIndex = 0;
             /// <summary>Max quad cost for quad overdraw display.</summary>
@@ -1646,10 +1646,9 @@ namespace UnityEngine.Rendering.HighDefinition
             var componentNames = new List<GUIContent>() { new GUIContent("None") };
             var componentValues = new List<int>() { componentIndex++ };
 
-            // TODO @alex.vazquez: Use the same method as VolumeComponentProvider
-            foreach (var type in HDVolumeDebugSettings.componentTypes)
+            foreach (var type in VolumeDebugSettings.componentTypes)
             {
-                componentNames.Add(new GUIContent() { text = HDVolumeDebugSettings.ComponentDisplayName(type) });
+                componentNames.Add(new GUIContent() { text = VolumeDebugSettings.ComponentDisplayName(type) });
                 componentValues.Add(componentIndex++);
             }
 
@@ -1676,7 +1675,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 componentValues.Add(componentIndex++);
 #endif
 
-                foreach (var camera in data.volumeDebugSettings.cameras)
+                foreach (var camera in VolumeDebugSettings.cameras)
                 {
                     componentNames.Add(new GUIContent() { text = camera.name });
                     componentValues.Add(componentIndex++);

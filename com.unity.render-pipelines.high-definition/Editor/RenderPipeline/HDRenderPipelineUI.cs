@@ -232,7 +232,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Global Settings.", MessageType.Warning, wide: true);
+                EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings.", MessageType.Warning, wide: true);
             }
         }
 
@@ -356,11 +356,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!serialized.renderPipelineSettings.supportedLitShaderMode.hasMultipleDifferentValues)
             {
-                // TEMP: HDShadowFilteringQuality.VeryHigh - This filtering mode is not ready so disabling in UI
-                // To re-enable remove the wo following light and re-enable the third one
-                int value = EditorGUILayout.IntPopup(Styles.filteringQuality, serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality.enumValueIndex, Styles.shadowFilteringNames, Styles.shadowFilteringValue);
-                serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality.enumValueIndex = value;
-                //EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, Styles.filteringQuality);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, Styles.filteringQuality);
             }
             else
             {

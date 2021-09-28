@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, HDUtils.PackedMipChainInfo depthMipInfo)
         {
-            if (Fog.IsVolumetricFogEnabled(hdCamera) || VolumetricCloudsRequireMaxZ(hdCamera))
+            if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
                 if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 {
@@ -463,18 +463,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     int frameIndex = (int)VolumetricFrameIndex(hdCamera);
                     var currIdx = frameIndex & 1;
+                    var currentParams = hdCamera.vBufferParams[currIdx];
 
-                    if (hdCamera.vBufferParams != null)
-                    {
-                        var currentParams = hdCamera.vBufferParams[currIdx];
-                        float ratio = (float)currentParams.viewportSize.x / (float)hdCamera.actualWidth;
-                        passData.dilationWidth = ratio < 0.1f ? 2 :
-                            ratio < 0.5f ? 1 : 0;
-                    }
-                    else
-                    {
-                        passData.dilationWidth = 1;
-                    }
+                    float ratio = (float)currentParams.viewportSize.x / (float)hdCamera.actualWidth;
+                    passData.dilationWidth = ratio < 0.1f ? 2 :
+                        ratio < 0.5f ? 1 : 0;
 
                     passData.viewCount = hdCamera.viewCount;
 

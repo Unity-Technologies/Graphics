@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -27,10 +26,9 @@ namespace UnityEngine.Experimental.Rendering
                     MeshRenderer[] renderComponents = gameObject.GetComponentsInChildren<MeshRenderer>();
                     foreach (MeshRenderer mr in renderComponents)
                     {
-                        if (!mr.gameObject.GetComponent<MeshCollider>() && (GameObjectUtility.GetStaticEditorFlags(mr.gameObject).HasFlag(StaticEditorFlags.ContributeGI)))
+                        if (!mr.gameObject.GetComponent<MeshCollider>())
                         {
-                            var meshCollider = mr.gameObject.AddComponent<MeshCollider>();
-                            meshCollider.hideFlags |= (HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild);
+                            mr.gameObject.AddComponent<MeshCollider>();
                             addedOccluders.Add(mr);
                         }
                     }

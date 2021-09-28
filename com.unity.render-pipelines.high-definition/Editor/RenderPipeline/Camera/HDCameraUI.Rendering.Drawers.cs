@@ -175,7 +175,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (EditorGUI.EndChangeCheck())
                             p.antialiasing.intValue = selectedValue;
                     }
-                    EditorGUI.EndProperty();
                 }
             }
 

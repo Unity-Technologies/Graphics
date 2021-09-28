@@ -108,8 +108,8 @@ if (index >= asuint(nbMax) - deadCount)
 #endif
 }
 
-VFXAttributes attributes = (VFXAttributes)0;
-VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
+Attributes attributes = (Attributes)0;
+SourceAttributes sourceAttributes = (SourceAttributes)0;
 
 #if VFX_HAS_INDIRECT_DRAW
 index = indirectBuffer[index];
@@ -298,7 +298,7 @@ ${VFXEnd}
 ${VFXBegin:VFXDeclareGetStripTangent}
 float3 GetParticlePosition(uint index)
 {
-	VFXAttributes attributes = (VFXAttributes)0;
+	struct Attributes attributes = (Attributes)0;
 	${VFXLoadAttributes:{position}}
 	return attributes.position;
 }

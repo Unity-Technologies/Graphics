@@ -14,7 +14,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 {
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
-    SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
+
+    SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
+    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
     #if _ALPHATEST_ON
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);

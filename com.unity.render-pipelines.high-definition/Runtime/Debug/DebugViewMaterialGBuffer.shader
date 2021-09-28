@@ -84,9 +84,7 @@ Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
                 else if (bufferIndex == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE)
                 {
                     result = builtinData.bakeDiffuseLighting;
-                    #define AO_IN_GBUFFER3_TAG float3((1 << 11), 1, (1 << 10))
-                    if (!all(result.xz == AO_IN_GBUFFER3_TAG.xz))
-                        result *= GetInverseCurrentExposureMultiplier();
+                    result *= GetCurrentExposureMultiplier();
                     needLinearToSRGB = true;
                 }
 #ifdef SHADOWS_SHADOWMASK

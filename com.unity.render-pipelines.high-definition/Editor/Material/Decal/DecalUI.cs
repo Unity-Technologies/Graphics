@@ -89,12 +89,6 @@ namespace UnityEditor.Rendering.HighDefinition
             material.SetInt(kDecalStencilWriteMask, (int)StencilUsage.Decals);
             material.SetInt(kDecalStencilRef, (int)StencilUsage.Decals);
 
-            // Set render queue
-            var renderQueue = -1;
-            if (material.HasProperty(HDShaderIDs._DrawOrder))
-                renderQueue = (int)RenderQueue.Geometry + material.GetInt(HDShaderIDs._DrawOrder);
-            material.renderQueue = renderQueue;
-
             // always instanced
             material.enableInstancing = true;
         }

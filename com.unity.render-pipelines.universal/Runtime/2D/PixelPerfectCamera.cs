@@ -32,12 +32,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             UpscaleRenderTexture
         }
 
-        public enum PixelPerfectFilterMode
-        {
-            RetroAA,
-            Point,
-        }
-
         public enum ComponentVersions
         {
             Version_Unserialized = 0,
@@ -203,14 +197,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        public bool requiresUpscalePass
-        {
-            get
-            {
-                return m_Internal.requiresUpscaling;
-            }
-        }
-
         /// <summary>
         /// Round a arbitrary position to an integer pixel position. Works in world space.
         /// </summary>
@@ -254,7 +240,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         [SerializeField] CropFrame m_CropFrame;
         [SerializeField] GridSnapping m_GridSnapping;
-        [SerializeField] PixelPerfectFilterMode m_FilterMode = PixelPerfectFilterMode.RetroAA;
 
         // These are obsolete. They are here only for migration.
 #if UNITY_EDITOR
@@ -273,7 +258,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             get
             {
-                return m_FilterMode == PixelPerfectFilterMode.RetroAA ? FilterMode.Bilinear : FilterMode.Point;
+                return m_Internal.useStretchFill ? FilterMode.Bilinear : FilterMode.Point;
             }
         }
 

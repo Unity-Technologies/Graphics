@@ -515,6 +515,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                             return;
 
+                        var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
                         var tShadowResolution = tLightData.shadowResolution;
                         var sShadowResolution = sLightData.shadowResolution;
 

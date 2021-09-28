@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void TraceVolumetricClouds_Sky_Low(CommandBuffer cmd, in VolumetricCloudsParameters_Sky_Low parameters, MaterialPropertyBlock mpb, RTHandle intermediateLightingBuffer0, RTHandle intermediateDepthBuffer0, RTHandle intermediateCubeMap, RTHandle maxZMask)
+        static void TraceVolumetricClouds_Sky_Low(CommandBuffer cmd, in VolumetricCloudsParameters_Sky_Low parameters, MaterialPropertyBlock mpb, RTHandle intermediateLightingBuffer0, RTHandle intermediateDepthBuffer0, RTHandle intermediateCubeMap)
         {
             // Compute the number of tiles to evaluate
             int traceTX = (parameters.traceWidth + (8 - 1)) / 8;
@@ -130,7 +130,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Ray-march the clouds for this frame
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", parameters.commonData.cloudsCB._PhysicallyBasedSun == 1);
-            cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._MaxZMaskTexture, maxZMask);
             cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._Worley128RGBA, parameters.commonData.worley128RGBA);
             cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._ErosionNoise, parameters.commonData.erosionNoise);
             cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudMapTexture, parameters.commonData.cloudMapTexture);
@@ -205,7 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void RenderVolumetricClouds_Sky_High(CommandBuffer cmd, in VolumetricCloudsParameters_Sky_High parameters, MaterialPropertyBlock mpb, RTHandle intermediateLightingBuffer0, RTHandle intermediateLightingBuffer1, RTHandle intermediateDepthBuffer0, RTHandle colorBuffer, RTHandle maxZMask)
+        static void RenderVolumetricClouds_Sky_High(CommandBuffer cmd, in VolumetricCloudsParameters_Sky_High parameters, MaterialPropertyBlock mpb, RTHandle intermediateLightingBuffer0, RTHandle intermediateLightingBuffer1, RTHandle intermediateDepthBuffer0, RTHandle colorBuffer)
         {
             // Compute the number of tiles to evaluate
             int finalTX = (parameters.finalWidth + (8 - 1)) / 8;
@@ -222,7 +221,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Ray-march the clouds for this frame
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", parameters.commonData.cloudsCB._PhysicallyBasedSun == 1);
-            cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._MaxZMaskTexture, maxZMask);
             cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._Worley128RGBA, parameters.commonData.worley128RGBA);
             cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._ErosionNoise, parameters.commonData.erosionNoise);
             cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudMapTexture, parameters.commonData.cloudMapTexture);
@@ -274,10 +272,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Update the cubemap face and the inverse projection matrix
                         parameters.cubemapFace = (CubemapFace)faceIdx;
                         parameters.commonData.cloudsCB._CloudsPixelCoordToViewDirWS = pixelCoordToViewDir[faceIdx];
-                        parameters.commonData.cloudsCB._ValidMaxZMask = 0;
 
                         // Render the face straight to the output cubemap
-                        RenderVolumetricClouds_Sky_High(cmd, parameters, m_MpbClouds, m_IntermediateCloudsLighting0Buffer, m_IntermediateCloudsLighting1Buffer, m_IntermediateCloudsDepthBuffer, skyboxCubemap, TextureXR.GetBlackTexture());
+                        RenderVolumetricClouds_Sky_High(cmd, parameters, m_MpbClouds, m_IntermediateCloudsLighting0Buffer, m_IntermediateCloudsLighting1Buffer, m_IntermediateCloudsDepthBuffer, skyboxCubemap);
                     }
                 }
             }
@@ -292,10 +289,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Update the cubemap face and the inverse projection matrix
                         parameters.cubemapFace = (CubemapFace)faceIdx;
                         parameters.commonData.cloudsCB._CloudsPixelCoordToViewDirWS = pixelCoordToViewDir[faceIdx];
-                        parameters.commonData.cloudsCB._ValidMaxZMask = 0;
 
                         // Render the face straight to the output cubemap
-                        TraceVolumetricClouds_Sky_Low(cmd, parameters, m_MpbClouds, m_IntermediateCloudsLighting0Buffer, m_IntermediateCloudsDepthBuffer, m_IntermediateCloudsLightingCube0Buffer, TextureXR.GetBlackTexture());
+                        TraceVolumetricClouds_Sky_Low(cmd, parameters, m_MpbClouds, m_IntermediateCloudsLighting0Buffer, m_IntermediateCloudsDepthBuffer, m_IntermediateCloudsLightingCube0Buffer);
                     }
                 }
 

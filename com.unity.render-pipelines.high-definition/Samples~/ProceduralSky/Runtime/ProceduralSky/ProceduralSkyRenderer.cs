@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Build()
         {
+            var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
             m_ProceduralSkyMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/HDRP/Sky/ProceduralSky"));
         }
 

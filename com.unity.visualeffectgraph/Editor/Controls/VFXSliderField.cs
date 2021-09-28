@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
@@ -131,10 +130,9 @@ namespace UnityEditor.VFX.UI
                     m_Slider.lowValue = m_Range.x;
                     m_Slider.highValue = m_Range.y;
 
-                    if (m_Slider.value < m_Slider.lowValue || m_Slider.value > m_Slider.highValue)
-                    {
-                        m_Slider.value = m_Slider.lowValue;
-                    }
+                    m_Slider.value = m_Range.x;
+                    m_Slider.value = m_Range.y;
+                    m_Slider.value = ValueToFloat(this.value);
                 }
                 m_IgnoreNotification = false;
             }

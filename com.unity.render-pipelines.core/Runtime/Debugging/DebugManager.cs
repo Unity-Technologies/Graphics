@@ -140,7 +140,6 @@ namespace UnityEngine.Rendering
                 }
 
                 onDisplayRuntimeUIChanged(value);
-                DebugUpdater.HandleInternalEventSystemComponents(value);
             }
         }
 

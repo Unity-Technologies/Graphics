@@ -1046,9 +1046,6 @@ struct PreLightData
 
     float coatIeta;
 
-    // Weight used to support the clear coat's SSR/IBL blending
-    float clearCoatIndirectSpec;
-
     // For IBLs (and analytical lights if approximation is used)
 
     float3 vLayerEnergyCoeff[NB_VLAYERS];
@@ -2630,7 +2627,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     PreLightData_SetupNormals(bsdfData, preLightData, V, N, NdotV);
 
     preLightData.diffuseEnergy = float3(1.0, 1.0, 1.0);
-    preLightData.clearCoatIndirectSpec = 1.0;
 
     // For eval IBL lights, we need:
     //
@@ -4189,7 +4185,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // ----------------------------------------------------------------------------
 
 IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
-                                                    inout PreLightData   preLightData,
+                                                    PreLightData   preLightData,
                                                     BSDFData       bsdfData,
                                                     inout float    reflectionHierarchyWeight)
 {
@@ -4224,30 +4220,18 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
         reflectanceFactorC *= preLightData.energyCompensationFactor[COAT_LOBE_IDX];
 
         float3 reflectanceFactorB = (float3)0.0;
-        for(int i = 0; i < BASE_NB_LOBES; i++)
+        for(int i = 0; i < TOTAL_NB_LOBES; i++)
         {
-            float3 lobeFactor = preLightData.specularFGD[i + COAT_NB_LOBES]; // note: includes the lobeMix factor, see PreLightData.
-            lobeFactor *= preLightData.hemiSpecularOcclusion[i + COAT_NB_LOBES];
+            float3 lobeFactor = preLightData.specularFGD[i]; // note: includes the lobeMix factor, see PreLightData.
+            lobeFactor *= preLightData.hemiSpecularOcclusion[i];
             // TODOENERGY: If vlayered, should be done in ComputeAdding with FGD formulation for non dirac lights.
             // Incorrect, but for now:
-            lobeFactor *= preLightData.energyCompensationFactor[i + COAT_NB_LOBES];
+            lobeFactor *= preLightData.energyCompensationFactor[i];
             reflectanceFactorB += lobeFactor;
         }
 
-        // Given that we have two base lobes, we need to mix them for an appproximated roughness
-        float mixedPerceptualRougness = lerp(bsdfData.perceptualRoughnessA, bsdfData.perceptualRoughnessB, bsdfData.lobeMix);
-
-        // We have three possible behaviors in this case:
-        // - The smoothness is superior or equal to 0.9, we approximate the fact that the clear coat and base layer have the same roughness and use the SSR as the indirect specular signal.
-        // - The smoothness is inferior to 0.8. We cannot use the SSR for the base layer, but we use the fresnel to lerp between the two lobes.
-        // - The smooothness is between 0.8 and 0.9, we lerp between the two behaviors.
-        float blendingFactor = lerp(0.0, 1.0, saturate((mixedPerceptualRougness - 0.1) / 0.2));
-
-        // Because we do not want to have a double contribution, we need to keep track that the clear coat's indirect specular contribution was added
-        preLightData.clearCoatIndirectSpec = 1.0 - ssrLighting.a;
-
-        lighting.specularReflected = ssrLighting.rgb * lerp(reflectanceFactorB, lerp(reflectanceFactorB, reflectanceFactorC, bsdfData.coatMask), blendingFactor);
-        reflectionHierarchyWeight  = lerp(ssrLighting.a, lerp(ssrLighting.a, ssrLighting.a * reflectanceFactorC.x, bsdfData.coatMask), blendingFactor);
+        lighting.specularReflected = ssrLighting.rgb * lerp(reflectanceFactorB, reflectanceFactorC, bsdfData.coatMask);
+        reflectionHierarchyWeight = lerp(ssrLighting.a, ssrLighting.a * reflectanceFactorC.x, bsdfData.coatMask);
     }
     else
     {
@@ -4367,7 +4351,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         if( (i == (0 IF_FEATURE_COAT(+1))) && _DebugEnvLobeMask.y == 0.0) continue;
         if( (i == (1 IF_FEATURE_COAT(+1))) && _DebugEnvLobeMask.z == 0.0) continue;
 #endif
-
         // Compiler will deal with all that:
         normal = (NB_NORMALS > 1 && i == COAT_NORMAL_IDX) ? bsdfData.coatNormalWS : bsdfData.normalWS;
 
@@ -4401,9 +4384,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // Incorrect, but just for now:
         L *= preLightData.energyCompensationFactor[i];
         L *= preLightData.hemiSpecularOcclusion[i];
-
-        // If we are going to process the clear coat, we need to take into account the coat indirect spec factor
-        L *= (i == COAT_LOBE_IDX && COAT_NB_LOBES == 1) ? preLightData.clearCoatIndirectSpec : 1.0;
         envLighting += L;
     }
 

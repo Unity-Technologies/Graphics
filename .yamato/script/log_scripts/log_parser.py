@@ -6,9 +6,9 @@ import sys
 import json
 import traceback
 import re
-from patterns.execution_log import Execution_log
-from patterns.utr_log import UTR_log
-from patterns.unity_log import Unity_log
+from utils.execution_log import Execution_log
+from utils.utr_log import UTR_log
+from utils.unity_log import Unity_log
 from utils.shared_utils import *
 from utils.constants import *
 
@@ -29,7 +29,9 @@ To run it locally, specify
     --execution-log "<path to execution log file>"
 '''
 
-def parse_failures(execution_log, logs, args):
+
+
+def parse_failures(execution_log, logs, local):
     '''Parses each command in the execution log (and possibly UTR logs),
     recognizes any known errors, and posts additional data to Yamato.'''
     for cmd_key in logs.keys():
@@ -51,18 +53,18 @@ def parse_failures(execution_log, logs, args):
 
         # check if the error matches any known pattern marked in log_patterns.py, fill the command data for each match
         cmd_output = '\n'.join(cmd['output'])
-        recursively_match_patterns(cmd, execution_log.get_patterns(), cmd_output, args) # find all amtches
+        recursively_match_patterns(cmd, execution_log.get_patterns(), cmd_output) # find all amtches
         cmd['tags'] = format_tags(cmd['tags']) # flatten and remove duplicates
 
         # add unknown pattern if nothing else matched
         add_unknown_pattern_if_appropriate(cmd)
 
         # post additional results to Yamato
-        post_additional_results(cmd, args.local)
+        post_additional_results(cmd, local)
     return
 
 
-def recursively_match_patterns(cmd, patterns, failure_string, args):
+def recursively_match_patterns(cmd, patterns, failure_string):
     '''Match the given string against any known patterns. If any of the patterns contains a 'redirect',
     parse also the directed log in a recursive fashion.'''
     matches = find_matching_patterns(patterns, failure_string)
@@ -73,31 +75,20 @@ def recursively_match_patterns(cmd, patterns, failure_string, args):
         cmd['summary'].append(match.group(0))
 
         if pattern.get('redirect'):
-            if args.test_results == "":
-                test_results_match = re.findall(r'(--artifacts_path=)(.+)(test-results)', cmd['title'])[0]
-                test_results_path = test_results_match[1] + test_results_match[2]
-            else:
-                test_results_path = args.test_results
-
-            # check if it's mac metal (or some other copying), because then the artifacts path in the UTR command is given as is on device,
-            # not as it will be in the artifacts after copying them back over
-            mac_metal_matches = re.findall(r'(scp)(.+)(-r bokken@\$BOKKEN_DEVICE_IP:)(.+)( )(.+)', cmd['title'])
-            if len(mac_metal_matches) > 0:
-                # join together the target directory of scp command (last arg), and the source directory getting copied over (usually test-results)
-                test_results_path = os.path.join(mac_metal_matches[0][-1], os.path.basename(os.path.normpath(test_results_path)))
-
+            test_results_match = re.findall(r'(--artifacts_path=)(.+)(test-results)', cmd['title'])[0]
+            test_results_path = test_results_match[1] + test_results_match[2]
             for redirect in pattern['redirect']:
 
                 if redirect == UTR_LOG:
                     try:
                         df = UTR_log(test_results_path)
-                        recursively_match_patterns(cmd, df.get_patterns(), df.read_log(), args)
+                        recursively_match_patterns(cmd, df.get_patterns(), df.read_log())
                     except Exception as e:
                         print(f'! Failed to parse UTR TestResults.json: ', str(e))
                 elif redirect == UNITY_LOG:
                     try:
                         df = Unity_log(test_results_path)
-                        recursively_match_patterns(cmd, df.get_patterns(), df.read_log(), args)
+                        recursively_match_patterns(cmd, df.get_patterns(), df.read_log())
                     except Exception as e:
                         print(f'! Failed to parse UnityLog.txt', str(e))
 
@@ -133,7 +124,6 @@ def post_additional_results(cmd, local):
 def parse_args(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--execution-log", required=False, help='Path to execution log file. If not specified, ../../Execution-*.log is used.', default="")
-    parser.add_argument("--test-results", required=False, help='Path to execution test-results folder (for */**/UnityLog.txt and /TestResults.json). If not specified, test-results location is parsed from execution log.', default="")
     parser.add_argument("--local", action='store_true', help='If specified, API call to post additional results is skipped.', default=False)
     args = parser.parse_args(argv)
     return args
@@ -149,7 +139,7 @@ def main(argv):
         logs, should_be_parsed = execution_log.read_log()
 
         if should_be_parsed:
-            parse_failures(execution_log, logs, args)
+            parse_failures(execution_log, logs, args.local)
 
     except Exception as e:
         print('\nFailed to parse logs')

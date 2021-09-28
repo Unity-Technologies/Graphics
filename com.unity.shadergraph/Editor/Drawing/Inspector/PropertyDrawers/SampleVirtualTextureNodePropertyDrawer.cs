@@ -101,32 +101,25 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             // }
 
             // display warning if the current render pipeline doesn't support virtual texturing
-            HelpBoxRow help = new HelpBoxRow(MessageType.Warning);
-            string labelText;
             IVirtualTexturingEnabledRenderPipeline vtRp =
                 GraphicsSettings.currentRenderPipeline as IVirtualTexturingEnabledRenderPipeline;
             if (vtRp == null)
-                labelText = "The current render pipeline does not support Virtual Texturing, this node will do regular 2D sampling.";
+                propertySheet.Add(new HelpBoxRow(MessageType.Warning),
+                    (row) => row.Add(new Label(
+                        "The current render pipeline does not support Virtual Texturing, this node will do regular 2D sampling.")));
             else if (vtRp.virtualTexturingEnabled == false)
-                labelText = "The current render pipeline has disabled Virtual Texturing, this node will do regular 2D sampling.";
+                propertySheet.Add(new HelpBoxRow(MessageType.Warning),
+                    (row) => row.Add(new Label(
+                        "The current render pipeline has disabled Virtual Texturing, this node will do regular 2D sampling.")));
             else
             {
 #if !ENABLE_VIRTUALTEXTURES
-                labelText = "Virtual Texturing is disabled globally (possibly by the render pipeline settings), this node will do regular 2D sampling.";
-#else
-                labelText = "";
+                propertySheet.Add(new HelpBoxRow(MessageType.Warning),
+                    (row) => row.Add(new Label(
+                        "Virtual Texturing is disabled globally (possibly by the render pipeline settings), this node will do regular 2D sampling.")));
 #endif
             }
 
-            if (!string.IsNullOrEmpty(labelText))
-            {
-                var label = new Label(labelText)
-                {
-                    name = "message-warn"
-                };
-                label.style.whiteSpace = WhiteSpace.Normal;
-                propertySheet.Add(help, (row) => row.Add(label));
-            }
             propertyVisualElement = propertySheet;
             return propertySheet;
         }

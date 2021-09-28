@@ -256,10 +256,6 @@ class VFXContextEditor : VFXSlotContainerEditor
         }
     }
 
-    public virtual void DisplayWarnings()
-    {
-    }
-
     public override void OnInspectorGUI()
     {
         if (dataObject != null)
@@ -281,7 +277,7 @@ class VFXContextEditor : VFXSlotContainerEditor
                 ctx.GetData().Invalidate(VFXModel.InvalidationCause.kSettingChanged); // This will also invalidate contexts
             }
         }
-        DisplayWarnings();
+
         DisplaySummary();
     }
 }

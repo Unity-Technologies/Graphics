@@ -4,6 +4,9 @@
 // Otherwise those parameters are not bound correctly at runtime.
 // ===========================================================================
 
+TEXTURE2D(_DistortionVectorMap);
+SAMPLER(sampler_DistortionVectorMap);
+
 TEXTURE2D(_EmissiveColorMap);
 SAMPLER(sampler_EmissiveColorMap);
 
@@ -105,6 +108,12 @@ float _AlphaCutoffShadow;
 float _AlphaCutoffPrepass;
 float _AlphaCutoffPostpass;
 float4 _DoubleSidedConstants;
+float _DistortionScale;
+float _DistortionVectorScale;
+float _DistortionVectorBias;
+float _DistortionBlurScale;
+float _DistortionBlurRemapMin;
+float _DistortionBlurRemapMax;
 float _BlendMode;
 float _EnableBlendModePreserveSpecularLighting;
 

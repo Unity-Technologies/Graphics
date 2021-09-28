@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.InputSystem.EnhancedTouch;
 #endif
-using System;
 using System.Collections;
 using UnityEngine.EventSystems;
 
@@ -12,19 +11,15 @@ namespace UnityEngine.Rendering
 {
     class DebugUpdater : MonoBehaviour
     {
-        static DebugUpdater s_Instance = null;
-
         ScreenOrientation m_Orientation;
-        bool m_RuntimeUiWasVisibleLastFrame = false;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void RuntimeInit()
         {
-            if (!Debug.isDebugBuild)
+            if (!Debug.isDebugBuild || !DebugManager.instance.enableRuntimeUI || FindObjectOfType<DebugUpdater>() != null)
                 return;
 
-            if (DebugManager.instance.enableRuntimeUI)
-                EnableRuntime();
+            EnableRuntime();
         }
 
         internal static void SetEnabled(bool enabled)
@@ -37,90 +32,20 @@ namespace UnityEngine.Rendering
 
         static void EnableRuntime()
         {
-            if (s_Instance != null)
-                return;
-
             var go = new GameObject { name = "[Debug Updater]" };
-            s_Instance = go.AddComponent<DebugUpdater>();
-            s_Instance.m_Orientation = Screen.orientation;
+            var debugUpdater = go.AddComponent<DebugUpdater>();
 
-            DontDestroyOnLoad(go);
-
-            DebugManager.instance.EnableInputActions();
-
+            var es = FindObjectOfType<EventSystem>();
+            if (es == null)
+            {
+                go.AddComponent<EventSystem>();
 #if USE_INPUT_SYSTEM
-            EnhancedTouchSupport.Enable();
-#endif
-        }
+                // FIXME: InputSystemUIInputModule has a quirk where the default actions fail to get initialized if the
+                // component is initialized while the GameObject is active. So we deactivate it temporarily.
+                // See https://fogbugz.unity3d.com/f/cases/1323566/
+                go.SetActive(false);
+                var uiModule = go.AddComponent<InputSystemUIInputModule>();
 
-        static void DisableRuntime()
-        {
-            DebugManager debugManager = DebugManager.instance;
-            debugManager.displayRuntimeUI = false;
-            debugManager.displayPersistentRuntimeUI = false;
-
-            if (s_Instance != null)
-            {
-                CoreUtils.Destroy(s_Instance.gameObject);
-                s_Instance = null;
-            }
-        }
-
-        internal static void HandleInternalEventSystemComponents(bool uiEnabled)
-        {
-            if (s_Instance == null)
-                return;
-
-            if (uiEnabled)
-                s_Instance.EnsureExactlyOneEventSystem();
-            else
-                s_Instance.DestroyDebugEventSystem();
-        }
-
-        void EnsureExactlyOneEventSystem()
-        {
-            var eventSystems = FindObjectsOfType<EventSystem>();
-            var debugEventSystem = GetComponent<EventSystem>();
-
-            if (eventSystems.Length > 1 && debugEventSystem != null)
-            {
-                Debug.Log($"More than one EventSystem detected in scene. Destroying EventSystem owned by DebugUpdater.");
-                DestroyDebugEventSystem();
-            }
-            else if (eventSystems.Length == 0)
-            {
-                Debug.Log($"No EventSystem available. Creating a new EventSystem to enable Rendering Debugger runtime UI.");
-                CreateDebugEventSystem();
-            }
-            else
-            {
-                StartCoroutine(DoAfterInputModuleUpdated(CheckInputModuleExists));
-            }
-        }
-
-        IEnumerator DoAfterInputModuleUpdated(Action action)
-        {
-            // EventSystem.current.currentInputModule is not updated immediately when EventSystem.current changes. It happens
-            // with a delay in EventSystem.Update(), so wait a couple of frames to ensure that has happened.
-            yield return new WaitForEndOfFrame();
-            yield return new WaitForEndOfFrame();
-
-            action.Invoke();
-        }
-
-        void CheckInputModuleExists()
-        {
-            if (EventSystem.current != null && EventSystem.current.currentInputModule == null)
-            {
-                Debug.LogWarning("Found a game object with EventSystem component but no corresponding BaseInputModule component - Debug UI input might not work correctly.");
-            }
-        }
-
-#if USE_INPUT_SYSTEM
-        void AssignDefaultActions()
-        {
-            if (EventSystem.current != null && EventSystem.current.currentInputModule is InputSystemUIInputModule inputSystemModule)
-            {
                 // FIXME: In order to activate default input actions in player builds (required for touch input to work),
                 // we need to call InputSystemUIInputModule.AssignDefaultActions() which was added in com.unity.inputsystem@1.1.0-pre.5.
                 // However, there is a problem in InputSystem package version ordering, where it sorts this version as an
@@ -129,54 +54,54 @@ namespace UnityEngine.Rendering
                 //
                 // Once com.unity.inputsystem@1.1.0 is available, create an INPUTSYSTEM_1_1_0_OR_GREATER version define and use it
                 // to conditionally call AssignDefaultActions().
-                System.Reflection.MethodInfo assignDefaultActionsMethod = inputSystemModule.GetType().GetMethod("AssignDefaultActions");
+                System.Reflection.MethodInfo assignDefaultActionsMethod = uiModule.GetType().GetMethod("AssignDefaultActions");
                 if (assignDefaultActionsMethod != null)
                 {
-                    assignDefaultActionsMethod.Invoke(inputSystemModule, null);
+                    assignDefaultActionsMethod.Invoke(uiModule, null);
                 }
-            }
 
-            CheckInputModuleExists();
-        }
-#endif
-
-        void CreateDebugEventSystem()
-        {
-            gameObject.AddComponent<EventSystem>();
-#if USE_INPUT_SYSTEM
-            gameObject.AddComponent<InputSystemUIInputModule>();
-            StartCoroutine(DoAfterInputModuleUpdated(AssignDefaultActions));
+                go.SetActive(true);
 #else
-            gameObject.AddComponent<StandaloneInputModule>();
+                go.AddComponent<StandaloneInputModule>();
 #endif
-        }
-
-        void DestroyDebugEventSystem()
-        {
-            var eventSystem = GetComponent<EventSystem>();
-#if USE_INPUT_SYSTEM
-            var inputModule = GetComponent<InputSystemUIInputModule>();
-            if (inputModule)
+            }
+            else
             {
-                CoreUtils.Destroy(inputModule);
-                StartCoroutine(DoAfterInputModuleUpdated(AssignDefaultActions));
-            }
+#if USE_INPUT_SYSTEM
+                if (es.GetComponent<InputSystemUIInputModule>() == null)
+                    Debug.LogWarning("Found a game object with EventSystem component but no corresponding InputSystemUIInputModule component - Debug UI input may not work correctly.");
 #else
-            CoreUtils.Destroy(GetComponent<StandaloneInputModule>());
-            CoreUtils.Destroy(GetComponent<BaseInput>());
+                if (es.GetComponent<StandaloneInputModule>() == null)
+                    Debug.LogWarning("Found a game object with EventSystem component but no corresponding StandaloneInputModule component - Debug UI input may not work correctly.");
 #endif
-            CoreUtils.Destroy(eventSystem);
+            }
+
+#if USE_INPUT_SYSTEM
+            EnhancedTouchSupport.Enable();
+#endif
+            debugUpdater.m_Orientation = Screen.orientation;
+
+            DontDestroyOnLoad(go);
+
+            DebugManager.instance.EnableInputActions();
+        }
+
+        static void DisableRuntime()
+        {
+            DebugManager debugManager = DebugManager.instance;
+            debugManager.displayRuntimeUI = false;
+            debugManager.displayPersistentRuntimeUI = false;
+
+            var debugUpdater = FindObjectOfType<DebugUpdater>();
+            if (debugUpdater != null)
+            {
+                CoreUtils.Destroy(debugUpdater.gameObject);
+            }
         }
 
         void Update()
         {
             DebugManager debugManager = DebugManager.instance;
-
-            // Runtime UI visibility can change i.e. due to scene unload - allow component cleanup in this case.
-            if (m_RuntimeUiWasVisibleLastFrame != debugManager.displayRuntimeUI)
-            {
-                HandleInternalEventSystemComponents(debugManager.displayRuntimeUI);
-            }
 
             debugManager.UpdateActions();
 
@@ -200,8 +125,6 @@ namespace UnityEngine.Rendering
                 StartCoroutine(RefreshRuntimeUINextFrame());
                 m_Orientation = Screen.orientation;
             }
-
-            m_RuntimeUiWasVisibleLastFrame = debugManager.displayRuntimeUI;
         }
 
         static IEnumerator RefreshRuntimeUINextFrame()

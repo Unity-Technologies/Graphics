@@ -313,7 +313,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.globalCBData._InvProjMatrix = shadowRequest.deviceProjectionYFlip.inverse;
                             data.globalCBData._ViewProjMatrix = viewProjection;
                             data.globalCBData._InvViewProjMatrix = viewProjection.inverse;
-                            data.globalCBData._SlopeScaleDepthBias = -shadowRequest.slopeBias;
 
                             data.globalCB.PushGlobal(ctx.cmd, data.globalCBData, HDShaderIDs._ShaderVariablesGlobal);
 

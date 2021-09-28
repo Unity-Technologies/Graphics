@@ -229,12 +229,6 @@ namespace UnityEditor.VFX
             return true;
         }
 
-        public static bool IsTexture(Type type)
-        {
-            var valueType = GetVFXValueTypeFromType(type);
-            return IsTexture(valueType);
-        }
-
         public static bool IsTexture(VFXValueType type)
         {
             switch (type)

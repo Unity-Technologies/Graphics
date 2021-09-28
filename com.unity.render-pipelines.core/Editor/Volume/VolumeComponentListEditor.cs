@@ -305,10 +305,15 @@ namespace UnityEditor.Rendering
             menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
             menu.AddSeparator(string.Empty);
             if (targetEditor.hasAdditionalProperties)
+            {
                 menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), targetEditor.showAdditionalProperties, () => targetEditor.showAdditionalProperties ^= true);
+                menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false, () => CoreRenderPipelinePreferences.Open());
+            }
             else
+            {
                 menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Show Additional Properties"));
-            menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false, () => CoreRenderPipelinePreferences.Open());
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."));
+            }
 
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Copy Settings"), false, () => CopySettings(targetComponent));

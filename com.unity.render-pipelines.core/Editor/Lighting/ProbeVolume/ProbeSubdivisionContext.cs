@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (!pv.isActiveAndEnabled)
                     continue;
 
-                ProbeReferenceVolume.Volume volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.GetMaxSubdivMultiplier(), pv.GetMinSubdivMultiplier());
+                ProbeReferenceVolume.Volume volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier);
                 probeVolumes.Add((pv, volume));
             }
 

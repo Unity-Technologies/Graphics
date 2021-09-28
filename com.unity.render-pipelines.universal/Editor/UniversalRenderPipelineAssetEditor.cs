@@ -5,7 +5,7 @@ using Styles = UnityEditor.Rendering.Universal.UniversalRenderPipelineAssetUI.St
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomEditor(typeof(UniversalRenderPipelineAsset)), CanEditMultipleObjects]
+    [CustomEditor(typeof(UniversalRenderPipelineAsset))]
     public class UniversalRenderPipelineAssetEditor : Editor
     {
         SerializedProperty m_RendererDataProp;

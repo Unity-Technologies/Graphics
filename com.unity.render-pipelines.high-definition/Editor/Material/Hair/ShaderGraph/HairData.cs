@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public enum ScatteringMode
         {
             Approximate,
-            Advanced
+            DensityVolume
         }
 
         [SerializeField]

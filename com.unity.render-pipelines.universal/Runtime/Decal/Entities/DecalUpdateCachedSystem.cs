@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.Universal
                     decalToWorlds = cachedChunk.decalToWorlds,
                     normalToWorlds = cachedChunk.normalToWorlds,
                     boundingSpheres = cachedChunk.boundingSpheres,
-                    minDistance = System.Single.Epsilon,
+                    minDistance = 0.0001f,
                 };
 
                 var handle = updateTransformJob.Schedule(entityChunk.transformAccessArray);

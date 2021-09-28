@@ -14,10 +14,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (HDRenderPipeline.currentPipeline == null)
                 return;
 
-            if (!(target is Camera c) || c == null)
-                return;
+            var c = (Camera)target;
 
-            if (!CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
+            if (!UnityEditor.Rendering.CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
                 return;
 
             SceneViewOverlay_Window(EditorGUIUtility.TrTextContent("Camera Preview"), OnOverlayGUI, -100, target);
