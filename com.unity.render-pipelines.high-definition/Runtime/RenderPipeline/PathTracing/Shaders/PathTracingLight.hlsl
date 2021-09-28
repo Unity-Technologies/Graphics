@@ -328,6 +328,11 @@ float3 GetAreaEmission(LightData lightData, float centerU, float centerV, float 
     return emission;
 }
 
+float3 GetLightTransmission(float3 transmission, float shadowOpacity)
+{
+    return lerp(float3(1.0, 1.0, 1.0), transmission, shadowOpacity);
+}
+
 bool SampleLights(LightList lightList,
                   float3 inputSample,
                   float3 position,
@@ -336,7 +341,8 @@ bool SampleLights(LightList lightList,
               out float3 outgoingDir,
               out float3 value,
               out float pdf,
-              out float dist)
+              out float dist,
+              out float shadowOpacity)
 {
     if (!GetLightCount(lightList))
         return false;
@@ -405,7 +411,15 @@ bool SampleLights(LightList lightList,
         }
 
         if (isVolume)
+        {
             value *= lightData.volumetricLightDimmer;
+            shadowOpacity = lightData.volumetricShadowDimmer;
+        }
+        else
+        {
+            value *= lightData.lightDimmer;
+            shadowOpacity = lightData.shadowDimmer;
+        }
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
         ApplyFogAttenuation(position, outgoingDir, dist, value);
@@ -436,7 +450,15 @@ bool SampleLights(LightList lightList,
         dist = FLT_INF;
 
         if (isVolume)
+        {
             value *= lightData.volumetricLightDimmer;
+            shadowOpacity = lightData.volumetricShadowDimmer;
+        }
+        else
+        {
+            value *= lightData.lightDimmer;
+            shadowOpacity = lightData.shadowDimmer;
+        }
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
         ApplyFogAttenuation(position, outgoingDir, value);

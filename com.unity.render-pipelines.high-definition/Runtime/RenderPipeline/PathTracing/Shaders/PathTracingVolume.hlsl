@@ -98,8 +98,7 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
     // Create the list of active lights (a local light can be forced by providing its position)
     LightList lightList = CreateLightList(scatteringPosition, sampleLocalLights, lightPosition);
 
-    // Bunch of variables common to material and light sampling
-    float pdf;
+    float pdf, shadowOpacity;
     float3 value;
 
     RayDesc ray;
@@ -111,7 +110,7 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
     // Light sampling
     if (computeDirect)
     {
-        if (SampleLights(lightList, inputSample, scatteringPosition, 0.0, true, ray.Direction, value, pdf, ray.TMax))
+        if (SampleLights(lightList, inputSample, scatteringPosition, 0.0, true, ray.Direction, value, pdf, ray.TMax, shadowOpacity))
         {
             // FIXME: Apply phase function and divide by pdf (only isotropic for now, and not sure about sigmaS value)
             value *= _HeightFogBaseScattering.xyz * ComputeHeightFogMultiplier(scatteringPosition.y) * INV_FOUR_PI / pdf;
@@ -127,7 +126,7 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
                          RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, nextPathIntersection);
 
-                pathIntersection.value += value * nextPathIntersection.value;
+                pathIntersection.value += value * GetLightTransmission(nextPathIntersection.value, shadowOpacity);
             }
         }
     }
