@@ -7,7 +7,6 @@ using UnityEditor;
 
 public class Editmode_Bake_Tests
 {
-    /*
     static void clearAll()
     {
         Lightmapping.Clear();
@@ -86,5 +85,4 @@ public class Editmode_Bake_Tests
 
         clearAll();
     }
-    */
 }

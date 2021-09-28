@@ -7,7 +7,6 @@ using UnityEditor;
 
 public class Editmode_BakeRestart_Tests
 {
-    /*
     public System.Collections.Generic.IEnumerable<bool> RunABake(float convergenceStop)
     {
         // Wait a few frames for the restart (cause a preparing stage)
@@ -279,5 +278,4 @@ public class Editmode_BakeRestart_Tests
 
         clearAll();
     }
-    */
 }
