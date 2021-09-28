@@ -292,7 +292,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 OpenTextEditor();
                 e.PreventDefault();
             }
-            else if(e.clickCount == 1 && e.button == (int)MouseButton.LeftMouse && IsRenamable())
+            else if (e.clickCount == 1 && e.button == (int)MouseButton.LeftMouse && IsRenamable())
             {
                 // Select the child elements within this category (the field views)
                 var fieldViews = this.Query<SGBlackboardField>();
