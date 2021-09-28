@@ -496,7 +496,7 @@ namespace UnityEditor.ShaderFoundry
                 DeclareMatch(fnBuilder, inputData);
 
             // Call the sub-block entry point
-            subEntryPointFn.AddCallStatementWithNewReturn(fnBuilder, blockOutputInstance.Name, blockInputInstance.Name);
+            fnBuilder.AddCallStatementWithNewReturn(subEntryPointFn, blockOutputInstance.Name, blockInputInstance.Name);
 
             // Copy all outputs into the legacy description type
             fnBuilder.AddVariableDeclarationStatement(outputType, outputsInstance.Instance.Name);
