@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -32,9 +31,10 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel()
             {
-                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
+                AddWidget(WidgetFactory.CreateMissingDebugShadersWarning());
 
-                var materialSettingsData = DebugDisplaySettings.Instance.MaterialSettings;
+                var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
+                var materialSettingsData = debugDisplaySettings.MaterialSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Filters",
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                var lightingSettingsData = DebugDisplaySettings.Instance.LightingSettings;
+                var lightingSettingsData = debugDisplaySettings.LightingSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Lighting Debug Modes",
@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                var renderingSettingsData = DebugDisplaySettings.Instance.RenderingSettings;
+                var renderingSettingsData = UniversalRenderPipelineDebugDisplaySettings.Instance.RenderingSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Rendering Debug",
