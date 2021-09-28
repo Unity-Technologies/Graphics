@@ -3954,10 +3954,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (TEST_HDR())
             {
-                passData.builderCS.EnableKeyword("HDR_OUTPUT");
                 int colorGamut = (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec2020 || HDROutputSettings.main.displayColorGamut == ColorGamut.HDR10) ? 0 :
                     HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709 ? 1 :
                     (HDROutputSettings.main.displayColorGamut == ColorGamut.DisplayP3 || HDROutputSettings.main.displayColorGamut == ColorGamut.DolbyHDR) ? 2 : -1;
+
+                if (HDROutputSettings.main.active && HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709)
+                {
+                    passData.builderCS.EnableKeyword("HDR_OUTPUT_SCRGB");
+                }
+                else
+                {
+                    passData.builderCS.EnableKeyword("HDR_OUTPUT_REC2020");
+                }
 
                 var minNits = HDROutputSettings.main.minToneMapLuminance;
                 var maxNits = HDROutputSettings.main.maxToneMapLuminance;
@@ -4457,7 +4465,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (TEST_HDR())
                 {
-                    passData.uberPostCS.EnableKeyword("HDR_OUTPUT");
+                    passData.uberPostCS.EnableKeyword("HDR_OUTPUT_REC2020");
                 }
 
                 passData.outputColorLog = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ColorLog;
@@ -4839,7 +4847,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.viewportSize = postProcessViewportSize;
 
                 // Film Grain
-                passData.filmGrainEnabled = m_FilmGrain.IsActive() && m_FilmGrainFS && !TEST_HDR();
+                passData.filmGrainEnabled = m_FilmGrain.IsActive() && m_FilmGrainFS && !TEST_HDR(); // TODO: Investigate how to make grain work with HDR.
                 if (m_FilmGrain.type.value != FilmGrainLookup.Custom)
                     passData.filmGrainTexture = defaultResources.textures.filmGrainTex[(int)m_FilmGrain.type.value];
                 else
@@ -4976,15 +4984,19 @@ namespace UnityEngine.Rendering.HighDefinition
                         // TODO: THIS IS ALL BAD, NEED TO MOVE AND MOST IMPORTANTLY AVOID CAPTURE.
                         if (TEST_HDR() && HDUtils.PostProcessIsFinalPass(data.hdCamera))
                         {
-                            finalPassMaterial.EnableKeyword("HDR_OUTPUT");
+                            if (HDROutputSettings.main.active && HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709)
+                            {
+                                finalPassMaterial.EnableKeyword("HDR_OUTPUT_SCRGB");
+                            }
+                            else
+                            {
+                                finalPassMaterial.EnableKeyword("HDR_OUTPUT_REC2020");
+                            }
                             finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams, data.hdroutParameters);
                             finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams2, data.hdroutParameters2);
 
                         }
-                        else
-                        {
-                            finalPassMaterial.DisableKeyword("HDR_OUTPUT");
-                        }
+
                         finalPassMaterial.SetTexture(HDShaderIDs._UITexture, data.uiBuffer);
 
                         finalPassMaterial.SetVector(HDShaderIDs._UVTransform,
