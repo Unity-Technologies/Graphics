@@ -56,6 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_PowderEffectIntensity;
         SerializedDataParameter m_MultiScattering;
         SerializedDataParameter m_AmbientLightProbeDimmer;
+        SerializedDataParameter m_SunLightDimmer;
         SerializedDataParameter m_ErosionOcclusion;
 
         // Wind
@@ -134,6 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_PowderEffectIntensity = Unpack(o.Find(x => x.powderEffectIntensity));
             m_MultiScattering = Unpack(o.Find(x => x.multiScattering));
             m_AmbientLightProbeDimmer = Unpack(o.Find(x => x.ambientLightProbeDimmer));
+            m_SunLightDimmer = Unpack(o.Find(x => x.sunLightDimmer));
             m_ErosionOcclusion = Unpack(o.Find(x => x.erosionOcclusion));
 
             // Wind
@@ -273,6 +275,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader("Lighting");
             {
                 PropertyField(m_AmbientLightProbeDimmer);
+                PropertyField(m_SunLightDimmer);
                 PropertyField(m_ErosionOcclusion);
                 PropertyField(m_ScatteringTint);
                 PropertyField(m_PowderEffectIntensity);

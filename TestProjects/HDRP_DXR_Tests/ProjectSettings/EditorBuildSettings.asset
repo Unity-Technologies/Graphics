@@ -375,6 +375,9 @@ EditorBuildSettings:
     path: Assets/Scenes/5011_PathTracing_ShadowMatte.unity
     guid: a2a018bd807332e419183347eebc8a0c
   - enabled: 1
+    path: Assets/Scenes/5012_PathTracing_Transmission.unity
+    guid: f57e109fb28741a4297f1895438fff8d
+  - enabled: 1
     path: Assets/Scenes/6000_VertexFormats.unity
     guid: 6788ab4459664394f96537c7ad864afb
   - enabled: 1

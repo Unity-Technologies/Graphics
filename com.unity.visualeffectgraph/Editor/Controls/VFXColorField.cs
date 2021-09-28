@@ -94,7 +94,8 @@ namespace UnityEditor.VFX.UI
             return m_Container;
         }
 
-        bool m_ShowAlpha = true;
+        private bool m_ShowAlpha = true;
+        private Color m_InitialColor;
 
         public bool showAlpha
         {
@@ -139,9 +140,28 @@ namespace UnityEditor.VFX.UI
         IVisualElementScheduledItem m_EyeDropperScheduler;
         void OnEyeDropperStart(MouseDownEvent e)
         {
+            if (EyeDropper.IsOpened)
+            {
+                return;
+            }
+
+            this.m_InitialColor = m_Value;
             EyeDropper.Start(OnGammaColorChanged);
-            m_EyeDropperScheduler = this.schedule.Execute(OnEyeDropperMove).Every(10).StartingIn(10);
-            m_EyeDropper.UnregisterCallback<MouseDownEvent>(OnEyeDropperStart);
+            m_EyeDropperScheduler = this.schedule.Execute(OnEyeDropperMove).Every(10).StartingIn(10).Until(this.ShouldStopWatchingEyeDropper);
+        }
+
+        private bool ShouldStopWatchingEyeDropper()
+        {
+            if (EyeDropper.IsOpened)
+            {
+                return false;
+            }
+
+            if (EyeDropper.IsCancelled)
+            {
+                SetValue(m_InitialColor);
+            }
+            return true;
         }
 
         void OnEyeDropperMove(TimerState state)
@@ -153,7 +173,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VisualElement m_EyeDropper;
+        readonly VisualElement m_EyeDropper;
 
         public VFXColorField(string label) : base(label)
         {
@@ -186,7 +206,6 @@ namespace UnityEditor.VFX.UI
             {
                 m_EyeDropperScheduler.Pause();
                 m_EyeDropperScheduler = null;
-                m_EyeDropper.RegisterCallback<MouseDownEvent>(OnEyeDropperStart);
             }
 
             if (OnValueChanged != null)

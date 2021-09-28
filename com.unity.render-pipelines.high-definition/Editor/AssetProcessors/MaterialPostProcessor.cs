@@ -921,6 +921,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        // This function below is not used anymore - the code have been removed - however we must maintain the function to keep already converted Material coherent
+        // As it doesn't do anything special, there is no problem to let it
         static void ForceForwardEmissiveForDeferred(Material material, HDShaderUtils.ShaderID id)
         {
             // Force Forward emissive for deferred pass is only setup for Lit shader

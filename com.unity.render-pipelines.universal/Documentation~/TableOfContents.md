@@ -1,5 +1,6 @@
 * [Universal Render Pipeline](index.md)
 * [Requirements](requirements.md)
+    * [Building for Closed platforms](Building-For-Consoles.md)
 * [What's new in URP](whats-new/urp-whats-new.md)
 * [Features]()
   * [Feature Comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)
@@ -38,6 +39,8 @@
   * [The Universal Additional Light Data component](universal-additional-light-data.md)
   * [Shadows in the Universal Render Pipeline](Shadows-in-URP.md)
   * [Reflection probes](lighting/reflection-probes.md)
+  * [Light Layers](lighting/light-layers.md)
+  * [Lens Flare asset](shared/lens-flare/lens-flare-asset.md)
 * [Cameras](cameras.md)
   * [The Universal Additional Camera Data component](universal-additional-camera-data.md)
   * [Render Type](camera-types-and-render-type.md)
@@ -71,7 +74,7 @@
     * [Tonemapping](post-processing-tonemapping.md)
     * [Vignette](post-processing-vignette.md)
     * [White Balance](Post-Processing-White-Balance.md)
-    * [Lens Flare Data Driven](lens-flare-data-driven-component.md)
+    * [Lens Flare](shared/lens-flare/lens-flare-component.md)
 
 * [Shaders and Materials](shaders-in-universalrp.md)
   * [Shading Models](shading-model.md)
@@ -94,6 +97,9 @@
     * [Visualizing normal vectors](writing-shaders-urp-unlit-normals.md)
     * [Reconstruct the world space positions](writing-shaders-urp-reconstruct-world-position.md)
   * [URP ShaderLab Pass tags](urp-shaders/urp-shaderlab-pass-tags.md)
+* [How to](how-to.md)
+  * [Blit in XR](renderer-features/how-to-fullscreen-blit-in-xr-spi.md)
+  * [Use Render Objects Renderer Feature](containers/how-to-custom-effect-render-objects.md)
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
 
@@ -111,8 +117,6 @@
     * [2D Renderer and Shader Graph](ShaderGraph.md)
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
-
-* [Building for consoles](Building-For-Consoles.md)
 
 * [Frequently asked questions (FAQ)](faq.md)
 * [Known issues](known-issues.md)
