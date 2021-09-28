@@ -232,6 +232,12 @@ namespace UnityEngine.Rendering
         /// <returns>Parameter used on the shader for _FlareData0</returns>
         static public Vector4 GetFlareData0(Vector2 screenPos, Vector2 translationScale, Vector2 rayOff0, Vector2 vLocalScreenRatio, float angleDeg, float position, float angularOffset, Vector2 positionOffset, bool autoRotate)
         {
+            if (!SystemInfo.graphicsUVStartsAtTop)
+            {
+                angleDeg *= -1;
+                positionOffset.y *= -1;
+            }
+
             float globalCos0 = Mathf.Cos(-angularOffset * Mathf.Deg2Rad);
             float globalSin0 = Mathf.Sin(-angularOffset * Mathf.Deg2Rad);
 
@@ -266,7 +272,19 @@ namespace UnityEngine.Rendering
                 globalSin0 * rayOff.x + globalCos0 * rayOff.y);
         }
 
-        static Vector3 WorldToViewport(bool isCameraRelative, Matrix4x4 viewProjMatrix, Vector3 cameraPosWS, Vector3 positionWS)
+        static Vector3 WorldToViewport(Camera camera, bool isLocalLight, bool isCameraRelative, Matrix4x4 viewProjMatrix, Vector3 positionWS)
+        {
+            if (isLocalLight)
+            {
+                return WorldToViewportLocal(isCameraRelative, viewProjMatrix, camera.transform.position, positionWS);
+            }
+            else
+            {
+                return WorldToViewportDistance(camera, positionWS);
+            }
+        }
+
+        static Vector3 WorldToViewportLocal(bool isCameraRelative, Matrix4x4 viewProjMatrix, Vector3 cameraPosWS, Vector3 positionWS)
         {
             Vector3 localPositionWS = positionWS;
             if (isCameraRelative)
@@ -280,7 +298,18 @@ namespace UnityEngine.Rendering
             viewportPos.y = viewportPos.y * 0.5f + 0.5f;
             viewportPos.y = 1.0f - viewportPos.y;
             viewportPos.z = viewportPos4.w;
+            return viewportPos;
+        }
 
+        static Vector3 WorldToViewportDistance(Camera cam, Vector3 positionWS)
+        {
+            Vector4 camPos = cam.worldToCameraMatrix * positionWS;
+            Vector4 viewportPos4 = cam.projectionMatrix * camPos;
+            Vector3 viewportPos = new Vector3(viewportPos4.x, viewportPos4.y, 0f);
+            viewportPos /= viewportPos4.w;
+            viewportPos.x = viewportPos.x * 0.5f + 0.5f;
+            viewportPos.y = viewportPos.y * 0.5f + 0.5f;
+            viewportPos.z = viewportPos4.w;
             return viewportPos;
         }
 
@@ -380,7 +409,7 @@ namespace UnityEngine.Rendering
                     positionWS = comp.transform.position;
                 }
 
-                viewportPos = WorldToViewport(isCameraRelative, viewProjMatrix, cam.transform.position, positionWS);
+                viewportPos = WorldToViewport(cam, !isDirLight, isCameraRelative, viewProjMatrix, positionWS);
 
                 if (usePanini && cam == Camera.main)
                 {
@@ -397,8 +426,6 @@ namespace UnityEngine.Rendering
                         continue;
                 }
 
-                Vector4 modulationByColor = Vector4.one;
-                Vector4 modulationAttenuation = Vector4.one;
                 Vector3 diffToObject = positionWS - cam.transform.position;
                 float distToObject = diffToObject.magnitude;
                 float coefDistSample = distToObject / comp.maxAttenuationDistance;
@@ -417,9 +444,11 @@ namespace UnityEngine.Rendering
                 globalColorModulation *= distanceAttenuation;
 
                 Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
-                Vector3 screenPosZ = WorldToViewport(isCameraRelative, viewProjMatrix, cam.transform.position, positionWS + dir * comp.occlusionOffset);
+                Vector3 screenPosZ = WorldToViewport(cam, !isDirLight, isCameraRelative, viewProjMatrix, positionWS + dir * comp.occlusionOffset);
+
+                float adjustedOcclusionRadius = isDirLight ? comp.celestialProjectedOcclusionRadius(cam) : comp.occlusionRadius;
                 Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)viewportPos;
-                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)WorldToViewport(isCameraRelative, viewProjMatrix, cam.transform.position, positionWS + cam.transform.up * comp.occlusionRadius);
+                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)WorldToViewport(cam, !isDirLight, isCameraRelative, viewProjMatrix, positionWS + cam.transform.up * adjustedOcclusionRadius);
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
@@ -452,7 +481,6 @@ namespace UnityEngine.Rendering
 
                     Color curColor = colorModulation;
                     Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
-                    Vector2 translationScale = new Vector2(element.translationScale.x, element.translationScale.y);
                     Texture texture = element.lensFlareTexture;
                     float usedAspectRatio;
                     if (element.flareType == SRPLensFlareType.Image)
@@ -461,7 +489,6 @@ namespace UnityEngine.Rendering
                         usedAspectRatio = 1.0f;
 
                     float rotation = element.rotation;
-                    Vector4 tint = Vector4.Scale(element.tint, curColor);
                     Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
                     float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
                     float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
@@ -487,8 +514,6 @@ namespace UnityEngine.Rendering
                     float combinedScale = scaleByDistance * scaleSize * element.uniformScale * comp.scale;
                     size *= combinedScale;
 
-                    Vector4 gradientModulation = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-
                     float currentIntensity = comp.intensity * element.localIntensity * radialsScaleRadius * distanceAttenuation;
 
                     if (currentIntensity <= 0.0f)
@@ -497,8 +522,9 @@ namespace UnityEngine.Rendering
                     curColor *= element.tint;
                     curColor *= currentIntensity;
 
-                    float globalCos0 = Mathf.Cos(-element.angularOffset * Mathf.Deg2Rad);
-                    float globalSin0 = Mathf.Sin(-element.angularOffset * Mathf.Deg2Rad);
+                    float angularOffset = SystemInfo.graphicsUVStartsAtTop ? element.angularOffset : -element.angularOffset;
+                    float globalCos0 = Mathf.Cos(-angularOffset * Mathf.Deg2Rad);
+                    float globalSin0 = Mathf.Sin(-angularOffset * Mathf.Deg2Rad);
 
                     float position = 2.0f * element.position;
 
@@ -603,7 +629,7 @@ namespace UnityEngine.Rendering
                             Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
                             localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
                         }
-                        Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
+                        Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation, position, angularOffset, element.positionOffset, element.autoRotate);
 
                         cmd.SetGlobalVector(_FlareData0, flareData0);
                         cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
@@ -632,7 +658,7 @@ namespace UnityEngine.Rendering
 
                                 Color col = element.colorGradient.Evaluate(timeScale);
 
-                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation + uniformAngle, position, element.angularOffset, element.positionOffset, element.autoRotate);
+                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation + uniformAngle, position, angularOffset, element.positionOffset, element.autoRotate);
                                 cmd.SetGlobalVector(_FlareData0, flareData0);
                                 cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
                                 cmd.SetGlobalVector(_FlareColorValue, curColor * col);
@@ -646,7 +672,7 @@ namespace UnityEngine.Rendering
                         {
                             Random.State backupRandState = UnityEngine.Random.state;
                             Random.InitState(element.seed);
-                            Vector2 side = new Vector2(Mathf.Sin(-element.angularOffset * Mathf.Deg2Rad), Mathf.Cos(-element.angularOffset * Mathf.Deg2Rad));
+                            Vector2 side = new Vector2(globalSin0, globalCos0);
                             side *= element.positionVariation.y;
                             float RandomRange(float min, float max)
                             {
@@ -675,7 +701,7 @@ namespace UnityEngine.Rendering
 
                                 if (localIntensity > 0.0f)
                                 {
-                                    Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, localRotation, position, element.angularOffset, localPositionOffset, element.autoRotate);
+                                    Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, localRotation, position, angularOffset, localPositionOffset, element.autoRotate);
                                     cmd.SetGlobalVector(_FlareData0, flareData0);
                                     cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
                                     cmd.SetGlobalVector(_FlareColorValue, curColor * randCol * localIntensity);
@@ -711,7 +737,7 @@ namespace UnityEngine.Rendering
 
                                 float angleFromCurve = element.uniformAngleCurve.Evaluate(timeScale) * (180.0f - (180.0f / (float)element.count));
 
-                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation + angleFromCurve, localPos, element.angularOffset, element.positionOffset, element.autoRotate);
+                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation + angleFromCurve, localPos, angularOffset, element.positionOffset, element.autoRotate);
                                 cmd.SetGlobalVector(_FlareData0, flareData0);
                                 cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
                                 cmd.SetGlobalVector(_FlareColorValue, curColor * col);

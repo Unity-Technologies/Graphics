@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Added
+- New `IVolumeDebugSettings` interface and `VolumeDebugSettings<T>` class that stores the information for the Volumes Debug Panel.
+- Added AMD FidelityFX shaders which were originally in HDRP
+
+### Fixed
+- Fixed black pixel issue in AMD FidelityFX RCAS implementation
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -50,6 +57,8 @@ The version number for this package has increased due to a version update of a r
 - Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
 - Added UNITY_PREV_MATRIX_M and UNITY_PREV_MATRIX_I_M shader macros to support instanced motion vector rendering
 - Added new API to customize the rtHandleProperties of a particular RTHandle. This is a temporary work around to assist with viewport setup of Custom post process when dealing with DLSS or TAAU
+- Added `IAdditionalData` interface to identify the additional datas on the core package.
+- Added new API to draw color temperature for Lights.
 
 ### Fixed
 - Help boxes with fix buttons do not crop the label.
@@ -83,6 +92,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed Lens Flare 'radialScreenAttenuationCurve invisible'
 - Fixed Lens Flare rotation for Curve Distribution
 - Fixed potentially conflicting runtime Rendering Debugger UI command by adding an option to disable runtime UI altogether (1345783).
+- Fixed Lens Flare position for celestial at very far camera distances. It now locks correctly into the celestial position regardless of camera distance (1363291)
+- Fixed issues caused by automatically added EventSystem component, required to support Rendering Debugger Runtime UI input. (1361901)
 
 ### Changed
 - Improved the warning messages for Volumes and their Colliders.
@@ -107,6 +118,7 @@ The version number for this package has increased due to a version update of a r
 - Improved IntegrateLDCharlie() to use uniform stratified sampling for faster convergence towards the ground truth
 - DynamicResolutionHandler.GetScaledSize function now clamps, and never allows to return a size greater than its input.
 - Removed DYNAMIC_RESOLUTION snippet on lens flare common shader. Its not necessary any more on HDRP, which simplifies the shader.
+- Made occlusion Radius for lens flares in directional lights, be independant of the camera's far plane.
 
 ## [11.0.0] - 2020-10-21
 
