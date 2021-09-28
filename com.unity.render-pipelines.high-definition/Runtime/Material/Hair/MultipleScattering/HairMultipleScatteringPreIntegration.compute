@@ -53,10 +53,10 @@ SurfaceData ConfigureFiberSurface(float diffuseColor, float perceptualSmoothness
     surfaceData.cuticleAngle = 2;
 
     // The theoretical fiber points points down the +x axis.
-    surfaceData.hairStrandDirectionWS = float3(1, 0, 0);
+    surfaceData.hairStrandDirectionWS = float3(0, 0, 1);
 
     // Be sure to define the normal as well as it defines the hair shading basis
-    surfaceData.geomNormalWS = float3(0, 0, 1);
+    surfaceData.geomNormalWS = float3(1, 0, 0);
 
     return surfaceData;
 }
@@ -117,9 +117,6 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
            // Places a light on the back scattering hemisphere (due to the constriction of phi to the -pi/2 to pi/2 range).
            float3 L = SphericalToCartesian(phi, sinThetaI);
 
-           // Account for the fiber pointing in the +x axis
-           L = L.zyx;
-
            // Invoke the fiber scattering function.
            // Note, we could use our importance sampled reference here but due to how long it takes to compile, don't.
            CBSDF cbsdf = EvaluateBSDF(V, L, preLightData, bsdfData);
@@ -130,7 +127,7 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
            // forward (TT dominant) and one backward (R / TRT dominant) lobe. The theoretical fiber
            // is facing +X, the incident light is on the back hemisphere; thus, outgoing directions
            // in the front hemisphere must be negative in the Z direction.
-           if (V.z < 0)
+           if (V.x < 0)
            {
                 // Contribute to the average forward scattering.
                 A.x += Fs; C.x++;
@@ -140,10 +137,13 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
                 // Contribute to the average backward scattering.
                 A.y += Fs; C.y++;
            }
+
+           // A *= SafeSqrt(1 - Sq(sinThetaI));
        }
     }
 
-    _PreIntegratedHairFiberScatteringUAV[dispatchThreadID] = INV_PI * (A / float2(C * INV_FOUR_PI) * 0.5);
+    // Note, PDF for hemisphere, not sphere.
+    _PreIntegratedHairFiberScatteringUAV[dispatchThreadID] = INV_PI * (A / float2(C * INV_TWO_PI));
 }
 
 // Pre-integrate the average azimuthal scattering on the front scattering semi-circle ( Ref: Equation 25 )

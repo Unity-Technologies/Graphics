@@ -16,11 +16,6 @@ static const float FACTORIAL[11] = { 1.0,
                                      362880.0,
                                      3628800.0 };
 
-float SafeSqrt(float x)
-{
-    return sqrt(max(0, x));
-}
-
 struct ReferenceBSDFData
 {
     float  h;      // Intersection offset from fiber center.

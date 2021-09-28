@@ -38,6 +38,12 @@ float GetDirectFraction(BSDFData bsdfData, float strandCount)
     return bsdfData.splineVisibility > -1 ? bsdfData.splineVisibility : 1 - saturate(strandCount);
 }
 
+// Gaussian variant (of our longitudinal scattering one) that takes variance, not std. dev.
+float ScatteringGaussian(float x, float variance)
+{
+    return exp(-Sq(x) / variance) * rsqrt(TWO_PI * variance);
+}
+
 // TODO: Currently the dual scattering approximation is assuming to be used for hair fibers, but it can be used for other
 // fiber materials (ie Fabric). It would be good to eventually generalize this and move it out of hair material evaluation.
 HairScatteringData GetHairScatteringData(BSDFData bsdfData, float3 alpha, float3 beta, float sinThetaI)
@@ -59,7 +65,7 @@ HairScatteringData GetHairScatteringData(BSDFData bsdfData, float3 alpha, float3
         float2 B = SAMPLE_TEXTURE3D_LOD(_PreIntegratedHairFiberScattering, s_linear_clamp_sampler, float3(X, Y, Z.b), 0).xy;
 
         scatteringData.averageScattering[FRONT] = float3(R.x, G.x, B.x);
-        scatteringData.averageScattering[BACK]  = PI * float3(R.y, G.y, B.y);
+        scatteringData.averageScattering[BACK]  = float3(R.y, G.y, B.y);
     }
 
     // 2) Sample the average azimuthal scattering
@@ -99,7 +105,7 @@ HairScatteringData GetHairScatteringData(BSDFData bsdfData, float3 alpha, float3
     return scatteringData;
 }
 
-float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3 alpha, float3 beta, float thetaH, float sinThetaI)
+float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3 alpha, float3 beta, float thetaH, float sinThetaI, float3 avgTT)
 {
     // Fetch the various preintegrated data.
     HairScatteringData hairScatteringData = GetHairScatteringData(bsdfData, alpha, beta, sinThetaI);
@@ -118,8 +124,8 @@ float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3
 
     // Note, for now remove the square, there seems to be a discrepancy in the gaussian used in the paper and the one we use
     // for longitudinal scattering. We should revisit this later and audit the gaussian / std dev / variances.
-    const float3 Bf   = sqrt(hairScatteringData.averageVariance[FRONT]);
-    const float3 Bb   = sqrt(hairScatteringData.averageVariance[BACK]);
+    const float3 Bf   = (hairScatteringData.averageVariance[FRONT]);
+    const float3 Bb   = (hairScatteringData.averageVariance[BACK]);
     const float3 Bf2  = Sq(Bf);
     const float3 Bb2  = Sq(Bb);
 
@@ -188,18 +194,17 @@ float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3
     sigmaB  = Sq(sigmaB);
 
     // Resolve the overall local scattering term ( Eq. 19 & 20 Disney ).
-    float3 fsBackDirect  = db * 2 * Ab * D_LongitudinalScatteringGaussian(thetaH - deltaB, sigmaB) / PI;
-    float3 fsBackScatter = db * 2 * Ab * D_LongitudinalScatteringGaussian(thetaH - deltaB, sigmaB + sigmaF) / PI;
+    float3 fsBackDirect  = db * 2 * Ab * ScatteringGaussian(thetaH - deltaB, sigmaB) / PI;
+    float3 fsBackScatter = db * 2 * Ab * ScatteringGaussian(thetaH - deltaB, sigmaB + sigmaF) / PI;
 
     // Resolve the approximated multiple scattering. (Approximate Eq. 22)
     // ------------------------------------------------------------------------------------
-    const float3 MG = D_LongitudinalScatteringGaussian(thetaH - alpha, beta + sigmaF);
-    const float3 fsScatter = mul(MG, NG);
+    const float3 MG = ScatteringGaussian(thetaH - alpha, Sq(beta) + sigmaF);
+    const float3 fsScatter = avgTT * MG[1]; // mul(MG, NG);
 
     const float3 Fdirect   = directFraction * (Fs + fsBackDirect);
     const float3 Fscatter  = (Tf - directFraction) * df * (fsScatter + PI * fsBackScatter);
-    const float3 F         = (Fdirect + Fscatter);
+    const float3 F         = (Fdirect + Fscatter) * sqrt(1 - Sq(sinThetaI));
 
-    return max(F, 0);
-
+    return max(Fscatter, 0);
 }

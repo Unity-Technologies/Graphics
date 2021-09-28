@@ -1,27 +1,9 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingBSDF.hlsl"
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl"
-
-#define HAIR_TYPE_RIBBON 1 << 0
-#define HAIR_TYPE_TUBE   1 << 1
-
-#define HAIR_TYPE HAIR_TYPE_TUBE
-
-float GetHFromTube(float3 L, float3 N, float3 T)
-{
-    // Angle of inclination from normal plane.
-    float sinTheta = dot(L, T);
-
-    // Project w to the normal plane.
-    float3 LProj = L - sinTheta * T;
-
-    // Find gamma in the normal plane.
-    float cosGamma = dot(LProj, N);
-
-    // Length along the fiber width.
-    return SafeSqrt(1 - Sq(cosGamma));
-}
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 
 // https://www.pbrt.org/hair.pdf
 float2 DemuxFloat(float x)
@@ -40,11 +22,10 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 {
     // NOTE: Currently we don't support ray-aligned ribbons in the acceleration structure, so our only H-calculation routines
     // are either stochastic or derived from a tube intersection.
-#if 0
-    // TODO: For now disable tube derivation, seems to cause an issue with the azimuthal direction.
+#if 1
     bsdfData.h = GetHFromTube(-WorldRayDirection(), bsdfData.normalWS, bsdfData.hairStrandDirectionWS);
 #else
-    bsdfData.h = -1 + 2 * GenerateHashedRandomFloat(uint3(pathIntersection.pixelCoord, _RaytracingSampleIndex));
+    bsdfData.h = -1 + 2 * InterleavedGradientNoise(pathIntersection.pixelCoord, _RaytracingSampleIndex);
 #endif
 }
 

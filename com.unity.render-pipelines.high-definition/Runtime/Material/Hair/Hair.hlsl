@@ -20,7 +20,7 @@
 // For TT, the dominant contribution comes from light transmitted straight through the fiber (thus 0).
 // For TRT, a similar observation is made and v3/2 is used to approximate.
 #define HAIR_H_TT  0.0
-#define HAIR_H_TRT 0.866
+#define HAIR_H_TRT 0.86602540378
 
 // #define HAIR_DISPLAY_REFERENCE_BSDF
 // #define HAIR_DISPLAY_REFERENCE_IBL
@@ -95,6 +95,24 @@ real3 D_LongitudinalScatteringGaussian(real3 thetaH, real3 beta)
 {
     const real sqrtTwoPi = 2.50662827463100050241;
     return rcp(beta * sqrtTwoPi) * exp(-Sq(thetaH) / (2 * Sq(beta)));
+}
+
+float GetHFromTube(float3 L, float3 N, float3 T)
+{
+    // Angle of inclination from normal plane.
+    float sinTheta = dot(L, T);
+
+    // Project w to the normal plane.
+    float3 LProj = SafeNormalize(L - sinTheta * T);
+
+    // Find gamma in the normal plane.
+    float cosGamma = dot(LProj, N);
+
+    // Need to account for the sign to recover -1..1
+    float sgn = sign(dot(N, cross(LProj, T)));
+
+    // Length along the fiber width.
+    return SafeSqrt(1 - Sq(cosGamma)) * sgn;
 }
 
 float ModifiedRefractionIndex(float cosThetaD)
@@ -299,6 +317,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.strandShadowBias = surfaceData.strandShadowBias;
         bsdfData.splineVisibility = -1;
     #endif
+
+        // Only necesarry for reference.
+        // bsdfData.h = -1 + 2 * InterleavedGradientNoise(positionSS, _TaaFrameInfo.z);
     }
 
     ApplyDebugToBSDFData(bsdfData);
@@ -556,10 +577,8 @@ struct HairAngle
     float cosThetaT;
 };
 
-void GetHairAngle(float3 wo, float3 wi, out HairAngle angles)
+void GetHairAngleLocal(float3 wo, float3 wi, inout HairAngle angles)
 {
-    ZERO_INITIALIZE(HairAngle, angles);
-
     angles.sinThetaO = wo.x;
     angles.sinThetaI = wi.x;
 
@@ -578,6 +597,30 @@ void GetHairAngle(float3 wo, float3 wi, out HairAngle angles)
     angles.cosPhi = cos(angles.phi);
     angles.cosHalfPhi = abs(cos(angles.phi * 0.5));
 
+    angles.sinThetaT = angles.sinThetaO / 1.55;
+    angles.cosThetaT = SafeSqrt(1 - Sq(angles.sinThetaT));
+}
+
+void GetHairAngleWorld(float3 V, float3 L, float3 T, inout HairAngle angles)
+{
+    angles.sinThetaO = dot(T, V);
+    angles.sinThetaI = dot(T, L);
+
+    float thetaO = FastASin(angles.sinThetaO);
+    float thetaI = FastASin(angles.sinThetaI);
+    angles.thetaH = (thetaI + thetaO) * 0.5;
+
+    angles.cosThetaD = cos((thetaO - thetaI) * 0.5);
+    angles.cosThetaO = cos(thetaO);
+    angles.cosThetaI = cos(thetaI);
+
+    // Projection onto the normal plane, and since phi is the relative angle, we take the cosine in this projection.
+    float3 VProj = V - angles.sinThetaO * T;
+    float3 LProj = L - angles.sinThetaI * T;
+    angles.cosPhi = dot(LProj, VProj) * rsqrt(dot(LProj, LProj) * dot(VProj, VProj) + 0.0001); // zero-div guard
+    angles.cosHalfPhi = sqrt(0.5 + 0.5 * angles.cosPhi);
+
+    // Fixed for approximate human hair IOR
     angles.sinThetaT = angles.sinThetaO / 1.55;
     angles.cosThetaT = SafeSqrt(1 - Sq(angles.sinThetaT));
 }
@@ -644,15 +687,6 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
     {
-#ifdef HAIR_DISPLAY_REFERENCE_BSDF
-        // Transform to the local frame for spherical coordinates,
-        // Note that the strand direction is assumed to lie pointing down the X axis, as this is expected by the BSDF.
-        const float3x3 frame = GetLocalFrame(bsdfData.geomNormalWS, bsdfData.hairStrandDirectionWS);
-        const float3 wi = mul(L, transpose(frame));
-        const float3 wo = mul(V, transpose(frame));
-
-        cbsdf = EvaluateHairReference(wo, wi, bsdfData);
-#else
         // Approximation of the three primary paths in a hair fiber (R, TT, TRT), with concepts from:
         // "Strand-Based Hair Rendering in Frostbite" (Tafuri 2019)
         // "A Practical and Controllable Hair and Fur Model for Production Path Tracing" (Chiang 2016)
@@ -662,16 +696,19 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
         // Reminder: All of these flags are known at compile time and the compiler will strip away the unused paths.
 
+        // Retrieve angles via spherical coordinates in the hair shading space.
+        HairAngle angles;
+        ZERO_INITIALIZE(HairAngle, angles);
+#if 0
         // Transform to the local frame for spherical coordinates,
-        // Note that the strand direction is assumed to lie pointing down the X axis, as this is expected by the BSDF.
+        // Note that the strand direction is assumed to lie pointing down the +X axis.
         const float3x3 frame = GetLocalFrame(bsdfData.geomNormalWS, bsdfData.hairStrandDirectionWS);
         const float3 wo = mul(V, transpose(frame));
         const float3 wi = mul(L, transpose(frame));
-
-        // Retrieve angles via spherical coordinates in the hair shading space.
-        // TODO: Optimized world space variant
-        HairAngle angles;
-        GetHairAngle(wo, wi, angles);
+        GetHairAngleLocal(wo, wi, angles);
+#else
+        GetHairAngleWorld(V, L, T, angles);
+#endif
 
         const float3 alpha = float3(
             bsdfData.cuticleAngleR,
@@ -718,6 +755,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         }
 
         // TT
+        float3 avgTT = 0;
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT))
         {
         #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
@@ -741,6 +779,16 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
             A = Sq(1 - F) * Tr;
 
             S += M[1] * A * D;
+
+        #if 1
+            for (float phi = -HALF_PI; phi < HALF_PI; phi += 0.2)
+            {
+                float cosPhiP = angles.cosPhi - cos(phi);
+                float temp_D = exp(-3.65 * cosPhiP - 3.98);
+                avgTT += temp_D * 0.2;
+            }
+            avgTT *= A * INV_PI;
+        #endif
         }
 
         // TRT
@@ -766,14 +814,14 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
         // Transmission event is built into the model.
         // Some stubborn NaNs have cropped up due to the angle optimization, we suppress them here with a max for now.
-        cbsdf.specR = max(S, 0);
-    #endif
+        const float geomNdotL = dot(bsdfData.geomNormalWS, L);
+        cbsdf.specR = max(S * abs(geomNdotL), 0);
 
         // Multiple Scattering
     #if _USE_ADVANCED_MULTIPLE_SCATTERING
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING))
         {
-            cbsdf.specR = EvaluateMultipleScattering(L, cbsdf.specR, bsdfData, alpha, beta, angles.thetaH, angles.sinThetaI);
+            cbsdf.specR = EvaluateMultipleScattering(L, cbsdf.specR, bsdfData, alpha, beta, angles.thetaH, angles.sinThetaI, avgTT);
         }
         else
     #endif

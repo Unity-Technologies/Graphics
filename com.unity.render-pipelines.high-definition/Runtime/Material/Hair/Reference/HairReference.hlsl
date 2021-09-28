@@ -1,5 +1,12 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Reference/HairReferenceCommon.hlsl"
 
+// Reference implementation of a Marschner-based energy conserving hair reflectance model with concepts from:
+// "The Implementation of a Hair Scattering Model" (Pharr 2016)
+// "A Practical and Controllable Hair and Fur Model for Production Path Tracing" (Chiang 2016)
+// "Importance Sampling for Physically-Based Hair Fiber Models" (D'Eon 2012)
+// "An Energy-Conserving Hair Reflectance Model" (d'Eon 2011)
+// "Light Scattering from Human Hair Fibers" (Marschner 2003)
+
 void ComputeFiberAttenuations(float cosThetaO, float eta, float h, float3 T, inout float3 A[PATH_MAX + 1])
 {
     // Reconstruct the incident angle.
@@ -162,12 +169,14 @@ CBSDF SampleHairReference(float3 wo, out float3 wi, out float pdf, float4 u, BSD
     float sinThetaO, cosThetaO;
     ApplyCuticleTilts(p, angles, data, sinThetaO, cosThetaO);
 
-    // Importance sample the longitudinal scattering function
+    // Note, clamping this sample seems required to prevent NaNs for very low (< ~0.1) variances.
+    u.y = max(u.y, 1e-4);
+
+    // Importance sample the longitudinal scattering function using an exponential function identity to handle low variance.
     // Ref: "Importance Sampling for Physically-Based Hair Fiber Models" Eq. 6 & 7
-    float cosTheta  = 1 + data.v[p] * log(u.y + (1 - u.y) * exp(-2 / data.v[p]));
-    float sinTheta  = SafeSqrt(1 - Sq(cosTheta));
-    float cosPhi    = cos(TWO_PI * u.z);
-    float sinThetaI = -cosTheta * sinThetaO + sinTheta * cosPhi * cosThetaO;
+    // Ref: "Numerically stable sampling of the von Mises Fisher distribution on S2"
+    float sampleMP  = 1 + data.v[p] * log(u.y + (1 - u.y) * exp(-2 / data.v[p]));
+    float sinThetaI = -sampleMP * sinThetaO + SafeSqrt(1 - Sq(sampleMP)) * cos(TWO_PI * u.z) * cosThetaO;
     float cosThetaI = SafeSqrt(1 - Sq(sinThetaI));
 
     // Importance sample the azimuthal scattering function
