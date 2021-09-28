@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000004, guid: 50c3348b53132fa4aa6e0a605c646750,
+  m_LightingDataAsset: {fileID: 112000004, guid: 17f5e39894d1a79429cf457fa2325b9a,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: e2c62cc492f7f3945b1b1ac901ffc5e8,
     type: 2}
@@ -705,11 +705,11 @@ MonoBehaviour:
   ImageComparisonSettings:
     TargetWidth: 1000
     TargetHeight: 600
-    PerPixelCorrectnessThreshold: 0.001
+    PerPixelCorrectnessThreshold: 0.002
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
     AverageCorrectnessThreshold: 0.005
-    IncorrectPixelsThreshold: 0.0000038146973
+    IncorrectPixelsThreshold: 0.000006814697
     UseHDR: 0
     UseBackBuffer: 0
     ImageResolution: 0
