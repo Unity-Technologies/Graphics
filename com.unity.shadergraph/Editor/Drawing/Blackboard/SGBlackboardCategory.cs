@@ -658,18 +658,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (controller.Model.IsNamedCategory())
             {
                 base.Select(selectionContainer, additive);
+                // Select the child elements within this category (the field views)
+                var fieldViews = this.Query<SGBlackboardField>();
+                foreach (var child in fieldViews.ToList())
+                {
+                    this.AddToSelection(child);
+                }
             }
         }
 
         public override void OnSelected()
         {
             AddToClassList("selected");
-            // Select the child elements within this category (the field views)
-            var fieldViews = this.Query<SGBlackboardField>();
-            foreach (var child in fieldViews.ToList())
-            {
-                this.AddToSelection(child);
-            }
         }
 
         public override void OnUnselected()
@@ -691,9 +691,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
-            // Don't want to modify graph selection when in middle of an undo/redo op as that throws exceptions
-            //if(materialGraphView.wasUndoRedoPerformed == false)
-                materialGraphView?.AddToSelection(selectable);
+            materialGraphView?.AddToSelection(selectable);
         }
 
         public void RemoveFromSelection(ISelectable selectable)
