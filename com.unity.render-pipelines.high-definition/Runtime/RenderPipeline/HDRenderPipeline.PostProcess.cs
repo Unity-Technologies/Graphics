@@ -3082,6 +3082,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle occlusion;
             public HDCamera hdCamera;
             public Vector2Int viewport;
+            public bool taaEnabled;
         }
 
         void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, bool taaEnabled)
@@ -3098,6 +3099,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.viewport = new Vector2Int(LensFlareCommonSRP.maxLensFlareWithOcclusion, LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample);
                     passData.hdCamera = hdCamera;
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                    passData.taaEnabled = taaEnabled;
 
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
@@ -3111,7 +3113,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit, ShaderConfig.s_CameraRelativeRendering != 0,
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
                                 data.hdCamera.mainViewConstants.viewProjMatrix,
-                                ctx.cmd, taaEnabled,
+                                ctx.cmd, data.taaEnabled,
                                 HDShaderIDs._FlareOcclusionTex, HDShaderIDs._FlareOcclusionIndex, HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
                                 HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4);
                         });
