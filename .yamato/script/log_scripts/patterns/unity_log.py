@@ -23,16 +23,16 @@ class Unity_log():
             #     'tags': ['TcpProtobufSession', TAG_INSTABILITY, TAG_INFRASTRUCTURE],
             #     'conclusion': 'failure',
             # },
-            {
-                'pattern': r'AcceleratorClientConnectionCallback - disconnected - cacheserver-slo',
-                'tags': ['cache',  TAG_INFRASTRUCTURE, TAG_INSTABILITY],
-                'conclusion': 'failure',
-            },
-            {
-                'pattern': r'(Failed to upload artifact)(.+)(to cacheserver)',
-                'tags': ['cache', TAG_INFRASTRUCTURE, TAG_POSSIBLE_INSTABILITY],
-                'conclusion': 'failure',
-            },
+            # {
+            #     'pattern': r'AcceleratorClientConnectionCallback - disconnected - cacheserver-slo',
+            #     'tags': ['cache',  TAG_INFRASTRUCTURE, TAG_INSTABILITY],
+            #     'conclusion': 'failure',
+            # },
+            # {
+            #     'pattern': r'(Failed to upload artifact)(.+)(to cacheserver)',
+            #     'tags': ['cache', TAG_INFRASTRUCTURE, TAG_POSSIBLE_INSTABILITY],
+            #     'conclusion': 'failure',
+            # },
         ]
 
     def read_log(self):

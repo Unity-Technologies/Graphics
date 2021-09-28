@@ -172,12 +172,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_CharlieFabricLambert.shader")]
             public Shader preIntegratedFGD_CharlieFabricLambertPS;
-            [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_Marschner.shader")]
-            public Shader preIntegratedFGD_MarschnerPS;
             [Reload("Runtime/Material/AxF/PreIntegratedFGD_Ward.shader")]
             public Shader preIntegratedFGD_WardPS;
             [Reload("Runtime/Material/AxF/PreIntegratedFGD_CookTorrance.shader")]
             public Shader preIntegratedFGD_CookTorrancePS;
+            [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_Marschner.shader")]
+            public Shader preIntegratedFGD_MarschnerPS;
+            [Reload("Runtime/Material/Hair/MultipleScattering/HairMultipleScatteringPreIntegration.compute")]
+            public ComputeShader preIntegratedFiberScatteringCS;
 
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]

@@ -36,7 +36,7 @@ reuse_blocks:
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
     - [XRQuest_Vulkan, XRQuest_OpenGLES3]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.management@4.0.1 --project-path .
     - [XRQuest_Vulkan, XRQuest_OpenGLES3]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.oculus@1.8.1 --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .

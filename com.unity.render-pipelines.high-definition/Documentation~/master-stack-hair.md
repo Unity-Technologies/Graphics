@@ -75,12 +75,10 @@ When you create a new Hair Master Stack, the Fragment Context contains the follo
 [!include[](snippets/shader-graph-blocks/transmittance.md)]
 [!include[](snippets/shader-graph-blocks/rim-transmission-intensity.md)]
 [!include[](snippets/shader-graph-blocks/smoothness.md)]
-[!include[](snippets/shader-graph-blocks/smoothness-radial.md)]
 [!include[](snippets/shader-graph-blocks/ambient-occlusion.md)]
 [!include[](snippets/shader-graph-blocks/alpha.md)]
 [!include[](snippets/shader-graph-blocks/specular-tint.md)]
 [!include[](snippets/shader-graph-blocks/specular-shift.md)]
-[!include[](snippets/shader-graph-blocks/cuticle-angle.md)]
 [!include[](snippets/shader-graph-blocks/secondary-specular-tint.md)]
 [!include[](snippets/shader-graph-blocks/secondary-specular-shift.md)]
 [!include[](snippets/shader-graph-blocks/emission.md)]
@@ -88,7 +86,7 @@ When you create a new Hair Master Stack, the Fragment Context contains the follo
 
 #### Relevant
 
-Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following locks to the Fragment Context:
+Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following blocks to the Fragment Context:
 
 <table>
 <tr>
@@ -109,6 +107,9 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-graph-blocks/specular-aa-screen-space-variance.md)]
 [!include[](snippets/shader-graph-blocks/specular-aa-threshold.md)]
 [!include[](snippets/shader-graph-blocks/specular-occlusion.md)]
+[!include[](snippets/shader-graph-blocks/smoothness-radial.md)]
+[!include[](snippets/shader-graph-blocks/cuticle-angle.md)]
+[!include[](snippets/shader-graph-blocks/strand-count-probe.md)]
 </table>
 
 ## Graph Settings
@@ -158,5 +159,6 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/advanced-options/support-lod-crossfade.md)]
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
 [!include[](snippets/shader-properties/advanced-options/geometry-type.md)]
+[!include[](snippets/shader-properties/advanced-options/scattering-mode.md)]
 [!include[](snippets/shader-properties/advanced-options/allow-radial-smoothness.md)]
 </table>
