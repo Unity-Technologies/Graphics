@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the volume not being assigned on some scene templates.
 - Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
 - Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
+- Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
