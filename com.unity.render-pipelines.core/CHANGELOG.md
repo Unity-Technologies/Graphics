@@ -15,6 +15,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
 - Fixed black pixel issue in AMD FidelityFX RCAS implementation
+- Fixed keyword upgrading for SpeedTree8 shadergraphs
 
 ## [12.0.0] - 2021-01-11
 

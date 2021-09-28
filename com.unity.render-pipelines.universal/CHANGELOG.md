@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed experimental tile deferred code.
 - VFX: New shadergraph support directly on Universal target.
+- Now using the SpeedTree8 PBRLit shadergraph as the default SpeedTree8 shader for Universal.
 
 ### Fixed
 - Added warning for lit shader detailed abledo, if texture is not linear. [1342011](https://issuetracker.unity3d.com/issues/detail-maps-packed-differently-in-built-in-vs-urp)
