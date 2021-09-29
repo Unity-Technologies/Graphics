@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -43,16 +43,16 @@ public class Editmode_PowerSampling_Tests
         camera.targetTexture = rt;
         TextureFormat tFormat;
         tFormat = TextureFormat.RGB24;
-      
+
         Texture2D screenShot = new Texture2D(resWidthN, resHeightN, tFormat,false);
         camera.Render();
         RenderTexture.active = rt;
         screenShot.ReadPixels(new Rect(0, 0, resWidthN, resHeightN), 0, 0);
         camera.targetTexture = null;
-        RenderTexture.active = null; 
+        RenderTexture.active = null;
         byte[] bytes = screenShot.EncodeToPNG();
         string fullpath = sceneOutputPath + "/" + filename;
-      
+
         System.IO.File.WriteAllBytes(fullpath, bytes);
         Debug.Log(string.Format("Took screenshot to: {0}", fullpath));
         Application.OpenURL(fullpath);
@@ -92,7 +92,7 @@ public class Editmode_PowerSampling_Tests
             Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU, "Using GPU Lightmapper after initial bake.");
 
             takeScreenshot("on_"+spp+".png");
-            
+
             spp = spp * 2;
             clearAll();
         }
@@ -111,15 +111,15 @@ public class Editmode_PowerSampling_Tests
             Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU, "Using GPU Lightmapper after initial bake.");
 
             takeScreenshot("off_"+spp+".png");
-            
+
             spp = spp * 2;
             clearAll();
         }
-        
+
         // Get Test settings.
         var graphicsTestSettingsCustom = Object.FindObjectOfType<GraphicsTestSettingsCustom>();
         Assert.That(graphicsTestSettingsCustom, !Is.EqualTo(null), "Couldn't find GraphicsTestSettingsCustom");
-        
+
         AssetDatabase.Refresh();
 
         spp = startSPP;
@@ -131,7 +131,7 @@ public class Editmode_PowerSampling_Tests
             var onImage = AssetDatabase.LoadAssetAtPath<Texture2D>( onImagePath );
             makeTextureReadable(offImagePath);
             makeTextureReadable(onImagePath);
-            
+
             Debug.Log("Compare "+spp);
             ImageAssert.AreEqual(offImage, onImage, graphicsTestSettingsCustom.ImageComparisonSettings);
             spp = spp * 2;
@@ -139,7 +139,6 @@ public class Editmode_PowerSampling_Tests
 
         clearAll();
         AssetDatabase.DeleteAsset(sceneOutputPath);
-    } 
+    }
     */
 }
-
