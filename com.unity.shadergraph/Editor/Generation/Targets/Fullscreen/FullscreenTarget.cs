@@ -15,11 +15,6 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 {
-    interface IIsNodeAllowedBySubTarget
-    {
-        bool IsNodeAllowedByTarget(Type nodeType);
-    }
-
     // class FullscreenTarget : Target, IHasMetadata, IMaySupportVFX
     // {
     //     public override int latestVersion => 0;
