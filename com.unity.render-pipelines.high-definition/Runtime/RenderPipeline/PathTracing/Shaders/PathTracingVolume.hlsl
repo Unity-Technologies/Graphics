@@ -1,9 +1,7 @@
 #ifndef UNITY_PATH_TRACING_VOLUME_INCLUDED
 #define UNITY_PATH_TRACING_VOLUME_INCLUDED
 
-#ifdef HAS_LIGHTLOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
-#endif
 
 float ComputeHeightFogMultiplier(float height)
 {
@@ -22,36 +20,41 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
     float pdfVol = 1.0;
     float tFog = min(t, _MaxFogDistance);
 
-#ifdef HAS_LIGHTLOOP
-
-    float pickedLightWeight;
-    float localWeight = PickLocalLightInterval(WorldRayOrigin(), WorldRayDirection(), inputSample, lightPosition, pickedLightWeight, tMin, tMax);
-
-    if (localWeight < 0.0)
-        return false;
-
-    sampleLocalLights = inputSample < localWeight;
-    if (sampleLocalLights)
+    if (_FogDirectionalOnly)
     {
-        tMax = min(tMax, tFog);
-        if (tMin >= tMax)
+        if (!_DirectionalLightCount)
             return false;
 
-        inputSample = RescaleSampleUnder(inputSample, localWeight);
-        pdfVol *= localWeight * pickedLightWeight;
-    }
-    else
-    {
         tMin = 0.0;
         tMax = tFog;
-
-        inputSample = RescaleSampleOver(inputSample, localWeight);
-        pdfVol *= 1.0 - localWeight;
     }
-#else
-    tMin = 0.0;
-    tMax = tFog;
-#endif
+    else // Directional and local lights
+    {
+        float pickedLightWeight;
+        float localWeight = PickLocalLightInterval(WorldRayOrigin(), WorldRayDirection(), inputSample, lightPosition, pickedLightWeight, tMin, tMax);
+
+        if (localWeight < 0.0)
+            return false;
+
+        sampleLocalLights = inputSample < localWeight;
+        if (sampleLocalLights)
+        {
+            tMax = min(tMax, tFog);
+            if (tMin >= tMax)
+                return false;
+
+            inputSample = RescaleSampleUnder(inputSample, localWeight);
+            pdfVol *= localWeight * pickedLightWeight;
+        }
+        else
+        {
+            tMin = 0.0;
+            tMax = tFog;
+
+            inputSample = RescaleSampleOver(inputSample, localWeight);
+            pdfVol *= 1.0 - localWeight;
+        }
+    }
 
     // FIXME: not quite sure what the sigmaT value is supposed to be...
     const float sigmaT = _HeightFogBaseExtinction;
@@ -83,8 +86,6 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
 {
     // Reset the ray intersection color, which will store our final result
     pathIntersection.value = 0.0;
-
-#ifdef HAS_LIGHTLOOP
 
     // Grab depth information
     uint currentDepth = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
@@ -131,7 +132,6 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
         }
     }
 
-#endif // HAS_LIGHTLOOP
 }
 
 #endif // UNITY_PATH_TRACING_VOLUME_INCLUDED
