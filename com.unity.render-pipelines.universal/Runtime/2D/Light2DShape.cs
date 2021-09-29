@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.Universal
         public float shapeLightFalloffSize
         {
             get { return m_ShapeLightFalloffSize; }
-            set { m_ShapeLightFalloffSize = value; }
+            set { m_ShapeLightFalloffSize = Mathf.Max(0, value); }
         }
 
         /// <summary>

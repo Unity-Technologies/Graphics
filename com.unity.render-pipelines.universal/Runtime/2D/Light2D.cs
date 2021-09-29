@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Controls the brightness and distance of the fall off (edge) of the light
         /// </summary>
-        public float falloffIntensity { get => m_FalloffIntensity; set => m_FalloffIntensity = value; }
+        public float falloffIntensity { get => m_FalloffIntensity; set => m_FalloffIntensity = Mathf.Clamp(value, 0, 1); }
 
         [Obsolete]
         public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; } }
