@@ -420,6 +420,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // We are in HDR mode so the final blit is different
                         if (data.hdrOutputParmeters.x >= 0)
                         {
+                            data.blitMaterial.SetInt(HDShaderIDs._NeedsFlip, data.flip ? 1 : 0);
                             propertyBlock.SetTexture(HDShaderIDs._UITexture, data.uiTexture);
                             propertyBlock.SetTexture(HDShaderIDs._InputTexture, sourceTexture);
 

@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool HDROutputIsActive(HDCamera camera)
         {
-            return HDROutputSettings.main.active /*&& camera.camera.cameraType == CameraType.Game*/;
+            return HDROutputSettings.main.active && camera.camera.cameraType == CameraType.Game;
         }
 
         readonly SkyManager m_SkyManager = new SkyManager();
