@@ -272,6 +272,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             SubTargetFilterAttribute subTargetFilter = NodeClassCache.GetAttributeOnNodeType<SubTargetFilterAttribute>(nodeType);
             bool worksWithThisSubTarget = subTargetFilter == null || subTargetFilter.subTargetTypes.Contains(activeSubTarget.GetType());
 
+            if (activeSubTarget.IsActive())
+                worksWithThisSubTarget &= activeSubTarget.IsNodeAllowedBySubTarget(nodeType);
+
             return worksWithThisSrp && worksWithThisSubTarget && base.IsNodeAllowedByTarget(nodeType);
         }
 

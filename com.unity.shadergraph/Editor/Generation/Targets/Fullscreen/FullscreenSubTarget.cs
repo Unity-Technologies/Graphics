@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         public static readonly string stencilDepthFail = "[" + stencilDepthFailProperty + "]";
     }
 
-    internal abstract class FullscreenSubTarget<T> : SubTarget<T>, IRequiresData<FullscreenData>, IHasMetadata, IIsNodeAllowedBySubTarget where T : Target
+    internal abstract class FullscreenSubTarget<T> : SubTarget<T>, IRequiresData<FullscreenData>, IHasMetadata where T : Target
     {
         static readonly GUID kSourceCodeGuid = new GUID("1cfc804c75474e144be5d4158b9522ed");  // FullscreenSubTarget.cs // TODO
         static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] { "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Templates" }).ToArray();
@@ -252,8 +252,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 { kTexture, IncludeLocation.Pregraph },
                 { kTextureStack, IncludeLocation.Pregraph },
                 { kInstancing, IncludeLocation.Pregraph }, // For VR
-                // { kShaderVariables, IncludeLocation.Pregraph },
-                // { kCommonLighting, IncludeLocation.Pregraph },
                 { pregraphIncludes },
                 { kSpaceTransforms, IncludeLocation.Pregraph },
                 { kFunctions, IncludeLocation.Pregraph },
@@ -288,6 +286,9 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 // BuiltInStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,
             }
         };
+
+        protected virtual DefineCollection GetPassDefines(FullscreenCompatibility compatibility)
+            => new DefineCollection();
 
         public virtual PassDescriptor GenerateFullscreenPass(FullscreenCompatibility compatibility)
         {
@@ -339,7 +340,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 },
                 defines = new DefineCollection
                 {
-                    {depthWriteKeywork, 1, new FieldCondition(FullscreenFields.depth, true)}
+                    {depthWriteKeywork, 1, new FieldCondition(FullscreenFields.depth, true)},
+                    GetPassDefines(compatibility),
                 },
                 keywords = new KeywordCollection(),
                 includes = new IncludeCollection
@@ -377,13 +379,18 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             displayName = "Fullscreen";
         }
 
-        public virtual bool IsNodeAllowedByTarget(Type nodeType)
+        public override bool IsNodeAllowedBySubTarget(Type nodeType)
         {
-            // TODO
-            // SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
-            // bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(HDRenderPipeline));
+            var interfaces = nodeType.GetInterfaces();
+            bool allowed = true;
 
-            return true;
+            // There is no input in the vertex block for now
+            if (interfaces.Contains(typeof(IMayRequireVertexID)))
+                allowed = false;
+            if (interfaces.Contains(typeof(IMayRequireVertexSkinning)))
+                allowed = false;
+
+            return allowed;
         }
 
         public override bool IsActive() => true;

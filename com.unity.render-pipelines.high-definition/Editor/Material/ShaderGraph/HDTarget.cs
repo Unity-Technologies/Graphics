@@ -63,6 +63,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
 
+        public SubTarget activeSubTarget
+        {
+            get => m_ActiveSubTarget.value;
+            set => m_ActiveSubTarget = value;
+        }
+
         [SerializeField]
         List<JsonData<JsonObject>> m_Datas = new List<JsonData<JsonObject>>();
 
@@ -86,7 +92,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
             bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(HDRenderPipeline));
-            return worksWithThisSrp && base.IsNodeAllowedByTarget(nodeType);
+
+            SubTargetFilterAttribute subTargetFilter = NodeClassCache.GetAttributeOnNodeType<SubTargetFilterAttribute>(nodeType);
+            bool worksWithThisSubTarget = subTargetFilter == null || subTargetFilter.subTargetTypes.Contains(activeSubTarget.GetType());
+
+            if (activeSubTarget.IsActive())
+                worksWithThisSubTarget &= activeSubTarget.IsNodeAllowedBySubTarget(nodeType);
+
+            return worksWithThisSrp && worksWithThisSubTarget && base.IsNodeAllowedByTarget(nodeType);
         }
 
         public HDTarget()
