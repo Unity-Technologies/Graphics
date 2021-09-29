@@ -19,6 +19,7 @@ Shader "Hidden/HDRP/CompositeUI"
 
         CBUFFER_START(cb)
             float4 _HDROutputParams;
+            int _NeedsFlip;
         CBUFFER_END
 
         #define _MinNits    _HDROutputParams.x
@@ -53,19 +54,22 @@ Shader "Hidden/HDRP/CompositeUI"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 uv = input.texcoord;
+            float2 samplePos = input.positionCS.xy;
+            if (_NeedsFlip)
+            {
+                samplePos.y = _ScreenSize.y - samplePos.y;
+            }
             // We need to flip y
-            uv.y = 1.0f - uv.y;
-
-            float4 outColor = SAMPLE_TEXTURE2D_X(_InputTexture, s_point_clamp_sampler, uv);
+            float4 outColor = LOAD_TEXTURE2D_X(_InputTexture, samplePos.xy);
             // Apply AfterPostProcess target
             #if APPLY_AFTER_POST
-            float4 afterPostColor = SAMPLE_TEXTURE2D_X_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, uv, 0);
+            float4 afterPostColor = LOAD_TEXTURE2D_X(_AfterPostProcessTexture, samplePos.xy);
             afterPostColor.rgb = ProcessUIForHDR(afterPostColor.rgb, _PaperWhite, _MaxNits);
             // After post objects are blended according to the method described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
             #endif
 
-            float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, uv, 0);
+            float4 uiValue = LOAD_TEXTURE2D_X(_UITexture, samplePos.xy);
             outColor.rgb = SceneUIComposition(uiValue, outColor.rgb, _PaperWhite, _MaxNits);
             outColor.rgb = OETF(outColor.rgb);
 

@@ -224,6 +224,17 @@ Shader "Hidden/HDRP/DebugHDR"
         int gamutPiPSize = _ScreenSize.x / 3.0f;
         float lineThickness = 0.002;
 
+        float2 xy = RGBtoxy(color.rgb);
+        if (PointInTriangle(xy, r_709, g_709, b_709))
+        {
+            color.rgb = (color.rgb * 0.7 + 0.3 * float3(0, _PaperWhite, 0));
+        }
+        else if (PointInTriangle(xy, r_2020, g_2020, b_2020))
+        {
+            color.rgb = (color.rgb * 0.7 + 0.3 * float3(_PaperWhite, 0, 0));
+        }
+
+
         if (all(pos < gamutPiPSize))
         {
             float2 uv = pos / gamutPiPSize;
@@ -242,18 +253,6 @@ Shader "Hidden/HDRP/DebugHDR"
             }
 
             color.rgb = color.rgb * (1.0f - lineColor.a) + lineColor.rgb;
-        }
-        else
-        {
-            float2 xy = RGBtoxy(color.rgb);
-            if (PointInTriangle(xy, r_709, g_709, b_709))
-            {
-                return float3(0, 1, 0) * _PaperWhite;
-            }
-            else if (PointInTriangle(xy, r_2020, g_2020, b_2020))
-            {
-                return float3(1, 0, 0) * _PaperWhite;
-            }
         }
 
         return color;
