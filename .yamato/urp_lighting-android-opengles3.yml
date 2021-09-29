@@ -36,8 +36,8 @@ URP_Lighting_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     after:
-      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -113,8 +113,8 @@ URP_Lighting_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_trunk:
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     after:
-      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -190,8 +190,8 @@ URP_Lighting_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     after:
-      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -267,8 +267,8 @@ URP_Lighting_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     after:
-      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:

@@ -31,7 +31,7 @@ VikingVillage_URP_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_trunk:
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=iOS --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=2400 --zero-tests-are-ok=1
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -90,7 +90,7 @@ Build_VikingVillage_URP_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=iOS --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -152,7 +152,7 @@ VikingVillage_URP_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trunk:
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_URP --platform=iOS --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -184,7 +184,7 @@ VikingVillage_URP_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=iOS --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=2400 --zero-tests-are-ok=1
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -243,7 +243,7 @@ Build_VikingVillage_URP_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=iOS --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -305,7 +305,7 @@ VikingVillage_URP_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUSTOM-R
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_URP --platform=iOS --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
     after:
       -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:

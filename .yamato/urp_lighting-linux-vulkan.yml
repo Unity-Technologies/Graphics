@@ -26,7 +26,7 @@ URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_trunk:
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -63,7 +63,7 @@ Build_URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_trunk:
          retries: 2
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --timeout=3000
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -101,7 +101,7 @@ URP_Lighting_Linux_Vulkan_playmode_mono_Linear_trunk:
          retries: 2
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -136,7 +136,7 @@ URP_Lighting_Linux_Vulkan_editmode_mono_Linear_trunk:
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -163,7 +163,7 @@ URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -200,7 +200,7 @@ Build_URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --timeout=3000
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -238,7 +238,7 @@ URP_Lighting_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -273,7 +273,7 @@ URP_Lighting_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: python .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:

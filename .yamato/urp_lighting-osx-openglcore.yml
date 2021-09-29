@@ -32,7 +32,7 @@ URP_Lighting_OSX_OpenGLCore_playmode_mono_Linear_trunk:
       -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
          retries: 2
     after:
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -65,7 +65,7 @@ URP_Lighting_OSX_OpenGLCore_editmode_mono_Linear_trunk:
       -  command: ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
          retries: 2
     after:
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -98,7 +98,7 @@ URP_Lighting_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
       -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
          retries: 2
     after:
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
@@ -131,7 +131,7 @@ URP_Lighting_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
       -  command: ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
          retries: 2
     after:
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
     artifacts:
         logs:
             paths:
