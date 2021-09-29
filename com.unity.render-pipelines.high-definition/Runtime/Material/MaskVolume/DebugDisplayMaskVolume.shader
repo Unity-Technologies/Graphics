@@ -6,10 +6,8 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayMaskVolume"
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-        #if SHADEROPTIONS_MASK_VOLUMES_EVALUATION_MODE != MASKVOLUMESEVALUATIONMODES_DISABLED
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaskVolume/MaskVolumeShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaskVolume/MaskVolumeAtlas.hlsl"
-        #endif
 
         #define DEBUG_DISPLAY
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
@@ -17,10 +15,6 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayMaskVolume"
         float3  _TextureViewScale;
         float3  _TextureViewBias;
         float3  _TextureViewResolution;
-        float2  _ValidRange;
-        int _MaskVolumeAtlasSliceMode;
-        // float   _RcpGlobalScaleFactor;
-        SamplerState ltc_linear_clamp_sampler;
 
         struct Attributes
         {
@@ -60,8 +54,6 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayMaskVolume"
 
             float4 Frag(Varyings input) : SV_Target
             {
-            #if SHADEROPTIONS_MASK_VOLUMES_EVALUATION_MODE != MASKVOLUMESEVALUATIONMODES_DISABLED
-
                 // Layout Z slices horizontally in debug view UV space.
                 float3 uvw;
                 uvw.z = input.texcoord.x * _TextureViewResolution.z;
@@ -73,116 +65,10 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayMaskVolume"
                 // Convert to specific view section of atlas.
                 uvw = uvw * _TextureViewScale + _TextureViewBias;
 
-            #if SHADEROPTIONS_MASK_VOLUMES_ENCODING_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-                MaskVolumeSphericalHarmonicsL1 coefficients;
-                ZERO_INITIALIZE(MaskVolumeSphericalHarmonicsL1, coefficients);
-                MaskVolumeSampleAccumulateSphericalHarmonicsL1(uvw, 1.0f, coefficients);
-                MaskVolumeSwizzleAndNormalizeSphericalHarmonicsL1(coefficients);
-                float4 valueShAr = saturate((coefficients.data[0] - _ValidRange.x) * _ValidRange.y);
-                float4 valueShAg = saturate((coefficients.data[1] - _ValidRange.x) * _ValidRange.y);
-                float4 valueShAb = saturate((coefficients.data[2] - _ValidRange.x) * _ValidRange.y);
-
-                float4 valueShBr = 0.0f;
-                float4 valueShBg = 0.0f;
-                float4 valueShBb = 0.0f;
-                float4 valueShC = 0.0f;
-
-            #elif SHADEROPTIONS_MASK_VOLUMES_ENCODING_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
-                MaskVolumeSphericalHarmonicsL2 coefficients;
-                ZERO_INITIALIZE(MaskVolumeSphericalHarmonicsL2, coefficients);
-                MaskVolumeSampleAccumulateSphericalHarmonicsL2(uvw, 1.0f, coefficients);
-                MaskVolumeSwizzleAndNormalizeSphericalHarmonicsL2(coefficients);
-                float4 valueShAr = saturate((coefficients.data[0] - _ValidRange.x) * _ValidRange.y);
-                float4 valueShAg = saturate((coefficients.data[1] - _ValidRange.x) * _ValidRange.y);
-                float4 valueShAb = saturate((coefficients.data[2] - _ValidRange.x) * _ValidRange.y);
-
-                float4 valueShBr = saturate((coefficients.data[3] - _ValidRange.x) * _ValidRange.y);
-                float4 valueShBg = saturate((coefficients.data[4] - _ValidRange.x) * _ValidRange.y);
-                float4 valueShBb = saturate((coefficients.data[5] - _ValidRange.x) * _ValidRange.y);
-                float4 valueShC = saturate((coefficients.data[6] - _ValidRange.x) * _ValidRange.y);
-
-            #endif
-
-                float valueValidity = saturate((MaskVolumeSampleValidity(uvw) - _ValidRange.x) * _ValidRange.y);
-                
-            #if SHADEROPTIONS_MASK_VOLUMES_BILATERAL_FILTERING == MASKVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
-                float2 valueOctahedralDepthMeanAndVariance = saturate((SAMPLE_TEXTURE2D_LOD(_AtlasTextureOctahedralDepth, ltc_linear_clamp_sampler, input.texcoord * _AtlasTextureOctahedralDepthScaleBias.xy + _AtlasTextureOctahedralDepthScaleBias.zw, 0).xy - _ValidRange.x) * _ValidRange.y);
-            #endif
-
-                switch (_MaskVolumeAtlasSliceMode)
-                {
-                    case MASKVOLUMEATLASSLICEMODE_IRRADIANCE_SH00:
-                    {
-
-                        return float4(valueShAr.w, valueShAg.w, valueShAb.w, 1);
-                    }
-
-                    case MASKVOLUMEATLASSLICEMODE_IRRADIANCE_SH1_1:
-                    {
-                        return float4(valueShAr.x, valueShAg.x, valueShAb.x, 1);
-                    }
-
-                    case MASKVOLUMEATLASSLICEMODE_IRRADIANCE_SH10:
-                    {
-                        return float4(valueShAr.y, valueShAg.y, valueShAb.y, 1);
-                    }
-
-                    case MASKVOLUMEATLASSLICEMODE_IRRADIANCE_SH11:
-                    {
-                        return float4(valueShAr.z, valueShAg.z, valueShAb.z, 1);
-                    }
-
-                    case MASKVOLUMEATLASSLICEMODE_IRRADIANCE_SH2_2:
-                    {
-                        return float4(valueShBr.x, valueShBg.x, valueShBb.x, 1);
-                    }
-
-                    case MASKVOLUMEATLASSLICEMODE_IRRADIANCE_SH2_1:
-                    {
-                        return float4(valueShBr.y, valueShBg.y, valueShBb.y, 1);
-                    }
-
-                    case MASKVOLUMEATLASSLICEMODE_IRRADIANCE_SH20:
-                    {
-                        return float4(valueShBr.z, valueShBg.z, valueShBb.z, 1);
-                    }
-
-                    case MASKVOLUMEATLASSLICEMODE_IRRADIANCE_SH21:
-                    {
-                        return float4(valueShBr.w, valueShBg.w, valueShBb.w, 1);
-                    }
-
-                    case MASKVOLUMEATLASSLICEMODE_IRRADIANCE_SH22:
-                    {
-                        return float4(valueShC.x, valueShC.y, valueShC.z, 1);
-                    }
-
-                    case MASKVOLUMEATLASSLICEMODE_VALIDITY:
-                    {
-                        return float4(lerp(float3(1, 0, 0), float3(0, 1, 0), valueValidity), 1);
-                    }
-
-                    case MASKVOLUMEATLASSLICEMODE_OCTAHEDRAL_DEPTH:
-                    {
-                    #if SHADEROPTIONS_MASK_VOLUMES_BILATERAL_FILTERING == MASKVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
-                        // Tonemap variance with sqrt() to bring it into a more similar scale to mean to make it more readable.
-                        return float4(
-                            valueOctahedralDepthMeanAndVariance.x,
-                            (valueOctahedralDepthMeanAndVariance.y > 0.0f) ? sqrt(valueOctahedralDepthMeanAndVariance.y) : 0.0f,
-                            0.0f,
-                            1.0f
-                        );
-                    #else
-                        return float4(0.0f, 0.0f, 0.0f, 1.0f);
-                    #endif
-                    }
-
-                    default: return float4(0.0, 0.0, 0.0, 1.0);
-                }
-
-            #else
-                return float4(0.0, 0.0, 0.0, 1.0);
-            #endif
+                MaskVolumeData coefficients;
+                ZERO_INITIALIZE(MaskVolumeData, coefficients);
+                MaskVolumeSampleAccumulate(uvw, 1.0f, coefficients);
+                return float4(coefficients.data[0].rgb, 1.0);
             }
 
             ENDHLSL

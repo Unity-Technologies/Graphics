@@ -5542,6 +5542,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Lighting
             public LightLoopDebugOverlayParameters lightingOverlayParameters;
             public ProbeVolumeDebugOverlayParameters probeVolumeOverlayParameters;
+            public MaskVolumeDebugOverlayParameters maskVolumeOverlayParameters;
 
             // Color picker
             public bool     colorPickerEnabled;
@@ -5568,6 +5569,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.debugLatlongMaterial = m_DebugDisplayLatlong;
             parameters.lightingOverlayParameters = PrepareLightLoopDebugOverlayParameters();
             parameters.probeVolumeOverlayParameters = PrepareProbeVolumeOverlayParameters(m_CurrentDebugDisplaySettings.data.lightingDebugSettings);
+            parameters.maskVolumeOverlayParameters = PrepareMaskVolumeOverlayParameters(m_CurrentDebugDisplaySettings.data.lightingDebugSettings);
 
             parameters.rayTracingSupported = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
             parameters.rayCountManager = m_RayCountManager;
@@ -5814,7 +5816,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (debugParams.rayTracingSupported)
                     RenderRayCountOverlay(debugParams, cmd);
                 RenderLightLoopDebugOverlay(debugParams, cmd, m_TileAndClusterData.tileList, m_TileAndClusterData.lightList, m_TileAndClusterData.perVoxelLightLists, m_TileAndClusterData.dispatchIndirectBuffer, m_SharedRTManager.GetDepthTexture());
-                RenderProbeVolumeDebugOverlay(debugParams, cmd); // TODO(Nicholas): renders as a black square in the upper right.
+                RenderProbeVolumeDebugOverlay(debugParams, cmd);
+                RenderMaskVolumeDebugOverlay(debugParams, cmd);
 
                 HDShadowManager.ShadowDebugAtlasTextures atlases = debugParams.lightingOverlayParameters.shadowManager.GetDebugAtlasTextures();
                 RenderShadowsDebugOverlay(debugParams, atlases, cmd, m_SharedPropertyBlock);

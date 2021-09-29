@@ -117,8 +117,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             MaskVolume maskVolume = target as MaskVolume;
 
-            /* if (Event.current.type == EventType.Layout)
-                maskVolume.DrawSelectedMasks(); */
+            if (Event.current.type == EventType.Layout)
+                maskVolume.DrawSelectedMasks();
 
             if (!blendBoxes.TryGetValue(maskVolume, out HierarchicalBox blendBox)) { return; }
             if (!shapeBoxes.TryGetValue(maskVolume, out HierarchicalBox shapeBox)) { return; }

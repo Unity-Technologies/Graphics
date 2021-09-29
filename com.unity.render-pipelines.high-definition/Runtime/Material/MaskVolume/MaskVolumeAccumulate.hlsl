@@ -7,44 +7,11 @@
 #define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
 #endif
 
-
-#ifndef MASK_VOLUMES_ACCUMULATE_MODE
-    #error "MASK_VOLUMES_ACCUMULATE_MODE must be defined as 0, 1, or 2 before including MaskVolumeAccumulate.hlsl. 0 triggers generation of SH0 variant, 1 triggers generation of SH1 variant, and 2 triggers generation of SH2 variant.";
-#endif
-
-#if (MASK_VOLUMES_ACCUMULATE_MODE < 0) || (MASK_VOLUMES_ACCUMULATE_MODE > 2)
-    #error "MASK_VOLUMES_ACCUMULATE_MODE must be defined as 0, 1, or 2 before including MaskVolumeAccumulate.hlsl. 0 triggers generation of SH0 variant, 1 triggers generation of SH1 variant, and 2 triggers generation of SH2 variant.";
-#endif
-
-#if MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-    void MaskVolumeAccumulateSphericalHarmonicsL0(
-#elif MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-    void MaskVolumeAccumulateSphericalHarmonicsL1(
-#elif MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
-    void MaskVolumeAccumulateSphericalHarmonicsL2(
-#endif
-        PositionInputs posInput, float3 normalWS, uint renderingLayers,
-#if MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-        out MaskVolumeSphericalHarmonicsL0 coefficients,
-#elif MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-        out MaskVolumeSphericalHarmonicsL1 coefficients,
-#elif MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
-        out MaskVolumeSphericalHarmonicsL2 coefficients,
-#endif
-        inout float weightHierarchy)
+void MaskVolumeAccumulate(PositionInputs posInput, float3 normalWS, uint renderingLayers, out MaskVolumeData coefficients, inout float weightHierarchy)
 {
-
-#if MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-        ZERO_INITIALIZE(MaskVolumeSphericalHarmonicsL0, coefficients);
-#elif MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-        ZERO_INITIALIZE(MaskVolumeSphericalHarmonicsL1, coefficients);
-#elif MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
-        ZERO_INITIALIZE(MaskVolumeSphericalHarmonicsL2, coefficients);
-#endif
+    ZERO_INITIALIZE(MaskVolumeData, coefficients);
     
-
     bool fastPath = false;
-
 
     uint maskVolumeStart, maskVolumeCount;
     // Fetch first mask volume to provide the scene proxy for screen space computation
@@ -78,7 +45,7 @@
         MaskVolumeEngineData s_maskVolumeData = _MaskVolumeDatas[s_maskVolumeIdx];
         OrientedBBox s_maskVolumeBounds = _MaskVolumeBounds[s_maskVolumeIdx];
 
-        if (MaskVolumeIsAllWavesComplete(weightHierarchy, s_maskVolumeData.blendMode)) { break; }
+        if (MaskVolumeIsAllWavesComplete(weightHierarchy)) { break; }
 
         // If current scalar and vector light index match, we process the light. The v_maskVolumeListOffset for current thread is increased.
         // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
@@ -87,9 +54,7 @@
         {
             v_maskVolumeListOffset++;
 
-            bool isWeightAccumulated = s_maskVolumeData.blendMode == MASKVOLUMEBLENDMODE_NORMAL;
-
-            if (weightHierarchy >= 1.0 && isWeightAccumulated) { continue; }
+            if (weightHierarchy >= 1.0) { continue; }
 
             if (!IsMatchingLightLayer(s_maskVolumeData.lightLayers, renderingLayers)) { continue; }
 
@@ -116,39 +81,12 @@
                     weightCurrent
                 );
 
-                maskVolumeTexel3D = MaskVolumeComputeTexel3DFromBilateralFilter(
-                    maskVolumeTexel3D,
-                    s_maskVolumeData,
-                    posInput.positionWS, // unbiased
-                    samplePositionWS, // biased
-                    normalWS,
-                    obbFrame,
-                    obbExtents,
-                    obbCenter
-                );
                 float3 maskVolumeAtlasUVW = maskVolumeTexel3D * s_maskVolumeData.resolutionInverse * s_maskVolumeData.scale + s_maskVolumeData.bias;
 
-                {
-#if MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-                    MaskVolumeSampleAccumulateSphericalHarmonicsL0(maskVolumeAtlasUVW, weightCurrent, coefficients);
-#elif MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-                    MaskVolumeSampleAccumulateSphericalHarmonicsL1(maskVolumeAtlasUVW, weightCurrent, coefficients);
-#elif MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
-                    MaskVolumeSampleAccumulateSphericalHarmonicsL2(maskVolumeAtlasUVW, weightCurrent, coefficients);
-#endif
-                }
+                MaskVolumeSampleAccumulate(maskVolumeAtlasUVW, weightCurrent, coefficients);
             }
 
-            if (isWeightAccumulated)
-                weightHierarchy += weightCurrent;
+            weightHierarchy += weightCurrent;
         }
     }
-
-#if MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-    MaskVolumeSwizzleAndNormalizeSphericalHarmonicsL0(coefficients);
-#elif MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-    MaskVolumeSwizzleAndNormalizeSphericalHarmonicsL1(coefficients);
-#elif MASK_VOLUMES_ACCUMULATE_MODE == MASKVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
-    MaskVolumeSwizzleAndNormalizeSphericalHarmonicsL2(coefficients);
-#endif
 }

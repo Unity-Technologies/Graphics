@@ -50,54 +50,14 @@ void MASK_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint g
         _MaskVolumeResolution
     );
 
-    // float3 writeUVW = (float3)writeIndex * _MaskVolumeResolutionInverse;
-
     writeIndex += (uint3)floor(_MaskVolumeAtlasBias * _MaskVolumeAtlasResolutionAndSliceCount.xyz);
-
-    // Convert from "Occlusion" representation from Lightmapper into "Validity" representation which can be directly fed into bilateral filter.
-    // This avoids computing 1.0 - occlusion terms per 8 masks per volume per pixel per frame.
-    // TODO: Could additionally pre-compute and power transform here to modify curvature of validity data for filter.
-    // i.e: validity = pow(validity, 4.0);
-    float validity = 1.0;
-
-    // See MaskVolumePayload for more info on _MaskVolumeAtlasReadBufferSHLX layouts.
-    // This shader must stay in sync with that layout:
-    // {
-    //     // Constant: (used by L0, L1, and L2)
-    //     shAr.w, shAg.w, shAb.w,
-
-    //     // Linear: (used by L1 and L2)
-    //     shAr.x, shAr.y, shAr.z,
-    //     shAg.x, shAg.y, shAg.z,
-    //     shAb.x, shAb.y, shAb.z,
-
-    //     // Quadratic: (used by L2)
-    //     shBr.x, shBr.y, shBr.z, shBr.w,
-    //     shBg.x, shBg.y, shBg.z, shBg.w,
-    //     shBb.x, shBb.y, shBb.z, shBb.w,
-    //     shCr.x, shCr.y, shCr.z
-    // }
 
     const uint SH_STRIDE_L0 = 1;
     
     _MaskVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _MaskVolumeAtlasResolutionAndSliceCount.z * 0)] = float4(
-        UnpackUNormByte(_MaskVolumeAtlasReadSHL0Buffer[readIndex * SH_STRIDE_L0], 0), // shAr.w
-        UnpackUNormByte(_MaskVolumeAtlasReadSHL0Buffer[readIndex * SH_STRIDE_L0], 1), // shAg.w
-        UnpackUNormByte(_MaskVolumeAtlasReadSHL0Buffer[readIndex * SH_STRIDE_L0], 2), // shAb.w
-        0.0f // UnpackUNorm(_MaskVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01], 3)  // shAr.x
+        UnpackUNormByte(_MaskVolumeAtlasReadSHL0Buffer[readIndex * SH_STRIDE_L0], 0),
+        UnpackUNormByte(_MaskVolumeAtlasReadSHL0Buffer[readIndex * SH_STRIDE_L0], 1),
+        UnpackUNormByte(_MaskVolumeAtlasReadSHL0Buffer[readIndex * SH_STRIDE_L0], 2),
+        0.0f
     );
-    /* _MaskVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _MaskVolumeAtlasResolutionAndSliceCount.z * 1)] = float4(
-        _MaskVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 4], // shAr.y
-        _MaskVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 5], // shAr.z
-        _MaskVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 6], // shAg.x
-        _MaskVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 7]  // shAg.y
-    );
-    _MaskVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _MaskVolumeAtlasResolutionAndSliceCount.z * 2)] = float4(
-        _MaskVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 8], // shAg.z
-        _MaskVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 9], // shAb.x
-        _MaskVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 10], // shAb.y
-        _MaskVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 11]  // shAb.z
-    );
-    _MaskVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _MaskVolumeAtlasResolutionAndSliceCount.z * 3)] = float4(validity, 0.0, 0.0, 0.0);
-    */
 }
