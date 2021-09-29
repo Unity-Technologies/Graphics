@@ -1128,8 +1128,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             referenceName = "LIGHTMAP_ON",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing
+            scope = KeywordScope.Global
+            // Caution: 'Optimize Mesh Data' strip away attributes uv1/uv2 without the keyword set on the vertex stage. - so don't define stage frequency here.
         };
 
         public static KeywordDescriptor DirectionalLightmapCombined = new KeywordDescriptor()
@@ -1139,7 +1139,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing
+            // Don't define shader stage frequency
         };
 
         public static KeywordDescriptor DynamicLightmap = new KeywordDescriptor()
@@ -1149,7 +1149,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing
+            // Don't define shader stage frequency
         };
 
         public static KeywordDescriptor ShadowsShadowmask = new KeywordDescriptor()

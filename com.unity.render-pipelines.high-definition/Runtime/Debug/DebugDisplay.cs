@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DebugUI.Widget[] m_DebugLightingItems;
         DebugUI.Widget[] m_DebugVolumeItems;
         DebugUI.Widget[] m_DebugRenderingItems;
-        DebugUI.Widget[] m_DebugDecalsAffectingTransparentItems;
+        DebugUI.Widget[] m_DebugDecalsItems;
 
         static GUIContent[] s_LightingFullScreenDebugStrings = null;
         static int[] s_LightingFullScreenDebugValues = null;
@@ -1021,6 +1021,25 @@ namespace UnityEngine.Rendering.HighDefinition
             panel.children.Add(m_DebugDisplayStatsItems);
         }
 
+        DebugUI.Widget CreateMissingDebugShadersWarning()
+        {
+            return new DebugUI.MessageBox
+            {
+                displayName = "Warning: the debug shader variants are missing. Ensure that the \"Runtime Debug Shaders\" option is enabled in HDRP Global Settings.",
+                style = DebugUI.MessageBox.Style.Warning,
+                isHiddenCallback = () =>
+                {
+#if UNITY_EDITOR
+                    return true;
+#else
+                    if (HDRenderPipelineGlobalSettings.instance != null)
+                        return HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
+                    return true;
+#endif
+                }
+            };
+        }
+
         static class MaterialStrings
         {
             public static readonly NameAndTooltip CommonMaterialProperties = new() { name = "Common Material Properties", tooltip = "Use the drop-down to select and debug a Material property to visualize on every GameObject on screen." };
@@ -1041,7 +1060,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void RegisterMaterialDebug()
         {
             var list = new List<DebugUI.Widget>();
-
+            list.Add(CreateMissingDebugShadersWarning());
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.CommonMaterialProperties, getter = () => (int)data.materialDebugSettings.debugViewMaterialCommonValue, setter = value => SetDebugViewCommonMaterialProperty((MaterialSharedProperty)value), autoEnum = typeof(MaterialSharedProperty), getIndex = () => (int)data.materialDebugSettings.debugViewMaterialCommonValue, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialDebugSettings.debugViewMaterialCommonValue = (MaterialSharedProperty)value; } });
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.Material, getter = () => (data.materialDebugSettings.debugViewMaterial[0]) == 0 ? 0 : data.materialDebugSettings.debugViewMaterial[1], setter = value => SetDebugViewMaterial(value), enumNames = MaterialDebugSettings.debugViewMaterialStrings, enumValues = MaterialDebugSettings.debugViewMaterialValues, getIndex = () => data.materialDebugSettings.materialEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialDebugSettings.materialEnumIndex = value; } });
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.Engine, getter = () => data.materialDebugSettings.debugViewEngine, setter = value => SetDebugViewEngine(value), enumNames = MaterialDebugSettings.debugViewEngineStrings, enumValues = MaterialDebugSettings.debugViewEngineValues, getIndex = () => data.engineEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.engineEnumIndex = value; } });
@@ -1108,7 +1127,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RefreshDecalsDebug<T>(DebugUI.Field<T> field, T value)
         {
-            UnregisterDebugItems(k_PanelDecals, m_DebugDecalsAffectingTransparentItems);
+            UnregisterDebugItems(k_PanelDecals, m_DebugDecalsItems);
             RegisterDecalsDebug();
         }
 
@@ -1225,7 +1244,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void RegisterLightingDebug()
         {
             var list = new List<DebugUI.Widget>();
-
+            list.Add(CreateMissingDebugShadersWarning());
             {
                 var shadows = new DebugUI.Container() { displayName = "Shadows" };
 
@@ -1917,6 +1936,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var widgetList = new List<DebugUI.Widget>();
 
+            widgetList.Add(CreateMissingDebugShadersWarning());
+
             widgetList.Add(
                 new DebugUI.EnumField { nameAndTooltip = RenderingStrings.FullscreenDebugMode, getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), onValueChanged = RefreshRenderingDebug, enumNames = s_RenderingFullScreenDebugStrings, enumValues = s_RenderingFullScreenDebugValues, getIndex = () => data.renderingFulscreenDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.renderingFulscreenDebugModeEnumIndex = value; } }
             );
@@ -2058,9 +2079,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             };
 
-            m_DebugDecalsAffectingTransparentItems = new DebugUI.Widget[] { decalAffectingTransparent };
+            m_DebugDecalsItems = new DebugUI.Widget[]
+            {
+                CreateMissingDebugShadersWarning(),
+                decalAffectingTransparent
+            };
+
             var panel = DebugManager.instance.GetPanel(k_PanelDecals, true);
-            panel.children.Add(m_DebugDecalsAffectingTransparentItems);
+            panel.children.Add(m_DebugDecalsItems);
         }
 
         internal void RegisterDebug()
@@ -2076,7 +2102,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UnregisterDebug()
         {
-            UnregisterDebugItems(k_PanelDecals, m_DebugDecalsAffectingTransparentItems);
+            UnregisterDebugItems(k_PanelDecals, m_DebugDecalsItems);
 
             DisableProfilingRecorders();
             if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? true)
