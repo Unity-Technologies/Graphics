@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added a SG node to get the main directional light direction.
 
+### Fixed
+- Fixed the volume not being assigned on some scene templates.
+- Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
+- Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
+
 ## [13.0.0] - 2021-09-01
 
 ### Fixed
@@ -58,9 +63,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unexpectedly strong contribution from directional lights in path-traced volumetric scattering (case 1304688).
 - Fixed memory leak with XR combined occlusion meshes (case 1366173).
 - Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
-- Fixed the volume not being assigned on some scene templates.
-- Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
-- Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
