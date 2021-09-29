@@ -114,7 +114,6 @@ public class ShaderGraphTestRenderer
 
         int mismatchCount = 0;
         var pixels = temp.GetPixels32(0);
-        Debug.Log($"Checking {pixels.Length} pixels");
         foreach (var pixel in pixels)
         {
             if ((pixel.r != value.r) ||

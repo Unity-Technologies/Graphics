@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true);
 
                 int incorrectPixels = ShaderGraphTestRenderer.CountPixelsNotEqual(target, new Color32(0, 255, 0, 255), false);
-                Debug.Log($"Initial state: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
+                //Debug.Log($"Initial state: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
 
                 if (incorrectPixels != res * res)
                     ShaderGraphTestRenderer.SaveToPNG(target, "test-results/NodeTests/TransformNodeOld_default.png");
@@ -57,6 +57,9 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var old = graph.GetNodes<OldTransformNode>().First();
 
             // now check all possible settings
+            string assertString = null;
+            int assertIncorrectPixels = 0;
+
             var oldConversionTypes = new ConversionType[] { ConversionType.Position, ConversionType.Direction };
             foreach (ConversionType conversionType in oldConversionTypes)
             {
@@ -76,16 +79,17 @@ namespace UnityEditor.ShaderGraph.UnitTests
                         RenderTextureDescriptor descriptor = new RenderTextureDescriptor(res, res, GraphicsFormat.R8G8B8A8_SRGB, depthBufferBits: 32);
                         var target = RenderTexture.GetTemporary(descriptor);
 
-                        // Debug.Log($"Tested: {source} to {dest} ({conversionType})");
-
                         // use a non-standard transform, so that view, object, etc. transforms are non trivial
                         renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true);
 
                         int incorrectPixels = ShaderGraphTestRenderer.CountPixelsNotEqual(target, new Color32(0, 255, 0, 255), false);
-                        Debug.Log($"{source} to {dest} ({conversionType}: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
+                        // Debug.Log($"{source} to {dest} ({conversionType}: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
 
-                        // if (incorrectPixels != 0)
+                        if (incorrectPixels != 0)
                         {
+                            assertString = $"{incorrectPixels} incorrect pixels detected: {source} to {dest} ({conversionType})";
+                            assertIncorrectPixels = incorrectPixels;
+
                             ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
 
                             renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true, ShaderGraphTestRenderer.Mode.EXPECTED);
@@ -95,10 +99,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
                             ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}_ACTUAL.png");
                         }
 
-                        Assert.AreEqual(0, incorrectPixels, $"Incorrect pixels detected: {source} to {dest} ({conversionType})");
-
                         RenderTexture.ReleaseTemporary(target);
                     }
+
+                    // we assert at the end of the test, so we always produce all of the test results before asserting
+                    Assert.AreEqual(0, assertIncorrectPixels, assertString);
 
                     // have to yield to let a frame pass
                     // unity only releases some resources at the end of a frame
