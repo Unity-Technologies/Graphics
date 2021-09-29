@@ -7,6 +7,8 @@
 // This define is required to map the reflectance to absorption for the preintegration.
 #define _ABSORPTION_FROM_COLOR 1
 
+// #define _USE_ROUGHENED_AZIMUTHAL_SCATTERING 1
+
 // #pragma enable_d3d11_debug_symbols
 
 #define DIM 64
@@ -49,7 +51,7 @@ SurfaceData ConfigureFiberSurface(float diffuseColor, float perceptualSmoothness
 
     // Radial Smoothness (Azimuthal Roughness).
     // TODO: Currently we don't support azimuthal roughness with dual scattering.
-    // surfaceData.perceptualRadialSmoothness = 0.3;
+    // surfaceData.perceptualRadialSmoothness = 0.7;
 
     // Cuticle Angle
     surfaceData.cuticleAngle = 2;
