@@ -17,7 +17,7 @@ struct MaskVolumeEngineData
     float3 scale;
     int payloadIndex;
     float3 bias;
-    int blendMode;
+    int padding;
     float3 resolution;
     uint lightLayers;
     float3 resolutionInverse;
@@ -63,9 +63,9 @@ float3 GetBias(MaskVolumeEngineData value)
 {
     return value.bias;
 }
-int GetBlendMode(MaskVolumeEngineData value)
+int GetPadding(MaskVolumeEngineData value)
 {
-    return value.blendMode;
+    return value.padding;
 }
 float3 GetResolution(MaskVolumeEngineData value)
 {

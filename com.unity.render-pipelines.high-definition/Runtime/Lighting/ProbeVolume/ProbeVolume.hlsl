@@ -106,14 +106,18 @@ void ProbeVolumeComputeTexel3DAndWeight(
 
 #if SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING
     if (probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_ADDITIVE)
-        weight = fadeFactor;
+    {
+        // Nothing to do.
+    }
     else if (probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_SUBTRACTIVE)
-        weight = -fadeFactor;
+    {
+        weight = -weight;
+    }
     else
 #endif
     {
-        // Alpha composite: weight = (1.0f - weightHierarchy) * fadeFactor;
-        weight = weightHierarchy * -fadeFactor + fadeFactor;
+        // Alpha composite: weight = (1.0f - weightHierarchy) * weight;
+        weight = weightHierarchy * -weight + weight;
     }
 }
 

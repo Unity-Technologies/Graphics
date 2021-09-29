@@ -143,6 +143,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_PrimarySettings(SerializedMaskVolume serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.drawGizmos, Styles.s_DrawGizmosLabel);
+            if (serialized.drawGizmos.boolValue)
+            {
+                EditorGUILayout.Slider(serialized.drawWeightThreshold, 0.0f, 1.0f, Styles.s_DrawWeightThreshold);
+            }
+
             EditorGUILayout.PropertyField(serialized.maskSpacingMode, Styles.s_MaskSpacingModeLabel);
             switch ((MaskSpacingMode)serialized.maskSpacingMode.enumValueIndex)
             {
@@ -331,7 +336,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUILayout.PropertyField(serialized.lightLayers);
-            EditorGUILayout.PropertyField(serialized.blendMode, Styles.s_VolumeBlendModeLabel);
             EditorGUILayout.Slider(serialized.weight, 0.0f, 1.0f, Styles.s_WeightLabel);
             {
                 EditorGUI.BeginChangeCheck();
