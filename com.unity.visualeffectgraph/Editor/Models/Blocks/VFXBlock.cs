@@ -27,16 +27,17 @@ namespace UnityEditor.VFX
         private bool m_Disabled = false;
 
         [SerializeField]
-        VFXSlot enabledSlot;
+        private VFXSlot m_EnabledSlot;
+        public VFXSlot enabledSlot => m_EnabledSlot; 
 
         public bool enabled
         {
-            get { return (bool)(enabledSlot.value); }
+            get { return (bool)(m_EnabledSlot.value); }
             set
             {
                 if (value != enabled)
                 {
-                    enabledSlot.value = value;
+                    m_EnabledSlot.value = value;
                     Invalidate(InvalidationCause.kEnableChanged);
                 }
             }
@@ -64,7 +65,7 @@ namespace UnityEditor.VFX
         public abstract VFXDataType compatibleData { get; }
         public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); } }
-        public VFXExpression enabledExpression => enabledSlot.GetExpression();
+        public VFXExpression enabledExpression => m_EnabledSlot.GetExpression();
         public virtual IEnumerable<string> includes { get { return Enumerable.Empty<string>(); } }
         public virtual string source { get { return null; } }
 
@@ -72,19 +73,19 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
 
-            if (enabledSlot == null)
+            if (m_EnabledSlot == null)
             {
                 var prop = new VFXPropertyWithValue(new VFXProperty(typeof(bool), "enabled"), !m_Disabled);
-                enabledSlot = VFXSlot.Create(prop, VFXSlot.Direction.kInput);
-                enabledSlot.SetOwner(this);
+                m_EnabledSlot = VFXSlot.Create(prop, VFXSlot.Direction.kInput);
+                m_EnabledSlot.SetOwner(this);
             }
         }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
         {
             base.CollectDependencies(objs, ownedOnly);
-            objs.Add(enabledSlot);
-            enabledSlot.CollectDependencies(objs, ownedOnly);
+            objs.Add(m_EnabledSlot);
+            m_EnabledSlot.CollectDependencies(objs, ownedOnly);
         }
 
         public IEnumerable<VFXAttributeInfo> mergedAttributes
