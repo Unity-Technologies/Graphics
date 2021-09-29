@@ -62,8 +62,8 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_2021.2:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
-      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -126,8 +126,8 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_2021.2:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
-      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -190,8 +190,8 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_2021.2:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
-      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -254,8 +254,8 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-REVI
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
-      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -318,8 +318,8 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-REVIS
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
-      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -382,8 +382,8 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-REVISI
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
-      -  command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
