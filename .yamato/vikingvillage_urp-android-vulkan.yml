@@ -56,7 +56,7 @@ Build_VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linea
     name: Build VikingVillage_URP on Android_Vulkan_il2cpp_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -117,7 +117,7 @@ VikingVillage_URP_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk:
     name: VikingVillage_URP on Android_Vulkan_performance_build_editmode_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -222,7 +222,7 @@ Build_VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linea
     name: Build VikingVillage_URP on Android_Vulkan_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -283,7 +283,7 @@ VikingVillage_URP_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM
     name: VikingVillage_URP on Android_Vulkan_performance_build_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
