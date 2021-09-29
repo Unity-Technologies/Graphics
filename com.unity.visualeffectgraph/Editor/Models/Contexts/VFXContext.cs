@@ -264,6 +264,14 @@ namespace UnityEditor.VFX
             if (from.m_ContextType == VFXContextType.SpawnerGPU && to.m_ContextType != VFXContextType.Init)
                 return false;
 
+            //If we want to prevent no mixing of GPUEvent & Spawn Context on Initialize. (allowed but disconnect invalid link)
+            /*if (to.m_ContextType == VFXContextType.Init)
+            {
+                var currentSlot = to.m_InputFlowSlot.SelectMany(o => o.link).Select(o => o.context.m_ContextType).FirstOrDefault();
+                if (currentSlot != VFXContextType.None && currentSlot != from.m_ContextType)
+                    return false;
+            }*/
+
             //Can't connect directly event to context to OutputEvent
             if (from.m_ContextType == VFXContextType.Event && to.contextType == VFXContextType.OutputEvent)
                 return false;
@@ -327,13 +335,26 @@ namespace UnityEditor.VFX
                 || contextType == VFXContextType.Init;
         }
 
-        private static bool IsExclusiveLink(VFXContextType from, VFXContextType to)
+        //TODOPAUL CanMixingFrom
+
+        private static bool CanMixingTo(VFXContextType from, VFXContextType to, VFXContextType primaryType)
         {
-            if (from == to)
-                return false;
-            if (from == VFXContextType.Spawner || from == VFXContextType.Event)
-                return false;
-            return true;
+            if (to == VFXContextType.Init)
+            {
+                //Init is exclusive either {event, spawner} xor {spawnerGPU}, not both
+                if (primaryType == VFXContextType.Event || primaryType == VFXContextType.Spawner)
+                    return from == VFXContextType.Event || from == VFXContextType.Spawner;
+                if (primaryType == VFXContextType.SpawnerGPU)
+                    return from == VFXContextType.SpawnerGPU;
+            }
+            else if (to == VFXContextType.Spawner || to == VFXContextType.OutputEvent)
+            {
+                //No special constraint on spawner or output event (gpuEvent isn't allowed anyway)
+                return true;
+            }
+
+            //Default case, type transfer aren't expected
+            return from == to && to == primaryType;
         }
 
         protected static void InnerLink(VFXContext from, VFXContext to, int fromIndex, int toIndex, bool notify = true)
@@ -344,16 +365,17 @@ namespace UnityEditor.VFX
             // Handle constraints on connections
             foreach (var link in from.m_OutputFlowSlot[fromIndex].link.ToArray())
             {
-                if (!link.context.CanLinkFromMany() || (IsExclusiveLink(link.context.contextType, to.contextType) && from.contextType == link.context.contextType))
+                if (!link.context.CanLinkFromMany())
                 {
-                    if (link.context.inputFlowCount > toIndex)
+                    if (link.context.inputFlowCount > toIndex) //Special case from SubGraph, not sure how this test could be false
                         InnerUnlink(from, link.context, fromIndex, toIndex, notify);
                 }
             }
 
             foreach (var link in to.m_InputFlowSlot[toIndex].link.ToArray())
             {
-                if (!link.context.CanLinkToMany() || IsExclusiveLink(link.context.contextType, from.contextType))
+                if (!link.context.CanLinkToMany()
+                    || !CanMixingTo(link.context.contextType, to.contextType, from.contextType))
                 {
                     InnerUnlink(link.context, to, fromIndex, toIndex, notify);
                 }
