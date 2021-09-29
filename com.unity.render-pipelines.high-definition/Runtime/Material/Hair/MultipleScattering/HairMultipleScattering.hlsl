@@ -193,6 +193,9 @@ float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3
 
     const float3 fsScatter = mul(MG, NG);
 
+    // TODO: It's possible a divide by PI is missing in the BSDF approximation, because this is required to match the reference.
+    Fs /= PI;
+
     const float3 Fdirect   = directFraction * (Fs + fsBack);
     const float3 Fscatter  = (Tf - directFraction) * df * (fsScatter + PI * fsBack);
     const float3 F         = (Fdirect + Fscatter) * sqrt(1 - Sq(sinThetaI));

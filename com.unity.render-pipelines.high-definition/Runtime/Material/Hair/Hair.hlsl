@@ -806,7 +806,6 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
         // Transmission event is built into the model.
         // Some stubborn NaNs have cropped up due to the angle optimization, we suppress them here with a max for now.
-        const float geomNdotL = dot(bsdfData.geomNormalWS, L);
         cbsdf.specR = max(S, 0);
 
         // Multiple Scattering

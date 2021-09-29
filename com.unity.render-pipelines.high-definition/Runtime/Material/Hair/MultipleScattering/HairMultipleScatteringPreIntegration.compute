@@ -7,7 +7,7 @@
 // This define is required to map the reflectance to absorption for the preintegration.
 #define _ABSORPTION_FROM_COLOR 1
 
-#pragma enable_d3d11_debug_symbols
+// #pragma enable_d3d11_debug_symbols
 
 #define DIM 64
 #define SPHERE_SAMPLES 128
