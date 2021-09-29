@@ -12,6 +12,7 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ### Added
+- Debug Panels Framework See `IDebugDisplaySettingsQuery`.
 - New `IVolumeDebugSettings` interface and `VolumeDebugSettings<T>` class that stores the information for the Volumes Debug Panel.
 - Added AMD FidelityFX shaders which were originally in HDRP
 
