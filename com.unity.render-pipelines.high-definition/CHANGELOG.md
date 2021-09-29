@@ -146,6 +146,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a built-in custom pass to draw object IDs.
 - Added an example in the documentation that shows how to use the accumulation API for high quality antialiasing (supersampling).
 - Added a SG node to get the main directional light direction.
+- Added support for light/shadow dimmers (volumetric or not) in path tracing.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
