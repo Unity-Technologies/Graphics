@@ -83,7 +83,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
                         renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true);
 
                         int incorrectPixels = ShaderGraphTestRenderer.CountPixelsNotEqual(target, new Color32(0, 255, 0, 255), false);
-                        // Debug.Log($"{source} to {dest} ({conversionType}: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
+
+                        // test failing some tests
+                        if (UnityEngine.Random.value < 0.1f)
+                            incorrectPixels = 42;
+                        //Debug.Log($"{source} to {dest} ({conversionType}: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
 
                         if (incorrectPixels != 0)
                         {
@@ -91,19 +95,19 @@ namespace UnityEditor.ShaderGraph.UnitTests
                             assertIncorrectPixels = incorrectPixels;
 
                             ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
+                            ShaderGraphTestRenderer.ReportArtifact($"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
 
                             renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true, ShaderGraphTestRenderer.Mode.EXPECTED);
                             ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}_EXPECTED.png");
+                            ShaderGraphTestRenderer.ReportArtifact($"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
 
                             renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true, ShaderGraphTestRenderer.Mode.ACTUAL);
                             ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}_ACTUAL.png");
+                            ShaderGraphTestRenderer.ReportArtifact($"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
                         }
 
                         RenderTexture.ReleaseTemporary(target);
                     }
-
-                    // we assert at the end of the test, so we always produce all of the test results before asserting
-                    Assert.AreEqual(0, assertIncorrectPixels, assertString);
 
                     // have to yield to let a frame pass
                     // unity only releases some resources at the end of a frame
@@ -111,6 +115,9 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     yield return null;
                 }
             }
+
+            // we assert at the end of the test, so we always produce all of the test results before asserting
+            Assert.AreEqual(0, assertIncorrectPixels, assertString);
         }
     }
 }

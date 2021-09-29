@@ -83,6 +83,13 @@ public class ShaderGraphTestRenderer
         */
     }
 
+    internal static void ReportArtifact(string artifactPath)
+    {
+        var fullpath = Path.GetFullPath(artifactPath);
+        var message = Unity.TestProtocol.Messages.ArtifactPublishMessage.Create(fullpath);
+        Debug.Log(Unity.TestProtocol.UnityTestProtocolMessageBuilder.Serialize(message));
+    }
+
     internal static void SaveToPNG(RenderTexture target, string path, bool createDirectory = true)
     {
         if (createDirectory)
