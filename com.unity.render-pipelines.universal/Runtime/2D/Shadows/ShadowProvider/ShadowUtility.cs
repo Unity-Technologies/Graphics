@@ -525,11 +525,7 @@ namespace UnityEngine.Rendering.Universal
                             {
                                 int currentVertexIndex = currentTempEdgeIndex;
                                 tempEdges[currentTempEdgeIndex] = new ShadowEdge(lastEdgeIndex, currentVertexIndex);
-
-                                Debug.DrawLine(tempVertices[lastEdgeIndex], tempVertices[currentVertexIndex], Color.white, 2);
                                 lastEdgeIndex = currentTempEdgeIndex++;
-
-
                             }
 
                             currentTempVertexIndex += outputPathLength;
