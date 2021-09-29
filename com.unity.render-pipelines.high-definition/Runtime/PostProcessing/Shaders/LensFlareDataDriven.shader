@@ -2,6 +2,8 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 {
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
+
         // Additive
         Pass
         {

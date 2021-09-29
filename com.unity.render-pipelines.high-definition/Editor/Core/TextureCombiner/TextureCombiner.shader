@@ -22,8 +22,8 @@ Shader "Hidden/SRP_Core/TextureCombiner"
         _ARemap ("A Remap", Vector) = (0, 1, 0, 0)
     }
     SubShader
-    {
-        Tags { "RenderType"="Opaque" }
+    {            
+        Tags { "RenderType"="Opaque", "RenderPipeline" = "HDRenderPipeline" }
         LOD 100
 
         Pass
