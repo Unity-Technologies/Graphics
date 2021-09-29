@@ -11,7 +11,9 @@
 
 #define DIM 64
 #define SPHERE_SAMPLES 128
+
 #define DPHI radians(2)
+#define DH   0.2
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -120,7 +122,7 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
            // Invoke the fiber scattering function.
            // Note, we could use our importance sampled reference here but due to how long it takes to compile, don't.
            CBSDF cbsdf = EvaluateBSDF(V, L, preLightData, bsdfData);
-           const float Fs = cbsdf.specR.x;
+           const float Fs = cbsdf.specR.x; // * abs(V.x);
 
            // Sort the energy based on which hemisphere the outgoing direction was measured from.
            // Doing this effectively simplifies the complex longitudinal scattering lobes into one
@@ -137,8 +139,6 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
                 // Contribute to the average backward scattering.
                 A.y += Fs; C.y++;
            }
-
-           // A *= SafeSqrt(1 - Sq(sinThetaI));
        }
     }
 
@@ -147,67 +147,46 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
 }
 
 // Pre-integrate the average azimuthal scattering on the front scattering semi-circle ( Ref: Equation 25 )
-// TODO: This LUT and the above are parameterized the exact same way. Find a way to combine them into one sample?
 // -----------------------------------------------------------------
 
 RWTexture2D<float4> _PreIntegratedAverageHairFiberScatteringUAV;
-
-#define FLAGS_R   MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_LONGITUDINAL | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT
-#define FLAGS_TT  MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_LONGITUDINAL | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R  | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT
-#define FLAGS_TRT MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_LONGITUDINAL | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R  | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT
 
 [numthreads(8, 8, 1)]
 void PreIntegrateAzimuthalScattering (uint2 dispatchThreadID : SV_DispatchThreadID)
 {
     // Convert the dispatch coordinates to the generation space [0,1].
-    float2 UV = float2(((float2)dispatchThreadID + 0.5) / DIM);
+    float2 UV = ((float2)dispatchThreadID + 0.5) / DIM;
 
-    // Configure a theoretical hair fiber to evaluate the average attenuation.
-    // Note, since we only evaluate the azimuthal scattering we can parameterize to 2D since roughness has no effect on this component.
-    SurfaceData surfaceDataR   = ConfigureFiberSurface(UV.y, 0.5, FLAGS_R);
-    SurfaceData surfaceDataTT  = ConfigureFiberSurface(UV.y, 0.5, FLAGS_TT);
-    SurfaceData surfaceDataTRT = ConfigureFiberSurface(UV.y, 0.5, FLAGS_TRT);
+    // Configure the initial incident theta and phi.
+    float phi       = FOUR_PI * UV.x - TWO_PI;
+    float cosThetaD = UV.y;
 
-    // Use the conversion from the surface data to compute all of the per-lobe bsdf information.
-    BSDFData bsdfDataR   = ConvertSurfaceDataToBSDFData(uint2(0, 0), surfaceDataR);
-    BSDFData bsdfDataTT  = ConvertSurfaceDataToBSDFData(uint2(0, 0), surfaceDataTT);
-    BSDFData bsdfDataTRT = ConvertSurfaceDataToBSDFData(uint2(0, 0), surfaceDataTRT);
+    float3 NG = 0;
 
-    // Need to clamp the roughness manually since we invoke the BSDF manually, without it, we get some artifacting in the LUT.
-    ClampRoughness(bsdfDataR);
-    ClampRoughness(bsdfDataTT);
-    ClampRoughness(bsdfDataTRT);
+    // Fixed at azimuthal roughness of 0.3 (ideal for human hair).
+    const float s = LogisticScaleFromBeta(0.3);
 
-    // Unused in this case.
-    PreLightData preLightData;
-    ZERO_INITIALIZE(PreLightData, preLightData);
+    // Get the modified refraction index (fixed for human hair).
+    const float eta = ModifiedRefractionIndex(cosThetaD);
 
-    // Configure the initial incident theta direction.
-    float sinThetaI = UV.x;
-
-    // We are analyzing the front scattering, so place a viewer on the negative Z axis.
-    float3 V = float3(0, 0, -1);
-
-    float3 A = 0;
-
-    // Integrate over all incident phi.
-    for (float phi = -HALF_PI; phi < HALF_PI; phi += DPHI)
+    // Integrate over all incident phi on the front hemisphere.
+    for (float phi_p = -HALF_PI; phi_p < HALF_PI; phi_p += DPHI)
     {
-       // Places a light on the back scattering hemisphere (due to the constriction of phi to the -pi/2 to pi/2 range).
-       float3 L = SphericalToCartesian(phi, sinThetaI);
+        for (float h = -1; h < 1; h += DH)
+        {
+            float gammaO = FastASin(h);
+            float gammaT = clamp(FastASin(h / eta), -1, 1);
 
-       // Account for the fiber pointing in the +x axis
-       L = L.zyx;
+            // Re-use from the reference.
+            float NR   = AzimuthalScattering(phi - phi_p, 0, s, gammaO, gammaT);
+            float NTT  = AzimuthalScattering(phi - phi_p, 1, s, gammaO, gammaT);
+            float NTRT = AzimuthalScattering(phi - phi_p, 2, s, gammaO, gammaT);
 
-       // Invoke the fiber scattering function.
-       CBSDF cbsdfR   = EvaluateBSDF(V, L, preLightData, bsdfDataR);
-       CBSDF cbsdfTT  = EvaluateBSDF(V, L, preLightData, bsdfDataTT);
-       CBSDF cbsdfTRT = EvaluateBSDF(V, L, preLightData, bsdfDataTRT);
-
-       A += float3( cbsdfR.specR.x,
-                    cbsdfTT.specR.x,
-                    cbsdfTRT.specR.x ) * DPHI;
+            NG += float3( NR,
+                          NTT,
+                          NTRT ) * DH * DPHI;
+        }
     }
 
-    _PreIntegratedAverageHairFiberScatteringUAV[dispatchThreadID] = INV_PI * float4(A, 1);
+    _PreIntegratedAverageHairFiberScatteringUAV[dispatchThreadID] = INV_PI * float4(NG, 1);
 }

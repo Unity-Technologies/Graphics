@@ -729,8 +729,11 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         float3 mu = bsdfData.absorption;
 
         // Various terms reused between lobe evaluation.
-        float  D           = 0;
-        float3 A, F, Tr, S = 0;
+        float  D        = 0;
+        float3 F, Tr, S = 0;
+
+        // Save the attenuations in case of multiple scattering.
+        float3 A[3];
 
         // Evaluate the longitudinal scattering for all three lobes.
         float3 M = 1;
@@ -749,13 +752,12 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         {
             // Distribution and attenuation for this path as proposed by d'Eon et al, replaced with a trig identity for cos half phi.
             D = 0.25 * angles.cosHalfPhi;
-            A = F_Schlick(bsdfData.fresnel0, sqrt(0.5 + 0.5 * dot(L, V)));
+            A[0] = F_Schlick(bsdfData.fresnel0, sqrt(0.5 + 0.5 * dot(L, V)));
 
-            S += M[0] * A * D;
+            S += M[0] * A[0] * D;
         }
 
         // TT
-        float3 avgTT = 0;
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT))
         {
         #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
@@ -776,19 +778,9 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
             float cosGammaT = SafeSqrt(1 - Sq(sinGammaT));
             Tr = exp(-mu * (2 * cosGammaT / angles.cosThetaT));
 
-            A = Sq(1 - F) * Tr;
+            A[1] = Sq(1 - F) * Tr;
 
-            S += M[1] * A * D;
-
-        #if 1
-            for (float phi = -HALF_PI; phi < HALF_PI; phi += 0.2)
-            {
-                float cosPhiP = angles.cosPhi - cos(phi);
-                float temp_D = exp(-3.65 * cosPhiP - 3.98);
-                avgTT += temp_D * 0.2;
-            }
-            avgTT *= A * INV_PI;
-        #endif
+            S += M[1] * A[1] * D;
         }
 
         // TRT
@@ -807,21 +799,21 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
             float cosGammaT = SafeSqrt(1 - Sq(sinGammaT));
             Tr = exp(-mu * (2 * cosGammaT / angles.cosThetaT));
 
-            A = Sq(1 - F) * F * Sq(Tr);
+            A[2] = Sq(1 - F) * F * Sq(Tr);
 
-            S += M[2] * A * D;
+            S += M[2] * A[2] * D;
         }
 
         // Transmission event is built into the model.
         // Some stubborn NaNs have cropped up due to the angle optimization, we suppress them here with a max for now.
         const float geomNdotL = dot(bsdfData.geomNormalWS, L);
-        cbsdf.specR = max(S * abs(geomNdotL), 0);
+        cbsdf.specR = max(S, 0);
 
         // Multiple Scattering
     #if _USE_ADVANCED_MULTIPLE_SCATTERING
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING))
         {
-            cbsdf.specR = EvaluateMultipleScattering(L, cbsdf.specR, bsdfData, alpha, beta, angles.thetaH, angles.sinThetaI, avgTT);
+            cbsdf.specR = EvaluateMultipleScattering(L, cbsdf.specR, bsdfData, alpha, beta, angles.thetaH, angles.sinThetaI, angles.cosThetaD, angles.cosPhi, A);
         }
         else
     #endif
