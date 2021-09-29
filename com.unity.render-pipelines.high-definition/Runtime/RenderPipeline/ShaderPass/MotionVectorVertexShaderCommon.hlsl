@@ -164,7 +164,10 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
 #endif
 
 #if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
-        previousMesh.positionOS -= GetCustomVelocity(previousMesh);
+        // Note that to fetch custom velocity here we must use the inputMesh and not the previousMesh
+        // in the case the custom velocity depends on the positionOS
+        // otherwise it will apply two times the modifications.
+        previousMesh.positionOS -= GetCustomVelocity(inputMesh);
 #endif
 
 #if defined(_ADD_PRECOMPUTED_VELOCITY)
