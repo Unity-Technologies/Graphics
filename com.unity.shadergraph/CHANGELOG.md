@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [12.0.0] - 2021-01-11
 
 ### Added
+  - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
   - Added categories to the blackboard, enabling more control over the organization of shader properties and keywords in the Shader Graph tool. These categories are also reflected in the Material Inspector for URP + HDRP, for materials created from shader graphs.
   - Added ability to define custom vertex-to-fragment interpolators.
   - Support for the XboxSeries platform has been added.
