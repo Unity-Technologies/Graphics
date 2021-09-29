@@ -1,7 +1,7 @@
 Shader "Hidden/HDRP/DebugLightCluster"
 {
     SubShader
-    {         
+    {
         Tags { "RenderPipeline" = "HDRenderPipeline"  "Queue"="Transparent+0" "IgnoreProjector"="True" "RenderType"="Transparent" }
 
         HLSLINCLUDE
