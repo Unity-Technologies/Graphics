@@ -1310,6 +1310,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     this._preChangeValueCallback("Change property value");
                     keyword.value = newValue.isOn ? 1 : 0;
+                    if (graphData.owner.materialArtifact)
+                    {
+                        graphData.owner.materialArtifact.SetFloat(keyword.referenceName, keyword.value);
+                        MaterialEditor.ApplyMaterialPropertyDrawers(graphData.owner.materialArtifact);
+                    }
                     this._postChangeValueCallback(false, ModificationScope.Graph);
                 },
                 new ToggleData(keyword.value == 1),
@@ -1328,6 +1333,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             {
                 this._preChangeValueCallback("Change Keyword Value");
                 keyword.value = field.index;
+                if (graphData.owner.materialArtifact)
+                {
+                    graphData.owner.materialArtifact.SetFloat(keyword.referenceName, field.index);
+                    MaterialEditor.ApplyMaterialPropertyDrawers(graphData.owner.materialArtifact);
+                }
                 this._postChangeValueCallback(false, ModificationScope.Graph);
             });
 
