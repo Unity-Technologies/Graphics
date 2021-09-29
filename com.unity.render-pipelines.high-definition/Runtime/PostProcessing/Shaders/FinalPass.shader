@@ -47,7 +47,6 @@ Shader "Hidden/HDRP/FinalPass"
         float4 _ViewPortSize;
         float  _KeepAlpha;
 
-        // TODO_FCC: HDR RELATED STUFF, WILL NEED TO MOVE TO WHATEVER BUILDS THE LUT.
         float4 _HDROutputParams;
         float4 _HDROutputParams2;
         #define _MinNits    _HDROutputParams.x
@@ -126,7 +125,6 @@ Shader "Hidden/HDRP/FinalPass"
             #endif //FXAA
 
             // Saturate is only needed for dither or grain to work. Otherwise we don't saturate because output might be HDR
-            // TODO_FCC: How to handle this in HDR Output?
             #if defined(GRAIN) || defined(DITHER)
             outColor = saturate(outColor);
             #endif

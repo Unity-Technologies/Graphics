@@ -197,7 +197,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput,
                         shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
 
-                    // TODO_FCC: TMP, MOVE FROM HERE. ALSO CONSIDER THAT FOR V1 WE MIGHT WANT TO ONLY SEPARATE OVERLAYS?
                     uiBuffer = RenderTransparentUI(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
 
                     if (NeedMotionVectorForTransparent(hdCamera.frameSettings))

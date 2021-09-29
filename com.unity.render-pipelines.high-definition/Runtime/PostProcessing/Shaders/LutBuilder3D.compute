@@ -54,7 +54,6 @@ CBUFFER_START(cb0)
     float4 _ShoSegmentA;
     float4 _ShoSegmentB;
 
-    // TODO_FCC: HDR RELATED STUFF, WILL NEED TO MOVE TO WHATEVER BUILDS THE LUT.
     float4 _HDROutputParams;
     float4 _HDROutputParams2;
     #define _MinNits    _HDROutputParams.x
@@ -293,7 +292,6 @@ void KBuild(uint3 dispatchThreadId : SV_DispatchThreadID)
         gradedColor = NeutralColorGrade(gradedColor);
     }
 
-    // TODO_FCC: Better handling of tonemapping.
 #ifdef HDR_OUTPUT
     gradedColor = ProcessColorForHDR(gradedColor);
 #else
