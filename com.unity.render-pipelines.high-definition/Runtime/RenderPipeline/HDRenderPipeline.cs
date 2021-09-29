@@ -201,31 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool HDROutputIsActive(HDCamera camera)
         {
-            if (HDROutputSettings.main.available)
-            {
-                //  Debug.Log("Available");
-            }
-
-            if (HDROutputSettings.main.available && SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported))
-            {
-                //   HDROutputSettings.main.automaticHDRTonemapping = false;
-                var minNits = HDROutputSettings.main.minToneMapLuminance;
-                var maxNits = HDROutputSettings.main.maxToneMapLuminance;
-                var gamut = HDROutputSettings.main.displayColorGamut;
-                var dst = HDROutputSettings.main.graphicsFormat;
-
-                //  Debug.Log($" min {minNits} max {maxNits} {gamut} {dst}");
-            }
-            //if (SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported))
-            //{
-            //    Debug.Log("System info Available");
-            //}
-            //if (HDROutputSettings.displays.Length > 0)
-            //{
-            //    Debug.Log("Display length more than 0");
-            //}
-            //
-            return HDROutputSettings.main.active && camera.camera.cameraType == CameraType.Game;
+            return HDROutputSettings.main.active /*&& camera.camera.cameraType == CameraType.Game*/;
         }
 
         readonly SkyManager m_SkyManager = new SkyManager();
@@ -1976,14 +1952,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (HDROutputSettings.main.active)
             {
                 HDROutputSettings.main.automaticHDRTonemapping = false;
-                if (hdCamera.camera.cameraType != CameraType.Game)
-                {
-                    HDROutputSettings.main.RequestHDRModeChange(false);
-                }
-                else
-                {
-                    HDROutputSettings.main.RequestHDRModeChange(true);
-                }
             }
 
 
