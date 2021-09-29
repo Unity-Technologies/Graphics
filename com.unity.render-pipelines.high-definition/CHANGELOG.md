@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Probe volume debug exposure compensation to match the Lighting debug one.
 - Fixed misleading text and improving the eye scene material samples. (case 1368665)
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+- Fixed lens flare occlusion issues with TAA. (1365098)
 
 ## [12.0.0] - 2021-01-11
 
@@ -438,6 +439,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed double camera preview.
 - Fixed memory leak with XR combined occlusion meshes.
 - Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
+- Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

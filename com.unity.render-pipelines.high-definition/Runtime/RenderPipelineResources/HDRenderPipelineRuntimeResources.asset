@@ -222,6 +222,7 @@ MonoBehaviour:
     SMAAPS: {fileID: 4800000, guid: 9655f4aa89a469c49aceaceabf9bc77b, type: 3}
     temporalAntialiasingPS: {fileID: 4800000, guid: 3dd9fd928fdb83743b1f27d15df22179, type: 3}
     lensFlareDataDrivenPS: {fileID: 4800000, guid: 85330b3de0cfebc4ba78b2d61b1a2899, type: 3}
+    lensFlareMergeOcclusionCS: {fileID: 7200000, guid: 07492750f384d9a4da9aaf5d2feeed4a, type: 3}
     DLSSBiasColorMaskPS: {fileID: 4800000, guid: 017a05924c0b0484ca29717ed0c60343, type: 3}
     dofCircleOfConfusion: {fileID: 7200000, guid: 75332b7b315c80d4babe506820aa0bfd, type: 3}
     dofGatherCS: {fileID: 7200000, guid: 1e6b16a7970a1494db74b1d3d007d1cc, type: 3}
