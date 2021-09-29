@@ -26,7 +26,7 @@
 // --------------------------------
 //  Perceptual Quantizer (PQ) / ST 2084
 // --------------------------------
-// This section has a bunch of options, a few of them are accurate a bunch are not.
+
 #define MAX_PQ_VALUE 10000 // 10k nits is the maximum supported by the standard.
 
 #define PQ_N (2610.0f / 4096.0f / 4.0f)
@@ -227,6 +227,26 @@ float3 RotateXYZToRec709(float3 XYZ)
     return mul(XYZ_2_REC709_MAT, XYZ);
 }
 
+float3 RotateRec709ToXYZ(float3 rgb)
+{
+    static const float3x3 Rec709ToXYZMat = float3x3(
+        0.412391f, 0.357584f, 0.180481,
+        0.212639, 0.715169, 0.0721923,
+        0.0193308, 0.119195, 0.950532
+        );
+    return mul(Rec709ToXYZMat, rgb);
+}
+
+float3 RotateRec2020ToXYZ(float3 rgb)
+{
+    static const float3x3 Rec2020ToXYZMat = float3x3(
+        0.638574, 0.144617, 0.167265,
+        0.263367, 0.677998, 0.0586353,
+        0.0f, 0.0280727, 1.06099
+        );
+
+    return mul(Rec2020ToXYZMat, rgb);
+}
 
 float3 RotateICtCpToPQLMS(float3 ICtCp)
 {

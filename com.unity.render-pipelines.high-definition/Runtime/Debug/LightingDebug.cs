@@ -189,6 +189,14 @@ namespace UnityEngine.Rendering.HighDefinition
         MeteringWeighted,
     }
 
+    [GenerateHLSL]
+    public enum HDRDebugMode
+    {
+        None,
+        GamutView,
+        GamutClip,
+        TonemappedLuminance,
+    }
 
     /// <summary>
     /// Probe Volume Debug Modes.
@@ -324,6 +332,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool displayFinalImageHistogramAsRGB = false;
         /// <summary>Whether to show the only the mask in the picture in picture. If unchecked, the mask view is weighted by the scene color.</summary>
         public bool displayMaskOnly = false;
+
+        /// <summary>HDR debug mode.</summary>
+        public HDRDebugMode hdrDebugMode = HDRDebugMode.None;
+
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool displayCookieAtlas = false;

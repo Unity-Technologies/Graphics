@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
         }
 
-        static bool HDROutputIsActive()
+        static bool HDROutputIsActive(HDCamera camera)
         {
             if (HDROutputSettings.main.available)
             {
@@ -225,7 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //    Debug.Log("Display length more than 0");
             //}
             //
-            return HDROutputSettings.main.active;
+            return HDROutputSettings.main.active && camera.camera.cameraType == CameraType.Game;
         }
 
         readonly SkyManager m_SkyManager = new SkyManager();
@@ -1788,12 +1788,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
                     {
-                        // Make sure HDR auto tonemap is off
-                        if (HDROutputSettings.main.active)
-                        {
-                            HDROutputSettings.main.automaticHDRTonemapping = false;
-                        }
-
                         // Warm up the RTHandle system so that it gets init to the maximum resolution available (avoiding to call multiple resizes
                         // that can lead to high memory spike as the memory release is delayed while the creation is immediate).
                         {
@@ -1977,6 +1971,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Updates RTHandle
             hdCamera.BeginRender(cmd);
+
+            // Make sure HDR auto tonemap is off
+            if (HDROutputSettings.main.active)
+            {
+                HDROutputSettings.main.automaticHDRTonemapping = false;
+                if (hdCamera.camera.cameraType != CameraType.Game)
+                {
+                    HDROutputSettings.main.RequestHDRModeChange(false);
+                }
+                else
+                {
+                    HDROutputSettings.main.RequestHDRModeChange(true);
+                }
+            }
+
 
             if (m_RayTracingSupported)
             {

@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DebugFullScreen;
         Material m_DebugColorPicker;
         Material m_DebugExposure;
+        Material m_DebugHDROutput;
         Material m_DebugViewTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
         Material m_DebugLocalVolumetricFogMaterial;
@@ -46,6 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugFullScreen = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugFullScreenPS);
             m_DebugColorPicker = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugColorPickerPS);
             m_DebugExposure = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugExposurePS);
+            m_DebugHDROutput = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDRPS);
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewTilesPS);
             m_DebugHDShadowMapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDShadowMapPS);
             m_DebugLocalVolumetricFogMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugLocalVolumetricFogAtlasPS);
@@ -63,6 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DebugFullScreen);
             CoreUtils.Destroy(m_DebugColorPicker);
             CoreUtils.Destroy(m_DebugExposure);
+            CoreUtils.Destroy(m_DebugHDROutput);
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
             CoreUtils.Destroy(m_DebugLocalVolumetricFogMaterial);
@@ -94,6 +97,11 @@ namespace UnityEngine.Rendering.HighDefinition
         bool NeedExposureDebugMode(DebugDisplaySettings debugSettings)
         {
             return debugSettings.data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.None;
+        }
+
+        bool NeedHDRDebugMode(DebugDisplaySettings debugSettings)
+        {
+            return debugSettings.data.lightingDebugSettings.hdrDebugMode != HDRDebugMode.None;
         }
 
         bool NeedsFullScreenDebugMode()
@@ -871,6 +879,51 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class DebugHDRData
+        {
+            public LightingDebugSettings lightingDebugSettings;
+            public Material debugHDRMaterial;
+            public Vector4 hdrOutputParams;
+            public Vector4 hdrOutputParams2;
+            public Vector4 hdrDebugParams;
+
+            public TextureHandle colorBuffer;
+            public TextureHandle debugFullScreenTexture;
+            public TextureHandle output;
+        }
+
+        TextureHandle RenderHDRDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
+        {
+            //if (!HDROutputIsActive()) return colorBuffer;
+
+            using (var builder = renderGraph.AddRenderPass<DebugHDRData>("Debug HDR", out var passData))
+            {
+                passData.debugHDRMaterial = m_DebugHDROutput;
+                passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
+                if (HDROutputIsActive(hdCamera))
+                    GetHDROutputParameters(hdCamera.volumeStack.GetComponent<Tonemapping>(), out passData.hdrOutputParams, out passData.hdrOutputParams2);
+                else
+                    passData.hdrOutputParams.z = 1.0f;
+
+                passData.colorBuffer = builder.ReadTexture(colorBuffer);
+                passData.debugFullScreenTexture = builder.ReadTexture(m_DebugFullScreenTexture);
+                passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "HDRDebug" }));
+
+
+                builder.SetRenderFunc(
+                    (DebugHDRData data, RenderGraphContext ctx) =>
+                    {
+                        data.debugHDRMaterial.SetTexture(HDShaderIDs._DebugFullScreenTexture, data.debugFullScreenTexture);
+                        data.debugHDRMaterial.SetVector(HDShaderIDs._HDROutputParams, data.hdrOutputParams);
+                        data.debugHDRMaterial.SetVector(HDShaderIDs._HDROutputParams2, data.hdrOutputParams2);
+                        HDUtils.DrawFullScreen(ctx.cmd, data.debugHDRMaterial, data.output, null, 0);
+                    });
+
+                return passData.output;
+            }
+        }
+
         class DebugExposureData
         {
             public LightingDebugSettings lightingDebugSettings;
@@ -1030,6 +1083,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (NeedExposureDebugMode(m_CurrentDebugDisplaySettings))
                 output = RenderExposureDebug(renderGraph, hdCamera, colorBuffer);
+
+            if (NeedHDRDebugMode(m_CurrentDebugDisplaySettings))
+                output = RenderHDRDebug(renderGraph, hdCamera, colorBuffer);
 
             if (NeedColorPickerDebug(m_CurrentDebugDisplaySettings))
                 output = ResolveColorPickerDebug(renderGraph, colorPickerDebugTexture, hdCamera, colorFormat);
@@ -1274,6 +1330,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenDebugTexture(renderGraph, input, colorFormat);
             }
         }
+
+        void PushFullScreenHDRDebugTexture(RenderGraph renderGraph, TextureHandle input, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        {
+            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.hdrDebugMode != HDRDebugMode.None)
+            {
+                PushFullScreenDebugTexture(renderGraph, input, colorFormat);
+            }
+        }
+
 
 #if ENABLE_VIRTUALTEXTURES
         class PushFullScreenVTDebugPassData
