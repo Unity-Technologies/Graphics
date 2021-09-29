@@ -48,7 +48,8 @@ namespace UnityEditor.Rendering.Universal
         MainLightShadowsCascade = (1 << 26),
         DrawProcedural = (1 << 27),
         ScreenSpaceOcclusionAfterOpaque = (1 << 28),
-        LightingKeepOffVariants = (1 << 29),
+        AdditionalLightsKeepOffVariants = (1 << 29),
+        ShadowsKeepOffVariants = (1 << 30),
     }
 
     [Flags]
@@ -359,7 +360,7 @@ namespace UnityEditor.Rendering.Universal
             var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants);
 
             // strip main light shadows, cascade and screen variants
-            if (IsFeatureEnabled(ShaderFeatures.LightingKeepOffVariants, features))
+            if (IsFeatureEnabled(ShaderFeatures.ShadowsKeepOffVariants, features))
             {
                 if (stripTool.StripMultiCompileKeepOffVariant(
                     m_MainLightShadows, ShaderFeatures.MainLightShadows,
@@ -411,7 +412,7 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             // No additional light shadows
-            if (IsFeatureEnabled(ShaderFeatures.LightingKeepOffVariants, features))
+            if (IsFeatureEnabled(ShaderFeatures.ShadowsKeepOffVariants, features))
             {
                 if (stripTool.StripMultiCompileKeepOffVariant(m_AdditionalLightShadows, ShaderFeatures.AdditionalLightShadows))
                     return true;
@@ -443,7 +444,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             // Additional light are shaded per-vertex or per-pixel.
-            if (IsFeatureEnabled(ShaderFeatures.LightingKeepOffVariants, features))
+            if (IsFeatureEnabled(ShaderFeatures.AdditionalLightsKeepOffVariants, features))
             {
                 if (stripTool.StripMultiCompileKeepOffVariant(m_AdditionalLightsVertex, ShaderFeatures.VertexLighting,
                     m_AdditionalLightsPixel, ShaderFeatures.AdditionalLights))
@@ -948,7 +949,10 @@ namespace UnityEditor.Rendering.Universal
                 }
 
                 if (!renderer.stripShadowsOffVariants)
-                    shaderFeatures |= ShaderFeatures.LightingKeepOffVariants;
+                    shaderFeatures |= ShaderFeatures.ShadowsKeepOffVariants;
+
+                if (!renderer.stripAdditionalLightOffVariants)
+                    shaderFeatures |= ShaderFeatures.AdditionalLightsKeepOffVariants;
 
                 var rendererClustered = false;
 
