@@ -91,6 +91,13 @@ namespace UnityEngine.Rendering.Universal
             int c1Start = vertexWritePos + 3;
             int c1End = vertexWritePos;
 
+            if(pt1.x < pt0.x)
+            {
+                Vector3 temp = pt0;
+                pt0 = pt1;
+                pt1 = temp;
+            }
+
             generatedIndices[indexWritePos++] = vertexWritePos;
             generatedIndices[indexWritePos++] = vertexWritePos + 1;
             generatedIndices[indexWritePos++] = vertexWritePos + 2;
