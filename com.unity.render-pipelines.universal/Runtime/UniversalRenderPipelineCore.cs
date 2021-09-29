@@ -207,6 +207,11 @@ namespace UnityEngine.Rendering.Universal
         /// Camera position in world space.
         /// </summary>
         public Vector3 worldSpaceCameraPos;
+
+        /// <summary>
+        /// Final background color in the active color space.
+        /// </summary>
+        public Color backgroundColor;
     }
 
     public struct ShadowData
