@@ -176,7 +176,7 @@
     overflow:hidden;
 }
 
-.size-medium #title, .size-medium #title-field
+.size-medium #title, .size-medium #title-field *
 {
     font-size: 40px;
 }
@@ -185,7 +185,7 @@
     font-size: 24px;
 }
 
-.size-large #title, .size-large #title-field
+.size-large #title, .size-large #title-field *
 {
     font-size: 60px;
 }
@@ -194,7 +194,7 @@
     font-size: 36px;
 }
 
-.size-huge #title, .size-huge #title-field
+.size-huge #title, .size-huge #title-field *
 {
     font-size: 80px;
 }

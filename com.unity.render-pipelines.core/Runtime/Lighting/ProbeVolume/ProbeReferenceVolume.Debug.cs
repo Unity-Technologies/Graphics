@@ -225,7 +225,7 @@ namespace UnityEngine.Experimental.Rendering
                         var probeBuffer = debug.probeBuffers[i];
                         var props = debug.props[i];
                         props.SetInt("_ShadingMode", (int)debugDisplay.probeShading);
-                        props.SetFloat("_ExposureCompensation", -debugDisplay.exposureCompensation);
+                        props.SetFloat("_ExposureCompensation", debugDisplay.exposureCompensation);
                         props.SetFloat("_ProbeSize", debugDisplay.probeSize);
                         props.SetFloat("_CullDistance", debugDisplay.probeCullingDistance);
                         props.SetInt("_MaxAllowedSubdiv", debugDisplay.maxSubdivToVisualize);
