@@ -264,6 +264,10 @@ namespace UnityEditor.VFX
             if (from.m_ContextType == VFXContextType.SpawnerGPU && to.m_ContextType != VFXContextType.Init)
                 return false;
 
+            //Update to Update is forbidden
+            if (from.m_ContextType == VFXContextType.Update && to.m_ContextType == VFXContextType.Update)
+                return false;
+
             //If we want to prevent no mixing of GPUEvent & Spawn Context on Initialize. (allowed but disconnect invalid link)
             /*if (to.m_ContextType == VFXContextType.Init)
             {
@@ -335,7 +339,18 @@ namespace UnityEditor.VFX
                 || contextType == VFXContextType.Init;
         }
 
-        //TODOPAUL CanMixingFrom
+        private static bool CanMixingFrom(VFXContextType from, VFXContextType to, VFXContextType primaryType)
+        {
+            if (from == VFXContextType.Init)
+            {
+                if (primaryType == VFXContextType.Update)
+                    return to == VFXContextType.Update;
+                if (primaryType == VFXContextType.Output)
+                    return to == VFXContextType.Output;
+            }
+            //No special case outside init output which can't be mixed with output & update
+            return true;
+        }
 
         private static bool CanMixingTo(VFXContextType from, VFXContextType to, VFXContextType primaryType)
         {
@@ -365,7 +380,8 @@ namespace UnityEditor.VFX
             // Handle constraints on connections
             foreach (var link in from.m_OutputFlowSlot[fromIndex].link.ToArray())
             {
-                if (!link.context.CanLinkFromMany())
+                if (!link.context.CanLinkFromMany()
+                    || !CanMixingFrom(from.contextType, link.context.contextType, to.contextType))
                 {
                     if (link.context.inputFlowCount > toIndex) //Special case from SubGraph, not sure how this test could be false
                         InnerUnlink(from, link.context, fromIndex, toIndex, notify);
