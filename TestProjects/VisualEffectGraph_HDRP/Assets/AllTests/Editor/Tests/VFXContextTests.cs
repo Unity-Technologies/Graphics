@@ -309,7 +309,32 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void Link_Fail_From_Update_To_Update()
         {
+            var from = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var to = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            Assert.IsFalse(VFXContext.CanLink(from, to));
+        }
 
+        [Test]
+        public void Link_Initialize_Cant_Mix_Update_And_Output()
+        {
+            var init = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var update = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var outputA = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+            var outputB = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+
+            update.LinkFrom(init);
+            outputA.LinkFrom(update);
+
+            Assert.AreEqual(1, init.outputContexts.Count());
+            Assert.AreEqual(1, update.outputContexts.Count());
+
+            outputB.LinkFrom(init);
+            Assert.AreEqual(1, init.outputContexts.Count());
+            Assert.AreEqual(outputB, init.outputContexts.First());
+
+            update.LinkFrom(init);
+            Assert.AreEqual(1, init.outputContexts.Count());
+            Assert.AreEqual(update, init.outputContexts.First());
         }
 
         [Test]
