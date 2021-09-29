@@ -19,7 +19,9 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
     internal struct FullscreenBlocks
     {
         public static BlockFieldDescriptor color = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "Color", "Color",
-            "SURFACEDESCRIPTION_COLOR", new ColorRGBAControl(UnityEngine.Color.grey), ShaderStage.Fragment);
+            "SURFACEDESCRIPTION_COLOR", new ColorControl(UnityEngine.Color.grey, true), ShaderStage.Fragment);
+        public static BlockFieldDescriptor alpha = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "Alpha", "Alpha",
+            "SURFACEDESCRIPTION_Alpha", new FloatControl(1), ShaderStage.Fragment);
         public static BlockFieldDescriptor depth = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "Depth", "Depth",
             "SURFACEDESCRIPTION_DEPTH", new FloatControl(0), ShaderStage.Fragment);
     }
@@ -311,6 +313,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 validPixelBlocks = new BlockFieldDescriptor[]
                 {
                     FullscreenBlocks.color,
+                    FullscreenBlocks.alpha,
                     FullscreenBlocks.depth,
                 },
 
@@ -428,6 +431,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             context.AddBlock(FullscreenBlocks.color);
+            context.AddBlock(FullscreenBlocks.alpha);
             context.AddBlock(FullscreenBlocks.depth, fullscreenData.depthWrite);
         }
 
