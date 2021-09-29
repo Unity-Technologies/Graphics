@@ -12,3 +12,11 @@ It is possible to set up and use a Sub Graph Dropdown node in the same way you u
 2. Add a Sub Graph Dropdown node to your Sub Graph. This node exposes the options you have specified.
 3. Wire inputs to the options.
 4. Use the Sub Graph in your graph.
+
+## Ports
+
+| **Name**     | **Direction** | **Type** | **Description**  |
+| :---         | :---          | :------  |   :----------    |
+| A            | Input         | Float    |        x         |
+| B            | Input         | Float    |        x         |
+| Out          | Output        | Float    |        x         |

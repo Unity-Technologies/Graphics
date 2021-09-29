@@ -19,7 +19,7 @@ If you disable the **Custom Binding** setting, the **Property** disconnects from
 
 | **Name**     | **Direction** | **Type** | **Description** |
 | :---         | :---          | :------  | :----------     |
-| Input        | Input         | Property |                 |
-| Connected    | Input         |          |                 |
-| NotConnected | Input         |          |                 |
-| Out          | Output        |          |                 |
+| Input        | Input         | Property |      x           |
+| Connected    | Input         | Float    |        x         |
+| NotConnected | Input         | Float    |        x         |
+| Out          | Output        | Float    |        x         |
