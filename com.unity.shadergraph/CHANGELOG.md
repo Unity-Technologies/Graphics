@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.8.0] - 2021-07-23
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+ - Fixed the ordering of varyings in a struct that could cause an error when compiling for XR on Android. [1369011](https://issuetracker.unity3d.com/product/unity/issues/guid/1361049/)
 
 ## [7.7.0] - 2021-04-28
 
