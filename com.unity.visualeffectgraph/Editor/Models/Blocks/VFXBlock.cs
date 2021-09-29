@@ -27,19 +27,16 @@ namespace UnityEditor.VFX
         private bool m_Disabled = false;
 
         [SerializeField]
-        private VFXSlot m_EnabledSlot;
-        public VFXSlot enabledSlot => m_EnabledSlot; 
+        private VFXSlot m_ActivationSlot;
+        public override VFXSlot activationSlot => m_ActivationSlot; 
 
         public bool enabled
         {
-            get { return (bool)(m_EnabledSlot.value); }
+            get { return (bool)(m_ActivationSlot.value); }
             set
             {
                 if (value != enabled)
-                {
-                    m_EnabledSlot.value = value;
-                    Invalidate(InvalidationCause.kEnableChanged);
-                }
+                    m_ActivationSlot.value = value;
             }
         }
         public virtual bool isValid
@@ -65,7 +62,7 @@ namespace UnityEditor.VFX
         public abstract VFXDataType compatibleData { get; }
         public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); } }
-        public VFXExpression enabledExpression => m_EnabledSlot.GetExpression();
+        public VFXExpression enabledExpression => m_ActivationSlot.GetExpression();
         public virtual IEnumerable<string> includes { get { return Enumerable.Empty<string>(); } }
         public virtual string source { get { return null; } }
 
@@ -73,19 +70,31 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
 
-            if (m_EnabledSlot == null)
+            if (m_ActivationSlot == null)
             {
                 var prop = new VFXPropertyWithValue(new VFXProperty(typeof(bool), "enabled"), !m_Disabled);
-                m_EnabledSlot = VFXSlot.Create(prop, VFXSlot.Direction.kInput);
-                m_EnabledSlot.SetOwner(this);
+                m_ActivationSlot = VFXSlot.Create(prop, VFXSlot.Direction.kInput);
+                m_ActivationSlot.SetOwner(this);
+            }
+        }
+
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.OnInvalidate(model, cause);
+            if (model == activationSlot &&
+               (cause == InvalidationCause.kParamChanged || // This does not account for param/connection changed upstream
+                cause == InvalidationCause.kConnectionChanged))
+            {
+                Debug.Log("ENABLE SLOT CHANGED " + cause);
+                Invalidate(InvalidationCause.kEnableChanged);
             }
         }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
         {
             base.CollectDependencies(objs, ownedOnly);
-            objs.Add(m_EnabledSlot);
-            m_EnabledSlot.CollectDependencies(objs, ownedOnly);
+            objs.Add(m_ActivationSlot);
+            m_ActivationSlot.CollectDependencies(objs, ownedOnly);
         }
 
         public IEnumerable<VFXAttributeInfo> mergedAttributes

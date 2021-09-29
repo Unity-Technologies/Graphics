@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            m_EnabledAnchorController = new VFXContextDataInputAnchorController(model.enabledSlot, this, false);
+            m_EnabledAnchorController = new VFXContextDataInputAnchorController(model.activationSlot, this, false);
         }
 
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
