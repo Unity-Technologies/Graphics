@@ -20,7 +20,6 @@ nightly_katana_abv_validate:
     - sudo apt-get -y install python3-pip
     - pip3 install unidiff
     - copycat vendor --revision "${GIT_TAG:-${GIT_BRANCH%%' (tag)'}}" --sha "$GIT_REVISION" "../destination/$MANIFEST"
-    - python3 ../gfx-sdet-tools/scripts/srp_test_references_updater.py --srp-version $SRP_VERSION --destination-folder ../destination # Updates the test project references because packages are not located at the same relative path in <source> and <target>
     - copycat katana "../destination/$MANIFEST"
   triggers:
     recurring:
@@ -51,7 +50,6 @@ vendor:
     - | # Generates Ono PR ready release notes from the graphics changelogs changes included in the vendoring. Following line is shell syntax for stripping the @unity3d.com part of email address to only get the author handle
       author=${YAMATO_OWNER_EMAIL%@unity3d.com}
       python3 ../gfx-sdet-tools/scripts/gfx_to_ono_changelog_converter.py --author "$author" --unity-target-branch "$RELEASE_BRANCH"
-    - python3 ../gfx-sdet-tools/scripts/srp_test_references_updater.py --srp-version $SRP_VERSION --destination-folder ../destination
     - copycat ono --no-reviewers "../destination/$MANIFEST" ../diff.patch
     - copycat katana "../destination/$MANIFEST"
   artifacts:
