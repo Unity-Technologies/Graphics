@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Denoise;
         SerializedDataParameter m_DenoiserRadius;
 
-        public override bool hasAdvancedMode => (m_RayTracing == null || !(HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue));
+        public override bool hasAdvancedMode => (m_RayTracing == null || !(HDRenderPipeline.buildPipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue));
 
         public override void OnEnable()
         {
@@ -72,7 +72,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            if (HDRenderPipeline.pipelineSupportsRayTracing)
+            if (HDRenderPipeline.buildPipelineSupportsRayTracing)
                 PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced ambient occlusion."));
 
             // Shared attributes
@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_DirectLightingStrength, EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient light affects occlusion."));
 
             // If ray tracing is supported and it is enabled on this volume, display the ray tracing options.
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+            if (HDRenderPipeline.buildPipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
                 PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for ambient occlusion."));
                 base.OnInspectorGUI(); // Quality Setting

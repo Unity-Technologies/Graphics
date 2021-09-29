@@ -266,7 +266,11 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.shaderVariablesRaytracingCB = m_ShaderVariablesRayTracingCB;
             parameters.shaderVariablesRaytracingCB._RaytracingNumSamples = (int)m_SubFrameManager.subFrameCount;
             parameters.shaderVariablesRaytracingCB._RaytracingMinRecursion = m_PathTracingSettings.minimumDepth.value;
+#if NO_RAY_RECURSION
+            parameters.shaderVariablesRaytracingCB._RaytracingMaxRecursion = 1;
+#else
             parameters.shaderVariablesRaytracingCB._RaytracingMaxRecursion = m_PathTracingSettings.maximumDepth.value;
+#endif
             parameters.shaderVariablesRaytracingCB._RaytracingIntensityClamp = m_PathTracingSettings.maximumIntensity.value;
             parameters.shaderVariablesRaytracingCB._RaytracingSampleIndex = (int)parameters.cameraData.currentIteration;
 

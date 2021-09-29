@@ -103,7 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_Enable);
 
             // If ray tracing is supported display the content of the volume component
-            if (HDRenderPipeline.pipelineSupportsRayTracing)
+            if (HDRenderPipeline.buildPipelineSupportsRayTracing)
             {
                 PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced global illumination."));
             }
@@ -113,7 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (new HDEditorUtils.IndentScope())
             {
-                if (HDRenderPipeline.pipelineSupportsRayTracing)
+                if (HDRenderPipeline.buildPipelineSupportsRayTracing)
                 {
                     if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
                     {
@@ -268,7 +268,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool QualityEnabled()
         {
             // Quality always used for SSGI
-            if (!HDRenderPipeline.rayTracingSupportedBySystem || !m_RayTracing.value.boolValue)
+            if (!HDRenderPipeline.buildTargetSupportsRayTracing || !m_RayTracing.value.boolValue)
                 return true;
 
             // Handle the quality usage for RTGI
