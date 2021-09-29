@@ -79,7 +79,9 @@ namespace UnityEditor.Rendering.Universal
             Vector4 fogFactorAndVertexLight;
             [Optional]
             Vector4 shadowCoord;
-            [Semantic("CUSTOM_INSTANCE_ID")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")]
+            [Semantic("CUSTOM_INSTANCE_ID")]
+            [SystemGenerated]
+            [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")]
             uint instanceID;
             [Semantic("SV_RenderTargetArrayIndex")]
             [SystemGenerated]
