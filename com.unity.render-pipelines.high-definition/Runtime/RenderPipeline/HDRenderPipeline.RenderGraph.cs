@@ -305,7 +305,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                     {
-                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, uiBuffer, afterPostProcessBuffer, viewIndex, TEST_HDR());
+                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, uiBuffer, afterPostProcessBuffer, viewIndex, HDROutputIsActive());
                     }
 
                     if (aovRequest.isValid)
@@ -883,7 +883,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle depthBuffer)
         {
             var output = renderGraph.defaultResources.blackTextureXR;
-            if (TEST_HDR() && SupportedRenderingFeatures.active.rendersUIOverlay)
+            if (HDROutputIsActive() && SupportedRenderingFeatures.active.rendersUIOverlay)
             {
                 using (var builder = renderGraph.AddRenderPass<RenderOffscreenUIData>("UI Rendering", out var passData, ProfilingSampler.Get(HDProfileId.OffscreenUIRendering)))
                 {
@@ -2059,7 +2059,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderScreenSpaceOverlayUI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
-            if (!TEST_HDR() && SupportedRenderingFeatures.active.rendersUIOverlay && hdCamera.camera.cameraType != CameraType.SceneView)
+            if (!HDROutputIsActive() && SupportedRenderingFeatures.active.rendersUIOverlay && hdCamera.camera.cameraType != CameraType.SceneView)
             {
                 using (var builder = renderGraph.AddRenderPass<RenderScreenSpaceOverlayData>("Screen Space Overlay UI", out var passData))
                 {

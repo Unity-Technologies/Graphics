@@ -199,8 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
         }
 
-        // TODO_FCC: THIS IS NEEDED FOR TESTING, REPLACE WITH HDROutputSettings.main.active LATER
-        static bool TEST_HDR()
+        static bool HDROutputIsActive()
         {
             if (HDROutputSettings.main.available)
             {
@@ -209,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (HDROutputSettings.main.available && SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported))
             {
-                HDROutputSettings.main.automaticHDRTonemapping = false;
+                //   HDROutputSettings.main.automaticHDRTonemapping = false;
                 var minNits = HDROutputSettings.main.minToneMapLuminance;
                 var maxNits = HDROutputSettings.main.maxToneMapLuminance;
                 var gamut = HDROutputSettings.main.displayColorGamut;
@@ -1789,6 +1788,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
                     {
+                        // Make sure HDR auto tonemap is off
+                        if (HDROutputSettings.main.active)
+                        {
+                            HDROutputSettings.main.automaticHDRTonemapping = false;
+                        }
+
                         // Warm up the RTHandle system so that it gets init to the maximum resolution available (avoiding to call multiple resizes
                         // that can lead to high memory spike as the memory release is delayed while the creation is immediate).
                         {
