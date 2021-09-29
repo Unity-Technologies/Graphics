@@ -493,6 +493,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool stripShadowsOffVariants { get; set; } = false;
 
+        internal bool stripAdditionalLightOffVariants { get; set; } = false;
+
         public ScriptableRenderer(ScriptableRendererData data)
         {
             if (Debug.isDebugBuild)

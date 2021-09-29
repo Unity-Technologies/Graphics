@@ -157,11 +157,14 @@ namespace UnityEngine.Rendering.Universal
                 m_LightCookieManager = new LightCookieManager(ref settings);
             }
 
+            this.stripShadowsOffVariants = true;
+            this.stripAdditionalLightOffVariants = true;
+
             ForwardLights.InitParams forwardInitParams;
             forwardInitParams.lightCookieManager = m_LightCookieManager;
             forwardInitParams.clusteredRendering = data.clusteredRendering;
             forwardInitParams.tileSize = (int)data.tileSize;
-            forwardInitParams.additionalLightsAlwaysEnabled = true;
+            forwardInitParams.additionalLightsAlwaysEnabled = this.stripAdditionalLightOffVariants;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
@@ -178,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
             // we inject the builtin passes in the before events.
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
-            this.stripShadowsOffVariants = true;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
             // Schedule XR copydepth right after m_FinalBlitPass(AfterRendering + 1)
