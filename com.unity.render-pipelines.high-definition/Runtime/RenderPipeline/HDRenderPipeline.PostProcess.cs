@@ -4000,7 +4000,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 maxNits = (int)tonemappingComponent.maxNits.value;
             }
 
-            hdrOutputParameters1 = new Vector4(minNits, maxNits, paperWhite, 0);
+            hdrOutputParameters1 = new Vector4(minNits, maxNits, paperWhite, HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709 ? 1 : 2);
             hdrOutputParameters2 = new Vector4(eetfMode, maxNits, paperWhite, 0);
         }
 
