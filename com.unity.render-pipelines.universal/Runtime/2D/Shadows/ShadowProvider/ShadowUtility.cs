@@ -58,18 +58,18 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeIsClosedArray, bool allowContraction, ref NativeArray<Vector3> outContractionDirection)
+        static void CalculateContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingEdge, NativeArray<bool> inShapeIsClosedArray, bool allowContraction, ref NativeArray<Vector3> outContractionDirection)
         {
-            for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
+            for (int shapeIndex = 0; shapeIndex < inShapeStartingEdge.Length; shapeIndex++)
             {
-                int startingIndex = inShapeStartingIndices[shapeIndex];
+                int startingIndex = inShapeStartingEdge[shapeIndex];
 
                 if (startingIndex < 0)
                     return;
 
                 int nextStartingIndex = -1;
-                if (shapeIndex + 1 < inShapeStartingIndices.Length)
-                    nextStartingIndex = inShapeStartingIndices[shapeIndex + 1];
+                if (shapeIndex + 1 < inShapeStartingEdge.Length)
+                    nextStartingIndex = inShapeStartingEdge[shapeIndex + 1];
 
                 int numEdgesInCurShape = nextStartingIndex >= 0 ? nextStartingIndex - startingIndex : inEdges.Length - startingIndex;
 
@@ -143,17 +143,17 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateTriangles(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeIsClosedArray, ref NativeArray<int> outMeshIndices)
+        static void CalculateTriangles(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingEdge, NativeArray<bool> inShapeIsClosedArray, ref NativeArray<int> outMeshIndices)
         {
-            for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
+            for (int shapeIndex = 0; shapeIndex < inShapeStartingEdge.Length; shapeIndex++)
             {
-                int startingIndex = inShapeStartingIndices[shapeIndex];
+                int startingIndex = inShapeStartingEdge[shapeIndex];
                 if (startingIndex < 0)
                     return;
 
                 int endIndex = inEdges.Length;
-                if ((shapeIndex + 1) < inShapeStartingIndices.Length && inShapeStartingIndices[shapeIndex + 1] > -1)
-                    endIndex = inShapeStartingIndices[shapeIndex + 1];
+                if ((shapeIndex + 1) < inShapeStartingEdge.Length && inShapeStartingEdge[shapeIndex + 1] > -1)
+                    endIndex = inShapeStartingEdge[shapeIndex + 1];
 
                 int prevEdge = endIndex - 1;
                 for (int i = startingIndex; i < endIndex; i++)
@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // inEdges is expected to be contiguous
-        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeIsClosedArray, bool allowContraction, IShadowShape2DProvider.OutlineTopology topology)
+        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingEdge, NativeArray<bool> inShapeIsClosedArray, bool allowContraction, IShadowShape2DProvider.OutlineTopology topology)
         {
             // Setup our buffers
             int meshVertexCount = inVertices.Length + 2 * inEdges.Length;                       // Each vertex will have a duplicate that can be extruded.
@@ -233,10 +233,10 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<ShadowMeshVertex> meshFinalVertices = new NativeArray<ShadowMeshVertex>(meshVertexCount, Allocator.Temp);
             NativeArray<Vector3> contractionDirection = new NativeArray<Vector3>(inVertices.Length, Allocator.Temp);
 
-            CalculateContraction(inVertices, inEdges, inShapeStartingIndices, inShapeIsClosedArray, allowContraction, ref contractionDirection);
+            CalculateContraction(inVertices, inEdges, inShapeStartingEdge, inShapeIsClosedArray, allowContraction, ref contractionDirection);
             CalculateTangents(inVertices, inEdges, contractionDirection, ref meshTangents);                            // meshVertices contain a normal component
             CalculateVertices(inVertices, inEdges, meshTangents, ref meshFinalVertices);
-            CalculateTriangles(inVertices, inEdges, inShapeStartingIndices, inShapeIsClosedArray, ref meshIndices);
+            CalculateTriangles(inVertices, inEdges, inShapeStartingEdge, inShapeIsClosedArray, ref meshIndices);
 
             // Set the mesh data
             mesh.SetVertexBufferParams(meshVertexCount, m_VertexLayout);
@@ -290,10 +290,10 @@ namespace UnityEngine.Rendering.Universal
             return -1;
         }
 
-        static public void SortEdges(NativeArray<ShadowEdge> unsortedEdges, out NativeArray<ShadowEdge> sortedEdges, out NativeArray<int> shapeStartingIndices)
+        static public void SortEdges(NativeArray<ShadowEdge> unsortedEdges, out NativeArray<ShadowEdge> sortedEdges, out NativeArray<int> shapeStartingEdge)
         {
             sortedEdges = new NativeArray<ShadowEdge>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            shapeStartingIndices = new NativeArray<int>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            shapeStartingEdge = new NativeArray<int>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             NativeArray<int> edgeMap = new NativeArray<int>(unsortedEdges.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             NativeArray<bool> usedEdges = new NativeArray<bool>(unsortedEdges.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 edgeMap[unsortedEdges[i].v0] = i;
                 usedEdges[i] = false;
-                shapeStartingIndices[i] = -1;
+                shapeStartingEdge[i] = -1;
             }
 
             int currentShape = 0;
@@ -315,7 +315,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     edgeIndex = GetFirstUnusedIndex(usedEdges);
                     startingEdge = edgeIndex;
-                    shapeStartingIndices[currentShape++] = edgeIndex;
+                    shapeStartingEdge[currentShape++] = edgeIndex;
                     findStartingEdge = false;
                 }
 
@@ -332,15 +332,15 @@ namespace UnityEngine.Rendering.Universal
             edgeMap.Dispose();
         }
 
-        static public void InitializeShapeIsClosedArray(NativeArray<int> inShapeStartingIndices, out NativeArray<bool> outShapeIsClosedArray)
+        static public void InitializeShapeIsClosedArray(NativeArray<int> inShapeStartingEdge, out NativeArray<bool> outShapeIsClosedArray)
         {
-            outShapeIsClosedArray = new NativeArray<bool>(inShapeStartingIndices.Length, Allocator.Temp);
+            outShapeIsClosedArray = new NativeArray<bool>(inShapeStartingEdge.Length, Allocator.Temp);
             for(int i=0;i< outShapeIsClosedArray.Length;i++)
                 outShapeIsClosedArray[i] = true;
         }
 
 
-        static public void CalculateEdgesFromLines(NativeArray<int> indices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices, out NativeArray<bool> outShapeIsClosedArray)
+        static public void CalculateEdgesFromLines(NativeArray<int> indices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingEdge, out NativeArray<bool> outShapeIsClosedArray)
         {
             int numOfEdges = indices.Length >> 1;
             NativeArray<int> tempShapeStartIndices = new NativeArray<int>(numOfEdges, Allocator.Temp);
@@ -362,9 +362,7 @@ namespace UnityEngine.Rendering.Universal
                     tempShapeStartIndices[++shapeCount] = i >> 1;
                     closedShapeFound = false;
                 }
-
-                // If the last shape was not closed ie (A,B),(C,D)
-                if (indices[i] != lastIndex)
+                else if (indices[i] != lastIndex)
                 {
                     tempShapeIsClosedArray[shapeCount] = false;
                     tempShapeStartIndices[++shapeCount] = i >> 1;
@@ -380,11 +378,11 @@ namespace UnityEngine.Rendering.Universal
             tempShapeIsClosedArray[shapeCount++] = closedShapeFound;
 
             // Copy the our data to a smaller array
-            outShapeStartingIndices = new NativeArray<int>(shapeCount, Allocator.Temp);
+            outShapeStartingEdge = new NativeArray<int>(shapeCount, Allocator.Temp);
             outShapeIsClosedArray = new NativeArray<bool>(shapeCount, Allocator.Temp);
             for (int i = 0; i < shapeCount; i++)
             {
-                outShapeStartingIndices[i] = tempShapeStartIndices[i];
+                outShapeStartingEdge[i] = tempShapeStartIndices[i];
                 outShapeIsClosedArray[i] = tempShapeIsClosedArray[i];
             }
             tempShapeStartIndices.Dispose();
@@ -401,43 +399,7 @@ namespace UnityEngine.Rendering.Universal
                 outEdges[i] = new ShadowEdge(v0Index, v1Index);
             }
         }
-
-        static public void CalculateEdgesFromLineStrip(NativeArray<int> indices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices, out NativeArray<bool> outShapeIsClosedArray)
-        {
-            int numOfIndices = indices.Length;
-            int lastIndex = indices[numOfIndices - 1];
-
-            NativeArray<ShadowEdge> unsortedEdges = new NativeArray<ShadowEdge>(numOfIndices, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            for (int i = 0; i < numOfIndices; i++)
-            {
-                int curIndex = indices[i];
-                unsortedEdges[i] = new ShadowEdge(lastIndex, curIndex); ;
-                lastIndex = curIndex;
-            }
-
-            SortEdges(unsortedEdges, out outEdges, out outShapeStartingIndices);
-            unsortedEdges.Dispose();
-
-            InitializeShapeIsClosedArray(outShapeStartingIndices, out outShapeIsClosedArray);
-        }
-
-
-        static public void CalculateEdgesForSimpleLineStrip(int numOfIndices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices, out NativeArray<bool> outShapeIsClosedArray)
-        {
-            outShapeStartingIndices = new NativeArray<int>(1, Allocator.Persistent);
-            outShapeStartingIndices[0] = 0;
-
-            int lastIndex = numOfIndices - 1;
-            outEdges = new NativeArray<ShadowEdge>(numOfIndices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            for (int i = 0; i < numOfIndices; i++)
-            {
-                outEdges[i] = new ShadowEdge(lastIndex, i); ;
-                lastIndex = i;
-            }
-
-            InitializeShapeIsClosedArray(outShapeStartingIndices, out outShapeIsClosedArray);
-        }
-
+ 
 
         static public void RemapEdges(NativeArray<ShadowEdge> edges, NativeArray<int> map)
         {
@@ -451,7 +413,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
-        static public void CalculateEdgesFromTriangles(NativeArray<Vector3> vertices, NativeArray<int> indices, bool duplicatesVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices, out NativeArray<bool> outShapeIsClosedArray)
+        static public void CalculateEdgesFromTriangles(NativeArray<Vector3> vertices, NativeArray<int> indices, bool duplicatesVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingEdge, out NativeArray<bool> outShapeIsClosedArray)
         {
             NativeArray<int> processedIndices = indices;
             if (duplicatesVertices) // If this duplicates vertices (like sprite shape does)
@@ -478,7 +440,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             RemapEdges(unsortedEdges, originalToSubsetMap);
-            SortEdges(unsortedEdges, out outEdges, out outShapeStartingIndices);
+            SortEdges(unsortedEdges, out outEdges, out outShapeStartingEdge);
             RemapEdges(outEdges, subsetToOriginalMap);
 
             // Cleanup
@@ -486,20 +448,20 @@ namespace UnityEngine.Rendering.Universal
             subsetToOriginalMap.Dispose();
             unsortedEdges.Dispose();
 
-            InitializeShapeIsClosedArray(outShapeStartingIndices, out outShapeIsClosedArray);
+            InitializeShapeIsClosedArray(outShapeStartingEdge, out outShapeIsClosedArray);
         }
 
-        static public void ReverseWindingOrder(NativeArray<Vector3> inVertices, NativeArray<int> inShapeStartingIndices, NativeArray<ShadowEdge> inOutSortedEdges)
+        static public void ReverseWindingOrder(NativeArray<Vector3> inVertices, NativeArray<int> inShapeStartingEdge, NativeArray<ShadowEdge> inOutSortedEdges)
         {
-            for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
+            for (int shapeIndex = 0; shapeIndex < inShapeStartingEdge.Length; shapeIndex++)
             {
-                int startingIndex = inShapeStartingIndices[shapeIndex];
+                int startingIndex = inShapeStartingEdge[shapeIndex];
                 if (startingIndex < 0)
                     return;
 
-                int endIndex = inShapeStartingIndices.Length;
-                if ((shapeIndex + 1) < inShapeStartingIndices.Length && inShapeStartingIndices[shapeIndex + 1] > -1)
-                    endIndex = inShapeStartingIndices[shapeIndex + 1];
+                int endIndex = inShapeStartingEdge.Length;
+                if ((shapeIndex + 1) < inShapeStartingEdge.Length && inShapeStartingEdge[shapeIndex + 1] > -1)
+                    endIndex = inShapeStartingEdge[shapeIndex + 1];
 
                 // Reverse the winding order
                 int count = (endIndex - startingIndex);
@@ -519,24 +481,24 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static public void ClipEdges(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeIsClosedArray, float contractEdge, out NativeArray<Vector3> outVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingIndices)
+        static public void ClipEdges(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingEdge, NativeArray<bool> inShapeIsClosedArray, float contractEdge, out NativeArray<Vector3> outVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingEdge)
         {
             int k_SafeSize = 40;
             NativeArray<Vector3> tempVertices = new NativeArray<Vector3>(inVertices.Length * k_SafeSize, Allocator.Temp);
             NativeArray<ShadowEdge> tempEdges = new NativeArray<ShadowEdge>(inEdges.Length * k_SafeSize, Allocator.Temp);
-            outShapeStartingIndices = new NativeArray<int>(inShapeStartingIndices.Length, Allocator.Temp);
+            outShapeStartingEdge = new NativeArray<int>(inShapeStartingEdge.Length, Allocator.Temp);
 
-            for (int i = 0; i < outShapeStartingIndices.Length; i++)
-                outShapeStartingIndices[i] = -1;
+            for (int i = 0; i < outShapeStartingEdge.Length; i++)
+                outShapeStartingEdge[i] = -1;
 
             int currentTempVertexIndex = 0;
             int currentTempEdgeIndex = 0;
-            for (int shapeStartIndex = 0; (shapeStartIndex < inShapeStartingIndices.Length) && (inShapeStartingIndices[shapeStartIndex] >= 0); shapeStartIndex++)
+            for (int shapeStartIndex = 0; (shapeStartIndex < inShapeStartingEdge.Length) && (inShapeStartingEdge[shapeStartIndex] >= 0); shapeStartIndex++)
             {
                 // If its a closed shape try and do reduction
-                int currentShapeStart = inShapeStartingIndices[shapeStartIndex];
-                bool isLastIndex = (shapeStartIndex + 1) >= inShapeStartingIndices.Length || inShapeStartingIndices[shapeStartIndex + 1] < 0;
-                int nextShapeStart = !isLastIndex ? inShapeStartingIndices[shapeStartIndex + 1] : inEdges.Length;
+                int currentShapeStart = inShapeStartingEdge[shapeStartIndex];
+                bool isLastIndex = (shapeStartIndex + 1) >= inShapeStartingEdge.Length || inShapeStartingEdge[shapeStartIndex + 1] < 0;
+                int nextShapeStart = !isLastIndex ? inShapeStartingEdge[shapeStartIndex + 1] : inEdges.Length;
                 int numberOfEdges = nextShapeStart - currentShapeStart;
 
                 if (inShapeIsClosedArray[shapeStartIndex])
@@ -554,7 +516,7 @@ namespace UnityEngine.Rendering.Universal
                         int outputPathLength = ShadowPathClipper.GetOutputPathLength();
                         if (outputPathLength > 0)
                         {
-                            outShapeStartingIndices[shapeStartIndex] = currentTempEdgeIndex;
+                            outShapeStartingEdge[shapeStartIndex] = currentTempEdgeIndex;
                             ShadowPathClipper.GetOutputPath(tempVertices, currentTempVertexIndex);
 
                             // Create edges
