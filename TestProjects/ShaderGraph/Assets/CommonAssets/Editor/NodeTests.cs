@@ -94,16 +94,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
                             assertString = $"{incorrectPixels} incorrect pixels detected: {source} to {dest} ({conversionType})";
                             assertIncorrectPixels = incorrectPixels;
 
-                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
-                            ShaderGraphTestRenderer.ReportArtifact($"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
+                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.diff.png", reportArtifact: true);
 
                             renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true, ShaderGraphTestRenderer.Mode.EXPECTED);
-                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}_EXPECTED.png");
-                            ShaderGraphTestRenderer.ReportArtifact($"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
+                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.expected.png", reportArtifact: true);
 
                             renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true, ShaderGraphTestRenderer.Mode.ACTUAL);
-                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}_ACTUAL.png");
-                            ShaderGraphTestRenderer.ReportArtifact($"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png");
+                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png", reportArtifact: true);
                         }
 
                         RenderTexture.ReleaseTemporary(target);

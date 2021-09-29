@@ -90,7 +90,7 @@ public class ShaderGraphTestRenderer
         Debug.Log(Unity.TestProtocol.UnityTestProtocolMessageBuilder.Serialize(message));
     }
 
-    internal static void SaveToPNG(RenderTexture target, string path, bool createDirectory = true)
+    internal static void SaveToPNG(RenderTexture target, string path, bool createDirectory = true, bool reportArtifact = false)
     {
         if (createDirectory)
             CreateDirectoriesForFilePath(path);
@@ -108,6 +108,9 @@ public class ShaderGraphTestRenderer
             File.WriteAllBytes(path, pngData);
         }
         UnityEngine.Object.DestroyImmediate(temp);
+
+        if (reportArtifact)
+            ShaderGraphTestRenderer.ReportArtifact(path);
     }
 
     internal static int CountPixelsNotEqual(RenderTexture target, Color32 value, bool compareAlpha)
