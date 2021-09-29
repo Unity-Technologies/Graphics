@@ -760,31 +760,8 @@ namespace UnityEngine.Rendering.Universal
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             var stack = VolumeManager.instance.stack;
-            var exposure = stack.GetComponent<Exposure>();
-            cameraData.physicalParameters = baseAdditionalCameraData ? baseAdditionalCameraData.physicalParameters : new SRPPhysicalCamera();
-
-            if (exposure != null)
-            {
-                switch (exposure.mode.value)
-                {
-                    case ExposureMode.Fixed:
-                        cameraData.exposureMode = ExposureMode.Fixed;
-                        cameraData.exposure = exposure.fixedExposure.value;
-                        break;
-                    case ExposureMode.UsePhysicalCamera:
-                        cameraData.exposureMode = ExposureMode.UsePhysicalCamera;
-                        break;
-                    default:
-                        cameraData.exposureMode = ExposureMode.Fixed;
-                        cameraData.exposure = 1f;
-                        break;
-                }
-            }
-            else
-            {
-                cameraData.exposureMode = ExposureMode.Fixed;
-                cameraData.exposure = 1f;
-            }
+            cameraData.physicalParameters = baseAdditionalCameraData ? baseAdditionalCameraData.physicalParameters : SRPPhysicalCamera.GetDefaults();
+            cameraData.exposure = stack.GetComponent<Exposure>();
 
             ///////////////////////////////////////////////////////////////////
             // Environment and Post-processing settings                       /
@@ -802,8 +779,8 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                 if (UniversalAdditionalSceneViewSettings.sceneExposureOverriden)
                 {
-                    cameraData.exposureMode = ExposureMode.Fixed;
-                    cameraData.exposure = UniversalAdditionalSceneViewSettings.sceneExposure;
+                    cameraData.shouldOverrideExposure = true;
+                    cameraData.overrideExposureValue = UniversalAdditionalSceneViewSettings.sceneExposure;
                 }
 #endif
 #endif
@@ -869,6 +846,8 @@ namespace UnityEngine.Rendering.Universal
             cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(baseCamera);
         }
 
+        private static URPFrameCache s_FallbackFrameCache = new URPFrameCache();
+
         /// <summary>
         /// Initialize settings that can be different for each camera in the stack.
         /// </summary>
@@ -904,6 +883,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
+                cameraData.frameCache = s_FallbackFrameCache;
             }
             else if (additionalCameraData != null)
             {
@@ -914,6 +894,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
                 cameraData.renderer = additionalCameraData.scriptableRenderer;
+                cameraData.frameCache = additionalCameraData.frameCache;
             }
             else
             {
@@ -923,6 +904,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
+                cameraData.frameCache = s_FallbackFrameCache;
             }
 
             // Disables post if GLes2

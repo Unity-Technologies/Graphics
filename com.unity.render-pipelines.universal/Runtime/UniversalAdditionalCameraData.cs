@@ -208,6 +208,27 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    public class URPFrameCache
+    {
+        public RenderTexture m_ExposureTexture;
+        public RenderTexture m_PrevExposureTexture;
+        public ComputeShader m_ExposureComputeShader;
+
+
+        static void Swap<T>(ref T lhs, ref T rhs)
+        {
+            T temp;
+            temp = lhs;
+            lhs = rhs;
+            rhs = temp;
+        }
+
+        public void NewExposureFrame()
+        {
+            Swap(ref m_ExposureTexture, ref m_PrevExposureTexture);
+        }
+    }
+
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
@@ -262,6 +283,8 @@ namespace UnityEngine.Rendering.Universal
         bool m_RequiresColorTexture = false;
 
         [HideInInspector] [SerializeField] float m_Version = 2;
+
+        [NonSerialized] private URPFrameCache m_FrameCache = new URPFrameCache();
 
         public float version => m_Version;
 
@@ -370,6 +393,12 @@ namespace UnityEngine.Rendering.Universal
                 }
                 return m_Cameras;
             }
+        }
+
+        public URPFrameCache frameCache
+        {
+            get => m_FrameCache;
+            set => m_FrameCache = value;
         }
 
         internal void UpdateCameraStack()

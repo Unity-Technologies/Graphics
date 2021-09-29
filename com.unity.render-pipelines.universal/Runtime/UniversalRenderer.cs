@@ -123,6 +123,7 @@ namespace UnityEngine.Rendering.Universal
         internal PostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
         internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
         internal CalculateExposurePass calculateExposurePass { get => m_PostProcessPasses.calculateExposurePass; }
+        internal SetExposurePass setExposurePass { get => m_PostProcessPasses.setExposurePass; }
         internal RenderTargetHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
         internal DeferredLights deferredLights { get => m_DeferredLights; }
 
@@ -360,8 +361,6 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
-            Shader.SetGlobalFloat("_Exposure", Mathf.Clamp(cameraData.exposure, 0, float.MaxValue));
-
             DebugHandler?.Setup(context, ref cameraData);
 
             if (cameraData.cameraType != CameraType.Game)
@@ -595,6 +594,8 @@ namespace UnityEngine.Rendering.Universal
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
 
+            EnqueuePass(setExposurePass);
+
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
 
@@ -658,7 +659,6 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(colorGradingLutPass);
             }
 
-            calculateExposurePass.Setup();
             EnqueuePass(calculateExposurePass);
 
 #if ENABLE_VR && ENABLE_XR_MODULE

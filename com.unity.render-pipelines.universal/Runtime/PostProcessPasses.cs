@@ -4,13 +4,49 @@ using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
+    public class SetExposurePass : ScriptableRenderPass
+    {
+        public static readonly int _ExposureTexture = Shader.PropertyToID("_ExposureTexture");
+        public static readonly int _PrevExposureTexture = Shader.PropertyToID("_PrevExposureTexture");
+
+        public SetExposurePass(RenderPassEvent evt)
+        {
+            base.profilingSampler = new ProfilingSampler(nameof(SetExposurePass));
+            renderPassEvent = evt;
+            overrideCameraTarget = true;
+            base.useNativeRenderPass = false;
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            CommandBuffer cmd = CommandBufferPool.Get();
+            cmd.SetGlobalTexture(_ExposureTexture,
+                renderingData.cameraData.frameCache.m_ExposureTexture
+                    ? renderingData.cameraData.frameCache.m_ExposureTexture
+                    : Texture2D.whiteTexture);
+
+            cmd.SetGlobalTexture(_PrevExposureTexture,
+                renderingData.cameraData.frameCache.m_PrevExposureTexture
+                    ? renderingData.cameraData.frameCache.m_PrevExposureTexture
+                    : Texture2D.whiteTexture);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        public void Cleanup()
+        {
+        }
+    }
 
     public class CalculateExposurePass : ScriptableRenderPass
     {
-        RenderTargetHandle m_ExposureTextureHandle;
+       // RenderTargetHandle m_ExposureTextureHandle;
         ComputeShader m_ExposureComputeShader;
 
-        private static void GenerateExposureTexture(ExposureMode mode, SRPPhysicalCamera camera, float exposure, CommandBuffer cmd, ComputeShader exposureShader, RenderTargetHandle rth)
+        // public static readonly int _PreviousExposureTexture = Shader.PropertyToID("_PreviousExposureTexture");
+
+
+        private static void GenerateSimpleExposureTexture(ExposureMode mode, float compensation, float exposure, SRPPhysicalCamera camera, CommandBuffer cmd, ComputeShader exposureShader, RenderTexture rth)
         {
             if (exposureShader == null)
                 return;
@@ -22,21 +58,40 @@ namespace UnityEngine.Rendering.Universal
             if (mode == ExposureMode.Fixed)
             {
                 kernel = exposureShader.FindKernel("KFixedExposure");
-                exposureParams = new Vector4(0f, exposure, 0f, 0f);
+                exposureParams = new Vector4(compensation /*+ m_DebugExposureCompensation*/, exposure, 0f, 0f);
             }
             else // ExposureMode.UsePhysicalCamera
             {
-                var physicalCamera = camera;
                 kernel = exposureShader.FindKernel("KManualCameraExposure");
-                exposureParams = new Vector4(0f, physicalCamera.aperture, physicalCamera.shutterSpeed, physicalCamera.iso);
+                exposureParams = new Vector4(compensation, camera.aperture, camera.shutterSpeed, camera.iso);
             }
 
             cmd.SetComputeVectorParam(exposureShader, ShaderConstants._ExposureParams, exposureParams);
             cmd.SetComputeVectorParam(exposureShader, ShaderConstants._ExposureParams2, exposureParams2);
 
-            cmd.SetComputeTextureParam(exposureShader, kernel, ShaderConstants._OutputTexture, rth.id);
+            cmd.SetComputeTextureParam(exposureShader, kernel, ShaderConstants._OutputTexture, rth);
             cmd.DispatchCompute(exposureShader, kernel, 1, 1, 1);
         }
+
+        readonly RenderTextureDescriptor rtd = new()
+        {
+            width = 1,
+            height = 1,
+            msaaSamples = 1,
+            volumeDepth = 1,
+            mipCount = 0,
+            graphicsFormat = GraphicsFormat.R32G32_SFloat,
+            sRGB = false,
+            depthBufferBits = 0,
+            dimension = TextureDimension.Tex2D,
+            vrUsage = VRTextureUsage.None,
+            memoryless = RenderTextureMemoryless.None,
+            useMipMap = false,
+            autoGenerateMips = false,
+            enableRandomWrite = true,
+            bindMS = false,
+            useDynamicScale = false
+        };
 
         public CalculateExposurePass(RenderPassEvent evt, PostProcessData data)
         {
@@ -49,55 +104,71 @@ namespace UnityEngine.Rendering.Universal
             base.useNativeRenderPass = false;
         }
 
-        public void Setup()
-        {
-
-        }
-
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_ExposureTextureHandle = default;
-            m_ExposureTextureHandle.Init("_ExposureTexture");
+            // if we have no exposure... do nothing.
+            if (renderingData.cameraData.exposure == null
+                && !renderingData.cameraData.shouldOverrideExposure)
+                return;
 
-            RenderTextureDescriptor rtd = new RenderTextureDescriptor
+            //renderingData.cameraData.frameCache.NewExposureFrame();
+
+            if (renderingData.cameraData.frameCache.m_ExposureTexture == null)
             {
-                width = 1,
-                height = 1,
-                msaaSamples = 1,
-                volumeDepth = 1,
-                mipCount = 0,
-                graphicsFormat = GraphicsFormat.R32G32_SFloat,
-                sRGB = false,
-                depthBufferBits = 0,
-                dimension = TextureDimension.Tex2D,
-                vrUsage = VRTextureUsage.None,
-                memoryless = RenderTextureMemoryless.None,
-                useMipMap = false,
-                autoGenerateMips = false,
-                enableRandomWrite = true,
-                bindMS = false,
-                useDynamicScale = false
-            };
+                renderingData.cameraData.frameCache.m_ExposureTexture = new RenderTexture(rtd);
+                renderingData.cameraData.frameCache.m_PrevExposureTexture = new RenderTexture(rtd);
+                renderingData.cameraData.frameCache.m_ExposureComputeShader = Object.Instantiate(m_ExposureComputeShader);
+            }
 
             CommandBuffer cmd = CommandBufferPool.Get();
-            cmd.GetTemporaryRT(m_ExposureTextureHandle.id, rtd);
-            GenerateExposureTexture(
-                renderingData.cameraData.exposureMode,
-                renderingData.cameraData.physicalParameters,
-                renderingData.cameraData.exposure,
-                cmd,
-                m_ExposureComputeShader,
-                m_ExposureTextureHandle);
-            Graphics.ExecuteCommandBuffer(cmd);
+            cmd.SetGlobalTexture(SetExposurePass._ExposureTexture,Texture2D.whiteTexture);
+            cmd.SetGlobalTexture(SetExposurePass._PrevExposureTexture,Texture2D.whiteTexture);
+
+            // if we have overriddend exposure
+            if(renderingData.cameraData.shouldOverrideExposure == true)
+            {
+                GenerateSimpleExposureTexture(
+                    ExposureMode.Fixed,
+                    0,
+                    renderingData.cameraData.overrideExposureValue,
+                    renderingData.cameraData.physicalParameters,
+                    cmd,
+                    renderingData.cameraData.frameCache.m_ExposureComputeShader,
+                    renderingData.cameraData.frameCache.m_ExposureTexture);
+            }
+            else
+            {
+                //if we have a 'simple' exposure
+                switch (renderingData.cameraData.exposure.mode.value)
+                {
+                    case ExposureMode.Fixed:
+                    case ExposureMode.UsePhysicalCamera:
+                        GenerateSimpleExposureTexture(
+                            renderingData.cameraData.exposure.mode.value,
+                            renderingData.cameraData.exposure.compensation.value,
+                            renderingData.cameraData.exposure.fixedExposure.value,
+                            renderingData.cameraData.physicalParameters,
+                            cmd,
+                            renderingData.cameraData.frameCache.m_ExposureComputeShader,
+                            renderingData.cameraData.frameCache.m_ExposureTexture);
+                        break;
+                    case ExposureMode.Automatic:
+                    case ExposureMode.AutomaticHistogram:
+                    case ExposureMode.CurveMapping:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException("Unknown Exposure Mode");
+                }
+            }
+
+            context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
         /// <inheritdoc/>
         public override void OnFinishCameraStackRendering(CommandBuffer cmd)
-        {
-            cmd.ReleaseTemporaryRT(m_ExposureTextureHandle.id);
-        }
+        { }
 
         public void Cleanup()
         { }
@@ -120,6 +191,7 @@ namespace UnityEngine.Rendering.Universal
         PostProcessPass m_PostProcessPass;
         PostProcessPass m_FinalPostProcessPass;
         CalculateExposurePass m_CalculateExposurePass;
+        SetExposurePass m_SetExposurePass;
 
         RenderTargetHandle m_AfterPostProcessColor;
         RenderTargetHandle m_ColorGradingLut;
@@ -132,6 +204,8 @@ namespace UnityEngine.Rendering.Universal
         public PostProcessPass postProcessPass { get => m_PostProcessPass; }
         public PostProcessPass finalPostProcessPass { get => m_FinalPostProcessPass; }
         public CalculateExposurePass calculateExposurePass { get => m_CalculateExposurePass; }
+
+        public SetExposurePass setExposurePass { get => m_SetExposurePass; }
         public RenderTargetHandle afterPostProcessColor { get => m_AfterPostProcessColor; }
         public RenderTargetHandle colorGradingLut { get => m_ColorGradingLut; }
 
@@ -143,6 +217,7 @@ namespace UnityEngine.Rendering.Universal
             m_PostProcessPass = null;
             m_FinalPostProcessPass = null;
             m_CalculateExposurePass = null;
+            m_SetExposurePass = null;
             m_AfterPostProcessColor = new RenderTargetHandle();
             m_ColorGradingLut = new RenderTargetHandle();
             m_CurrentPostProcessData = null;
@@ -174,12 +249,15 @@ namespace UnityEngine.Rendering.Universal
                 m_PostProcessPass?.Cleanup();
                 m_FinalPostProcessPass?.Cleanup();
                 m_CalculateExposurePass?.Cleanup();
+                m_SetExposurePass?.Cleanup();
 
                 // We need to null post process passes to avoid using them
                 m_ColorGradingLutPass = null;
                 m_PostProcessPass = null;
                 m_FinalPostProcessPass = null;
                 m_CurrentPostProcessData = null;
+                m_CalculateExposurePass = null;
+                m_SetExposurePass = null;
             }
 
             if (data != null)
@@ -188,6 +266,7 @@ namespace UnityEngine.Rendering.Universal
                 m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data, m_BlitMaterial);
                 m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data, m_BlitMaterial);
                 m_CalculateExposurePass = new CalculateExposurePass(RenderPassEvent.AfterRenderingTransparents, data);
+                m_SetExposurePass = new SetExposurePass(RenderPassEvent.BeforeRendering);
                 m_CurrentPostProcessData = data;
             }
         }
@@ -199,6 +278,7 @@ namespace UnityEngine.Rendering.Universal
             m_PostProcessPass?.Cleanup();
             m_FinalPostProcessPass?.Cleanup();
             m_CalculateExposurePass?.Cleanup();
+            m_SetExposurePass?.Cleanup();
         }
     }
 }

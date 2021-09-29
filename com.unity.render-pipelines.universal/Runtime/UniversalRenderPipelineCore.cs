@@ -111,10 +111,11 @@ namespace UnityEngine.Rendering.Universal
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
-
-        public ExposureMode exposureMode;
-        public float exposure;
+        public Exposure exposure;
         public SRPPhysicalCamera physicalParameters;
+
+        public bool shouldOverrideExposure;
+        public float overrideExposureValue;
 
         /// <summary>
         /// Returns true if post processing passes require depth texture.
@@ -148,6 +149,8 @@ namespace UnityEngine.Rendering.Universal
         public bool isPreviewCamera => cameraType == CameraType.Preview;
 
         internal bool isRenderPassSupportedCamera => (cameraType == CameraType.Game || cameraType == CameraType.Reflection);
+
+        public URPFrameCache frameCache { get; set; }
 
 
         /// <summary>

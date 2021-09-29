@@ -23,10 +23,10 @@ uint4 _Variants;
 CBUFFER_END
 
 #define ParamEV100                      _ExposureParams.y
-#define ParamExposureCompensation       _ExposureParams.x
-#define ParamAperture                   _ExposureParams.y
-#define ParamShutterSpeed               _ExposureParams.z
-#define ParamISO                        _ExposureParams.w
+#define ParamExposureCompensation       _ExposureParams.x //0
+#define ParamAperture                   _ExposureParams.y //16
+#define ParamShutterSpeed               _ExposureParams.z //19.25
+#define ParamISO                        _ExposureParams.w //1627
 #define ParamSpeedLightToDark           _AdaptationParams.x
 #define ParamSpeedDarkToLight           _AdaptationParams.y
 #define ParamExposureLimitMin           _ExposureParams.y
