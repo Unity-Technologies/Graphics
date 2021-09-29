@@ -271,6 +271,10 @@ namespace UnityEngine.Rendering.Universal
                     GraphicsDeviceType.OpenGLES3
                 };
             }
+
+            LensFlareCommonSRP.mergeNeeded = 0;
+            LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
+            LensFlareCommonSRP.Initialize();
         }
 
         /// <inheritdoc />
@@ -287,6 +291,8 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_ObjectMotionVecMaterial);
 
             Blitter.Cleanup();
+
+            LensFlareCommonSRP.Dispose();
         }
 
         private void SetupFinalPassDebug(ref CameraData cameraData)
