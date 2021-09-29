@@ -1,4 +1,8 @@
-// Important! This file assumes Color.hlsl has been already included.
+// Important! This file assumes Color.hlsl and ACES.hlsl has been already included.
+#ifndef HDROUTPUT_INCLUDED
+#define HDROUTPUT_INCLUDED
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/HDROutputDefines.cs.hlsl"
 
 #if defined(HDR_OUTPUT_REC2020) || defined(HDR_OUTPUT_SCRGB)
 #define HDR_OUTPUT
@@ -335,9 +339,7 @@ float3 LinearToPQForLUT(float3 inputCol)
 // Also note, we always tonemap luminance component only, so we need to reach this point after we converted
 // to a format such as ICtCp or YCbCr
 // See https://www.desmos.com/calculator/pqc3raolms for plots
-#define REINHARD 0
-#define BT2390 1
-#define RANGE_REDUCTION BT2390
+#define RANGE_REDUCTION HDRRANGEREDUCTION_BT2390LUMA_ONLY
 
 // Note this takes x being in [0...10k nits]
 float ReinhardTonemap(float x, float peakValue)
@@ -388,9 +390,9 @@ float3 PerformRangeReduction(float3 input, float minNits, float maxNits)
 {
     float3 ICtCp = RotateOutputSpaceToICtCp(input); // This is in PQ space.
     float linearLuma = PQToLinear(ICtCp.x, MAX_PQ_VALUE);
-#if RANGE_REDUCTION == REINHARD
+#if RANGE_REDUCTION == HDRRANGEREDUCTION_REINHARD_LUMA_ONLY
     linearLuma = ReinhardTonemap(linearLuma, maxNits);
-#elif RANGE_REDUCTION == BT2390
+#elif RANGE_REDUCTION == HDRRANGEREDUCTION_BT2390LUMA_ONLY
     linearLuma = BT2390EETF(linearLuma, minNits, maxNits);
 #endif
     ICtCp.x = LinearToPQ(linearLuma);
@@ -401,39 +403,42 @@ float3 PerformRangeReduction(float3 input, float minNits, float maxNits)
 
 float3 PerformRangeReduction(float3 input, float minNits, float maxNits, int mode)
 {
-    if (mode < 3) // Only luminance.
+    float3 outputValue = input;
+    if (mode == HDRRANGEREDUCTION_NONE)
     {
-        float3 ICtCp = RotateOutputSpaceToICtCp(input); // This is in PQ space.
+        outputValue = input;
+    }
+    else if (mode == HDRRANGEREDUCTION_REINHARD_LUMA_ONLY || mode == HDRRANGEREDUCTION_BT2390LUMA_ONLY)
+    {
+        float3 ICtCp = RotateOutputSpaceToICtCp(input);
 
         float linearLuma = PQToLinear(ICtCp.x, MAX_PQ_VALUE);
-        if (mode == 1)
+        if (mode == HDRRANGEREDUCTION_REINHARD_LUMA_ONLY)
+        {
             linearLuma = ReinhardTonemap(linearLuma, maxNits);
-        else if (mode == 2)
+        }
+        else if (mode == HDRRANGEREDUCTION_BT2390LUMA_ONLY)
+        {
             linearLuma = BT2390EETF(linearLuma, minNits, maxNits);
+        }
 
         ICtCp.x = LinearToPQ(linearLuma);
 
-        return RotateICtCpToOutputSpace(ICtCp); // This moves back to linear too!
+        outputValue = RotateICtCpToOutputSpace(ICtCp);
     }
-    else
+    else if (mode == HDRRANGEREDUCTION_REINHARD)
     {
-        float3 outC = 0;
-
-        if (mode == 3)
-        {
-            outC.x = ReinhardTonemap(input.x, maxNits);
-            outC.y = ReinhardTonemap(input.y, maxNits);
-            outC.z = ReinhardTonemap(input.z, maxNits);
-        }
-        else if (mode == 4)
-        {
-            outC.x = BT2390EETF(input.x, minNits, maxNits);
-            outC.y = BT2390EETF(input.y, minNits, maxNits);
-            outC.z = BT2390EETF(input.z, minNits, maxNits);
-        }
-        return outC;
+        outputValue.x = ReinhardTonemap(input.x, maxNits);
+        outputValue.y = ReinhardTonemap(input.y, maxNits);
+        outputValue.z = ReinhardTonemap(input.z, maxNits);
     }
-    return 0;
+    else if (mode == HDRRANGEREDUCTION_BT2390)
+    {
+        outputValue.x = BT2390EETF(input.x, minNits, maxNits);
+        outputValue.y = BT2390EETF(input.y, minNits, maxNits);
+        outputValue.z = BT2390EETF(input.z, minNits, maxNits);
+    }
+    return outputValue;
 }
 
 
@@ -447,22 +452,18 @@ float3 PerformRangeReduction(float3 input, float minNits, float maxNits, int mod
 // performed range reduction and everything is assumed to be displayed on a reference 10k nits display and everything post-tonemapping
 // is in either the Rec 2020 or Rec709 color space. The Rec709 version just rotate to Rec2020 before going forward if required by the output device.
 
-float3 HDRMappingFromRec2020(float3 Rec2020Input, float hdrBoost, float minNits, float maxNits)
+float3 HDRMappingFromRec2020(float3 Rec2020Input, float paperWhite, float minNits, float maxNits, int reductionMode)
 {
     float3 outputSpaceInput = RotateRec2020ToOutputSpace(Rec2020Input);
 
-    // The reason to have a boost factor is because the standard for SDR is peaking at 100nits, but televisions are typically 300nits
-    // and the colours get boosted. If we want equivalent look in HDR a similar boost needs to happen. It might look washed out otherwise.
-    float3 reducedHDR = PerformRangeReduction(outputSpaceInput * hdrBoost, minNits, maxNits);
+    float3 reducedHDR = PerformRangeReduction(outputSpaceInput * paperWhite, minNits, maxNits, reductionMode);
     return OETF(reducedHDR);
 }
 
-float3 HDRMappingFromRec709(float3 Rec709Input, float hdrBoost, float minNits, float maxNits, int reductionMode, bool skipOETF = false)
+float3 HDRMappingFromRec709(float3 Rec709Input, float paperWhite, float minNits, float maxNits, int reductionMode, bool skipOETF = false)
 {
     float3 outputSpaceInput = RotateRec709ToOutputSpace(Rec709Input);
-    // The reason to have a boost factor is because the standard for SDR is peaking at 100nits, but televisions are typically 300nits
-    // and the colours get boosted. If we want equivalent look in HDR a similar boost needs to happen. It might look washed out otherwise.
-    float3 reducedHDR = PerformRangeReduction(outputSpaceInput * hdrBoost, minNits, maxNits, reductionMode);
+    float3 reducedHDR = PerformRangeReduction(outputSpaceInput * paperWhite, minNits, maxNits, reductionMode);
 
     if (skipOETF) return reducedHDR;
 
@@ -470,11 +471,26 @@ float3 HDRMappingFromRec709(float3 Rec709Input, float hdrBoost, float minNits, f
 }
 
 
-float3 HDRMappingFromRec709_ACES(float3 Rec709Input, float hdrBoost, bool skipOETF = false)
+float3 HDRMappingFromRec709_ACES(float3 Rec709Input, float hdrBoost, int reductionMode, bool skipOETF = false)
 {
     float3 aces = unity_to_ACES(Rec709Input * hdrBoost * 0.01f);
     float3 oces = RRT(aces);
-    float3 AP1ODT = ODT_1000nits_ToAP1(oces);
+
+    float3 AP1ODT = 0;
+
+    // This is a static branch.
+    if (reductionMode == HDRRANGEREDUCTION_ACES1000NITS)
+    {
+        AP1ODT = ODT_1000nits_ToAP1(oces);
+    }
+    else if (reductionMode == HDRRANGEREDUCTION_ACES2000NITS)
+    {
+        AP1ODT = ODT_2000nits_ToAP1(oces);
+    }
+    else if (reductionMode == HDRRANGEREDUCTION_ACES4000NITS)
+    {
+        AP1ODT = ODT_4000nits_ToAP1(oces);
+    }
 
     float3 linearODT = 0;
 #if defined(HDR_OUTPUT_SCRGB)
@@ -515,3 +531,5 @@ float3 SceneUIComposition(float4 uiSample, float3 sceneColor, float paperWhite, 
 }
 
 // --------------------------------------------------------------------------------------------
+
+#endif

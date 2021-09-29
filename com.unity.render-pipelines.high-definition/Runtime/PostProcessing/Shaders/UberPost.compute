@@ -17,7 +17,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 #if defined(HDR_OUTPUT_REC2020) || defined(HDR_OUTPUT_SCRGB)
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HDROutput.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
 #endif
 
 TEXTURE2D_X(_InputTexture);

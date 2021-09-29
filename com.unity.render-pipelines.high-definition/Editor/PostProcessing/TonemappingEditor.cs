@@ -28,6 +28,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HDRDetectNitLimits;
         SerializedDataParameter m_HDRMinNits;
         SerializedDataParameter m_HDRMaxNits;
+        SerializedDataParameter m_HDRAcesPreset;
+
         public override bool hasAdditionalProperties => true;
 
         // Curve drawing utilities
@@ -57,6 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HDRDetectNitLimits = Unpack(o.Find(x => x.detectBrightnessLimits));
             m_HDRMinNits = Unpack(o.Find(x => x.minNits));
             m_HDRMaxNits = Unpack(o.Find(x => x.maxNits));
+            m_HDRAcesPreset = Unpack(o.Find(x => x.acesPreset));
 
             m_Material = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/Custom Tonemapper Curve"));
         }
@@ -175,6 +178,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_HDRMaxNits);
                     }
                     EditorGUI.indentLevel--;
+                }
+                if (hdrTonemapMode == (int)TonemappingMode.ACES)
+                {
+                    PropertyField(m_HDRAcesPreset);
                 }
             }
         }

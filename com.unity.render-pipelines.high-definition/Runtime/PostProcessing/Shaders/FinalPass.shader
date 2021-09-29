@@ -23,7 +23,7 @@ Shader "Hidden/HDRP/FinalPass"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
 #if defined(HDR_OUTPUT_REC2020) || defined(HDR_OUTPUT_SCRGB)
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HDROutput.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
 #endif
         #pragma enable_d3d11_debug_symbols
 

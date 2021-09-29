@@ -402,30 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (outputsToHDR)
                 {
                     passData.blitMaterial = m_FinalBlitWithOETF;
-
-                    var minNits = HDROutputSettings.main.minToneMapLuminance;
-                    var maxNits = HDROutputSettings.main.maxToneMapLuminance;
-                    var paperWhite = HDROutputSettings.main.paperWhiteNits;
-                    int eetfMode = 0;
-                    if (m_Tonemapping.mode.value == TonemappingMode.Neutral ||
-                        m_Tonemapping.mode.value == TonemappingMode.Custom ||
-                        m_Tonemapping.mode.value == TonemappingMode.External)
-                    {
-                        eetfMode = (int)m_Tonemapping.neutralHDRRangeReductionMode.value +
-                            ((m_Tonemapping.tonemapOnlyLuminance.value) ? 0 : 2);
-                    }
-                    if (!m_Tonemapping.detectPaperWhite.value)
-                    {
-                        paperWhite = m_Tonemapping.paperWhite.value;
-                    }
-                    if (!m_Tonemapping.detectBrightnessLimits.value)
-                    {
-                        minNits = (int)m_Tonemapping.minNits.value;
-                        maxNits = (int)m_Tonemapping.maxNits.value;
-                    }
-
-                    passData.hdrOutputParmeters = new Vector4(minNits, maxNits, paperWhite, 0);
-
+                    GetHDROutputParameters(m_Tonemapping, out passData.hdrOutputParmeters, out var unused);
                     passData.uiTexture = builder.ReadTexture(uiTexture);
                 }
                 else

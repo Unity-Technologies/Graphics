@@ -40,7 +40,6 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Available options for when HDR Output is enabled and Tonemap is set to Neutral.
     /// </summary>
-    /// <seealso cref="Tonemapping.mode"/>
     public enum NeutralRangeReductionMode
     {
         /// <summary>
@@ -53,6 +52,26 @@ namespace UnityEngine.Rendering.HighDefinition
         BT2390 = 2
     }
 
+    /// <summary>
+    /// Preset used when selecting ACES tonemapping for HDR displays.
+    /// </summary>
+    public enum HDRACESPreset
+    {
+        /// <summary>
+        /// Preset for display with maximum 1000 nits display.
+        /// </summary>
+        ACES1000Nits = HDRRangeReduction.ACES1000Nits,
+        /// <summary>
+        /// Preset for display with maximum 2000 nits display.
+        /// </summary>
+        ACES2000Nits = HDRRangeReduction.ACES2000Nits,
+        /// <summary>
+        /// Preset for display with maximum 4000 nits display.
+        /// </summary>
+        ACES4000Nits = HDRRangeReduction.ACES4000Nits,
+    }
+
+
     [Serializable]
     public sealed class NeutralRangeReductionModeParameter : VolumeParameter<NeutralRangeReductionMode>
     {
@@ -64,6 +83,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public NeutralRangeReductionModeParameter(NeutralRangeReductionMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 
+    [Serializable]
+    public sealed class HDRACESPresetParameter : VolumeParameter<HDRACESPreset>
+    {
+        /// <summary>
+        /// Creates a new <see cref="HDRACESPresetParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public HDRACESPresetParameter(HDRACESPreset value, bool overrideState = false) : base(value, overrideState) { }
+    }
 
     /// <summary>
     /// A volume component that holds settings for the Tonemapping effect.
@@ -143,10 +172,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies the range reduction mode used when HDR output is enabled and Neutral tonemapping is enabled.
         /// </summary>
-        /// <seealso cref="TonemappingMode"/>
         [AdditionalProperty]
         [Tooltip("Specifies the range reduction mode used when HDR output is enabled and Neutral tonemapping is enabled.")]
         public NeutralRangeReductionModeParameter neutralHDRRangeReductionMode = new NeutralRangeReductionModeParameter(NeutralRangeReductionMode.BT2390);
+
+        /// <summary>
+        /// Specifies the preset to be used for HDR displays.
+        /// </summary>
+        [Tooltip("Specifies the ACES preset to be used for HDR displays.")]
+        public HDRACESPresetParameter acesPreset = new HDRACESPresetParameter(HDRACESPreset.ACES1000Nits);
 
         /// <summary>
         /// Whether to tonemap only the luminance when HDR Output is enabled, while keeping chroma intact.
@@ -170,10 +204,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Whether to use the minimum and maximum brightness values detected from the output device. It might be worth considering calibrating this values manually if the results are not the desired ones.")]
         public BoolParameter detectBrightnessLimits = new BoolParameter(true);
         /// <summary>
-        /// The minimum brightness (in nits) of the screen. Note that this is assumed to be 0.0f with ACES Tonemap.
+        /// The minimum brightness (in nits) of the screen. Note that this is assumed to be 0.005f with ACES Tonemap.
         /// </summary>
         [Tooltip("The minimum brightness (in nits) of the screen. Note that this is assumed to be 0.0f with ACES Tonemap.")]
-        public ClampedFloatParameter minNits = new ClampedFloatParameter(0.0f, 0.0f, 50.0f);
+        public ClampedFloatParameter minNits = new ClampedFloatParameter(0.005f, 0.0f, 50.0f);
         /// <summary>
         /// The maximum brightness (in nits) of the screen. Note that this is assumed to be 1000.0f with ACES Tonemap.
         /// </summary>

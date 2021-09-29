@@ -3472,7 +3472,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
-
         #region Panini Projection
         Vector2 CalcViewExtents(HDCamera camera)
         {
@@ -3906,29 +3905,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.builderCS.EnableKeyword("HDR_OUTPUT_REC2020");
                 }
 
-                var minNits = HDROutputSettings.main.minToneMapLuminance;
-                var maxNits = HDROutputSettings.main.maxToneMapLuminance;
-                var paperWhite = HDROutputSettings.main.paperWhiteNits;
-                int eetfMode = 0;
-                if (m_Tonemapping.mode.value == TonemappingMode.Neutral ||
-                    m_Tonemapping.mode.value == TonemappingMode.Custom ||
-                    m_Tonemapping.mode.value == TonemappingMode.External)
-                {
-                    eetfMode = (int)m_Tonemapping.neutralHDRRangeReductionMode.value +
-                        ((m_Tonemapping.tonemapOnlyLuminance.value) ? 0 : 2);
-                }
-                if (!m_Tonemapping.detectPaperWhite.value)
-                {
-                    paperWhite = m_Tonemapping.paperWhite.value;
-                }
-                if (!m_Tonemapping.detectBrightnessLimits.value)
-                {
-                    minNits = (int)m_Tonemapping.minNits.value;
-                    maxNits = (int)m_Tonemapping.maxNits.value;
-                }
-
-                passData.hdroutParameters = new Vector4(minNits, maxNits, paperWhite, 0);
-                passData.hdroutParameters2 = new Vector4(eetfMode, maxNits, paperWhite, 0);
+                GetHDROutputParameters(m_Tonemapping, out passData.hdroutParameters, out passData.hdroutParameters2);
             }
 
             passData.lutSize = m_LutSize;
@@ -3986,6 +3963,45 @@ namespace UnityEngine.Rendering.HighDefinition
             var w1 = new Vector3(0.949237f, 1.03542f, 1.08728f); // D65 white point
             var w2 = ColorUtils.CIExyToLMS(x, y);
             return new Vector3(w1.x / w2.x, w1.y / w2.y, w1.z / w2.z);
+        }
+
+        public static void GetHDROutputParameters(Tonemapping tonemappingComponent, out Vector4 hdrOutputParameters1, out Vector4 hdrOutputParameters2)
+        {
+            var minNits = HDROutputSettings.main.minToneMapLuminance;
+            var maxNits = HDROutputSettings.main.maxToneMapLuminance;
+            var paperWhite = HDROutputSettings.main.paperWhiteNits;
+            int eetfMode = 0;
+            if (tonemappingComponent.mode.value == TonemappingMode.Neutral ||
+                tonemappingComponent.mode.value == TonemappingMode.Custom ||
+                tonemappingComponent.mode.value == TonemappingMode.External)
+            {
+                bool luminanceOnly = tonemappingComponent.tonemapOnlyLuminance.value;
+                if (tonemappingComponent.neutralHDRRangeReductionMode.value == NeutralRangeReductionMode.BT2390)
+                {
+                    eetfMode = luminanceOnly ? (int)HDRRangeReduction.BT2390LumaOnly : (int)HDRRangeReduction.BT2390;
+                }
+                if (tonemappingComponent.neutralHDRRangeReductionMode.value == NeutralRangeReductionMode.Reinhard)
+                {
+                    eetfMode = luminanceOnly ? (int)HDRRangeReduction.ReinhardLumaOnly : (int)HDRRangeReduction.Reinhard;
+                }
+            }
+            if (tonemappingComponent.mode.value == TonemappingMode.ACES)
+            {
+                eetfMode = (int)tonemappingComponent.acesPreset.value;
+            }
+
+            if (!tonemappingComponent.detectPaperWhite.value)
+            {
+                paperWhite = tonemappingComponent.paperWhite.value;
+            }
+            if (!tonemappingComponent.detectBrightnessLimits.value)
+            {
+                minNits = (int)tonemappingComponent.minNits.value;
+                maxNits = (int)tonemappingComponent.maxNits.value;
+            }
+
+            hdrOutputParameters1 = new Vector4(minNits, maxNits, paperWhite, 0);
+            hdrOutputParameters2 = new Vector4(eetfMode, maxNits, paperWhite, 0);
         }
 
         void ComputeShadowsMidtonesHighlights(out Vector4 shadows, out Vector4 midtones, out Vector4 highlights, out Vector4 limits)
@@ -4809,29 +4825,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (TEST_HDR())
                 {
-                    var minNits = HDROutputSettings.main.minToneMapLuminance;
-                    var maxNits = HDROutputSettings.main.maxToneMapLuminance;
-                    var paperWhite = HDROutputSettings.main.paperWhiteNits;
-                    int eetfMode = 0;
-                    if (m_Tonemapping.mode.value == TonemappingMode.Neutral ||
-                        m_Tonemapping.mode.value == TonemappingMode.Custom ||
-                        m_Tonemapping.mode.value == TonemappingMode.External)
-                    {
-                        eetfMode = (int)m_Tonemapping.neutralHDRRangeReductionMode.value +
-                            ((m_Tonemapping.tonemapOnlyLuminance.value) ? 0 : 2);
-                    }
-                    if (!m_Tonemapping.detectPaperWhite.value)
-                    {
-                        paperWhite = m_Tonemapping.paperWhite.value;
-                    }
-                    if (!m_Tonemapping.detectBrightnessLimits.value)
-                    {
-                        minNits = (int)m_Tonemapping.minNits.value;
-                        maxNits = (int)m_Tonemapping.maxNits.value;
-                    }
-
-                    passData.hdroutParameters = new Vector4(minNits, maxNits, paperWhite, 0);
-                    passData.hdroutParameters2 = new Vector4(eetfMode, maxNits, paperWhite, 0);
+                    GetHDROutputParameters(m_Tonemapping, out passData.hdroutParameters, out passData.hdroutParameters2);
                 }
 
 
