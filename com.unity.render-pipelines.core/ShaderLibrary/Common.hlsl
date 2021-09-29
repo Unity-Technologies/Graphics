@@ -1354,6 +1354,12 @@ real SinFromCos(real cosX)
     return sqrt(saturate(1 - cosX * cosX));
 }
 
+// Similar function as above just for code readability.
+real CosFromSin(real sinX)
+{
+    return SinFromCos(sinX);
+}
+
 // Dot product in spherical coordinates.
 real SphericalDot(real cosTheta1, real phi1, real cosTheta2, real phi2)
 {
