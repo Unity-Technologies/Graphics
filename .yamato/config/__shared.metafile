@@ -264,6 +264,9 @@ platforms:
             retries: 2
         turn_off_firewall:
           - command: NetSh Advfirewall set allprofiles state off
+        log_parser:
+          - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 
   OSX:
     name: OSX
@@ -317,8 +320,8 @@ platforms:
           - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only'
             retries: 2
         log_parser:
-          - command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
-          - command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
+          - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
       [OpenGlCore]:
         setup_utr:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
@@ -337,7 +340,8 @@ platforms:
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
             retries: 2
         log_parser:
-          - command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
+          - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 
 
   Linux:
@@ -379,7 +383,8 @@ platforms:
           - command: sudo unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
             retries: 2
         log_parser:
-          - command: python .yamato/script/log_scripts/log_parser.py || exit 0
+          - command: pip install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 
 
   Android:
@@ -449,8 +454,8 @@ platforms:
           - command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
             retries: 2
         log_parser:
-          - command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
-          - command: python .yamato/script/log_scripts/log_parser.py || exit 0
+          - command: pip install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 
 
   XRQuest:
@@ -504,8 +509,8 @@ platforms:
           - command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
             retries: 2
         log_parser:
-          - command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
-          - command: python .yamato/script/log_scripts/log_parser.py || exit 0
+          - command: pip install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 
   iPhone:
     name: iPhone
@@ -543,8 +548,8 @@ platforms:
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp  --wait --published-only
             retries: 2
         log_parser:
-          - command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
-          - command: python3 .yamato/script/log_scripts/log_parser.py || exit 0
+          - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 non_project_agents:
   package_ci_ubuntu_large:
     type: Unity::VM
