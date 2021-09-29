@@ -167,6 +167,8 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
         // Note that to fetch custom velocity here we must use the inputMesh and not the previousMesh
         // in the case the custom velocity depends on the positionOS
         // otherwise it will apply two times the modifications.
+        // However the vertex animation will still be perform correctly as we used previousMesh position
+        // where we could ahve trouble is if time is used to drive custom velocity, this will not work
         previousMesh.positionOS -= GetCustomVelocity(inputMesh);
 #endif
 
