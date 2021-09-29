@@ -307,11 +307,11 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void Link_Fail_From_Update_To_Update()
+        public void Link_Success_From_Update_To_Update()
         {
             var from = ScriptableObject.CreateInstance<VFXBasicUpdate>();
             var to = ScriptableObject.CreateInstance<VFXBasicUpdate>();
-            Assert.IsFalse(VFXContext.CanLink(from, to));
+            Assert.IsTrue(VFXContext.CanLink(from, to));
         }
 
         [Test]

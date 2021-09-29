@@ -264,10 +264,6 @@ namespace UnityEditor.VFX
             if (from.m_ContextType == VFXContextType.SpawnerGPU && to.m_ContextType != VFXContextType.Init)
                 return false;
 
-            //Update to Update is forbidden
-            if (from.m_ContextType == VFXContextType.Update && to.m_ContextType == VFXContextType.Update)
-                return false;
-
             //If we want to prevent no mixing of GPUEvent & Spawn Context on Initialize. (allowed but disconnect invalid link)
             /*if (to.m_ContextType == VFXContextType.Init)
             {
