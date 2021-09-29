@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed a Universal Targets in ShaderGraph not rendering correctly in game view [1352225]
+- Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
 
 ## [12.0.0] - 2021-01-11
 ### Added
