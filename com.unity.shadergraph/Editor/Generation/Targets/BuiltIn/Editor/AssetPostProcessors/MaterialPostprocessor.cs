@@ -74,6 +74,9 @@ namespace UnityEditor.Rendering.BuiltIn
                 // This skips any materials that only target other render pipelines, are user shaders,
                 // or are shaders we don't care to version
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                if (material == null)
+                    continue;
+
                 var shaderID = GetShaderID(material.shader);
                 if (shaderID == ShaderID.Unknown)
                     continue;
