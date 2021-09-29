@@ -13,6 +13,7 @@ namespace UnityEditor.VFX.UI
     class VFXBlockUI : VFXNodeUI
     {
         Toggle m_EnableToggle;
+        VFXEditableDataAnchor m_EnableAnchor;
 
         public new VFXBlockController controller
         {
@@ -37,7 +38,8 @@ namespace UnityEditor.VFX.UI
             pickingMode = PickingMode.Position;
             m_EnableToggle = new Toggle();
             m_EnableToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleEnable);
-            titleContainer.Insert(1, m_EnableToggle);
+
+            //titleContainer.Insert(0, m_EnableToggle);
 
             capabilities &= ~Capabilities.Ascendable;
             capabilities |= Capabilities.Selectable | Capabilities.Droppable;
@@ -45,6 +47,13 @@ namespace UnityEditor.VFX.UI
 
             Profiler.EndSample();
             style.position = PositionType.Relative;
+        }
+
+        protected override void OnNewController()
+        {
+            base.OnNewController();
+            m_EnableAnchor = VFXEditableDataAnchor.Create(controller.enabledAnchorController, this);
+            titleContainer.Insert(0, m_EnableAnchor);
         }
 
         // On purpose -- until we support Drag&Drop I suppose
