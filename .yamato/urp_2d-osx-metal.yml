@@ -39,7 +39,7 @@ URP_2D_OSX_Metal_Standalone_mono_Linear_2021.2:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
     artifacts:
         logs:
@@ -80,7 +80,7 @@ URP_2D_OSX_Metal_playmode_mono_Linear_2021.2:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
     artifacts:
         logs:
@@ -121,7 +121,7 @@ URP_2D_OSX_Metal_playmode_XR_mono_Linear_2021.2:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
     artifacts:
         logs:
@@ -162,7 +162,7 @@ URP_2D_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
     artifacts:
         logs:
@@ -203,7 +203,7 @@ URP_2D_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
     artifacts:
         logs:
@@ -244,7 +244,7 @@ URP_2D_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
     artifacts:
         logs:
