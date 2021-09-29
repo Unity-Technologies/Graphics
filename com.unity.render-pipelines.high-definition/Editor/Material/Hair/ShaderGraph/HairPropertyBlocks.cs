@@ -51,8 +51,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.CreatePropertyGUI();
 
+            // Hide the color mode for now and let it silently default to Base Color. We will discuss with artists before we expose it.
+            // AddProperty(Styles.colorParameterization, () => hairData.colorParameterization, (newValue) => hairData.colorParameterization = newValue);
+
             // Hair specific properties GUI
-            AddProperty(Styles.colorParameterization, () => hairData.colorParameterization, (newValue) => hairData.colorParameterization = newValue);
             AddProperty(Styles.geometryType, () => hairData.geometryType, (newValue) => hairData.geometryType = newValue);
 
             if (hairData.materialType == HairData.MaterialType.Marschner)

@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        ColorParameterization m_ColorParameterization;
+        ColorParameterization m_ColorParameterization = ColorParameterization.BaseColor;
 
         public ColorParameterization colorParameterization
         {
