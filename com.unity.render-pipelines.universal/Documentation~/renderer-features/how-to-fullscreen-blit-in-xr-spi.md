@@ -108,7 +108,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ConfigureTarget(new RenderTargetIdentifier(m_CameraColorTarget, 0, CubemapFace.Unknown, -1), descriptor.depthStencilFormat, desc.width, desc.height, 1, true);
+		    ConfigureTarget(new RenderTargetIdentifier(m_CameraColorTarget, 0, CubemapFace.Unknown, -1));
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
