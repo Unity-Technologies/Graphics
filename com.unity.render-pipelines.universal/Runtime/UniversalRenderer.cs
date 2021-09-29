@@ -581,14 +581,14 @@ namespace UnityEngine.Rendering.Universal
             if (UniversalRenderPipeline.asset.supportsMainLightShadows)
             {
                 if (!mainLightShadows)
-                    m_MainLightShadowCasterPass.SetupEmpty();
+                    m_MainLightShadowCasterPass.SetupForEmptyRendering();
                 EnqueuePass(m_MainLightShadowCasterPass);
             }
 
             if (UniversalRenderPipeline.asset.supportsAdditionalLightShadows)
             {
                 if (!additionalLightShadows)
-                    m_AdditionalLightsShadowCasterPass.SetupEmpty();
+                    m_AdditionalLightsShadowCasterPass.SetupForEmptyRendering();
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
             }
 

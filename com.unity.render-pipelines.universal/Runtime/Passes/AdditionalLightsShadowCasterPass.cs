@@ -794,7 +794,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return true;
         }
 
-        internal void SetupEmpty()
+        internal void SetupForEmptyRendering()
         {
             m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(1, 1, k_ShadowmapBufferBits);
             m_CreateEmptyShadowmap = true;
@@ -812,7 +812,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (m_CreateEmptyShadowmap)
             {
-                EmptyAdditionalShadowmapAtlas(ref context);
+                SetEmptyAdditionalShadowmapAtlas(ref context);
                 return;
             }
 
@@ -849,7 +849,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AdditionalLightsShadowmapTexture = null;
         }
 
-        void EmptyAdditionalShadowmapAtlas(ref ScriptableRenderContext context)
+        void SetEmptyAdditionalShadowmapAtlas(ref ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, true);

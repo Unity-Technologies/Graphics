@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class MainLightShadowCasterPass : ScriptableRenderPass
     {
-        public static class MainLightShadowConstantBuffer
+        private static class MainLightShadowConstantBuffer
         {
             public static int _WorldToShadow;
             public static int _ShadowParams;
@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return true;
         }
 
-        internal void SetupEmpty()
+        internal void SetupForEmptyRendering()
         {
             m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(1, 1, k_ShadowmapBufferBits);
             m_CreateEmptyShadowmap = true;
@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (m_CreateEmptyShadowmap)
             {
-                EmptyMainLightCascadeShadowmap(ref context);
+                SetEmptyMainLightCascadeShadowmap(ref context);
                 return;
             }
 
@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_CascadeSlices[i].Clear();
         }
 
-        void EmptyMainLightCascadeShadowmap(ref ScriptableRenderContext context)
+        void SetEmptyMainLightCascadeShadowmap(ref ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, true);

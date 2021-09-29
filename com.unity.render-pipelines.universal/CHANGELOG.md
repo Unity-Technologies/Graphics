@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - URP global setting for stripping post processing shader variants.
 - URP global setting for stripping off shader variants.
 - Terrain grass shader alpha changed to always write 1 to alpha. Enabled alpha channel write mask.
+- Added Shadows and Additional Lights off variants stripping.
 
 ### Changed
 - Removed experimental tile deferred code.
 - VFX: New shadergraph support directly on Universal target.
 - URP will no longer render via an intermediate texture unless actively required by a Renderer Feature. See the upgrade guide for compatibility options and how assets are upgraded.
+- Main light shadow, additional light shadow and additional light keywords are now enabled based on urp setting instead of existence in scene. This allows better variant stripping.
 
 ### Fixed
 - Added warning for lit shader detailed abledo, if texture is not linear. [1342011](https://issuetracker.unity3d.com/issues/detail-maps-packed-differently-in-built-in-vs-urp)
