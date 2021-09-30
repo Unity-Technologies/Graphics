@@ -27,6 +27,8 @@ namespace UnityEditor.VFX
             return settings;
         }
 
+        //The status on needs sync relies on empty condition of the propertyMap.
+        //Example: In case of URP, we are always expecting QueueOffset/QueueControl in every material.
         public bool NeedsSync() => m_PropertyMap.Count == 0;
 
         public void SyncFromMaterial(Material material)

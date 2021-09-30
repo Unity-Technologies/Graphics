@@ -272,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
-        private int FindInflatingBrickSize(Vector3 size)
+        private int FindInflatingBrickSize(Vector3 size, ProbeVolume pv)
         {
             var refVol = ProbeReferenceVolume.instance;
             float minSizedDim = Mathf.Min(size.x, Mathf.Min(size.y, size.z));
@@ -280,12 +280,14 @@ namespace UnityEngine.Experimental.Rendering
             float minBrickSize = refVol.MinBrickSize();
 
             float minSideInBricks = Mathf.CeilToInt(minSizedDim / minBrickSize);
+            int absoluteMaxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+            minSideInBricks = Mathf.Max(minSideInBricks, Mathf.Pow(3, absoluteMaxSubdiv - pv.highestSubdivLevelOverride));
             int subdivLevel = Mathf.FloorToInt(Mathf.Log(minSideInBricks, 3));
 
             return subdivLevel;
         }
 
-        private void InflateBound(ref Bounds bounds)
+        private void InflateBound(ref Bounds bounds, ProbeVolume pv)
         {
             Bounds originalBounds = bounds;
             // Round the probe volume bounds to cell size
@@ -307,13 +309,12 @@ namespace UnityEngine.Experimental.Rendering
             maxPadding = cellSizeVector - new Vector3(Mathf.Abs(maxPadding.x), Mathf.Abs(maxPadding.y), Mathf.Abs(maxPadding.z));
 
             // Find the size of the brick we can put for every axis given the padding size
-            float rightPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(maxPadding.x, originalBounds.size.y, originalBounds.size.z)));
-            float leftPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(minPadding.x, originalBounds.size.y, originalBounds.size.z)));
-            float topPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, maxPadding.y, originalBounds.size.z)));
-            float bottomPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, minPadding.y, originalBounds.size.z)));
-            float forwardPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, originalBounds.size.y, maxPadding.z)));
-            float backPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, originalBounds.size.y, minPadding.z)));
-
+            float rightPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(maxPadding.x, originalBounds.size.y, originalBounds.size.z), pv));
+            float leftPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(minPadding.x, originalBounds.size.y, originalBounds.size.z), pv));
+            float topPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, maxPadding.y, originalBounds.size.z), pv));
+            float bottomPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, minPadding.y, originalBounds.size.z), pv));
+            float forwardPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, originalBounds.size.y, maxPadding.z), pv));
+            float backPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, originalBounds.size.y, minPadding.z), pv));
             // Remove the extra padding caused by cell rounding
             bounds.min = bounds.min + new Vector3(
                 leftPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.x - originalBounds.min.x) / (float)leftPaddingSubdivLevel),
@@ -362,7 +363,7 @@ namespace UnityEngine.Experimental.Rendering
 
                     Bounds localBounds = new Bounds(pos, extent);
 
-                    InflateBound(ref localBounds);
+                    InflateBound(ref localBounds, volume);
 
                     if (!boundFound)
                     {

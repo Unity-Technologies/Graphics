@@ -33,7 +33,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_tru
       -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -73,8 +73,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_tru
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/2d-sara/test-results/ TestProjects/2d-sara
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -108,7 +108,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_trun
       -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -143,8 +143,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_trun
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/2d-sara/test-results/ TestProjects/2d-sara
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -178,7 +178,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk
       -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -213,8 +213,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/2d-sara/test-results/ TestProjects/2d-sara
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -248,7 +248,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_CUS
       -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -288,8 +288,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_CUS
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/2d-sara/test-results/ TestProjects/2d-sara
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -323,7 +323,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_CUST
       -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -358,8 +358,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_CUST
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/2d-sara/test-results/ TestProjects/2d-sara
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -393,7 +393,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_CUSTO
       -  cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -428,8 +428,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_CUSTO
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/2d-sara/test-results/ TestProjects/2d-sara
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:

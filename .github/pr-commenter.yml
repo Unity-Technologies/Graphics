@@ -17,6 +17,8 @@ comment:
       body: |
         **HDRP**
         `/.yamato%252Fall-hdrp.yml%2523PR_HDRP_trunk`
+        With changes to HDRP packages, you should also run 
+        `/.yamato%252Fall-lightmapper.yml%2523PR_LightMapper_trunk`
     - id: URP
       files:
         - com.unity.render-pipelines.universal/**/*
@@ -25,6 +27,8 @@ comment:
       body: |
         **URP**
         `/.yamato%252Fall-urp.yml%2523PR_URP_trunk`
+        With changes to URP packages, you should also run 
+        `/.yamato%252Fall-lightmapper.yml%2523PR_LightMapper_trunk`
     - id: ShaderGraph
       files:
         - com.unity.shadergraph/**/*
