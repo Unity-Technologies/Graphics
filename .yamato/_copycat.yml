@@ -51,8 +51,9 @@ vendor:
       author=${YAMATO_OWNER_EMAIL%@unity3d.com}
       python3 ../gfx-sdet-tools/scripts/gfx_to_ono_changelog_converter.py --author "$author" --unity-target-branch "$RELEASE_BRANCH"
     - copycat ono --no-reviewers "../destination/$MANIFEST" ../diff.patch
-    - hg status -i
     - copycat katana "../destination/$MANIFEST"
+  after:
+    - hg status -i
   artifacts:
     release_notes:
       paths:
