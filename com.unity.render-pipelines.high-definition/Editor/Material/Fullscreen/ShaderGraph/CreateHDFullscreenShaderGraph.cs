@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class CreateHDFullscreenShaderGraph
     {
-        [MenuItem("Assets/Create/Shader Graph/HDRP/Fullscreen Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
+        [MenuItem("Assets/Create/Shader Graph/HDRP/Fullscreen Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 7)]
         public static void CreateHDFullscreenGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
