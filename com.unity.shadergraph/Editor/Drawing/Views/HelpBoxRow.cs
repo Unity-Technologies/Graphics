@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var messageType = MessageType.Error;
             HelpBoxRow help = new HelpBoxRow(messageType);
-            var label = new Label("Variant limit exceeded: Hover for info")
+            var label = new Label("Variant limit exceeded: Hover for more info")
             {
                 tooltip = ShaderKeyword.kVariantLimitWarning,
                 name = "message-" + (messageType == MessageType.Warning ? "warn" : "info")
