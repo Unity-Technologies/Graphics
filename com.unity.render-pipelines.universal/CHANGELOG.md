@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - URP global setting for stripping post processing shader variants.
 - URP global setting for stripping off shader variants.
 - Terrain grass shader alpha changed to always write 1 to alpha. Enabled alpha channel write mask.
+- Added public api and updated docs for Light2D shape properties.
 - Depth Texture setting for Overlay Camera.
 
 ### Changed
