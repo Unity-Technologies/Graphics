@@ -4,6 +4,12 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.0] - 2021-09-24
+
+### Fixed
+ - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
+ - Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
+
 ## [13.0.0] - 2021-09-01
 
 Version Updated
@@ -15,7 +21,6 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 
 ### Fixed
- - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
  - Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
  - Fixed an incorrect direction transform from view to world space [1362034] (https://issuetracker.unity3d.com/product/unity/issues/guid/1362034/)
  - Fixed ShaderGraph HDRP master preview disappearing for a few seconds when graph is modified  [1330289] (https://issuetracker.unity3d.com/issues/shadergraph-hdrp-main-preview-is-invisible-until-moved)
