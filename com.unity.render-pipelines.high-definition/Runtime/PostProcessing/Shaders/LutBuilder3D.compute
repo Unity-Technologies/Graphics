@@ -95,7 +95,7 @@ float3 ColorGrade(float3 colorLutSpace)
     colorLinear = LMSToLinear(colorLMS);
 
     // Do contrast in log after white balance
-    #if defined(TONEMAPPING_ACES)  && !defined(HDR_OUTPUT)
+    #if defined(TONEMAPPING_ACES)
     float3 colorLog = ACES_to_ACEScc(unity_to_ACES(colorLinear));
     #else
     float3 colorLog = LinearToLogC(colorLinear);
@@ -103,7 +103,7 @@ float3 ColorGrade(float3 colorLutSpace)
 
     colorLog = (colorLog - ACEScc_MIDGRAY) * _HueSatCon.z + ACEScc_MIDGRAY;
 
-    #if defined(TONEMAPPING_ACES)  && !defined(HDR_OUTPUT)
+    #if defined(TONEMAPPING_ACES)
     colorLinear = ACES_to_ACEScg(ACEScc_to_ACES(colorLog));
     #else
     colorLinear = LogCToLinear(colorLog);
@@ -213,7 +213,7 @@ float3 NeutralColorGrade(float3 colorLutSpace)
     float3 colorLinear = LogCToLinear(colorLutSpace);
 #endif
 
-    #if defined(TONEMAPPING_ACES) && !defined(HDR_OUTPUT)
+    #if defined(TONEMAPPING_ACES)
     colorLinear = ACES_to_ACEScg(unity_to_ACES(colorLinear));
     #endif
 
@@ -253,7 +253,7 @@ float3 ProcessColorForHDR(float3 gradedColor)
 #ifdef HDR_OUTPUT
 
 #if TONEMAPPING_ACES
-    return HDRMappingFromRec709_ACES(gradedColor.rgb, _PaperWhite, _RangeReductionMode, true);
+    return HDRMappingACES(gradedColor.rgb, _PaperWhite, _RangeReductionMode, true);
 #else
     return HDRMappingFromRec709(gradedColor.rgb, _PaperWhite, _MinNits, _MaxNits, _RangeReductionMode, true);
 #endif
