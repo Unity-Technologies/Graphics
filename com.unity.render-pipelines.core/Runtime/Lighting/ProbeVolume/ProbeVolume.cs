@@ -21,14 +21,16 @@ namespace UnityEngine.Experimental.Rendering
     {
         public bool globalVolume = false;
         public Vector3 size = new Vector3(10, 10, 10);
-        [HideInInspector]
-        public float maxSubdivisionMultiplier = 1;
-        [HideInInspector]
-        public float minSubdivisionMultiplier = 0;
         [HideInInspector, Range(0f, 2f)]
         public float geometryDistanceOffset = 0.2f;
 
         public LayerMask objectLayerMask = -1;
+
+
+        [HideInInspector]
+        public int lowestSubdivLevelOverride = 0;
+        [HideInInspector]
+        public int highestSubdivLevelOverride = -1;
 
         [SerializeField] internal bool mightNeedRebaking = false;
 
@@ -112,8 +114,8 @@ namespace UnityEngine.Experimental.Rendering
             unchecked
             {
                 hash = hash * 23 + size.GetHashCode();
-                hash = hash * 23 + maxSubdivisionMultiplier.GetHashCode();
-                hash = hash * 23 + minSubdivisionMultiplier.GetHashCode();
+                hash = hash * 23 + highestSubdivLevelOverride.GetHashCode();
+                hash = hash * 23 + lowestSubdivLevelOverride.GetHashCode();
                 hash = hash * 23 + geometryDistanceOffset.GetHashCode();
                 hash = hash * 23 + objectLayerMask.GetHashCode();
             }
@@ -122,6 +124,18 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #endif
+
+        internal float GetMinSubdivMultiplier()
+        {
+            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+            return Mathf.Max(0.0f, lowestSubdivLevelOverride / maxSubdiv);
+        }
+
+        internal float GetMaxSubdivMultiplier()
+        {
+            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+            return Mathf.Max(0.0f, highestSubdivLevelOverride / maxSubdiv);
+        }
 
         // Momentarily moving the gizmo rendering for bricks and cells to Probe Volume itself,
         // only the first probe volume in the scene will render them. The reason is that we dont have any
@@ -159,22 +173,28 @@ namespace UnityEngine.Experimental.Rendering
 
         internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))
         {
-            var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
-            if (profile == null)
-                return true;
+            var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
+            var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
+            if (debugDisplay.realtimeSubdivision)
+            {
+                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
+                if (profile == null)
+                    return true;
+                cellSizeInMeters = profile.cellSizeInMeters;
+            }
 
             var cameraTransform = SceneView.lastActiveSceneView.camera.transform;
 
-            Vector3 cellCenterWS = cellPosition * profile.cellSizeInMeters + originWS + Vector3.one * (profile.cellSizeInMeters / 2.0f);
+            Vector3 cellCenterWS = cellPosition * cellSizeInMeters + originWS + Vector3.one * (cellSizeInMeters / 2.0f);
 
             // Round down to cell size distance
-            float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / profile.cellSizeInMeters) * profile.cellSizeInMeters;
+            float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / cellSizeInMeters) * cellSizeInMeters;
 
             if (roundedDownDist > ProbeReferenceVolume.instance.debugDisplay.subdivisionViewCullingDistance)
                 return true;
 
             var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
-            var volumeAABB = new Bounds(cellCenterWS, profile.cellSizeInMeters * Vector3.one);
+            var volumeAABB = new Bounds(cellCenterWS, cellSizeInMeters * Vector3.one);
 
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
@@ -185,11 +205,17 @@ namespace UnityEngine.Experimental.Rendering
             if (!ProbeReferenceVolume.instance.isInitialized || !IsResponsibleToDrawGizmo() || ProbeReferenceVolume.instance.sceneData == null)
                 return;
 
-            var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
-            if (profile == null)
-                return;
-
             var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
+
+            var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
+            if (debugDisplay.realtimeSubdivision)
+            {
+                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
+                if (profile == null)
+                    return;
+                cellSizeInMeters = profile.cellSizeInMeters;
+            }
+
 
             if (debugDisplay.drawBricks)
             {
@@ -263,7 +289,7 @@ namespace UnityEngine.Experimental.Rendering
                                 continue;
 
                             var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
-                            var center = positionF * profile.cellSizeInMeters + profile.cellSizeInMeters * 0.5f * Vector3.one;
+                            var center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector3.one;
                             yield return center;
                         }
                     }
@@ -284,8 +310,8 @@ namespace UnityEngine.Experimental.Rendering
                 cellGizmo.Clear();
                 foreach (var center in GetVisibleCellCenters())
                 {
-                    Gizmos.DrawCube(center, Vector3.one * profile.cellSizeInMeters);
-                    cellGizmo.AddWireCube(center, Vector3.one * profile.cellSizeInMeters, new Color(0, 1, 0.5f, 1));
+                    Gizmos.DrawCube(center, Vector3.one * cellSizeInMeters);
+                    cellGizmo.AddWireCube(center, Vector3.one * cellSizeInMeters, new Color(0, 1, 0.5f, 1));
                 }
                 cellGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
             }

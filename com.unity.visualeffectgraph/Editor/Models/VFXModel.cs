@@ -327,7 +327,7 @@ namespace UnityEditor.VFX
             }
 
             var currentValue = setting.value;
-            if (currentValue != value)
+            if (!currentValue?.Equals(value) ?? value != null)
             {
                 setting.field.SetValue(setting.instance, value);
                 OnSettingModified(setting);

@@ -75,8 +75,8 @@ void CSMain(uint3 groupId		: SV_GroupID,
 	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
 	if (id < nbMax)
 	{
-		Attributes attributes = (Attributes)0;
-		SourceAttributes sourceAttributes = (SourceAttributes)0;
+		VFXAttributes attributes = (VFXAttributes)0;
+		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
         uint index = id;
 

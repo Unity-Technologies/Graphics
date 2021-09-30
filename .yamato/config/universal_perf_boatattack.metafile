@@ -36,7 +36,7 @@ reuse_blocks:
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
     - [XRQuest_Vulkan, XRQuest_OpenGLES3]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.management@4.0.1 --project-path .
     - [XRQuest_Vulkan, XRQuest_OpenGLES3]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.oculus@1.8.1 --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -66,6 +66,7 @@ reuse_blocks:
 
 
 test_platforms:
+
   - type: Standalone
     name: performance_playmode_runtime
     allow_cache: False
@@ -130,7 +131,7 @@ test_platforms:
           - [XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-stereoRenderingMode=MultiPass"
           - [all]: --testfilter=Low
           - [all]: --player-save-path=playersLow
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
@@ -144,7 +145,7 @@ test_platforms:
           - [XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-stereoRenderingMode=MultiPass"
           - [all]: --testfilter=Medium
           - [all]: --player-save-path=playersMedium
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
@@ -211,7 +212,7 @@ test_platforms:
           - [all]: --performance-project-id=BoatAttack
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
         flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
@@ -225,7 +226,7 @@ test_platforms:
           - [all]: --performance-project-id=BoatAttack
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
         flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
@@ -285,11 +286,11 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
   - name: XRQuest
     apis:
@@ -309,13 +310,13 @@ platforms:
         image: mobile/android-execution-r19:stable
         flavor: b1.large
       standalone_build:
-        type: Unity::VM
+        type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
         flavor: b1.large
       performance_build_editmode:
-        type: Unity::VM
+        type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
-        flavor: b1.xlarge
+        flavor: b1.large
   - name: iPhone
     apis:
       - name: Metal

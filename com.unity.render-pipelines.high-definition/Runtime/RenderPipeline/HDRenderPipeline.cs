@@ -123,9 +123,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal ShaderVariablesGlobal GetShaderVariablesGlobalCB() => m_ShaderVariablesGlobalCB;
 
         // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
-        // s_ForwardEmissiveForDeferredName is only in m_ForwardOnlyPassNames as it match the lit mode deferred, not required in forward
         ShaderTagId[] m_ForwardAndForwardOnlyPassNames = { HDShaderPassNames.s_ForwardOnlyName, HDShaderPassNames.s_ForwardName, HDShaderPassNames.s_SRPDefaultUnlitName, HDShaderPassNames.s_DecalMeshForwardEmissiveName };
-        ShaderTagId[] m_ForwardOnlyPassNames = { HDShaderPassNames.s_ForwardOnlyName, HDShaderPassNames.s_SRPDefaultUnlitName, HDShaderPassNames.s_ForwardEmissiveForDeferredName, HDShaderPassNames.s_DecalMeshForwardEmissiveName };
+        ShaderTagId[] m_ForwardOnlyPassNames = { HDShaderPassNames.s_ForwardOnlyName, HDShaderPassNames.s_SRPDefaultUnlitName, HDShaderPassNames.s_DecalMeshForwardEmissiveName };
 
         ShaderTagId[] m_AllTransparentPassNames = {  HDShaderPassNames.s_TransparentBackfaceName,
                                                      HDShaderPassNames.s_ForwardOnlyName,
@@ -440,6 +439,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(m_GlobalSettings.renderPipelineResources.shaders.resolveMotionVecPS);
 
             CustomPassUtils.Initialize();
+
+            LensFlareCommonSRP.Initialize();
         }
 
 #if UNITY_EDITOR
@@ -738,6 +739,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CleanupPrepass();
             CoreUtils.Destroy(m_ColorResolveMaterial);
             CoreUtils.Destroy(m_MotionVectorResolve);
+
+            LensFlareCommonSRP.Dispose();
 
             CustomPassUtils.Cleanup();
 #if UNITY_EDITOR

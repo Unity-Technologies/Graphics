@@ -593,6 +593,36 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
+    /// Builtin Drawer for MessageBox Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.MessageBox))]
+    public sealed class DebugUIDrawerMessageBox : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for TextLabel DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.MessageBox>(widget);
+
+            var type = w.style switch
+            {
+                DebugUI.MessageBox.Style.Info => MessageType.Info,
+                DebugUI.MessageBox.Style.Warning => MessageType.Warning,
+                DebugUI.MessageBox.Style.Error => MessageType.Error,
+                _ => MessageType.None
+            };
+
+            EditorGUILayout.HelpBox(w.displayName, type);
+
+            return true;
+        }
+    }
+
+    /// <summary>
     /// Builtin Drawer for Container Debug Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.Container))]

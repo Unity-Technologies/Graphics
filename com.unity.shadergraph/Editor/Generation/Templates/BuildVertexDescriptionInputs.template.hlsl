@@ -31,6 +31,8 @@ VertexDescriptionInputs BuildVertexDescriptionInputs(Attributes input)
     $VertexDescriptionInputs.TangentSpaceViewDirection:                 float3x3 tangentSpaceTransform =                    float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
     $VertexDescriptionInputs.TangentSpaceViewDirection:                 output.TangentSpaceViewDirection =                  TransformWorldToTangent(output.WorldSpaceViewDirection, tangentSpaceTransform);
     $VertexDescriptionInputs.ScreenPosition:                            output.ScreenPosition =                             ComputeScreenPos(TransformWorldToHClip(output.WorldSpacePosition), _ProjectionParams.x);
+    $VertexDescriptionInputs.NDCPosition:                               output.NDCPosition =                                output.ScreenPosition.xy / output.ScreenPosition.w;
+    $VertexDescriptionInputs.PixelPosition:                             output.PixelPosition =                              output.NDCPosition.xy * _ScreenParams.xy;
     $VertexDescriptionInputs.uv0:                                       output.uv0 =                                        input.uv0;
     $VertexDescriptionInputs.uv1:                                       output.uv1 =                                        input.uv1;
     $VertexDescriptionInputs.uv2:                                       output.uv2 =                                        input.uv2;
