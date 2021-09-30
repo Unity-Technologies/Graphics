@@ -57,6 +57,7 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             ZWrite Off

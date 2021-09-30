@@ -56,6 +56,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the volume not being assigned on some scene templates.
 - Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
 - Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
+- Fixed Probe volume debug exposure compensation to match the Lighting debug one.
+- Fixed lens flare occlusion issues with TAA. (1365098)
+- Fixed misleading text and improving the eye scene material samples. (case 1368665)
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
@@ -445,6 +448,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Allow negative wind speed parameter.
 - Fixed custom pass custom buffer not bound after being created inside a custom pass.
 - Fixed silhouette issue with emissive decals
+- Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
