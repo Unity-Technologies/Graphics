@@ -56,8 +56,7 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.ScreenPosition:                           output.ScreenPosition = ComputeScreenPos(TransformWorldToHClip(input.positionWS), _ProjectionParams.x);
     $SurfaceDescriptionInputs.PixelPosition:                            output.PixelPosition = input.positionCS.xy;
     $SurfaceDescriptionInputs.NDCPosition:                              #if defined(USING_STEREO_MATRICES)
-    $SurfaceDescriptionInputs.NDCPosition:                              float4 screenPosition = ComputeScreenPos(TransformWorldToHClip(input.positionWS), _ProjectionParams.x);
-    $SurfaceDescriptionInputs.NDCPosition:                              output.NDCPosition = screenPosition.xy / screenPosition.w;
+    $SurfaceDescriptionInputs.NDCPosition:                              output.NDCPosition = output.ScreenPosition.xy / output.ScreenPosition.w;
     $SurfaceDescriptionInputs.NDCPosition:                              #else
     $SurfaceDescriptionInputs.NDCPosition:                              output.NDCPosition = output.PixelPosition.xy / _ScreenParams.xy;
     $SurfaceDescriptionInputs.NDCPosition:                              output.NDCPosition.y = (output.NDCPosition.y - 0.5f) * -_ProjectionParams.x + 0.5f;
