@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - URP global setting for stripping post processing shader variants.
 - URP global setting for stripping off shader variants.
 - Terrain grass shader alpha changed to always write 1 to alpha. Enabled alpha channel write mask.
+- Depth Texture setting for Overlay Camera.
 
 ### Changed
 - Removed experimental tile deferred code.
@@ -193,9 +194,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix sporadic NaN when using normal maps with XYZ-encoding [case 1351020](https://issuetracker.unity3d.com/issues/android-urp-vulkan-nan-pixels-and-bloom-post-processing-generates-visual-artifacts)
 - Support undo of URP Global Settings asset assignation (case 1342987).
 - Removed unsupported fields from Presets of Light and Camera [case 1335979].
+- Fixed an issue where Unlit and ParticlesUnlit shaders did not have HDR color selection for albedo [case 1283767](https://issuetracker.unity3d.com/issues/built-in-unlit-particle-shader-has-hdr-color-selection-for-albedo-urp-unlit-particles-do-not)
 - Fixed graphical artefact when terrain height map is used with rendering layer mask for lighting.
 - Fixed an issue where screen space shadows has flickering with deferred mode [case 1354681](https://issuetracker.unity3d.com/issues/screen-space-shadows-flicker-in-scene-view-when-using-deferred-rendering)
 - Fixed shadowCascadeBlendCullingFactor to be 1.0
+- Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
