@@ -53,7 +53,7 @@ vendor:
     - copycat ono --no-reviewers "../destination/$MANIFEST" ../diff.patch
     - copycat katana "../destination/$MANIFEST"
   after:
-    - hg status -i
+    - cd ../destination && hg status -i
   artifacts:
     release_notes:
       paths:
