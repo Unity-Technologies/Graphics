@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(m_PreIntegratedFiberScatteringCS, 0, _PreIntegratedHairFiberScatteringUAV, m_PreIntegratedFiberScatteringLUT);
                 cmd.DispatchCompute(m_PreIntegratedFiberScatteringCS, 0, HDUtils.DivRoundUp(m_Dim, 8), HDUtils.DivRoundUp(m_Dim, 8), HDUtils.DivRoundUp(m_Dim, 8));
 
-                m_PreIntegratedFiberScatteringIsInit = false;
+                m_PreIntegratedFiberScatteringIsInit = true;
             }
         }
 

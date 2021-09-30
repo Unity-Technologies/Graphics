@@ -54,7 +54,9 @@ HairScatteringData GetHairScatteringData(BSDFData bsdfData, float3 alpha, float3
 
         // Sample the LUT for each wavelength.
         // Note that we parameterize by diffuse color, not absorption, to fit in [0, 1].
-        // It might be possible to support azimuthal roughness by separating the integral and using extra 2D lut
+        // It might be possible to fully support azimuthal roughness by separating the integral and using extra 2D lut.
+        // However the effect of azimuthal is subtle for the scattering term, mostly producing a much more saturated result for low absorptions.
+        // Because of this, it might be much simpler and easier to approximate the a. roughness by modulating the attenuation below.
         float2 R = SAMPLE_TEXTURE3D_LOD(_PreIntegratedHairFiberScattering, s_linear_clamp_sampler, float3(X, Y, Z.r), 0).xy;
         float2 G = SAMPLE_TEXTURE3D_LOD(_PreIntegratedHairFiberScattering, s_linear_clamp_sampler, float3(X, Y, Z.g), 0).xy;
         float2 B = SAMPLE_TEXTURE3D_LOD(_PreIntegratedHairFiberScattering, s_linear_clamp_sampler, float3(X, Y, Z.b), 0).xy;

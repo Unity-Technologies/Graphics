@@ -65,14 +65,5 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_GeometryType;
             set => m_GeometryType = value;
         }
-
-        [SerializeField]
-        bool m_UseRoughenedAzimuthalScattering = false;
-
-        public bool useRoughenedAzimuthalScattering
-        {
-            get => m_UseRoughenedAzimuthalScattering;
-            set => m_UseRoughenedAzimuthalScattering = value;
-        }
     }
 }

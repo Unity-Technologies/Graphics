@@ -48,7 +48,8 @@ SurfaceData ConfigureFiberSurface(float diffuseColor, float perceptualSmoothness
     surfaceData.perceptualSmoothness = perceptualSmoothness;
 
     // Radial Smoothness (Azimuthal Roughness).
-    // TODO: Currently we don't support azimuthal roughness with dual scattering.
+    // TODO: Support varying azimuthal roughness. We don't have enough dimensions in the LUT to parameterize this as well,
+    // so we fall back to a sensible default for now, this one is generally acceptable for human hair (less so for animal fur).
     surfaceData.perceptualRadialSmoothness = 0.3;
 
     // Cuticle Angle
@@ -143,9 +144,9 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
        }
     }
 
-    // Note: Need to divide by 1/(PI/2) Here instead of 1/PI as suggest by the paper to match the reference.
+    // Note: Need to divide by 2/PI Here instead of 1/PI as suggest by the paper to match the reference.
     // It's possibly due to how we sampling on the sphere instead of hemisphere but still not totally clear why.
-    _PreIntegratedHairFiberScatteringUAV[dispatchThreadID] = rcp(HALF_PI) * (A / float2(C));
+    _PreIntegratedHairFiberScatteringUAV[dispatchThreadID] = (2 / PI) * (A / float2(C));
 }
 
 // Pre-integrate the azimuthal scattering distributions for the three primary lobes, parameterized by:

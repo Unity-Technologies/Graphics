@@ -293,13 +293,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.roughnessTRT = roughnessL * 2.0;
 
         // Azimuthal Roughness
-    #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
         bsdfData.perceptualRoughnessRadial = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualRadialSmoothness);
-    #else
-        // Need to provide some sensible default in case of no roughened azimuthal scattering, since currently our
-        // absorption is dependent on it. 0.3 is generally a good default for human hair.
-        bsdfData.perceptualRoughnessRadial = 0.3;
-    #endif
 
         // Absorption. Note: We require diffuse color to parameterize LUTs and for approximation purposes.
     #if _ABSORPTION_FROM_COLOR

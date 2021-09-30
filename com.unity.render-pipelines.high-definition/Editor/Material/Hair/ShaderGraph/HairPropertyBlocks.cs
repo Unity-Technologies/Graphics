@@ -40,7 +40,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static GUIContent colorParameterization = new GUIContent("Color Mode", "Indicates the way the hair fiber cortex color is parameterized.");
             public static GUIContent geometryType = new GUIContent("Geometry Type", "Indicates the type of geometry being used to represent the hair, allowing the shading model to make informed approximations.");
             public static GUIContent scatteringMode = new GUIContent("Scattering Mode", "TODO");
-            public static GUIContent useRoughenedAzimuthalScattering = new GUIContent("Allow Radial Smoothness", "Adds a Radial Smoothness block to the target, controlling the internal scattering of the light paths and absorption that occurs within the fiber.");
         }
 
         HairData hairData;
@@ -62,8 +61,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // For now only allow scattering mode for strands, as the multiple scattering was developed against this for 21.2.
                 if (hairData.geometryType == HairData.GeometryType.Strands)
                     AddProperty(Styles.scatteringMode, () => hairData.scatteringMode, (newValue) => hairData.scatteringMode = newValue);
-
-                AddProperty(Styles.useRoughenedAzimuthalScattering, () => hairData.useRoughenedAzimuthalScattering, (newValue) => hairData.useRoughenedAzimuthalScattering = newValue);
             }
         }
     }
