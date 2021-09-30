@@ -498,6 +498,7 @@ namespace UnityEditor.ShaderGraph
             switch (inputTypesDistinct.Count)
             {
                 case 0:
+                    // nothing connected -- use Vec1 by default
                     return ConcreteSlotValueType.Vector1;
                 case 1:
                     if (SlotValueHelper.AreCompatible(SlotValueType.DynamicVector, inputTypesDistinct.First()))
@@ -509,13 +510,14 @@ namespace UnityEditor.ShaderGraph
                     break;
                 default:
                     // find the 'minumum' channel width excluding 1 as it can promote
-                    inputTypesDistinct.RemoveAll(x => x == ConcreteSlotValueType.Vector1);
+                    inputTypesDistinct.RemoveAll(x => (x == ConcreteSlotValueType.Vector1) || (x == ConcreteSlotValueType.Boolean));
                     var ordered = inputTypesDistinct.OrderByDescending(x => x);
                     if (ordered.Any())
                     {
                         var first = ordered.FirstOrDefault();
                         if (first == ConcreteSlotValueType.Boolean)
                             return ConcreteSlotValueType.Vector1;
+                        return first;
                     }
                     break;
             }
