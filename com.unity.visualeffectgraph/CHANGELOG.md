@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.0] - 2021-09-24
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
 
 ## [13.0.0] - 2021-09-01
 
@@ -22,7 +22,6 @@ The version number for this package has increased due to a version update of a r
 - Prevent VFX Graph compilation each time a property's min/max value is changed
 - Prevent vfx re-compilation in some cases when a value has not changed
 - Eye dropper in the color fields kept updating after pressing the Esc key
-- Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
 
 ## [12.0.0] - 2021-01-11
 ### Added
