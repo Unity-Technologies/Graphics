@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
 - Fixed Probe volume debug exposure compensation to match the Lighting debug one.
 - Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
+- Fixed misleading text and improving the eye scene material samples. (case 1368665)
 
 ## [12.0.0] - 2021-01-11
 
