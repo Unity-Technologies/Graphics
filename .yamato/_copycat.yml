@@ -50,6 +50,7 @@ vendor:
     - | # Generates Ono PR ready release notes from the graphics changelogs changes included in the vendoring. Following line is shell syntax for stripping the @unity3d.com part of email address to only get the author handle
       author=${YAMATO_OWNER_EMAIL%@unity3d.com}
       python3 ../gfx-sdet-tools/scripts/gfx_to_ono_changelog_converter.py --author "$author" --unity-target-branch "$RELEASE_BRANCH"
+    - cd ../destination && hg purge --all && cd -
     - copycat ono --no-reviewers "../destination/$MANIFEST" ../diff.patch
     - copycat katana "../destination/$MANIFEST"
   after:
