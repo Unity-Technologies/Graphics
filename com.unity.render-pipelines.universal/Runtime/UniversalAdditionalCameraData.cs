@@ -212,7 +212,6 @@ namespace UnityEngine.Rendering.Universal
     {
         public RenderTexture m_ExposureTexture;
         public RenderTexture m_PrevExposureTexture;
-        public ComputeShader m_ExposureComputeShader;
 
 
         static void Swap<T>(ref T lhs, ref T rhs)

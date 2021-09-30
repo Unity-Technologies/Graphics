@@ -353,6 +353,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="anyPostProcessingEnabled">True if at least one camera has post-processing enabled in the stack, false otherwise.</param>
         static void RenderSingleCamera(ScriptableRenderContext context, CameraData cameraData, bool anyPostProcessingEnabled)
         {
+            ExposureProcessing.SetDefaultExposure();
+
             Camera camera = cameraData.camera;
             var renderer = cameraData.renderer;
             if (renderer == null)
