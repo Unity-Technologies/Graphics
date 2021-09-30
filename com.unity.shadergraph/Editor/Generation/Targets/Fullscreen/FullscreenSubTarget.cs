@@ -105,6 +105,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         static readonly string kColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
         static readonly string kTexture = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl";
         static readonly string kInstancing = "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl";
+        static readonly string kFullscreenShaderPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenShaderPass.cs.hlsl";
         static readonly string kSpaceTransforms = "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl";
         static readonly string kFunctions = "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl";
         static readonly string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
@@ -180,7 +181,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     result.Add(RenderState.ZTest("Off"));
                 else
                     result.Add(RenderState.ZTest(fullscreenData.depthTestMode.ToString()));
-                result.Add(RenderState.ZWrite(fullscreenData.depthWrite.ToString()));
+                result.Add(RenderState.ZWrite(fullscreenData.depthWrite ? ZWrite.On.ToString() : ZWrite.Off.ToString()));
 
                 // Blend mode
                 if (fullscreenData.blendMode == FullscreenBlendMode.Alpha)
@@ -199,16 +200,19 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     result.Add(RenderState.BlendOp(fullscreenData.colorBlendOperation, fullscreenData.alphaBlendOperation));
                 }
 
-                result.Add(RenderState.Stencil(new StencilDescriptor
+                if (fullscreenData.enableStencil)
                 {
-                    Ref = fullscreenData.stencilReference.ToString(),
-                    ReadMask = fullscreenData.stencilReadMask.ToString(),
-                    WriteMask = fullscreenData.stencilWriteMask.ToString(),
-                    Comp = fullscreenData.stencilCompareFunction.ToString(),
-                    ZFail = fullscreenData.stencilDepthTestFailOperation.ToString(),
-                    Fail = fullscreenData.stencilFailOperation.ToString(),
-                    Pass = fullscreenData.stencilPassOperation.ToString(),
-                }));
+                    result.Add(RenderState.Stencil(new StencilDescriptor
+                    {
+                        Ref = fullscreenData.stencilReference.ToString(),
+                        ReadMask = fullscreenData.stencilReadMask.ToString(),
+                        WriteMask = fullscreenData.stencilWriteMask.ToString(),
+                        Comp = fullscreenData.stencilCompareFunction.ToString(),
+                        ZFail = fullscreenData.stencilDepthTestFailOperation.ToString(),
+                        Fail = fullscreenData.stencilFailOperation.ToString(),
+                        Pass = fullscreenData.stencilPassOperation.ToString(),
+                    }));
+                }
             }
 
             return result;
@@ -254,6 +258,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 { kTexture, IncludeLocation.Pregraph },
                 { kTextureStack, IncludeLocation.Pregraph },
                 { kInstancing, IncludeLocation.Pregraph }, // For VR
+                { kFullscreenShaderPass, IncludeLocation.Pregraph }, // For VR
                 { pregraphIncludes },
                 { kSpaceTransforms, IncludeLocation.Pregraph },
                 { kFunctions, IncludeLocation.Pregraph },

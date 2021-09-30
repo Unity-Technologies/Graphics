@@ -30,8 +30,6 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     float3 positionWS = ComputeWorldSpacePosition(input.texCoord0.xy, rawDepth, UNITY_MATRIX_I_VP);
     float3 viewDirWS = GetWorldSpaceNormalizeViewDir(positionWS);
 
-    // positionWS = float3(SHADERGRAPH_SAMPLE_SCENE_DEPTH(input.texCoord0.xy), 0, 0);
-
     $SurfaceDescriptionInputs.ObjectSpaceTangent:                       output.ObjectSpaceTangent = TransformWorldToObjectDir(output.WorldSpaceTangent);
     $SurfaceDescriptionInputs.ViewSpaceTangent:                         output.ViewSpaceTangent = TransformWorldToViewDir(output.WorldSpaceTangent);
     $SurfaceDescriptionInputs.TangentSpaceTangent:                      output.TangentSpaceTangent = float3(1.0f, 0.0f, 0.0f);

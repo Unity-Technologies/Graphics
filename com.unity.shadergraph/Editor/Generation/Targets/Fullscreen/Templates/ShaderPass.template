@@ -23,6 +23,8 @@ $splice(HybridV1InjectedBuiltinProperties)
 $splice(PassKeywords)
 $splice(GraphKeywords)
 
+#define FULLSCREEN_SHADERGRAPH
+
 // Defines
 $SurfaceType.Transparent:           // UBER SHADER NOW:  #define _SURFACE_TYPE_TRANSPARENT 1
 $Attributes.normalOS: #define ATTRIBUTES_NEED_NORMAL

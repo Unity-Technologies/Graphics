@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering.BuiltIn
 
     internal static class BuiltInMaterialInspectorUtilities
     {
-        internal static void AddFloatProperty(this PropertyCollector collector, string referenceName, float defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
+        internal static void AddFloatProperty(this PropertyCollector collector, string referenceName, float defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare, bool generatePropertyBlock = true)
         {
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
@@ -80,6 +80,7 @@ namespace UnityEditor.Rendering.BuiltIn
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = declarationType,
                 value = defaultValue,
+                generatePropertyBlock = generatePropertyBlock,
                 overrideReferenceName = referenceName,
             });
         }
