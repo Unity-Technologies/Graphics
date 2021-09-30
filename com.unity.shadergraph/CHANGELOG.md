@@ -15,6 +15,7 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 
 ### Fixed
+ - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
  - Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
  - Fixed an incorrect direction transform from view to world space [1362034] (https://issuetracker.unity3d.com/product/unity/issues/guid/1362034/)
  - Fixed ShaderGraph HDRP master preview disappearing for a few seconds when graph is modified  [1330289] (https://issuetracker.unity3d.com/issues/shadergraph-hdrp-main-preview-is-invisible-until-moved)
@@ -25,6 +26,8 @@ The version number for this package has increased due to a version update of a r
  - Fixed the wrong scaling of the main preview window  [1356719] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356719/)
  - Fixed an issue where ShaderGraph "view shader" commands were opening in individual windows, and blocking Unity from closing [1367188]
  - Improved screenspace position accuracy in the fragment shader by using VPOS [1352662] (https://issuetracker.unity3d.com/issues/shadergraph-dither-node-results-in-artifacts-when-far-from-origin-caused-by-screen-position-breaking-down)
+ - Fixed the node searcher results to prefer names over synonyms [1366058]
+ - Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
 
 ## [12.0.0] - 2021-01-11
 

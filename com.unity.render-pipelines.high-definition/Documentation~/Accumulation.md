@@ -116,8 +116,10 @@ You can easily define the first three profiles without using an animation curve 
 In this example, you can see that the slow open profile creates a motion trail appearance for the motion blur, which might be more desired for artists. On the other hand, the smooth open and close profile creates smoother animations than the slow open or uniform profiles.
 
 
-## High Quality Anti-aliasing wiht Accumulation
-You can also use the accumulation API to jitter the projection matrix of each rendered subframe and get a high quality antialiased frame. This is equivalent to rendering a higher resolution image, then downscaling to the final resolution, a process that is often called **SuperSampling**. The accumulation API uses fewer memory resources in the GPU than rendering at higher resolutions. The following example shows how to perform high quality antialiasing with the accumulation API from a script:
+## High Quality Anti-aliasing with Accumulation
+You can use the accumulation API to create a high quality antialiased frame, similar to a [SuperSampling](https://en.wikipedia.org/wiki/Supersampling) effect. The accumulation API uses fewer memory resources in the GPU than higher resolution rendering.
+
+To do this, use the accumulation API to jitter the projection matrix of each rendered subframe. The following script example uses the this method to perform high quality antialiasing :
 
 ```C#
 public class SuperSampling : MonoBehaviour
