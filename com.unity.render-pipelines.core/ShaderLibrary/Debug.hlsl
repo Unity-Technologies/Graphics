@@ -349,4 +349,40 @@ real3 GetOverdrawColor(real overdrawCount, real maxOverdrawCount)
     return HsvToRgb(real3(hue, saturation, 1.0));
 }
 
+/// Return the color of the overdraw debug legend.
+///
+/// It will draw a bar with all the color buckets of the overdraw debug
+///
+/// * texcoord: the texture coordinate of the pixel to draw
+/// * maxOverdrawCount: the maximum number of overdraw.
+/// * defaultColor: the default color used for other areas
+real3 DrawOverdrawLegend(real2 texcoord, real maxOverdrawCount, real3 defaultColor)
+{
+    const float bandStartY = 0.05;
+    const float bandWidthY = 0.02;
+    const float bandBorderSize = 0.003;
+    const float bandOffsetX = 0.05;
+    if (bandStartY <= texcoord.y
+        && texcoord.y <= bandStartY + bandWidthY
+        && bandOffsetX <= texcoord.x
+        && texcoord.x <= 1 - bandOffsetX)
+    {
+        if (texcoord.y < bandStartY + bandBorderSize
+            || bandStartY + bandWidthY - bandBorderSize <= texcoord.y
+            || texcoord.x < bandOffsetX + bandBorderSize
+            || 1 - bandOffsetX - bandBorderSize <= texcoord.x)
+        {
+            return float3(0.1, 0.1, 0.1);
+        }
+        else
+        {
+            float x = (texcoord.x - bandOffsetX)/(1 - 2 * bandOffsetX);
+            float bucket = ceil(x * maxOverdrawCount);
+            return GetOverdrawColor(bucket, maxOverdrawCount);
+        }
+    }
+
+    return defaultColor;
+}
+
 #endif // UNITY_DEBUG_INCLUDED
