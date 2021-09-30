@@ -109,6 +109,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Prevent out of sync serialization of VFX assets that could cause the asset to be dirtied without reason
 - Fix undetermitism in space with LocalToWorld and WorldToLocal operators [Case 1355820](https://issuetracker.unity3d.com/product/unity/issues/guid/1355820/)
 - Added a missing paste option in the context menu for VFX contexts. Also the paste options is now disabled when uneffective
+- Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
 
 ## [11.0.0] - 2020-10-21
 ### Added
