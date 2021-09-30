@@ -67,6 +67,13 @@ namespace UnityEngine.Rendering.Universal
                     }
                     break;
                 }
+
+                case DebugSceneOverrideMode.Overdraw:
+                {
+                    // TODO: create a material to draw the color range feedback from pixel cost
+                    m_CommandBuffer.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
+                    break;
+                }
             }
         }
 
