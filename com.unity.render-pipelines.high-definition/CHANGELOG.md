@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
 - Fixed Probe volume debug exposure compensation to match the Lighting debug one.
 - Fixed lens flare occlusion issues with TAA. (1365098)
+- Fixed misleading text and improving the eye scene material samples. (case 1368665)
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
