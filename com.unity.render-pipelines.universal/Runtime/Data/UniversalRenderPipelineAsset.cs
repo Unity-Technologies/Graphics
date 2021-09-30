@@ -924,7 +924,7 @@ namespace UnityEngine.Rendering.Universal
             set { m_ConservativeEnclosingSphere = value; }
         }
 
-        public int numItertionsEnclosingSphere
+        public int numIterationsEnclosingSphere
         {
             get { return m_NumIterationsEnclosingSphere; }
             set { m_NumIterationsEnclosingSphere = value; }
