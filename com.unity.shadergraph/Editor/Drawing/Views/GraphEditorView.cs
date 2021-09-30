@@ -684,6 +684,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             previewManager.RenderPreviews(m_EditorWindow);
 
+
+            m_GraphView.wasUndoRedoPerformed = wasUndoRedoPerformed;
+
             if (wasUndoRedoPerformed || m_InspectorView.doesInspectorNeedUpdate)
                 m_InspectorView.Update();
 

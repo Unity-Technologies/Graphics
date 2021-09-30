@@ -102,6 +102,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_DepthPrimingRecommended;
         StencilState m_DefaultStencilState;
         LightCookieManager m_LightCookieManager;
+        IntermediateTextureMode m_IntermediateTextureMode;
 
         // Materials used in URP Scriptable Render Passes
         Material m_BlitMaterial = null;
@@ -141,6 +142,8 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetPassOperation(stencilData.passOperation);
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
+
+            m_IntermediateTextureMode = data.intermediateTextureMode;
 
             {
                 var settings = LightCookieManager.Settings.GetDefault();
@@ -268,6 +271,10 @@ namespace UnityEngine.Rendering.Universal
                     GraphicsDeviceType.OpenGLES3
                 };
             }
+
+            LensFlareCommonSRP.mergeNeeded = 0;
+            LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
+            LensFlareCommonSRP.Initialize();
         }
 
         /// <inheritdoc />
@@ -284,6 +291,8 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_ObjectMotionVecMaterial);
 
             Blitter.Cleanup();
+
+            LensFlareCommonSRP.Dispose();
         }
 
         private void SetupFinalPassDebug(ref CameraData cameraData)
@@ -371,7 +380,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Assign the camera color target early in case it is needed during AddRenderPasses.
             bool isPreviewCamera = cameraData.isPreviewCamera;
-            var createColorTexture = rendererFeatures.Count != 0 && !isPreviewCamera;
+            var createColorTexture = m_IntermediateTextureMode == IntermediateTextureMode.Always && !isPreviewCamera;
             if (createColorTexture)
             {
                 m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
@@ -467,7 +476,7 @@ namespace UnityEngine.Rendering.Universal
             // deferred pass ("camera color" + "camera depth"), the implicit depth surface of "camera color" is used instead of "camera depth",
             // because BuiltinRenderTextureType.CameraTarget for depth means there is no explicit depth attachment...
             bool createDepthTexture = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && !requiresDepthPrepass;
-            createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
+            createDepthTexture |= !cameraData.resolveFinalTarget;
             // Deferred renderer always need to access depth buffer.
             createDepthTexture |= (this.actualRenderingMode == RenderingMode.Deferred && !useRenderPassEnabled);
             // Some render cases (e.g. Material previews) have shown we need to create a depth texture when we're forcing a prepass.
@@ -689,8 +698,8 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_CopyDepthPass);
             }
 
-            // For Base Cameras: Set the depth texture to the far Z if we do not have a depth prepass or copy depth
-            if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
+            // Set the depth texture to the far Z if we do not have a depth prepass or copy depth
+            if (!requiresDepthPrepass && !requiresDepthCopyPass)
             {
                 Shader.SetGlobalTexture(m_DepthTexture.id, SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
             }
