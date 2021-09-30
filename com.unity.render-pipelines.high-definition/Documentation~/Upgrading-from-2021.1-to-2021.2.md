@@ -29,6 +29,10 @@ HDRP 2021.2 has various tessellation shader code to enable tessellation support 
 The algorithm for computing specular occlusion from bent normals and ambient occlusion has been changed to improve visual results.
 To use the old algorithm, function calls to `GetSpecularOcclusionFromBentAO` should be replaced by calls to `GetSpecularOcclusionFromBentAO_ConeCone`
 
+### Light list
+
+The previous `g_vLightListGlobal` uniform have been rename to explicit `g_vLightListTile` and `g_vLightListCluster` light list name. This work required to fix a wrong behavior on console.
+
 ## Density Volumes
 
 Density Volumes are now known as **Local Volumetric Fog**.
