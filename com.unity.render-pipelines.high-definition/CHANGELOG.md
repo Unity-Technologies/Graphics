@@ -4,6 +4,13 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.0] - 2021-09-23
+
+### Fixed
+- Fixed the volume not being assigned on some scene templates.
+- Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
+- Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -428,9 +435,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed double camera preview.
 - Fixed memory leak with XR combined occlusion meshes.
 - Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
-- Fixed the volume not being assigned on some scene templates.
-- Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
-- Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
