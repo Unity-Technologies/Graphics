@@ -314,9 +314,6 @@ namespace UnityEditor.Rendering.Universal
         // Previous (broken) premultiplied blend mode --> Alpha blend mode + Preserve Specular Lighting
         static void UpgradeV6(Material material, ShaderID shaderID)
         {
-            if (shaderID.IsShaderGraph())
-                return;
-
             var surfaceTypePID = Shader.PropertyToID(Property.SurfaceType);
             bool isTransparent = material.HasProperty(surfaceTypePID) && material.GetFloat(surfaceTypePID) >= 1.0f;
 
