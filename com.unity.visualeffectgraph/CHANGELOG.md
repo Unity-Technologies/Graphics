@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Prevent VFX Graph compilation each time a property's min/max value is changed
 - Prevent vfx re-compilation in some cases when a value has not changed
 - Eye dropper in the color fields kept updating after pressing the Esc key
+- Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
 
 ## [12.0.0] - 2021-01-11
 ### Added
