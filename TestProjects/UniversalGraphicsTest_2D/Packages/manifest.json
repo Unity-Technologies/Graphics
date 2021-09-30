@@ -2,7 +2,6 @@
     "disableProjectUpdate": true,
     "dependencies": {
         "com.unity.2d.sprite": "1.0.0",
-        "com.unity.2d.tilemap": "1.0.0",
         "com.unity.cinemachine": "2.8.0-pre.1",
         "com.unity.ext.nunit": "1.0.0",
         "com.unity.ide.rider": "3.0.5",
