@@ -12,6 +12,17 @@ struct AttributesLensFlare
 #endif
 };
 
+#if SHADER_API_GLES
+struct AttributesLensFlare
+{
+    float4 positionCS       : POSITION;
+    float2 uv               : TEXCOORD0;
+
+#ifndef FLARE_PREVIEW
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+#endif
+};
+#else
 struct VaryingsLensFlare
 {
     float4 positionCS : SV_POSITION;
@@ -22,6 +33,7 @@ struct VaryingsLensFlare
     UNITY_VERTEX_OUTPUT_STEREO
 #endif
 };
+#endif
 
 TEXTURE2D(_FlareTex);
 SAMPLER(sampler_FlareTex);
