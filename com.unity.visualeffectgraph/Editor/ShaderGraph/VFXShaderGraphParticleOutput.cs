@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -69,12 +70,12 @@ namespace UnityEditor.VFX
                 // Indicate material override from shaderGraph which is hiding output properties.
                 if (materialShadowOverride || materialSortingPriorityOverride)
                 {
-                    var msg = "The ShaderGraph material is overriding some settings:";
+                    var msg = new StringBuilder("The ShaderGraph material is overriding some settings:");
                     if (materialShadowOverride)
-                        msg += string.Format("\n - Cast Shadow = {0}", castShadow ? "true" : "false");
+                        msg.AppendFormat("\n - Cast Shadow = {0}", castShadow ? "true" : "false");
                     if (materialSortingPriorityOverride)
-                        msg += string.Format("\n - Sorting Priority = {0}", queueOffset);
-                    EditorGUILayout.HelpBox(msg, MessageType.Info);
+                        msg.AppendFormat("\n - Sorting Priority = {0}", queueOffset);
+                    EditorGUILayout.HelpBox(msg.ToString(), MessageType.Info);
                 }
 
                 // Indicate caution to the user if transparent motion vectors are disabled and motion vectors are enabled.
