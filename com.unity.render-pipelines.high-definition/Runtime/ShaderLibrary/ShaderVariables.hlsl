@@ -469,7 +469,9 @@ float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
 // VFX may also redefine UNITY_MATRIX_M / UNITY_MATRIX_I_M as static per-particle global matrices.
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/VisualEffectMatrices.hlsl"
+#ifdef HAVE_VFX_MODIFICATION
+#include "Packages/com.unity.visualeffectgraph/Shaders/VFXMatricesOverride.hlsl"
+#endif
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 // Undef the matrix error macros so that the DOTS instancing macro works

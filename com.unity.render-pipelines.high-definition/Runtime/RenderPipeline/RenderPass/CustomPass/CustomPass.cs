@@ -234,6 +234,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (customPass.currentRenderTarget.normalBufferRG.IsValid() && customPass.injectionPoint != CustomPassInjectionPoint.AfterPostProcess)
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, customPass.currentRenderTarget.normalBufferRG);
 
+                        if (customPass.currentRenderTarget.customColorBuffer.IsValueCreated)
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomColorTexture, customPass.currentRenderTarget.customColorBuffer.Value);
+                        if (customPass.currentRenderTarget.customDepthBuffer.IsValueCreated)
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, customPass.currentRenderTarget.customDepthBuffer.Value);
+
                         if (!customPass.isSetup)
                         {
                             customPass.Setup(ctx.renderContext, ctx.cmd);

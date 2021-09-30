@@ -2,6 +2,8 @@
 using UnityEditor;
 #endif
 
+using System;
+
 namespace UnityEngine.Rendering
 {
     /// <summary>
@@ -90,6 +92,22 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool allowOffScreen = false;
 
+        /// Our default celestial body will have an angular radius of 3.3 degrees. This is an arbitrary number, but must be kept constant
+        /// so the occlusion radius for direct lights is consistent regardless of near / far clip plane configuration.
+        private static float sCelestialAngularRadius = 3.3f * Mathf.PI / 180.0f;
+
+        /// <summary>
+        /// Retrieves the projected occlusion radius from a particular celestial in the infinity plane with an angular radius.
+        /// This is used for directional lights which require to have consistent occlusion radius regardless of the near/farplane configuration.
+        /// <param name="mainCam">The camera utilized to calculate the occlusion radius</param>
+        /// <return>The value, in world units, of the occlusion angular radius.</return>
+        /// </summary>
+        public float celestialProjectedOcclusionRadius(Camera mainCam)
+        {
+            float projectedRadius = (float)Math.Tan(sCelestialAngularRadius) * mainCam.farClipPlane;
+            return occlusionRadius * projectedRadius;
+        }
+
         /// <summary>
         /// Add or remove the lens flare to the queue of PostProcess
         /// </summary>
@@ -125,16 +143,19 @@ namespace UnityEngine.Rendering
         }
 
 #if UNITY_EDITOR
+        private float sDebugClippingSafePercentage = 0.9f; //for debug gizmo, only push 90% further so we avoid clipping of debug lines.
         void OnDrawGizmosSelected()
         {
             Camera mainCam = Camera.current;
             if (mainCam != null && useOcclusion)
             {
                 Vector3 positionWS;
+                float adjustedOcclusionRadius = occlusionRadius;
                 Light light = GetComponent<Light>();
                 if (light != null && light.type == LightType.Directional)
                 {
-                    positionWS = -transform.forward * mainCam.farClipPlane + mainCam.transform.position;
+                    positionWS = -transform.forward * (mainCam.farClipPlane * sDebugClippingSafePercentage) + mainCam.transform.position;
+                    adjustedOcclusionRadius = celestialProjectedOcclusionRadius(mainCam);
                 }
                 else
                 {
@@ -146,7 +167,7 @@ namespace UnityEngine.Rendering
                 Handles.color = Color.red;
                 Gizmos.color = Color.red;
                 Vector3 dir = (mainCam.transform.position - positionWS).normalized;
-                Handles.DrawWireDisc(positionWS + dir * occlusionOffset, dir, occlusionRadius, 1.0f);
+                Handles.DrawWireDisc(positionWS + dir * occlusionOffset, dir, adjustedOcclusionRadius, 1.0f);
                 Gizmos.DrawWireSphere(positionWS, occlusionOffset);
                 Gizmos.color = previousG;
                 Handles.color = previousH;

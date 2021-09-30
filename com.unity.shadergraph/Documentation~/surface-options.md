@@ -49,7 +49,7 @@ This option's functionality corresponds to the command <a href="https://docs.uni
 </td></tr>
 
 
-
+<tr><td><b>Support VFX Graph</b></td><td colspan="2">This property is only available if the <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@12.0/manual/">Visual Effect Graph package</a> is installed. Indicates whether this Shader Graph supports the Visual Effect Graph. If you enable this property, output contexts can use this Shader Graph to render particles. The internal setup that Shader Graph does to support visual effects happens when Unity imports the Shader Graph. This means that if you enable this property, but don't use the Shader Graph in a visual effect, there is no impact on performance. It only affects the Shader Graph import time.</td><td>Not applicable.</td></tr>
 
 
 </table>
