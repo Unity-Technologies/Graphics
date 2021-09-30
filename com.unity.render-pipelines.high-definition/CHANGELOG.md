@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed and optimize distance shadowmask fade.
 - Fixed memory leak with XR combined occlusion meshes (case 1366173).
 
+### Changed
+- MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+
 ## [10.7.0] - 2021-07-02
 
 ### Fixed
