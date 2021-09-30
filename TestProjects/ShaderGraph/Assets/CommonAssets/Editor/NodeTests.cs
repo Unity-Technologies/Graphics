@@ -11,54 +11,42 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.ShaderGraph.UnitTests
 {
-    class NodeTests
+    class NodeTests : ShaderGraphTestRenderer
     {
-        const int res = 128;
-
-        readonly Vector3 testPosition = new Vector3(0.24699998f, 0.51900005f, 0.328999996f);
-        readonly Quaternion testRotation = new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f);
+        [UnityTest]
+        public IEnumerator NodeTestTest()
+        {
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/NodeTestTest.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+            var colorStrings = new string[] { "_COLOR_RED", "_COLOR_GREEN", "_COLOR_BLUE" };
+            var colors = new Color32[] { new Color32(255, 0, 0, 255), new Color32(0, 255, 0, 255), new Color32(0, 0, 255, 255) };
+            for (int i = 0; i < 3; i++)
+            {
+                RunNodeTest(graph, $"NodeTestTest_{colorStrings[i]}",
+                    expectedColor: colors[i],
+                    setupMaterial: m => m.EnableKeyword(colorStrings[i]));
+            }
+            ReportTests();
+            yield break;
+        }
 
         [UnityTest]
         public IEnumerator TransformV1MatchesOldTransform()
         {
-            string kGraphName = "Assets/CommonAssets/Graphs/TransformGraph.shadergraph";
-
-            List<PropertyCollector.TextureInfo> lti;
-            var assetCollection = new AssetCollection();
-            ShaderGraphImporter.GetShaderText(kGraphName, out lti, assetCollection, out var graph);
-            Assert.NotNull(graph, $"Invalid graph data found for {kGraphName}");
-            graph.OnEnable();
-            graph.ValidateGraph();
-
-            var renderer = new ShaderGraphTestRenderer();
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/TransformV1MatchesOldTransform.shadergraph";
+            var graph = LoadGraph(graphPath);
 
             // first check that it renders red in the initial state, to check that the test works
             // (graph is initially set up with non-matching transforms)
-            {
-                RenderTextureDescriptor descriptor = new RenderTextureDescriptor(res, res, GraphicsFormat.R8G8B8A8_SRGB, depthBufferBits: 32);
-                var target = RenderTexture.GetTemporary(descriptor);
-
-                // use a non-standard transform, so that view, object, etc. transforms are non trivial
-                renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true);
-
-                int incorrectPixels = ShaderGraphTestRenderer.CountPixelsNotEqual(target, new Color32(0, 255, 0, 255), false);
-                //Debug.Log($"Initial state: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
-
-                if (incorrectPixels != res * res)
-                    ShaderGraphTestRenderer.SaveToPNG(target, "test-results/NodeTests/TransformNodeOld_default.png");
-
-                Assert.AreEqual(res * res, incorrectPixels, $"Initial state should have {res * res} failing pixels");
-
-                RenderTexture.ReleaseTemporary(target);
-                yield return null;
-            }
-
-            var xform = graph.GetNodes<TransformNode>().First();
-            var old = graph.GetNodes<OldTransformNode>().First();
+            ResetTestReporting();
+            RunNodeTest(graph, $"TransformV1_default", expectedIncorrectPixels: defaultResolution * defaultResolution);
+            ReportTests();
 
             // now check all possible settings
-            string assertString = null;
-            int assertIncorrectPixels = 0;
+            ResetTestReporting();
+            var xform = graph.GetNodes<TransformNode>().First();
+            var old = graph.GetNodes<OldTransformNode>().First();
 
             var oldConversionTypes = new ConversionType[] { ConversionType.Position, ConversionType.Direction };
             foreach (ConversionType conversionType in oldConversionTypes)
@@ -76,45 +64,137 @@ namespace UnityEditor.ShaderGraph.UnitTests
                         old.conversion = new CoordinateSpaceConversion(source, dest);
                         old.conversionType = conversionType;
 
-                        RenderTextureDescriptor descriptor = new RenderTextureDescriptor(res, res, GraphicsFormat.R8G8B8A8_SRGB, depthBufferBits: 32);
-                        var target = RenderTexture.GetTemporary(descriptor);
-
-                        // use a non-standard transform, so that view, object, etc. transforms are non trivial
-                        renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true);
-
-                        int incorrectPixels = ShaderGraphTestRenderer.CountPixelsNotEqual(target, new Color32(0, 255, 0, 255), false);
-
-                        // test failing some tests
-                        if (UnityEngine.Random.value < 0.1f)
-                            incorrectPixels = 42;
-                        //Debug.Log($"{source} to {dest} ({conversionType}: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
-
-                        if (incorrectPixels != 0)
-                        {
-                            assertString = $"{incorrectPixels} incorrect pixels detected: {source} to {dest} ({conversionType})";
-                            assertIncorrectPixels = incorrectPixels;
-
-                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.diff.png", reportArtifact: true);
-
-                            renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true, ShaderGraphTestRenderer.Mode.EXPECTED);
-                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.expected.png", reportArtifact: true);
-
-                            renderer.RenderQuadPreview(graph, target, testPosition, testRotation, useSRP: true, ShaderGraphTestRenderer.Mode.ACTUAL);
-                            ShaderGraphTestRenderer.SaveToPNG(target, $"test-results/NodeTests/TransformNodeOld_{source}_to_{dest}_{conversionType}.png", reportArtifact: true);
-                        }
-
-                        RenderTexture.ReleaseTemporary(target);
+                        RunNodeTest(graph, $"TransformNodeOld_{source}_to_{dest}_{conversionType}");
                     }
 
-                    // have to yield to let a frame pass
-                    // unity only releases some resources at the end of a frame
-                    // and if you do too many renders in a frame it will run out
+                    // have to yield to let a frame pass or it will break
+                    // (unity only releases some resources at the end of the frame)
                     yield return null;
                 }
             }
+            ReportTests();
+        }
 
-            // we assert at the end of the test, so we always produce all of the test results before asserting
-            Assert.AreEqual(0, assertIncorrectPixels, assertString);
+        [UnityTest]
+        public IEnumerator TransformInverses()
+        {
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/TransformInverses.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+
+            // check all possible settings
+            var xforms = graph.GetNodes<TransformNode>();
+            var xform = xforms.First();
+            var inv = xforms.Skip(1).First();
+            foreach (ConversionType conversionType in Enum.GetValues(typeof(ConversionType)))
+            {
+                foreach (CoordinateSpace source in Enum.GetValues(typeof(CoordinateSpace)))
+                {
+                    foreach (CoordinateSpace dest in Enum.GetValues(typeof(CoordinateSpace)))
+                    {
+                        // setup transform node
+                        xform.conversion = new CoordinateSpaceConversion(source, dest);
+                        xform.conversionType = conversionType;
+                        xform.normalize = false;
+
+                        // setup inverse transform node
+                        inv.conversion = new CoordinateSpaceConversion(dest, source);
+                        inv.conversionType = conversionType;
+                        inv.normalize = false;
+
+                        RunNodeTest(graph, $"TransformInverse_{source}_to_{dest}_{conversionType}");
+                    }
+
+                    // have to yield to let a frame pass or it will break
+                    // (unity only releases some resources at the end of the frame)
+                    yield return null;
+                }
+            }
+            ReportTests();
+        }
+
+        [UnityTest]
+        public IEnumerator TransformABC()
+        {
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/TransformABC.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+
+            var xforms = graph.GetNodes<TransformNode>();
+            var A_to_C = xforms.FirstOrDefault(n => (n.conversion.from == CoordinateSpace.Object) && (n.conversion.to == CoordinateSpace.Tangent));
+            var A_to_B = xforms.FirstOrDefault(n => (n.conversion.from == CoordinateSpace.Object) && (n.conversion.to == CoordinateSpace.View));
+            var B_to_C = xforms.FirstOrDefault(n => (n.conversion.from == CoordinateSpace.View) && (n.conversion.to == CoordinateSpace.Tangent));
+
+            // check all possible settings
+            foreach (ConversionType conversionType in Enum.GetValues(typeof(ConversionType)))
+            {
+                foreach (CoordinateSpace A in Enum.GetValues(typeof(CoordinateSpace)))
+                {
+                    foreach (CoordinateSpace B in Enum.GetValues(typeof(CoordinateSpace)))
+                    {
+                        foreach (CoordinateSpace C in Enum.GetValues(typeof(CoordinateSpace)))
+                        {
+                            // setup transforms
+                            A_to_C.conversion = new CoordinateSpaceConversion(A, C);
+                            A_to_C.conversionType = conversionType;
+                            A_to_C.normalize = false;
+
+                            A_to_B.conversion = new CoordinateSpaceConversion(A, B);
+                            A_to_B.conversionType = conversionType;
+                            A_to_B.normalize = false;
+
+                            B_to_C.conversion = new CoordinateSpaceConversion(B, C);
+                            B_to_C.conversionType = conversionType;
+                            B_to_C.normalize = false;
+
+                            RunNodeTest(graph, $"TransformABC_{A}_{B}_{C}_{conversionType}");
+                        }
+
+                        // have to yield to let a frame pass or it will break
+                        // (unity only releases some resources at the end of the frame)
+                        yield return null;
+                    }
+                }
+            }
+            ReportTests();
+        }
+
+        [UnityTest]
+        public IEnumerator TransformNormalize()
+        {
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/TransformNormalize.shadergraph";
+            var graph = LoadGraph(graphPath);
+
+            // now check all possible settings
+            ResetTestReporting();
+            var xforms = graph.GetNodes<TransformNode>();
+            var norm = xforms.FirstOrDefault(n => n.normalize);
+            var unnorm = xforms.FirstOrDefault(n => !n.normalize);
+
+            var normalizeConversionTypes = new ConversionType[] { ConversionType.Direction, ConversionType.Normal };
+            foreach (ConversionType conversionType in normalizeConversionTypes)
+            {
+                foreach (CoordinateSpace source in Enum.GetValues(typeof(CoordinateSpace)))
+                {
+                    foreach (CoordinateSpace dest in Enum.GetValues(typeof(CoordinateSpace)))
+                    {
+                        // setup transform(v1) node
+                        norm.conversion = new CoordinateSpaceConversion(source, dest);
+                        norm.conversionType = conversionType;
+
+                        // setup old transform node
+                        unnorm.conversion = new CoordinateSpaceConversion(source, dest);
+                        unnorm.conversionType = conversionType;
+
+                        RunNodeTest(graph, $"TransformNormalize_{source}_to_{dest}_{conversionType}");
+                    }
+
+                    // have to yield to let a frame pass or it will break
+                    // (unity only releases some resources at the end of the frame)
+                    yield return null;
+                }
+            }
+            ReportTests();
         }
     }
 }

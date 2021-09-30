@@ -1,15 +1,89 @@
-
+using System;
 using System.IO;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
+using NUnit.Framework;
 
 public class ShaderGraphTestRenderer
 {
-    PreviewSceneResources previewScene = new PreviewSceneResources();
+    internal const int defaultResolution = 128;
+
+    internal PreviewSceneResources previewScene = new PreviewSceneResources();
+
+    internal delegate void SetupMaterialDelegate(Material m);
+
+    internal int wrongImageCount;
+    internal int mostWrongPixels;
+    internal string mostWrongString;
+    internal void ResetTestReporting()
+    {
+        wrongImageCount = 0;
+        mostWrongPixels = 0;
+        mostWrongString = string.Empty;
+    }
+    internal void ReportTests()
+    {
+        if (wrongImageCount > 0)
+        {
+            Assert.That(false, $"{wrongImageCount} images failed, worst was: {mostWrongString}");
+        }
+    }
+
+    internal GraphData LoadGraph(string graphPath)
+    {
+        List<PropertyCollector.TextureInfo> lti;
+        var assetCollection = new AssetCollection();
+        ShaderGraphImporter.GetShaderText(graphPath, out lti, assetCollection, out var graph);
+        Assert.NotNull(graph, $"Invalid graph data found for {graphPath}");
+        graph.OnEnable();
+        graph.ValidateGraph();
+        return graph;
+    }
+
+    // we apply a transform to the test setup, so that the transform matrices are non-trivial
+    internal Vector3 testPosition = new Vector3(0.24699998f, 0.51900005f, 0.328999996f);
+    internal Quaternion testRotation = new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f);
+
+    internal int RunNodeTest(GraphData graph, string filePrefix, SetupMaterialDelegate setupMaterial = null, Color32? expectedColor = null, int expectedIncorrectPixels = 0)
+    {
+        RenderTextureDescriptor descriptor = new RenderTextureDescriptor(defaultResolution, defaultResolution, GraphicsFormat.R8G8B8A8_SRGB, depthBufferBits: 32);
+        var target = RenderTexture.GetTemporary(descriptor);
+
+        // use a non-standard transform, so that view, object, etc. transforms are non trivial
+        RenderQuadPreview(graph, target, testPosition, testRotation, setupMaterial, Mode.DIFF, useSRP: true);
+
+        int incorrectPixels = CountPixelsNotEqual(target, expectedColor ?? new Color32(0, 255, 0, 255), false);
+        //Debug.Log($"{filePrefix}: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
+
+        if (incorrectPixels != expectedIncorrectPixels)
+        {
+            // report images
+            SaveToPNG(target, $"test-results/NodeTests/{filePrefix}.diff.png");
+
+            RenderQuadPreview(graph, target, testPosition, testRotation, setupMaterial, Mode.EXPECTED, useSRP: true);
+            SaveToPNG(target, $"test-results/NodeTests/{filePrefix}.expected.png");
+
+            RenderQuadPreview(graph, target, testPosition, testRotation, setupMaterial, Mode.ACTUAL, useSRP: true);
+            SaveToPNG(target, $"test-results/NodeTests/{filePrefix}.png");
+
+            // record failure
+            wrongImageCount++;
+            int wrongPixels = Math.Abs(incorrectPixels - expectedIncorrectPixels);
+            if (wrongPixels > mostWrongPixels)
+            {
+                mostWrongPixels = wrongPixels;
+                mostWrongString = $"{filePrefix} incorrect pixels expected: {expectedIncorrectPixels} actual: {incorrectPixels}";
+            }
+        }
+
+        RenderTexture.ReleaseTemporary(target);
+        return incorrectPixels;
+    }
 
     internal static Shader BuildShaderGraph(GraphData graph, string name, bool hide = true)
     {
@@ -90,7 +164,7 @@ public class ShaderGraphTestRenderer
         Debug.Log(Unity.TestProtocol.UnityTestProtocolMessageBuilder.Serialize(message));
     }
 
-    internal static void SaveToPNG(RenderTexture target, string path, bool createDirectory = true, bool reportArtifact = false)
+    internal static void SaveToPNG(RenderTexture target, string path, bool createDirectory = true, bool reportArtifact = true)
     {
         if (createDirectory)
             CreateDirectoriesForFilePath(path);
@@ -139,20 +213,14 @@ public class ShaderGraphTestRenderer
         return mismatchCount;
     }
 
-    // scenePosition/Rotation is applied to both the camera and the quad.  Useful for testing position-sensitive behaviors
-    internal void RenderQuadPreview(GraphData graph, RenderTexture target, bool useSRP = false)
-    {
-        RenderQuadPreview(graph, target, Vector3.zero, Quaternion.identity, useSRP);
-    }
-
     internal enum Mode
     {
-        COMPARE,
+        DIFF,
         EXPECTED,
         ACTUAL
     }
 
-    void SetKeyword(Material mat, string keyword, bool enabled)
+    internal void SetKeyword(Material mat, string keyword, bool enabled)
     {
         if (enabled)
             mat.EnableKeyword(keyword);
@@ -160,7 +228,7 @@ public class ShaderGraphTestRenderer
             mat.DisableKeyword(keyword);
     }
 
-    internal void RenderQuadPreview(GraphData graph, RenderTexture target, Vector3 scenePosition, Quaternion sceneRotation, bool useSRP = false, Mode mode = Mode.COMPARE)
+    internal void RenderQuadPreview(GraphData graph, RenderTexture target, Vector3 scenePosition, Quaternion sceneRotation, SetupMaterialDelegate setupMaterial = null, Mode mode = Mode.DIFF, bool useSRP = false)
     {
         var camXform = previewScene.camera.transform;
 
@@ -178,9 +246,12 @@ public class ShaderGraphTestRenderer
         var shader = BuildShaderGraph(graph, "Test Shader");
         var mat = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
 
-        SetKeyword(mat, "_MODE_COMPARE", (mode == Mode.COMPARE));
+        SetKeyword(mat, "_MODE_DIFF", (mode == Mode.DIFF));
         SetKeyword(mat, "_MODE_EXPECTED", (mode == Mode.EXPECTED));
         SetKeyword(mat, "_MODE_ACTUAL", (mode == Mode.ACTUAL));
+
+        if (setupMaterial != null)
+            setupMaterial(mat);
 
         var quadMatrix = Matrix4x4.TRS(camXform.position + camXform.forward * 2, camXform.rotation, Vector3.one);
 
