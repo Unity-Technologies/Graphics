@@ -3,6 +3,17 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
+#if SHADER_API_GLES
+struct AttributesLensFlare
+{
+    float4 positionCS       : POSITION;
+    float2 uv               : TEXCOORD0;
+
+#ifndef FLARE_PREVIEW
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+#endif
+};
+#else
 struct AttributesLensFlare
 {
     uint vertexID : SV_VertexID;
@@ -11,6 +22,8 @@ struct AttributesLensFlare
     UNITY_VERTEX_INPUT_INSTANCE_ID
 #endif
 };
+#endif
+
 
 struct VaryingsLensFlare
 {
