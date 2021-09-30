@@ -257,6 +257,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader applyExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/DebugHistogramImage.compute")]
             public ComputeShader debugImageHistogramCS;
+            [Reload("Runtime/PostProcessing/Shaders/DebugHDRxyMapping.compute")]
+            public ComputeShader debugHDRxyMappingCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
             public ComputeShader uberPostCS;
             [Reload("Runtime/PostProcessing/Shaders/LutBuilder3D.compute")]

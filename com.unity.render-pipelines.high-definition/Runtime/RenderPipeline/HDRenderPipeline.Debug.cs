@@ -879,6 +879,66 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class GenerateHDRDebugData
+        {
+            public ComputeShader generateXYMappingCS;
+            public TextureHandle xyBuffer;
+
+            public int debugXYGenKernel;
+            public int cameraWidth;
+            public int cameraHeight;
+            public Vector4 debugParameters;
+
+            public TextureHandle source;
+        }
+
+        TextureHandle GenerateDebugHDRxyMapping(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        {
+            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.hdrDebugMode == HDRDebugMode.None)
+                return TextureHandle.nullHandle;
+
+            using (var builder = renderGraph.AddRenderPass<GenerateHDRDebugData>("Generate HDR debug data", out var passData, ProfilingSampler.Get(HDProfileId.HDRDebugData)))
+            {
+                passData.generateXYMappingCS = defaultResources.shaders.debugHDRxyMappingCS;
+                passData.debugXYGenKernel = passData.generateXYMappingCS.FindKernel("KCIExyGen");
+                passData.cameraWidth = postProcessViewportSize.x;
+                passData.cameraHeight = postProcessViewportSize.y;
+                passData.source = builder.ReadTexture(source);
+
+                passData.xyBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(k_SizeOfHDRXYMapping, k_SizeOfHDRXYMapping, true, true)
+                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, clearBuffer = true, name = "HDR_xyMapping" }));
+
+                int gamut = 1;
+                if (HDROutputIsActive(hdCamera))
+                {
+                    if (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709)
+                        gamut = 1;
+                    else if (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec2020 || HDROutputSettings.main.displayColorGamut == ColorGamut.HDR10)
+                        gamut = 2;
+                }
+                passData.debugParameters = new Vector4(k_SizeOfHDRXYMapping, k_SizeOfHDRXYMapping, 0, gamut);
+
+                builder.SetRenderFunc(
+                    (GenerateHDRDebugData data, RenderGraphContext ctx) =>
+                    {
+                        ctx.cmd.SetComputeTextureParam(data.generateXYMappingCS, data.debugXYGenKernel, HDShaderIDs._SourceTexture, data.source);
+                        ctx.cmd.SetComputeVectorParam(data.generateXYMappingCS, HDShaderIDs._HDRxyBufferDebugParams, data.debugParameters);
+                        ctx.cmd.SetComputeTextureParam(data.generateXYMappingCS, data.debugXYGenKernel, HDShaderIDs._xyBuffer, data.xyBuffer);
+
+                        int threadGroupSizeX = 8;
+                        int threadGroupSizeY = 8;
+                        int dispatchSizeX = HDUtils.DivRoundUp(data.cameraWidth, threadGroupSizeX);
+                        int dispatchSizeY = HDUtils.DivRoundUp(data.cameraHeight, threadGroupSizeY);
+                        int totalPixels = data.cameraWidth * data.cameraHeight;
+                        ctx.cmd.DispatchCompute(data.generateXYMappingCS, data.debugXYGenKernel, dispatchSizeX, dispatchSizeY, 1);
+                    });
+
+                source = passData.xyBuffer;
+            }
+
+            return source;
+        }
+
         class DebugHDRData
         {
             public LightingDebugSettings lightingDebugSettings;
@@ -886,16 +946,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 hdrOutputParams;
             public Vector4 hdrOutputParams2;
             public Vector4 hdrDebugParams;
+            public int debugPass;
 
+            public ComputeBufferHandle xyMappingBuffer;
             public TextureHandle colorBuffer;
+            public TextureHandle xyTexture;
+
             public TextureHandle debugFullScreenTexture;
             public TextureHandle output;
         }
 
-        TextureHandle RenderHDRDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
+        TextureHandle RenderHDRDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle xyBuff)
         {
-            //if (!HDROutputIsActive()) return colorBuffer;
-
             using (var builder = renderGraph.AddRenderPass<DebugHDRData>("Debug HDR", out var passData))
             {
                 passData.debugHDRMaterial = m_DebugHDROutput;
@@ -905,19 +967,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     passData.hdrOutputParams.z = 1.0f;
 
+                passData.debugPass = 0;
+                if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.hdrDebugMode == HDRDebugMode.GamutClip)
+                    passData.debugPass = 1;
+
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
                 passData.debugFullScreenTexture = builder.ReadTexture(m_DebugFullScreenTexture);
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "HDRDebug" }));
 
+                // TODO: Put here tonemap type.
+                passData.hdrDebugParams = new Vector4(k_SizeOfHDRXYMapping, k_SizeOfHDRXYMapping, 0, 0);
+                passData.xyTexture = builder.ReadTexture(xyBuff);
 
                 builder.SetRenderFunc(
                     (DebugHDRData data, RenderGraphContext ctx) =>
                     {
                         data.debugHDRMaterial.SetTexture(HDShaderIDs._DebugFullScreenTexture, data.debugFullScreenTexture);
+                        data.debugHDRMaterial.SetTexture(HDShaderIDs._xyBuffer, data.xyTexture);
+
                         data.debugHDRMaterial.SetVector(HDShaderIDs._HDROutputParams, data.hdrOutputParams);
                         data.debugHDRMaterial.SetVector(HDShaderIDs._HDROutputParams2, data.hdrOutputParams2);
-                        HDUtils.DrawFullScreen(ctx.cmd, data.debugHDRMaterial, data.output, null, 0);
+                        data.debugHDRMaterial.SetVector(HDShaderIDs._HDRDebugParams, data.hdrDebugParams);
+
+                        HDUtils.DrawFullScreen(ctx.cmd, data.debugHDRMaterial, data.output, null, data.debugPass);
                     });
 
                 return passData.output;
@@ -1085,7 +1158,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 output = RenderExposureDebug(renderGraph, hdCamera, colorBuffer);
 
             if (NeedHDRDebugMode(m_CurrentDebugDisplaySettings))
-                output = RenderHDRDebug(renderGraph, hdCamera, colorBuffer);
+                output = RenderHDRDebug(renderGraph, hdCamera, colorBuffer, rayCountTexture);
 
             if (NeedColorPickerDebug(m_CurrentDebugDisplaySettings))
                 output = ResolveColorPickerDebug(renderGraph, colorPickerDebugTexture, hdCamera, colorFormat);

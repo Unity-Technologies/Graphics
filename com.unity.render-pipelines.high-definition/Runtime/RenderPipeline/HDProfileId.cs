@@ -226,6 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SetResolutionGroup,
         FinalPost,
         FinalImageHistogram,
+        HDRDebugData,
         CustomPostProcessBeforeTAA,
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPPBlurs,

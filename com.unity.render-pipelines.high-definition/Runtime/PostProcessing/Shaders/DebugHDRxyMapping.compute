@@ -4,19 +4,16 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
 
-
 #pragma kernel KCIExyGen
 #define GROUP_SIZE_X 8
 #define GROUP_SIZE_Y 8
 
-
-RWStructuredBuffer<uint> _xyBuffer;
 TEXTURE2D_X(_SourceTexture);
+RW_TEXTURE2D_X(float, _xyBuffer);
 
 float4 _HDRxyBufferDebugParams;
 #define _SizePerDim _HDRxyBufferDebugParams.xy
 #define _IsRec709 (int)(_HDRxyBufferDebugParams.w == 1)
-
 
 float2 RGBtoxy(float3 rgb)
 {
@@ -32,11 +29,6 @@ float2 RGBtoxy(float3 rgb)
     return XYZ.xy / (dot(XYZ, 1));
 }
 
-int xyToBufferEntry(float2 xy)
-{
-    // TODO: The gamuts don't stretch the full xy [0..1] stretch, so can normalize to optimize space.
-    return xy.x + _SizePerDim.x * xy.y;
-}
 
 [numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
 void KCIExyGen(uint groupIndex : SV_GroupIndex,
@@ -45,5 +37,7 @@ void KCIExyGen(uint groupIndex : SV_GroupIndex,
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     float3 rgbData = LOAD_TEXTURE2D_X(_SourceTexture, dispatchThreadId.xy).rgb;
 
-    float2 xy = RGBtoxy(rgbData);
+    float2 xy = (RGBtoxy(rgbData));
+
+    _xyBuffer[COORD_TEXTURE2D_X(xy * _SizePerDim)] = 1;
 }

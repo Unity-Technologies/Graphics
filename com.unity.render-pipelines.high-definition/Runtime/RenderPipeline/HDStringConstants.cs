@@ -778,6 +778,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _HistogramExposureParams = Shader.PropertyToID("_HistogramExposureParams");
         public static readonly int _HistogramBuffer = Shader.PropertyToID("_HistogramBuffer");
         public static readonly int _FullImageHistogram = Shader.PropertyToID("_FullImageHistogram");
+        public static readonly int _xyBuffer = Shader.PropertyToID("_xyBuffer");
+        public static readonly int _HDRxyBufferDebugParams = Shader.PropertyToID("_HDRxyBufferDebugParams");
+        public static readonly int _HDRDebugParams = Shader.PropertyToID("_HDRDebugParams");
         public static readonly int _AdaptationParams = Shader.PropertyToID("_AdaptationParams");
         public static readonly int _ExposureCurveTexture = Shader.PropertyToID("_ExposureCurveTexture");
         public static readonly int _ExposureWeightMask = Shader.PropertyToID("_ExposureWeightMask");

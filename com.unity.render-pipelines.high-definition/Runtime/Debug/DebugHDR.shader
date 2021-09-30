@@ -49,6 +49,8 @@ Shader "Hidden/HDRP/DebugHDR"
 
     #define _TonemapType _HDRDebugParams.w
 
+    TEXTURE2D_X(_xyBuffer);
+
     struct Attributes
     {
         uint vertexID : SV_VertexID;
@@ -206,11 +208,19 @@ Shader "Hidden/HDRP/DebugHDR"
         return (bar.x >= 0 && bar.x <= 1 && bar.y >= 0 && bar.y <= 1 && (bar.x + bar.y) <= 1);
     }
 
-    float3 FragColorGamut(Varyings input) : SV_Target
+    bool IsInImage(float2 xy)
+    {
+        return SAMPLE_TEXTURE2D_X_LOD(_xyBuffer, s_point_clamp_sampler, xy, 0.0).x != 0;
+    }
+
+
+    float3 CommonFrag(Varyings input, bool displayClip)
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float2 uv = input.texcoord.xy;
         float3 color = SAMPLE_TEXTURE2D_X_LOD(_DebugFullScreenTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
+
+        int gamutPiPSize = _ScreenSize.x / 3.0f;
 
         float2 r_2020 = float2(0.708, 0.292);
         float2 g_2020 = float2(0.170, 0.797);
@@ -221,20 +231,30 @@ Shader "Hidden/HDRP/DebugHDR"
         float2 b_709 = float2(0.15, 0.06);
 
         float2 pos = input.positionCS.xy;
-        int gamutPiPSize = _ScreenSize.x / 3.0f;
         float lineThickness = 0.002;
 
         float2 xy = RGBtoxy(color.rgb);
-        if (PointInTriangle(xy, r_709, g_709, b_709))
-        {
-            color.rgb = (color.rgb * 0.7 + 0.3 * float3(0, _PaperWhite, 0));
-        }
-        else if (PointInTriangle(xy, r_2020, g_2020, b_2020))
-        {
-            color.rgb = (color.rgb * 0.7 + 0.3 * float3(_PaperWhite, 0, 0));
-        }
+
+        float3 rec2020Color = float3(_PaperWhite, 0, 0);
+        float3 rec2020ColorDesat = float3(3.0, 0.5, 0.5);
+        float3 rec709Color = float3(0, _PaperWhite, 0);
+        float3 rec709ColorDesat = float3(0.4, 0.6, 0.4);
 
 
+        if (displayClip)
+        {
+            float clipAlpha = 0.2f;
+            if (PointInTriangle(xy, r_709, g_709, b_709))
+            {
+                color.rgb = (color.rgb * (1 - clipAlpha) + clipAlpha * rec709Color);
+            }
+            else if (PointInTriangle(xy, r_2020, g_2020, b_2020))
+            {
+                color.rgb = (color.rgb * (1 - clipAlpha) + clipAlpha * rec2020Color);
+            }
+        }
+
+        float4 gamutColor = 0;
         if (all(pos < gamutPiPSize))
         {
             float2 uv = pos / gamutPiPSize;
@@ -244,23 +264,52 @@ Shader "Hidden/HDRP/DebugHDR"
                 DrawSegment(uv, r_2020, g_2020, lineThickness, float3(0, 0, 0));
 
             float3 linearRGB = 0;
-
+            bool pointInRec709 = true;
             if (PointInTriangle(uv, r_2020, g_2020, b_2020))
             {
                 linearRGB = uvToGamut(uv);
 
-                color.rgb = linearRGB * _PaperWhite;
+                if (displayClip)
+                {
+                    if (PointInTriangle(uv, r_709, g_709, b_709))
+                    {
+                        linearRGB.rgb = rec709ColorDesat;
+                    }
+                    else
+                    {
+                        pointInRec709 = false;
+                        linearRGB.rgb = rec2020ColorDesat;
+                    }
+                }
+
+                gamutColor.a = max(lineColor.a, 0.15);
+                gamutColor.rgb = linearRGB * _PaperWhite;
+
+                if (IsInImage(uv))
+                {
+                    gamutColor.a = 1;
+                    if (displayClip)
+                        gamutColor.rgb = pointInRec709 ? rec709Color : rec2020Color;
+                }
             }
 
-            color.rgb = color.rgb * (1.0f - lineColor.a) + lineColor.rgb;
+            gamutColor.rgb = gamutColor.rgb * (1.0f - lineColor.a) + lineColor.rgb;
         }
 
-        return color;
-       // uv.y = 1.0f - uv.y;
-        //uv.x = 1.0f - uv.x;
+        color.rgb = gamutColor.rgb * gamutColor.a + color.rgb * (1 - gamutColor.a);
 
+        return color;
     }
 
+    float3 FragColorGamut(Varyings input) : SV_Target
+    {
+        return CommonFrag(input, false);
+    }
+
+    float3 FragColorGamutClip(Varyings input) : SV_Target
+    {
+        return CommonFrag(input, true);
+    }
 
 
     float3 FragHistogram(Varyings input) : SV_Target
@@ -309,7 +358,7 @@ Shader "Hidden/HDRP/DebugHDR"
             Cull Off
 
             HLSLPROGRAM
-                #pragma fragment FragMetering
+                #pragma fragment FragColorGamutClip
             ENDHLSL
         }
 
