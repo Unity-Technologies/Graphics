@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
 - Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
 - Fixed Probe volume debug exposure compensation to match the Lighting debug one.
-- Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
 - Fixed misleading text and improving the eye scene material samples. (case 1368665)
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
 
