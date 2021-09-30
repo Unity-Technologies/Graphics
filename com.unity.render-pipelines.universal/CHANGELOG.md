@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed experimental tile deferred code.
 - VFX: New shadergraph support directly on Universal target.
+- MaterialReimporter.ReimportAllMaterials now batches the asset database changes to improve performance.
 - URP will no longer render via an intermediate texture unless actively required by a Renderer Feature. See the upgrade guide for compatibility options and how assets are upgraded.
 
 ### Fixed
