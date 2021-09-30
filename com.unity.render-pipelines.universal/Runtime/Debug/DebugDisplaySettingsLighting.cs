@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel(DebugDisplaySettingsLighting data)
             {
+                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
+
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Lighting Debug Modes",
