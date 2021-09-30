@@ -520,24 +520,36 @@ namespace UnityEngine.Rendering.Universal
                             ShadowPathClipper.GetOutputPath(tempVertices, currentTempVertexIndex);
 
                             // Create edges
-                            int lastEdgeIndex = (outputPathLength - 1) + currentTempEdgeIndex;
+                            int lastVertexIndex = (outputPathLength - 1) + currentTempVertexIndex;
                             for (int i = 0; i < outputPathLength; i++)
                             {
-                                int currentVertexIndex = currentTempEdgeIndex;
-                                tempEdges[currentTempEdgeIndex] = new ShadowEdge(lastEdgeIndex, currentVertexIndex);
-                                lastEdgeIndex = currentTempEdgeIndex++;
+                                tempEdges[currentTempEdgeIndex++] = new ShadowEdge(lastVertexIndex, currentTempVertexIndex);
+                                lastVertexIndex = currentTempVertexIndex++;
                             }
-
-                            currentTempVertexIndex += outputPathLength;
                         }
                     }
                 }
                 // If its an open shape just copy it to our output
                 else
                 {
-                    // TODO:
+                    // Copy
+                    outShapeStartingEdge[shapeStartIndex] = currentTempEdgeIndex;
+
+                    ShadowEdge curEdge = default;
+                    int lastVertexIndex =  + numberOfEdges - 1;
+                    for (int i = 0; i < numberOfEdges; i++)
+                    {
+                        curEdge = inEdges[i + currentShapeStart];
+                        tempEdges[currentTempEdgeIndex++] = new ShadowEdge(currentTempVertexIndex, currentTempVertexIndex+1);
+                        tempVertices[currentTempVertexIndex++] = inVertices[curEdge.v0];
+                    }
+
+                    if (numberOfEdges > 0)
+                        tempVertices[currentTempVertexIndex++] = inVertices[curEdge.v1];
                 }
             }
+
+
 
             // Copy our arrays out.
             outVertices = new NativeArray<Vector3>(currentTempVertexIndex, Allocator.Temp);
