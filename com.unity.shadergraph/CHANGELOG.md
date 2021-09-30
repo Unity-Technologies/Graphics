@@ -10,6 +10,7 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ### Added
+- Adding ability to automatically cast Bools to Vector types in ShaderGraph [1359160]
 
 ### Changed
 
