@@ -1,6 +1,8 @@
 #ifndef UNITY_DEBUG_INCLUDED
 #define UNITY_DEBUG_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+
 // UX-verified colorblind-optimized debug colors, listed in order of increasing perceived "hotness"
 #define DEBUG_COLORS_COUNT 12
 #define kDebugColorBlack        float4(0.0   / 255.0, 0.0   / 255.0, 0.0   / 255.0, 1.0) // #000000
@@ -316,6 +318,35 @@ real3 GetColorCodeFunction(real value, real4 threshold)
     }
 
     return outColor;
+}
+
+/// Return the color of the overdraw debug.
+///
+/// The color will go from
+/// (cheap) dark blue -> red -> violet -> white (expensive)
+///
+/// * overdrawCount: the number of overdraw
+/// * maxOverdrawCount: the maximum number of overdraw.
+///   if the overdrawCount is above, the most expensive color is returned.
+real3 GetOverdrawColor(real overdrawCount, real maxOverdrawCount)
+{
+    // cheapest hue
+    const float initialHue = 240;
+    // most expensive hue is initialHue - deltaHue
+    const float deltaHue = 20;
+    // the value in % of budget where we start to remove saturation
+    const float xLight = 0.95;
+    // minimum hue
+    const float minHue = deltaHue - 360 + initialHue;
+    // budget value of a single draw
+    const float xCostOne = 1.0 / maxOverdrawCount;
+    // current budget value
+    const float x = saturate(overdrawCount / maxOverdrawCount);
+
+
+    float hue = fmod(max(min((x - xCostOne) * (deltaHue - 360) * (1.0 / (xLight - xCostOne)) + initialHue, initialHue), minHue), 360)/360.0;
+    float saturation = min(max((-1.0/(1 - xLight)) * (x - xLight), 0), 1);
+    return HsvToRgb(real3(hue, saturation, 1.0));
 }
 
 #endif // UNITY_DEBUG_INCLUDED
