@@ -10,20 +10,23 @@ class RuntimeTests
 {
     GameObject go;
     Camera camera;
-    RenderPipelineAsset currentAsset;
+    RenderPipelineAsset currentAssetGraphics;
+    RenderPipelineAsset currentAssetQuality;
 
     [SetUp]
     public void Setup()
     {
         go = new GameObject();
         camera = go.AddComponent<Camera>();
-        currentAsset = GraphicsSettings.renderPipelineAsset;
+        currentAssetGraphics = GraphicsSettings.renderPipelineAsset;
+        currentAssetQuality = QualitySettings.renderPipeline;
     }
 
     [TearDown]
     public void Cleanup()
     {
-        GraphicsSettings.renderPipelineAsset = currentAsset;
+        GraphicsSettings.renderPipelineAsset = currentAssetGraphics;
+        QualitySettings.renderPipeline = currentAssetQuality;
         Object.DestroyImmediate(go);
     }
 
@@ -54,6 +57,7 @@ class RuntimeTests
         Assert.AreEqual("UniversalPipeline", Shader.globalRenderPipeline, "Wrong render pipeline shader tag.");
 
         GraphicsSettings.renderPipelineAsset = null;
+        QualitySettings.renderPipeline = null;
         camera.Render();
         yield return null;
 
@@ -64,12 +68,12 @@ class RuntimeTests
 
     void AssetCheck()
     {
-        //Assert.IsNotNull(currentAsset, "Render Pipeline Asset is Null");
+        //Assert.IsNotNull(currentAssetGraphics, "Render Pipeline Asset is Null");
         // Temp fix, test passes if project isnt setup for Universal RP
-        if (currentAsset == null)
+        if (RenderPipelineManager.currentPipeline == null)
             Assert.Pass("Render Pipeline Asset is Null, test pass by default");
 
-        Assert.AreEqual(currentAsset.GetType(), typeof(UniversalRenderPipelineAsset),
+        Assert.AreEqual(RenderPipelineManager.currentPipeline.GetType(), typeof(UniversalRenderPipeline),
             "Pipeline Asset is not Universal RP");
     }
 }

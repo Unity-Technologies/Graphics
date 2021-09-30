@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent rayTracingTexFilteringScaleText = new GUIContent("Texture Filtering In Raytracing", "Texture filtering works differently in raytracing. To help with aliasing you can adjust this from 0 (no filtering) to 1 (maximum filtering)");
         }
-        static readonly string[]    MappingModeNames = Enum.GetNames(typeof(AxFMappingMode));
+        static readonly string[] MappingModeNames = Enum.GetNames(typeof(AxFMappingMode));
 
         static string m_MappingModeText = "_MappingMode";
         MaterialProperty m_MappingMode = null;

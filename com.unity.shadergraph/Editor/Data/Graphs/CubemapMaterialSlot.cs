@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph
     class CubemapMaterialSlot : MaterialSlot
     {
         public CubemapMaterialSlot()
-        {}
+        { }
 
         public CubemapMaterialSlot(
             int slotId,
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
             ShaderStageCapability stageCapability = ShaderStageCapability.All,
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, slotType, stageCapability, hidden)
-        {}
+        { }
 
         [SerializeField]
         bool m_BareResource = false;
@@ -45,9 +45,9 @@ namespace UnityEditor.ShaderGraph
         public override bool isDefaultValue => true;
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
-        {}
+        { }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
-        {}
+        { }
     }
 }

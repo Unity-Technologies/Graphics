@@ -30,7 +30,7 @@ public class DebugViewController_Editor : Editor
     {
         //base.OnInspectorGUI();
 
-        if ( ( (UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset) UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline) != null ) // avoid displaying the following if the assigned RP is not a HDRP
+        if (((UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset)UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline) != null)     // avoid displaying the following if the assigned RP is not a HDRP
         {
             int i_settingType = s_settingType.intValue;//= (int) (target as DebugViewController).settingType;
 
@@ -39,16 +39,16 @@ public class DebugViewController_Editor : Editor
             // if (MaterialDebugSettings.debugViewMaterialGBufferStrings == null) new MaterialDebugSettings();
             // if (DebugDisplaySettings.renderingFullScreenDebugStrings == null) new DebugDisplaySettings();
 
-            switch ( (DebugViewController.SettingType) s_settingType.intValue )
+            switch ((DebugViewController.SettingType)s_settingType.intValue)
             {
-                case DebugViewController.SettingType.Material :
+                case DebugViewController.SettingType.Material:
                     s_gBuffer.intValue = EditorGUILayout.IntPopup(new GUIContent("GBuffer"), s_gBuffer.intValue, MaterialDebugSettings.debugViewMaterialGBufferStrings, MaterialDebugSettings.debugViewMaterialGBufferValues);
                     break;
 
                 case DebugViewController.SettingType.Lighting:
                     s_lightlayers.boolValue = GUILayout.Toggle(s_lightlayers.boolValue, "Light Layers Visualization");
                     s_lightingFullScreenDebugMode.intValue = EditorGUILayout.IntPopup(new GUIContent("Fullscreen Debug Mode"), s_lightingFullScreenDebugMode.intValue, DebugDisplaySettings.lightingFullScreenDebugStrings, DebugDisplaySettings.lightingFullScreenDebugValues);
-					break;
+                    break;
 
                 case DebugViewController.SettingType.Rendering:
                     s_fullScreenDebugMode.intValue = EditorGUILayout.IntPopup(new GUIContent("Fullscreen Debug Mode"), s_fullScreenDebugMode.intValue, DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues);
@@ -56,7 +56,7 @@ public class DebugViewController_Editor : Editor
             }
         }
 
-        if ( serializedObject.ApplyModifiedProperties() )
+        if (serializedObject.ApplyModifiedProperties())
         {
             serializedObject.Update();
             (target as DebugViewController).SetDebugView();

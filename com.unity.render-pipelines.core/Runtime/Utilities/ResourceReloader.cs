@@ -305,7 +305,7 @@ namespace UnityEngine.Rendering
         /// <param name="package">The lookup method</param>
         public ReloadAttribute(string path, Package package = Package.Root)
             : this(new[] { path }, package)
-        {}
+        { }
 
         /// <summary>
         /// Creates a new <see cref="ReloadAttribute"/> for an array using automatic path name
@@ -336,5 +336,5 @@ namespace UnityEngine.Rendering
     /// <seealso cref="ReloadAttribute"/>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class ReloadGroupAttribute : Attribute
-    {}
+    { }
 }

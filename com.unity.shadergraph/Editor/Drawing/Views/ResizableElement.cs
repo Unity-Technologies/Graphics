@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class ResizableElementFactory : UxmlFactory<ResizableElement>
-    {}
+    { }
 
     class ResizableElement : VisualElement
     {
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             tpl.CloneTree(this);
 
-            foreach (Resizer direction in new[] {Resizer.Top, Resizer.Bottom, Resizer.Left, Resizer.Right})
+            foreach (Resizer direction in new[] { Resizer.Top, Resizer.Bottom, Resizer.Left, Resizer.Right })
             {
                 VisualElement resizer = this.Q(direction.ToString().ToLower() + "-resize");
                 if (resizer != null)
@@ -38,8 +38,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Resizers[direction] = resizer;
             }
 
-            foreach (Resizer vertical in new[] {Resizer.Top, Resizer.Bottom})
-                foreach (Resizer horizontal in new[] {Resizer.Left, Resizer.Right})
+            foreach (Resizer vertical in new[] { Resizer.Top, Resizer.Bottom })
+                foreach (Resizer horizontal in new[] { Resizer.Left, Resizer.Right })
                 {
                     VisualElement resizer = this.Q(vertical.ToString().ToLower() + "-" + horizontal.ToString().ToLower() + "-resize");
                     if (resizer != null)
@@ -73,11 +73,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public enum Resizer
         {
-            None =          0,
-            Top =           1 << 0,
-            Bottom =        1 << 1,
-            Left =          1 << 2,
-            Right =         1 << 3,
+            None = 0,
+            Top = 1 << 0,
+            Bottom = 1 << 1,
+            Left = 1 << 2,
+            Right = 1 << 3,
         }
 
         // Lets visual element owners bind a callback to when any resize operation is completed

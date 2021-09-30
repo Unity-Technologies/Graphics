@@ -67,7 +67,6 @@ half4 PBRForwardAddFragment(v2f_surf vertexSurf, SurfaceOutputStandard o)
     gi.light.dir = lightDir;
     gi.light.color *= atten;
     c += LightingStandard (o, worldViewDir, gi);
-    c.rgb += o.Emission;
     c.a = 0.0;
     UNITY_APPLY_FOG(_unity_fogCoord, c); // apply fog
     #ifndef _SURFACE_TYPE_TRANSPARENT

@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.Universal
                     RenderTargetBlendState additiveBlend = new RenderTargetBlendState(sourceColorBlendMode: BlendMode.One, destinationColorBlendMode: BlendMode.One);
 
                     // Additive-blend but leave z-write and culling as they are when we draw normally
-                    renderStateBlock.blendState = new BlendState {blendState0 = additiveBlend};
+                    renderStateBlock.blendState = new BlendState { blendState0 = additiveBlend };
                     renderStateBlock.mask = RenderStateMask.Blend;
                     break;
                 }

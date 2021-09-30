@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Universal.Converters
         {
             var context = Search.SearchService.CreateContext("asset", "urp:convert-readonly");
 
-            Search.SearchService.Request(context,  (c, items) =>
+            Search.SearchService.Request(context, (c, items) =>
             {
                 // we're going to do this step twice in order to get them ordered, but it should be fast
                 var orderedRequest = items.OrderBy(req =>
@@ -94,6 +94,10 @@ namespace UnityEditor.Rendering.Universal.Converters
 
                 foreach (var material in materials)
                 {
+                    if (material == null)
+                    {
+                        continue;
+                    }
                     // there might be multiple materials on this object, we only care about the ones we explicitly try to remap that fail
                     if (!MaterialReferenceBuilder.GetIsReadonlyMaterial(material)) continue;
                     if (!ReadonlyMaterialMap.Map.ContainsKey(material.name)) continue;
@@ -205,6 +209,10 @@ namespace UnityEditor.Rendering.Universal.Converters
                     for (int i = 0; i < materialList.Length; i++)
                     {
                         var mat = materialList[i];
+                        if (mat == null)
+                        {
+                            continue;
+                        }
                         if (mat.name.Equals(oldMaterialName, StringComparison.OrdinalIgnoreCase))
                         {
                             var newMaterial = AssetDatabase.LoadAssetAtPath<Material>(newMaterialPath);

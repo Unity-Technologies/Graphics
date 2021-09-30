@@ -24,9 +24,9 @@ namespace UnityEngine.Rendering.Universal
             // Specialization for camera loop to avoid allocations.
             public static ProfilingSampler TryGetOrAddCameraSampler(Camera camera)
             {
-                #if UNIVERSAL_PROFILING_NO_ALLOC
+#if UNIVERSAL_PROFILING_NO_ALLOC
                 return unknownSampler;
-                #else
+#else
                 ProfilingSampler ps = null;
                 int cameraId = camera.GetHashCode();
                 bool exists = s_HashSamplerCache.TryGetValue(cameraId, out ps);
@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
                     s_HashSamplerCache.Add(cameraId, ps);
                 }
                 return ps;
-                #endif
+#endif
             }
 
             public static class Pipeline
@@ -47,28 +47,28 @@ namespace UnityEngine.Rendering.Universal
                 public static readonly ProfilingSampler beginContextRendering  = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginContextRendering)}");
                 public static readonly ProfilingSampler endContextRendering    = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndContextRendering)}");
 #else
-                public static readonly ProfilingSampler beginFrameRendering  = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginFrameRendering)}");
-                public static readonly ProfilingSampler endFrameRendering    = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndFrameRendering)}");
+                public static readonly ProfilingSampler beginFrameRendering = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginFrameRendering)}");
+                public static readonly ProfilingSampler endFrameRendering = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndFrameRendering)}");
 #endif
                 public static readonly ProfilingSampler beginCameraRendering = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginCameraRendering)}");
-                public static readonly ProfilingSampler endCameraRendering   = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndCameraRendering)}");
+                public static readonly ProfilingSampler endCameraRendering = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndCameraRendering)}");
 
                 const string k_Name = nameof(UniversalRenderPipeline);
-                public static readonly ProfilingSampler initializeCameraData           = new ProfilingSampler($"{k_Name}.{nameof(InitializeCameraData)}");
-                public static readonly ProfilingSampler initializeStackedCameraData    = new ProfilingSampler($"{k_Name}.{nameof(InitializeStackedCameraData)}");
+                public static readonly ProfilingSampler initializeCameraData = new ProfilingSampler($"{k_Name}.{nameof(InitializeCameraData)}");
+                public static readonly ProfilingSampler initializeStackedCameraData = new ProfilingSampler($"{k_Name}.{nameof(InitializeStackedCameraData)}");
                 public static readonly ProfilingSampler initializeAdditionalCameraData = new ProfilingSampler($"{k_Name}.{nameof(InitializeAdditionalCameraData)}");
-                public static readonly ProfilingSampler initializeRenderingData        = new ProfilingSampler($"{k_Name}.{nameof(InitializeRenderingData)}");
-                public static readonly ProfilingSampler initializeShadowData           = new ProfilingSampler($"{k_Name}.{nameof(InitializeShadowData)}");
-                public static readonly ProfilingSampler initializeLightData            = new ProfilingSampler($"{k_Name}.{nameof(InitializeLightData)}");
-                public static readonly ProfilingSampler getPerObjectLightFlags         = new ProfilingSampler($"{k_Name}.{nameof(GetPerObjectLightFlags)}");
-                public static readonly ProfilingSampler getMainLightIndex              = new ProfilingSampler($"{k_Name}.{nameof(GetMainLightIndex)}");
-                public static readonly ProfilingSampler setupPerFrameShaderConstants   = new ProfilingSampler($"{k_Name}.{nameof(SetupPerFrameShaderConstants)}");
+                public static readonly ProfilingSampler initializeRenderingData = new ProfilingSampler($"{k_Name}.{nameof(InitializeRenderingData)}");
+                public static readonly ProfilingSampler initializeShadowData = new ProfilingSampler($"{k_Name}.{nameof(InitializeShadowData)}");
+                public static readonly ProfilingSampler initializeLightData = new ProfilingSampler($"{k_Name}.{nameof(InitializeLightData)}");
+                public static readonly ProfilingSampler getPerObjectLightFlags = new ProfilingSampler($"{k_Name}.{nameof(GetPerObjectLightFlags)}");
+                public static readonly ProfilingSampler getMainLightIndex = new ProfilingSampler($"{k_Name}.{nameof(GetMainLightIndex)}");
+                public static readonly ProfilingSampler setupPerFrameShaderConstants = new ProfilingSampler($"{k_Name}.{nameof(SetupPerFrameShaderConstants)}");
 
                 public static class Renderer
                 {
                     const string k_Name = nameof(ScriptableRenderer);
                     public static readonly ProfilingSampler setupCullingParameters = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderer.SetupCullingParameters)}");
-                    public static readonly ProfilingSampler setup                  = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderer.Setup)}");
+                    public static readonly ProfilingSampler setup = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderer.Setup)}");
                 };
 
                 public static class Context
@@ -103,6 +103,11 @@ namespace UnityEngine.Rendering.Universal
             get => 2.0f;
         }
 
+        public static int maxNumIterationsEnclosingSphere
+        {
+            get => 1000;
+        }
+
         // Amount of Lights that can be shaded per object (in the for loop in the shader)
         public static int maxPerObjectLights
         {
@@ -113,7 +118,7 @@ namespace UnityEngine.Rendering.Universal
 
         // These limits have to match same limits in Input.hlsl
         internal const int k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45 = 16;
-        internal const int k_MaxVisibleAdditionalLightsMobile    = 32;
+        internal const int k_MaxVisibleAdditionalLightsMobile = 32;
         internal const int k_MaxVisibleAdditionalLightsNonMobile = 256;
         public static int maxVisibleAdditionalLights
         {
@@ -171,10 +176,12 @@ namespace UnityEngine.Rendering.Universal
 
             CameraCaptureBridge.enabled = true;
 
-            RenderingUtils.ClearSystemInfoCache();               DecalProjector.defaultMaterial = asset.decalMaterial;
+            RenderingUtils.ClearSystemInfoCache();
+
+            DecalProjector.defaultMaterial = asset.decalMaterial;
 
             DebugManager.instance.RefreshEditor();
-            m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
+            m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
         }
 
         protected override void Dispose(bool disposing)
@@ -186,7 +193,6 @@ namespace UnityEngine.Rendering.Universal
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
             ShaderData.instance.Dispose();
-            DeferredShaderData.instance.Dispose();
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XRSystem?.Dispose();
@@ -543,6 +549,8 @@ namespace UnityEngine.Rendering.Universal
 
                 // Helper function for updating cameraData with xrPass Data
                 m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
+
+                m_XRSystem.BeginLateLatching(baseCamera, xrPass);
             }
 #endif
 
@@ -559,6 +567,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 EndCameraRendering(context, baseCamera);
             }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            m_XRSystem.EndLateLatching(baseCamera, xrPass);
+#endif
 
             if (isStackedRendering)
             {
@@ -656,6 +668,15 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // When we want to update the volumes every frame...
+
+            // We destroy the volumeStack in the additional camera data, if present, to make sure
+            // it gets recreated and initialized if the update mode gets later changed to ViaScripting...
+            if (additionalCameraData && additionalCameraData.volumeStack != null)
+            {
+                camera.DestroyVolumeStack(additionalCameraData);
+            }
+
+            // Get the mask + trigger and update the stack
             camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out LayerMask layerMask, out Transform trigger);
             VolumeManager.instance.ResetMainStack();
             VolumeManager.instance.Update(trigger, layerMask);
@@ -881,7 +902,8 @@ namespace UnityEngine.Rendering.Universal
             // Disables post if GLes2
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
-            cameraData.requiresDepthTexture |= isSceneViewCamera || CheckPostProcessForDepth(cameraData);
+            cameraData.requiresDepthTexture |= isSceneViewCamera;
+            cameraData.postProcessingRequiresDepthTexture |= CheckPostProcessForDepth(cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
@@ -889,8 +911,8 @@ namespace UnityEngine.Rendering.Universal
             bool isOverlayCamera = (cameraData.renderType == CameraRenderType.Overlay);
             if (isOverlayCamera)
             {
-                cameraData.requiresDepthTexture = false;
                 cameraData.requiresOpaqueTexture = false;
+                cameraData.postProcessingRequiresDepthTexture = false;
             }
 
             Matrix4x4 projectionMatrix = camera.projectionMatrix;
@@ -1097,10 +1119,18 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
             {
-                for (int i = 0; i < Mathf.Min(2, xr.viewCount); i++)
+                if (xr.singlePassEnabled)
                 {
-                    camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)i, xr.GetProjMatrix(i));
-                    camera.SetStereoViewMatrix((Camera.StereoscopicEye)i, xr.GetViewMatrix(i));
+                    for (int i = 0; i < Mathf.Min(2, xr.viewCount); i++)
+                    {
+                        camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)i, xr.GetProjMatrix(i));
+                        camera.SetStereoViewMatrix((Camera.StereoscopicEye)i, xr.GetViewMatrix(i));
+                    }
+                }
+                else
+                {
+                    camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)xr.multipassId, xr.GetProjMatrix(0));
+                    camera.SetStereoViewMatrix((Camera.StereoscopicEye)xr.multipassId, xr.GetViewMatrix(0));
                 }
             }
 #endif
@@ -1194,7 +1224,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
         {
-            DebugDisplaySettings debugDisplaySettings = DebugDisplaySettings.Instance;
+            var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
             ref CameraData cameraData = ref renderingData.cameraData;
 
             if (debugDisplaySettings.AreAnySettingsActive && !cameraData.isPreviewCamera)

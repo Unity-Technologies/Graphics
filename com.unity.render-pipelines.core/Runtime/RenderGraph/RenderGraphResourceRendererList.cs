@@ -2,6 +2,10 @@ using System.Diagnostics;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RendererUtils;
 
+// Typedefs for the in-engine RendererList API (to avoid conflicts with the experimental version)
+using CoreRendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
+
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
     /// <summary>
@@ -25,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="rendererList">Input RendererListHandle.</param>
         /// <returns>Resource as a RendererList.</returns>
-        public static implicit operator RendererList(RendererListHandle rendererList) => rendererList.IsValid() ? RenderGraphResourceRegistry.current.GetRendererList(rendererList) : RendererList.nullRendererList;
+        public static implicit operator CoreRendererList(RendererListHandle rendererList) => rendererList.IsValid() ? RenderGraphResourceRegistry.current.GetRendererList(rendererList) : CoreRendererList.nullRendererList;
 
         /// <summary>
         /// Return true if the handle is valid.
@@ -36,13 +40,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
     internal struct RendererListResource
     {
-        public RendererListDesc desc;
-        public RendererList rendererList;
+        public CoreRendererListDesc desc;
+        public CoreRendererList rendererList;
 
-        internal RendererListResource(in RendererListDesc desc)
+        internal RendererListResource(in CoreRendererListDesc desc)
         {
             this.desc = desc;
-            this.rendererList = new RendererList(); // Invalid by default
+            this.rendererList = new CoreRendererList(); // Invalid by default
         }
     }
 }

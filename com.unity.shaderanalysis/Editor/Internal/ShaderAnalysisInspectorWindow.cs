@@ -679,14 +679,14 @@ namespace UnityEditor.ShaderAnalysis.Internal
                 EditorApplication.update += Repaint;
             }
 
-            #if !UNITY_2020_1_OR_NEWER
+#if !UNITY_2020_1_OR_NEWER
             GUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.Height(EditorGUIUtility.singleLineHeight));
             var progressRect = GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, float.MaxValue);
             EditorGUI.ProgressBar(progressRect, m_CurrentJob.progress, m_CurrentJob.message);
             if (GUILayout.Button(UIUtils.Text("Cancel"), EditorStyles.toolbarButton))
                 m_CurrentJob.Cancel();
             GUILayout.EndVertical();
-            #endif
+#endif
 
             if (m_CurrentJob.IsComplete())
                 m_CurrentJob = null;

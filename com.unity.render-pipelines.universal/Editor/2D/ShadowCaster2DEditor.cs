@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.Universal
     internal class ShadowCaster2DEditor : PathComponentEditor<ShadowCasterPath>
     {
         [EditorTool("Edit Shadow Caster Shape", typeof(ShadowCaster2D))]
-        class ShadowCaster2DShadowCasterShapeTool : ShadowCaster2DShapeTool {};
+        class ShadowCaster2DShadowCasterShapeTool : ShadowCaster2DShapeTool { };
 
         private static class Styles
         {

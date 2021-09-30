@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
                 CameraUI.Environment.Styles.header,
-                CameraUI.Expandable.Environment,
+                Expandable.Environment,
                 k_ExpandedState,
                 FoldoutOption.Indent,
                 CED.Conditional(

@@ -486,7 +486,7 @@ namespace UnityEditor.Rendering.Universal
                 if (float.IsNaN(saved[axe]))
                 {
                     float oldSize = currentTarget.m_Size[axe];
-                    saved[axe] =  Mathf.Abs(oldSize) <= Mathf.Epsilon ? 0f : currentTarget.m_Offset[axe] / oldSize;
+                    saved[axe] = Mathf.Abs(oldSize) <= Mathf.Epsilon ? 0f : currentTarget.m_Offset[axe] / oldSize;
                     ratioSizePivotPositionSaved[currentTarget] = saved;
                 }
 

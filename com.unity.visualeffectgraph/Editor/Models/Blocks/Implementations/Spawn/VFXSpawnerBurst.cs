@@ -40,7 +40,7 @@ namespace UnityEditor.VFX
         private RepeatMode repeat = RepeatMode.Single;
 
         [VFXSetting, SerializeField, Tooltip("Specifies whether a constant number of particles is spawned, or a random number within the chosen range.")]
-        private RandomMode spawnMode =  RandomMode.Constant;
+        private RandomMode spawnMode = RandomMode.Constant;
 
         [VFXSetting, SerializeField, Tooltip("Specifies whether a constant delay is applied between bursts, or a random one within the chosen range.")]
         private RandomMode delayMode = RandomMode.Constant;

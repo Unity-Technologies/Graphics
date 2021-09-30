@@ -34,6 +34,8 @@ Extra_VFX_URP_trunk:
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_PerformanceTests_mono_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/vfx_urp-win-vulkan.yml#VFX_URP_Win_Vulkan_playmode_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/vfx_urp-osx-metal.yml#VFX_URP_OSX_Metal_playmode_mono_Linear_trunk
          rerun: on_new_revision
 VFX_URP_trunk:
@@ -73,6 +75,8 @@ Extra_VFX_URP_CUSTOM-REVISION:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/vfx_urp-win-vulkan.yml#VFX_URP_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-osx-metal.yml#VFX_URP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

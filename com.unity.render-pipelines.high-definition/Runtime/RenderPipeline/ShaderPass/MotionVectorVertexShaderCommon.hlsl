@@ -141,9 +141,8 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
 #endif
 
         float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
-#if defined(_ADD_PRECOMPUTED_VELOCITY)
-        effectivePositionOS -= inputPass.precomputedVelocity;
-#endif
+
+
 
     // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the motion vector buffer
 #if defined(HAVE_MESH_MODIFICATION)
@@ -164,8 +163,30 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
         previousMesh = TransformMeshToPreviousElement(previousMesh, inputElement);
 #endif
 
+#if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
+        // Note that to fetch custom velocity here we must use the inputMesh and not the previousMesh
+        // in the case the custom velocity depends on the positionOS
+        // otherwise it will apply two times the modifications.
+        // However the vertex animation will still be perform correctly as we used previousMesh position
+        // where we could ahve trouble is if time is used to drive custom velocity, this will not work
+        previousMesh.positionOS -= GetCustomVelocity(inputMesh);
+#endif
+
+#if defined(_ADD_PRECOMPUTED_VELOCITY)
+        previousMesh.positionOS -= inputPass.precomputedVelocity;
+#endif
+
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else
+
+#if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
+        effectivePositionOS -= GetCustomVelocity(inputMesh);
+#endif
+
+#if defined(_ADD_PRECOMPUTED_VELOCITY)
+        effectivePositionOS -= inputPass.precomputedVelocity;
+#endif
+
         float3 previousPositionRWS = TransformPreviousObjectToWorld(effectivePositionOS);
 #endif
 

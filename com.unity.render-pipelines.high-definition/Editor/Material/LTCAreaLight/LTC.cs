@@ -304,7 +304,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
         public static void GetSamplingDirection(LTCData ltcData, float _U1, float _U2, ref Vector3 _direction)
         {
             // float theta = Mathf.Asin(Mathf.Sqrt(_U1));
-            float   theta = Mathf.Acos(Mathf.Sqrt(_U1));
+            float theta = Mathf.Acos(Mathf.Sqrt(_U1));
             float phi = 2.0f * Mathf.PI * _U2;
             Vector3 D = new Vector3(Mathf.Sin(theta) * Mathf.Cos(phi), Mathf.Sin(theta) * Mathf.Sin(phi), Mathf.Cos(theta));
 

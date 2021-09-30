@@ -68,6 +68,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             ViewModel = viewModel;
             // Store ShaderInput in userData object
             userData = ViewModel.model;
+            if (userData == null)
+            {
+                AssertHelpers.Fail("Could not initialize blackboard field as shader input was null.");
+                return;
+            }
             // Store the Model guid as viewDataKey as that is persistent
             viewDataKey = ViewModel.model.guid.ToString();
 

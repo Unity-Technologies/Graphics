@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXRecompileEvent : ControllerEvent
     {
-        public bool valueOnly {get; set; }
+        public bool valueOnly { get; set; }
 
         public static VFXRecompileEvent Default = new VFXRecompileEvent();
         public VFXViewController controller = null;

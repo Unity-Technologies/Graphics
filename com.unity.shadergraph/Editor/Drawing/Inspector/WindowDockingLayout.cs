@@ -113,7 +113,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public void  ApplySize(VisualElement target)
+        public void ApplySize(VisualElement target)
         {
             target.style.width = size.x;
             target.style.height = size.y;

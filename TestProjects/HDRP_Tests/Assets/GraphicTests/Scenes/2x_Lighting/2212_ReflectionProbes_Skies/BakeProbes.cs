@@ -21,7 +21,8 @@ public class BakeProbes : MonoBehaviour
             addRefData.bakedTexture = texture;
             yield return null;
         }
+#else
+        yield return null;
 #endif
     }
-
 }

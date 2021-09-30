@@ -3,7 +3,7 @@ Shader "Universal Render Pipeline/Unlit"
     Properties
     {
         [MainTexture] _BaseMap("Texture", 2D) = "white" {}
-        [MainColor]   _BaseColor("Color", Color) = (1, 1, 1, 1)
+        [MainColor] _BaseColor("Color", Color) = (1, 1, 1, 1)
         _Cutoff("AlphaCutout", Range(0.0, 1.0)) = 0.5
 
         // BlendMode
@@ -55,8 +55,8 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile _ DEBUG_DISPLAY
 
-            #pragma vertex UniversalVertexUnlit
-            #pragma fragment UniversalFragmentUnlit
+            #pragma vertex UnlitPassVertex
+            #pragma fragment UnlitPassFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"
@@ -138,6 +138,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMetaUnlit
+            #pragma shader_feature EDITOR_VISUALIZATION
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitMetaPass.hlsl"
@@ -173,8 +174,8 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile _ DEBUG_DISPLAY
 
-            #pragma vertex UniversalVertexUnlit
-            #pragma fragment UniversalFragmentUnlit
+            #pragma vertex UnlitPassVertex
+            #pragma fragment UnlitPassFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"
@@ -255,6 +256,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMetaUnlit
+            #pragma shader_feature EDITOR_VISUALIZATION
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitMetaPass.hlsl"

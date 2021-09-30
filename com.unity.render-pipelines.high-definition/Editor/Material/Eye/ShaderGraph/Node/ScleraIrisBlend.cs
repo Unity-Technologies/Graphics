@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     {
         public ScleraIrisBlend()
         {
-            name = "Sclera Limbal Ring (Preview)";
+            name = "Sclera Iris Blend (Preview)";
         }
 
         public override bool hasPreview

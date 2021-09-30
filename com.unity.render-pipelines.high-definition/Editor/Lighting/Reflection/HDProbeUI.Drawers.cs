@@ -36,12 +36,12 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Constants
-        const EditMode.SceneViewEditMode EditBaseShape = (EditMode.SceneViewEditMode) 100;
-        const EditMode.SceneViewEditMode EditInfluenceShape = (EditMode.SceneViewEditMode) 101;
-        const EditMode.SceneViewEditMode EditInfluenceNormalShape = (EditMode.SceneViewEditMode) 102;
-        const EditMode.SceneViewEditMode EditCapturePosition = (EditMode.SceneViewEditMode) 103;
-        const EditMode.SceneViewEditMode EditMirrorPosition = (EditMode.SceneViewEditMode) 104;
-        const EditMode.SceneViewEditMode EditMirrorRotation = (EditMode.SceneViewEditMode) 105;
+        const EditMode.SceneViewEditMode EditBaseShape = (EditMode.SceneViewEditMode)100;
+        const EditMode.SceneViewEditMode EditInfluenceShape = (EditMode.SceneViewEditMode)101;
+        const EditMode.SceneViewEditMode EditInfluenceNormalShape = (EditMode.SceneViewEditMode)102;
+        const EditMode.SceneViewEditMode EditCapturePosition = (EditMode.SceneViewEditMode)103;
+        const EditMode.SceneViewEditMode EditMirrorPosition = (EditMode.SceneViewEditMode)104;
+        const EditMode.SceneViewEditMode EditMirrorRotation = (EditMode.SceneViewEditMode)105;
         //Note: EditMode.SceneViewEditMode.ReflectionProbeOrigin is still used
         //by legacy reflection probe and have its own mecanism that we don't want
 
@@ -182,11 +182,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
 #endif
 
-                // Probe Mode
-                EditorGUILayout.IntPopup(serialized.probeSettings.mode, k_ModeContents, k_ModeValues, k_BakeTypeContent);
+                    // Probe Mode
+                    EditorGUILayout.IntPopup(serialized.probeSettings.mode, k_ModeContents, k_ModeValues, k_BakeTypeContent);
 
 #if !ENABLE_BAKED_PLANAR
-            }
+                }
 
 #endif
 

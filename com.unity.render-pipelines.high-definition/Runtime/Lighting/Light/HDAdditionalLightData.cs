@@ -33,8 +33,10 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("")] // Hide in menu
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
-    public partial class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
+    public partial class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
     {
+        internal const float k_MinLightSize = 0.01f; // Provide a small size of 1cm for line light
+
         internal static class ScalableSettings
         {
             public static IntScalableSetting ShadowResolutionArea(HDRenderPipelineAsset hdrp) =>
@@ -1112,7 +1114,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Shadow Settings
         [SerializeField, FormerlySerializedAs("shadowNearPlane")]
-        float    m_ShadowNearPlane = 0.1f;
+        float m_ShadowNearPlane = 0.1f;
         /// <summary>
         /// Controls the near plane distance of the shadows.
         /// </summary>
@@ -1131,7 +1133,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // PCSS settings
         [Range(1, 64)]
         [SerializeField, FormerlySerializedAs("blockerSampleCount")]
-        int      m_BlockerSampleCount = 24;
+        int m_BlockerSampleCount = 24;
         /// <summary>
         /// Controls the number of samples used to detect blockers for PCSS shadows.
         /// </summary>
@@ -1149,7 +1151,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Range(1, 64)]
         [SerializeField, FormerlySerializedAs("filterSampleCount")]
-        int      m_FilterSampleCount = 16;
+        int m_FilterSampleCount = 16;
         /// <summary>
         /// Controls the number of samples used to filter for PCSS shadows.
         /// </summary>
@@ -1267,7 +1269,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region HDShadow Properties API (from AdditionalShadowData)
         [ValueCopy] //we want separate object with same values
-        [SerializeField] private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
+        [SerializeField]
+        private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
         {
             @override = k_DefaultShadowResolution,
             useOverride = true,
@@ -2019,6 +2022,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal int GetResolutionFromSettings(HDLightType lightType, HDShadowInitParameters initParameters)
+        {
+            return GetResolutionFromSettings(GetShadowMapType(lightType), initParameters);
+        }
+
         internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, in HDShadowInitParameters initParameters, in VisibleLight visibleLight, HDLightType lightType)
         {
             if (!m_WillRenderShadowMap)
@@ -2379,7 +2387,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float halfAngleTan = Mathf.Tan(0.5f * Mathf.Deg2Rad * (softnessScale * m_AngularDiameter) / 2);
                 softness = Mathf.Abs(halfAngleTan * frustumExtentZ / (2.0f * shadowRequest.splitData.cullingSphere.w));
                 float range = 2.0f * (1.0f / devProj.m22);
-                float rangeScale = Mathf.Abs(range)  / 100.0f;
+                float rangeScale = Mathf.Abs(range) / 100.0f;
                 shadowRequest.zBufferParam.x = rangeScale;
             }
             else
@@ -2494,6 +2502,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
         void LateUpdate()
         {
+            // Prevent any unwanted sync when not in HDRP (case 1217575)
+            if (HDRenderPipeline.currentPipeline == null)
+                return;
+
             // We force the animation in the editor and in play mode when there is an animator component attached to the light
 #if !UNITY_EDITOR
             if (!m_Animated)
@@ -2765,8 +2777,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // We don't use the global settings of shadow mask by default
             light.lightShadowCasterMode = LightShadowCasterMode.Everything;
 
-            lightData.normalBias           = 0.75f;
-            lightData.slopeBias            = 0.5f;
+            lightData.normalBias = 0.75f;
+            lightData.slopeBias = 0.5f;
 
             // Enable filter/temperature mode by default for all light types
             lightData.useColorTemperature = true;
@@ -2777,6 +2789,11 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateBounds();
 
             RefreshCachedShadow();
+
+            // Light size must be non-zero, else we get NaNs.
+            shapeWidth = Mathf.Max(shapeWidth, k_MinLightSize);
+            shapeHeight = Mathf.Max(shapeHeight, k_MinLightSize);
+            shapeRadius = Mathf.Max(shapeRadius, 0.0f);
 
 #if UNITY_EDITOR
             // If modification are due to change on prefab asset, we want to have prefab instances to self-update, but we cannot check in OnValidate if this is part of
@@ -2988,7 +3005,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // m_Light.intensity is in luminance which is the value we need for emissive color
             Color value = legacyLight.color.linear * legacyLight.intensity;
 
-// We don't have access to the color temperature in the player because it's a private member of the Light component
+            // We don't have access to the color temperature in the player because it's a private member of the Light component
 #if UNITY_EDITOR
             if (useColorTemperature)
                 value *= Mathf.CorrelatedColorTemperatureToRGB(legacyLight.colorTemperature);
@@ -3502,7 +3519,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Deserialization callback
         /// </summary>
-        void ISerializationCallbackReceiver.OnAfterDeserialize() {}
+        void ISerializationCallbackReceiver.OnAfterDeserialize() { }
 
         /// <summary>
         /// Serialization callback

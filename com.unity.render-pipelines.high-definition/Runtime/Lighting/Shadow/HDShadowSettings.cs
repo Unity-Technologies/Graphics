@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Settings for shadows.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Shadowing/Shadows")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Shadowing/Shadows", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Override-Shadows")]
     public class HDShadowSettings : VolumeComponent
     {
@@ -49,36 +49,36 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Sets the maximum distance HDRP renders shadows for all Light types.</summary>
         [Tooltip("Sets the maximum distance HDRP renders shadows for all Light types.")]
-        public NoInterpMinFloatParameter        maxShadowDistance = new NoInterpMinFloatParameter(500.0f, 0.0f);
+        public NoInterpMinFloatParameter maxShadowDistance = new NoInterpMinFloatParameter(500.0f, 0.0f);
 
         /// <summary>Multiplier for thick transmission for directional lights.</summary>
         [Tooltip("Multiplier for thick transmission.")]
-        public ClampedFloatParameter            directionalTransmissionMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter directionalTransmissionMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         /// <summary>Number of cascades HDRP uses for cascaded shadow maps.</summary>
         [Tooltip("Controls the number of cascades HDRP uses for cascaded shadow maps.")]
-        public NoInterpClampedIntParameter      cascadeShadowSplitCount = new NoInterpClampedIntParameter(4, 1, 4);
+        public NoInterpClampedIntParameter cascadeShadowSplitCount = new NoInterpClampedIntParameter(4, 1, 4);
         /// <summary>Position of the first cascade split as a percentage of Max Distance if the parameter is normalized or as the distance from the camera if it's not normalized.</summary>
         [Tooltip("Sets the position of the first cascade split as a percentage of Max Distance if the parameter is normalized or as the distance from the camera if it's not normalized.")]
-        public CascadePartitionSplitParameter   cascadeShadowSplit0 = new CascadePartitionSplitParameter(0.05f);
+        public CascadePartitionSplitParameter cascadeShadowSplit0 = new CascadePartitionSplitParameter(0.05f);
         /// <summary>Position of the second cascade split as a percentage of Max Distance if the parameter is normalized or as the distance from the camera if it's not normalized.</summary>
         [Tooltip("Sets the position of the second cascade split as a percentage of Max Distance if the parameter is normalized or as the distance from the camera if it's not normalized.")]
-        public CascadePartitionSplitParameter   cascadeShadowSplit1 = new CascadePartitionSplitParameter(0.15f);
+        public CascadePartitionSplitParameter cascadeShadowSplit1 = new CascadePartitionSplitParameter(0.15f);
         /// <summary>Sets the position of the third cascade split as a percentage of Max Distance if the parameter is normalized or as the distance from the camera if it's not normalized.</summary>
         [Tooltip("Sets the position of the third cascade split as a percentage of Max Distance if the parameter is normalized or as the distance from the camera if it's not normalized.")]
-        public CascadePartitionSplitParameter   cascadeShadowSplit2 = new CascadePartitionSplitParameter(0.3f);
+        public CascadePartitionSplitParameter cascadeShadowSplit2 = new CascadePartitionSplitParameter(0.3f);
         /// <summary>Border size between the first and second cascade split.</summary>
         [Tooltip("Sets the border size between the first and second cascade split.")]
-        public CascadeEndBorderParameter        cascadeShadowBorder0 = new CascadeEndBorderParameter(0.0f);
+        public CascadeEndBorderParameter cascadeShadowBorder0 = new CascadeEndBorderParameter(0.0f);
         /// <summary>Border size between the second and third cascade split.</summary>
         [Tooltip("Sets the border size between the second and third cascade split.")]
-        public CascadeEndBorderParameter        cascadeShadowBorder1 = new CascadeEndBorderParameter(0.0f);
+        public CascadeEndBorderParameter cascadeShadowBorder1 = new CascadeEndBorderParameter(0.0f);
         /// <summary>Border size between the third and last cascade split.</summary>
         [Tooltip("Sets the border size between the third and last cascade split.")]
-        public CascadeEndBorderParameter        cascadeShadowBorder2 = new CascadeEndBorderParameter(0.0f);
+        public CascadeEndBorderParameter cascadeShadowBorder2 = new CascadeEndBorderParameter(0.0f);
         /// <summary>Border size at the end of the last cascade split.</summary>
         [Tooltip("Sets the border size at the end of the last cascade split.")]
-        public CascadeEndBorderParameter        cascadeShadowBorder3 = new CascadeEndBorderParameter(0.0f);
+        public CascadeEndBorderParameter cascadeShadowBorder3 = new CascadeEndBorderParameter(0.0f);
 
 
         HDShadowSettings()

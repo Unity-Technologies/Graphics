@@ -1,5 +1,7 @@
 using System;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("PPv2URPConverters")]
 namespace UnityEditor.Rendering.Universal.Converters
 {
     // Might need to change this name before making it public

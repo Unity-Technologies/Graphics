@@ -65,7 +65,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddMenu
         }
 
-
         void AddShaderInput(GraphData graphData)
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out AddShaderInputAction");
@@ -88,7 +87,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             shaderInputReference.generatePropertyBlock = shaderInputReference.isExposable;
 
-            graphData.owner.RegisterCompleteObjectUndo("Add Shader Input");
+            if (graphData.owner != null)
+                graphData.owner.RegisterCompleteObjectUndo("Add Shader Input");
+            else
+                AssertHelpers.Fail("GraphObject is null while carrying out AddShaderInputAction");
+
             graphData.AddGraphInput(shaderInputReference);
 
             // If no categoryToAddItemToGuid is provided, add the input to the default category
@@ -236,6 +239,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (category.categoryGuid == containingCategoryGuid)
                     {
+                        // Ensures that the new item gets added after the item it was duplicated from
+                        insertIndex += 1;
+                        // If the source item was already the last item in list, just add to end of list
+                        if (insertIndex >= category.childCount)
+                            insertIndex = -1;
                         graphData.InsertItemIntoCategory(category.objectId, copiedShaderInput, insertIndex);
                         return;
                     }
@@ -360,7 +368,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var shaderInputTypes = TypeCache.GetTypesWithAttribute<BlackboardInputInfo>().ToList();
             // Sort the ShaderInput by priority using the BlackboardInputInfo attribute
-            shaderInputTypes.Sort((s1, s2) => {
+            shaderInputTypes.Sort((s1, s2) =>
+            {
                 var info1 = Attribute.GetCustomAttribute(s1, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
                 var info2 = Attribute.GetCustomAttribute(s2, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
 
@@ -574,6 +583,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             bool useDropdowns = graphData.isSubGraph;
             InitializeViewModel(useDropdowns);
 
+            var graphView = ViewModel.parentView as MaterialGraphView;
+
             switch (changeAction)
             {
                 // If newly added input doesn't belong to any of the user-made categories, add it to the default category at top of blackboard
@@ -609,11 +620,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // In the specific case of only-one keywords like Material Quality and Raytracing, they can get copied, but because only one can exist, the output copied value is null
                     if (copyShaderInputAction.copiedShaderInput != null && IsInputUncategorized(copyShaderInputAction.copiedShaderInput))
                     {
-                        var blackboardRow = InsertBlackboardRow(copyShaderInputAction.copiedShaderInput);
-
-                        // This selects the newly created property value without over-riding the undo stack in case user wants to undo
-                        var graphView = ViewModel.parentView as MaterialGraphView;
-                        graphView?.ClearSelectionNoUndoRecord();
+                        var blackboardRow = InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
                         var propertyView = blackboardRow.Q<SGBlackboardField>();
                         graphView?.AddToSelectionNoUndoRecord(propertyView);
                     }
@@ -654,7 +661,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
 
                 case CopyCategoryAction copyCategoryAction:
-                    AddBlackboardCategory(graphData.owner.graphDataStore, copyCategoryAction.newCategoryDataReference);
+                    var blackboardCategory = AddBlackboardCategory(graphData.owner.graphDataStore, copyCategoryAction.newCategoryDataReference);
+                    if (blackboardCategory != null)
+                        graphView?.AddToSelectionNoUndoRecord(blackboardCategory.blackboardCategoryView);
                     break;
             }
 

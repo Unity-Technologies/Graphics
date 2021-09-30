@@ -21,19 +21,19 @@ namespace UnityEditor.Rendering.HighDefinition
         public enum Features
         {
             /// <summary>Minimal Lit Surface Inputs fields.</summary>
-            None            = 0,
+            None = 0,
             /// <summary>Displays Coat Mask fields.</summary>
-            CoatMask        = 1 << 0,
+            CoatMask = 1 << 0,
             /// <summary>Displays the height Map fields.</summary>
-            HeightMap       = 1 << 1,
+            HeightMap = 1 << 1,
             /// <summary>Displays the layer Options fields.</summary>
-            LayerOptions    = 1 << 2,
+            LayerOptions = 1 << 2,
             /// <summary>Displays the foldout header as a SubHeader.</summary>
-            SubHeader       = 1 << 3,
+            SubHeader = 1 << 3,
             /// <summary>Displays the default surface inputs.</summary>
-            Standard        = 1 << 4,
+            Standard = 1 << 4,
             /// <summary>Displays everything with a header.</summary>
-            All             = ~0 ^ SubHeader // By default we don't want a sub-header
+            All = ~0 ^ SubHeader // By default we don't want a sub-header
         }
 
         internal class Styles
@@ -222,7 +222,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kIridescenceThicknessRemap = "_IridescenceThicknessRemap";
 
         // Material ID
-        MaterialProperty materialID  = null;
+        MaterialProperty materialID = null;
         MaterialProperty transmissionEnable = null;
         const string kTransmissionEnable = "_TransmissionEnable";
 
@@ -258,12 +258,12 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
 
-        Features    m_Features;
-        int         m_LayerCount;
-        int         m_LayerIndex;
-        bool        m_UseHeightBasedBlend;
+        Features m_Features;
+        int m_LayerCount;
+        int m_LayerIndex;
+        bool m_UseHeightBasedBlend;
 
-        bool        isLayeredLit => m_LayerCount > 1;
+        bool isLayeredLit => m_LayerCount > 1;
 
         /// <summary>
         /// Constructs a LitSurfaceInputsUIBlock based on the parameters.
@@ -440,12 +440,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.TexturePropertySingleLine(Styles.bentNormalMapOSText, bentNormalMapOS[m_LayerIndex]);
             }
 
-            DisplacementMode displaceMode = (DisplacementMode)displacementMode.floatValue;
+            DisplacementMode displaceMode = BaseLitGUI.GetFilteredDisplacementMode(displacementMode);
             if (displaceMode != DisplacementMode.None || (m_Features & Features.HeightMap) != 0)
             {
                 EditorGUI.BeginChangeCheck();
                 materialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[m_LayerIndex]);
-                if (!heightMap[m_LayerIndex].hasMixedValue && heightMap[m_LayerIndex].textureValue != null && !displacementMode.hasMixedValue)
+                if (!heightMap[m_LayerIndex].hasMixedValue && heightMap[m_LayerIndex].textureValue != null && !BaseLitGUI.HasMixedDisplacementMode(displacementMode))
                 {
                     EditorGUI.indentLevel++;
                     if (displaceMode == DisplacementMode.Pixel)
@@ -487,7 +487,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // UI only updates intermediate values, this will update the values actually used by the shader.
                 if (EditorGUI.EndChangeCheck())
                 {
-                    SurfaceOptionUIBlock    surfaceOption;
+                    SurfaceOptionUIBlock surfaceOption;
 
                     // Fetch the surface option block which contains the function to update the displacement datas
                     if (m_LayerCount == 1)
@@ -677,7 +677,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel--;
             }
 
-            bool mainLayerModeInfluenceEnable  = useMainLayerInfluence.floatValue > 0.0f;
+            bool mainLayerModeInfluenceEnable = useMainLayerInfluence.floatValue > 0.0f;
             materialEditor.ShaderProperty(objectScaleAffectTile, mainLayerModeInfluenceEnable ? Styles.objectScaleAffectTileText2 : Styles.objectScaleAffectTileText);
         }
     }

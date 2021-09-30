@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Color m_DefaultColor = Color.grey;
 
-        public ColorRGBMaterialSlot() {}
+        public ColorRGBMaterialSlot() { }
 
         public ColorRGBMaterialSlot(
             int slotId,

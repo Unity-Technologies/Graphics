@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Fog Volume Component.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Fog")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Fog", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Override-Fog")]
     public class Fog : VolumeComponentWithQuality
     {
@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Color fogColor = (colorMode.value == FogColorMode.ConstantColor) ? color.value : tint.value;
             cb._FogColorMode = (float)colorMode.value;
             cb._FogColor = new Color(fogColor.r, fogColor.g, fogColor.b, 0.0f);
-            cb._MipFogParameters  = new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f);
+            cb._MipFogParameters = new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f);
 
             LocalVolumetricFogArtistParameters param = new LocalVolumetricFogArtistParameters(albedo.value, meanFreePath.value, anisotropy.value);
             LocalVolumetricFogEngineData data = param.ConvertToEngineData();
@@ -257,7 +257,7 @@ namespace UnityEngine.Rendering.HighDefinition
     sealed class FogTypeParameter : VolumeParameter<FogType>
     {
         public FogTypeParameter(FogType value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">Fog Color Parameter.</param>
         /// <param name="overrideState">Initial override state.</param>
         public FogColorParameter(FogColorMode value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public FogControlParameter(FogControl value, bool overrideState = false) : base(value, overrideState) {}
+        public FogControlParameter(FogControl value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -339,6 +339,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public FogDenoisingModeParameter(FogDenoisingMode value, bool overrideState = false) : base(value, overrideState) {}
+        public FogDenoisingModeParameter(FogDenoisingMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

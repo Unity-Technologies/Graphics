@@ -17,13 +17,13 @@ namespace UnityEditor.VFX.UI
         public VFXStringFieldPushButton(string label, Action<string> fnClicked, string buttonName) : base(label)
         {
             m_fnOnClicked = fnClicked;
-            Add(new Button(() => m_fnOnClicked(m_TextField.text)) {text = buttonName});
+            Add(new Button(() => m_fnOnClicked(m_TextField.text)) { text = buttonName });
         }
 
         public VFXStringFieldPushButton(Label existingLabel, Action<string> fnClicked, string buttonName) : base(existingLabel)
         {
             m_fnOnClicked = fnClicked;
-            Add(new Button(() => m_fnOnClicked(m_TextField.text)) {text = buttonName});
+            Add(new Button(() => m_fnOnClicked(m_TextField.text)) { text = buttonName });
         }
     }
 }

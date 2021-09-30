@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.PostProcessing
     /// A volume parameter holding a <see cref="VignetteMode"/> value.
     /// </summary>
     [Serializable]
-    public sealed class VignetteModeParameter : ParameterOverride<VignetteMode> {}
+    public sealed class VignetteModeParameter : ParameterOverride<VignetteMode> { }
 
     /// <summary>
     /// This class holds settings for the Vignette effect.
@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             return enabled.value
                 && ((mode.value == VignetteMode.Classic && intensity.value > 0f)
-                    ||  (mode.value == VignetteMode.Masked && opacity.value > 0f && mask.value != null));
+                    || (mode.value == VignetteMode.Masked && opacity.value > 0f && mask.value != null));
         }
     }
 

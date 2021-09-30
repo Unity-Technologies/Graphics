@@ -106,7 +106,7 @@ namespace UnityEditor.ShaderGraph
 
                     var node = new PropertyNode();
                     var drawState = node.drawState;
-                    drawState.position =  new Rect(nodePosition, drawState.position.size);
+                    drawState.position = new Rect(nodePosition, drawState.position.size);
                     node.drawState = drawState;
                     graphData.AddNode(node);
 
@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderGraph
 
                     var node = new KeywordNode();
                     var drawState = node.drawState;
-                    drawState.position =  new Rect(nodePosition, drawState.position.size);
+                    drawState.position = new Rect(nodePosition, drawState.position.size);
                     node.drawState = drawState;
                     graphData.AddNode(node);
 

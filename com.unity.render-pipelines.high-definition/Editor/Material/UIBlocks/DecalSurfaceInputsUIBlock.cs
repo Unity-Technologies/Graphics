@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
         string[] blendSourceNames = Enum.GetNames(typeof(BlendSource));
 
-        string[] blendSourceNamesNoMap = new string[] { "BaseColorMapAlpha" , "Mask Opacity" };
+        string[] blendSourceNamesNoMap = new string[] { "BaseColorMapAlpha", "Mask Opacity" };
 
         string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
 
@@ -191,13 +191,13 @@ namespace UnityEditor.Rendering.HighDefinition
         protected override void OnGUIOpen()
         {
             var material = materials[0];
-            bool affectAlbedo     = material.HasProperty(kAffectAlbedo) && material.GetFloat(kAffectAlbedo) == 1.0f;
-            bool affectNormal     = material.HasProperty(kAffectNormal) && material.GetFloat(kAffectNormal) == 1.0f;
-            bool affectMetal      = material.HasProperty(kAffectMetal) && material.GetFloat(kAffectMetal) == 1.0f;
+            bool affectAlbedo = material.HasProperty(kAffectAlbedo) && material.GetFloat(kAffectAlbedo) == 1.0f;
+            bool affectNormal = material.HasProperty(kAffectNormal) && material.GetFloat(kAffectNormal) == 1.0f;
+            bool affectMetal = material.HasProperty(kAffectMetal) && material.GetFloat(kAffectMetal) == 1.0f;
             bool affectSmoothness = material.HasProperty(kAffectSmoothness) && material.GetFloat(kAffectSmoothness) == 1.0f;
-            bool affectAO         = material.HasProperty(kAffectAO) && material.GetFloat(kAffectAO) == 1.0f;
-            bool affectEmission   = material.HasProperty(kAffectEmission) && material.GetFloat(kAffectEmission) == 1.0f;
-            bool affectMaskmap   = affectMetal || affectAO || affectSmoothness;
+            bool affectAO = material.HasProperty(kAffectAO) && material.GetFloat(kAffectAO) == 1.0f;
+            bool affectEmission = material.HasProperty(kAffectEmission) && material.GetFloat(kAffectEmission) == 1.0f;
+            bool affectMaskmap = affectMetal || affectAO || affectSmoothness;
 
             bool perChannelMask = false;
             HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;

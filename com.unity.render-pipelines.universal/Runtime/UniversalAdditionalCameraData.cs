@@ -111,11 +111,14 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
+            bool requiredUpdatePreviously = cameraData.requiresVolumeFrameworkUpdate;
             cameraData.volumeFrameworkUpdateMode = mode;
 
             // We only update the local volume stacks for cameras set to ViaScripting.
             // Otherwise it will be updated in every frame.
-            if (!cameraData.requiresVolumeFrameworkUpdate)
+            // We also check the previous value to make sure we're not updating when
+            // switching between Camera ViaScripting and the URP Asset set to ViaScripting
+            if (requiredUpdatePreviously && !cameraData.requiresVolumeFrameworkUpdate)
             {
                 camera.UpdateVolumeStack(cameraData);
             }
@@ -159,6 +162,27 @@ namespace UnityEngine.Rendering.Universal
 
             camera.GetVolumeLayerMaskAndTrigger(cameraData, out LayerMask layerMask, out Transform trigger);
             VolumeManager.instance.Update(cameraData.volumeStack, trigger, layerMask);
+        }
+
+        /// <summary>
+        /// Destroys the volume stack for this camera.
+        /// </summary>
+        /// <param name="camera"></param>
+        public static void DestroyVolumeStack(this Camera camera)
+        {
+            UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
+            camera.DestroyVolumeStack(cameraData);
+        }
+
+        /// <summary>
+        /// Destroys the volume stack for this camera.
+        /// </summary>
+        /// <param name="camera"></param>
+        /// <param name="cameraData"></param>
+        public static void DestroyVolumeStack(this Camera camera, UniversalAdditionalCameraData cameraData)
+        {
+            cameraData.volumeStack.Dispose();
+            cameraData.volumeStack = null;
         }
 
         /// <summary>
@@ -211,7 +235,8 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
-    public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
+    [URPHelpURL("universal-additional-camera-data")]
+    public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
     {
         const string k_GizmoPath = "Packages/com.unity.render-pipelines.universal/Editor/Gizmos/";
         const string k_BaseCameraGizmoPath = k_GizmoPath + "Camera_Base.png";
@@ -251,7 +276,7 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("requiresColorTexture"), SerializeField]
         bool m_RequiresColorTexture = false;
 
-        [HideInInspector][SerializeField] float m_Version = 2;
+        [HideInInspector] [SerializeField] float m_Version = 2;
 
         public float version => m_Version;
 

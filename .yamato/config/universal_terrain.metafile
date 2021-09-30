@@ -161,6 +161,7 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
+          - Standalone_XR
           - playmode_XR
           - editmode
       - platform: Win
@@ -169,6 +170,7 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
+          - Standalone_XR
       - platform: Win
         api: Vulkan
         build_config: mono
@@ -193,12 +195,6 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
-      - platform: iPhone
-        api: Metal
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - Standalone
       - platform: OSX
         api: Metal
         build_config: mono
@@ -212,24 +208,13 @@ jobs:
         color_space: Linear
         test_platforms:
           - editmode
-      - platform: Android
-        api: OpenGLES3
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - Standalone
-      - platform: Android
-        api: Vulkan
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - Standalone
-      - platform: iPhone
-        api: Metal
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - Standalone
+      # Disabled until https://fogbugz.unity3d.com/f/cases/1309660/ is fixed.
+      # - platform: iPhone
+      #   api: Metal
+      #   build_config: il2cpp
+      #   color_space: Linear
+      #   test_platforms:
+      #     - Standalone
 
   - name: Extra <PROJECT_NAME>
     dependencies:

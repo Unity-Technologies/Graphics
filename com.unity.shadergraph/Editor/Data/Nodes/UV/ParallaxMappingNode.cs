@@ -12,6 +12,7 @@ namespace UnityEditor.ShaderGraph
         public ParallaxMappingNode()
         {
             name = "Parallax Mapping";
+            synonyms = new string[] { "offset mapping" };
             UpdateNodeAfterDeserialization();
         }
 
