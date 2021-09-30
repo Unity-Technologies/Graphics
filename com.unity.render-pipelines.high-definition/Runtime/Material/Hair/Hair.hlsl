@@ -555,6 +555,7 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/MultipleScattering/HairMultipleScattering.hlsl"
 #endif //_USE_ADVANCED_MULTIPLE_SCATTERING
 
+
 bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
 {
     return true; // Due to either reflection or transmission being always active
@@ -572,7 +573,6 @@ struct HairAngle
     float phiO;
     float phi;
     float cosPhi;
-    float cosHalfPhi;
     float sinThetaT;
     float cosThetaT;
 };
@@ -595,7 +595,6 @@ void GetHairAngleLocal(float3 wo, float3 wi, inout HairAngle angles)
     angles.phi  = angles.phiI - angles.phiO;
 
     angles.cosPhi = cos(angles.phi);
-    angles.cosHalfPhi = abs(cos(angles.phi * 0.5));
 
     angles.sinThetaT = angles.sinThetaO / 1.55;
     angles.cosThetaT = SafeSqrt(1 - Sq(angles.sinThetaT));
@@ -618,7 +617,7 @@ void GetHairAngleWorld(float3 V, float3 L, float3 T, inout HairAngle angles)
     float3 VProj = V - angles.sinThetaO * T;
     float3 LProj = L - angles.sinThetaI * T;
     angles.cosPhi = dot(LProj, VProj) * rsqrt(dot(LProj, LProj) * dot(VProj, VProj) + 0.0001); // zero-div guard
-    angles.cosHalfPhi = sqrt(0.5 + 0.5 * angles.cosPhi);
+    angles.phi = FastACos(angles.cosPhi);
 
     // Fixed for approximate human hair IOR
     angles.sinThetaT = angles.sinThetaO / 1.55;
@@ -723,53 +722,36 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         );
 
         // The index of refraction that can be used to analyze scattering in the normal plane (Bravais' Law).
-        float etaPrime = ModifiedRefractionIndex(angles.cosThetaD);
+        const float etaPrime = ModifiedRefractionIndex(angles.cosThetaD);
 
         // Reduced absorption coefficient.
-        float3 mu = bsdfData.absorption;
+        const float3 mu = bsdfData.absorption;
 
-        // Various terms reused between lobe evaluation.
-        float  D        = 0;
+        // Various misc. terms reused between lobe evaluation.
         float3 F, Tr, S = 0;
+
+        // Evaluate the longitudinal scattering for all three paths.
+        const float3 M = D_LongitudinalScatteringGaussian(angles.thetaH - alpha, beta);
 
         // Save the attenuations in case of multiple scattering.
         float3 A[3];
 
-        // Evaluate the longitudinal scattering for all three lobes.
-        float3 M = 1;
-
-        // We have a flag for this as we require a version of the BCSDF that evaluates only azimuthal scattering (N = A * D) for pre-integration purposes.
-        if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_LONGITUDINAL))
-        {
-            M = D_LongitudinalScatteringGaussian(angles.thetaH - alpha, beta);
-        }
+        // Fetch the preintegrated azimuthal distributions for each path
+        const float3 D = GetRoughenedAzimuthalScatteringDistribution(angles.phi, angles.cosThetaD, bsdfData.perceptualRoughnessRadial);
 
         // Solve the first three lobes (R, TT, TRT).
-        // TODO: Residual TRRT+ Lobe. (accounts for ~15% energy otherwise lost by the first three lobes).
 
         // R
-        if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R))
         {
-            // Distribution and attenuation for this path as proposed by d'Eon et al, replaced with a trig identity for cos half phi.
-            D = 0.25 * angles.cosHalfPhi;
+            // Attenuation for this path as proposed by d'Eon et al, replaced with a trig identity for cos half phi.
             A[0] = F_Schlick(bsdfData.fresnel0, sqrt(0.5 + 0.5 * dot(L, V)));
-
-            S += M[0] * A[0] * D;
+            S += M[0] * A[0] * D[0];
         }
 
         // TT
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT))
         {
-        #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
-            // This lobe's distribution is determined by sampling coefficients from a pre-integrated LUT of the distribution and evaluating a gaussian.
-            D = GetPreIntegratedAzimuthalScatteringTransmissionDistribution(bsdfData.perceptualRoughnessRadial, angles.cosThetaD, angles.cosPhi);
-        #else
-            // Karis' approximation of Pixar's logisitic with scale of √0.35
-            D = exp(-3.65 * angles.cosPhi - 3.98);
-        #endif
-
             // Attenutation (Simplified for H = 0)
-            // Plot: https://www.desmos.com/calculator/pum8esu6ot
             float cosGammaO = SafeSqrt(1 - Sq(HAIR_H_TT));
             float cosTheta  = angles.cosThetaO * cosGammaO;
             F = F_Schlick(bsdfData.fresnel0, cosTheta);
@@ -780,16 +762,11 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
             A[1] = Sq(1 - F) * Tr;
 
-            S += M[1] * A[1] * D;
+            S += M[1] * A[1] * D[1];
         }
 
         // TRT
-        if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT))
         {
-            // This lobe's distribution is determined by Frostbite's improvement over Karis' TRT approximation (maintaining Azimuthal Roughness).
-            const float scaleFactor = saturate(1.5 * (1 - bsdfData.perceptualRoughnessRadial));
-            D = scaleFactor * exp(scaleFactor * (17.0 * angles.cosPhi - 16.78));
-
             // Attenutation (Simplified for H = √3/2)
             float cosGammaO = SafeSqrt(1 - Sq(HAIR_H_TRT));
             float cosTheta  = angles.cosThetaO * cosGammaO;
@@ -801,8 +778,13 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
             A[2] = Sq(1 - F) * F * Sq(Tr);
 
-            S += M[2] * A[2] * D;
+            S += M[2] * A[2] * D[2];
         }
+
+        // TODO: Residual TRRT+ Lobe. (accounts for ~15% energy otherwise lost by the first three lobes).
+
+        // This seems necesarry to match the reference.
+        S *= INV_PI;
 
         // Transmission event is built into the model.
         // Some stubborn NaNs have cropped up due to the angle optimization, we suppress them here with a max for now.
@@ -812,7 +794,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     #if _USE_ADVANCED_MULTIPLE_SCATTERING
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING))
         {
-            cbsdf.specR = EvaluateMultipleScattering(L, cbsdf.specR, bsdfData, alpha, beta, angles.thetaH, angles.sinThetaI, angles.cosThetaD, angles.cosPhi, A);
+            cbsdf.specR = EvaluateMultipleScattering(L, cbsdf.specR, bsdfData, alpha, beta, angles.thetaH, angles.sinThetaI, D, A);
         }
         else
     #endif

@@ -420,10 +420,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile256SPP.png")]
             public Texture2D scramblingTile256SPP;
 
-            // Pre-integration LUTs
-            [Reload("Runtime/RenderPipelineResources/Texture/PreintegratedAzimuthalScattering.exr")]
-            public Texture2D preintegratedAzimuthalScattering;
-
             // Clouds textures
             [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/CloudLutRainAO.png")]
             public Texture2D cloudLutRainAO;
