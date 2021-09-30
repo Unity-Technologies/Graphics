@@ -2,8 +2,8 @@ project:
   name: URPUpdate_BoatAttack
   folder: BoatAttack
   variables:
-    BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
-    BA_UPDATE_PROJECT_REVISION: 6d76ca107504607b58192456faf972bfd92bbd34
+    BA_UPDATE_PROJECT_BRANCH: master
+    BA_UPDATE_PROJECT_REVISION: 3fa384c67ef148544f776d735d418a31e81368d6
 
 reuse_blocks:
   setup_with_utr:
