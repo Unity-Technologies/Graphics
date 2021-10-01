@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Probe volume debug exposure compensation to match the Lighting debug one.
 - Fixed lens flare occlusion issues with TAA. (1365098)
 - Fixed misleading text and improving the eye scene material samples. (case 1368665)
+- Fixed missing DisallowMultipleComponent annotations in HDAdditionalReflectionData and HDAdditionalLightData (case 1365879).
 
 ## [13.0.0] - 2021-09-01
 
