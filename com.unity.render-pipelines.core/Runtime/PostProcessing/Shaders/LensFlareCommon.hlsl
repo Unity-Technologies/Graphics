@@ -124,10 +124,10 @@ float GetOcclusion(float ratio)
         if (all(pos >= 0) && all(pos <= 1))
         {
             float depth0 = GetLinearDepthValue(pos);
-#ifdef SHADER_API_GLES3 // GLES3.hlsl do not define UNITY_REVERSED_Z properly
+#if defined(UNITY_REVERSED_Z)
             if (depth0 > _ScreenPosZ)
 #else
-            if (COMPARE_DEVICE_DEPTH_CLOSER(depth0, _ScreenPosZ))
+            if (depth0 < _ScreenPosZ)
 #endif
                 contrib += sample_Contrib;
         }
