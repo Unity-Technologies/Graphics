@@ -310,12 +310,12 @@ platforms:
         image: mobile/android-execution-r19:stable
         flavor: b1.large
       standalone_build:
-        type: Unity::mobile::android
-        image: mobile/android-execution-r19:stable
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
       performance_build_editmode:
-        type: Unity::mobile::android
-        image: mobile/android-execution-r19:stable
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
   - name: iPhone
     apis:
