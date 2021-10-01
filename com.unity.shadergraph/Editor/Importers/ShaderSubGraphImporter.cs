@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(29, Extension, -905)]
+    [ScriptedImporter(30, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -196,6 +196,11 @@ namespace UnityEditor.ShaderGraph
             // flag the used nodes so we can filter out errors from unused nodes
             foreach (var node in nodes)
                 node.SetUsedByGenerator();
+
+            // Start with a clean slate for the input/output capabilities and dependencies
+            asset.inputCapabilities.Clear();
+            asset.outputCapabilities.Clear();
+            asset.slotDependencies.Clear();
 
             ShaderStageCapability effectiveShaderStage = ShaderStageCapability.All;
             foreach (var slot in outputSlots)
