@@ -1,5 +1,6 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
 
 #if defined(DEBUG_DISPLAY)
 
@@ -15,6 +16,12 @@ int _DebugRenderTargetSupportsStereo;
 
 bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 debugColor)
 {
+    if (_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_OVERDRAW)
+    {
+        debugColor.rgb = GetOverdrawColor(color.r, 10).rgb;
+        return true;
+    }
+
     switch(_DebugFullScreenMode)
     {
         case DEBUGFULLSCREENMODE_DEPTH:
