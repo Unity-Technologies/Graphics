@@ -10,6 +10,14 @@ namespace UnityEngine.VFX
         VisualEffect m_Target;
         bool[] enabledStates;
 
+        public override void PrepareFrame(Playable playable, FrameData data)
+        {
+
+            var time = (float)playable.GetTime();
+            Debug.Log(time);
+
+        }
+
         // Called every frame that the timeline is evaluated. ProcessFrame is invoked after its' inputs.
         public override void ProcessFrame(Playable playable, FrameData info, object playerData)
         {
@@ -69,8 +77,30 @@ namespace UnityEngine.VFX
             //m_TrackBinding.text = text;
         }
 
+        struct Event
+        {
+            public enum Type
+            {
+                Play,
+                Stop
+            }
+            public Type type;
+        }
+
+        struct Chunk
+        {
+            public double begin;
+            public double end;
+            public VisualEffectControlPlayableBehaviour[] playables;
+        }
+
         public override void OnPlayableCreate(Playable playable)
         {
+//see m_ScrubbingCacheHelper  in /CinemachineMixer.cs?L174:25
+            //var test = (ScriptPlayable<VisualEffectControlPlayableBehaviour>)playable.GetInput(0);
+            //var test2 = test.GetBehaviour();
+            //var test3 = PlayableExtensions.GetDuration(playable.GetInput(0));
+
             enabledStates = new bool[playable.GetInputCount()];
         }
 
