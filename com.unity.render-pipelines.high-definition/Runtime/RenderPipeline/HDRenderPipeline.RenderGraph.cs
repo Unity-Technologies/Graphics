@@ -297,7 +297,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         prepassOutput.resolvedDepthBuffer,
                         prepassOutput.depthPyramidTexture,
                         colorPickerTexture,
-                        xyMapping,  // TODO_FCC REVERT, HERE TO QUICK TEST.
+                        rayCountTexture,
+                        xyMapping,
                         gpuLightListOutput,
                         shadowResult,
                         cullingResults,
@@ -370,8 +371,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Rect viewport;
             public Material blitMaterial;
             public Vector4 hdrOutputParmeters;
+            public bool applyAfterPP;
 
-            public FrameSettings frameSettings;
             public TextureHandle uiTexture;
             public TextureHandle afterPostProcessTexture;
             public TextureHandle source;
@@ -399,13 +400,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.source = builder.ReadTexture(source);
                 passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
                 passData.destination = builder.WriteTexture(destination);
-                passData.frameSettings = hdCamera.frameSettings;
+                passData.applyAfterPP = false;
 
                 if (outputsToHDR)
                 {
                     passData.blitMaterial = m_FinalBlitWithOETF;
                     GetHDROutputParameters(m_Tonemapping, out passData.hdrOutputParmeters, out var unused);
                     passData.uiTexture = builder.ReadTexture(uiTexture);
+                    passData.applyAfterPP = hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess) && !NeedHDRDebugMode(m_CurrentDebugDisplaySettings);
                 }
                 else
                 {
@@ -434,7 +436,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             else
                                 data.blitMaterial.EnableKeyword("HDR_OUTPUT_REC2020");
 
-                            if (data.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
+                            if (data.applyAfterPP)
                             {
                                 data.blitMaterial.EnableKeyword("APPLY_AFTER_POST");
                                 data.blitMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, data.afterPostProcessTexture);
@@ -886,7 +888,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle depthBuffer)
         {
             var output = renderGraph.defaultResources.blackTextureXR;
-            if (HDROutputIsActive(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay)
+            if (HDROutputIsActive(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay && !NeedHDRDebugMode(m_CurrentDebugDisplaySettings))
             {
                 using (var builder = renderGraph.AddRenderPass<RenderOffscreenUIData>("UI Rendering", out var passData, ProfilingSampler.Get(HDProfileId.OffscreenUIRendering)))
                 {

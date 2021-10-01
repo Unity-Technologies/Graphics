@@ -1128,6 +1128,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle depthPyramidTexture,
             TextureHandle colorPickerDebugTexture,
             TextureHandle rayCountTexture,
+            TextureHandle xyBufferMapping,
             in BuildGPULightListOutput lightLists,
             in ShadowResult shadowResult,
             CullingResults cullResults,
@@ -1155,7 +1156,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 output = RenderExposureDebug(renderGraph, hdCamera, colorBuffer);
 
             if (NeedHDRDebugMode(m_CurrentDebugDisplaySettings))
-                output = RenderHDRDebug(renderGraph, hdCamera, colorBuffer, rayCountTexture);
+                output = RenderHDRDebug(renderGraph, hdCamera, colorBuffer, xyBufferMapping);
 
             if (NeedColorPickerDebug(m_CurrentDebugDisplaySettings))
                 output = ResolveColorPickerDebug(renderGraph, colorPickerDebugTexture, hdCamera, colorFormat);
