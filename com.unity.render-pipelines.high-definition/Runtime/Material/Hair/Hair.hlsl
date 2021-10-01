@@ -610,7 +610,7 @@ void GetHairAngleWorld(float3 V, float3 L, float3 T, inout HairAngle angles)
     // Projection onto the normal plane, and since phi is the relative angle, we take the cosine in this projection.
     float3 VProj = V - angles.sinThetaO * T;
     float3 LProj = L - angles.sinThetaI * T;
-    angles.cosPhi = dot(LProj, VProj) * rsqrt(dot(LProj, LProj) * dot(VProj, VProj) + 0.0001); // zero-div guard
+    angles.cosPhi = dot(LProj, VProj) * rsqrt(dot(LProj, LProj) * dot(VProj, VProj) + 1e-5); // zero-div guard
     angles.phi = FastACos(angles.cosPhi);
 
     // Fixed for approximate human hair IOR

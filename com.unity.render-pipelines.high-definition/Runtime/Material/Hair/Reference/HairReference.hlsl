@@ -134,7 +134,7 @@ CBSDF EvaluateHairReference(float3 wo, float3 wi, BSDFData bsdfData)
     F += LongitudinalScattering(angles.cosThetaI, angles.cosThetaO, angles.sinThetaI, angles.sinThetaO, data.v[PATH_MAX]) * A[PATH_MAX] * INV_TWO_PI;
 
     if(abs(wi.z) > 0)
-        F /= abs(wi.z);
+        F /= abs(wi.z + 1e-4);
 
     return HairFtoCBSDF(max(F, 0));
 }

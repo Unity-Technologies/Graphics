@@ -88,7 +88,7 @@ float BesselI(float x)
     for (int i = 0; i < 10; ++i)
     {
         const float f = FACTORIAL[i];
-        b += pow(x, 2.0 * i) / (pow(4, i) * f * f);
+        b += pow(abs(x), 2.0 * i) / (pow(4, i) * f * f);
     }
 
     return b;
@@ -200,11 +200,14 @@ ReferenceAngles GetReferenceAngles(float3 wi, float3 wo)
     angles.sinThetaI = wi.x;
     angles.sinThetaO = wo.x;
 
-    angles.cosThetaI = SafeSqrt(1 - Sq(angles.sinThetaI));
-    angles.cosThetaO = SafeSqrt(1 - Sq(angles.sinThetaO));
+    // Small epsilon to suppress various compiler warnings + div-zero guard
+    const float epsilon = 1e-5;
 
-    angles.phiI = FastAtan2(wi.z, wi.y);
-    angles.phiO = FastAtan2(wo.z, wo.y);
+    angles.cosThetaI = SafeSqrt(1 - (Sq(angles.sinThetaI) + epsilon));
+    angles.cosThetaO = SafeSqrt(1 - (Sq(angles.sinThetaO) + epsilon));
+
+    angles.phiI = atan2(wi.z, wi.y + epsilon);
+    angles.phiO = atan2(wo.z, wo.y + epsilon);
     angles.phi  = angles.phiI - angles.phiO;
 
     return angles;
