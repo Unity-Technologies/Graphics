@@ -17,16 +17,7 @@ Shader "Hidden/HDRP/DebugHDR"
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-
-    ///// TODO_FCC:
-    /// Check if inside gamut.
-
-    // Contains the scene color pre-post processing
     TEXTURE2D_X(_DebugFullScreenTexture);
-
-    // Tonemap related
-    TEXTURE3D(_LogLut3D);
-    SAMPLER(sampler_LogLut3D);
 
     float4 _HDRDebugParams;
 
@@ -276,8 +267,6 @@ Shader "Hidden/HDRP/DebugHDR"
         return CommonFrag(input, true);
     }
 
-
-    StructuredBuffer<uint4> _FullImageHistogram;
 
     float3 FragNits(Varyings input) : SV_Target
     {
