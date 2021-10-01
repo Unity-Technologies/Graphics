@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
-
+using UnityEngine.Assertions;
 using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
 using UnityEngine.Rendering.Universal;
 using static Unity.Rendering.Universal.ShaderUtils;
@@ -16,6 +16,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     sealed class UniversalLitSubTarget : UniversalSubTarget, ILegacyTarget
     {
         static readonly GUID kSourceCodeGuid = new GUID("d6c78107b64145745805d963de80cc17"); // UniversalLitSubTarget.cs
+
+        public override int latestVersion => 1;
 
         [SerializeField]
         WorkflowMode m_WorkflowMode = WorkflowMode.Metallic;
@@ -295,6 +297,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 blockMap.Add(BlockFields.SurfaceDescription.Metallic, 2);
 
             return true;
+        }
+
+        internal override void OnAfterParentTargetDeserialized()
+        {
+            Assert.IsNotNull(target);
+
+            if (this.sgVersion < latestVersion)
+            {
+                // Upgrade old incorrect Premultiplied blend into
+                // equivalent Alpha + Preserve Specular blend mode.
+                if (this.sgVersion == 0)
+                {
+                    if (target.alphaMode == AlphaMode.Premultiply)
+                    {
+                        target.alphaMode = AlphaMode.Alpha;
+                        blendModePreserveSpecular = true;
+                    }
+                    else
+                        blendModePreserveSpecular = false;
+                }
+                ChangeVersion(latestVersion);
+            }
         }
 
         #region SubShader
