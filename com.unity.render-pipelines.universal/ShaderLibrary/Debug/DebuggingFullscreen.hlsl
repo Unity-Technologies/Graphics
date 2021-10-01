@@ -4,6 +4,7 @@
 
 #if defined(DEBUG_DISPLAY)
 
+int _DebugMaxPixelCost;
 int _ValidationChannels;
 float _RangeMinimum;
 float _RangeMaximum;
@@ -18,7 +19,8 @@ bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 de
 {
     if (_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_OVERDRAW)
     {
-        debugColor.rgb = GetOverdrawColor(color.r, 10).rgb;
+        debugColor.rgb = GetOverdrawColor(color.r, _DebugMaxPixelCost).rgb;
+        DrawOverdrawLegend(uv, _DebugMaxPixelCost, debugColor.rgb);
         return true;
     }
 

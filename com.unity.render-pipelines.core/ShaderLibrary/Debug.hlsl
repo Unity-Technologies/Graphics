@@ -330,6 +330,9 @@ real3 GetColorCodeFunction(real value, real4 threshold)
 ///   if the overdrawCount is above, the most expensive color is returned.
 real3 GetOverdrawColor(real overdrawCount, real maxOverdrawCount)
 {
+    if (overdrawCount < 0.01)
+        return real3(0, 0, 0);
+
     // cheapest hue
     const float initialHue = 240;
     // most expensive hue is initialHue - deltaHue
@@ -356,7 +359,7 @@ real3 GetOverdrawColor(real overdrawCount, real maxOverdrawCount)
 /// * texcoord: the texture coordinate of the pixel to draw
 /// * maxOverdrawCount: the maximum number of overdraw.
 /// * defaultColor: the default color used for other areas
-real3 DrawOverdrawLegend(real2 texcoord, real maxOverdrawCount, real3 defaultColor)
+void DrawOverdrawLegend(real2 texcoord, real maxOverdrawCount, inout real3 color)
 {
     const float bandStartY = 0.05;
     const float bandWidthY = 0.02;
@@ -372,17 +375,15 @@ real3 DrawOverdrawLegend(real2 texcoord, real maxOverdrawCount, real3 defaultCol
             || texcoord.x < bandOffsetX + bandBorderSize
             || 1 - bandOffsetX - bandBorderSize <= texcoord.x)
         {
-            return float3(0.1, 0.1, 0.1);
+            color = float3(0.1, 0.1, 0.1);
         }
         else
         {
             float x = (texcoord.x - bandOffsetX)/(1 - 2 * bandOffsetX);
             float bucket = ceil(x * maxOverdrawCount);
-            return GetOverdrawColor(bucket, maxOverdrawCount);
+            color = GetOverdrawColor(bucket, maxOverdrawCount);
         }
     }
-
-    return defaultColor;
 }
 
 #endif // UNITY_DEBUG_INCLUDED

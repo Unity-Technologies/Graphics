@@ -28,6 +28,8 @@ namespace UnityEngine.Rendering.Universal
         static readonly int k_DebugValidationModeId = Shader.PropertyToID("_DebugValidationMode");
         static readonly int k_DebugValidateBelowMinThresholdColorPropertyId = Shader.PropertyToID("_DebugValidateBelowMinThresholdColor");
         static readonly int k_DebugValidateAboveMaxThresholdColorPropertyId = Shader.PropertyToID("_DebugValidateAboveMaxThresholdColor");
+        static readonly int k_DebugMaxPixelCost = Shader.PropertyToID("_DebugMaxPixelCost");
+
 
         // Lighting settings...
         static readonly int k_DebugLightingModeId = Shader.PropertyToID("_DebugLightingMode");
@@ -264,6 +266,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalInteger(k_DebugMipInfoModeId, (int)RenderingSettings.debugMipInfoMode);
                 cmd.SetGlobalInteger(k_DebugSceneOverrideModeId, (int)RenderingSettings.debugSceneOverrideMode);
                 cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)RenderingSettings.debugFullScreenMode);
+                cmd.SetGlobalInteger(k_DebugMaxPixelCost, (int)RenderingSettings.maxPixelCost);
                 cmd.SetGlobalInteger(k_DebugValidationModeId, (int)RenderingSettings.validationMode);
                 cmd.SetGlobalColor(k_DebugValidateBelowMinThresholdColorPropertyId, Color.red);
                 cmd.SetGlobalColor(k_DebugValidateAboveMaxThresholdColorPropertyId, Color.blue);

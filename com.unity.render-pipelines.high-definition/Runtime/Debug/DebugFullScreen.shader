@@ -370,7 +370,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                         color.rgb = GetOverdrawColor(pixelCost, _TransparencyOverdrawMaxPixelCost);
                     }
 
-                    color.rgb = DrawOverdrawLegend(input.texcoord, _TransparencyOverdrawMaxPixelCost, color.rgb);
+                    DrawOverdrawLegend(input.texcoord, _TransparencyOverdrawMaxPixelCost, color.rgb);
 
                     return color;
                 }

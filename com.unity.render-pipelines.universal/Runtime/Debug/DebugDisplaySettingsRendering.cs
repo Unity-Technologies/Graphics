@@ -40,6 +40,18 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        int m_MaxPixelCost = 10;
+
+        internal int maxPixelCost
+        {
+            get => m_MaxPixelCost;
+            set
+            {
+                m_MaxPixelCost = value;
+                UpdateDebugSceneOverrideMode();
+            }
+        }
+
         void UpdateDebugSceneOverrideMode()
         {
             switch (wireframeMode)
@@ -84,6 +96,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly NameAndTooltip AdditionalWireframeModes = new() { name = "Additional Wireframe Modes", tooltip = "Debug the scene with additional wireframe shader views that are different from those in the scene view." };
             public static readonly NameAndTooltip WireframeNotSupportedWarning = new() { name = "Warning: This platform might not support wireframe rendering.", tooltip = "Some platforms, for example, mobile platforms using OpenGL ES and Vulkan, might not support wireframe rendering." };
             public static readonly NameAndTooltip Overdraw = new() { name = "Overdraw", tooltip = "Debug anywhere pixels are overdrawn on top of each other." };
+            public static readonly NameAndTooltip MaxPixelCost = new() { name = "Max Pixel Cost", tooltip = "Maximum overdraw count allowed for a single pixel." };
             public static readonly NameAndTooltip PostProcessing = new() { name = "Post-processing", tooltip = "Override the controls for Post Processing in the scene." };
             public static readonly NameAndTooltip MSAA = new() { name = "MSAA", tooltip = "Use the checkbox to disable MSAA in the scene." };
             public static readonly NameAndTooltip HDR = new() { name = "HDR", tooltip = "Use the checkbox to disable High Dynamic Range in the scene." };
@@ -161,6 +174,22 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.Overdraw,
                 getter = () => data.overdraw,
                 setter = (value) => data.overdraw = value
+            };
+
+            internal static DebugUI.Widget CreateMaxPixelCost(DebugDisplaySettingsRendering data) => new DebugUI.Container()
+            {
+                children =
+                {
+                    new DebugUI.IntField
+                    {
+                        nameAndTooltip = Strings.MaxPixelCost,
+                        getter = () => data.maxPixelCost,
+                        setter = value => data.maxPixelCost = value,
+                        incStep = 10,
+                        min = () => 1,
+                        max = () => 500
+                    }
+                }
             };
 
             internal static DebugUI.Widget CreatePostProcessing(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
@@ -247,7 +276,8 @@ namespace UnityEngine.Rendering.Universal
                         WidgetFactory.CreatePostProcessing(data),
                         WidgetFactory.CreateAdditionalWireframeShaderViews(data),
                         WidgetFactory.CreateWireframeNotSupportedWarning(data),
-                        WidgetFactory.CreateOverdraw(data)
+                        WidgetFactory.CreateOverdraw(data),
+                        WidgetFactory.CreateMaxPixelCost(data),
                     }
                 });
 
