@@ -514,7 +514,7 @@ GameObject:
   - component: {fileID: 342685565}
   - component: {fileID: 342685563}
   m_Layer: 0
-  m_Name: Overlay_Priming_Forced
+  m_Name: Overlay_Priming_Forced | placement on screen changes w/ XR
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -682,7 +682,7 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 0
-  XRCompatible: 1
+  XRCompatible: 0
   CheckMemoryAllocation: 1
 --- !u!20 &380492253
 Camera:
