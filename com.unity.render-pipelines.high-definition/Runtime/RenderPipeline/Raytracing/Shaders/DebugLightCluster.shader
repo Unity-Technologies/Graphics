@@ -2,7 +2,7 @@ Shader "Hidden/HDRP/DebugLightCluster"
 {
     SubShader
     {
-        Tags { "Queue"="Transparent+0" "IgnoreProjector"="True" "RenderType"="Transparent" }
+        Tags { "RenderPipeline" = "HDRenderPipeline"  "Queue"="Transparent+0" "IgnoreProjector"="True" "RenderType"="Transparent" }
 
         HLSLINCLUDE
         #pragma only_renderers d3d11 ps5
