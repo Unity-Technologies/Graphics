@@ -8,7 +8,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public enum MaterialType
         {
-            Basic,
+            Approximate,
+            Physical
+        }
+
+        public enum ScatteringMode
+        {
+            Approximate,
             Physical
         }
 
@@ -23,12 +29,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             Cards,
             Strands
-        }
-
-        public enum ScatteringMode
-        {
-            Approximate,
-            Advanced
         }
 
         [SerializeField]
