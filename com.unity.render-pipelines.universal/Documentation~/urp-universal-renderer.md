@@ -49,13 +49,24 @@ This section contains properties that define which layers the renderer draws.
 | **Opaque Layer Mask** | Select which opaque layers this Renderer draws |
 | **Transparent Layer Mask** | Select which transparent layers this Renderer draws |
 
-### Lighting
+### Rendering
 
-This section contains properties related to lighting.
+This section contains properties related to rendering.
 
 | Property | Description |
 |:-|:-|
 | **Rendering&#160;Path** | Select the Rendering Path.<br/>Options:<ul><li>**Forward**: The Forward Rendering Path.</li><li>**Deferred**: The Deferred Rendering Path. For more information, see [Deferred Rendering Path](rendering/deferred-rendering-path.md).</li></ul> |
+| &nbsp;&nbsp;**Depth Priming Mode** | Specifies when to perform depth priming. Depth priming is an optimization method that checks for pixels URP doesn't need to render during a [Base Camera's](camera-types-and-render-type.md#base-camera) opaque render pass. It uses the depth buffer generated in a depth prepass. The options are:<br />&#8226; **Disabled**: URP doesn't perform depth priming.<br />&#8226; **Auto**: URP performs depth priming for render passes that require a depth prepass.<br />&#8226; **Forced**: URP always performs depth priming. To do this, it also performs a depth prepass for every every render pass.<br /><br />this property only appears if you set **Rendering Path** to **Forward** |
+| &nbsp;&nbsp;**Accurate G-buffer normals** | Indicates whether to use a more resource-intensive normal encoding/decoding method to improve visual quality.<br /><br />This property only appears if you set **Rendering Path** to **Deferred**. |
+| **Copy Depth Mode** | Specifies the stage in the render pipeline at which to generate the depth texture. The options are:<br/>&#8226; **After Opaques**: URP generates the depth texture after the opaques render pass.<br/>&#8226; **After Transparents**: URP generates the depth texture after the transparents render pass.<br/><br/>**Note**: On mobile devices, the **After Transparents** option can lead to a significant improvement in memory bandwidth. |
+
+### Native RenderPass
+
+This section contains properties related to URP's Native RenderPass API.
+
+| Property | Description |
+|:-|:-|
+| **Native RenderPass** | Indicates whether to use URP's Native RenderPass API. When enabled, URP uses this API to structure render passes. As a result, you can use framebuffer fetch ([EXT_shader_framebuffer_fetch](https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_shader_framebuffer_fetch.txt)) in custom URP shaders. |
 
 ### Shadows
 
