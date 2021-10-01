@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the volume not being assigned on some scene templates.
 - Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
 - Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
+- Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
@@ -149,7 +150,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a built-in custom pass to draw object IDs.
 - Added an example in the documentation that shows how to use the accumulation API for high quality antialiasing (supersampling).
 - Added a SG node to get the main directional light direction.
-- Added selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
