@@ -615,9 +615,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseProbeVolumeFromAtlas(ProbeVolumeHandle volume)
         {
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
-                return;
-
             if (!m_SupportProbeVolume)
                 return;
 
@@ -1023,7 +1020,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ProbeVolumeList probeVolumes = new ProbeVolumeList();
 
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
+            if (!m_SupportProbeVolume)
                 return probeVolumes;
 
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
@@ -1040,8 +1037,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void DispatchProbeVolumeDynamicGI(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
-                return;
+            if (!m_SupportProbeVolume) { return; }
 
             if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
             {
@@ -1308,6 +1304,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct ProbeVolumeDebugOverlayParameters
         {
+            public bool supportProbeVolume;
             public Material material;
             public Vector4 validRange;
             public Vector4 textureViewScale;
@@ -1325,6 +1322,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ProbeVolumeDebugOverlayParameters parameters = new ProbeVolumeDebugOverlayParameters();
 
+            parameters.supportProbeVolume = m_SupportProbeVolume;
+
             parameters.material = m_DebugDisplayProbeVolumeMaterial;
 
             parameters.sliceMode = (int)lightingDebug.probeVolumeAtlasSliceMode;
@@ -1333,6 +1332,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.textureViewBias = new Vector3(0.0f, 0.0f, 0.0f);
             parameters.textureViewResolution = new Vector3(s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution);
             parameters.atlasTextureOctahedralDepthScaleBias = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+
+            if (!m_SupportProbeVolume) { return parameters; }
 
 #if UNITY_EDITOR
             if (UnityEditor.Selection.activeGameObject != null)
@@ -1400,6 +1401,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void DisplayProbeVolumeAtlas(CommandBuffer cmd, in ProbeVolumeDebugOverlayParameters parameters, DebugOverlay debugOverlay)
         {
+            if (!parameters.supportProbeVolume) { return; }
+
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
             propertyBlock.SetVector(HDShaderIDs._TextureViewScale, parameters.textureViewScale);
             propertyBlock.SetVector(HDShaderIDs._TextureViewBias, parameters.textureViewBias);
@@ -1423,6 +1426,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         internal void DrawProbeVolumeDebugSHPreview(ProbeVolume probeVolume, Camera camera)
         {
+            if (!m_SupportProbeVolume) { return; }
+            
             Material debugMaterial = GetDebugSHPreviewMaterial();
             if (debugMaterial == null) { return; }
 
@@ -1456,6 +1461,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ProbeVolumeAtlasStats GetProbeVolumeAtlasStats()
         {
+            if (!m_SupportProbeVolume) { return new ProbeVolumeAtlasStats(); }
+
             return new ProbeVolumeAtlasStats
             {
                 allocationCount = (probeVolumeAtlas != null && m_SupportProbeVolume) ? probeVolumeAtlas.GetAllocationCount() : 0,

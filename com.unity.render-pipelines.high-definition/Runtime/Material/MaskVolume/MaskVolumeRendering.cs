@@ -374,6 +374,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             MaskVolumeList maskVolumes = new MaskVolumeList();
 
+            if (!m_SupportMaskVolume)
+                return maskVolumes;
+
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume))
             {
                 PushMaskVolumesGlobalParamsDefault(hdCamera, cmd);
@@ -615,6 +618,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct MaskVolumeDebugOverlayParameters
         {
+            public bool supportMaskVolume;
             public Material material;
             public Vector4 textureViewScale;
             public Vector4 textureViewBias;
@@ -627,6 +631,8 @@ namespace UnityEngine.Rendering.HighDefinition
         MaskVolumeDebugOverlayParameters PrepareMaskVolumeOverlayParameters(LightingDebugSettings lightingDebug)
         {
             MaskVolumeDebugOverlayParameters parameters = new MaskVolumeDebugOverlayParameters();
+
+            parameters.supportMaskVolume = m_SupportMaskVolume;
 
             parameters.material = m_DebugDisplayMaskVolumeMaterial;
             parameters.textureViewScale = new Vector3(1.0f, 1.0f, 1.0f);
@@ -665,6 +671,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void DisplayMaskVolumeAtlas(CommandBuffer cmd, in MaskVolumeDebugOverlayParameters parameters, DebugOverlay debugOverlay)
         {
+            if (!parameters.supportMaskVolume) { return; }
+
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
             propertyBlock.SetVector(HDShaderIDs._TextureViewScale, parameters.textureViewScale);
             propertyBlock.SetVector(HDShaderIDs._TextureViewBias, parameters.textureViewBias);
@@ -680,6 +688,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         internal void DrawMaskVolumeDebugSamplePreview(MaskVolume maskVolume, Camera camera)
         {
+            if (!m_SupportMaskVolume) { return; }
+
             Material debugMaterial = GetDebugSamplePreviewMaterial();
             if (debugMaterial == null) { return; }
 
@@ -705,6 +715,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public MaskVolumeAtlasStats GetMaskVolumeAtlasStats()
         {
+            if (!m_SupportMaskVolume) { return new MaskVolumeAtlasStats(); }
+
             return new MaskVolumeAtlasStats
             {
                 allocationCount = (maskVolumeAtlas != null && m_SupportMaskVolume) ? maskVolumeAtlas.GetAllocationCount() : 0,
