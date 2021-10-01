@@ -15,6 +15,22 @@ To create a Hair material in Shader Graph, you can either:
 
 * Create a new Shader Graph.
     1. Go to **Assets > Create >Shader Graph > HDRP** and click **Hair Shader Graph**.
+    
+## Phenomenological and Physically Based Models
+
+The Hair Master Stack offers two model sub-types: **Basic** and **Physical**. By default, a newly created Hair Shader Graph is configured to use the **Basic** mode. To change it, simply navigate to the Graph Inspector and change the Hair's **Material Type** from **Basic** to **Physical**.
+
+The **Basic** mode is a non energy-conserving model that was originally crafted against perceptual observations of human hair. Effective use of this model requires the artist to carefully balance the energy between the specular terms using multiple color parameters. Generally, the **Basic** model is accurate enough for darker hair, but falls short for lighter hair. Additionally, it is the faster of the two models to compute.
+
+The **Physical** mode puts parameters in much simpler and meaningful terms. This model is considered to be physically-based due to its considerations for how incident light has been measured to scatter in a hair fiber. While the **Basic** variant requires four color parameters to tune overall appearance, the **Physical** variant only requires one. The **Base Color** parameter defines the hair cortex absorption, the fibrous structure underlying the cuticle scale. Additionally, the model is energy conserving, so no careful balancing of inputs should be required for your hair to fit naturally into any lighting scenario. 
+
+A crucial component to the appearance of (especially light colored) hair is *multiple scattering*. Almost always, we never shade just a single hair fiber, but typically many thousands of fibers within close adjacency to one another. Because of this, coupled with the fact that light colored (lower absorbing) hair transmits large amount of light, the overall effect is a volumetric appearance to a head of light colored hair. 
+
+By default, for both **Basic** and **Physical** models, we use a diffuse approximation term to extremely coarsely approximate this phenomenon (seen left). The approximation is coarse because it does not take into account the propogation and attenuation of light through a hair volume due to transmittance, and ignores the effect that a hair's roughness has on the spread of light. 
+
+For this reason, we offer an **Advanced Scattering Mode** (seen right). The **Advanced Scattering Mode** performs a physically based simulation of light propogating through a volume of hair. This mode is strictly allowed only in **Physical** mode since the computation is dependant on the physically based nature of the model. 
+
+There are currently other important constraints on the **Advanced Scattering Mode** to make note of. Currently, it is dependent on the use of a strand geometry representation (in fact, it is generally recommended at the moment to only use the **Physical** mode when dealing with strands). Additionally, this approach has a dependency on important precomputed information stored in a **Strand Count Probe**. While it can be computed manually, this data is not readily available at the moment. The accessibility of the **Advanced** scattering will be improved in future releases. 
 
 ## Contexts
 
@@ -110,6 +126,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-graph-blocks/smoothness-radial.md)]
 [!include[](snippets/shader-graph-blocks/cuticle-angle.md)]
 [!include[](snippets/shader-graph-blocks/strand-count-probe.md)]
+[!include[](snippets/shader-graph-blocks/strand-shadow-bias.md)]
 </table>
 
 ## Graph Settings
@@ -120,6 +137,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 <th>Property</th>
 <th>Description</th>
 </tr>
+[!include[](snippets/shader-properties/surface-options/material-type-hair.md)]
 [!include[](snippets/shader-properties/surface-options/surface-type.md)]
 [!include[](snippets/shader-properties/surface-options/rendering-pass.md)]
 [!include[](snippets/shader-properties/surface-options/blending-mode.md)]
@@ -160,5 +178,4 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
 [!include[](snippets/shader-properties/advanced-options/geometry-type.md)]
 [!include[](snippets/shader-properties/advanced-options/scattering-mode.md)]
-[!include[](snippets/shader-properties/advanced-options/allow-radial-smoothness.md)]
 </table>

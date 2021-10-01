@@ -8,8 +8,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public enum MaterialType
         {
-            KajiyaKay,
-            Marschner
+            Basic,
+            Physical
         }
 
         public enum GeometryType

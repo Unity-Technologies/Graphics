@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Hair specific properties GUI
             AddProperty(Styles.geometryType, () => hairData.geometryType, (newValue) => hairData.geometryType = newValue);
 
-            if (hairData.materialType == HairData.MaterialType.Marschner)
+            if (hairData.materialType == HairData.MaterialType.Physical)
             {
                 // For now only allow scattering mode for strands, as the multiple scattering was developed against this for 21.2.
                 if (hairData.geometryType == HairData.GeometryType.Strands)
