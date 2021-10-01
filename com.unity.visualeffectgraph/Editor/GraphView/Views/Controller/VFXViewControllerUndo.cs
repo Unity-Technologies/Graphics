@@ -226,7 +226,9 @@ namespace UnityEditor.VFX.UI
                 {
                     foreach (var element in AllSlotContainerControllers)
                     {
-                        foreach (var slot in (element.model as IVFXSlotContainer).inputSlots)
+                        var slotContainer = element.model as IVFXSlotContainer;
+                        slotContainer.activationSlot?.UpdateDefaultExpressionValue();
+                        foreach (var slot in slotContainer.inputSlots)
                         {
                             slot.UpdateDefaultExpressionValue();
                         }

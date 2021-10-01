@@ -87,6 +87,10 @@ namespace UnityEditor.VFX.UI
             ValidateSlots(slotContainer.inputSlots, slotContainer);
             ValidateSlots(slotContainer.outputSlots, slotContainer);
 
+            if (slotContainer.activationSlot != null)
+            {
+                ValidateSlot(slotContainer.activationSlot, slotContainer, null);
+            }
             if (slotContainer is VFXContext)
             {
                 VFXContext context = slotContainer as VFXContext;
@@ -102,6 +106,10 @@ namespace UnityEditor.VFX.UI
             ValidateSlotsLinks(slotContainer.inputSlots, slotContainer);
             ValidateSlotsLinks(slotContainer.outputSlots, slotContainer);
 
+            if (slotContainer.activationSlot != null)
+            {
+                ValidateSlotLinks(slotContainer.activationSlot);
+            }
             if (slotContainer is VFXContext)
             {
                 VFXContext context = slotContainer as VFXContext;

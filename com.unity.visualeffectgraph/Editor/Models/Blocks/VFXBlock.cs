@@ -62,7 +62,7 @@ namespace UnityEditor.VFX
         public abstract VFXDataType compatibleData { get; }
         public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); } }
-        public VFXExpression enabledExpression => m_ActivationSlot.GetExpression();
+        public VFXExpression activationExpression => m_ActivationSlot.GetExpression();
         public virtual IEnumerable<string> includes { get { return Enumerable.Empty<string>(); } }
         public virtual string source { get { return null; } }
 

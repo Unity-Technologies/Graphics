@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
         protected override void OnNewController()
         {
             base.OnNewController();
-            m_EnableAnchor = VFXEditableDataAnchor.Create(controller.enabledAnchorController, this);
+            m_EnableAnchor = VFXEditableDataAnchor.Create(controller.activationAnchorController, this);
             titleContainer.Insert(0, m_EnableAnchor);
         }
 

@@ -360,7 +360,11 @@ namespace UnityEditor.VFX.UI
                     {
                         nodeChanged |= RecreateInputSlotEdge(unusedEdges, nodeController, input);
                     }
-                    if (nodeController is VFXContextController)
+                    if (nodeController is VFXBlockController)
+                    {
+                        nodeChanged |= RecreateInputSlotEdge(unusedEdges, nodeController, ((VFXBlockController)nodeController).activationAnchorController);
+                    }
+                    else if (nodeController is VFXContextController)
                     {
                         VFXContextController contextController = nodeController as VFXContextController;
 
@@ -370,6 +374,7 @@ namespace UnityEditor.VFX.UI
                             foreach (var input in block.inputPorts)
                             {
                                 blockChanged |= RecreateInputSlotEdge(unusedEdges, block, input);
+                                blockChanged |= RecreateInputSlotEdge(unusedEdges, block, ((VFXBlockController)block).activationAnchorController);
                             }
                             if (blockChanged)
                                 nodeToUpdate.Add(block);
@@ -709,6 +714,7 @@ namespace UnityEditor.VFX.UI
                 // Remove connections from blocks
                 foreach (VFXBlockController blockPres in (element as VFXContextController).blockControllers)
                 {
+                    blockPres.slotContainer.activationSlot?.UnlinkAll(true, true);
                     foreach (var slot in blockPres.slotContainer.outputSlots.Concat(blockPres.slotContainer.inputSlots))
                     {
                         slot.UnlinkAll(true, true);
@@ -762,15 +768,15 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                VFXSlot slotToClean = null;
+                VFXSlot slotToClean = container.activationSlot;
                 do
                 {
-                    slotToClean = container.inputSlots.Concat(container.outputSlots)
-                        .FirstOrDefault(o => o.HasLink(true));
                     if (slotToClean)
                     {
                         slotToClean.UnlinkAll(true, true);
                     }
+                    slotToClean = container.inputSlots.Concat(container.outputSlots)
+                        .FirstOrDefault(o => o.HasLink(true));
                 }
                 while (slotToClean != null);
 
@@ -1046,7 +1052,11 @@ namespace UnityEditor.VFX.UI
 
         public static void CollectAncestorOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashParents)
         {
-            foreach (var slotInput in operatorInput.inputSlots)
+            IEnumerable<VFXSlot> slots = operatorInput.inputSlots;
+            if (operatorInput.activationSlot != null)
+                slots = slots.Append(operatorInput.activationSlot);
+
+            foreach (var slotInput in slots)
             {
                 var linkedSlots = slotInput.AllChildrenWithLink();
                 foreach (var linkedSlot in linkedSlots)
@@ -1063,7 +1073,11 @@ namespace UnityEditor.VFX.UI
 
             hashParents.Add(operatorInput);
 
-            foreach (var slotInput in operatorInput.inputSlots)
+            IEnumerable<VFXSlot> slots = operatorInput.inputSlots;
+            if (operatorInput.activationSlot != null)
+                slots = slots.Append(operatorInput.activationSlot);
+
+            foreach (var slotInput in slots)
             {
                 var linkedSlots = slotInput.AllChildrenWithLink();
                 foreach (var linkedSlot in linkedSlots)

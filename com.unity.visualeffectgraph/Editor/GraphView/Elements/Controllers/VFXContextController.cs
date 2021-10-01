@@ -236,6 +236,7 @@ namespace UnityEditor.VFX.UI
 
             VFXBlock result = duplicated.OfType<VFXBlock>().First();
 
+            block.activationSlot.UnlinkAll(true, false);
             foreach (var slot in result.inputSlots)
             {
                 slot.UnlinkAll(true, false);

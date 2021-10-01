@@ -509,7 +509,7 @@ namespace UnityEditor.VFX
                 VFXSlot slotToClean = null;
                 do
                 {
-                    slotToClean = slotContainer.inputSlots.Concat(slotContainer.outputSlots).FirstOrDefault(o => o.HasLink(true));
+                    slotToClean = slotContainer.inputSlots.Concat(slotContainer.outputSlots).Append(slotContainer.activationSlot).FirstOrDefault(o => o != null && o.HasLink(true));
                     if (slotToClean)
                         slotToClean.UnlinkAll(true, notify);
                 }
