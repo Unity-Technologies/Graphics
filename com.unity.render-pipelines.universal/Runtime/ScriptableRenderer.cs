@@ -954,13 +954,11 @@ namespace UnityEngine.Rendering.Universal
 
             // FR
             if (renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing)
-            {
                 cmd.SetFoveatedRendering(FoveatedRenderingMode.EnableAndDistort, renderingData.cameraData.xr.foveatedRenderingInfo);
-            }
 
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            cmd.Clear();
 
             if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
                 ExecuteNativeRenderPass(context, renderPass, cameraData, ref renderingData);
@@ -968,19 +966,15 @@ namespace UnityEngine.Rendering.Universal
                 renderPass.Execute(context, ref renderingData);
 
             // FR
-            //cmd.SetFoveatedRendering(FoveatedRenderingMode.Off, IntPtr.Zero);
-
-            {
-                cmd = CommandBufferPool.Get();
-                cmd.SetFoveatedRendering(FoveatedRenderingMode.Off, IntPtr.Zero);
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
-            }
+            cmd.SetFoveatedRendering(FoveatedRenderingMode.Off, IntPtr.Zero);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled && cameraData.xr.hasMarkedLateLatch)
-                cameraData.xr.UnmarkLateLatchShaderProperties(cmd, ref cameraData); // BUG : cmd is never executed ??
+                cameraData.xr.UnmarkLateLatchShaderProperties(cmd, ref cameraData);
 #endif
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
