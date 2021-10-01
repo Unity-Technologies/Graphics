@@ -13,12 +13,15 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int _PrevExposureTexture = Shader.PropertyToID("_PrevExposureTexture");
 
         CalculateFixedExposurePass m_CalculateFixedExposurePass;
+        //CalculateDyanamicExposurePass m_CalculateDynamicExposurePass;
         SetExposurePass m_SetExposurePass;
+        AdvanceExposureFramePass m_AdvanceExposureFramePass;
 
         public override void Create()
         {
             m_CalculateFixedExposurePass ??= new CalculateFixedExposurePass(RenderPassEvent.BeforeRendering, m_ExposureComputeShader);
             m_SetExposurePass ??= new SetExposurePass(RenderPassEvent.BeforeRendering);
+            m_AdvanceExposureFramePass ??= new AdvanceExposureFramePass(RenderPassEvent.BeforeRendering);
         }
 
         internal static void SetDefaultExposure()
@@ -63,8 +66,6 @@ namespace UnityEngine.Rendering.Universal
                 useDynamicScale = false
             };
 
-            renderingData.cameraData.frameCache.NewExposureFrame();
-
             if (renderingData.cameraData.frameCache.m_ExposureTexture == null)
             {
                 renderingData.cameraData.frameCache.m_ExposureTexture = new RenderTexture(rtd);
@@ -73,8 +74,31 @@ namespace UnityEngine.Rendering.Universal
                 renderingData.cameraData.frameCache.m_PrevExposureTexture.Create();
             }
 
-            renderer.EnqueuePass(m_CalculateFixedExposurePass);
-            renderer.EnqueuePass(m_SetExposurePass);
+            // Do fixed exposure...
+            if(renderingData.cameraData.shouldOverrideExposure
+                || (renderingData.cameraData.exposure != null
+                    && (renderingData.cameraData.exposure.mode.value == ExposureMode.Fixed
+                        || renderingData.cameraData.exposure.mode.value == ExposureMode.UsePhysicalCamera)))
+            {
+                // we can calculate fixed exposure before rendering for this camera... nice :)
+                m_AdvanceExposureFramePass.renderPassEvent = RenderPassEvent.BeforeRendering;
+                m_CalculateFixedExposurePass.renderPassEvent = RenderPassEvent.BeforeRendering;
+                m_SetExposurePass.renderPassEvent = RenderPassEvent.BeforeRendering;
+                renderer.EnqueuePass(m_AdvanceExposureFramePass);
+                renderer.EnqueuePass(m_CalculateFixedExposurePass);
+                renderer.EnqueuePass(m_SetExposurePass);
+            }
+            // Do dynamic exposure
+            else if (renderingData.cameraData.exposure != null)
+            {
+                // dynamic exposure needs to be done at the end of a frame, but set at the start.
+                m_SetExposurePass.renderPassEvent = RenderPassEvent.BeforeRendering;
+                m_AdvanceExposureFramePass.renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+                m_CalculateFixedExposurePass.renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+                renderer.EnqueuePass(m_SetExposurePass);
+                renderer.EnqueuePass(m_AdvanceExposureFramePass);
+                renderer.EnqueuePass(m_CalculateFixedExposurePass);
+            }
         }
 
         public class SetExposurePass : ScriptableRenderPass
@@ -101,6 +125,22 @@ namespace UnityEngine.Rendering.Universal
                         : Texture2D.whiteTexture);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
+            }
+        }
+
+        public class AdvanceExposureFramePass : ScriptableRenderPass
+        {
+            public AdvanceExposureFramePass(RenderPassEvent evt)
+            {
+                profilingSampler = new ProfilingSampler(nameof(AdvanceExposureFramePass));
+                renderPassEvent = evt;
+                overrideCameraTarget = true;
+                useNativeRenderPass = false;
+            }
+
+            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+            {
+                renderingData.cameraData.frameCache.NewExposureFrame();
             }
         }
 
