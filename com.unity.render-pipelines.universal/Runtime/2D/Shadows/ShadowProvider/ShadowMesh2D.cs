@@ -144,7 +144,6 @@ namespace UnityEngine.Rendering.Universal
                     generatedIndices[indexWritePos++] = vertexWritePos + 1;
                     generatedVertices[vertexWritePos++] = pt0;
                     generatedVertices[vertexWritePos++] = pt1;
-                    generatedVertices[vertexWritePos++] = pt1;
                 }
             }
 
