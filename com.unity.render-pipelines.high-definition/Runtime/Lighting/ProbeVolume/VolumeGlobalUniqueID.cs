@@ -27,11 +27,12 @@ namespace UnityEngine.Rendering.HighDefinition
             [SerializeField] private int value_159_128;
             [SerializeField] private int value_191_160;
             [SerializeField] private int value_194_192;
+            [SerializeField] private int value_226_195;
+            [SerializeField] private int value_258_227;
 
             public VolumeGlobalUniqueID(int identifierType, ulong assetGUID_127_64, ulong assetGUID_63_0, ulong targetObjectId, ulong targetPrefabId)
             {
                 Debug.Assert((identifierType >= 0) && (identifierType < ((1 << 2) - 1)));
-                Debug.Assert((targetObjectId == 0) || (targetPrefabId == 0));
 
                 ulong maskLo = (1ul << 32) - 1ul;
                 value_31_0 = unchecked((int)(maskLo & assetGUID_63_0));
@@ -40,6 +41,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 value_95_64 = unchecked((int)(maskLo & assetGUID_127_64));
                 value_127_96 = unchecked((int)(assetGUID_127_64 >> 32));
 
+                // To maintain support with a previous version of this ID format, we swizzle targetPrefabId and targetObjectId's location based on whether or not it is a prefab.
+                // This swizzle is not necessary in the current format, since we always store both the targetPrefabId and the targetObjectId. It is only necessary so that
+                // non-prefab assets saved in the old format still work.
                 bool isPrefab = (targetPrefabId != 0);
                 ulong targetId = isPrefab ? targetPrefabId : targetObjectId;
                 value_159_128 = unchecked((int)(maskLo & targetId));
@@ -47,6 +51,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 value_194_192 = isPrefab ? 1 : 0;
                 value_194_192 |= unchecked((int)(((uint)identifierType) << 1));
+
+                ulong targetOtherId = isPrefab ? targetObjectId : targetPrefabId;
+                value_226_195 = unchecked((int)(maskLo & targetOtherId));
+                value_258_227 = unchecked((int)(targetOtherId >> 32));
             }
 
             private void Decode(out int identifierType, out ulong assetGUID_127_64, out ulong assetGUID_63_0, out ulong targetObjectId, out ulong targetPrefabId)
@@ -59,9 +67,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool isPrefab = (unchecked((uint)value_194_192) & 1u) == 1u;
 
                 ulong targetId = (((ulong)unchecked((uint)value_191_160)) << 32) | (ulong)unchecked((uint)value_159_128);
+                ulong targetOtherId = (((ulong)unchecked((uint)value_258_227)) << 32) | (ulong)unchecked((uint)value_226_195);
 
-                targetObjectId = isPrefab ? 0ul : targetId;
-                targetPrefabId = isPrefab ? targetId : 0ul;
+                targetObjectId = isPrefab ? targetOtherId : targetId;
+                targetPrefabId = isPrefab ? targetId : targetOtherId;
             }
 
             public static readonly VolumeGlobalUniqueID zero = new VolumeGlobalUniqueID()
@@ -72,7 +81,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 value_127_96 = 0,
                 value_159_128 = 0,
                 value_191_160 = 0,
-                value_194_192 = 0
+                value_194_192 = 0,
+                value_226_195 = 0,
+                value_258_227 = 0
             };
 
             public bool Equals(VolumeGlobalUniqueID other)
@@ -83,7 +94,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     && (this.value_127_96 == other.value_127_96)
                     && (this.value_159_128 == other.value_159_128)
                     && (this.value_191_160 == other.value_191_160)
-                    && (this.value_194_192 == other.value_194_192);
+                    && (this.value_194_192 == other.value_194_192)
+                    && (this.value_226_195 == other.value_226_195)
+                    && (this.value_258_227 == other.value_258_227);
             }
 
             public override bool Equals(object other)
@@ -100,6 +113,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + value_127_96.GetHashCode();
                 hash = hash * 23 + value_191_160.GetHashCode();
                 hash = hash * 23 + value_194_192.GetHashCode();
+                hash = hash * 23 + value_226_195.GetHashCode();
+                hash = hash * 23 + value_258_227.GetHashCode();
 
                 return hash;
             }
@@ -203,6 +218,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     case 'd': digit = 13; break;
                     case 'e': digit = 14; break;
                     case 'f': digit = 15; break;
+                    case 'A': digit = 10; break;
+                    case 'B': digit = 11; break;
+                    case 'C': digit = 12; break;
+                    case 'D': digit = 13; break;
+                    case 'E': digit = 14; break;
+                    case 'F': digit = 15; break;
                     default: res = 0; return false;
                 }
 
