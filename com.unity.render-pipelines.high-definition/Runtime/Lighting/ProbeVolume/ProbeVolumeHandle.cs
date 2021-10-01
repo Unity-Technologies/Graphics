@@ -1,4 +1,5 @@
 using System;
+using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -23,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ref ProbeVolumeArtistParameters parameters => ref m_List.GetParameters(m_Index);
 
-        public ProbeVolumeGlobalUniqueID GetAtlasID() => m_List.GetAtlasID(m_Index);
+        public VolumeGlobalUniqueID GetAtlasID() => m_List.GetAtlasID(m_Index);
         public ProbeVolume.ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey() => m_List.ComputeProbeVolumeAtlasKey(m_Index);
         public ProbeVolume.ProbeVolumeAtlasKey GetProbeVolumeAtlasKeyPrevious() => m_List.GetProbeVolumeAtlasKeyPrevious(m_Index);
         public void SetProbeVolumeAtlasKeyPrevious(ProbeVolume.ProbeVolumeAtlasKey key) => m_List.SetProbeVolumeAtlasKeyPrevious(m_Index, key);
@@ -53,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetNeighborAxis(ComputeBuffer buffer) => m_List.SetNeighborAxis(m_Index, buffer);
 
 #if UNITY_EDITOR
-        public bool IsHiddesInScene() => m_List.IsHiddenInScene(m_Index);
+        public bool IsHiddenInScene() => m_List.IsHiddenInScene(m_Index);
 #endif
     }
 }

@@ -115,6 +115,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_LeftChild == -1;
             }
 
+            public Int16 FindLargestFreeNode(Atlas3DNodePool pool)
+            {
+                if (!IsLeafNode())
+                {
+                    Int16 nodeLeft = pool.m_Nodes[m_LeftChild].FindLargestFreeNode(pool);
+                    Int16 nodeRight = pool.m_Nodes[m_RightChild].FindLargestFreeNode(pool);
+
+                    Vector3 nodeLeftSize = (nodeLeft != -1) ? (pool.m_Nodes[nodeLeft].m_RectSize) : Vector3.zero;
+                    Vector3 nodeRightSize = (nodeRight != -1) ? (pool.m_Nodes[nodeRight].m_RectSize) : Vector3.zero;
+                    float nodeLeftArea = nodeLeftSize.x * nodeLeftSize.y * nodeLeftSize.z;
+                    float nodeRightArea = nodeRightSize.x * nodeRightSize.y * nodeRightSize.z;
+
+                    return (Mathf.Max(nodeLeftArea, nodeRightArea) > 0.0f)
+                        ? ((nodeLeftArea >= nodeRightArea) ? nodeLeft : nodeRight)
+                        : (Int16)(-1);
+                }
+                else
+                {
+                    return IsOccupied() ? (Int16)(-1) : m_Self;
+                }
+            }
+
             public Int16 Allocate(Atlas3DNodePool pool, int width, int height, int depth)
             {
                 if (Mathf.Min(Mathf.Min(width, height), depth) < 1)
@@ -370,6 +392,22 @@ namespace UnityEngine.Rendering.HighDefinition
             m_NodeFromID.Clear();
         }
 
+        public float FindLargestFreeBlockRatio()
+        {
+            Int16 nodeIndex = m_Pool.m_Nodes[m_Root].FindLargestFreeNode(m_Pool);
+            Vector3 nodeRectSize = (nodeIndex != -1) ? (m_Pool.m_Nodes[nodeIndex].m_RectSize) : Vector3.zero;
+            Vector3 rootRectSize = m_Pool.m_Nodes[m_Root].m_RectSize;
+            Vector3 sizeRatio = new Vector3(nodeRectSize.x / rootRectSize.x, nodeRectSize.y / rootRectSize.y, nodeRectSize.z / rootRectSize.z);
+            return sizeRatio.x * sizeRatio.y * sizeRatio.z;
+        }
+
+        public Vector3Int FindLargestFreeBlockPixels()
+        {
+            Int16 nodeIndex = m_Pool.m_Nodes[m_Root].FindLargestFreeNode(m_Pool);
+            Vector3 nodeRectSize = (nodeIndex != -1) ? (m_Pool.m_Nodes[nodeIndex].m_RectSize) : Vector3.zero;
+            return new Vector3Int(Mathf.RoundToInt(nodeRectSize.x), Mathf.RoundToInt(nodeRectSize.y), Mathf.RoundToInt(nodeRectSize.z));
+        }
+
         public string DebugStringFromRoot(int depthMax = -1)
         {
             string res = "";
@@ -579,6 +617,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public float GetAllocationRatio()
         {
             return m_AllocationRatio;
+        }
+
+        public float FindLargestFreeBlockRatio()
+        {
+            return Mathf.Clamp01(m_AtlasAllocator.FindLargestFreeBlockRatio());
+        }
+
+        public Vector3Int FindLargestFreeBlockPixels()
+        {
+            return m_AtlasAllocator.FindLargestFreeBlockPixels();
         }
     }
 }

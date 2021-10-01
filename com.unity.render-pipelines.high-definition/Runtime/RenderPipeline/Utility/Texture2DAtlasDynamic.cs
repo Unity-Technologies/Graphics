@@ -106,6 +106,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_LeftChild == -1;
             }
 
+            public Int16 FindLargestFreeNode(AtlasNodePool pool)
+            {
+                if (!IsLeafNode())
+                {
+                    Int16 nodeLeft = pool.m_Nodes[m_LeftChild].FindLargestFreeNode(pool);
+                    Int16 nodeRight = pool.m_Nodes[m_RightChild].FindLargestFreeNode(pool);
+
+                    float nodeLeftArea = (nodeLeft != -1) ? (pool.m_Nodes[nodeLeft].m_Rect.x * pool.m_Nodes[nodeLeft].m_Rect.y) : 0.0f;
+                    float nodeRightArea = (nodeRight != -1) ? (pool.m_Nodes[nodeRight].m_Rect.x * pool.m_Nodes[nodeRight].m_Rect.y) : 0.0f;
+
+                    return (Mathf.Max(nodeLeftArea, nodeRightArea) > 0.0f)
+                        ? ((nodeLeftArea >= nodeRightArea) ? nodeLeft : nodeRight)
+                        : (Int16)(-1);
+                }
+                else
+                {
+                    return IsOccupied() ? (Int16)(-1) : m_Self;
+                }
+            }
+
             public Int16 Allocate(AtlasNodePool pool, int width, int height)
             {
                 if (Mathf.Min(width, height) < 1)
@@ -305,6 +325,22 @@ namespace UnityEngine.Rendering.HighDefinition
             m_NodeFromID.Clear();
         }
 
+        public float FindLargestFreeBlockRatio()
+        {
+            Int16 nodeIndex = m_Pool.m_Nodes[m_Root].FindLargestFreeNode(m_Pool);
+            Vector4 nodeRect = (nodeIndex != -1) ? (m_Pool.m_Nodes[nodeIndex].m_Rect) : Vector4.zero;
+            Vector4 rootRect = m_Pool.m_Nodes[m_Root].m_Rect;
+            Vector2 sizeRatio = new Vector2(nodeRect.x / rootRect.x, nodeRect.y / rootRect.y);
+            return sizeRatio.x * sizeRatio.y;
+        }
+
+        public Vector2Int FindLargestFreeBlockPixels()
+        {
+            Int16 nodeIndex = m_Pool.m_Nodes[m_Root].FindLargestFreeNode(m_Pool);
+            Vector4 nodeRect = (nodeIndex != -1) ? (m_Pool.m_Nodes[nodeIndex].m_Rect) : Vector4.zero;
+            return new Vector2Int(Mathf.RoundToInt(nodeRect.x), Mathf.RoundToInt(nodeRect.y));
+        }
+
         public string DebugStringFromRoot(int depthMax = -1)
         {
             string res = "";
@@ -340,6 +376,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private GraphicsFormat m_Format;
         private AtlasAllocatorDynamic<T> m_AtlasAllocator = null;
         private Dictionary<T, Vector4> m_AllocationCache;
+        private int m_AllocationCount = 0;
+        private float m_AllocationRatio = 0.0f;
 
         public RTHandle AtlasTexture
         {
@@ -377,6 +415,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_AtlasAllocator = new AtlasAllocatorDynamic<T>(width, height, capacity);
             m_AllocationCache = new Dictionary<T, Vector4>(capacity);
+
+            m_AllocationCount = 0;
+            m_AllocationRatio = 0.0f;
         }
 
         public Texture2DAtlasDynamic(int width, int height, int capacity, RTHandle atlasTexture)
@@ -389,6 +430,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_AtlasAllocator = new AtlasAllocatorDynamic<T>(width, height, capacity);
             m_AllocationCache = new Dictionary<T, Vector4>(capacity);
+
+            m_AllocationCount = 0;
+            m_AllocationRatio = 0.0f;
         }
 
         public void Release()
@@ -445,13 +489,18 @@ namespace UnityEngine.Rendering.HighDefinition
             isUploadNeeded = true;
             scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
             m_AllocationCache.Add(key, scaleBias);
+            ComputeAllocationStatsAdd(scaleBias);
             return true;
         }
 
         public void ReleaseTextureSlot(T key)
         {
-            m_AtlasAllocator.Release(key);
-            m_AllocationCache.Remove(key);
+            if (m_AllocationCache.TryGetValue(key, out Vector4 scaleBias))
+            {
+                ComputeAllocationStatsRemove(scaleBias);
+                m_AtlasAllocator.Release(key);
+                m_AllocationCache.Remove(key);
+            }
         }
 
         public bool IsTextureSlotAllocated(T key)
@@ -459,9 +508,46 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_AllocationCache.ContainsKey(key);
         }
 
+        private void ComputeAllocationStatsAdd(Vector4 scaleBias)
+        {
+            ++m_AllocationCount;
+            m_AllocationRatio = Mathf.Clamp01(m_AllocationRatio + ComputeAllocationAreaNormalized(scaleBias));
+        }
+
+        private void ComputeAllocationStatsRemove(Vector4 scaleBias)
+        {
+            --m_AllocationCount;
+            m_AllocationRatio = Mathf.Clamp01(m_AllocationRatio - ComputeAllocationAreaNormalized(scaleBias));
+        }
+
+        private static float ComputeAllocationAreaNormalized(Vector4 scaleBias)
+        {
+            return scaleBias.x * scaleBias.y;
+        }
+
         public string DebugStringFromRoot(int depthMax = -1)
         {
             return m_AtlasAllocator.DebugStringFromRoot(depthMax);
+        }
+
+        public int GetAllocationCount()
+        {
+            return m_AllocationCount;
+        }
+
+        public float GetAllocationRatio()
+        {
+            return m_AllocationRatio;
+        }
+
+        public float FindLargestFreeBlockRatio()
+        {
+            return Mathf.Clamp01(m_AtlasAllocator.FindLargestFreeBlockRatio());
+        }
+
+        public Vector2Int FindLargestFreeBlockPixels()
+        {
+            return m_AtlasAllocator.FindLargestFreeBlockPixels();
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
+using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -42,16 +43,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField] internal Quaternion rotation;
 
-        [SerializeField] internal ProbeVolumeGlobalUniqueID globalUniqueID;
+        [SerializeField] internal VolumeGlobalUniqueID globalUniqueID;
 
         internal bool IsDataAssigned()
         {
             return payload.dataSHL01 != null;
         }
 
-        internal ProbeVolumeGlobalUniqueID GetID()
+        internal VolumeGlobalUniqueID GetID()
         {
-            return (globalUniqueID == ProbeVolumeGlobalUniqueID.zero) ? new ProbeVolumeGlobalUniqueID(0, 0, 0, (ulong)unchecked((uint)GetInstanceID()), 0) : globalUniqueID;
+            return (globalUniqueID == VolumeGlobalUniqueID.zero) ? new VolumeGlobalUniqueID(0, 0, 0, (ulong)unchecked((uint)GetInstanceID()), 0) : globalUniqueID;
         }
 
 #if UNITY_EDITOR
@@ -63,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
         //     CreateAsset();
         // }
 
-        private static string GetFileName(ProbeVolumeGlobalUniqueID globalUniqueID)
+        private static string GetFileName(VolumeGlobalUniqueID globalUniqueID)
         {
             string assetName = "ProbeVolumeData";
 
@@ -87,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return assetFileName;
         }
 
-        internal static ProbeVolumeAsset CreateAsset(ProbeVolumeGlobalUniqueID globalUniqueID)
+        internal static ProbeVolumeAsset CreateAsset(VolumeGlobalUniqueID globalUniqueID)
         {
             ProbeVolumeAsset asset = ScriptableObject.CreateInstance<ProbeVolumeAsset>();
             asset.globalUniqueID = globalUniqueID;

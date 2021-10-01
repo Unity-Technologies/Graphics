@@ -526,7 +526,7 @@ void ProbeVolumeEvaluateSphericalHarmonicsVolumetricLighting(PositionInputs posI
 #endif
 }
 
-void EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0, float dt, float rndVal, float extinction, uint probeVolumeStart, uint probeVolumeCount, out float ambientProbeWeight, out float3 bakeDiffuseLighting)
+void EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0, float dt, float rndVal, float extinction, uint probeVolumeStart, uint probeVolumeCount, out float3 bakeDiffuseLighting)
 {
 #if SAMPLE_PROBE_VOLUMES
     float tOffset, weight;
@@ -561,10 +561,8 @@ void EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0, 
 
     bakeDiffuseLighting *= scaleFactor;
 
-    ambientProbeWeight = saturate(1.0f - probeVolumeHierarchyWeight) * weight * _VolumetricIndirectLightingMultiplier;
     bakeDiffuseLighting *= (weight * _VolumetricIndirectLightingMultiplier);
 #else
-    ambientProbeWeight = 1.0f;
     bakeDiffuseLighting = 0.0f;
 #endif
 }
@@ -659,13 +657,6 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     float t0 = max(tStart, DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams));
     float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
 
-    // The contribution of the ambient probe does not depend on the position,
-    // only on the direction and the length of the interval.
-    // SampleSH9() evaluates the 3-band SH in a given direction.
-    // The probe is already pre-convolved with the phase function.
-    // Note: anisotropic, no jittering.
-    float3 probeInScatteredRadiance = SampleSH9(_AmbientProbeCoeffs, ray.centerDirWS);
-
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
     uint slice = 0;
@@ -757,14 +748,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         #if SAMPLE_PROBE_VOLUMES
         {
-            float ambientProbeWeight;
             float3 bakeDiffuseLighting;
-            EvaluateVoxelDiffuseGI(posInput, ray, t0, dt, rndVal, extinction, probeVolumeStart, probeVolumeCount, ambientProbeWeight, bakeDiffuseLighting);
-
-            // Rather than calling ProbeVolumeEvaluateAmbientProbeFallback() here as probe volumes in the light loop does, we simply return the weightHeirarchy
-            // and use it to lerp down contribution from volumetric lighting's built in ambient probe. This is preferrable because
-            // volumetric lighting's ambient probe supports anisotropic SHL2.
-            probeInScatteredRadiance *= ambientProbeWeight;
+            EvaluateVoxelDiffuseGI(posInput, ray, t0, dt, rndVal, extinction, probeVolumeStart, probeVolumeCount, bakeDiffuseLighting);
 
             aggregateLighting.radianceNoPhase  += bakeDiffuseLighting;
             aggregateLighting.radianceComplete += bakeDiffuseLighting;
@@ -851,12 +836,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float phase = IsotropicPhaseFunction();
     #endif // ENABLE_ANISOTROPY
 
-        // Integrate the contribution of the probe over the interval.
-        // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
-        float3 probeRadiance = probeInScatteredRadiance * TransmittanceIntegralHomogeneousMedium(extinction, dt);
-
         // Accumulate radiance along the ray.
-        totalRadiance += transmittance * scattering * (phase * blendValue.rgb + probeRadiance);
+        totalRadiance += transmittance * scattering * (phase * blendValue.rgb);
 
         // Compute the optical depth up to the center of the interval.
         opticalDepth += 0.5 * blendValue.a;

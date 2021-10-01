@@ -3,9 +3,18 @@ using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    public struct ProbeVolumeAtlasStats
+    {
+        public int allocationCount;
+        public float allocationRatio;
+        public float largestFreeBlockRatio;
+        public Vector3Int largestFreeBlockPixels;
+    }
+
     // Optimized version of 'ProbeVolumeArtistParameters'.
     // Currently 144-bytes.
     // TODO: pack better. This data structure contains a bunch of UNORMs.
@@ -425,9 +434,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // As if the feature is enabled in the ShaderConfig, but disabled in the HDRenderPipelineAsset, we need to fallback to ambient probe only.
             SphericalHarmonicsL2 ambientProbeFallbackSH = m_SkyManager.GetAmbientProbe(hdCamera);
             SphericalHarmonicMath.PackCoefficients(s_AmbientProbeFallbackPackedCoeffs, ambientProbeFallbackSH);
-            for (int i = 0; i < 7; ++i)
-                for (int j = 0; j < 4; ++j)
-                    cb._ProbeVolumeAmbientProbeFallbackPackedCoeffs[i * 4 + j] = s_AmbientProbeFallbackPackedCoeffs[i][j];
         }
 
         unsafe void UpdateShaderVariablesGlobalProbeVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
@@ -515,9 +521,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SphericalHarmonicsL2 ambientProbeFallbackSH = m_SkyManager.GetAmbientProbe(hdCamera);
             SphericalHarmonicMath.PackCoefficients(s_AmbientProbeFallbackPackedCoeffs, ambientProbeFallbackSH);
-            for (int i = 0; i < 7; ++i)
-                for (int j = 0; j < 4; ++j)
-                    cb._ProbeVolumeAmbientProbeFallbackPackedCoeffs[i * 4 + j] = s_AmbientProbeFallbackPackedCoeffs[i][j];
         }
 
         void PushProbeVolumesGlobalParams(HDCamera hdCamera, CommandBuffer immediateCmd, RenderGraph renderGraph, ref ProbeVolumesRenderGraphResources rgResources)
@@ -606,9 +609,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseProbeVolumeFromAtlas(ProbeVolumeHandle volume)
         {
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
-                return;
-
             if (!m_SupportProbeVolume)
                 return;
 
@@ -651,7 +651,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool EnsureProbeVolumeInAtlas(CommandBuffer immediateCmd, RenderGraph renderGraph, ref ProbeVolumesRenderGraphResources rgResources, ProbeVolumeHandle volume)
         {
-            ProbeVolumeGlobalUniqueID id = volume.GetAtlasID();
+            VolumeGlobalUniqueID id = volume.GetAtlasID();
             int width = volume.parameters.resolutionX;
             int height = volume.parameters.resolutionY;
             int depth = volume.parameters.resolutionZ;
@@ -825,7 +825,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool EnsureProbeVolumeInAtlasOctahedralDepth(CommandBuffer immediateCmd, RenderGraph renderGraph, ref ProbeVolumesRenderGraphResources rgResources, ProbeVolumeHandle volume)
         {
-            ProbeVolumeGlobalUniqueID id = volume.GetAtlasID();
+            VolumeGlobalUniqueID id = volume.GetAtlasID();
             int width = volume.parameters.resolutionX * volume.parameters.resolutionZ * k_ProbeOctahedralDepthWidth;
             int height = volume.parameters.resolutionY * k_ProbeOctahedralDepthHeight;
             int size = volume.parameters.resolutionX * volume.parameters.resolutionY * volume.parameters.resolutionZ * k_ProbeOctahedralDepthWidth * k_ProbeOctahedralDepthHeight * 2; // * 2 for [mean, mean^2]
@@ -1014,7 +1014,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ProbeVolumeList probeVolumes = new ProbeVolumeList();
 
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
+            if (!m_SupportProbeVolume)
                 return probeVolumes;
 
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
@@ -1031,8 +1031,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void DispatchProbeVolumeDynamicGI(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
-                return;
+            if (!m_SupportProbeVolume) { return; }
 
             if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
             {
@@ -1081,6 +1080,9 @@ namespace UnityEngine.Rendering.HighDefinition
             bool octahedralDepthOcclusionFilterIsEnabled =
                 ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth
                 && settings.leakMitigationMode.value == LeakMitigationMode.OctahedralDepthOcclusionFilter;
+
+            float globalDistanceFadeStart = settings.distanceFadeStart.value;
+            float globalDistanceFadeEnd = settings.distanceFadeEnd.value;
 
             using (new ProfilingScope(immediateCmd, ProfilingSampler.Get(HDProfileId.PrepareProbeVolumeList)))
             {
@@ -1131,40 +1133,39 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     ProbeVolumeHandle volume = volumes[probeVolumesIndex];
 
-#if UNITY_EDITOR
-                    if (!volume.IsAssetCompatible())
-                        continue;
-
-                    if (volume.IsHiddesInScene())
-                        continue;
-#endif
-
-                    if (!volume.IsDataAssigned())
-                        continue;
-
-                    if (ShaderConfig.s_ProbeVolumesAdditiveBlending == 0 && volume.parameters.volumeBlendMode != VolumeBlendMode.Normal)
-                    {
-                        // Non-normal blend mode volumes are not supported. Skip.
-                        continue;
-                    }
-
+                    bool blendModeIsSupported = !((ShaderConfig.s_ProbeVolumesAdditiveBlending == 0) && volume.parameters.volumeBlendMode != VolumeBlendMode.Normal);
                     float probeVolumeDepthFromCameraWS = Vector3.Dot(hdCamera.camera.transform.forward, volume.position - camPosition);
-                    if (probeVolumeDepthFromCameraWS >= volume.parameters.distanceFadeEnd)
+                    bool isVisible = probeVolumeDepthFromCameraWS < Mathf.Min(globalDistanceFadeEnd, volume.parameters.distanceFadeEnd);
+                    isVisible &= volume.parameters.weight >= 1e-5f;
+
+                    bool isNeeded = false;
+                    if (
+#if UNITY_EDITOR
+                        volume.IsAssetCompatible() &&
+                        !volume.IsHiddenInScene() &&
+#endif
+                        volume.IsDataAssigned() &&
+                        blendModeIsSupported &&
+                        isVisible
+                    )
                     {
-                        // Probe volume is completely faded out from distance fade optimization.
-                        // Do not bother adding it to the list, it would evaluate to zero weight.
-                        continue;
+                        // TODO: cache these?
+                        var obb = volume.ConstructOBBEngineData(camOffset);
+
+                        // Frustum cull on the CPU for now. TODO: do it on the GPU.
+                        if (GeometryUtils.Overlap(obb, hdCamera.frustum, hdCamera.frustum.planes.Length, hdCamera.frustum.corners.Length))
+                        {
+                            var logVolume = CalculateProbeVolumeLogVolume(volume.parameters.size);
+
+                            m_ProbeVolumeSortKeys[sortCount++] = PackProbeVolumeSortKey(volume.parameters.volumeBlendMode, logVolume, probeVolumesIndex);
+
+                            isNeeded = true;
+                        }
                     }
 
-                    // TODO: cache these?
-                    var obb = volume.ConstructOBBEngineData(camOffset);
-
-                    // Frustum cull on the CPU for now. TODO: do it on the GPU.
-                    if (GeometryUtils.Overlap(obb, hdCamera.frustum, hdCamera.frustum.planes.Length, hdCamera.frustum.corners.Length))
+                    if (!isNeeded)
                     {
-                        var logVolume = CalculateProbeVolumeLogVolume(volume.parameters.size);
-
-                        m_ProbeVolumeSortKeys[sortCount++] = PackProbeVolumeSortKey(volume.parameters.volumeBlendMode, logVolume, probeVolumesIndex);
+                        ReleaseProbeVolumeFromAtlas(volume);
                     }
                 }
 
@@ -1180,7 +1181,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ProbeVolumeHandle volume = volumes[probeVolumesIndex];
 
                     var obb = volume.ConstructOBBEngineData(camOffset);
-                    var data = volume.parameters.ConvertToEngineData(m_ProbeVolumeAtlasSHRTDepthSliceCount);
+                    var data = volume.parameters.ConvertToEngineData(m_ProbeVolumeAtlasSHRTDepthSliceCount, globalDistanceFadeStart, globalDistanceFadeEnd);
                     volume.SetProbeVolumeEngineData(m_VisibleProbeVolumeData.Count, in obb, in data);
 
                     m_VisibleProbeVolumeBounds.Add(obb);
@@ -1297,6 +1298,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct ProbeVolumeDebugOverlayParameters
         {
+            public bool supportProbeVolume;
             public Material material;
             public Vector4 validRange;
             public Vector4 textureViewScale;
@@ -1314,6 +1316,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ProbeVolumeDebugOverlayParameters parameters = new ProbeVolumeDebugOverlayParameters();
 
+            parameters.supportProbeVolume = m_SupportProbeVolume;
+
             parameters.material = m_DebugDisplayProbeVolumeMaterial;
 
             parameters.sliceMode = (int)lightingDebug.probeVolumeAtlasSliceMode;
@@ -1322,6 +1326,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.textureViewBias = new Vector3(0.0f, 0.0f, 0.0f);
             parameters.textureViewResolution = new Vector3(s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution);
             parameters.atlasTextureOctahedralDepthScaleBias = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+
+            if (!m_SupportProbeVolume) { return parameters; }
 
 #if UNITY_EDITOR
             if (UnityEditor.Selection.activeGameObject != null)
@@ -1389,6 +1395,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void DisplayProbeVolumeAtlas(CommandBuffer cmd, in ProbeVolumeDebugOverlayParameters parameters, DebugOverlay debugOverlay)
         {
+            if (!parameters.supportProbeVolume) { return; }
+
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
             propertyBlock.SetVector(HDShaderIDs._TextureViewScale, parameters.textureViewScale);
             propertyBlock.SetVector(HDShaderIDs._TextureViewBias, parameters.textureViewBias);
@@ -1412,6 +1420,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         internal void DrawProbeVolumeDebugSHPreview(ProbeVolume probeVolume, Camera camera)
         {
+            if (!m_SupportProbeVolume) { return; }
+            
             Material debugMaterial = GetDebugSHPreviewMaterial();
             if (debugMaterial == null) { return; }
 
@@ -1442,6 +1452,19 @@ namespace UnityEngine.Rendering.HighDefinition
             Graphics.DrawProcedural(debugMaterial, ProbeVolume.ComputeBoundsWS(probeVolume), MeshTopology.Triangles, 3 * 2 * ProbeVolume.ComputeProbeCount(probeVolume), 1, camera, debugMaterialPropertyBlock, ShadowCastingMode.Off, receiveShadows: false, layer: 0);
         }
 #endif
+
+        public ProbeVolumeAtlasStats GetProbeVolumeAtlasStats()
+        {
+            if (!m_SupportProbeVolume) { return new ProbeVolumeAtlasStats(); }
+
+            return new ProbeVolumeAtlasStats
+            {
+                allocationCount = (probeVolumeAtlas != null && m_SupportProbeVolume) ? probeVolumeAtlas.GetAllocationCount() : 0,
+                allocationRatio = (probeVolumeAtlas != null && m_SupportProbeVolume) ? probeVolumeAtlas.GetAllocationRatio() : 0,
+                largestFreeBlockRatio = (probeVolumeAtlas != null && m_SupportProbeVolume) ? probeVolumeAtlas.FindLargestFreeBlockRatio() : 0.0f,
+                largestFreeBlockPixels = (probeVolumeAtlas != null && m_SupportProbeVolume) ? probeVolumeAtlas.FindLargestFreeBlockPixels() : Vector3Int.zero
+            };
+        }
 
     } // class ProbeVolumeLighting
 } // namespace UnityEngine.Experimental.Rendering.HDPipeline

@@ -5,6 +5,7 @@ using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
 using Unity.Collections;
 using UnityEditor;
+using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -55,11 +56,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Lightmapper API uses ints as keys, but we want to use full, stable, GlobalObjectIds as keys.
         // Rather than hashing and hoping we don't collide, lets handle this robustly by
-        // keeping a dictionary of ProbeVolumeGlobalUniqueID->int bit keys.
-        private Dictionary<ProbeVolumeGlobalUniqueID, int> lightmapperBakeIDFromBakeID = new Dictionary<ProbeVolumeGlobalUniqueID, int>(32);
+        // keeping a dictionary of VolumeGlobalUniqueID->int bit keys.
+        private Dictionary<VolumeGlobalUniqueID, int> lightmapperBakeIDFromBakeID = new Dictionary<VolumeGlobalUniqueID, int>(32);
         private int lightmapperBakeIDNext = s_LightmapperBakeIDStart;
 
-        internal void SetAdditionalBakedProbes(ProbeVolumeGlobalUniqueID bakeID, Vector3[] positions)
+        internal void SetAdditionalBakedProbes(VolumeGlobalUniqueID bakeID, Vector3[] positions)
         {
             if (TryGetLightmapperBakeIDFromBakeID(bakeID, out int lightmapperBakeID))
             {
@@ -82,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal bool GetAdditionalBakedProbes(ProbeVolumeGlobalUniqueID bakeID, NativeArray<SphericalHarmonicsL2> outBakedProbeSH, NativeArray<float> outBakedProbeValidity, NativeArray<float> outBakedProbeOctahedralDepth)
+        internal bool GetAdditionalBakedProbes(VolumeGlobalUniqueID bakeID, NativeArray<SphericalHarmonicsL2> outBakedProbeSH, NativeArray<float> outBakedProbeValidity, NativeArray<float> outBakedProbeOctahedralDepth)
         {
             bool success = false;
             if (TryGetLightmapperBakeIDFromBakeID(bakeID, out int lightmapperBakeID))
@@ -92,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return success;
         }
 
-        private bool TryGetLightmapperBakeIDFromBakeID(ProbeVolumeGlobalUniqueID bakeID, out int lightmapperBakeID)
+        private bool TryGetLightmapperBakeIDFromBakeID(VolumeGlobalUniqueID bakeID, out int lightmapperBakeID)
         {
             bool success = false;
             if (lightmapperBakeIDFromBakeID.TryGetValue(bakeID, out lightmapperBakeID))
@@ -117,7 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return success;
         }
 
-        private void IncrementLightmapperBakeIDGeneration(ProbeVolumeGlobalUniqueID bakeID, out int lightmapperBakeID)
+        private void IncrementLightmapperBakeIDGeneration(VolumeGlobalUniqueID bakeID, out int lightmapperBakeID)
         {
             lightmapperBakeID = -1;
             if (lightmapperBakeIDFromBakeID.TryGetValue(bakeID, out lightmapperBakeID))

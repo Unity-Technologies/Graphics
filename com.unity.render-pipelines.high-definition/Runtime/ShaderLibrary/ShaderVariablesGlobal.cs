@@ -265,9 +265,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4  _ProbeVolumeReflectionProbeNormalizationParameters;
 
-        [HLSLArray(7, typeof(Vector4))]
-        public fixed float _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7 * 4]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
-
         public int      _TransparentCameraOnlyMotionVectors;
 
         // Can be set to 0 to globally "disable" tessellation

@@ -106,14 +106,18 @@ void ProbeVolumeComputeTexel3DAndWeight(
 
 #if SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING
     if (probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_ADDITIVE)
-        weight = fadeFactor;
+    {
+        // Nothing to do.
+    }
     else if (probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_SUBTRACTIVE)
-        weight = -fadeFactor;
+    {
+        weight = -weight;
+    }
     else
 #endif
     {
-        // Alpha composite: weight = (1.0f - weightHierarchy) * fadeFactor;
-        weight = weightHierarchy * -fadeFactor + fadeFactor;
+        // Alpha composite: weight = (1.0f - weightHierarchy) * weight;
+        weight = weightHierarchy * -weight + weight;
     }
 }
 
@@ -220,27 +224,6 @@ float3 ProbeVolumeEvaluateSphericalHarmonicsL2(float3 normalWS, ProbeVolumeSpher
     return ProbeVolumeEvaluateSphericalHarmonicsL2(normalWS, coefficients);
 }
 
-// Fallback to global ambient probe lighting when probe volume lighting weight is not fully saturated.
-float3 ProbeVolumeEvaluateAmbientProbeFallback(float3 normalWS, float weightHierarchy)
-{
-    float3 sampleAmbientProbeOutgoingRadiance = float3(0.0, 0.0, 0.0);
-    if (weightHierarchy < 1.0
-#ifdef DEBUG_DISPLAY
-        && (_DebugProbeVolumeMode != PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
-        && (_DebugProbeVolumeMode != PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
-#endif
-    )
-    {
-
-        sampleAmbientProbeOutgoingRadiance = SampleSH9(_ProbeVolumeAmbientProbeFallbackPackedCoeffs, normalWS) * (1.0 - weightHierarchy);
-
-        // Ringing can cause negative values. Clip them to avoid inadvertently absorbing light from other sections of the light loop.
-        sampleAmbientProbeOutgoingRadiance = max(0.0f, sampleAmbientProbeOutgoingRadiance);
-    }
-
-    return sampleAmbientProbeOutgoingRadiance;
-}
-
 // Generate ProbeVolumeAccumulateSphericalHarmonicsL0 function:
 #define PROBE_VOLUMES_ACCUMULATE_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeAccumulate.hlsl"
@@ -281,14 +264,6 @@ void ProbeVolumeEvaluateSphericalHarmonics(PositionInputs posInput, float3 norma
 
 #endif
 
-    bakeDiffuseLighting += ProbeVolumeEvaluateAmbientProbeFallback(normalWS, weightHierarchy);
-    backBakeDiffuseLighting += ProbeVolumeEvaluateAmbientProbeFallback(backNormalWS, weightHierarchy);
-
-    // The ambient probe fallback does not contribute to reflection probe normalization.
-    // The idea here is that probe volume samples are higher frequency than reflection probes, so normalization is useful,
-    // but the ambient probe fallback is lower frequency than reflection probes (there is only 1 ambient probe)
-    // so normalizing by the ambient probe is not useful.
-    // This also handles the common case where a scene may contain reflection probes but no probe volumes.
     reflectionProbeNormalizationWeight = weightHierarchy * ProbeVolumeGetReflectionProbeNormalizationWeight();
 }
 

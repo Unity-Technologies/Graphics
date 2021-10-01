@@ -14,6 +14,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 : base(value, overrideState) {}
         }
 
+        [SerializeField, Tooltip("The global distance fade start, applied on top of per Probe Volume distance fade start.")]
+        internal FloatParameter distanceFadeStart = new FloatParameter(200.0f);
+
+        [SerializeField, Tooltip("The global distance fade end, applied on top of per Probe Volume distance fade end.")]
+        internal FloatParameter distanceFadeEnd = new FloatParameter(300.0f);
+
         [SerializeField, Tooltip("Selects the heuristic used for mitigating light leaking and self-shadowing artifacts when sampling from the probe volumes.")]
         internal LeakMitigationModeParameter leakMitigationMode = new LeakMitigationModeParameter(LeakMitigationMode.NormalBias);
 
