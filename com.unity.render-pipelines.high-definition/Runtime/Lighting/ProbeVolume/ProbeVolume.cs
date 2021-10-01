@@ -655,7 +655,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ProbeVolumeGlobalUniqueID(int identifierType, ulong assetGUID_127_64, ulong assetGUID_63_0, ulong targetObjectId, ulong targetPrefabId)
         {
             Debug.Assert((identifierType >= 0) && (identifierType < ((1 << 2) - 1)));
-            Debug.Assert((targetObjectId == 0) || (targetPrefabId == 0));
+            //Debug.Assert((targetObjectId == 0) || (targetPrefabId == 0));
 
             ulong maskLo = (1ul << 32) - 1ul;
             value_31_0 = unchecked((int)(maskLo & assetGUID_63_0));
@@ -1577,7 +1577,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        
+
         private void InitializeGlobalUniqueIDEditorOnly()
         {
             if (UnityEditor.EditorApplication.isPlaying) { return; }
