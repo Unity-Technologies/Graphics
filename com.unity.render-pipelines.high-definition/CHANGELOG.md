@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unexpectedly strong contribution from directional lights in path-traced volumetric scattering (case 1304688).
 - Fixed memory leak with XR combined occlusion meshes (case 1366173).
 - Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
+- Fixed support for light/shadow dimmers (volumetric or not) in path tracing.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
