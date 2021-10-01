@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
         Metal,
         Vulkan,
         D3D9,
-        XboxOne,
         GameCoreXboxOne,
         GameCoreXboxSeries,
         Playstation,
@@ -41,8 +40,6 @@ namespace UnityEditor.ShaderGraph
                     return "vulkan";
                 case Platform.D3D9:
                     return "d3d11_9x";
-                case Platform.XboxOne:
-                    return "xboxone";
                 case Platform.GameCoreXboxOne:
                     return "xboxone";
                 case Platform.GameCoreXboxSeries:
@@ -64,7 +61,7 @@ namespace UnityEditor.ShaderGraph
         // Return high end platform list for the only renderer directive (The list use by HDRP)
         internal static Platform[] GetHighEndPlatformArray()
         {
-            return new Platform[] { Platform.D3D11, Platform.Playstation, Platform.XboxOne, Platform.GameCoreXboxSeries, Platform.Vulkan, Platform.Metal, Platform.Switch };
+            return new Platform[] { Platform.D3D11, Platform.Playstation, Platform.GameCoreXboxSeries, Platform.Vulkan, Platform.Metal, Platform.Switch };
         }
 
         // Return platform list not compatible with DXC (The list use by HDRP)

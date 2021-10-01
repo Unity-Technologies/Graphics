@@ -29,7 +29,6 @@ namespace UnityEditor.Rendering.PostProcessing
 #if UNITY_PS5
                     || t == BuildTarget.PS5
 #endif
-                    || t == BuildTarget.XboxOne
 #if UNITY_GAMECORE
                     || t == BuildTarget.GameCoreXboxSeries
                     || t == BuildTarget.GameCoreXboxOne

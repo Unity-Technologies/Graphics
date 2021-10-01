@@ -237,7 +237,7 @@ namespace UnityEditor.Rendering
 
             if (savePath.EndsWith("exr"))
             {
-                // The options for the platform string are: "Standalone", "iPhone", "Android", "WebGL", "Windows Store Apps", "PSP2", "PS4", "XboxOne", "Nintendo 3DS", "WiiU", "tvOS".
+                // The options for the platform string are: "Standalone", "iPhone", "Android", "WebGL", "Windows Store Apps", "PSP2", "PS4", "Nintendo 3DS", "WiiU", "tvOS".
                 combinedImporter.SetPlatformTextureSettings(new TextureImporterPlatformSettings() { name = "Standalone", format = TextureImporterFormat.DXT5, overridden = true });
             }
 

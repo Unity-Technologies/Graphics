@@ -1,5 +1,5 @@
 // Small shim
-#if ((UNITY_XBOXONE || UNITY_SWITCH || UNITY_PSP2) && !UNITY_2018_3_OR_NEWER)  && !UNITY_EDITOR
+#if ((UNITY_SWITCH || UNITY_PSP2) && !UNITY_2018_3_OR_NEWER)  && !UNITY_EDITOR
 using System;
 
 namespace UnityEngine.XR

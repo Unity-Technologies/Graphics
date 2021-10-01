@@ -28,7 +28,6 @@ namespace Tests
                 yield return new TestCaseData(BuildTarget.tvOS);
                 yield return new TestCaseData(BuildTarget.WebGL);
                 yield return new TestCaseData(BuildTarget.WSAPlayer);
-                yield return new TestCaseData(BuildTarget.XboxOne);
                 yield return new TestCaseData(BuildTarget.GameCoreXboxOne);
                 yield return new TestCaseData(BuildTarget.GameCoreXboxSeries);
             }
@@ -53,7 +52,6 @@ namespace Tests
                 case BuildTarget.StandaloneWindows64:
                 case BuildTarget.Switch:
                 case BuildTarget.WSAPlayer:
-                case BuildTarget.XboxOne:
                 case BuildTarget.GameCoreXboxOne:
                 case BuildTarget.GameCoreXboxSeries:
                     return true;

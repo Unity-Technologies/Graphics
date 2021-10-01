@@ -841,7 +841,7 @@ namespace UnityEngine.Rendering.PostProcessing
             {
 #if (ENABLE_VR_MODULE && ENABLE_VR) && UNITY_EDITOR && !UNITY_2020_1_OR_NEWER
                 return UnityEditorInternal.VR.VREditor.GetVREnabledOnTargetGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
-#elif UNITY_XBOXONE || !(ENABLE_VR_MODULE && ENABLE_VR)
+#elif !(ENABLE_VR_MODULE && ENABLE_VR)
                 return false;
 #else
                 return UnityEngine.XR.XRSettings.enabled;
@@ -937,7 +937,6 @@ namespace UnityEngine.Rendering.PostProcessing
                     || gtype == GraphicsDeviceType.GameCoreXboxSeries
                     || gtype == GraphicsDeviceType.GameCoreXboxOne
 #endif
-                    || gtype == GraphicsDeviceType.XboxOne
                     || gtype == GraphicsDeviceType.XboxOneD3D12
                 );
         }
