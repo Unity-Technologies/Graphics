@@ -1,41 +1,24 @@
 # Screen Space Shadows Renderer Feature
 
-With the Screen Space Shadows Renderer Feature, Unity can resolve main light shadows in screen space before drawing objects. It needs one more additional render target, but can prevent from multiple accesses to cascade shadow maps in forward rendering.
-![Show screen space shadows](Images/ssshadows/ssshadows-result.png)<br/>*Screen Space Shadows in URP Template Scene*
+The Screen Space Shadows [Renderer Feature](urp-renderer-feature.md) calculates screen-space shadows for opaque objects affected by the main directional light and draws them in the scene. To render screen-space shadows, URP requires an additional render target. This increases the amount of memory your application requires, but if your project uses forward rendering, screen-space shadows can benefit the runtime resource intensity. This is because if you use screen-space shadows, URP doesn't need to access the cascade shadow maps multiple times.
+![Show screen space shadows](Images/ssshadows/ssshadows-result.png)<br/>*Screen-space shadows in a sample Scene.*
 
-![Show screen space shadows texture](Images/ssshadows/ssshadows-shadow-texture.png)<br/>*Screen Space Shadows Texture*
+![Show screen space shadows texture](Images/ssshadows/ssshadows-shadow-texture.png)<br/>*The screen-space shadows texture for the above image.*
 
-After enabling this renderer feature, you can check this pass in frame debugger.
-![Show main light shadows in frame debugger](Images/ssshadows/ssshadows-framedebugger.png)<br/>*Screen Space Shadows pass in frame debugger*
+## Enabling screen-space shadows
 
-Compare casting shadows on opaque objects with screen space shadow texture or cascade shadow maps.
-![Cast Shadows using screen space shadow stexture](Images/ssshadows/ssshadows-cast-shadow-using-screenspace.png)<br/>*Shadows from screen space shadow texture*
+To add screen space shadows to your project, [add the Screen Space Shadows Renderer Feature ](urp-renderer-feature-how-to-add.md) to the URP Renderer.
 
-![Cast shadows using cascade shadowmaps](Images/ssshadows/ssshadows-cast-shadow-using-cascades.png)<br/>*Shadows from cascade shadow maps*
+## Viewing screen-space shadows in the Frame Debugger
 
-## Adding the Screen Space Shadows Renderer Feature to a Renderer
+After you enable this Renderer Feature, URP renders screen-space shadows in your scene. To distinguish between shadow map shadows and screen-space shadows, you can view the render passes that draws the shadows in the [Frame Debugger](https://docs.unity3d.com/Manual/FrameDebugger.html).
+![Show main light shadows in frame debugger](Images/ssshadows/ssshadows-framedebugger.png)<br/>*Screen Space Shadows pass in frame debugger.*
 
-It provides the Screen Space Shadows as Renderer Feature.
+You can compare shadows cast on opaque objects from the screen-space shadow texture or the cascade shadow maps.
+![Cast Shadows using screen space shadow stexture](Images/ssshadows/ssshadows-cast-shadow-using-screenspace.png)<br/>*The Frame Debugger shows the screen-space shadows texture.*
 
-To resolve main light shadows with screen space:
+![Cast shadows using cascade shadowmaps](Images/ssshadows/ssshadows-cast-shadow-using-cascades.png)<br/>*The Frame Debugger shows shadows from a shadow map.*
 
-1. In the Project window, select the Renderer that URP asset is using.
+## **Requirements and compatibility**
 
-![Select Renderer](Images/ssshadows/ssshadows-select-renderer.png)<br/>*The inspector window shows the Renderer properties.*
-
-2. In the Inspector window, select Add Renderer Feature. In the list, select Screen Space Shadows.
-
-![Select Renderer Feature](Images/ssshadows/ssshadows-select-renderer-feature.png)<br/>*Unity adds the Screen Space Shadow to the Renderer.*
-
-![Add Screen Space Shadows Renderer Feature](Images/ssshadows/ssshadows-renderer-feature-added.png)
-
-## No Properties
-
-## Implementation details
-
-The Screen Space Shadows Renderer Feature needs **Depth Texture** before drawing opaque objects, and will invoke depth prepass.
-It resolves main light shadows in screen space prior to 'DrawOpaqueObjects' pass and works on only opaque objects.
-
-If you added this renderer feature and also used transparent objects, **Only Opaque Objects** would be shadowed with screen space shadows, but
-**Transparent Objects** would be shadowed by cascade shadow maps.
-![Won't cast shadows on transparent from screen space shadow texture](Images/ssshadows/ssshadows-cast-shadow-totransparent.png)<br/>*Transparent Objects are shadowed from cascade shadow map while Opaque Objects were by screen space shadows*
+This Renderer Feature uses a depth texture and invokes a depth prepass before it draws opaque objects. It calculates the shadows in screen space before the `DrawOpaqueObjects` render pass. URP doesn't calculate or apply screen-space shadows for transparent objects; it uses [shadow maps](urp-shadows.md) for transparent objects instead. ![Won't cast shadows on transparent from screen space shadow texture](Images/ssshadows/ssshadows-cast-shadow-totransparent.png)*<br/>The Frame Debugger showing that Unity uses shadow maps for transparent objects and screen-space shadows for opaque objects.*
