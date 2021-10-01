@@ -89,7 +89,8 @@ namespace UnityEngine.Rendering.Universal
                         DebugDisplaySettingsRendering.WidgetFactory.CreateAdditionalWireframeShaderViews(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateWireframeNotSupportedWarning(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateOverdraw(renderingSettingsData),
-                        DebugDisplaySettingsRendering.WidgetFactory.CreateMaxPixelCost(renderingSettingsData)
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateOverdrawMode(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateMaxPixelCost(renderingSettingsData),
                     },
                     contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem>()
                     {

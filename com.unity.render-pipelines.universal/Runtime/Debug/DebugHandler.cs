@@ -296,6 +296,7 @@ namespace UnityEngine.Rendering.Universal
                 private readonly DebugHandler m_DebugHandler;
                 private readonly ScriptableRenderContext m_Context;
                 private readonly CommandBuffer m_CommandBuffer;
+                readonly FilteringSettings m_FilteringSettings;
                 private readonly int m_NumIterations;
 
                 private int m_Index;
@@ -303,14 +304,21 @@ namespace UnityEngine.Rendering.Universal
                 public DebugRenderSetup Current { get; private set; }
                 object IEnumerator.Current => Current;
 
-                public Enumerator(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer)
+                public Enumerator(DebugHandler debugHandler,
+                    ScriptableRenderContext context,
+                    CommandBuffer commandBuffer,
+                    FilteringSettings filteringSettings)
                 {
                     DebugSceneOverrideMode sceneOverrideMode = debugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
 
                     m_DebugHandler = debugHandler;
                     m_Context = context;
                     m_CommandBuffer = commandBuffer;
-                    m_NumIterations = ((sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) || (sceneOverrideMode == DebugSceneOverrideMode.ShadedWireframe)) ? 2 : 1;
+                    m_FilteringSettings = filteringSettings;
+                    m_NumIterations = ((sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) ||
+                        (sceneOverrideMode == DebugSceneOverrideMode.ShadedWireframe))
+                        ? 2
+                        : 1;
 
                     m_Index = -1;
                 }
@@ -327,7 +335,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        Current = new DebugRenderSetup(m_DebugHandler, m_Context, m_CommandBuffer, m_Index);
+                        Current = new DebugRenderSetup(m_DebugHandler, m_Context, m_CommandBuffer, m_Index, m_FilteringSettings);
                         return true;
                     }
                 }
@@ -354,19 +362,24 @@ namespace UnityEngine.Rendering.Universal
             private readonly DebugHandler m_DebugHandler;
             private readonly ScriptableRenderContext m_Context;
             private readonly CommandBuffer m_CommandBuffer;
+            readonly FilteringSettings m_FilteringSettings;
 
-            public DebugRenderPassEnumerable(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer)
+            public DebugRenderPassEnumerable(DebugHandler debugHandler,
+                ScriptableRenderContext context,
+                CommandBuffer commandBuffer,
+                FilteringSettings filteringSettings)
             {
                 m_DebugHandler = debugHandler;
                 m_Context = context;
                 m_CommandBuffer = commandBuffer;
+                m_FilteringSettings = filteringSettings;
             }
 
             #region IEnumerable<DebugRenderSetup>
 
             public IEnumerator<DebugRenderSetup> GetEnumerator()
             {
-                return new Enumerator(m_DebugHandler, m_Context, m_CommandBuffer);
+                return new Enumerator(m_DebugHandler, m_Context, m_CommandBuffer, m_FilteringSettings);
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -378,9 +391,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal IEnumerable<DebugRenderSetup> CreateDebugRenderSetupEnumerable(ScriptableRenderContext context,
-            CommandBuffer commandBuffer)
+            CommandBuffer commandBuffer, FilteringSettings filteringSettings)
         {
-            return new DebugRenderPassEnumerable(this, context, commandBuffer);
+            return new DebugRenderPassEnumerable(this, context, commandBuffer, filteringSettings);
         }
 
         internal delegate void DrawFunction(
@@ -399,7 +412,7 @@ namespace UnityEngine.Rendering.Universal
             ref RenderStateBlock renderStateBlock,
             DrawFunction func)
         {
-            foreach (DebugRenderSetup debugRenderSetup in CreateDebugRenderSetupEnumerable(context, cmd))
+            foreach (DebugRenderSetup debugRenderSetup in CreateDebugRenderSetupEnumerable(context, cmd, filteringSettings))
             {
                 DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
                 RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);

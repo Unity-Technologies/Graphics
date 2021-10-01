@@ -114,6 +114,19 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// Debug mode of the overdraw
+    /// </summary>
+    public enum DebugOverdrawMode
+    {
+        /// <summary>Debug overdraw of opaque only.</summary>
+        Opaque,
+        /// <summary>Debug overdraw of transparent only.</summary>
+        Transparent,
+        /// <summary>Debug overdraw of everything only.</summary>
+        All
+    }
+
+    /// <summary>
     /// Debug modes for texture mipmaps.
     /// </summary>
     [GenerateHLSL]
