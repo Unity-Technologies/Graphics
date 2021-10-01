@@ -358,6 +358,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader diffuseDenoiserCS;
 
 #if UNITY_EDITOR
+            // Furnace Testing (BSDF Energy Conservation)
+            [Reload("Tests/Editor/Utilities/FurnaceTests.compute")]
+            public ComputeShader furnaceTestCS;
+#endif
+
+#if UNITY_EDITOR
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
             public IEnumerable<ComputeShader> GetAllComputeShaders()
@@ -413,10 +419,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture2D rankingTile256SPP;
             [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile256SPP.png")]
             public Texture2D scramblingTile256SPP;
-
-            // Pre-integration LUTs
-            [Reload("Runtime/RenderPipelineResources/Texture/PreintegratedAzimuthalScattering.exr")]
-            public Texture2D preintegratedAzimuthalScattering;
 
             // Clouds textures
             [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/CloudLutRainAO.png")]
