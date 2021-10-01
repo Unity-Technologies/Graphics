@@ -14,6 +14,19 @@ namespace UnityEngine.VFX
         // The runtime instance performs mixing on the timeline clips.
         public override Playable CreateTrackMixer(PlayableGraph graph, GameObject go, int inputCount)
         {
+            foreach (var clip in GetClips())
+            {
+                var customClip = clip.asset as VisualEffectControlPlayableAsset;
+                if (customClip != null)
+                {
+                    customClip.clipStart = clip.start;
+                    customClip.clipEnd = clip.end;
+                    //Check what's the most approriate
+                    customClip.easeIn = clip.easeInDuration;
+                    customClip.easeOut = clip.easeOutDuration;
+                }
+            }
+
             return ScriptPlayable<VisualEffectControlTrackMixerBehaviour>.Create(graph, inputCount);
         }
 

@@ -10,12 +10,58 @@ namespace UnityEngine.VFX
         VisualEffect m_Target;
         bool[] enabledStates;
 
+
+
+        class ScrubbingCacheHelper
+        {
+            struct Event
+            {
+                public enum Type
+                {
+                    Play,
+                    Stop
+                }
+                public Type type;
+                public double time;
+            }
+
+            struct Chunk
+            {
+                public double begin;
+                public double end;
+                public VisualEffectControlPlayableBehaviour[] playables;
+            }
+
+            public void Init(Playable playable)
+            {
+                int inputCount = playable.GetInputCount();
+                for (int i = 0; i < inputCount; ++i)
+                {
+                    var clip = playable.GetInput(i);
+                    var a = clip.GetDuration();
+                    var b = clip.GetTime();
+                    ScriptPlayable<VisualEffectControlPlayableBehaviour> inputPlayable = (ScriptPlayable<VisualEffectControlPlayableBehaviour>)playable.GetInput(i);
+
+                    var c = inputPlayable.GetBehaviour();
+
+                    Debug.Log(a + "; " + b + " ; " + c.clipStart);
+                }
+            }
+        }
+
+        ScrubbingCacheHelper m_ScrubbingCacheHelper;
         public override void PrepareFrame(Playable playable, FrameData data)
         {
+            if (m_ScrubbingCacheHelper == null)
+            {
+                m_ScrubbingCacheHelper = new ScrubbingCacheHelper();
+                m_ScrubbingCacheHelper.Init(playable);
+            }
+
+            int inputCount = playable.GetInputCount();
 
             var time = (float)playable.GetTime();
-            Debug.Log(time);
-
+            //Debug.Log(time);
         }
 
         // Called every frame that the timeline is evaluated. ProcessFrame is invoked after its' inputs.
@@ -77,23 +123,6 @@ namespace UnityEngine.VFX
             //m_TrackBinding.text = text;
         }
 
-        struct Event
-        {
-            public enum Type
-            {
-                Play,
-                Stop
-            }
-            public Type type;
-        }
-
-        struct Chunk
-        {
-            public double begin;
-            public double end;
-            public VisualEffectControlPlayableBehaviour[] playables;
-        }
-
         public override void OnPlayableCreate(Playable playable)
         {
 //see m_ScrubbingCacheHelper  in /CinemachineMixer.cs?L174:25
@@ -102,12 +131,14 @@ namespace UnityEngine.VFX
             //var test3 = PlayableExtensions.GetDuration(playable.GetInput(0));
 
             enabledStates = new bool[playable.GetInputCount()];
+            m_ScrubbingCacheHelper = null;
         }
 
         public override void OnPlayableDestroy(Playable playable)
         {
             RestoreDefaults();
             enabledStates = null;
+            m_ScrubbingCacheHelper = null;
         }
 
         void SetDefaults(VisualEffect vfx)

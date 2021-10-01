@@ -20,11 +20,20 @@ namespace UnityEngine.VFX
             get { return ClipCaps.Blending; }
         }
 
+        public double clipStart { get; set; }
+        public double clipEnd { get; set; }
+        public double easeIn { get; set; }
+        public double easeOut { get; set; }
+
         // Creates the playable that represents the instance of this clip.
         public override Playable CreatePlayable(PlayableGraph graph, GameObject owner)
         {
-            // Using a template will clone the serialized values
-            return ScriptPlayable<VisualEffectControlPlayableBehaviour>.Create(graph, template);
+            var playable = ScriptPlayable<VisualEffectControlPlayableBehaviour>.Create(graph, template);
+            playable.GetBehaviour().clipStart = clipStart;
+            playable.GetBehaviour().clipEnd = clipEnd;
+            playable.GetBehaviour().easeIn = easeIn;
+            playable.GetBehaviour().easeOut = easeOut;
+            return playable;
         }
     }
 }

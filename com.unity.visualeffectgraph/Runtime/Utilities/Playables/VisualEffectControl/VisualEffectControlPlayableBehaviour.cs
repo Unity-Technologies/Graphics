@@ -11,6 +11,11 @@ namespace UnityEngine.VFX
     {
         [Tooltip("The text to display (dummy)")]
         public string text = "";
+
+        public double clipStart { get; set; }
+        public double clipEnd { get; set; }
+        public double easeIn { get; set; }
+        public double easeOut { get; set; }
     }
 }
 #endif
