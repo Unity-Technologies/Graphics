@@ -276,6 +276,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_ShadowMesh == null || m_InstanceId != GetInstanceID())
             {
+                m_ShadowMesh = null;
                 SetShadowShape();
                 m_InstanceId = GetInstanceID();
             }
