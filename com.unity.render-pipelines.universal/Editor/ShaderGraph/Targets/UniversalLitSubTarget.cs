@@ -230,7 +230,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (target.surfaceType == SurfaceType.Transparent)
             {
                 if (target.alphaMode == AlphaMode.Alpha || target.alphaMode == AlphaMode.Additive)
-                    context.AddProperty("Preserve Specular Lighting", new Toggle() { value = clearCoat }, (evt) =>
+                    context.AddProperty("Preserve Specular Lighting", new Toggle() { value = blendModePreserveSpecular }, (evt) =>
                     {
                         if (Equals(blendModePreserveSpecular, evt.newValue))
                             return;
