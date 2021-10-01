@@ -28,14 +28,7 @@ version 6.5.3-preview.
 ## Creating Visual Effect Graphs
 To use Visual Effect Graph, you must first create a [Visual Effect Graph Asset](VisualEffectGraphAsset.md) .
 
-To create a Visual Effect Graph Asset:
-
-1. In Unity, click __Assets__ &gt; __Create__ &gt; __Visual Effects__ &gt; __Visual Effect Graph__.
-
-To make a copy of a Visual Effect Graph Asset:
-
-1. In the Project window, select the Visual Effect Asset you want to make a copy of.
-2. In the top navigation bar, select __Edit__ &gt; __Duplicate__.  You’ve now created a copy.
+To create a Visual Effect Graph Asset, click __Assets__ &gt; __Create__ &gt; __Visual Effects__ &gt; __Visual Effect Graph__.
 
 ## Using Visual Effect Graphs in Scenes
 To use a Visual Effect Graph, you must add a [Visual Effect](#Creating-Visual-Effect-Graphs) to the Scene.
