@@ -7,7 +7,7 @@ public class CustomCollider_ShapeConfig : MonoBehaviour
 
     [Range(0f, 360f)] public float RotationSpeed = 15f;
 
-    [Range(1, 1000)] public int ShapeCount = 500;
+    [Range(0, 1000)] public int ShapeCount = 500;
 
     [Range(1f, 5f)] public float MaxArea = 2.5f;
     [Range(0.01f, 1f)] public float MaxShapeSize = 0.2f;
@@ -69,9 +69,9 @@ public class CustomCollider_ShapeConfig : MonoBehaviour
                 {
                     var scale = RandomScale;
                     m_Vertices.Clear();
-                    m_Vertices.Add(shapePosition + Vector2.up * scale);
-                    m_Vertices.Add(shapePosition + Vector2.left * scale);
                     m_Vertices.Add(shapePosition + Vector2.right * scale);
+                    m_Vertices.Add(shapePosition + Vector2.left * scale);
+                    m_Vertices.Add(shapePosition + Vector2.up * scale);
 
                     shapeGroup.AddPolygon(m_Vertices);
                     break;
