@@ -59,7 +59,11 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.NDCPosition:                              output.NDCPosition = output.ScreenPosition.xy / output.ScreenPosition.w;
     $SurfaceDescriptionInputs.NDCPosition:                              #else
     $SurfaceDescriptionInputs.NDCPosition:                              output.NDCPosition = output.PixelPosition.xy / _ScreenParams.xy;
-    $SurfaceDescriptionInputs.NDCPosition:                              output.NDCPosition.y = (output.NDCPosition.y - 0.5f) * -_ProjectionParams.x + 0.5f;
+    $SurfaceDescriptionInputs.NDCPosition:                              #if UNITY_UV_STARTS_AT_TOP
+    $SurfaceDescriptionInputs.NDCPosition:                              output.NDCPosition.y = (0.5f - output.NDCPosition.y) * _ProjectionParams.x + 0.5f;
+    $SurfaceDescriptionInputs.NDCPosition:                              #else
+    $SurfaceDescriptionInputs.NDCPosition:                              output.NDCPosition.y = (output.NDCPosition.y - 0.5f) * _ProjectionParams.x + 0.5f;
+    $SurfaceDescriptionInputs.NDCPosition:                              #endif
     $SurfaceDescriptionInputs.NDCPosition:                              #endif
     $SurfaceDescriptionInputs.uv0:                                      output.uv0 = input.texCoord0;
     $SurfaceDescriptionInputs.uv1:                                      output.uv1 = input.texCoord1;
