@@ -301,8 +301,8 @@ real3 TransformTangentToWorldDir(real3 dirWS, real3x3 tangentToWorld, bool doNor
     float sgn = determinant < 0.0 ? (-1.0) : 1.0;
 
     // inverse transposed but scaled by determinant
-    // Will remove transpose part by using matrix as the first arg in the mul() below
-    // this makes it the exact inverse of what TransformTangentToWorld() does.
+    // Will remove transpose part by using matrix as the second arg in the mul() below
+    // this makes it the exact inverse of what TransformWorldToTangentDir() does.
     real3x3 matTBN_I_T = real3x3(col0, col1, col2);
     real3 result = sgn * mul(dirWS, matTBN_I_T);
     if (doNormalize)

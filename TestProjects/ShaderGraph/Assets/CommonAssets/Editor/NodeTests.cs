@@ -78,6 +78,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [UnityTest]
         public IEnumerator TransformInverses()
         {
+            // Test that A->B and B->A result in the original value
             string graphPath = "Assets/CommonAssets/Graphs/NodeTests/TransformInverses.shadergraph";
             var graph = LoadGraph(graphPath);
             ResetTestReporting();
@@ -116,6 +117,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [UnityTest]
         public IEnumerator TransformABC()
         {
+            // Test that transforming from A->B then B->C is the same as A->C (for all A,B,C)
             string graphPath = "Assets/CommonAssets/Graphs/NodeTests/TransformABC.shadergraph";
             var graph = LoadGraph(graphPath);
             ResetTestReporting();
@@ -162,6 +164,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [UnityTest]
         public IEnumerator TransformNormalize()
         {
+            // Test that A->B then normalizing is the same as A->B with normalize enabled
+            // for all direction and normal conversion types
             string graphPath = "Assets/CommonAssets/Graphs/NodeTests/TransformNormalize.shadergraph";
             var graph = LoadGraph(graphPath);
 
@@ -178,11 +182,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 {
                     foreach (CoordinateSpace dest in Enum.GetValues(typeof(CoordinateSpace)))
                     {
-                        // setup transform(v1) node
+                        // setup normalized transform
                         norm.conversion = new CoordinateSpaceConversion(source, dest);
                         norm.conversionType = conversionType;
 
-                        // setup old transform node
+                        // setup unnormalized transform
                         unnorm.conversion = new CoordinateSpaceConversion(source, dest);
                         unnorm.conversionType = conversionType;
 

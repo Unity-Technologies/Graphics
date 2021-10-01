@@ -139,22 +139,7 @@ public class ShaderGraphTestRenderer
 
     internal static void CreateDirectories(string systemDirectoryPath)
     {
-        //var systemDirectory = Application.dataPath + "/../" + directoryPath;
         Directory.CreateDirectory(systemDirectoryPath);
-        /*
-        var dirs = directoryPath.Split('/');
-        string curpath = string.Empty;
-        foreach (var dir in dirs)
-        {
-            var parentPath = curpath;
-            curpath = curpath + dir;
-            if (!UnityEditor.AssetDatabase.IsValidFolder(curpath))
-            {
-                AssetDatabase.CreateFolder(parentPath, dir);
-            }
-            curpath = curpath + '/';
-        }
-        */
     }
 
     internal static void ReportArtifact(string artifactPath)
