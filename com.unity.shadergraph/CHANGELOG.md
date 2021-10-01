@@ -32,6 +32,7 @@ The version number for this package has increased due to a version update of a r
  - Fixed an issue where ShaderGraph "view shader" commands were opening in individual windows, and blocking Unity from closing [1367188]
  - Improved screenspace position accuracy in the fragment shader by using VPOS [1352662] (https://issuetracker.unity3d.com/issues/shadergraph-dither-node-results-in-artifacts-when-far-from-origin-caused-by-screen-position-breaking-down)
  - Fixed the node searcher results to prefer names over synonyms [1366058]
+ - Fixed how graph errors were displayed when variant limits were reached [1355815]
 
 ## [12.0.0] - 2021-01-11
 
