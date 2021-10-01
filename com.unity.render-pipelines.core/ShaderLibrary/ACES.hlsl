@@ -201,6 +201,12 @@ half3 ACEScg_to_unity(half3 x)
     return x;
 }
 
+half3 ACEScg_to_Rec2020(half3 x)
+{
+    half3 xyz = mul(AP1_2_XYZ_MAT, x);
+    return mul(XYZ_2_REC2020_MAT, xyz);
+}
+
 //
 // ACES Color Space Conversion - ACES to ACEScc
 //

@@ -2,6 +2,8 @@
 
 #pragma multi_compile TONEMAPPING_NONE TONEMAPPING_NEUTRAL TONEMAPPING_ACES TONEMAPPING_CUSTOM TONEMAPPING_EXTERNAL
 #pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB
+#pragma multi_compile_local GRADE_IN_SRGB GRADE_IN_ACESCG
+
 #pragma kernel KBuild
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
@@ -65,7 +67,7 @@ CBUFFER_END
 
 float GetLuminance(float3 colorLinear)
 {
-    #if defined(TONEMAPPING_ACES)  && !defined(HDR_OUTPUT)
+    #if defined(TONEMAPPING_ACES) || defined(GRADE_IN_ACESCG)
     return AcesLuminance(colorLinear);
     #else
     return Luminance(colorLinear);
@@ -76,6 +78,54 @@ float EvaluateCurve(TEXTURE2D(curve), float t)
 {
     float x = SAMPLE_TEXTURE2D_LOD(curve, sampler_LinearClamp, float2(t, 0.0), 0.0).x;
     return saturate(x);
+}
+
+float3 RotateToColorGradingSpace_LogToLinear(float3 logColor)
+{
+#if defined(TONEMAPPING_ACES) || defined(GRADE_IN_ACESCG)
+    return ACES_to_ACEScg(ACEScc_to_ACES(logColor));
+#elif defined(GRADE_IN_SRGB)
+    return LogCToLinear(logColor);
+#endif
+}
+
+float3 RotateToColorGradingSpace_LinearToLog(float3 linearColor)
+{
+#if defined(TONEMAPPING_ACES) || defined(GRADE_IN_ACESCG)
+    return ACES_to_ACEScc(unity_to_ACES(linearColor));
+#elif defined(GRADE_IN_SRGB)
+    return LinearToLogC(linearColor);
+#endif
+}
+
+
+float3 RotateToColorGradeOutputSpace(float3 gradedColor)
+{
+#ifdef TONEMAPPING_ACES
+
+    // In ACES workflow we return graded color in ACEScg, we move to ACES (AP0) later on
+    return gradedColor;
+
+#elif defined(HDR_OUTPUT) // HDR but not ACES workflow
+
+    // If we are doing HDR we expect grading to finish at Rec2020. Any supplemental rotation is done inside the various options.
+#ifdef GRADE_IN_ACESCG
+    return ACEScg_to_Rec2020(gradedColor);
+#elif defined(GRADE_IN_SRGB)
+    return RotateRec709ToRec2020(gradedColor);
+#endif
+
+#else // Nor ACES or HDR
+
+#ifdef GRADE_IN_ACESCG
+    // If we are not HDR or ACES, we move back to Rec709
+    return ACEScg_to_unity(gradedColor);
+#elif defined(GRADE_IN_SRGB)
+    // We already graded in sRGB
+    return gradedColor;
+#endif
+
+#endif
 }
 
 // Note: when the ACES tonemapper is selected the grading steps will be done using ACES spaces
@@ -95,19 +145,11 @@ float3 ColorGrade(float3 colorLutSpace)
     colorLinear = LMSToLinear(colorLMS);
 
     // Do contrast in log after white balance
-    #if defined(TONEMAPPING_ACES)
-    float3 colorLog = ACES_to_ACEScc(unity_to_ACES(colorLinear));
-    #else
-    float3 colorLog = LinearToLogC(colorLinear);
-    #endif
+    float3 colorLog = RotateToColorGradingSpace_LinearToLog(colorLinear);
 
     colorLog = (colorLog - ACEScc_MIDGRAY) * _HueSatCon.z + ACEScc_MIDGRAY;
 
-    #if defined(TONEMAPPING_ACES)
-    colorLinear = ACES_to_ACEScg(ACEScc_to_ACES(colorLog));
-    #else
-    colorLinear = LogCToLinear(colorLog);
-    #endif
+    colorLinear = RotateToColorGradingSpace_LogToLinear(colorLog);
 
     // Color filter is just an unclipped multiplier
     colorLinear *= _ColorFilter.xyz;
@@ -199,7 +241,8 @@ float3 ColorGrade(float3 colorLutSpace)
     colorLinear = FastTonemapInvert(colorLinear);
 
     colorLinear = max(0.0, colorLinear);
-    return colorLinear;
+
+    return RotateToColorGradeOutputSpace(colorLinear);
 }
 
 // Used for debugging - see the ColorGrading option in FrameSettings
@@ -213,11 +256,7 @@ float3 NeutralColorGrade(float3 colorLutSpace)
     float3 colorLinear = LogCToLinear(colorLutSpace);
 #endif
 
-    #if defined(TONEMAPPING_ACES)
-    colorLinear = ACES_to_ACEScg(unity_to_ACES(colorLinear));
-    #endif
-
-    return colorLinear;
+    return RotateToColorGradeOutputSpace(colorLinear);
 }
 
 float3 Tonemap(float3 colorLinear)
@@ -253,9 +292,10 @@ float3 ProcessColorForHDR(float3 gradedColor)
 #ifdef HDR_OUTPUT
 
 #if TONEMAPPING_ACES
+    gradedColor = ACEScg_to_ACES(gradedColor);
     return HDRMappingACES(gradedColor.rgb, _PaperWhite, _RangeReductionMode, true);
 #else
-    return HDRMappingFromRec709(gradedColor.rgb, _PaperWhite, _MinNits, _MaxNits, _RangeReductionMode, true);
+    return HDRMappingFromRec2020(gradedColor.rgb, _PaperWhite, _MinNits, _MaxNits, _RangeReductionMode, true);
 #endif
 
 #else

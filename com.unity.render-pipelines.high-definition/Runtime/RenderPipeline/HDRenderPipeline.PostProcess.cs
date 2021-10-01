@@ -3909,6 +3909,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 GetHDROutputParameters(m_Tonemapping, out passData.hdroutParameters, out passData.hdroutParameters2);
             }
 
+            if (m_GlobalSettings.colorGradingSpace == ColorGradingSpace.sRGB)
+                passData.builderCS.EnableKeyword("GRADE_IN_SRGB");
+            else if (m_GlobalSettings.colorGradingSpace == ColorGradingSpace.AcesCg)
+                passData.builderCS.EnableKeyword("GRADE_IN_ACESCG");
+
             passData.lutSize = m_LutSize;
 
             //passData.colorFilter;

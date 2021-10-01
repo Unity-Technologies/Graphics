@@ -472,11 +472,13 @@ float3 PerformRangeReduction(float3 input, float minNits, float maxNits, int mod
 // performed range reduction and everything is assumed to be displayed on a reference 10k nits display and everything post-tonemapping
 // is in either the Rec 2020 or Rec709 color space. The Rec709 version just rotate to Rec2020 before going forward if required by the output device.
 
-float3 HDRMappingFromRec2020(float3 Rec2020Input, float paperWhite, float minNits, float maxNits, int reductionMode)
+float3 HDRMappingFromRec2020(float3 Rec2020Input, float paperWhite, float minNits, float maxNits, int reductionMode, bool skipOETF = false)
 {
     float3 outputSpaceInput = RotateRec2020ToOutputSpace(Rec2020Input);
-
     float3 reducedHDR = PerformRangeReduction(outputSpaceInput * paperWhite, minNits, maxNits, reductionMode);
+
+    if (skipOETF) return reducedHDR;
+
     return OETF(reducedHDR);
 }
 
