@@ -199,7 +199,7 @@ test_platforms:
 
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan. XRQuest_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
       - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
       - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
     commands:
