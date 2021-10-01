@@ -967,10 +967,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     passData.hdrOutputParams.z = 1.0f;
 
-                passData.debugPass = 0;
-                if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.hdrDebugMode == HDRDebugMode.GamutClip)
-                    passData.debugPass = 1;
-
+                passData.debugPass = (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.hdrDebugMode - 1;
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
                 passData.debugFullScreenTexture = builder.ReadTexture(m_DebugFullScreenTexture);
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)

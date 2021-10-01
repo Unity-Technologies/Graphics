@@ -189,13 +189,20 @@ namespace UnityEngine.Rendering.HighDefinition
         MeteringWeighted,
     }
 
+    /// <summary>
+    /// HDR debug mode.
+    /// </summary>
     [GenerateHLSL]
     public enum HDRDebugMode
     {
+        /// <summary>No hdr debug.</summary>
         None,
+        /// <summary>Gamut view - show the gamuts and what part of the gamut are represented in the image.</summary>
         GamutView,
+        /// <summary>Gamut clip - show what part of the scene are covered by the Rec709 gamut and what parts are in the Rec2020 gamut.</summary>
         GamutClip,
-        TonemappedLuminance,
+        /// <summary>Show in colors between yellow and red any value that is above the paper white value. Luminance otherwise.</summary>
+        ValuesAbovePaperWhite,
     }
 
     /// <summary>

@@ -29,15 +29,6 @@ Shader "Hidden/HDRP/DebugHDR"
     SAMPLER(sampler_LogLut3D);
 
     float4 _HDRDebugParams;
-    float4 _LogLut3D_Params;    // x: 1 / lut_size, y: lut_size - 1, z: contribution, w: unused
-    // Custom tonemapping settings
-    float4 _CustomToneCurve;
-    float4 _ToeSegmentA;
-    float4 _ToeSegmentB;
-    float4 _MidSegmentA;
-    float4 _MidSegmentB;
-    float4 _ShoSegmentA;
-    float4 _ShoSegmentB;
 
     float4 _HDROutputParams;
     float4 _HDROutputParams2;
@@ -73,32 +64,6 @@ Shader "Hidden/HDRP/DebugHDR"
         output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
 
         return output;
-    }
-
-    float3 Tonemap(float3 colorLinear)
-    {
-        if(_TonemapType == TONEMAPPINGMODE_NEUTRAL)
-        {
-            colorLinear = NeutralTonemap(colorLinear);
-        }
-        if (_TonemapType == TONEMAPPINGMODE_ACES)
-        {
-            // Note: input is actually ACEScg (AP1 w/ linear encoding)
-            float3 aces = ACEScg_to_ACES(colorLinear);
-            colorLinear = AcesTonemap(aces);
-        }
-        if (_TonemapType == TONEMAPPINGMODE_CUSTOM) // Custom
-        {
-            colorLinear = CustomTonemap(colorLinear, _CustomToneCurve.xyz, _ToeSegmentA, _ToeSegmentB.xy, _MidSegmentA, _MidSegmentB.xy, _ShoSegmentA, _ShoSegmentB.xy);
-        }
-        if (_TonemapType == TONEMAPPINGMODE_EXTERNAL) // External
-        {
-            float3 colorLutSpace = saturate(LinearToLogC(colorLinear));
-            float3 colorLut = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
-            colorLinear = lerp(colorLinear, colorLut, _LogLut3D_Params.z);
-        }
-
-        return colorLinear;
     }
 
     float3 ToHeat(float value)
@@ -312,25 +277,26 @@ Shader "Hidden/HDRP/DebugHDR"
     }
 
 
-    float3 FragHistogram(Varyings input) : SV_Target
-    {
-        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-        float2 uv = input.texcoord.xy;
-
-        float3 color = SAMPLE_TEXTURE2D_X_LOD(_DebugFullScreenTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
-
-        return color;
-    }
-
     StructuredBuffer<uint4> _FullImageHistogram;
 
-    float3 FragImageHistogram(Varyings input) : SV_Target
+    float3 FragNits(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float2 uv = input.texcoord.xy;
         float3 color = SAMPLE_TEXTURE2D_X_LOD(_DebugFullScreenTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
 
-        return color;
+        float maxC = max(color.x, max(color.y, color.z));
+
+        float t = (maxC - _PaperWhite) / (_MaxNits - _PaperWhite);
+
+        if (maxC > _PaperWhite)
+        {
+            return lerp(float3(_PaperWhite, _PaperWhite, 0), float3(_PaperWhite, 0, 0), saturate(t));
+        }
+        else
+        {
+            return Luminance(color).xxx;
+        }
     }
 
     ENDHLSL
@@ -370,21 +336,9 @@ Shader "Hidden/HDRP/DebugHDR"
             Cull Off
 
             HLSLPROGRAM
-                #pragma fragment FragHistogram
+                #pragma fragment FragNits
             ENDHLSL
         }
-
-        Pass
-        {
-            ZWrite Off
-            ZTest Always
-            Blend Off
-            Cull Off
-            HLSLPROGRAM
-                #pragma fragment FragImageHistogram
-            ENDHLSL
-        }
-
     }
     Fallback Off
 }
