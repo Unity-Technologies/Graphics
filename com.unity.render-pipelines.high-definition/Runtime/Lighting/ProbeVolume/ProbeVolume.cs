@@ -671,6 +671,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct ProbeVolumeAtlasKey : IEquatable<ProbeVolumeAtlasKey>
         {
             public VolumeGlobalUniqueID id;
+            public Vector3 position;
             public Quaternion rotation;
             public int width;
             public int height;
@@ -679,6 +680,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly ProbeVolumeAtlasKey zero = new ProbeVolumeAtlasKey
             {
                 id = VolumeGlobalUniqueID.zero,
+                position = Vector3.zero,
                 rotation = new Quaternion(0.0f, 0.0f, 0.0f, 0.0f),
                 width = 0,
                 height = 0,
@@ -692,6 +694,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     && (this.width == keyOther.width)
                     && (this.height == keyOther.height)
                     && (this.depth == keyOther.depth)
+                    && ComputePositionApproximatelyEqual(this.position, keyOther.position, 1e-2f)
                     && ComputeQuaternionApproximatelyEqual(this.rotation, keyOther.rotation, 1e-5f);
             }
 
@@ -706,9 +709,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + width.GetHashCode();
                 hash = hash * 23 + height.GetHashCode();
                 hash = hash * 23 + depth.GetHashCode();
+                hash = hash * 23 + ComputePositionDiscretized(position).GetHashCode();
                 hash = hash * 23 + ComputeQuaternionDiscretized(rotation).GetHashCode();
 
                 return hash;
+            }
+
+            private static Vector3 ComputePositionDiscretized(Vector3 position)
+            {
+                Vector3 positionSnapped = position;
+
+                // Equals comparison is done with 1cm precision, lets hash with 10cm precision.
+                const float POSITION_HASH_PRECISION = 10.0f;
+                const float POSITION_HASH_PRECISION_INVERSE = 1.0f / POSITION_HASH_PRECISION;
+                positionSnapped.x = Mathf.Round(positionSnapped.x * POSITION_HASH_PRECISION) * POSITION_HASH_PRECISION_INVERSE;
+                positionSnapped.y = Mathf.Round(positionSnapped.y * POSITION_HASH_PRECISION) * POSITION_HASH_PRECISION_INVERSE;
+                positionSnapped.z = Mathf.Round(positionSnapped.z * POSITION_HASH_PRECISION) * POSITION_HASH_PRECISION_INVERSE;
+
+                return positionSnapped;
+            }
+
+            private static bool ComputePositionApproximatelyEqual(Vector3 a, Vector3 b, float epsilon)
+            {
+                Vector3 offset = b - a;
+                return Mathf.Abs(offset.x) < epsilon && Mathf.Abs(offset.y) < epsilon && Mathf.Abs(offset.z) < epsilon;
             }
 
             private static Quaternion ComputeQuaternionDiscretized(Quaternion rotation)
@@ -796,13 +820,18 @@ namespace UnityEngine.Rendering.HighDefinition
             Quaternion volumeRotation = transform.rotation;
             return ComputeProbeVolumeAtlasKey(GetPayloadID(),
                 probeVolumeAsset.resolutionX, probeVolumeAsset.resolutionY, probeVolumeAsset.resolutionZ,
-                volumeRotation, assetRotation);
+                volumeRotation, assetRotation, transform.position, parameters.supportDynamicGI);
         }
 
         internal static ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey(VolumeGlobalUniqueID id, int width, int height, int depth,
-            Quaternion volumeRotation, Quaternion assetRotation)
+            Quaternion volumeRotation, Quaternion assetRotation, Vector3 position, bool supportDynamicGI)
         {
             Quaternion sphericalHarmonicWSFromOS = Quaternion.Inverse(assetRotation) * volumeRotation;
+            
+            // Only enforce uniquing the key based on position if dynamic GI is enabled.
+            // If dynamic GI is enabled, two probe volumes that point to the same asset, streamed in at different locations need unique space in the atlas (because their dynamic GI component is different).
+            // If dynamic GI is disabled, two probe volumes that point to the same asset, streamed in at different locations should share space in the atlas, since their baked data is identical.
+            position = supportDynamicGI ? position : Vector3.zero;
 
             return new ProbeVolumeAtlasKey
                 {
@@ -810,6 +839,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     width = width,
                     height = height,
                     depth = depth,
+                    position = position,
                     rotation = sphericalHarmonicWSFromOS
                 };
         }
