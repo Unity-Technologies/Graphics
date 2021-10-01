@@ -13,10 +13,11 @@ namespace UnityEngine.Rendering
     // preference panels as everything needed is internal/private (at the time of writing this
     // comment)
 
+    //TODORemi: move this to editor
 #if UNITY_EDITOR
     using UnityEditor;
 
-    [InitializeOnLoad] //TODOJENNY: ensure this is not done for non-Volume compatible scenarios ie. builtin / activeRenderPipelineTypeChanged (builtin -> URP)
+    [InitializeOnLoad]
     public static class CoreRenderPipelinePreferences
     {
         // We do not want that GC frees the preferences that have been added, used to store their references

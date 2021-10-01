@@ -34,8 +34,6 @@ namespace UnityEditor.Rendering.Universal
             // Register custom dependency on Material version
             AssetDatabase.RegisterCustomDependency(materialVersionDependencyName, Hash128.Compute(MaterialPostprocessor.k_Upgraders.Length));
             AssetDatabase.Refresh();
-
-            //TODOJENNY: do we still need the popup to warn the user of impeding upgrade?
         }
 
         private void OnPreprocessMaterialAsset(Material material)
@@ -75,7 +73,7 @@ namespace UnityEditor.Rendering.Universal
                     break;
                 }
             }
-            //TODOJENNY: ask why we dont have plugins in URP?
+
             var latestVersion = k_Upgraders.Length;
 
             if (!assetVersion)
@@ -91,16 +89,8 @@ namespace UnityEditor.Rendering.Universal
                 }
                 else
                 {
-                    if (shaderID.IsShaderGraph())
-                    {
-                        // ShaderGraph materials NEVER had asset versioning applied prior to version 5.
-                        // so if we see a ShaderGraph material with no assetVersion, set it to 5 to ensure we apply all necessary versions.
-                        assetVersion.version = 5; //TODOJENNY: why 5?
-                    }
-                    else
-                    {
-                        assetVersion.version = 0;
-                    }
+                    // if we see a ShaderGraph material with no assetVersion, set it to 0 to ensure we apply all necessary versions.
+                    assetVersion.version = 0;
                 }
 
                 AssetDatabase.AddObjectToAsset(assetVersion, assetPath);
@@ -121,6 +111,8 @@ namespace UnityEditor.Rendering.Universal
         }
 
         // TODOJENNY: ask URP if speed tree is supported if so, we need the following:
+        // TODOREMI: wait for Tianliang PR ( https://unity.slack.com/archives/C89KFUUCT/p1631810113244300 ) to land and merge with it
+        // to be a upgrade step
         /*
         public void OnPostprocessSpeedTree(GameObject speedTree)
         {
@@ -128,6 +120,7 @@ namespace UnityEditor.Rendering.Universal
             SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree,stImporter,HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);
         }
         */
+
         static void InitializeLatest(Material material, ShaderID id)
         {
             // newly created materials should reset their keywords immediately (in case inspector doesn't get invoked)

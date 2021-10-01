@@ -141,15 +141,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        /*
-        TODOJENNY
-        [MenuItem("Edit/Rendering/Materials/Upgrade HDRP Materials to Latest Version", priority = CoreUtils.Priorities.editMenuPriority)]
-        internal static void UpgradeMaterials()
-        {
-            // Force reimport of all materials, this will upgrade the needed one and save the assets if needed
-            MaterialReimporter.ReimportAllMaterials();
-        }*/
-
         [MenuItem("Edit/Rendering/Decal Layers/Add HDRP Decal Layer Default to Loaded Mesh Renderers and Terrains", priority = CoreUtils.Priorities.editMenuPriority + 2)]
         internal static void UpgradeDefaultRenderingLayerMask()
         {

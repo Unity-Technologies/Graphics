@@ -165,7 +165,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        //todojenny: check what happens when modifying/adding new nodes from the c# file directly, do we trigger a reimport? (need to create a fogbugz)
         static void ProcessSubGraph(SubGraphAsset asset, GraphData graph, ShaderGraphImporter.AssetImportErrorLog importLog)
         {
             var graphIncludes = new IncludeCollection();

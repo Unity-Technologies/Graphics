@@ -10,7 +10,6 @@ namespace UnityEditor.Rendering
     /// An utility window used to list and filter a set of elements, as seen in the inspector when
     /// clicking on the "Add Component" button.
     /// </summary>
-    [InitializeOnLoad] //TODOJENNY: needed? we could just set to true s_DirtyList by default?
     public class FilterWindow : EditorWindow
     {
         /// <summary>
@@ -183,7 +182,7 @@ namespace UnityEditor.Rendering
         static Styles s_Styles;
         static FilterWindow s_FilterWindow;
         static long s_LastClosedTime;
-        static bool s_DirtyList;
+        static bool s_DirtyList = true;
 
         IProvider m_Provider;
         Element[] m_Tree;
@@ -214,11 +213,6 @@ namespace UnityEditor.Rendering
             }
         }
         bool m_IsAnimating { get { return !Mathf.Approximately(m_Anim, m_AnimTarget); } }
-
-        static FilterWindow()
-        {
-            s_DirtyList = true;
-        }
 
         void OnEnable()
         {

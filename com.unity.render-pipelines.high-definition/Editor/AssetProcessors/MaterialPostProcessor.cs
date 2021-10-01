@@ -88,14 +88,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static List<string> s_CreatedAssets = new List<string>();
 
-        //TODOJENNY: why is that here and not somewhere in its own class specialized for speedtree?
+        public override int GetPostprocessOrder()
+        {
+            return -1000;
+        }
+
+        // only called in model importer
+        // only new mat(defaultshader) pass here
         void OnPostprocessMaterial(Material material)
         {
             if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
                 return;
-
-            if (HDSpeedTree8MaterialUpgrader.IsHDSpeedTree8Material(material))
-                SpeedTree8MaterialUpgrader.SpeedTree8MaterialFinalizer(material);
 
             HDShaderUtils.ResetMaterialKeywords(material);
         }
@@ -107,6 +110,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (Application.isBatchMode)
                 return;
 
+            // TODORemi : check why this ensure and how to remove it
             if (HDRenderPipelineGlobalSettings.Ensure() == null)
                 return;
 
@@ -154,13 +158,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (diffusionProfile == null)
             {
-                Debug.LogWarning("Tried to automatically add the Diffusion Profile " + diffusionProfile.name + " to HDRP Global Settings while Asset Database is not ready. Please fix manually.");
+                Debug.LogWarning($"Tried to automatically add the Diffusion Profile {diffusionProfile.name} to HDRP Global Settings while Asset Database is not ready. Please fix manually.");
                 return;
             }
 
             bool needToAdd = s_addDiffusionProfileAuto;
             if (!s_addDiffusionProfileAuto)
             {
+                //TODOREMI: remove this "Yes, for all" change for now
                 int result = EditorUtility.DisplayDialogComplex(
                     title: "Diffusion Profile Import",
                     message: $"A Material ({material.name}) is being imported with a diffusion profile ({diffusionProfile.name}) not already added to the HDRP Global Settings.\n If the Diffusion Profile is not referenced in the Global Settings, HDRP cannot use it.\nDo you want to add the Diffusion Profile to the HDRP Global Settings asset?",
@@ -298,30 +303,28 @@ namespace UnityEditor.Rendering.HighDefinition
                 wasUpgraded = true;
             }
 
-            if (isMaterialUsingPlugin)
-            {
-                int hdPluginMaterialVersion = (int)(PluginMaterial.GenericVersions.NeverMigrated);
+            //TODORemi: check with stefane what we want for plugins
+            //if (isMaterialUsingPlugin)
+            //{
+            //    int hdPluginMaterialVersion = (int)(PluginMaterial.GenericVersions.NeverMigrated);
 
-                bool neverMigrated = (assetVersion.hdPluginSubTargetMaterialVersions.Count == 0)
-                    || (false == assetVersion.hdPluginSubTargetMaterialVersions.TryGetValue(subTargetGUID, out hdPluginMaterialVersion));
-                if (neverMigrated)
-                {
-                    assetVersion.hdPluginSubTargetMaterialVersions.Add(subTargetGUID, hdPluginMaterialVersion);
-                }
+            //    bool neverMigrated = (assetVersion.hdPluginSubTargetMaterialVersions.Count == 0)
+            //        || (false == assetVersion.hdPluginSubTargetMaterialVersions.TryGetValue(subTargetGUID, out hdPluginMaterialVersion));
+            //    if (neverMigrated)
+            //    {
+            //        assetVersion.hdPluginSubTargetMaterialVersions.Add(subTargetGUID, hdPluginMaterialVersion);
+            //    }
 
-                if (hdPluginMaterialVersion < subTargetMaterialUtils.latestMaterialVersion)
-                {
-                    if (subTargetMaterialUtils.MigrateMaterial(material, hdPluginMaterialVersion)) // TODOJENNY: suggest incremental upgrade instead
-                    {
-                        assetVersion.hdPluginSubTargetMaterialVersions[subTargetGUID] = subTargetMaterialUtils.latestMaterialVersion;
-                        wasUpgraded = true;
-                    }
-                }
-            }
+            //    if (hdPluginMaterialVersion < subTargetMaterialUtils.latestMaterialVersion)
+            //    {
+            //        if (subTargetMaterialUtils.MigrateMaterial(material, hdPluginMaterialVersion)) // TODOJENNY: suggest incremental upgrade instead
+            //        {
+            //            assetVersion.hdPluginSubTargetMaterialVersions[subTargetGUID] = subTargetMaterialUtils.latestMaterialVersion;
+            //            wasUpgraded = true;
+            //        }
+            //    }
+            //}
 
-            // proposal: save the list of needed diffusion profile, once import is done, ask the user if they want to add it to the Global Settings if missing
-            // this could have a preference behavior with "Always ask, Always add missing, Do nothing"
-            // TODOJENNY: discuss with Remy M. about this
             AddDiffusionProfileToImportedMaterial(material);
 
             if (wasUpgraded)

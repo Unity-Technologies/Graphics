@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             s_MatcapMixAlbedo = EditorPrefs.GetBool(Keys.matcapViewMixAlbedo, true);
             s_MatcapScale = EditorPrefs.GetFloat(Keys.matcapViewScale, 1.0f);
-            GetColorPrefDecalGizmoColor = CoreRenderPipelinePreferences.RegisterPreferenceColor("Scene/Decal", k_DecalGizmoColorBase);
+            GetColorPrefDecalGizmoColor = CoreRenderPipelinePreferences.RegisterPreferenceColor("Scene/Decal", k_DecalGizmoColorBase); //TODORemi move to core as URP use decal
 
             m_Loaded = true;
         }

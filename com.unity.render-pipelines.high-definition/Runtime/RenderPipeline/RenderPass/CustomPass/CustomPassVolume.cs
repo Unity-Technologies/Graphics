@@ -374,6 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return customPass;
         }
 
+        //TODORemi move this to editor
 #if UNITY_EDITOR
         // In the editor, we refresh the list of colliders at every frame because it's frequent to add/remove them
         void Update() => GetComponents(m_Colliders);

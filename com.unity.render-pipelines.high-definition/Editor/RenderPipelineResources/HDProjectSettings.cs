@@ -138,7 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         //// We force the instance to be loaded/created and ready with valid values on assembly reload.
         [InitializeOnLoadMethod]
-        static void Reset() //TODOJENNY: fix by AlexV incoming
+        static void Reset() //TODOJENNY: fix by AlexV incoming - Remi: Landed. Need to merge with last 2021.2
         {
             // Make sure the cached last seen plugin versions (capped to codebase versions) and their sum is valid
             // on assembly reload.

@@ -6,15 +6,6 @@ using UnityEditorInternal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class HDSaveContext
-    {
-    }
-
-    // TODOJENNY: after talking with Antoine L. ideally we do need a dependency from Material to Shaders,
-    // since SG actually have a custom importer that generates Shaders,
-    // what we need is a dependency of Material over Shaders (key could be their guid?)
-
-
     [InitializeOnLoad]
     class ShaderGraphMaterialsUpdater
     {
@@ -29,7 +20,8 @@ namespace UnityEditor.Rendering.HighDefinition
         // sss needs to active a keyword on a material
         static void OnShaderGraphSaved()
         {
-            HDRenderPipeline.currentPipeline?.ResetPathTracing();
+            HDRenderPipeline.currentPipeline?.ResetPathTracing(); //TODORemi: check if this be called more (e.g. change from versioing tool. Check with Emannuel
+            
         }
     }
 }

@@ -22,6 +22,7 @@ namespace UnityEngine.Experimental.Rendering
             static RealtimeProbeSubdivisionDebug()
             {
                 EditorApplication.update += UpdateRealtimeSubdivisionDebug; //TODOJENNY: ideally we should not do this, empty updates can still be expensive (thousands of scripts may be doing the same)
+                //todo make a job out of this / find better event to handle this. (see with Francesco)
             }
 
             static void UpdateRealtimeSubdivisionDebug()

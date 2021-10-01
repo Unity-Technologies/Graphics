@@ -2118,6 +2118,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Getting the background color from preferences to add to the preview camera
 #if UNITY_EDITOR
+            //TODORemi: make the color change with a callback here
             if (camera.cameraType == CameraType.Preview)
             {
                 camera.backgroundColor = CoreRenderPipelinePreferences.previewBackgroundColor;

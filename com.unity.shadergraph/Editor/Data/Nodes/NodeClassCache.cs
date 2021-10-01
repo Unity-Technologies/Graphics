@@ -139,7 +139,7 @@ namespace UnityEditor.ShaderGraph
         // may need to have a prototype for 21.2 with lazy init
         // has to happen before first import - used by Searcher for ex.
         // how to test if we broke something: open an existing SG and try adding a new node
-        private static void ReCacheKnownNodeTypes() //TODOJENNY: why cant we call that only on first use - with a singleton? (lazy init + remove initializeonload)
+        private static void ReCacheKnownNodeTypes() 
         {
             Profiler.BeginSample("NodeClassCache: Re-caching all known node types");
             m_KnownTypeLookupTable = new Dictionary<Type, List<ContextFilterableAttribute>>();
@@ -161,8 +161,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             m_KnownSubGraphLookupTable = new Dictionary<string, SubGraphAsset>();
-            // TODOJENNY: how can we ensure ADB is ready? is this why we need DebugPrintKnownNodes?
-            // should we cache the guid list to avoid the "load asset" portion on domain reload (what happens if 100k SG assets in project)
+            
             foreach (var guid in AssetDatabase.FindAssets(string.Format("glob:\"*.asset\" t:{0}", typeof(SubGraphAsset))))
             {
                 var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
