@@ -504,13 +504,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         title = customDeprecationMessage.GetCustomDeprecationLabel();
                     }
-                    else if (ShaderGraphPreferences.allowDeprecatedBehaviors)
-                    {
-                        title = node.name + $" (Upgradable V{node.sgVersion})";
-                    }
                     else
                     {
-                        title = node.name + $" (Upgradable)";
+                        title = node.name + $" (Legacy v{node.sgVersion})";
                     }
                 }
                 else

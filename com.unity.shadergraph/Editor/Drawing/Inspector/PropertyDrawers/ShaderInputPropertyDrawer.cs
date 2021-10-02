@@ -376,7 +376,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 if (property.sgVersion < property.latestVersion)
                 {
                     var typeString = property.propertyType.ToString();
-                    var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{typeString} Property", () => property.ChangeVersion(property.latestVersion));
+
+                    Action dismissAction = null;
+                    if (property.dismissedUpdateVersion < property.latestVersion)
+                    {
+                        dismissAction = () =>
+                        {
+                            _preChangeValueCallback("Dismiss Property Update");
+                            property.dismissedUpdateVersion = property.latestVersion;
+                            _postChangeValueCallback();
+                            inspectorUpdateDelegate?.Invoke();
+                        };
+                    }
+
+                    var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{typeString} Property",
+                        () => property.ChangeVersion(property.latestVersion),
+                        dismissAction);
                     if (help != null)
                     {
                         propertySheet.Insert(0, help);

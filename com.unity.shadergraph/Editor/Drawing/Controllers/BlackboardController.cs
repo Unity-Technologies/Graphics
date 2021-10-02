@@ -438,7 +438,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     propertyTypesOrder.isKeyword = false;
                     propertyTypesOrder.deprecatedPropertyName = name;
                     propertyTypesOrder.version = ColorShaderProperty.deprecatedVersion;
-                    ViewModel.propertyNameToAddActionMap.Add("Color (Upgradable)", AddShaderInputAction.AddDeprecatedPropertyAction(propertyTypesOrder));
+                    ViewModel.propertyNameToAddActionMap.Add($"Color (Legacy v0)", AddShaderInputAction.AddDeprecatedPropertyAction(propertyTypesOrder));
                     ViewModel.propertyNameToAddActionMap.Add(name, AddShaderInputAction.AddPropertyAction(shaderInputType));
                 }
                 else
