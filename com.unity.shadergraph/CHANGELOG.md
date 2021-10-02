@@ -11,8 +11,10 @@ The version number for this package has increased due to a version update of a r
 
 ### Added
  - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
+ - Added ShaderGraph import warning to old nodes and properties, and ability to dismiss the warning if old behavior is desired.
 
 ### Changed
+ - Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
 
 ### Fixed
  - Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
@@ -77,7 +79,6 @@ The version number for this package has increased due to a version update of a r
 - ShaderGraph SubGraphs will now report errors and warnings in a condensed single error.
 - Changed "Create Node" action in ShaderGraph stack separator context menu to "Add Block Node" and added it to main stack context menu
 - GatherTexture2D and TexelSize nodes now support all shader stages.
-- Changed the label on old versions of nodes from "Deprecated" to "Upgradable".
 
 ### Fixed
 - Fixed an issue where fog node density was incorrectly calculated.
