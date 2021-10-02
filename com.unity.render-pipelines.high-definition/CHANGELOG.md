@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the volume not being assigned on some scene templates.
 - Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
 - Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
+- Fixed minor readability issues in the ray tracing code.
+- Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
@@ -64,7 +66,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved AMD FidelityFX shaders to core
 - Improved sampling of overlapping point/area lights in path-traced volumetric scattering (case 1358777).
 - Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1346105, 1358783).
-- Fixed minor readability issues in the ray tracing code.
 
 ## [12.0.0] - 2021-01-11
 
