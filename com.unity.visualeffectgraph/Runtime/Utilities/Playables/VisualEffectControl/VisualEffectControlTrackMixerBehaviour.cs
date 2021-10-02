@@ -1,6 +1,8 @@
 #if VFX_HAS_TIMELINE
 using UnityEngine;
 using UnityEngine.Playables;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace UnityEngine.VFX
 {
@@ -23,29 +25,67 @@ namespace UnityEngine.VFX
                 }
                 public Type type;
                 public double time;
+                public VisualEffectControlPlayableBehaviour playable;
             }
 
             struct Chunk
             {
                 public double begin;
                 public double end;
-                public VisualEffectControlPlayableBehaviour[] playables;
+                public Event[] events;
+            }
+
+            Chunk[] m_Chunks;
+
+            public class VisualEffectControlPlayableBehaviourComparer : IComparer<VisualEffectControlPlayableBehaviour>
+            {
+                public int Compare(VisualEffectControlPlayableBehaviour x, VisualEffectControlPlayableBehaviour y)
+                {
+                    return x.clipStart.CompareTo(y.clipStart);
+                }
             }
 
             public void Init(Playable playable)
             {
+                var chunks = new Stack<Chunk>();
                 int inputCount = playable.GetInputCount();
-                for (int i = 0; i < inputCount; ++i)
+
+                var playableBehaviors = new List<VisualEffectControlPlayableBehaviour>();
+                for (int i= 0; i < inputCount; ++i)
                 {
-                    var clip = playable.GetInput(i);
-                    var a = clip.GetDuration();
-                    var b = clip.GetTime();
-                    ScriptPlayable<VisualEffectControlPlayableBehaviour> inputPlayable = (ScriptPlayable<VisualEffectControlPlayableBehaviour>)playable.GetInput(i);
-
-                    var c = inputPlayable.GetBehaviour();
-
-                    Debug.Log(a + "; " + b + " ; " + c.clipStart);
+                    var inputPlayable = (ScriptPlayable<VisualEffectControlPlayableBehaviour>)playable.GetInput(i);
+                    var inputBehavior = inputPlayable.GetBehaviour();
+                    if (inputBehavior != null)
+                        playableBehaviors.Add(inputBehavior);
                 }
+
+                playableBehaviors.Sort(new VisualEffectControlPlayableBehaviourComparer());
+                foreach (var inputBehavior in playableBehaviors)
+                {
+                    if (   !chunks.Any()
+                        || inputBehavior.clipStart > chunks.Peek().end)
+                    {
+                        chunks.Push(new Chunk()
+                        {
+                            begin = inputBehavior.clipStart,
+                            events = new Event[0]
+                        });
+                    }
+
+                    var currentChunk = chunks.Peek();
+                    currentChunk.end = inputBehavior.clipEnd;
+
+                    currentChunk.events = currentChunk.events.Concat(
+                    new Event[]
+                    {
+                        new Event { playable = inputBehavior, type = Event.Type.Play, time = inputBehavior.clipStart + inputBehavior.easeIn },
+                        new Event { playable = inputBehavior, type = Event.Type.Stop, time = inputBehavior.clipEnd - inputBehavior.easeOut }
+                    }).ToArray();
+
+                    chunks.Pop();
+                    chunks.Push(currentChunk);
+                }
+                m_Chunks = chunks.Reverse().ToArray();
             }
         }
 
