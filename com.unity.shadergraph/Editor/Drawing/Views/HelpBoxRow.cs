@@ -47,7 +47,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             hierarchy.Add(container);
         }
 
-        public static VisualElement TryGetDeprecatedHelpBoxRow(string deprecatedTypeName, Action upgradeAction, Action dismissAction, string deprecationText = null, string buttonText = null, string labelText = null, MessageType messageType = MessageType.Warning)
+        public static VisualElement CreateVariantLimitHelpBox(int currentVariantCount, int maxVariantCount)
+        {
+            var messageType = MessageType.Error;
+            HelpBoxRow help = new HelpBoxRow(messageType);
+            var label = new Label("Variant limit exceeded: Hover for more info")
+            {
+                tooltip = ShaderKeyword.kVariantLimitWarning,
+                name = "message-" + (messageType == MessageType.Warning ? "warn" : "info")
+            };
+            help.Add(label);
+            return help;
+        }
+
+        public static VisualElement TryGetDeprecatedHelpBoxRow(string deprecatedTypeName, Action upgradeAction, string deprecationText = null, string buttonText = null, string labelText = null, MessageType messageType = MessageType.Warning)
         {
             if (deprecationText == null)
             {

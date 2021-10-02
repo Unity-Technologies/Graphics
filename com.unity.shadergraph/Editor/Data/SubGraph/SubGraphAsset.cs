@@ -221,17 +221,27 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var capabilityInfo in inputCapabilities)
             {
-                var dependecyInfo = new SlotDependencyInfo();
-                dependecyInfo.slotName = capabilityInfo.slotName;
-                dependecyInfo.capabilities = capabilityInfo.capabilities;
-                m_InputDependencies.Add(dependecyInfo.slotName, dependecyInfo);
+                var dependencyInfo = new SlotDependencyInfo();
+                dependencyInfo.slotName = capabilityInfo.slotName;
+                dependencyInfo.capabilities = capabilityInfo.capabilities;
+                if (m_InputDependencies.ContainsKey(dependencyInfo.slotName))
+                {
+                    Debug.LogWarning($"SubGraph '{hlslName}' has multiple input slots named '{dependencyInfo.slotName}', which is unsupported.  Please assign the input slots unique names.");
+                    continue;
+                }
+                m_InputDependencies.Add(dependencyInfo.slotName, dependencyInfo);
             }
             foreach (var capabilityInfo in outputCapabilities)
             {
-                var dependecyInfo = new SlotDependencyInfo();
-                dependecyInfo.slotName = capabilityInfo.slotName;
-                dependecyInfo.capabilities = capabilityInfo.capabilities;
-                m_OutputDependencies.Add(dependecyInfo.slotName, dependecyInfo);
+                var dependencyInfo = new SlotDependencyInfo();
+                dependencyInfo.slotName = capabilityInfo.slotName;
+                dependencyInfo.capabilities = capabilityInfo.capabilities;
+                if (m_OutputDependencies.ContainsKey(dependencyInfo.slotName))
+                {
+                    Debug.LogWarning($"SubGraph '{hlslName}' has multiple output slots named '{dependencyInfo.slotName}', which is unsupported.  Please assign the output slots unique names.");
+                    continue;
+                }
+                m_OutputDependencies.Add(dependencyInfo.slotName, dependencyInfo);
             }
             foreach (var slotDependency in slotDependencies)
             {
