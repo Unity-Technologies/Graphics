@@ -353,6 +353,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         // Regular HDRI Sky
         // For cubemap
         Pass

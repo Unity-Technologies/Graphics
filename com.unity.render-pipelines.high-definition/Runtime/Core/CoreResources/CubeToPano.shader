@@ -7,7 +7,7 @@ SubShader {
 
 
 
-
+Tags{ "RenderPipeline" = "HDRenderPipeline" }
 Pass
 {
     ZWrite Off
