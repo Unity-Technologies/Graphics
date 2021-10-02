@@ -44,8 +44,10 @@ namespace UnityEngine.Rendering.Universal
             // Normal case for capsule
             else
             {
-                Vector3 otherCenterDir = (otherCenter - center);
-                float centerAngle = Mathf.Acos(Vector3.Dot(otherCenterDir, new Vector3(1, 0, 0))) * (Vector3.Dot(otherCenterDir, new Vector3(0, 1, 0)) < 0 ? -1f : 1f);
+                Vector3 otherCenterDir = (otherCenter - center).normalized;
+                float absCenterAngle = Mathf.Acos(Vector3.Dot(otherCenterDir, new Vector3(1, 0, 0)));
+                float angleSign = Vector3.Dot(otherCenterDir, new Vector3(0, 1, 0)) < 0 ? -1f : 1f;
+                float centerAngle = absCenterAngle * angleSign;
 
                 // This is hard coded for a half circle
                 float halfPI = 0.5f * Mathf.PI;
@@ -94,6 +96,41 @@ namespace UnityEngine.Rendering.Universal
             generatedIndices[indexWritePos++] = circle0Start;
         }
 
+        int AddShape(NativeArray<Vector3> vertices, NativeArray<int> indices, int indicesProcessed, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, ref int vertexWritePos, ref int indexWritePos)
+        {
+            int indexToProcess = indicesProcessed;
+            int prevIndex = indices[indexToProcess];
+            int startIndex = indices[indexToProcess];
+            int startWriteIndex = vertexWritePos;
+
+            generatedVertices[vertexWritePos++] = vertices[prevIndex];
+
+            bool continueProcessing = true;
+            while (indexToProcess < indices.Length  && continueProcessing)
+            {
+                int index0 = indices[indexToProcess++]; 
+                int index1 = indices[indexToProcess++];
+
+                generatedIndices[indexWritePos++] = vertexWritePos - 1;
+
+                if (index1 != startIndex)
+                {
+                    generatedIndices[indexWritePos++] = vertexWritePos;
+                    generatedVertices[vertexWritePos++] = vertices[index1];
+                    continueProcessing = index0 == prevIndex;
+                }
+                else
+                {
+                    generatedIndices[indexWritePos++] = startWriteIndex;
+                    continueProcessing = false;
+                }
+                
+                prevIndex = index1;
+            }
+
+            return indexToProcess;
+        }
+
         public override void SetShapeFromCapsules(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, bool ignoreLocalTransform)
         {
             if (m_Mesh == null)
@@ -121,29 +158,31 @@ namespace UnityEngine.Rendering.Universal
 
             int vertexWritePos = 0;
             int indexWritePos = 0;
-            for(int i=0;i<indices.Length;i+=2)
+            int indicesProcessed = 0;
+            while (indicesProcessed < indices.Length)
             {
-                int v0 = indices[i];
-                int v1 = indices[i + 1];
-                Vector3 pt0 = vertices[v0];
-                Vector3 pt1 = vertices[v1];
+                int v0 = indices[indicesProcessed];
+                int v1 = indices[indicesProcessed + 1];
+
                 float r0 = radii[v0];
                 float r1 = radii[v1];
 
                 if (radii[v0] > 0 || radii[v1] > 0)
                 {
-                    if(vertices[v0].x == vertices[v1].x && vertices[v0].y == vertices[v1].y)
+                    Vector3 pt0 = vertices[v0];
+                    Vector3 pt1 = vertices[v1];
+
+                    if (vertices[v0].x == vertices[v1].x && vertices[v0].y == vertices[v1].y)
                         AddCircle(pt0, r0, pt1, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
                     else
                         AddCapsule(pt0, pt1, r0, r1, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
+
+                    indicesProcessed += 2;
                 }
                 else
                 {
-                    // Add line segment
-                    generatedIndices[indexWritePos++] = vertexWritePos;
-                    generatedIndices[indexWritePos++] = vertexWritePos + 1;
-                    generatedVertices[vertexWritePos++] = pt0;
-                    generatedVertices[vertexWritePos++] = pt1;
+                    // Will add edges or polygons
+                    indicesProcessed = AddShape(vertices, indices, indicesProcessed, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
                 }
             }
 
@@ -160,7 +199,7 @@ namespace UnityEngine.Rendering.Universal
 
                 ShadowUtility.ClipEdges(generatedVertices, calculatedEdges, calculatedStartingEdges, calculatedIsClosedArray, contractEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
 
-                m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, calculatedIsClosedArray, false, IShadowShape2DProvider.OutlineTopology.Lines);
+                m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, calculatedIsClosedArray, true, IShadowShape2DProvider.OutlineTopology.Lines);
 
                 clippedVertices.Dispose();
                 clippedEdges.Dispose();
