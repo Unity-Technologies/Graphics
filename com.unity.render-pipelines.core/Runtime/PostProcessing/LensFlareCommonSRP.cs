@@ -8,15 +8,34 @@ namespace UnityEngine.Rendering
         private static LensFlareCommonSRP m_Instance = null;
         private static readonly object m_Padlock = new object();
         private static System.Collections.Generic.List<LensFlareComponentSRP> m_Data = new System.Collections.Generic.List<LensFlareComponentSRP>();
-        public static int maxLensFlareWithOcclusion = 128; // Max lens-flares-with-occlusion supported
-        // With TAA Occlusion jitter depth, thought frame on HDRP.
-        // So we do a "unanimity vote" for occlusion thought 'maxLensFlareWithOcclusionTemporalSample' frame
-        // Important to keep this value maximum of 8
-        // If this value change that could implies an implementation modification on:
-        // com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/LensFlareMergeOcclusionDataDriven.compute
+
+        /// <summary>
+        /// Max lens-flares-with-occlusion supported
+        /// </summary>
+        public static int maxLensFlareWithOcclusion = 128;
+
+
+        /// <summary>
+        /// With TAA Occlusion jitter depth, thought frame on HDRP.
+        /// So we do a "unanimity vote" for occlusion thought 'maxLensFlareWithOcclusionTemporalSample' frame
+        /// Important to keep this value maximum of 8
+        /// If this value change that could implies an implementation modification on:
+        /// com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/LensFlareMergeOcclusionDataDriven.compute
+        /// </summary>
         public static int maxLensFlareWithOcclusionTemporalSample = 8;
 
+        /// <summary>
+        /// Set to 1 to enable temporal sample merge.
+        /// Set to 0 to disable temporal sample merge (must support 16 bit textures, and the occlusion merge must be written in the last texel (vertical) of the lens flare texture.
+        /// </summary>
         public static int mergeNeeded = 1;
+
+        /// <summary>
+        /// occlusion texture either provided or created automatically by the SRP for lens flare. (to be created automatically, please set mergeNeeded to 1).
+        /// Texture width is the max number of lens flares that have occlusion (x axis the lens flare index).
+        /// y axis is the number of samples (maxLensFlareWithOcclusionTemporalSample) plus the number of merge results.
+        /// Merge results must be done by the SRP and stored in the [(lens flareIndex), (maxLensFlareWithOcclusionTemporalSample + 1)] coordinate.
+        /// </summary>
         public static RTHandle occlusionRT = null;
 
         private static int frameIdx = 0;
@@ -25,12 +44,18 @@ namespace UnityEngine.Rendering
         {
         }
 
+        /// <summary>
+        /// Initialization function which must be called by the SRP.
+        /// </summary>
         static public void Initialize()
         {
-            if (occlusionRT == null)
+            if (occlusionRT == null && mergeNeeded > 0)
                 occlusionRT = RTHandles.Alloc(width: maxLensFlareWithOcclusion, height: maxLensFlareWithOcclusionTemporalSample + 1 * mergeNeeded, colorFormat: Experimental.Rendering.GraphicsFormat.R16_SFloat, enableRandomWrite: true, dimension: TextureXR.dimension);
         }
 
+        /// <summary>
+        /// Disposal function, must be called by the SRP to release all internal textures.
+        /// </summary>
         static public void Dispose()
         {
             if (occlusionRT != null)
@@ -376,7 +401,7 @@ namespace UnityEngine.Rendering
         {
             Vector2 vScreenRatio;
 
-            if (lensFlares.IsEmpty())
+            if (lensFlares.IsEmpty() || occlusionRT == null)
                 return;
 
             Vector2 screenSize = new Vector2(actualWidth, actualHeight);
@@ -675,7 +700,9 @@ namespace UnityEngine.Rendering
                     cmd.DisableShaderKeyword("FLARE_OCCLUSION");
                 }
 
-                cmd.SetGlobalTexture(_FlareOcclusionTex, occlusionRT);
+                if (occlusionRT != null)
+                    cmd.SetGlobalTexture(_FlareOcclusionTex, occlusionRT);
+
                 cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4((float)occlusionIndex / (float)LensFlareCommonSRP.maxLensFlareWithOcclusion + 0.5f / (float)LensFlareCommonSRP.maxLensFlareWithOcclusion, 0.5f, 0, 0));
 
                 if (comp.useOcclusion && comp.sampleCount > 0)
