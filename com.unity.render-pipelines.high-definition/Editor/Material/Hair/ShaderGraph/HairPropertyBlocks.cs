@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         class Styles
         {
-            public static GUIContent materialType = new GUIContent("Material Type", "TODO");
+            public static GUIContent materialType = new GUIContent("Material Type", "Indicates the type of Shading Model used to evaluate lighting.");
         }
 
         HairData hairData;
@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static GUIContent colorParameterization = new GUIContent("Color Mode", "Indicates the way the hair fiber cortex color is parameterized.");
             public static GUIContent geometryType = new GUIContent("Geometry Type", "Indicates the type of geometry being used to represent the hair, allowing the shading model to make informed approximations.");
-            public static GUIContent scatteringMode = new GUIContent("Scattering Mode", "TODO");
+            public static GUIContent scatteringMode = new GUIContent("Scattering Mode", "Indicates the light scattering method in a volume of hair.");
         }
 
         HairData hairData;
@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Hair specific properties GUI
             AddProperty(Styles.geometryType, () => hairData.geometryType, (newValue) => hairData.geometryType = newValue);
 
-            if (hairData.materialType == HairData.MaterialType.Marschner)
+            if (hairData.materialType == HairData.MaterialType.Physical)
             {
                 // For now only allow scattering mode for strands, as the multiple scattering was developed against this for 21.2.
                 if (hairData.geometryType == HairData.GeometryType.Strands)

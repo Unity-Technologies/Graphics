@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Probe volume debug exposure compensation to match the Lighting debug one.
 - Fixed misleading text and improving the eye scene material samples. (case 1368665)
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+- Fixed missing DisallowMultipleComponent annotations in HDAdditionalReflectionData and HDAdditionalLightData (case 1365879).
+- Fixed support for light/shadow dimmers (volumetric or not) in path tracing.
+- Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
 
 ## [12.0.0] - 2021-01-11
 
