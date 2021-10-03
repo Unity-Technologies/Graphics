@@ -52,6 +52,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter maximumIntensity = new MinFloatParameter(10f, 0f);
 
         /// <summary>
+        /// Path intersection offset and jitter scale
+        /// </summary>
+        [Tooltip("Path intersection offset (x,y) and jitter scale (z,w).")]
+        public Vector4Parameter jitterParams = new Vector4Parameter(new Vector4(0, 0, 1, 1));
+
+        /// <summary>
         /// Default constructor for the path tracing volume component.
         /// </summary>
         public PathTracing()
@@ -256,6 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int width, height;
             public RayTracingAccelerationStructure accelerationStructure;
             public HDRaytracingLightCluster lightCluster;
+            public Vector4 jitterParams;
 
             public TextureHandle output;
             public TextureHandle sky;
@@ -276,6 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.height = hdCamera.actualHeight;
                 passData.accelerationStructure = RequestAccelerationStructure();
                 passData.lightCluster = RequestLightCluster();
+                passData.jitterParams = m_PathTracingSettings.jitterParams.value;
 
                 passData.shaderVariablesRaytracingCB = m_ShaderVariablesRayTracingCB;
                 passData.shaderVariablesRaytracingCB._RaytracingNumSamples = (int)m_SubFrameManager.subFrameCount;
@@ -320,6 +328,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingTextureParam(data.pathTracingShader, HDShaderIDs._FrameTexture, data.output);
                         ctx.cmd.SetRayTracingMatrixParam(data.pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDirWS);
                         ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracedDoFConstants, data.dofParameters);
+                        ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracedJitterParams, data.jitterParams);
 
                         // Run the computation
                         ctx.cmd.DispatchRays(data.pathTracingShader, "RayGen", (uint)data.width, (uint)data.height, 1);

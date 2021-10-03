@@ -34,6 +34,9 @@ RW_TEXTURE2D_X(float4, _FrameTexture);
 // DoF related parameters
 float4 _PathTracedDoFConstants; // x: aperture radius, y: focus distance, zw: unused
 
+// Path intersection offset and jitter scale
+float4   _PathTracedJitterParams;
+
 [shader("miss")]
 void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
 {
@@ -100,8 +103,8 @@ void RayGen()
 
     // Jitter them (we use 4x10 dimensions of our sequence during path tracing atm, so pick the next available ones)
     float4 jitteredPixelCoord = float4(currentPixelCoord, 1.0, 1.0);
-    jitteredPixelCoord.x += GetSample(currentPixelCoord, _RaytracingSampleIndex, 40);
-    jitteredPixelCoord.y += GetSample(currentPixelCoord, _RaytracingSampleIndex, 41);
+    jitteredPixelCoord.x += GetSample(currentPixelCoord, _RaytracingSampleIndex, 40) * _PathTracedJitterParams.z;
+    jitteredPixelCoord.y += GetSample(currentPixelCoord, _RaytracingSampleIndex, 41) * _PathTracedJitterParams.w;
 
     // Compute the ray direction from those coordinates (for zero aperture
     float3 directionWS = -normalize(mul(jitteredPixelCoord, _PixelCoordToViewDirWS).xyz);
@@ -141,7 +144,7 @@ void RayGen()
     pathIntersection.value = 1.0;
     pathIntersection.alpha = 1.0;
     pathIntersection.remainingDepth = _RaytracingMaxRecursion;
-    pathIntersection.pixelCoord = currentPixelCoord;
+    pathIntersection.pixelCoord = currentPixelCoord + uint2(_PathTracedJitterParams.x, _PathTracedJitterParams.y);
     pathIntersection.maxRoughness = 0.0;
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel

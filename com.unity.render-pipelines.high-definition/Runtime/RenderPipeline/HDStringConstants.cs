@@ -590,6 +590,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Path tracing variables
         public static readonly int _PathTracedDoFConstants = Shader.PropertyToID("_PathTracedDoFConstants");
         public static readonly int _InvViewportScaleBias = Shader.PropertyToID("_InvViewportScaleBias");
+        public static readonly int _PathTracedJitterParams = Shader.PropertyToID("_PathTracedJitterParams");
 
         // Light Cluster
         public static readonly int _LightDatasRT = Shader.PropertyToID("_LightDatasRT");
