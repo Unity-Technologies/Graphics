@@ -148,6 +148,12 @@ namespace UnityEngine.Rendering.Universal
             if (m_Mesh == null)
                 m_Mesh = new Mesh();
 
+            if (indices.Length == 0)
+            {
+                m_Mesh.Clear();
+                return;
+            }
+
             int capsuleCount = 0;
             for (int i = 0; i < indices.Length; i += 2)
             {
@@ -201,6 +207,7 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<ShadowEdge> calculatedEdges;
             NativeArray<int> calculatedStartingEdges;
             NativeArray<bool> calculatedIsClosedArray;
+
             ShadowUtility.CalculateEdgesFromLines(generatedIndices, out calculatedEdges, out calculatedStartingEdges, out calculatedIsClosedArray);
 
             if (m_EdgeProcessing == EdgeProcessing.Clipping)
@@ -211,7 +218,13 @@ namespace UnityEngine.Rendering.Universal
 
                 ShadowUtility.ClipEdges(generatedVertices, calculatedEdges, calculatedStartingEdges, calculatedIsClosedArray, contractEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
 
-                m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, calculatedIsClosedArray, true, IShadowShape2DProvider.OutlineTopology.Lines);
+                if(clippedStartingIndices.Length > 0)
+                    m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, calculatedIsClosedArray, true, IShadowShape2DProvider.OutlineTopology.Lines);
+                else
+                {
+                    m_BoundingSphere = new BoundingSphere();
+                    m_Mesh.Clear();
+                }
 
                 clippedVertices.Dispose();
                 clippedEdges.Dispose();
@@ -237,6 +250,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_Mesh == null)
                 m_Mesh = new Mesh();
+
+            if (indices.Length == 0)
+            {
+                m_Mesh.Clear();
+                return;
+            }
 
             if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Triangles)
             {
