@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
             int startWritePos = vertexWritePos;
             for (int i = 0; i < segments; i++)
             {
-                angle = (deltaAngle * (float)i / (float)segments);
+                angle = -(deltaAngle * (float)i / (float)segments);
                 float x = r * Mathf.Cos(angle) + center.x;
                 float y = r * Mathf.Sin(angle) + center.y;
                 generatedIndices[indexWritePos++] = vertexWritePos;
@@ -154,6 +154,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
+            int circleCount = 0;
             int capsuleCount = 0;
             for (int i = 0; i < indices.Length; i += 2)
             {
@@ -161,14 +162,20 @@ namespace UnityEngine.Rendering.Universal
                 int index1 = indices[i + 1];
 
                 if (radii[index0] > 0 || radii[index1] > 0)
-                    capsuleCount++;
+                {
+                    if (index0 == index1)
+                        circleCount++;
+                    else
+                        capsuleCount++;
+                }
             }
 
             int capsuleStraightSegments = capsuleCount * 2;
-            int capsuleCircleSegments = capsuleCount * k_CapsuleCapSegments;  // This can be refined later
+            int capsuleCapSegments = capsuleCount * k_CapsuleCapSegments;  // This can be refined later
+            int circleSegments = circleCount * 2 * k_CapsuleCapSegments;
 
-            int lineCount = (indices.Length >> 1) - capsuleCount;
-            int indexCount = 2 * (lineCount + capsuleStraightSegments + 2* capsuleCircleSegments);
+            int lineCount = (indices.Length >> 1) - (capsuleCount + circleCount);
+            int indexCount = 2 * (lineCount + capsuleStraightSegments + (2 * capsuleCapSegments) + circleSegments);
             int vertexCount = indexCount;  // Keep this simple for now
 
             NativeArray<Vector3> generatedVertices = new NativeArray<Vector3>(vertexCount, Allocator.Temp);
