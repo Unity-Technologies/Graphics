@@ -315,7 +315,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     edgeIndex = GetFirstUnusedIndex(usedEdges);
                     startingEdge = edgeIndex;
-                    shapeStartingEdge[currentShape++] = edgeIndex;
+                    shapeStartingEdge[currentShape++] = i;
                     findStartingEdge = false;
                 }
 
