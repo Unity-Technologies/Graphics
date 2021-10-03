@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal
     [Serializable]
     internal class ShadowMesh2D : IShadowShape2DProvider.ShadowShapes2D
     {
-        const int k_CapsuleCircleSegments = 8;
+        const int k_CapsuleCapSegments = 8;
 
         public enum EdgeProcessing
         {
@@ -28,32 +28,43 @@ namespace UnityEngine.Rendering.Universal
         public  EdgeProcessing edgeProcessing { get { return m_EdgeProcessing; } set { m_EdgeProcessing = value; } }
         public float contractEdge { get { return m_ContractEdge; } set { m_ContractEdge = value; } }
 
-        private void AddCircle(Vector3 center, float r, Vector3 otherCenter, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, ref int vertexWritePos, ref int indexWritePos)
+        private void AddCircle(Vector3 center, float r, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, ref int vertexWritePos, ref int indexWritePos)
+        {
+            // Special case a full circle
+            float segments = 2 * k_CapsuleCapSegments; 
+            float deltaAngle = 2 * Mathf.PI;
+            float angle;
+            int startWritePos = vertexWritePos;
+            for (int i = 0; i < segments; i++)
+            {
+                angle = (deltaAngle * (float)i / (float)segments);
+                float x = r * Mathf.Cos(angle) + center.x;
+                float y = r * Mathf.Sin(angle) + center.y;
+                generatedIndices[indexWritePos++] = vertexWritePos;
+                generatedIndices[indexWritePos++] = i+1 < segments ? vertexWritePos+1 : startWritePos;
+                generatedVertices[vertexWritePos++] = new Vector3(x, y, 0);
+            }
+            
+            
+        }
+
+        private void AddCapsuleCap(Vector3 center, float r, Vector3 otherCenter, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, ref int vertexWritePos, ref int indexWritePos)
         {
             float startAngle;
             float endAngle;
 
             // Special case a full circle
-            float segments = k_CapsuleCircleSegments;
-            if (center.x == otherCenter.x && center.y == otherCenter.y)
-            {
-                startAngle = 0;
-                endAngle = startAngle + 2 * Mathf.PI;
-                segments = 2 * k_CapsuleCircleSegments;
-            }
-            // Normal case for capsule
-            else
-            {
-                Vector3 otherCenterDir = (otherCenter - center).normalized;
-                float absCenterAngle = Mathf.Acos(Vector3.Dot(otherCenterDir, new Vector3(1, 0, 0)));
-                float angleSign = Vector3.Dot(otherCenterDir, new Vector3(0, 1, 0)) < 0 ? -1f : 1f;
-                float centerAngle = absCenterAngle * angleSign;
+            float segments = k_CapsuleCapSegments;
+            Vector3 otherCenterDir = (otherCenter - center).normalized;
+            float absCenterAngle = Mathf.Acos(Vector3.Dot(otherCenterDir, new Vector3(1, 0, 0)));
+            float angleSign = Vector3.Dot(otherCenterDir, new Vector3(0, 1, 0)) < 0 ? -1f : 1f;
+            float centerAngle = absCenterAngle * angleSign;
 
-                // This is hard coded for a half circle
-                float halfPI = 0.5f * Mathf.PI;
-                startAngle = centerAngle + halfPI;
-                endAngle = startAngle + Mathf.PI;
-            }
+            // This is hard coded for a half circle
+            float halfPI = 0.5f * Mathf.PI;
+            startAngle = centerAngle + halfPI;
+            endAngle = startAngle + Mathf.PI;
+
 
             float deltaAngle = endAngle - startAngle;
             float angle;
@@ -64,12 +75,13 @@ namespace UnityEngine.Rendering.Universal
                 float x = r * Mathf.Cos(angle) + center.x;
                 float y = r * Mathf.Sin(angle) + center.y;
                 generatedIndices[indexWritePos++] = vertexWritePos;
-                generatedIndices[indexWritePos++] = vertexWritePos+1;
+                generatedIndices[indexWritePos++] = vertexWritePos + 1;
                 generatedVertices[vertexWritePos++] = new Vector3(x, y, 0);
             }
             angle = deltaAngle + startAngle;
             generatedVertices[vertexWritePos++] = new Vector3(r * Mathf.Cos(angle) + center.x, r * Mathf.Sin(angle) + center.y, 0);
         }
+
 
         private void AddCapsule(Vector3 pt0, Vector3 pt1, float r0, float r1, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, ref int vertexWritePos, ref int indexWritePos)
         {
@@ -88,10 +100,10 @@ namespace UnityEngine.Rendering.Universal
             int circle0Start = vertexWritePos;
 
             // Add circles
-            AddCircle(pt0, r0, pt1, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
+            AddCapsuleCap(pt0, r0, pt1, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
             generatedIndices[indexWritePos++] = vertexWritePos - 1;
             generatedIndices[indexWritePos++] = vertexWritePos;
-            AddCircle(pt1, r1, pt0, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
+            AddCapsuleCap(pt1, r1, pt0, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
             generatedIndices[indexWritePos++] = vertexWritePos - 1;
             generatedIndices[indexWritePos++] = circle0Start;
         }
@@ -147,7 +159,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             int capsuleStraightSegments = capsuleCount * 2;
-            int capsuleCircleSegments = capsuleCount * k_CapsuleCircleSegments;  // This can be refined later
+            int capsuleCircleSegments = capsuleCount * k_CapsuleCapSegments;  // This can be refined later
 
             int lineCount = (indices.Length >> 1) - capsuleCount;
             int indexCount = 2 * (lineCount + capsuleStraightSegments + 2* capsuleCircleSegments);
@@ -173,7 +185,7 @@ namespace UnityEngine.Rendering.Universal
                     Vector3 pt1 = vertices[v1];
 
                     if (vertices[v0].x == vertices[v1].x && vertices[v0].y == vertices[v1].y)
-                        AddCircle(pt0, r0, pt1, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
+                        AddCircle(pt0, r0, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
                     else
                         AddCapsule(pt0, pt1, r0, r1, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
 

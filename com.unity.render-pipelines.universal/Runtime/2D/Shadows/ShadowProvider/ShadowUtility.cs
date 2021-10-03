@@ -486,10 +486,11 @@ namespace UnityEngine.Rendering.Universal
             int k_SafeSize = 40;
             NativeArray<Vector3> tempVertices = new NativeArray<Vector3>(inVertices.Length * k_SafeSize, Allocator.Temp);
             NativeArray<ShadowEdge> tempEdges = new NativeArray<ShadowEdge>(inEdges.Length * k_SafeSize, Allocator.Temp);
-            outShapeStartingEdge = new NativeArray<int>(inShapeStartingEdge.Length, Allocator.Temp);
+            NativeArray<int> tmpShapeStartingEdge = new NativeArray<int>(inShapeStartingEdge.Length, Allocator.Temp);
+            
 
-            for (int i = 0; i < outShapeStartingEdge.Length; i++)
-                outShapeStartingEdge[i] = -1;
+            for (int i = 0; i < tmpShapeStartingEdge.Length; i++)
+                tmpShapeStartingEdge[i] = -1;
 
             int currentTempVertexIndex = 0;
             int currentTempEdgeIndex = 0;
@@ -516,7 +517,7 @@ namespace UnityEngine.Rendering.Universal
                         int outputPathLength = ShadowPathClipper.GetOutputPathLength();
                         if (outputPathLength > 0)
                         {
-                            outShapeStartingEdge[shapeStartIndex] = currentTempEdgeIndex;
+                            tmpShapeStartingEdge[shapeStartIndex] = currentTempEdgeIndex;
                             ShadowPathClipper.GetOutputPath(tempVertices, currentTempVertexIndex);
 
                             // Create edges
@@ -533,7 +534,7 @@ namespace UnityEngine.Rendering.Universal
                 else
                 {
                     // Copy
-                    outShapeStartingEdge[shapeStartIndex] = currentTempEdgeIndex;
+                    tmpShapeStartingEdge[shapeStartIndex] = currentTempEdgeIndex;
 
                     ShadowEdge curEdge = default;
                     int lastVertexIndex =  + numberOfEdges - 1;
@@ -550,10 +551,21 @@ namespace UnityEngine.Rendering.Universal
             }
 
 
+            int shapeCount = 0;
+            for (int i = 0; i < tmpShapeStartingEdge.Length; i++)
+                shapeCount += tmpShapeStartingEdge[i] >= 0 ? 1 : 0;
 
             // Copy our arrays out.
             outVertices = new NativeArray<Vector3>(currentTempVertexIndex, Allocator.Temp);
             outEdges = new NativeArray<ShadowEdge>(currentTempEdgeIndex, Allocator.Temp);
+            outShapeStartingEdge = new NativeArray<int>(shapeCount, Allocator.Temp);
+
+            shapeCount = 0;
+            for (int i = 0; i < tmpShapeStartingEdge.Length; i++)
+            {
+                if(tmpShapeStartingEdge[i] >= 0)
+                    outShapeStartingEdge[shapeCount++] = tmpShapeStartingEdge[i];
+            }
 
             for (int i = 0; i < outVertices.Length; i++)
                 outVertices[i] = tempVertices[i];
