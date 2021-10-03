@@ -238,14 +238,17 @@ namespace UnityEngine.Rendering.Universal
                                 var material = shadowCaster.rendererSilhouette == ShadowCaster2D.RendererSilhoutteOptions.SelfShadowed ? selfShadowMaterial : unshadowMaterial;
                                 if (material != null)
                                 {
+                                    int numberOfMaterials = renderer.sharedMaterials.Length;
                                     if (shadowCaster.rendererSilhouette == ShadowCaster2D.RendererSilhoutteOptions.SelfShadowed)
                                     {
-                                        cmdBuffer.DrawRenderer(renderer, material, 0, pass);
+                                        for(int materialIndex=0; materialIndex < numberOfMaterials; materialIndex++)
+                                            cmdBuffer.DrawRenderer(renderer, material, materialIndex, pass);
                                     }
                                     // No self shadowing
                                     else
                                     {
-                                        cmdBuffer.DrawRenderer(renderer, material, 0, pass);   // Draw the shadowed portion of the sprite
+                                        for (int materialIndex = 0; materialIndex < numberOfMaterials; materialIndex++)
+                                            cmdBuffer.DrawRenderer(renderer, material, materialIndex, pass);   // Draw the shadowed portion of the sprite
                                     }
                                 }
                             }
