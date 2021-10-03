@@ -61,10 +61,9 @@ namespace UnityEngine.Rendering.Universal
             float centerAngle = absCenterAngle * angleSign;
 
             // This is hard coded for a half circle
-            float halfPI = 0.5f * Mathf.PI;
-            startAngle = centerAngle + halfPI;
-            endAngle = startAngle + Mathf.PI;
-
+            float ThreeHalfsPI = 1.5f * Mathf.PI;
+            startAngle = centerAngle + ThreeHalfsPI;
+            endAngle = startAngle - Mathf.PI;
 
             float deltaAngle = endAngle - startAngle;
             float angle;
