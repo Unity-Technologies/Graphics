@@ -133,7 +133,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public void Update()
         {
-            // Tear down node all existing active property drawers, everything is getting rebuilt
+            // Tear down all existing active property drawers, everything is getting rebuilt
             foreach (IPropertyDrawer propDrawer in m_AllActivePropertyDrawers)
                 propDrawer.DisposePropertyDrawer();
             m_AllActivePropertyDrawers.Clear();
