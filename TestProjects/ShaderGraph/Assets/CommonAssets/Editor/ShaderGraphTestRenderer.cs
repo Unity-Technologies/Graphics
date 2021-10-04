@@ -57,8 +57,8 @@ public class ShaderGraphTestRenderer
         // use a non-standard transform, so that view, object, etc. transforms are non trivial
         RenderQuadPreview(graph, target, testPosition, testRotation, setupMaterial, Mode.DIFF, useSRP: true);
 
+        // default expected color is green (test shaders should be set up to return green on success)
         int incorrectPixels = CountPixelsNotEqual(target, expectedColor ?? new Color32(0, 255, 0, 255), false);
-        //Debug.Log($"{filePrefix}: {target.width}x{target.height} Failing pixels: {incorrectPixels}");
 
         if (incorrectPixels != expectedIncorrectPixels)
         {
@@ -222,8 +222,6 @@ public class ShaderGraphTestRenderer
         camXform.rotation = sceneRotation;
         previewScene.camera.orthographicSize = 0.5f;
         previewScene.camera.orthographic = true;
-
-        // EditorUtility.SetCameraAnimateMaterialsTime(sceneResources.camera, 7.3542f);
 
         graph.ValidateGraph();
 

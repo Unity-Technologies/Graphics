@@ -111,13 +111,13 @@ float4 TransformObjectToHClip(float3 positionOS)
     return mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), float4(positionOS, 1.0)));
 }
 
-// Tranforms position from world space to homogenous space
+// Transforms position from world space to homogenous space
 float4 TransformWorldToHClip(float3 positionWS)
 {
     return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
 }
 
-// Tranforms position from view space to homogenous space
+// Transforms position from view space to homogenous space
 float4 TransformWViewToHClip(float3 positionVS)
 {
     return mul(GetViewToHClipMatrix(), float4(positionVS, 1.0));
@@ -151,7 +151,7 @@ float3 TransformWorldToObjectDir(float3 dirWS, bool doNormalize = true)
     return dirOS;
 }
 
-// Tranforms vector from world space to view space
+// Transforms vector from world space to view space
 real3 TransformWorldToViewDir(real3 dirWS, bool doNormalize = false)
 {
     float3 dirVS = mul((real3x3)GetWorldToViewMatrix(), dirWS).xyz;
@@ -161,7 +161,7 @@ real3 TransformWorldToViewDir(real3 dirWS, bool doNormalize = false)
     return dirVS;
 }
 
-// Tranforms vector from view space to world space
+// Transforms vector from view space to world space
 real3 TransformViewToWorldDir(real3 dirVS, bool doNormalize = false)
 {
     float3 dirWS = mul((real3x3)GetViewToWorldMatrix(), dirVS).xyz;
@@ -171,21 +171,21 @@ real3 TransformViewToWorldDir(real3 dirVS, bool doNormalize = false)
     return dirWS;
 }
 
-// Tranforms normal from world space to view space
+// Transforms normal from world space to view space
 real3 TransformWorldToViewNormal(real3 normalWS, bool doNormalize = false)
 {
-    // assuming view matrix is not non-uniformly scaled, we can use direction transform
+    // assuming view matrix is uniformly scaled, we can use direction transform
     return TransformWorldToViewDir(normalWS, doNormalize);
 }
 
-// Tranforms normal from view space to world space
+// Transforms normal from view space to world space
 real3 TransformViewToWorldNormal(real3 normalVS, bool doNormalize = false)
 {
-    // assuming view matrix is not non-uniformly scaled, we can use direction transform
+    // assuming view matrix is uniformly scaled, we can use direction transform
     return TransformViewToWorldDir(normalVS, doNormalize);
 }
 
-// Tranforms vector from world space to homogenous space
+// Transforms vector from world space to homogenous space
 real3 TransformWorldToHClipDir(real3 directionWS, bool doNormalize = false)
 {
     float3 dirHCS = mul((real3x3)GetWorldToHClipMatrix(), directionWS).xyz;
