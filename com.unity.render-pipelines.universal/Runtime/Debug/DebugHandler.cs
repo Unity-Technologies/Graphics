@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 case DebugSceneOverrideMode.Overdraw:
                 {
-                    cmd.SetGlobalColor(k_DebugColorPropertyId, new Color(1f, 1f, 1f, 1));
+                    cmd.SetGlobalColor(k_DebugColorPropertyId, Color.white);
                     break;
                 }
 
