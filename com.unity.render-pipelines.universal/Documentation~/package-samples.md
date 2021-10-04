@@ -6,7 +6,9 @@ A sample is a set of assets that you can import into your Unity project and use 
 
 ## Importing package samples
 
-You import package samples through the [Unity Package Manager window](https://docs.unity3d.com/Manual/upm-ui.html). To do this:
+Before you import any package samples for URP, be aware that they require your project to be URP-compatible. A project is URP-compatible if you [created it from a template](creating-a-new-project-with-urp.md) or manually [installed and set up URP in it](InstallURPIntoAProject.md). If the project is not URP-compatible, errors can occur when you import a package sample.
+
+To import package samples, use the [Unity Package Manager window](https://docs.unity3d.com/Manual/upm-ui.html):
 
 1. Go to **Window** > **Package Manager** and, in the [packages list view](https://docs.unity3d.com/Manual/upm-ui-list.html), select **Universal RP**.
 2. In the package [details view](https://docs.unity3d.com/Manual/upm-ui-details.html), find the **Samples** section.
