@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing DisallowMultipleComponent annotations in HDAdditionalReflectionData and HDAdditionalLightData (case 1365879).
 - Fixed support for light/shadow dimmers (volumetric or not) in path tracing.
 - Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
+- Fixed decal position when created from context menu. (case 1368987)
 
 ## [12.0.0] - 2021-01-11
 
