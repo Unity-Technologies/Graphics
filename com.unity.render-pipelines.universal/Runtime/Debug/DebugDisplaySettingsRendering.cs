@@ -40,13 +40,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        int m_MaxPixelCost = 10;
-
-        internal int maxPixelCost
-        {
-            get => m_MaxPixelCost;
-            set => m_MaxPixelCost = value;
-        }
+        internal int maxPixelCost { get; set; } = 10;
 
         void UpdateDebugSceneOverrideMode()
         {
