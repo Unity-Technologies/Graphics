@@ -2,6 +2,8 @@
 
 URP Package Samples is a [package sample](package-samples.md) for the Universal Render Pipeline (URP). It contains example shaders, C# scripts, and other assets you can build upon, use to learn how to use a feature, or use directly in your application. For information on how to import URP Package Samples into your project, see [Importing package samples](package-samples.md#importing-package-samples).
 
+Each example uses its own [URP Asset](universalrp-asset.md) so, if you want to build an example scene, [add the example's URP Asset to your Graphics settings](configuring-universalrp-for-use.md#adding-the-asset-to-your-graphics-settings). If you don't do this, Unity might strip shaders or render passes that the example uses.
+
 ## Camera Stacking
 
 The `URP Package Samples/CameraStacking` folder contains examples for [Camera Stacking](camera-stacking.md). The following table describes each Camera Stacking example in this folder.
