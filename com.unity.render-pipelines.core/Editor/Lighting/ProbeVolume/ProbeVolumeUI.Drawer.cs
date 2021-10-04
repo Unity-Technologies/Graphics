@@ -147,7 +147,6 @@ namespace UnityEditor.Experimental.Rendering
             }
 
             EditorGUI.BeginDisabledGroup(!hasProfile);
-
             var rect = EditorGUILayout.GetControlRect(true);
             EditorGUI.BeginProperty(rect, Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride);
             EditorGUI.BeginProperty(rect, Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride);
@@ -171,6 +170,9 @@ namespace UnityEditor.Experimental.Rendering
 
             EditorGUILayout.LabelField("Subdivision Overrides", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(serialized.overridesSubdivision, Styles.s_OverridesSubdivision);
+            EditorGUI.BeginDisabledGroup(!serialized.overridesSubdivision.boolValue);
+
             int value = serialized.highestSubdivisionLevelOverride.intValue;
 
             // We were initialized, but we cannot know the highest subdiv statically, so we need to resort to this.
@@ -183,13 +185,14 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
 
-            int minSubdivInVolume = serialized.lowestSubdivisionLevelOverride.intValue;
-            int maxSubdivInVolume = serialized.highestSubdivisionLevelOverride.intValue;
+            int minSubdivInVolume = serialized.overridesSubdivision.boolValue ? serialized.lowestSubdivisionLevelOverride.intValue : 0;
+            int maxSubdivInVolume = serialized.overridesSubdivision.boolValue ? serialized.highestSubdivisionLevelOverride.intValue : maxSubdiv;
             EditorGUI.indentLevel--;
 
             if (hasProfile)
                 EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - maxSubdivInVolume)}m and {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - minSubdivInVolume)}m", MessageType.Info);
 
+            EditorGUI.EndDisabledGroup();
             EditorGUI.EndDisabledGroup();
 
             if (EditorGUI.EndChangeCheck())
