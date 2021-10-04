@@ -10,7 +10,7 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ### Fixed
-- Fixed issue when changing volume profiles in runtime with a script (case 1364256).
+- Fixed issue when changing volume profiles at runtime with a script (case 1364256).
 
 ## [12.0.0] - 2021-01-11
 
