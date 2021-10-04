@@ -4,6 +4,15 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.0] - 2021-09-23
+
+### Added
+  - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
+
+### Fixed
+  - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
+  - Fixed unhandled exception when loading a subgraph with duplicate slots [1369039].
+
 ## [12.0.0] - 2021-01-11
 
 ### Added

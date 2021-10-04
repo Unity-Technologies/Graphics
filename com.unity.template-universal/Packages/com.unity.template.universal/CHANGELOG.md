@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [12.2.0] - 2021-09-24
+
 ### Fixed
 - Fixed an issue that caused "ForwardRendererData has been deprecated" error message in the console when upgrading to 21.2. 
 
