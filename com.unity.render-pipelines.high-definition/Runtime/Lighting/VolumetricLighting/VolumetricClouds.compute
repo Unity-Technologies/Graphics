@@ -29,6 +29,10 @@
 #pragma multi_compile _ LOCAL_VOLUMETRIC_CLOUDS
 #pragma multi_compile _ USE_INTERMEDIATE_BUFFER
 
+#if !defined(LOCAL_VOLUMETRIC_CLOUDS)
+    #define DISTANT_VOLUMETRIC_CLOUDS
+#endif
+
 //#define WITHOUT_LDS
 // #pragma enable_d3d11_debug_symbols
 
@@ -838,7 +842,7 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
     if (any(traceCoord.xy >= uint2(_TraceScreenSize.xy)))
         return;
 
-#if !defined(LOCAL_VOLUMETRIC_CLOUDS)
+#if defined(DISTANT_VOLUMETRIC_CLOUDS)
     // Clear the cloud value
     _CloudsLightingTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = float4(0.0, 0.0, 0.0, 1.0);
 
@@ -874,17 +878,26 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
 
     // Evaluate the cloud transmittance
     VolumetricRayResult result = TraceVolumetricRay(ray);
-
-    // Compute the cloud depths
-    float cloudMinDistance = clamp(_ProjectionParams.y, min(result.meanDistance, ray.maxRayLength), _ProjectionParams.z);
-    float cloudMinDepth = result.invalidRay ? ray.depthValue : ConvertCloudDepth(ray.direction * cloudMinDistance);
-
+   
     // Apply a fast tonemap
     result.inScattering = applyFastTonemapping(result.inScattering);
 
     // output the result
     _CloudsLightingTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = float4(result.inScattering, result.transmittance);
+
+    // Minimal distance to the clouds
+    float minimalDistance = min(result.meanDistance, ray.maxRayLength);
+
+    // If we are processing local clouds, we store the distance information as a depth, otherwise we just store the distance (for the fog).
+#if defined(LOCAL_VOLUMETRIC_CLOUDS)
+    // Compute the cloud depth
+    float cloudMinDistance = clamp(minimalDistance, _ProjectionParams.y, _ProjectionParams.z);
+    float cloudMinDepth = result.invalidRay ? ray.depthValue : ConvertCloudDepth(ray.direction * cloudMinDistance);
     _CloudsDepthTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = cloudMinDepth;
+#else
+    // Output the cloud distance
+    _CloudsDepthTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = result.invalidRay ? ray.maxRayLength : max(minimalDistance, _ProjectionParams.y);
+#endif
 }
 
 void FillCloudReprojectionLDS(uint groupIndex, uint2 groupOrigin)
@@ -980,7 +993,8 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
     float2 motionVector = EvaluateCloudMotionVectors(fullResCoord, currentCloudDepth, 1.0);
 #else
-    float2 motionVector = EvaluateCloudMotionVectors(fullResCoord, currentCloudDepth, 0.0);
+    // If we are processing clouds as distant, we have no choice but to consider them very far.
+    float2 motionVector = EvaluateCloudMotionVectors(fullResCoord, UNITY_RAW_FAR_CLIP_VALUE, 0.0);
 #endif
 
     // Compute the history pixel coordinate to tap from
@@ -1379,6 +1393,12 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     // Compute the view direction
     float3 viewDir = -normalize(cloudPosInput.positionWS);
 
+    // If the clouds are distant clouds, we need to adjust the position world space as the far plane is probably too close for the fog to be correct
+#if defined(DISTANT_VOLUMETRIC_CLOUDS)
+    float cloudDistance = GetCloudDepth_LDS(groupThreadId, 0);
+    cloudPosInput.positionWS = -viewDir * cloudDistance;
+#endif
+
     // Compute the fog attenuation of the clouds
     float3 fogColor;
     float3 fogOpacity;
@@ -1460,7 +1480,7 @@ void COMBINE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.w = saturate(currentClouds.w);
 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
-    float cloudsDepth = LOAD_TEXTURE2D_X(_DepthStatusTexture, finalCoord.xy).x;
+    float cloudsDepth = LOAD_TEXTURE2D_X(_DepthStatusTexture, finalCoord.xy).z;
 #else
     float cloudsDepth = UNITY_RAW_FAR_CLIP_VALUE;
 #endif
@@ -1470,6 +1490,12 @@ void COMBINE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
 
     // Compute the view direction
     float3 viewDir = -normalize(cloudPosInput.positionWS);
+
+    // If the clouds are distant clouds, we need to adjust the position world space as the far plane is probably too close for the fog to be correct
+#if defined(DISTANT_VOLUMETRIC_CLOUDS)
+    float cloudDistance = GetCloudDepth_LDS(groupThreadId, 0);
+    cloudPosInput.positionWS = -viewDir * LOAD_TEXTURE2D_X(_DepthStatusTexture, finalCoord.xy).z;
+#endif
 
     // Compute the fog attenuation of the clouds
     float3 fogColor;
