@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
 
         public ShaderResources shaders = null;
 
-        const int k_LatestAssetVersion = 1;
+        const int k_LatestAssetVersion = 2;
         [SerializeField] int m_AssetVersion = 0;
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
@@ -291,9 +291,6 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_AssetVersion <= 0)
             {
-                // To avoid breaking existing projects, keep the old AfterOpaques behaviour. The new AfterTransparents default will only apply to new projects.
-                m_CopyDepthMode = CopyDepthMode.AfterOpaques;
-
                 var anyNonUrpRendererFeatures = false;
 
                 foreach (var feature in m_RendererFeatures)
@@ -318,6 +315,13 @@ namespace UnityEngine.Rendering.Universal
                 // where we cannot know if they properly declare needed inputs.
                 m_IntermediateTextureMode = anyNonUrpRendererFeatures ? IntermediateTextureMode.Always : IntermediateTextureMode.Auto;
             }
+
+            if (m_AssetVersion <= 1)
+            {
+                // To avoid breaking existing projects, keep the old AfterOpaques behaviour. The new AfterTransparents default will only apply to new projects.
+                m_CopyDepthMode = CopyDepthMode.AfterOpaques;
+            }
+
 
             m_AssetVersion = k_LatestAssetVersion;
         }
