@@ -349,7 +349,7 @@
 }
 
 {
-    "m_SGVersion": 0,
+    "m_SGVersion": 1,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalLitSubTarget",
     "m_ObjectId": "5a932daabebc426b9183096786e79c9d",
     "m_WorkflowMode": 1,
