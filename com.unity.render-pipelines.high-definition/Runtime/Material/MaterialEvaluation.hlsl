@@ -44,9 +44,9 @@ void AccumulateIndirectLighting(IndirectLighting src, inout AggregateLighting ds
 struct AmbientOcclusionFactor
 {
     real3 indirectAmbientOcclusion;
-    real3 directAmbientOcclusion;
+    real directAmbientOcclusion;
     real3 indirectSpecularOcclusion;
-    real3 directSpecularOcclusion;
+    real directSpecularOcclusion;
 };
 
 // Get screen space ambient occlusion only:
@@ -105,8 +105,9 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
 
     aoFactor.indirectSpecularOcclusion = GTAOMultiBounce(min(specularOcclusionFromData, indirectSpecularOcclusion), fresnel0);
     aoFactor.indirectAmbientOcclusion = GTAOMultiBounce(min(ambientOcclusionFromData, indirectAmbientOcclusion), diffuseColor);
-    aoFactor.directSpecularOcclusion = GTAOMultiBounce(directSpecularOcclusion, fresnel0);
-    aoFactor.directAmbientOcclusion = GTAOMultiBounce(directAmbientOcclusion, diffuseColor);
+    // Note: when affecting direct lighting we don't used the fake bounce.
+    aoFactor.directSpecularOcclusion = directSpecularOcclusion;
+    aoFactor.directAmbientOcclusion = directAmbientOcclusion;
 }
 
 void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinData builtinData, inout AggregateLighting lighting)
