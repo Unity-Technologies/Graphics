@@ -57,7 +57,7 @@ namespace UnityEditor.VFX.UI
 
         static SearchProvider CreateTextureProvider(Type type, TextureDimension textureDimension)
         {
-            return new SearchProvider("tex", "Texture", (context, provider) => FetchTextures(type, textureDimension, context.searchQuery));
+            return new SearchProvider("tex", "Texture", (context, _) => FetchTextures(type, textureDimension, context.searchQuery));
         }
 
         static IEnumerable<SearchItem> FetchTextures(Type type, TextureDimension textureDimension, string userQuery)
@@ -73,8 +73,9 @@ namespace UnityEditor.VFX.UI
             //    renderTextureGroupProvider = createGroupProviderMethod.Invoke(null, new object[] { adbProvider, "Render Textures", 1, true }) as SearchProvider;;
             //}
 
-            var adbProvider = Search.SearchService.GetProvider("adb");
-            using (var query = Search.SearchService.CreateContext(adbProvider, $"t:{type.Name} {userQuery}"))
+            var providers = new[] {Search.SearchService.GetProvider("adb")};
+
+            using (var query = Search.SearchService.CreateContext(providers, $"t:{type.Name} {userQuery}", SearchFlags.Packages))
             using (var request = Search.SearchService.Request(query))
             {
                 foreach (var r in request)
@@ -86,11 +87,12 @@ namespace UnityEditor.VFX.UI
 
             if (type != typeof(RenderTexture))
             {
-                using (var query = Search.SearchService.CreateContext(adbProvider, $"t:{nameof(RenderTexture)} {userQuery}"))
+                using (var query = Search.SearchService.CreateContext(providers, $"t:{nameof(RenderTexture)} {userQuery}", SearchFlags.Packages))
                 using (var request = Search.SearchService.Request(query))
                 {
                     foreach (var r in request)
                     {
+                        if (r == null) continue;
                         var rt = r.ToObject<RenderTexture>();
                         if (rt.dimension == textureDimension)
                         {

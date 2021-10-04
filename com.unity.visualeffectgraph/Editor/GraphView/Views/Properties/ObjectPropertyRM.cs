@@ -38,6 +38,7 @@ namespace UnityEditor.VFX.UI
             m_TextField.Add(button);
             Add(m_TextField);
 
+            m_TextField.RegisterCallback<ClickEvent>(OnClickToShow);
             RegisterCallback<DragUpdatedEvent>(OnDragUpdate);
             RegisterCallback<DragEnterEvent>(OnDragEnter);
             RegisterCallback<DragPerformEvent>(OnDragPerformed);
@@ -91,6 +92,11 @@ namespace UnityEditor.VFX.UI
                 SetValue(obj);
                 NotifyValueChanged();
             }
+        }
+
+        void OnClickToShow(ClickEvent evt)
+        {
+            EditorGUI.PingObjectOrShowPreviewOnClick(m_Value, Rect.zero);
         }
 
         bool CanDrag()
