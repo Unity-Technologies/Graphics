@@ -58,6 +58,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
@@ -175,3 +176,6 @@ MonoBehaviour:
   - type: UnityEngine.Rendering.DebugUI+Table+Row, Unity.RenderPipelines.Core.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     prefab: {fileID: 224053494956566916, guid: 2d019437ff89b8d44949727731cd9357, type: 3}
+  - type: UnityEngine.Rendering.DebugUI+MessageBox, Unity.RenderPipelines.Core.Runtime,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    prefab: {fileID: 224053494956566916, guid: 10a25524b0986f9488b430e2829bbbe8, type: 3}

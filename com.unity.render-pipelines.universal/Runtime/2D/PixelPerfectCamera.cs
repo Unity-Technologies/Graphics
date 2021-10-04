@@ -16,43 +16,91 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2d-pixelperfect.html%23properties")]
     public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera, ISerializationCallbackReceiver
     {
+        /// <summary>
+        /// An enumeration of the types of display cropping.
+        /// </summary>
         public enum CropFrame
         {
+            /// <summary>
+            /// No cropping.
+            /// </summary>
             None,
+            /// <summary>
+            /// Black borders added to the left and right of viewport to match Reference Resolution.
+            /// </summary>
             Pillarbox,
+            /// <summary>
+            /// Black borders added to the top and bottom of viewport to match Reference Resolution.
+            /// </summary>
             Letterbox,
+            /// <summary>
+            /// Black borders added to all sides of viewport to match Reference Resolution.
+            /// </summary>
             Windowbox,
+            /// <summary>
+            /// Expands the viewport to fit the screen resolution while maintaining the viewport's aspect ratio.
+            /// </summary>
             StretchFill
         }
 
+        /// <summary>
+        /// Determines how pixels are snapped to the grid.
+        /// </summary>
         public enum GridSnapping
         {
+            /// <summary>
+            /// No snapping.
+            /// </summary>
             None,
+            /// <summary>
+            /// Prevent subpixel movement and make Sprites appear to move in pixel-by-pixel increments.
+            /// </summary>
             PixelSnapping,
+            /// <summary>
+            /// The scene is rendered to a temporary texture set as close as possible to the Reference Resolution, while maintaining the full screen aspect ratio. This temporary texture is then upscaled to fit the full screen.
+            /// </summary>
             UpscaleRenderTexture
         }
 
+        /// <summary>
+        /// Defines the filter mode use to render the final render target.
+        /// </summary>
         public enum PixelPerfectFilterMode
         {
+            /// <summary>
+            /// Uses point filter to upscale to closest multiple of Reference Resolution, followed by bilinear filter to the target resolution.
+            /// </summary>
             RetroAA,
+            /// <summary>
+            /// Uses point filter to upscale to target resolution.
+            /// </summary>
             Point,
         }
 
-        public enum ComponentVersions
+        private enum ComponentVersions
         {
             Version_Unserialized = 0,
             Version_1 = 1
         }
-
 
 #if UNITY_EDITOR
         const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
 #endif
 
+        /// <summary>
+        /// Defines how the output display will be cropped.
+        /// </summary>
         public CropFrame cropFrame { get { return m_CropFrame; } set { m_CropFrame = value; } }
+
+        /// <summary>
+        /// Defines if pixels will be locked to a grid determined by assetsPPU.
+        /// </summary>
         public GridSnapping gridSnapping { get { return m_GridSnapping; } set { m_GridSnapping = value; } }
 
+        /// <summary>
+        /// The target orthographic size of the camera.
+        /// </summary>
         public float orthographicSize { get { return m_Internal.orthoSize; } }
 
         /// <summary>
@@ -203,6 +251,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Returns if an upscale pass is required.
+        /// </summary>
         public bool requiresUpscalePass
         {
             get
@@ -396,7 +447,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
 #endif
 
-
+        /// <summary>
+        /// OnBeforeSerialize implementation.
+        /// </summary>
         public void OnBeforeSerialize()
         {
 #if UNITY_EDITOR
@@ -404,6 +457,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #endif
         }
 
+        /// <summary>
+        /// OnAfterSerialize implementation.
+        /// </summary>
         public void OnAfterDeserialize()
         {
 #if UNITY_EDITOR

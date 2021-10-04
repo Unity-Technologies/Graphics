@@ -127,13 +127,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static BlockFieldDescriptor SecondarySpecularShift = new BlockFieldDescriptor(SurfaceDescription.name, "SecondarySpecularShift", "Secondary Specular Shift", "SURFACEDESCRIPTION_SECONDARYSPECULARSHIFT",
                 new FloatControl(-0.1f), ShaderStage.Fragment);
             public static BlockFieldDescriptor RadialSmoothness = new BlockFieldDescriptor(SurfaceDescription.name, "RadialSmoothness", "Radial Smoothness", "SURFACEDESCRIPTION_RADIALSMOOTHNESS",
-                new FloatControl(0.5f), ShaderStage.Fragment);
+                new FloatControl(0.7f), ShaderStage.Fragment);
             public static BlockFieldDescriptor CuticleAngle = new BlockFieldDescriptor(SurfaceDescription.name, "CuticleAngle", "Cuticle Angle", "SURFACEDESCRIPTION_CUTICLEANGLE",
                 new FloatControl(3f), ShaderStage.Fragment);
             public static BlockFieldDescriptor StrandCountProbe = new BlockFieldDescriptor(SurfaceDescription.name, "StrandCountProbe", "Strand Count Probe", "SURFACEDESCRIPTION_STRANDCOUNTPROBE",
                 new Vector4Control(Vector4.zero), ShaderStage.Fragment);
             public static BlockFieldDescriptor StrandShadowBias = new BlockFieldDescriptor(SurfaceDescription.name, "StrandShadowBias", "Strand Shadow Bias", "SURFACEDESCRIPTION_STRANDSHADOWBIAS",
                 new FloatControl(0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor AbsorptionCoefficient = new BlockFieldDescriptor(SurfaceDescription.name, "AbsorptionCoefficient", "Absorption", "SURFACEDESCRIPTION_ABSORPTIONCOEFFICIENT",
+                new Vector3Control(new Vector3(.06f, 0.1f, 0.2f)), ShaderStage.Fragment);
+            public static BlockFieldDescriptor Eumelanin = new BlockFieldDescriptor(SurfaceDescription.name, "Eumelanin", "Eumelanin", "SURFACEDESCRIPTION_EUMELANIN",
+                new FloatControl(0.3f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor Pheomelanin = new BlockFieldDescriptor(SurfaceDescription.name, "Pheomelanin", "Pheomelanin", "SURFACEDESCRIPTION_PHEOMELANIN",
+                new FloatControl(0.3f), ShaderStage.Fragment);
+
 
             // --------------------------------------------------
             // StackLit
