@@ -22,6 +22,10 @@ PR_URPUpdate_BoatAttack_2020.3:
          rerun: on_new_revision
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_2020.3
          rerun: on_new_revision
+      -  path: .yamato/urpupdate_boatattack-osx-metal.yml#URPUpdate_BoatAttack_OSX_Metal_editmode_mono_Linear_2020.3
+         rerun: on_new_revision
+      -  path: .yamato/urpupdate_boatattack-osx-metal.yml#URPUpdate_BoatAttack_OSX_Metal_playmode_mono_Linear_2020.3
+         rerun: on_new_revision
 Extra_URPUpdate_BoatAttack_2020.3:
     name: Extra URPUpdate_BoatAttack on 2020.3
     variables:
@@ -59,6 +63,10 @@ PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urpupdate_boatattack-osx-metal.yml#URPUpdate_BoatAttack_OSX_Metal_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urpupdate_boatattack-osx-metal.yml#URPUpdate_BoatAttack_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_URPUpdate_BoatAttack_CUSTOM-REVISION:
     name: Extra URPUpdate_BoatAttack on CUSTOM-REVISION

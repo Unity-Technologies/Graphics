@@ -59,6 +59,13 @@ jobs:
         test_platforms:
           - editmode
           - playmode
+      - platform: OSX
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - editmode
+          - playmode
   - name: Extra <PROJECT_NAME>
     dependencies:
       []
