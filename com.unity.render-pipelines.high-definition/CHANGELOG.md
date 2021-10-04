@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed misleading text and improving the eye scene material samples. (case 1368665)
 - Fixed missing DisallowMultipleComponent annotations in HDAdditionalReflectionData and HDAdditionalLightData (case 1365879).
 - Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
+- Fixed range compression factor being clamped. (case 1365707)
 
 ## [13.0.0] - 2021-09-01
 
