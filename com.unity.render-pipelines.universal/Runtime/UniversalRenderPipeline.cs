@@ -1096,6 +1096,7 @@ namespace UnityEngine.Rendering.Universal
                 lightData.maxPerObjectAdditionalLightsCount = 0;
             }
 
+            lightData.supportsAdditionalLights = settings.additionalLightsRenderingMode != LightRenderingMode.Disabled;
             lightData.shadeAdditionalLightsPerVertex = settings.additionalLightsRenderingMode == LightRenderingMode.PerVertex;
             lightData.visibleLights = visibleLights;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;

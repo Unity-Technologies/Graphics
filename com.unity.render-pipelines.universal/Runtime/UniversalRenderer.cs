@@ -164,7 +164,6 @@ namespace UnityEngine.Rendering.Universal
             forwardInitParams.lightCookieManager = m_LightCookieManager;
             forwardInitParams.clusteredRendering = data.clusteredRendering;
             forwardInitParams.tileSize = (int)data.tileSize;
-            forwardInitParams.additionalLightsAlwaysEnabled = this.stripAdditionalLightOffVariants;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
@@ -587,19 +586,11 @@ namespace UnityEngine.Rendering.Universal
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
 
-            if (UniversalRenderPipeline.asset.supportsMainLightShadows)
-            {
-                if (!mainLightShadows)
-                    m_MainLightShadowCasterPass.SetupForEmptyRendering();
+            if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
-            }
 
-            if (UniversalRenderPipeline.asset.supportsAdditionalLightShadows)
-            {
-                if (!additionalLightShadows)
-                    m_AdditionalLightsShadowCasterPass.SetupForEmptyRendering();
+            if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
-            }
 
             if (requiresDepthPrepass)
             {

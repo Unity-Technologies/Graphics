@@ -14,9 +14,7 @@ namespace UnityEngine.Rendering.Universal
             stripShadowsOffVariants = true;
             stripAdditionalLightOffVariants = true;
 
-            ForwardLights.InitParams forwardInitParams = ForwardLights.InitParams.GetDefault();
-            forwardInitParams.additionalLightsAlwaysEnabled = stripAdditionalLightOffVariants;
-            m_ForwardLights = new ForwardLights(forwardInitParams);
+            m_ForwardLights = new ForwardLights();
 
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, -1, StencilState.defaultValue, 0);
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
@@ -31,11 +29,13 @@ namespace UnityEngine.Rendering.Universal
                 feature.AddRenderPasses(this, ref renderingData);
             EnqueuePass(m_RenderOpaqueForwardPass);
 
-            m_MainLightShadowCasterPass.SetupForEmptyRendering();
-            m_AdditionalLightsShadowCasterPass.SetupForEmptyRendering();
+            bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
+            bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
 
-            EnqueuePass(m_MainLightShadowCasterPass);
-            EnqueuePass(m_AdditionalLightsShadowCasterPass);
+            if (mainLightShadows)
+                EnqueuePass(m_MainLightShadowCasterPass);
+            if (additionalLightShadows)
+                EnqueuePass(m_AdditionalLightsShadowCasterPass);
         }
 
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)

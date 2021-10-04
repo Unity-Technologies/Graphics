@@ -48,6 +48,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        /// <summary>
+        /// x is used in RenderAdditionalShadowMapAtlas to skip shadow map rendering for non-shadow-casting lights.
+        /// w is perLightFirstShadowSliceIndex, used in Lighting shader to find if Additional light casts shadows.
+        /// </summary>
+        readonly static Vector4 c_DefaultShadowParams = new Vector4(0, 0, 0, -1);
+
         static int m_AdditionalLightsWorldToShadow_SSBO;
         static int m_AdditionalShadowParams_SSBO;
         bool m_UseStructuredBuffer;
@@ -610,11 +616,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[totalShadowSlicesCount];
 
             // initialize _AdditionalShadowParams
-            Vector4 defaultShadowParams = new Vector4(0 /*shadowStrength*/, 0, 0, -1 /*perLightFirstShadowSliceIndex*/);
-            // shadowParams.x is used in RenderAdditionalShadowMapAtlas to skip shadow map rendering for non-shadow-casting lights
-            // shadowParams.w is used in Lighting shader to find if Additional light casts shadows
             for (int i = 0; i < maxAdditionalLightShadowParams; ++i)
-                m_AdditionalLightIndexToShadowParams[i] = defaultShadowParams;
+                m_AdditionalLightIndexToShadowParams[i] = c_DefaultShadowParams;
 
             int validShadowCastingLightsCount = 0;
             bool supportsSoftShadows = renderingData.shadowData.supportsSoftShadows;
@@ -794,11 +797,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             return true;
         }
 
-        internal void SetupForEmptyRendering()
+        bool SetupForEmptyRendering(ref RenderingData renderingData)
         {
+            if (!renderingData.cameraData.renderer.stripShadowsOffVariants)
+                return false;
+
             m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(1, 1, k_ShadowmapBufferBits);
             m_CreateEmptyShadowmap = true;
             useNativeRenderPass = false;
+
+            // initialize _AdditionalShadowParams
+            for (int i = 0; i < m_AdditionalLightIndexToShadowParams.Length; ++i)
+                m_AdditionalLightIndexToShadowParams[i] = c_DefaultShadowParams;
+
+            return true;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -853,7 +865,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             CommandBuffer cmd = CommandBufferPool.Get();
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, true);
-            cmd.SetGlobalTexture(m_AdditionalLightsShadowmap.id, Texture2D.whiteTexture);
             if (RenderingUtils.useStructuredBuffer)
             {
                 var shadowParamsBuffer = ShaderData.instance.GetAdditionalLightShadowParamsStructuredBuffer(m_AdditionalLightIndexToShadowParams.Length);

@@ -53,8 +53,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         float m_ZBinFactor;
         int m_ZBinOffset;
 
-        bool m_AdditionalLightsAlwaysEnabled;
-
         JobHandle m_CullingHandle;
         NativeArray<ZBin> m_ZBins;
         NativeArray<uint> m_TileLightMasks;
@@ -69,7 +67,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public LightCookieManager lightCookieManager;
             public bool clusteredRendering;
             public int tileSize;
-            public bool additionalLightsAlwaysEnabled;
 
             static internal InitParams GetDefault()
             {
@@ -86,7 +83,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     p.lightCookieManager = new LightCookieManager(ref settings);
                     p.clusteredRendering = false;
                     p.tileSize = 32;
-                    p.additionalLightsAlwaysEnabled = false;
                 }
                 return p;
             }
@@ -99,8 +95,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (initParams.clusteredRendering) Assert.IsTrue(math.ispow2(initParams.tileSize));
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
             m_UseClusteredRendering = initParams.clusteredRendering;
-
-            m_AdditionalLightsAlwaysEnabled = initParams.additionalLightsAlwaysEnabled;
 
             LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             LightConstantBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
@@ -359,7 +353,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 SetupShaderLightConstants(cmd, ref renderingData);
 
-                bool lightCountCheck = (m_AdditionalLightsAlwaysEnabled && renderingData.lightData.maxPerObjectAdditionalLightsCount > 0) || additionalLightsCount > 0;
+                bool lightCountCheck = (renderingData.cameraData.renderer.stripAdditionalLightOffVariants && renderingData.lightData.supportsAdditionalLights) || additionalLightsCount > 0;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
                     lightCountCheck && additionalLightsPerVertex && !useClusteredRendering);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
