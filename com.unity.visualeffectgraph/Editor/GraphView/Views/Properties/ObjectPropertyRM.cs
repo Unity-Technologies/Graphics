@@ -82,7 +82,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void UpdateIndeterminate() => visible = !indeterminate;
 
-        void OnPickObject() => CustomObjectPicker.Pick(m_Provider.portType, SelectHandler);
+        void OnPickObject() => CustomObjectPicker.Pick(m_Provider.portType, m_textureDimension, SelectHandler);
 
         void SelectHandler(UnityObject obj, bool isCanceled)
         {

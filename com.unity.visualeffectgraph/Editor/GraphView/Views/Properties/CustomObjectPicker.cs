@@ -4,6 +4,7 @@ using System.Reflection;
 
 using UnityEditor.Search;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Search;
 
 using Object = UnityEngine.Object;
@@ -12,10 +13,10 @@ namespace UnityEditor.VFX.UI
 {
     static class CustomObjectPicker
     {
-        internal static void Pick(Type type, Action<Object, bool> selectHandler)
+        internal static void Pick(Type type, TextureDimension textureDimension, Action<Object, bool> selectHandler)
         {
             var view = typeof(Texture).IsAssignableFrom(type)
-                ? GetTexturePickerView(type, selectHandler)
+                ? GetTexturePickerView(type, textureDimension, selectHandler)
                 : GetGenericView(type, selectHandler);
 
             // Until the "viewState" API is made public (should be in 2022.1) we use reflection to remove the inspector button
@@ -39,10 +40,10 @@ namespace UnityEditor.VFX.UI
                 type);
         }
 
-        static ISearchView GetTexturePickerView(Type type, Action<Object, bool> selectHandler)
+        static ISearchView GetTexturePickerView(Type type, TextureDimension textureDimension, Action<Object, bool> selectHandler)
         {
             var view = Search.SearchService.ShowPicker(
-                Search.SearchService.CreateContext(CreateTextureProvider(type)),
+                Search.SearchService.CreateContext(CreateTextureProvider(type, textureDimension)),
                 (x, y) => selectHandler(x?.ToObject(), y),
                 null,
                 null,
@@ -54,12 +55,12 @@ namespace UnityEditor.VFX.UI
             return view;
         }
 
-        static SearchProvider CreateTextureProvider(Type type)
+        static SearchProvider CreateTextureProvider(Type type, TextureDimension textureDimension)
         {
-            return new SearchProvider("tex", "Texture", (context, provider) => FetchTextures(type, context.searchQuery));
+            return new SearchProvider("tex", "Texture", (context, provider) => FetchTextures(type, textureDimension, context.searchQuery));
         }
 
-        static IEnumerable<SearchItem> FetchTextures(Type type, string userQuery)
+        static IEnumerable<SearchItem> FetchTextures(Type type, TextureDimension textureDimension, string userQuery)
         {
             // This piece of code is meant to put RenderTextures in a separate tab
             // But the display is right now buggy, so keep it for later use when display issue is fixed
@@ -90,8 +91,12 @@ namespace UnityEditor.VFX.UI
                 {
                     foreach (var r in request)
                     {
-                        //r.provider = renderTextureGroupProvider;
-                        yield return r;
+                        var rt = r.ToObject<RenderTexture>();
+                        if (rt.dimension == textureDimension)
+                        {
+                            //r.provider = renderTextureGroupProvider;
+                            yield return r;
+                        }
                     }
                 }
             }
