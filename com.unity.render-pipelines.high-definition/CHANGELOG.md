@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed path traced subsurface scattering for transmissive surfaces (case 1329403)
 - Fixed missing context menu for “Post Anti-Aliasing” in Camera (1357283)
 - Fixed error when disabling opaque objects on a camera with MSAA.
+- Fixed tooltip not showing on labels in ShaderGraphs (1358483).
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
