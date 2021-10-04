@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies a black and white mask Texture to use as a vignette.
         /// </summary>
         [Tooltip("Specifies a black and white mask Texture to use as a vignette.")]
-        public TextureParameter mask = new TextureParameter(null);
+        public Texture2DParameter mask = new Texture2DParameter(null);
 
         /// <summary>
         /// Controls the opacity of the mask vignette. Lower values result in a more transparent vignette.
