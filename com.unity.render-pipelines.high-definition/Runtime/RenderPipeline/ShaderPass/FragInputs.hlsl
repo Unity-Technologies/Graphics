@@ -13,6 +13,7 @@ struct FragInputs
     float4 positionSS; // In case depth offset is use, positionRWS.w is equal to depth offset
     float3 positionRWS; // Relative camera space position
     float3 positionPredisplacementRWS; // Relative camera space position
+    float2 positionPixel;              // Pixel position (VPOS)
     float4 texCoord0;
     float4 texCoord1;
     float4 texCoord2;

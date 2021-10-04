@@ -21,10 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static readonly GUID kSubTargetSourceCodeGuid = new GUID("3ec927dfcb5d60e4883b2c224857b6c2");  // DecalSubTarget.cs
 
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
-        protected override string[] templateMaterialDirectories => new string[]
-        {
-            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
-        };
+        protected override string[] templateMaterialDirectories => new string[] { };
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string customInspector => "Rendering.HighDefinition.DecalShaderGraphGUI";
         internal override MaterialResetter setupMaterialKeywordsAndPassFunc => DecalShaderGraphGUI.SetupDecalKeywordsAndPass;

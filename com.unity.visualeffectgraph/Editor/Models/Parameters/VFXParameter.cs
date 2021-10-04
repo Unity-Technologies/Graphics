@@ -87,12 +87,17 @@ namespace UnityEditor.VFX
 
             set
             {
+                var invalidateCause = InvalidationCause.kParamChanged;
+
                 if (m_Min == null || m_Min.type != type)
+                {
                     m_Min = new VFXSerializableObject(type, value);
+                    invalidateCause = InvalidationCause.kSettingChanged;
+                }
                 else
                     m_Min.Set(value);
 
-                Invalidate(InvalidationCause.kSettingChanged);
+                Invalidate(invalidateCause);
             }
         }
         public object max
@@ -101,11 +106,17 @@ namespace UnityEditor.VFX
 
             set
             {
+                var invalidateCause = InvalidationCause.kParamChanged;
+
                 if (m_Max == null || m_Max.type != type)
+                {
                     m_Max = new VFXSerializableObject(type, value);
+                    invalidateCause = InvalidationCause.kSettingChanged;
+                }
                 else
                     m_Max.Set(value);
-                Invalidate(InvalidationCause.kSettingChanged);
+
+                Invalidate(invalidateCause);
             }
         }
 
