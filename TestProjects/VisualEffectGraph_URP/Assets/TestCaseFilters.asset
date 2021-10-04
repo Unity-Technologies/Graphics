@@ -15,15 +15,6 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 6cf5bcccabd797d4db3c44a0d4ac7389, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 33
-    GraphicsDevice: 23
-    XrSdk: 
-    StereoModes: 0
-    Reason: See https://jira.unity3d.com/browse/URP-723
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: b20a840a0adf929419e19f13139e8fa3, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
