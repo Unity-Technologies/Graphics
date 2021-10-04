@@ -72,6 +72,21 @@
     "m_CategoryData": [
         {
             "m_Id": "dec2d123624f4d2392482719d08589d5"
+        },
+        {
+            "m_Id": "b21e085e5c844bc2a7a5bdedc8d3695c"
+        },
+        {
+            "m_Id": "53fbd192f8dd454795cdb085b345a52e"
+        },
+        {
+            "m_Id": "e9275698f33b43b8be9605f8f67bc908"
+        },
+        {
+            "m_Id": "11eb4d692c1b4adcaa57ced6429b519e"
+        },
+        {
+            "m_Id": "407705ab55b84a768ef8a45175e577ff"
         }
     ],
     "m_Nodes": [
@@ -1874,6 +1889,27 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "11eb4d692c1b4adcaa57ced6429b519e",
+    "m_Name": "Limbal Ring",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "71630abf51eb4a7293b359652a7133ff"
+        },
+        {
+            "m_Id": "46252f045077431395e01818af3da66f"
+        },
+        {
+            "m_Id": "22e78a32611347ab939960145e45a6c4"
+        },
+        {
+            "m_Id": "b609691398c04e2db2bfa4a0c7b7335f"
+        }
+    ]
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "13ba55f37a194888a303d6c46614753c",
     "m_Id": 0,
@@ -3148,6 +3184,18 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "407705ab55b84a768ef8a45175e577ff",
+    "m_Name": "Cornea",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "e4c0540a193245d4883c3571c17ade93"
+        }
+    ]
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "413e32629faf45caa7aff9405f078454",
     "m_Id": 6,
@@ -3569,6 +3617,33 @@
     "m_DefaultValue": 0.0,
     "m_Labels": [
         "X"
+    ]
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "53fbd192f8dd454795cdb085b345a52e",
+    "m_Name": "Iris",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "73563f868a3741e296c5b92abb7d4fd7"
+        },
+        {
+            "m_Id": "98eb7ede3dd544aa9d2b1b139d483b96"
+        },
+        {
+            "m_Id": "6ad8827c8f6c457a8e72c940779a3560"
+        },
+        {
+            "m_Id": "9c624b4b85b8409190389e0685a24f01"
+        },
+        {
+            "m_Id": "74ce267f1d8841ec94a07cb2b77f215f"
+        },
+        {
+            "m_Id": "bfbe0deb8ec4428a9cfcdb968651903c"
+        }
     ]
 }
 
@@ -6037,6 +6112,30 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "b21e085e5c844bc2a7a5bdedc8d3695c",
+    "m_Name": "Sclera",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "e90c81090c004570bf74081a26ad8d32"
+        },
+        {
+            "m_Id": "ab7c2b6d01dd4488be459395551580e1"
+        },
+        {
+            "m_Id": "fd16faa57aeb4c229829b62bb7f7bfd5"
+        },
+        {
+            "m_Id": "c771e025477545a58f7ca8d09b3a95a3"
+        },
+        {
+            "m_Id": "261f48f1fbc94ccbafc421414859c159"
+        }
+    ]
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "b451a3478f004c02999c87f72ae518eb",
     "m_Id": 0,
@@ -7638,71 +7737,7 @@
     "m_Type": "UnityEditor.ShaderGraph.CategoryData",
     "m_ObjectId": "dec2d123624f4d2392482719d08589d5",
     "m_Name": "",
-    "m_ChildObjectList": [
-        {
-            "m_Id": "e90c81090c004570bf74081a26ad8d32"
-        },
-        {
-            "m_Id": "fd16faa57aeb4c229829b62bb7f7bfd5"
-        },
-        {
-            "m_Id": "c771e025477545a58f7ca8d09b3a95a3"
-        },
-        {
-            "m_Id": "73563f868a3741e296c5b92abb7d4fd7"
-        },
-        {
-            "m_Id": "9c624b4b85b8409190389e0685a24f01"
-        },
-        {
-            "m_Id": "74ce267f1d8841ec94a07cb2b77f215f"
-        },
-        {
-            "m_Id": "98eb7ede3dd544aa9d2b1b139d483b96"
-        },
-        {
-            "m_Id": "9a6d8a62273c4c4db565fa7872f3919e"
-        },
-        {
-            "m_Id": "97db5880f5d34096a0c3f1d019ec1e5c"
-        },
-        {
-            "m_Id": "76d715779d0943698737ae2608262a35"
-        },
-        {
-            "m_Id": "714c18b2b81f46e7847db477c7242ba4"
-        },
-        {
-            "m_Id": "3624189abff54ea6840759446c17a716"
-        },
-        {
-            "m_Id": "ab7c2b6d01dd4488be459395551580e1"
-        },
-        {
-            "m_Id": "e4c0540a193245d4883c3571c17ade93"
-        },
-        {
-            "m_Id": "6ad8827c8f6c457a8e72c940779a3560"
-        },
-        {
-            "m_Id": "71630abf51eb4a7293b359652a7133ff"
-        },
-        {
-            "m_Id": "46252f045077431395e01818af3da66f"
-        },
-        {
-            "m_Id": "22e78a32611347ab939960145e45a6c4"
-        },
-        {
-            "m_Id": "b609691398c04e2db2bfa4a0c7b7335f"
-        },
-        {
-            "m_Id": "bfbe0deb8ec4428a9cfcdb968651903c"
-        },
-        {
-            "m_Id": "261f48f1fbc94ccbafc421414859c159"
-        }
-    ]
+    "m_ChildObjectList": []
 }
 
 {
@@ -8116,6 +8151,30 @@
     "useTilingAndOffset": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "e9275698f33b43b8be9605f8f67bc908",
+    "m_Name": "Pupil",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "9a6d8a62273c4c4db565fa7872f3919e"
+        },
+        {
+            "m_Id": "97db5880f5d34096a0c3f1d019ec1e5c"
+        },
+        {
+            "m_Id": "76d715779d0943698737ae2608262a35"
+        },
+        {
+            "m_Id": "714c18b2b81f46e7847db477c7242ba4"
+        },
+        {
+            "m_Id": "3624189abff54ea6840759446c17a716"
+        }
+    ]
 }
 
 {
