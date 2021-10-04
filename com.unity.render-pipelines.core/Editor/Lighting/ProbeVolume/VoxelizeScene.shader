@@ -6,7 +6,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
         LOD 100
 
         HLSLINCLUDE
-        #define EPSYLON (1e-10)
+        #define EPSILON (1e-10)
         ENDHLSL
 
         Pass
@@ -72,7 +72,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
 
             float4 frag(VertexToFragment i) : COLOR
             {
-                if (any(i.cellPos01 < -EPSYLON) || any(i.cellPos01 >= 1 + EPSYLON))
+                if (any(i.cellPos01 < -EPSILON) || any(i.cellPos01 >= 1 + EPSILON))
                     return 0;
 
                 uint3 pos = min(uint3(i.cellPos01 * _OutputSize), _OutputSize);
@@ -171,7 +171,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
 
             float4 frag(VertexToFragment i) : COLOR
             {
-                if (any(i.cellPos01 < -EPSYLON) || any(i.cellPos01 >= 1 + EPSYLON))
+                if (any(i.cellPos01 < -EPSILON) || any(i.cellPos01 >= 1 + EPSILON))
                     return 0;
 
                 // Offset the cellposition with the heightmap
