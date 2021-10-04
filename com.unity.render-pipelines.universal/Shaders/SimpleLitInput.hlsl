@@ -56,7 +56,7 @@ inline void InitializeSimpleLitSurfaceData(float2 uv, out SurfaceData outSurface
     AlphaDiscard(outSurfaceData.alpha, _Cutoff);
 
     outSurfaceData.albedo = albedoAlpha.rgb * _BaseColor.rgb;
-    outSurfaceData.albedo = ApplyAlphaModulate(outSurfaceData.albedo, outSurfaceData.alpha);
+    outSurfaceData.albedo = AlphaModulate(outSurfaceData.albedo, outSurfaceData.alpha);
 
     half4 specularSmoothness = SampleSpecularSmoothness(uv, outSurfaceData.alpha, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
     outSurfaceData.metallic = 0.0; // unused

@@ -210,7 +210,7 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 
     half4 specGloss = SampleMetallicSpecGloss(uv, albedoAlpha.a);
     outSurfaceData.albedo = albedoAlpha.rgb * _BaseColor.rgb;
-    outSurfaceData.albedo = ApplyAlphaModulate(outSurfaceData.albedo, outSurfaceData.alpha);
+    outSurfaceData.albedo = AlphaModulate(outSurfaceData.albedo, outSurfaceData.alpha);
 
 #if _SPECULAR_SETUP
     outSurfaceData.metallic = half(1.0);
