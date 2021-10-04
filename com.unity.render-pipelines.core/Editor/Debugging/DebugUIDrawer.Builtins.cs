@@ -608,13 +608,19 @@ namespace UnityEditor.Rendering
         {
             var w = Cast<DebugUI.MessageBox>(widget);
 
-            var type = w.style switch
+            var type = MessageType.None;
+            switch (w.style)
             {
-                DebugUI.MessageBox.Style.Info => MessageType.Info,
-                DebugUI.MessageBox.Style.Warning => MessageType.Warning,
-                DebugUI.MessageBox.Style.Error => MessageType.Error,
-                _ => MessageType.None
-            };
+                case DebugUI.MessageBox.Style.Info:
+                    type = MessageType.Info;
+                    break;
+                case DebugUI.MessageBox.Style.Warning
+                    type = MessageType.Warning;
+                    break;
+                case DebugUI.MessageBox.Style.Error:
+                    type = MessageType.Error;
+                    break;
+            }
 
             EditorGUILayout.HelpBox(w.displayName, type);
 
