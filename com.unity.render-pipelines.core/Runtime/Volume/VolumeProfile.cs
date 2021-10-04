@@ -315,7 +315,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Removes any components that were destroyed from the iternal list of components
+        /// Removes any components that were destroyed externally from the iternal list of components
         /// </summary>
         internal void Sanitize()
         {
