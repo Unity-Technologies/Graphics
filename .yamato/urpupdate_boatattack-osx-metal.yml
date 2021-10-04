@@ -25,7 +25,7 @@ URPUpdate_BoatAttack_OSX_Metal_playmode_mono_Linear_2020.3:
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BA_UPDATE_PROJECT_BRANCH TestProjects/BoatAttack
          retries: 3
-      -  cd TestProjects/URP-Update-Testing && git checkout $BA_UPDATE_PROJECT_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BA_UPDATE_PROJECT_REVISION
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -68,7 +68,7 @@ URPUpdate_BoatAttack_OSX_Metal_editmode_mono_Linear_2020.3:
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BA_UPDATE_PROJECT_BRANCH TestProjects/BoatAttack
          retries: 3
-      -  cd TestProjects/URP-Update-Testing && git checkout $BA_UPDATE_PROJECT_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BA_UPDATE_PROJECT_REVISION
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -111,7 +111,7 @@ URPUpdate_BoatAttack_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BA_UPDATE_PROJECT_BRANCH TestProjects/BoatAttack
          retries: 3
-      -  cd TestProjects/URP-Update-Testing && git checkout $BA_UPDATE_PROJECT_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BA_UPDATE_PROJECT_REVISION
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -154,7 +154,7 @@ URPUpdate_BoatAttack_OSX_Metal_editmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BA_UPDATE_PROJECT_BRANCH TestProjects/BoatAttack
          retries: 3
-      -  cd TestProjects/URP-Update-Testing && git checkout $BA_UPDATE_PROJECT_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BA_UPDATE_PROJECT_REVISION
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
