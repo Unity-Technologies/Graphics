@@ -22,6 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // HDR Mode.
         SerializedDataParameter m_NeutralHDRRangeReductionMode;
+        SerializedDataParameter m_HueShiftAmount;
         SerializedDataParameter m_HDRReduceLuminanceOnly;
         SerializedDataParameter m_HDRDetectPaperWhite;
         SerializedDataParameter m_HDRPaperwhite;
@@ -54,6 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_NeutralHDRRangeReductionMode = Unpack(o.Find(x => x.neutralHDRRangeReductionMode));
             m_HDRReduceLuminanceOnly = Unpack(o.Find(x => x.tonemapOnlyLuminance));
+            m_HueShiftAmount = Unpack(o.Find(x => x.hueShiftAmount));
             m_HDRDetectPaperWhite = Unpack(o.Find(x => x.detectPaperWhite));
             m_HDRPaperwhite = Unpack(o.Find(x => x.paperWhite));
             m_HDRDetectNitLimits = Unpack(o.Find(x => x.detectBrightnessLimits));
@@ -163,6 +165,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     PropertyField(m_NeutralHDRRangeReductionMode);
                     PropertyField(m_HDRReduceLuminanceOnly);
+                    if (m_HDRReduceLuminanceOnly.value.boolValue)
+                    {
+                        PropertyField(m_HueShiftAmount);
+                    }
                     PropertyField(m_HDRDetectPaperWhite);
                     EditorGUI.indentLevel++;
                     using (new EditorGUI.DisabledScope(m_HDRDetectPaperWhite.value.boolValue))

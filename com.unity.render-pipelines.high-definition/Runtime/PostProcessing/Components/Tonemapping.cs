@@ -189,6 +189,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter tonemapOnlyLuminance = new BoolParameter(true);
 
         /// <summary>
+        /// How much hue shift we want to preserve, tonemapping luma only will preserve hue, but if content relies on hue shift this slider helps reintroducing some.
+        /// </summary>
+        [Tooltip("How much hue shift we want to preserve, tonemapping luma only will preserve hue, but if content relies on hue shift this slider helps reintroducing some.")]
+        public ClampedFloatParameter hueShiftAmount = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
+
+        /// <summary>
         /// Whether to use values detected from the output device as paperwhite. This value will often will not lead to equivalent images between SDR and HDR. It is suggested to manually set this value.
         /// </summary>
         [Tooltip("Whether to use values detected from the output device as paperwhite. This value will often will not lead to equivalent images between SDR and HDR. It is suggested to manually set this value.")]
