@@ -147,32 +147,34 @@ namespace UnityEditor.Experimental.Rendering
             }
 
             EditorGUI.BeginDisabledGroup(!hasProfile);
+
             var rect = EditorGUILayout.GetControlRect(true);
             EditorGUI.BeginProperty(rect, Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride);
             EditorGUI.BeginProperty(rect, Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride);
 
             // Round min and max subdiv
             int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-            if (ProbeReferenceVolume.instance.sceneData != null)
+            // it's likely we don't have a profile loaded yet.
+            if (maxSubdiv < 0)
             {
-                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(pv.gameObject.scene);
+                if (ProbeReferenceVolume.instance.sceneData != null)
+                {
+                    var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(pv.gameObject.scene);
 
-                if (profile != null)
-                {
-                    ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(profile.minBrickSize, profile.maxSubdivision);
-                    maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-                }
-                else
-                {
-                    maxSubdiv = Mathf.Max(0, maxSubdiv);
+                    if (profile != null)
+                    {
+                        ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(profile.minBrickSize, profile.maxSubdivision);
+                        maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+                    }
+                    else
+                    {
+                        maxSubdiv = 0;
+                    }
                 }
             }
 
             EditorGUILayout.LabelField("Subdivision Overrides", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(serialized.overridesSubdivision, Styles.s_OverridesSubdivision);
-            EditorGUI.BeginDisabledGroup(!serialized.overridesSubdivision.boolValue);
-
             int value = serialized.highestSubdivisionLevelOverride.intValue;
 
             // We were initialized, but we cannot know the highest subdiv statically, so we need to resort to this.
@@ -185,14 +187,13 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
 
-            int minSubdivInVolume = serialized.overridesSubdivision.boolValue ? serialized.lowestSubdivisionLevelOverride.intValue : 0;
-            int maxSubdivInVolume = serialized.overridesSubdivision.boolValue ? serialized.highestSubdivisionLevelOverride.intValue : maxSubdiv;
+            int minSubdivInVolume = serialized.lowestSubdivisionLevelOverride.intValue;
+            int maxSubdivInVolume = serialized.highestSubdivisionLevelOverride.intValue;
             EditorGUI.indentLevel--;
 
             if (hasProfile)
                 EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - maxSubdivInVolume)}m and {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - minSubdivInVolume)}m", MessageType.Info);
 
-            EditorGUI.EndDisabledGroup();
             EditorGUI.EndDisabledGroup();
 
             if (EditorGUI.EndChangeCheck())

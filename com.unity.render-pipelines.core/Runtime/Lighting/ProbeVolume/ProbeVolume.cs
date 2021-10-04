@@ -31,8 +31,6 @@ namespace UnityEngine.Experimental.Rendering
         public int lowestSubdivLevelOverride = 0;
         [HideInInspector]
         public int highestSubdivLevelOverride = -1;
-        [HideInInspector]
-        public bool overridesSubdivLevels = false;
 
         [SerializeField] internal bool mightNeedRebaking = false;
 
@@ -116,7 +114,6 @@ namespace UnityEngine.Experimental.Rendering
             unchecked
             {
                 hash = hash * 23 + size.GetHashCode();
-                hash = hash * 23 + overridesSubdivLevels.GetHashCode();
                 hash = hash * 23 + highestSubdivLevelOverride.GetHashCode();
                 hash = hash * 23 + lowestSubdivLevelOverride.GetHashCode();
                 hash = hash * 23 + geometryDistanceOffset.GetHashCode();
@@ -131,13 +128,13 @@ namespace UnityEngine.Experimental.Rendering
         internal float GetMinSubdivMultiplier()
         {
             float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-            return overridesSubdivLevels ? Mathf.Max(0.0f, lowestSubdivLevelOverride / maxSubdiv) : 0.0f;
+            return Mathf.Max(0.0f, lowestSubdivLevelOverride / maxSubdiv);
         }
 
         internal float GetMaxSubdivMultiplier()
         {
             float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-            return overridesSubdivLevels ? Mathf.Max(0.0f, highestSubdivLevelOverride / maxSubdiv) : 1.0f;
+            return Mathf.Max(0.0f, highestSubdivLevelOverride / maxSubdiv);
         }
 
         // Momentarily moving the gizmo rendering for bricks and cells to Probe Volume itself,

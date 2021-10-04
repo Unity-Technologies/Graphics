@@ -281,7 +281,7 @@ namespace UnityEngine.Experimental.Rendering
 
             float minSideInBricks = Mathf.CeilToInt(minSizedDim / minBrickSize);
             int absoluteMaxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-            minSideInBricks = Mathf.Max(minSideInBricks, Mathf.Pow(3, absoluteMaxSubdiv - (pv.overridesSubdivLevels ? pv.highestSubdivLevelOverride : 0)));
+            minSideInBricks = Mathf.Max(minSideInBricks, Mathf.Pow(3, absoluteMaxSubdiv - pv.highestSubdivLevelOverride));
             int subdivLevel = Mathf.FloorToInt(Mathf.Log(minSideInBricks, 3));
 
             return subdivLevel;
