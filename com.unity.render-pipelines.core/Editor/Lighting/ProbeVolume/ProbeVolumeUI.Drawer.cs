@@ -154,22 +154,18 @@ namespace UnityEditor.Experimental.Rendering
 
             // Round min and max subdiv
             int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-            // it's likely we don't have a profile loaded yet.
-            if (maxSubdiv < 0)
+            if (ProbeReferenceVolume.instance.sceneData != null)
             {
-                if (ProbeReferenceVolume.instance.sceneData != null)
-                {
-                    var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(pv.gameObject.scene);
+                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(pv.gameObject.scene);
 
-                    if (profile != null)
-                    {
-                        ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(profile.minBrickSize, profile.maxSubdivision);
-                        maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-                    }
-                    else
-                    {
-                        maxSubdiv = 0;
-                    }
+                if (profile != null)
+                {
+                    ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(profile.minBrickSize, profile.maxSubdivision);
+                    maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+                }
+                else
+                {
+                    maxSubdiv = Mathf.Max(0, maxSubdiv);
                 }
             }
 
@@ -181,8 +177,8 @@ namespace UnityEditor.Experimental.Rendering
             if (serialized.highestSubdivisionLevelOverride.intValue < 0)
                 serialized.highestSubdivisionLevelOverride.intValue = maxSubdiv;
 
-            serialized.highestSubdivisionLevelOverride.intValue = EditorGUILayout.IntSlider(Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride.intValue, 0, maxSubdiv);
-            serialized.lowestSubdivisionLevelOverride.intValue = EditorGUILayout.IntSlider(Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride.intValue, 0, maxSubdiv);
+            serialized.highestSubdivisionLevelOverride.intValue = Mathf.Min(maxSubdiv, EditorGUILayout.IntSlider(Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride.intValue, 0, maxSubdiv));
+            serialized.lowestSubdivisionLevelOverride.intValue = Mathf.Min(maxSubdiv, EditorGUILayout.IntSlider(Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride.intValue, 0, maxSubdiv));
             serialized.lowestSubdivisionLevelOverride.intValue = Mathf.Min(serialized.lowestSubdivisionLevelOverride.intValue, serialized.highestSubdivisionLevelOverride.intValue);
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
