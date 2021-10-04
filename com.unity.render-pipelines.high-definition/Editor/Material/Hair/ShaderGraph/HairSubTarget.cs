@@ -37,9 +37,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         // Only allow advanced scattering for Marschner Strands explicitly set to advanced.
         private bool useAdvancedMultipleScattering =>
-            hairData.materialType == ShaderGraph.HairData.MaterialType.Marschner &&
+            hairData.materialType == ShaderGraph.HairData.MaterialType.Physical &&
             hairData.geometryType == HairData.GeometryType.Strands &&
-            hairData.scatteringMode == HairData.ScatteringMode.Advanced;
+            hairData.scatteringMode == HairData.ScatteringMode.Physical;
 
         HairData m_HairData;
 
@@ -72,8 +72,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descs = context.blocks.Select(x => x.descriptor);
 
             // Hair specific properties:
-            context.AddField(KajiyaKay, hairData.materialType == HairData.MaterialType.KajiyaKay);
-            context.AddField(Marschner, hairData.materialType == HairData.MaterialType.Marschner);
+            context.AddField(KajiyaKay, hairData.materialType == HairData.MaterialType.Approximate);
+            context.AddField(Marschner, hairData.materialType == HairData.MaterialType.Physical);
             context.AddField(HairStrandDirection, descs.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection));
             context.AddField(RimTransmissionIntensity, descs.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
             context.AddField(UseLightFacingNormal, hairData.geometryType == HairData.GeometryType.Strands);
@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.HairStrandDirection);
 
             // Parametrization for Kajiya-Kay and Marschner models.
-            if (hairData.materialType == HairData.MaterialType.KajiyaKay)
+            if (hairData.materialType == HairData.MaterialType.Approximate)
             {
                 context.AddBlock(HDBlockFields.SurfaceDescription.Transmittance);
                 context.AddBlock(HDBlockFields.SurfaceDescription.RimTransmissionIntensity);
