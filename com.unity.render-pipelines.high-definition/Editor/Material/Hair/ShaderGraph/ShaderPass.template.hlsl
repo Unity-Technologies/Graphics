@@ -28,6 +28,12 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
 
     // copy across graph values, if defined
     $SurfaceDescription.BaseColor:                   surfaceData.diffuseColor =                   surfaceDescription.BaseColor;
+
+    $SurfaceDescription.AbsorptionCoefficient:       surfaceData.absorption =                     surfaceDescription.AbsorptionCoefficient;
+
+    $SurfaceDescription.Eumelanin:                   surfaceData.eumelanin =                      surfaceDescription.Eumelanin;
+    $SurfaceDescription.Pheomelanin:                 surfaceData.pheomelanin =                    surfaceDescription.Pheomelanin;
+\
     $SurfaceDescription.SpecularOcclusion:           surfaceData.specularOcclusion =              surfaceDescription.SpecularOcclusion;
     $SurfaceDescription.Smoothness:                  surfaceData.perceptualSmoothness =           surfaceDescription.Smoothness;
     $SurfaceDescription.Occlusion:                   surfaceData.ambientOcclusion =               surfaceDescription.Occlusion;

@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.0] - 2021-09-24
+
+### Fixed
+- Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
+
 ## [13.0.0] - 2021-09-01
 
 ### Fixed
@@ -37,7 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Is Inside subgraph into VFX Graph additions package
 - The VFX editor automatically attach to the current selection if the selected gameobject uses the currently edited VFX asset
 - Two new buttons are available in the editor's tool bar. One will display a popup panel to handle attachement and one to lock/unlock the current attachement
-
+- Improved toolbar design: added icons, removed labels and grouped commands into dropdown menus
 
 ### Changed
 - Allow remaking an existing link.

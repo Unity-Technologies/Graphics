@@ -42,6 +42,7 @@ namespace UnityEditor.ShaderGraph
         public SampleTexture2DNode()
         {
             name = "Sample Texture 2D";
+            synonyms = new string[] { "tex2d" };
             UpdateNodeAfterDeserialization();
         }
 
