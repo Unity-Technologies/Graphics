@@ -191,6 +191,7 @@ namespace UnityEngine.Rendering.Universal
 
             internal static DebugUI.Widget CreateOverdrawMode(DebugDisplaySettingsRendering data) => new DebugUI.Container()
             {
+                isHiddenCallback = () => !data.overdraw,
                 children =
                 {
                     new DebugUI.EnumField()
@@ -207,6 +208,7 @@ namespace UnityEngine.Rendering.Universal
 
             internal static DebugUI.Widget CreateMaxPixelCost(DebugDisplaySettingsRendering data) => new DebugUI.Container()
             {
+                isHiddenCallback = () => !data.overdraw,
                 children =
                 {
                     new DebugUI.IntField
