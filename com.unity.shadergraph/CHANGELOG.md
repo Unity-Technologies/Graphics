@@ -4,6 +4,15 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.0] - 2021-09-23
+
+### Added
+  - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
+
+### Fixed
+  - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
+  - Fixed unhandled exception when loading a subgraph with duplicate slots [1369039].
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -136,6 +145,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an incorrect direction transform from view to world space [1365186]
 - Fixed the appearance (wrong text color, and not wrapped) of a warning in Node Settings [1365780]
 - Fixed the ordering of inputs on a SubGraph node to match the properties on the blackboard of the subgraph itself [1366052]
+- Fixed Parallax Occlusion Mapping node to handle non-uniformly scaled UVs such as HDRP/Lit POM [1347008].
+- Fixed ShaderGraph HDRP master preview disappearing for a few seconds when graph is modified  [1330289] (https://issuetracker.unity3d.com/issues/shadergraph-hdrp-main-preview-is-invisible-until-moved)
+- Fixed an issue where ShaderGraph "view shader" commands were opening in individual windows, and blocking Unity from closing [1367188]
+- Fixed the node searcher results to prefer names over synonyms [1367706]
 
 ## [11.0.0] - 2020-10-21
 

@@ -5,6 +5,25 @@ namespace UnityEngine.Rendering.Universal
 {
     class DebugDisplaySettingsCommon : IDebugDisplaySettingsData
     {
+        internal static class WidgetFactory
+        {
+            internal static DebugUI.Widget CreateMissingDebugShadersWarning() => new DebugUI.MessageBox
+            {
+                displayName = "Warning: the debug shader variants are missing. Ensure that the \"Strip Debug Variants\" option is disabled in URP Global Settings.",
+                style = DebugUI.MessageBox.Style.Warning,
+                isHiddenCallback = () =>
+                {
+#if UNITY_EDITOR
+                    return true;
+#else
+                    if (UniversalRenderPipelineGlobalSettings.instance != null)
+                        return !UniversalRenderPipelineGlobalSettings.instance.stripDebugVariants;
+                    return true;
+#endif
+                }
+            };
+        }
+
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override string PanelName => "Frequently Used";
@@ -13,6 +32,8 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel()
             {
+                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
+
                 var materialSettingsData = DebugDisplaySettings.Instance.MaterialSettings;
                 AddWidget(new DebugUI.Foldout
                 {
@@ -66,6 +87,7 @@ namespace UnityEngine.Rendering.Universal
                         DebugDisplaySettingsRendering.WidgetFactory.CreateMSAA(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreatePostProcessing(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateAdditionalWireframeShaderViews(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateWireframeNotSupportedWarning(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateOverdraw(renderingSettingsData)
                     },
                     contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem>()
