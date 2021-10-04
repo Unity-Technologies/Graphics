@@ -911,7 +911,6 @@ namespace UnityEngine.Rendering.Universal
             bool isOverlayCamera = (cameraData.renderType == CameraRenderType.Overlay);
             if (isOverlayCamera)
             {
-                cameraData.requiresDepthTexture = false;
                 cameraData.requiresOpaqueTexture = false;
                 cameraData.postProcessingRequiresDepthTexture = false;
             }

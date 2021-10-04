@@ -1075,8 +1075,9 @@ Shader "HDRP/LayeredLitTessellation"
         }
     }
 
-        SubShader
+    SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Name "IndirectDXR"
