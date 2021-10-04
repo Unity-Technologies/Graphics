@@ -607,8 +607,9 @@ namespace UnityEngine.Experimental.Rendering
                     // Compute the max size of a brick that can fit in the smallest dimension of a probe volume
                     float minSizedDim = Mathf.Min(pvAABB.size.x, Mathf.Min(pvAABB.size.y, pvAABB.size.z));
                     float minSideInBricks = Mathf.CeilToInt(minSizedDim / ProbeReferenceVolume.instance.MinBrickSize());
+                    int absoluteMaxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+                    minSideInBricks =  Mathf.Max(minSideInBricks, Mathf.Pow(3, absoluteMaxSubdiv - maxSubdiv));
                     int subdivLevel = Mathf.FloorToInt(Mathf.Log(minSideInBricks, 3));
-
                     gpuProbeVolumes.Add(new GPUProbeVolumeOBB
                     {
                         corner = kp.volume.corner,

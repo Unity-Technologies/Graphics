@@ -24,10 +24,16 @@ HDRP 2021.2 has various tessellation shader code to enable tessellation support 
 * HDRP has improved support of motion vectors for tessellation. Only `previousPositionRWS` is part of the varyings. HDRP also added the `MotionVectorTessellation()` function. For more information, see the `MotionVectorVertexShaderCommon.hlsl` file.
 * HDRP now evaluates the `tessellationFactor` in the vertex shader and passes it to the hull shader as an interpolator. For more information, see the `VaryingMesh.hlsl` and `VertMesh.hlsl` files.
 
-### Specular Occlusion
+### Ambient Occlusion and Specular Occlusion
 
 The algorithm for computing specular occlusion from bent normals and ambient occlusion has been changed to improve visual results.
 To use the old algorithm, function calls to `GetSpecularOcclusionFromBentAO` should be replaced by calls to `GetSpecularOcclusionFromBentAO_ConeCone`
+
+The algorithm to calculate the contribution of ambient occlusion and specular occlusion to direct lighting have been change from taking into account the multi-bounce contribution (GTAOMultiBounce) to not using the multi-bounce which is more correct.
+
+### Light list
+
+The previous `g_vLightListGlobal` uniform have been rename to explicit `g_vLightListTile` and `g_vLightListCluster` light list name. This work required to fix a wrong behavior on console.
 
 ## Density Volumes
 
@@ -83,3 +89,9 @@ When the **Dynamic Render Pass Culling** option is enabled in the HDRP Global Se
 ## Dynamic Resolution
 
 From 2021.2, Bilinear and Lanczos upscale filters have been removed as they are mostly redundant with other better options. A project using Bilinear filter will migrate to use Catmull-Rom, if using Lanczos it will migrate to Contrast Adaptive Sharpening (CAS).  If your project was relying on those filters also consider the newly added filters TAA Upscale and FidelityFX Super Resolution 1.0.
+
+## Ambient Mode
+
+From version 12.0 HDRP sets the **Ambient Mode** parameter in the **Visual Environment** volume component to **Dynamic** by default. This might impact existing projects where no default volume profile overrides the **Ambient Mode** parameter. To change this behavior:
+1. Add a **Visual Environment** component to the default volume profile.
+2. Change the **Ambient Mode** to **Static**.
