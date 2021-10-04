@@ -113,6 +113,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             {
 #if !ENABLE_VIRTUALTEXTURES
                 labelText = "Virtual Texturing is disabled globally (possibly by the render pipeline settings), this node will do regular 2D sampling.";
+#else
+                labelText = "";
 #endif
             }
 

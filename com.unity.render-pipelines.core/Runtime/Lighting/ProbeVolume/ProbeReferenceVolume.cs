@@ -30,12 +30,12 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public static AdditionalGIBakeRequestsManager instance { get { return s_Instance; } }
 
-        private AdditionalGIBakeRequestsManager()
+        internal void Init()
         {
             SubscribeOnBakeStarted();
         }
 
-        ~AdditionalGIBakeRequestsManager()
+        internal void Cleanup()
         {
             UnsubscribeOnBakeStarted();
         }
@@ -630,6 +630,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.OnSceneSaved;
             }
+            AdditionalGIBakeRequestsManager.instance.Init();
 #endif
             m_EnabledBySRP = true;
         }
@@ -660,6 +661,10 @@ namespace UnityEngine.Experimental.Rendering
         public void Cleanup()
         {
             if (!m_ProbeReferenceVolumeInit) return;
+
+#if UNITY_EDITOR
+            AdditionalGIBakeRequestsManager.instance.Cleanup();
+#endif
 
             if (!m_IsInitialized)
             {

@@ -363,6 +363,8 @@ namespace UnityEngine.Rendering.Universal
             public override string PanelName => "Material";
             public SettingsPanel(DebugDisplaySettingsMaterial data)
             {
+                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
+
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Filters",
@@ -374,7 +376,6 @@ namespace UnityEngine.Rendering.Universal
                         WidgetFactory.CreateVertexAttribute(data)
                     }
                 });
-
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Validation",

@@ -1,10 +1,28 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
     class DebugDisplaySettingsCommon : IDebugDisplaySettingsData
     {
+        internal static class WidgetFactory
+        {
+            internal static DebugUI.Widget CreateMissingDebugShadersWarning() => new DebugUI.MessageBox
+            {
+                displayName = "Warning: the debug shader variants are missing. Ensure that the \"Strip Debug Variants\" option is disabled in URP Global Settings.",
+                style = DebugUI.MessageBox.Style.Warning,
+                isHiddenCallback = () =>
+                {
+#if UNITY_EDITOR
+                    return true;
+#else
+                    if (UniversalRenderPipelineGlobalSettings.instance != null)
+                        return !UniversalRenderPipelineGlobalSettings.instance.stripDebugVariants;
+                    return true;
+#endif
+                }
+            };
+        }
+
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override string PanelName => "Frequently Used";
@@ -13,7 +31,10 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel()
             {
-                var materialSettingsData = DebugDisplaySettings.Instance.materialSettings;
+                AddWidget(WidgetFactory.CreateMissingDebugShadersWarning());
+
+                var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
+                var materialSettingsData = debugDisplaySettings.materialSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Filters",
@@ -33,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                var lightingSettingsData = DebugDisplaySettings.Instance.lightingSettings;
+                var lightingSettingsData = debugDisplaySettings.lightingSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Lighting Debug Modes",
@@ -54,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                var renderingSettingsData = DebugDisplaySettings.Instance.renderingSettings;
+                var renderingSettingsData = debugDisplaySettings.renderingSettings;
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Rendering Debug",
@@ -66,6 +87,7 @@ namespace UnityEngine.Rendering.Universal
                         DebugDisplaySettingsRendering.WidgetFactory.CreateMSAA(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreatePostProcessing(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateAdditionalWireframeShaderViews(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateWireframeNotSupportedWarning(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateOverdraw(renderingSettingsData)
                     },
                     contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem>()
