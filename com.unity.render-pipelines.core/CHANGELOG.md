@@ -11,6 +11,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
 - Fixed issue when changing volume profiles in runtime with a script (case 1364256).
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
