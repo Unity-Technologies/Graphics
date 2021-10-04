@@ -614,7 +614,7 @@ namespace UnityEditor.Rendering
                 case DebugUI.MessageBox.Style.Info:
                     type = MessageType.Info;
                     break;
-                case DebugUI.MessageBox.Style.Warning
+                case DebugUI.MessageBox.Style.Warning:
                     type = MessageType.Warning;
                     break;
                 case DebugUI.MessageBox.Style.Error:
