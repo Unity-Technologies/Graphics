@@ -41,14 +41,13 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-#  - name: OSX
-#    apis:
-#      - name: OpenGLCore
-#      - name: Metal
-#    build_configs:
-#      - name: mono
-#    color_spaces:
-#      - Linear
+  - name: OSX
+    apis:
+      - name: Metal
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 
 jobs:
   - name: PR <PROJECT_NAME>
