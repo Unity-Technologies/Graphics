@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Prevent VFX Graph compilation each time a property's min/max value is changed
 - Prevent vfx re-compilation in some cases when a value has not changed
 - Eye dropper in the color fields kept updating after pressing the Esc key
+- Automatically offset contexts when a new node is inserted to avoid overlapping
 
 ## [12.0.0] - 2021-01-11
 ### Added
