@@ -12,13 +12,13 @@ public unsafe class BRGSetup : MonoBehaviour
     public Mesh m_mesh;
     public Material m_material;
     public bool m_cullTest = false;
-    public float m_cullMovingPeriod = 0.5f;
     public bool m_motionVectorTest = false;
     public Vector3 m_center = new Vector3(0, 0, 0);
     public float m_motionSpeed = 3.0f;
     public float m_motionAmplitude = 2.0f;
+    public float m_spacingFactor = 1.0f;
 
-    static private int itemGridSize = 30;
+    public int itemGridSize = 30;
 
     private BatchRendererGroup m_BatchRendererGroup;
     private ComputeBuffer m_GPUPersistentInstanceData;
@@ -29,9 +29,7 @@ public unsafe class BRGSetup : MonoBehaviour
     private BatchMeshID m_meshID;
     private int m_itemCount;
     private bool m_initialized;
-    private float m_clock;
     private float m_phase;
-    private int m_lineIdToCull;
 
     private NativeArray<Vector4> m_sysmemBuffer;
 
@@ -82,16 +80,23 @@ public unsafe class BRGSetup : MonoBehaviour
 
         drawCommands.visibleInstances = Malloc<int>(m_itemCount);
         int n = 0;
-        int cullId = m_cullTest ? m_lineIdToCull : -1;
+        int radius = (itemGridSize / 2) * (itemGridSize / 2);       // (grid/2)^2
+        int radiusO = (radius * 90) / 100;
+        int radiusI = (radiusO * 85) / 100;
         for (int r = 0; r < itemGridSize; r++)
         {
-            if ( r != cullId)
+            for (int i = 0; i < itemGridSize; i++)
             {
-                for (int i = 0; i < itemGridSize; i++)
+                bool visible = true;
+                if ( m_cullTest )
                 {
-                    if (i != cullId)
-                        drawCommands.visibleInstances[n++] = r * itemGridSize + i;
+                    int dist = (r - itemGridSize / 2) * (r - itemGridSize / 2) + (i - itemGridSize / 2) * (i - itemGridSize / 2);
+                    if ((dist >= radiusI) && ( dist <= radiusO))
+                        visible = false;
+
                 }
+                if ( visible )
+                    drawCommands.visibleInstances[n++] = r * itemGridSize + i;
             }
         }
         drawCommands.visibleInstanceCount = n;
@@ -191,8 +196,8 @@ public unsafe class BRGSetup : MonoBehaviour
         {
             for (int x = 0; x < itemGridSize; x++)
             {
-                float px = x - itemGridSize / 2;
-                float pz = z - itemGridSize / 2;
+                float px = (x - itemGridSize / 2) * m_spacingFactor;
+                float pz = (z - itemGridSize / 2) * m_spacingFactor;
                 int i = z * itemGridSize + x;
 
                 // update previous matrix with previous frame current matrix
@@ -213,13 +218,7 @@ public unsafe class BRGSetup : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        m_clock += Time.fixedDeltaTime;
         m_phase += Time.fixedDeltaTime * m_motionSpeed;
-        if (m_clock >= m_cullMovingPeriod)
-        {
-            m_clock -= m_cullMovingPeriod;
-            m_lineIdToCull = (m_lineIdToCull + 1) % itemGridSize;
-        }
 
         if ( m_motionAmplitude > 0.0f )
         {

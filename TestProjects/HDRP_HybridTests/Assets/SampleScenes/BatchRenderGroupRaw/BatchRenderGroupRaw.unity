@@ -24,7 +24,7 @@ RenderSettings:
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 4
+  m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
   m_HaloStrength: 0.5
@@ -440,11 +440,12 @@ MonoBehaviour:
   m_mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
   m_material: {fileID: 2100000, guid: 58f4ece444f501e418c87a1fbd419d34, type: 2}
   m_cullTest: 0
-  m_cullMovingPeriod: 0.5
   m_motionVectorTest: 1
   m_center: {x: -35, y: 0, z: 0}
   m_motionSpeed: 3
   m_motionAmplitude: 2
+  m_spacingFactor: 1
+  itemGridSize: 30
 --- !u!4 &1302804432
 Transform:
   m_ObjectHideFlags: 0
@@ -706,14 +707,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8bf5413b4c8d11b4b9ba0b4d0dd785d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+  m_mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   m_material: {fileID: 2100000, guid: 58f4ece444f501e418c87a1fbd419d34, type: 2}
   m_cullTest: 1
-  m_cullMovingPeriod: 0.5
   m_motionVectorTest: 0
-  m_center: {x: 0, y: 0, z: 0}
-  m_motionSpeed: 3
-  m_motionAmplitude: 2
+  m_center: {x: 50, y: -100, z: 0}
+  m_motionSpeed: 0
+  m_motionAmplitude: 0
+  m_spacingFactor: 1.4
+  itemGridSize: 80
 --- !u!4 &1718399153
 Transform:
   m_ObjectHideFlags: 0
