@@ -338,6 +338,32 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void Link_Update_Cant_Mix_Update_And_Output()
+        {
+            var init = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var updateA = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var updateB = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var outputA = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+            var outputB = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+
+            updateA.LinkFrom(init);
+            updateB.LinkFrom(updateA);
+            outputA.LinkFrom(updateB);
+
+            Assert.AreEqual(1, init.outputContexts.Count());
+            Assert.AreEqual(1, updateA.outputContexts.Count());
+            Assert.AreEqual(1, updateB.outputContexts.Count());
+
+            outputB.LinkFrom(updateA);
+            Assert.AreEqual(1, updateA.outputContexts.Count());
+            Assert.AreEqual(outputB, updateA.outputContexts.First());
+
+            updateB.LinkFrom(updateA);
+            Assert.AreEqual(1, updateA.outputContexts.Count());
+            Assert.AreEqual(updateB, updateA.outputContexts.First());
+        }
+
+        [Test]
         public void Link_Fail_From_Event_To_Initialize()
         {
             //For now, we can't use direct link from event to initialize context.

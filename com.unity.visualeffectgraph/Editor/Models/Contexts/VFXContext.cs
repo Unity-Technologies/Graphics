@@ -337,7 +337,7 @@ namespace UnityEditor.VFX
 
         private static bool CanMixingFrom(VFXContextType from, VFXContextType to, VFXContextType primaryType)
         {
-            if (from == VFXContextType.Init)
+            if (from == VFXContextType.Init || from == VFXContextType.Update)
             {
                 if (primaryType == VFXContextType.Update)
                     return to == VFXContextType.Update;
