@@ -206,9 +206,7 @@ namespace UnityEngine.Rendering.Universal
             // Projection flip sign logic is very deep in GfxDevice::SetInvertProjectionMatrix
             // This setup is tailored especially for overlay camera game view
             // For other scenarios this will be overwritten correctly by SetupCameraProperties
-            bool isOffscreen = cameraData.targetTexture != null;
-            bool invertProjectionMatrix = isOffscreen && SystemInfo.graphicsUVStartsAtTop;
-            float projectionFlipSign = invertProjectionMatrix ? -1.0f : 1.0f;
+            float projectionFlipSign = cameraData.IsCameraProjectionMatrixFlipped() ? -1.0f : 1.0f;
             Vector4 projectionParams = new Vector4(projectionFlipSign, near, far, 1.0f * invFar);
             cmd.SetGlobalVector(ShaderPropertyId.projectionParams, projectionParams);
 
@@ -609,7 +607,7 @@ namespace UnityEngine.Rendering.Universal
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
-            bool drawGizmos = DebugDisplaySettings.Instance.RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.None;
+            bool drawGizmos = UniversalRenderPipelineDebugDisplaySettings.Instance.RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.None;
 
             m_IsPipelineExecuting = true;
             ref CameraData cameraData = ref renderingData.cameraData;
