@@ -103,6 +103,10 @@ real4 SampleAdditionalLightsCookieAtlasTexture(float2 uv)
 }
 
 // Helpers
+bool IsMainLightCookieEnabled()
+{
+    return _MainLightCookieTextureFormat != URP_LIGHT_COOKIE_FORMAT_NONE;
+}
 
 bool IsLightCookieEnabled(int lightBufferIndex)
 {

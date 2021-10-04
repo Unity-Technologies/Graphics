@@ -47,6 +47,27 @@ namespace UnityEditor.VFX.UI
             s_Instance.PasteBlocks(viewController, (data as SerializableGraph).operators, targetModelContext, targetIndex, blocksInTheSameOrder);
         }
 
+        public static bool CanPaste(VFXView view, object data)
+        {
+            try
+            {
+                var serializableGraph = JsonUtility.FromJson<SerializableGraph>(data.ToString());
+                if (serializableGraph.blocksOnly)
+                {
+                    var selectedContexts = view.selection.OfType<VFXContextUI>();
+                    var selectedBlocks = view.selection.OfType<VFXBlockUI>();
+
+                    return selectedBlocks.Any() || selectedContexts.Count() == 1;
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         void DoPaste(VFXViewController viewController, Vector2 center, object data, VFXView view, VFXGroupNodeController groupNode, List<VFXNodeController> nodesInTheSameOrder)
         {
             SerializableGraph serializableGraph = (SerializableGraph)data;
@@ -85,7 +106,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                Debug.LogError(m_BlockPasteError.text);
+                Debug.LogWarning(m_BlockPasteError.text);
                 return;
             }
 

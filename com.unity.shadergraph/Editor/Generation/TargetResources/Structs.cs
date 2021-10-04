@@ -63,6 +63,9 @@ namespace UnityEditor.ShaderGraph
                 StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement,
 
                 StructFields.VertexDescriptionInputs.ScreenPosition,
+                StructFields.VertexDescriptionInputs.NDCPosition,
+                StructFields.VertexDescriptionInputs.PixelPosition,
+
                 StructFields.VertexDescriptionInputs.uv0,
                 StructFields.VertexDescriptionInputs.uv1,
                 StructFields.VertexDescriptionInputs.uv2,
@@ -115,6 +118,9 @@ namespace UnityEditor.ShaderGraph
                 StructFields.SurfaceDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement,
 
                 StructFields.SurfaceDescriptionInputs.ScreenPosition,
+                StructFields.SurfaceDescriptionInputs.NDCPosition,
+                StructFields.SurfaceDescriptionInputs.PixelPosition,
+
                 StructFields.SurfaceDescriptionInputs.uv0,
                 StructFields.SurfaceDescriptionInputs.uv1,
                 StructFields.SurfaceDescriptionInputs.uv2,

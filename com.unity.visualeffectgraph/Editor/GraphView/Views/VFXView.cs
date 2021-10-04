@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
+using UnityEditor.Experimental;
+
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Toolbars;
 using UnityEditor.VersionControl;
@@ -109,6 +111,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
+
     class VFXView : GraphView, IControlledElement<VFXViewController>, IControllerListener
     {
         private const int MaximumNameLengthInNotification = 128;
@@ -142,6 +145,7 @@ namespace UnityEditor.VFX.UI
 
         VisualElement m_NoAssetLabel;
         VisualElement m_LockedElement;
+        Button m_BackButton;
 
         VFXViewController m_Controller;
         Controller IControlledElement.controller
@@ -149,12 +153,10 @@ namespace UnityEditor.VFX.UI
             get { return m_Controller; }
         }
 
-        public Button checkoutButton;
-
         void DisconnectController()
         {
             if (controller.model && controller.graph)
-                controller.graph.SetCompilationMode(VFXCompilationMode.Runtime);
+                controller.graph.SetCompilationMode(VFXViewPreference.forceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
 
 
             m_Controller.UnregisterHandler(this);
@@ -383,9 +385,10 @@ namespace UnityEditor.VFX.UI
         readonly VisualElement m_Toolbar;
         readonly ToolbarToggle m_LockToggle;
         readonly EditorToolbarDropdown m_AttachDropDownButton;
+        readonly Texture2D m_LinkedIcon;
+        readonly Texture2D m_UnlinkedIcon;
 
         VFXNodeProvider m_NodeProvider;
-        ToolbarButton m_SaveButton;
         bool m_IsRuntimeMode;
         bool m_ForceShaderValidation;
 
@@ -405,7 +408,7 @@ namespace UnityEditor.VFX.UI
         public static Texture2D LoadImage(string text)
         {
             string path = string.Format("{0}/VFX/{1}.png", VisualEffectAssetEditorUtility.editorResourcesPath, text);
-            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            return EditorGUIUtility.LoadIcon(path);
         }
 
         SelectionDragger m_SelectionDragger;
@@ -451,79 +454,47 @@ namespace UnityEditor.VFX.UI
 
             m_Toolbar = new UnityEditor.UIElements.Toolbar();
 
-            var toggleAutoCompile = new ToolbarToggle();
-            toggleAutoCompile.text = "Auto";
-            toggleAutoCompile.style.unityTextAlign = TextAnchor.MiddleRight;
-            toggleAutoCompile.SetValueWithoutNotify(true);
-            toggleAutoCompile.RegisterCallback<ChangeEvent<bool>>(OnToggleCompile);
-            m_Toolbar.Add(toggleAutoCompile);
+            var saveDropDownButton = new VFXSaveDropdownButton(this, VFXViewWindow.currentWindow);
+            m_Toolbar.Add(saveDropDownButton);
 
-            var compileButton = new ToolbarButton(OnCompile);
-            compileButton.style.unityTextAlign = TextAnchor.MiddleLeft;
-            compileButton.text = "Compile";
-            m_Toolbar.Add(compileButton);
+            var compileDropDownButton = new VFXCompileDropdownButton(this, VFXViewWindow.currentWindow);
+            m_Toolbar.Add(compileDropDownButton);
 
-            var resyncMatButton = new ToolbarButton(OnResyncMaterial);
-            resyncMatButton.style.unityTextAlign = TextAnchor.MiddleLeft;
-            resyncMatButton.text = "Resync Material";
-            m_Toolbar.Add(resyncMatButton);
-
-            m_SaveButton = new ToolbarButton(OnSave);
-            m_SaveButton.style.unityTextAlign = TextAnchor.MiddleLeft;
-            m_SaveButton.text = "Save";
-            m_Toolbar.Add(m_SaveButton);
-
-            m_AttachDropDownButton = new EditorToolbarDropdown(Contents.attach.text, OnOpenAttachMenu);
+            m_LinkedIcon = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "Linked.png"));
+            m_UnlinkedIcon = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "UnLinked.png"));
+            m_AttachDropDownButton = new EditorToolbarDropdown(m_UnlinkedIcon, OnOpenAttachMenu);
             m_AttachDropDownButton.name = "attach-toolbar-button";
             m_Toolbar.Add(m_AttachDropDownButton);
-
             m_LockToggle = new ToolbarToggle();
+
             m_LockToggle.style.unityTextAlign = TextAnchor.MiddleLeft;
             m_LockToggle.tooltip = locked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
             m_LockToggle.name = "lock-auto-attach";
             m_LockToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleLock);
             m_Toolbar.Add(m_LockToggle);
 
-            var spacer = new ToolbarSpacer();
-            spacer.style.width = 12f;
-            m_Toolbar.Add(spacer);
-
-            var selectAssetButton = new ToolbarButton(() => { SelectAsset(); });
-            selectAssetButton.text = "Show in Project";
-            m_Toolbar.Add(selectAssetButton);
-
-            spacer = new ToolbarSpacer();
-            spacer.style.width = 10;
-            m_Toolbar.Add(spacer);
-
-            checkoutButton = new ToolbarButton(() => { Checkout(); });
-            checkoutButton.text = "Check Out";
-            checkoutButton.visible = false;
-            checkoutButton.AddToClassList("toolbarItem");
-            m_Toolbar.Add(checkoutButton);
+            m_BackButton = new Button { tooltip = "Back to parent", name = "BackButton" };
+            m_BackButton.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "back.png")) });
+            m_BackButton.clicked += OnBackToParent;
+            m_Toolbar.Add(m_BackButton);
 
             var flexSpacer = new ToolbarSpacer();
             flexSpacer.style.flexGrow = 1f;
             m_Toolbar.Add(flexSpacer);
 
-            var toggleBlackboard = new ToolbarToggle();
-            toggleBlackboard.text = "Blackboard";
+            var toggleBlackboard = new ToolbarToggle { tooltip = "Blackboard" };
+            toggleBlackboard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/variableswindow.png")) });
             toggleBlackboard.RegisterCallback<ChangeEvent<bool>>(ToggleBlackboard);
             m_Toolbar.Add(toggleBlackboard);
 
-            m_ToggleComponentBoard = new ToolbarToggle();
-            m_ToggleComponentBoard.text = "Control";
+            m_ToggleComponentBoard = new ToolbarToggle { tooltip = "Displays controls for the GameObject currently attached" };
+            m_ToggleComponentBoard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/controls.png")) });
+            m_ToggleComponentBoard.style.borderRightWidth = 1;
             m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
             m_Toolbar.Add(m_ToggleComponentBoard);
 
-            var showDebugMenu = new ToolbarMenu();
-            showDebugMenu.text = "Advanced";
-            showDebugMenu.menu.AppendAction("Runtime Mode (Forced)", OnRuntimeModeChanged, RuntimeModeStatus);
-            showDebugMenu.menu.AppendAction("Shader Validation (Forced)", OnShaderValidationChanged, ShaderValidationStatus);
-            showDebugMenu.menu.AppendSeparator();
-            showDebugMenu.menu.AppendAction("Refresh UI", OnRefreshUI, DropdownMenuAction.Status.Normal);
-            m_Toolbar.Add(showDebugMenu);
-
+            var helpDropDownButton = new VFXHelpDropdownButton(this, VFXViewWindow.currentWindow);
+            m_Toolbar.Add(helpDropDownButton);
             // End Toolbar
 
             m_NoAssetLabel = new Label("\n\n\nTo begin creating Visual Effects, create a new Visual Effect Graph Asset.\n(or double-click an existing Visual Effect Graph in the project view)") { name = "no-asset" };
@@ -571,7 +542,7 @@ namespace UnityEditor.VFX.UI
 
             Add(m_LockedElement);
             Add(m_Toolbar);
-            m_Toolbar.SetEnabled(false);
+            SetToolbarEnabled(false);
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
@@ -582,13 +553,15 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<KeyDownEvent>(OnKeyDownEvent);
 
             graphViewChanged = VFXGraphViewChanged;
-
             elementResized = VFXElementResized;
+            canPasteSerializedData = VFXCanPaste;
 
             viewDataKey = "VFXView";
 
             RegisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
+
+        internal bool GetIsRuntimeMode() => m_IsRuntimeMode;
 
         private void OnOpenAttachMenu()
         {
@@ -598,37 +571,18 @@ namespace UnityEditor.VFX.UI
             attachPanel.ShowAsDropDown(bounds, attachPanel.WindowSize, new[] { PopupLocation.BelowAlignLeft });
         }
 
-        void OnRefreshUI(DropdownMenuAction action)
-        {
-            Resync();
-        }
-
-        void OnRuntimeModeChanged(DropdownMenuAction action)
+        internal void ToggleRuntimeMode()
         {
             m_IsRuntimeMode = !m_IsRuntimeMode;
             controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
         }
 
-        DropdownMenuAction.Status RuntimeModeStatus(DropdownMenuAction action)
-        {
-            if (m_IsRuntimeMode)
-                return DropdownMenuAction.Status.Checked;
-            else
-                return DropdownMenuAction.Status.Normal;
-        }
+        internal bool GetShaderValidation() => m_ForceShaderValidation;
 
-        void OnShaderValidationChanged(DropdownMenuAction action)
+        internal void ToggleShaderValidationChanged()
         {
             m_ForceShaderValidation = !m_ForceShaderValidation;
             controller.graph.SetForceShaderValidation(m_ForceShaderValidation);
-        }
-
-        DropdownMenuAction.Status ShaderValidationStatus(DropdownMenuAction action)
-        {
-            if (m_ForceShaderValidation)
-                return DropdownMenuAction.Status.Checked;
-            else
-                return DropdownMenuAction.Status.Normal;
         }
 
         [NonSerialized]
@@ -636,6 +590,15 @@ namespace UnityEditor.VFX.UI
 
         [NonSerialized]
         List<IconBadge> m_CompileBadges = new List<IconBadge>();
+
+        private void SetToolbarEnabled(bool enabled)
+        {
+            m_Toolbar
+                .Children()
+                .Where(x => x is not VFXHelpDropdownButton)
+                .ToList()
+                .ForEach(x => x.SetEnabled(enabled));
+        }
 
         private void RegisterError(VFXModel model, VFXErrorOrigin errorOrigin, string error, VFXErrorType type, string description)
         {
@@ -811,10 +774,12 @@ namespace UnityEditor.VFX.UI
             if (attachedComponent != null)
             {
                 m_AttachDropDownButton.AddToClassList("checked");
+                m_AttachDropDownButton.icon = m_LinkedIcon;
             }
             else
             {
                 m_AttachDropDownButton.RemoveFromClassList("checked");
+                m_AttachDropDownButton.icon = m_UnlinkedIcon;
             }
 
             m_LockToggle.tooltip = locked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
@@ -839,6 +804,11 @@ namespace UnityEditor.VFX.UI
             }
 
             this.m_Blackboard.ForceUpdate();
+        }
+
+        void OnBackToParent()
+        {
+            VFXViewWindow.currentWindow.PopResource();
         }
 
         void OnToggleLock(ChangeEvent<bool> evt)
@@ -1038,7 +1008,7 @@ namespace UnityEditor.VFX.UI
             if (controller != null)
             {
                 m_NoAssetLabel.RemoveFromHierarchy();
-                m_Toolbar.SetEnabled(true);
+                SetToolbarEnabled(true);
 
                 m_AttachDropDownButton.SetEnabled(this.controller.graph.visualEffectResource.subgraph == null);
                 m_LockToggle.SetEnabled(this.controller.graph.visualEffectResource.subgraph == null);
@@ -1059,7 +1029,7 @@ namespace UnityEditor.VFX.UI
                 if (m_NoAssetLabel.parent == null)
                 {
                     Add(m_NoAssetLabel);
-                    m_Toolbar.SetEnabled(false);
+                    SetToolbarEnabled(false);
                 }
             }
         }
@@ -1524,17 +1494,12 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnToggleCompile(ChangeEvent<bool> e)
-        {
-            VFXViewWindow.currentWindow.autoCompile = !VFXViewWindow.currentWindow.autoCompile;
-        }
-
         void OnResyncMaterial()
         {
             controller.graph.Invalidate(VFXModel.InvalidationCause.kMaterialChanged);
         }
 
-        void OnCompile()
+        internal void Compile()
         {
             VFXLibrary.LogUnsupportedSRP();
 
@@ -1553,7 +1518,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnSave()
+        internal void OnSave()
         {
             m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
 
@@ -1562,7 +1527,23 @@ namespace UnityEditor.VFX.UI
             foreach (var graph in graphToSave)
             {
                 if (EditorUtility.IsDirty(graph) || UnityEngine.Object.ReferenceEquals(graph, controller.graph))
+                {
+                    graph.UpdateSubAssets();
                     graph.GetResource().WriteAsset();
+                }
+            }
+        }
+
+        internal void SaveAs(string newPath)
+        {
+            m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
+
+            var resource = controller.graph.visualEffectResource;
+
+            var oldFilePath = AssetDatabase.GetAssetPath(resource);
+            if (!AssetDatabase.CopyAsset(oldFilePath, newPath))
+            {
+                Debug.Log($"Could not save VFX Graph at {newPath}");
             }
         }
 
@@ -1606,9 +1587,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public EventPropagation Compile()
+        public EventPropagation OnCompile()
         {
-            OnCompile();
+            Compile();
 
             return EventPropagation.Stop;
         }
@@ -1618,31 +1599,6 @@ namespace UnityEditor.VFX.UI
             if (controller == null || parameterController == null) return;
 
             controller.AddVFXParameter(pos, parameterController, groupNode != null ? groupNode.controller : null);
-        }
-
-        public EventPropagation Resync()
-        {
-            foreach (var node in rootNodes.Values)
-                node.RemoveFromHierarchy();
-
-            rootNodes.Clear();
-            foreach (var node in nodes.ToList())
-                node.RemoveFromHierarchy();
-
-            foreach (var edge in dataEdges.Values)
-                edge.RemoveFromHierarchy();
-            dataEdges.Clear();
-
-            foreach (var edge in flowEdges.Values)
-                edge.RemoveFromHierarchy();
-            flowEdges.Clear();
-
-            foreach (var edge in edges.ToList())
-                edge.RemoveFromHierarchy();
-
-            if (controller != null)
-                controller.ForceReload();
-            return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDot()
@@ -1911,7 +1867,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void SelectAsset()
+        internal void SelectAsset()
         {
             if (Selection.activeObject != controller.model)
             {
@@ -1920,7 +1876,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void Checkout()
+        internal void Checkout()
         {
             Task task = Provider.Checkout(controller.model.visualEffectObject, CheckoutMode.Both);
             task.Wait();
@@ -2132,6 +2088,11 @@ namespace UnityEditor.VFX.UI
 
                 return center;
             }
+        }
+
+        private bool VFXCanPaste(string data)
+        {
+            return VFXPaste.CanPaste(this, data);
         }
 
         public void UnserializeAndPasteElements(string operationName, string data)
@@ -2400,6 +2361,16 @@ namespace UnityEditor.VFX.UI
                 evt.menu.AppendSeparator();
                 evt.menu.AppendAction("Duplicate %d", OnDuplicateBlackBoardCategory, e => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
+
+            if (evt.target is GraphView || evt.target is Node)
+            {
+                var copyMenu = evt.menu.MenuItems().OfType<DropdownMenuAction>().SingleOrDefault(x => x.name == "Copy");
+                if (copyMenu != null)
+                {
+                    var index = evt.menu.MenuItems().IndexOf(copyMenu);
+                    evt.menu.InsertAction(index + 1, "Paste", (a) => { PasteCallback(); }, (a) => { return canPaste ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
+                }
+            }
         }
 
         static readonly string s_DeleteEventCommandName = GetDeleteEventCommandName();
@@ -2529,6 +2500,13 @@ namespace UnityEditor.VFX.UI
             {
                 context.UpdateLabel();
             }
+        }
+
+        public void UpdateIsSubgraph()
+        {
+            m_BackButton.style.display = controller.graph.visualEffectResource.isSubgraph && VFXViewWindow.currentWindow.CanPopResource()
+                ? DisplayStyle.Flex
+                : DisplayStyle.None;
         }
 
         void OnDragUpdated(DragUpdatedEvent e)

@@ -801,7 +801,7 @@ namespace UnityEditor.VFX
             EditorGUI.indentLevel = 0;
             if (serializedObject.ApplyModifiedProperties())
             {
-                var window = EditorWindow.GetWindow<VFXViewWindow>();
+                var window = WindowLayout.FindEditorWindowOfType(typeof(VFXViewWindow)) as VFXViewWindow;
                 if (window != null)
                     window.OnVisualEffectComponentChanged(targets.Cast<VisualEffect>());
             }

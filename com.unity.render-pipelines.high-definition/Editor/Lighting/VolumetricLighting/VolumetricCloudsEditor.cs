@@ -46,9 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DensityMultiplier;
         SerializedDataParameter m_ShapeFactor;
         SerializedDataParameter m_ShapeScale;
-        SerializedDataParameter m_ShapeOffsetX;
-        SerializedDataParameter m_ShapeOffsetY;
-        SerializedDataParameter m_ShapeOffsetZ;
+        SerializedDataParameter m_ShapeOffset;
         SerializedDataParameter m_ErosionFactor;
         SerializedDataParameter m_ErosionScale;
         SerializedDataParameter m_ErosionNoiseType;
@@ -58,6 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_PowderEffectIntensity;
         SerializedDataParameter m_MultiScattering;
         SerializedDataParameter m_AmbientLightProbeDimmer;
+        SerializedDataParameter m_SunLightDimmer;
         SerializedDataParameter m_ErosionOcclusion;
 
         // Wind
@@ -126,9 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DensityMultiplier = Unpack(o.Find(x => x.densityMultiplier));
             m_ShapeFactor = Unpack(o.Find(x => x.shapeFactor));
             m_ShapeScale = Unpack(o.Find(x => x.shapeScale));
-            m_ShapeOffsetX = Unpack(o.Find(x => x.shapeOffsetX));
-            m_ShapeOffsetY = Unpack(o.Find(x => x.shapeOffsetY));
-            m_ShapeOffsetZ = Unpack(o.Find(x => x.shapeOffsetZ));
+            m_ShapeOffset = Unpack(o.Find(x => x.shapeOffset));
             m_ErosionFactor = Unpack(o.Find(x => x.erosionFactor));
             m_ErosionScale = Unpack(o.Find(x => x.erosionScale));
             m_ErosionNoiseType = Unpack(o.Find(x => x.erosionNoiseType));
@@ -138,6 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_PowderEffectIntensity = Unpack(o.Find(x => x.powderEffectIntensity));
             m_MultiScattering = Unpack(o.Find(x => x.multiScattering));
             m_AmbientLightProbeDimmer = Unpack(o.Find(x => x.ambientLightProbeDimmer));
+            m_SunLightDimmer = Unpack(o.Find(x => x.sunLightDimmer));
             m_ErosionOcclusion = Unpack(o.Find(x => x.erosionOcclusion));
 
             // Wind
@@ -235,9 +233,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                         PropertyField(m_ShapeFactor);
                         PropertyField(m_ShapeScale);
-                        PropertyField(m_ShapeOffsetX);
-                        PropertyField(m_ShapeOffsetY);
-                        PropertyField(m_ShapeOffsetZ);
+                        PropertyField(m_ShapeOffset);
                         PropertyField(m_ErosionFactor);
                         PropertyField(m_ErosionScale);
                         PropertyField(m_ErosionNoiseType);
@@ -249,11 +245,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
                 else
-                {
-                    PropertyField(m_ShapeOffsetX);
-                    PropertyField(m_ShapeOffsetY);
-                    PropertyField(m_ShapeOffsetZ);
-                }
+                    PropertyField(m_ShapeOffset);
             }
 
             PropertyField(m_EarthCurvature);
@@ -284,6 +276,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader("Lighting");
             {
                 PropertyField(m_AmbientLightProbeDimmer);
+                PropertyField(m_SunLightDimmer);
                 PropertyField(m_ErosionOcclusion);
                 PropertyField(m_ScatteringTint);
                 PropertyField(m_PowderEffectIntensity);
