@@ -118,6 +118,8 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum DebugOverdrawMode
     {
+        /// <summary>No overdraw debug mode.</summary>
+        None,
         /// <summary>Debug overdraw of opaque only.</summary>
         Opaque,
         /// <summary>Debug overdraw of transparent only.</summary>
