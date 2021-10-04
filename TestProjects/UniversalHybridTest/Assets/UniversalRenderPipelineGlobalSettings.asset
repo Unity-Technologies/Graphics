@@ -23,5 +23,5 @@ MonoBehaviour:
   lightLayerName7: Light Layer 7
   m_StripDebugVariants: 1
   m_StripUnusedPostProcessingVariants: 0
-  m_StripUnusedVariants: 1
+  m_StripUnusedVariants: 0
   supportRuntimeDebugDisplay: 0

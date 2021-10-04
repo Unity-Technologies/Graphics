@@ -13,8 +13,8 @@
       "dependencies": {}
     },
     "com.unity.addressables": {
-      "version": "1.19.4",
-      "depth": 1,
+      "version": "1.19.7",
+      "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.scriptablebuildpipeline": "1.19.2",
@@ -127,7 +127,7 @@
     },
     "com.unity.scriptablebuildpipeline": {
       "version": "1.19.2",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
