@@ -29,6 +29,8 @@
 #pragma multi_compile _ LOCAL_VOLUMETRIC_CLOUDS
 #pragma multi_compile _ USE_INTERMEDIATE_BUFFER
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 //#define WITHOUT_LDS
 // #pragma enable_d3d11_debug_symbols
 

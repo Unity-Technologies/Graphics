@@ -1065,6 +1065,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         {
 #if UNITY_EDITOR
+            // Build target can change in editor so we need to check if the target is supported
+            if (!HDUtils.IsSupportedBuildTarget(UnityEditor.EditorUserBuildSettings.activeBuildTarget))
+                return;
+
             if (!m_ResourcesInitialized)
                 return;
 #endif
