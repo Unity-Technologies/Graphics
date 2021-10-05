@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Opacity as Density blending feature for Terrain Lit Shader is now disabled when the Terrain has more than four Terrain Layers. This is now similar to the Height-blend feature for the Terrain Lit Shader.
 
 ### Fixed
+- Fixed an issue in Sprite-Lit-Default.shader causing 2D lighting in perspective to be incorrect. [case 1315645](https://issuetracker.unity3d.com/issues/lighting-renders-incorrectly-when-using-2d-lighting-and-perspective-camera)
 - Fixed an issue where the 2D Renderer was not rendering depth and stencil in the normal rendering pass [1259874](https://issuetracker.unity3d.com/product/unity/issues/guid/1259874/)
 - Fixed an issue where Transparency Sort Mode value is taken from Graphics Settings instead of 2D Renderer [1310652](https://issuetracker.unity3d.com/issues/transparency-sort-mode-value-is-taken-from-graphics-settings-instead-of-2d-forward-renderer)
 - Fixed an issue where Post Processing doesn't enable when PostProcessData reassigned from the asset selector window.
