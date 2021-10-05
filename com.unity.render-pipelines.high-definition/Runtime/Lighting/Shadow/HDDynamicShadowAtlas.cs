@@ -6,8 +6,8 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     partial class HDDynamicShadowAtlas : HDShadowAtlas
     {
-        readonly List<HDShadowResolutionRequest>    m_ShadowResolutionRequests = new List<HDShadowResolutionRequest>();
-        readonly List<HDShadowRequest>              m_MixedRequestsPendingBlits = new List<HDShadowRequest>();
+        readonly List<HDShadowResolutionRequest> m_ShadowResolutionRequests = new List<HDShadowResolutionRequest>();
+        readonly List<HDShadowRequest> m_MixedRequestsPendingBlits = new List<HDShadowRequest>();
 
         float m_RcpScaleFactor = 1;
         HDShadowResolutionRequest[] m_SortedRequestsCache;

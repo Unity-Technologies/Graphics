@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
         public LerpNode()
         {
             name = "Lerp";
+            synonyms = new string[] { "mix", "blend", "linear interpolate" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

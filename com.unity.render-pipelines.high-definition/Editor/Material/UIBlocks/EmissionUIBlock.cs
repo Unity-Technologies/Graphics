@@ -12,6 +12,8 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public class EmissionUIBlock : MaterialUIBlock
     {
+        static float s_MaxEvValue = Mathf.Floor(LightUtils.ConvertLuminanceToEv(float.MaxValue)) - 1;
+
         /// <summary>Options for emission block features. Use this to control which fields are visible.</summary>
         [Flags]
         public enum Features
@@ -131,7 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
         {
-            Color emissiveColorLDRLinear = emissiveColorLDR.colorValue / emissiveIntensity.floatValue;
+            Color emissiveColorLDRLinear = emissiveColor.colorValue / emissiveIntensity.floatValue;
             emissiveColorLDR.colorValue = emissiveColorLDRLinear.gamma;
         }
 
@@ -140,7 +142,15 @@ namespace UnityEditor.Rendering.HighDefinition
             bool unitIsMixed = emissiveIntensityUnit.hasMixedValue;
             bool intensityIsMixed = unitIsMixed || emissiveIntensity.hasMixedValue;
 
-            using (new EditorGUILayout.HorizontalScope())
+            float indent = 15 * EditorGUI.indentLevel;
+            const int k_ValueUnitSeparator = 2;
+            const int k_UnitWidth = 100;
+            Rect valueRect = EditorGUILayout.GetControlRect();
+            valueRect.width += indent - k_ValueUnitSeparator - k_UnitWidth;
+            Rect unitRect = valueRect;
+            unitRect.x += valueRect.width - indent + k_ValueUnitSeparator;
+            unitRect.width = k_UnitWidth + .5f;
+
             {
                 EditorGUI.showMixedValue = intensityIsMixed;
                 EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
@@ -148,21 +158,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (unitIsMixed)
                 {
                     using (new EditorGUI.DisabledScope(true))
-                        materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+                        materialEditor.ShaderProperty(valueRect, emissiveIntensity, Styles.emissiveIntensityText);
                 }
                 else
                 {
                     if (!intensityIsMixed && unit == EmissiveIntensityUnit.EV100)
                     {
                         float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
-                        evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
-                        evValue = Mathf.Clamp(evValue, 0, float.MaxValue);
+                        evValue = EditorGUI.FloatField(valueRect, Styles.emissiveIntensityText, evValue);
+                        evValue = Mathf.Clamp(evValue, 0, s_MaxEvValue);
                         emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
                     }
                     else
                     {
                         EditorGUI.BeginChangeCheck();
-                        materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+                        materialEditor.ShaderProperty(valueRect, emissiveIntensity, Styles.emissiveIntensityText);
                         if (EditorGUI.EndChangeCheck())
                             emissiveIntensity.floatValue = Mathf.Clamp(emissiveIntensity.floatValue, 0, float.MaxValue);
                     }
@@ -170,7 +180,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUI.showMixedValue = emissiveIntensityUnit.hasMixedValue;
                 EditorGUI.BeginChangeCheck();
-                var newUnit = (EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
+                var newUnit = (EmissiveIntensityUnit)EditorGUI.EnumPopup(unitRect, unit);
                 if (EditorGUI.EndChangeCheck())
                     emissiveIntensityUnit.floatValue = (float)newUnit;
             }

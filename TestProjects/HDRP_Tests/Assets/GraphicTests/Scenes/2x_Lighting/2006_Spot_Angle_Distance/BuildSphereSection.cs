@@ -16,7 +16,7 @@ public class BuildSphereSection : MonoBehaviour
     {
         MeshFilter meshFilter = GetComponent<MeshFilter>();
 
-        if (segmentsX  < 3) segmentsX = 3;
+        if (segmentsX < 3) segmentsX = 3;
         if (segmentsY < 1) segmentsY = 1;
         angle = Mathf.Clamp(angle, 1f, 179f);
 

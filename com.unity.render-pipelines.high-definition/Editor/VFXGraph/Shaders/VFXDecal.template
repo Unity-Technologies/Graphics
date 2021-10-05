@@ -158,7 +158,7 @@ if(_EnableDecalLayers)
         #else //USE_NORMAL_MAP
 	    float3 normalTS = float3(0.0f,0.0f,1.0f);
 	    #endif //USE_NORMAL_MAP
-        float3 normalWS = lerp(worldToElement._m20_m21_m22, mul(transpose(worldToElement), normalTS), normalScale);
+        float3 normalWS = lerp(worldToElement._m20_m21_m22, mul(transpose((float3x3)worldToElement), normalTS), normalScale);
 	    normalWS = normalize(normalWS);
     #endif //DECAL_SURFACE_GRADIENT
 

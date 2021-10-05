@@ -520,7 +520,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Prepare the probe for culling.
         /// You should call this method when you update the <see cref="influenceVolume"/> parameters during runtime.
         /// </summary>
-        public virtual void PrepareCulling() {}
+        public virtual void PrepareCulling() { }
 
         /// <summary>
         /// Requests that Unity renders this Reflection Probe during the next update.
@@ -633,15 +633,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void QueueSHBaking()
         {
-            var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
-            if (hdrp != null)
-            {
-                if (!hdrp.currentPlatformRenderPipelineSettings.supportProbeVolume) return;
-            }
-            else
-            {
+            if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp))
                 return;
-            }
+
+            if (!hdrp.currentPlatformRenderPipelineSettings.supportProbeVolume)
+                return;
 
             Vector3 capturePositionWS = ComputeCapturePositionWS();
             if (m_SHRequestID < 0)

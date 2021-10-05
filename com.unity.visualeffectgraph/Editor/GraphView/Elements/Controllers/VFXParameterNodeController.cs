@@ -242,7 +242,7 @@ namespace UnityEditor.VFX.UI
 
         string IPropertyRMProvider.name { get { return "Value"; } }
 
-        object[] IPropertyRMProvider.customAttributes { get { return new object[] {}; } }
+        object[] IPropertyRMProvider.customAttributes { get { return new object[] { }; } }
 
         VFXPropertyAttributes IPropertyRMProvider.attributes { get { return new VFXPropertyAttributes(); } }
 
@@ -266,8 +266,8 @@ namespace UnityEditor.VFX.UI
             throw new NotImplementedException();
         }
 
-        void IPropertyRMProvider.StartLiveModification() {}
-        void IPropertyRMProvider.EndLiveModification() {}
+        void IPropertyRMProvider.StartLiveModification() { }
+        void IPropertyRMProvider.EndLiveModification() { }
 
         public override void DrawGizmos(VisualEffect component)
         {

@@ -8,7 +8,7 @@
 // Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
 #define SHADOW_LOW
 
-#pragma only_renderers d3d11
+#pragma only_renderers d3d11 ps5
 
 // Include and define the shader pass
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
@@ -30,6 +30,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/RayTracingFallbackHierarchy.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 
 #define RAYTRACING_DEFERRED_TILE_SIZE 8
 
@@ -48,7 +49,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     uint2 currentCoord = groupId * RAYTRACING_DEFERRED_TILE_SIZE + groupThreadId;
 
     #ifdef HALF_RESOLUTION
-    currentCoord *=2;
+    currentCoord = ComputeSourceCoordinates(currentCoord, _RaytracingFrameIndex);
     #endif
 
     // Initialize the output buffer
@@ -71,15 +72,15 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     float3 finalColor = 0.0f;
     // if the distance is exactly zero, this means we are facing an environement ray that we need to evaluate
-    if (rayDistance == 0.0f)
+    if (RayTracingGBufferIsSky(rayDistance))
     {
         // Weight value used to do the blending
         float weight = 0.0;
 
-        if (RAYTRACINGFALLBACKHIERACHY_REFLECTION_PROBES & _RayTracingFallbackHierarchy)
+        if (RAYTRACINGFALLBACKHIERACHY_REFLECTION_PROBES & _RayTracingRayMissFallbackHierarchy)
             finalColor = RayTraceReflectionProbes(sourcePosInput.positionWS, rayDirection, weight);
 
-        if((RAYTRACINGFALLBACKHIERACHY_SKY & _RayTracingFallbackHierarchy) && weight == 0.0f)
+        if((RAYTRACINGFALLBACKHIERACHY_SKY & _RayTracingRayMissFallbackHierarchy) && weight == 0.0f)
         {
             finalColor = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayDirection, 0.0, 0).xyz;
             weight = 1.0;
@@ -96,7 +97,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
             finalColor = HsvToRgb(finalColor);
         }
     }
-    else if (rayDistance < 0.0f)
+    else if (RayTracingGBufferIsUnlit(rayDistance))
     {
         finalColor = LOAD_TEXTURE2D_X(_GBufferTexture3, currentCoord).rgb;
 
@@ -119,7 +120,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     }
 
     // If the distance is negative, this means it is a sky pixel or an unlit material
-    if (rayDistance <= 0.0f)
+    if (!RayTracingGBufferIsLit(rayDistance))
     {
         _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier()), 0.0);
         return;
@@ -146,7 +147,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     // Evaluate the complete lighting
     LightLoopOutput lightLoopOutput;
-    LightLoop(-rayDirection, posInput, preLightData, bsdfData, builtinData, 0.0, 1.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), lightLoopOutput);
+    LightLoop(-rayDirection, posInput, preLightData, bsdfData, builtinData, float4(0.0, 0.0, 0.0, 0.0), float4(0.0, 0.0, 0.0, 0.0), lightLoopOutput);
 
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;
@@ -250,7 +251,7 @@ void RaytracingDiffuseDeferred(uint3 dispatchThreadId : SV_DispatchThreadID, uin
 
     // Evaluate lighting
     LightLoopOutput lightLoopOutput;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, 0.0, 1.0, float3(0.0, 0.0, 0.0), float3(0.0, 0.0, 0.0), lightLoopOutput);
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, float4(0.0, 0.0, 0.0, 0.0), float4(0.0, 0.0, 0.0, 0.0), lightLoopOutput);
 
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;

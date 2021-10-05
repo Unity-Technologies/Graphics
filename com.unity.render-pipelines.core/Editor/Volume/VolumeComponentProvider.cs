@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering
 
         class PathNode : IComparable<PathNode>
         {
-            public List<PathNode> nodes =  new List<PathNode>();
+            public List<PathNode> nodes = new List<PathNode>();
             public string name;
             public Type type;
 
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering
             {
                 var rootNode = new PathNode();
 
-                foreach (var(path, t) in volumeComponentTypesFiltered)
+                foreach (var (path, t) in volumeComponentTypesFiltered)
                 {
                     // Skip components that have already been added to the volume
                     if (m_Target.Has(t))

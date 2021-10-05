@@ -1342,6 +1342,12 @@ real SafeDiv(real numer, real denom)
     return (numer != denom) ? numer / denom : 1;
 }
 
+// Perform a square root safe of imaginary number.
+real SafeSqrt(real x)
+{
+    return sqrt(max(0, x));
+}
+
 // Assumes that (0 <= x <= Pi).
 real SinFromCos(real cosX)
 {
@@ -1367,6 +1373,7 @@ float2 GetFullScreenTriangleTexCoord(uint vertexID)
 
 float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
 {
+    // note: the triangle vertex position coordinates are x2 so the returned UV coordinates are in range -1, 1 on the screen.
     float2 uv = float2((vertexID << 1) & 2, vertexID & 2);
     return float4(uv * 2.0 - 1.0, z, 1.0);
 }

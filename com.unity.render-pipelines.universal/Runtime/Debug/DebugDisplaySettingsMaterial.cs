@@ -203,7 +203,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.MaterialOverride,
                 autoEnum = typeof(DebugMaterialMode),
                 getter = () => (int)data.DebugMaterialModeData,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.DebugMaterialModeData,
                 setIndex = (value) => data.DebugMaterialModeData = (DebugMaterialMode)value
             };
@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.VertexAttribute,
                 autoEnum = typeof(DebugVertexAttributeMode),
                 getter = () => (int)data.DebugVertexAttributeIndexData,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.DebugVertexAttributeIndexData,
                 setIndex = (value) => data.DebugVertexAttributeIndexData = (DebugVertexAttributeMode)value
             };
@@ -223,7 +223,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.MaterialValidationMode,
                 autoEnum = typeof(DebugMaterialValidationMode),
                 getter = () => (int)data.MaterialValidationMode,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.MaterialValidationMode,
                 setIndex = (value) => data.MaterialValidationMode = (DebugMaterialValidationMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.ValidationPreset,
                 autoEnum = typeof(AlbedoDebugValidationPreset),
                 getter = () => (int)data.albedoDebugValidationPreset,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.albedoDebugValidationPreset,
                 setIndex = (value) => data.albedoDebugValidationPreset = (AlbedoDebugValidationPreset)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
@@ -296,6 +296,8 @@ namespace UnityEngine.Rendering.Universal
             public override string PanelName => "Material";
             public SettingsPanel(DebugDisplaySettingsMaterial data)
             {
+                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
+
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Filters",
@@ -307,7 +309,6 @@ namespace UnityEngine.Rendering.Universal
                         WidgetFactory.CreateVertexAttribute(data)
                     }
                 });
-
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Validation",

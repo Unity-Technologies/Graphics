@@ -62,17 +62,20 @@ public class UniversalGraphicsTests
         bool allocatesMemory = false;
         var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
 
-        try
+        if (settings == null || settings.CheckMemoryAllocation)
         {
-            ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
-        }
-        catch (AssertionException)
-        {
-            allocatesMemory = true;
-        }
+            try
+            {
+                ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
+            }
+            catch (AssertionException)
+            {
+                allocatesMemory = true;
+            }
 
-        if (allocatesMemory)
-            Assert.Fail("Allocated memory when rendering what is on main camera");
+            if (allocatesMemory)
+                Assert.Fail("Allocated memory when rendering what is on main camera");
+        }
     }
 
 #if UNITY_EDITOR

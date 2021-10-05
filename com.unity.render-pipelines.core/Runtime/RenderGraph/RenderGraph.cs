@@ -30,13 +30,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     public class RenderGraphContext
     {
         ///<summary>Scriptable Render Context used for rendering.</summary>
-        public ScriptableRenderContext      renderContext;
+        public ScriptableRenderContext renderContext;
         ///<summary>Command Buffer used for rendering.</summary>
-        public CommandBuffer                cmd;
+        public CommandBuffer cmd;
         ///<summary>Render Graph pool used for temporary data.</summary>
-        public RenderGraphObjectPool        renderGraphPool;
+        public RenderGraphObjectPool renderGraphPool;
         ///<summary>Render Graph default resources.</summary>
-        public RenderGraphDefaultResources  defaultResources;
+        public RenderGraphDefaultResources defaultResources;
     }
 
     /// <summary>
@@ -198,10 +198,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal struct CompiledResourceInfo
         {
-            public List<int>    producers;
-            public List<int>    consumers;
-            public int          refCount;
-            public bool         imported;
+            public List<int> producers;
+            public List<int> consumers;
+            public int refCount;
+            public bool imported;
 
             public void Reset()
             {
@@ -220,19 +220,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         [DebuggerDisplay("RenderPass: {pass.name} (Index:{pass.index} Async:{enableAsyncCompute})")]
         internal struct CompiledPassInfo
         {
-            public RenderGraphPass  pass;
-            public List<int>[]      resourceCreateList;
-            public List<int>[]      resourceReleaseList;
-            public int              refCount;
-            public bool             culled;
-            public bool             hasSideEffect;
-            public int              syncToPassIndex; // Index of the pass that needs to be waited for.
-            public int              syncFromPassIndex; // Smaller pass index that waits for this pass.
-            public bool             needGraphicsFence;
-            public GraphicsFence    fence;
+            public RenderGraphPass pass;
+            public List<int>[] resourceCreateList;
+            public List<int>[] resourceReleaseList;
+            public int refCount;
+            public bool culled;
+            public bool hasSideEffect;
+            public int syncToPassIndex; // Index of the pass that needs to be waited for.
+            public int syncFromPassIndex; // Smaller pass index that waits for this pass.
+            public bool needGraphicsFence;
+            public GraphicsFence fence;
 
-            public bool             enableAsyncCompute;
-            public bool             allowPassCulling { get { return pass.allowPassCulling; } }
+            public bool enableAsyncCompute;
+            public bool allowPassCulling { get { return pass.allowPassCulling; } }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             // This members are only here to ease debugging.
@@ -289,34 +289,34 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        RenderGraphResourceRegistry                 m_Resources;
-        RenderGraphObjectPool                       m_RenderGraphPool = new RenderGraphObjectPool();
-        List<RenderGraphPass>                       m_RenderPasses = new List<RenderGraphPass>(64);
-        List<RendererListHandle>                    m_RendererLists = new List<RendererListHandle>(32);
-        RenderGraphDebugParams                      m_DebugParameters = new RenderGraphDebugParams();
-        RenderGraphLogger                           m_FrameInformationLogger = new RenderGraphLogger();
-        RenderGraphDefaultResources                 m_DefaultResources = new RenderGraphDefaultResources();
-        Dictionary<int, ProfilingSampler>           m_DefaultProfilingSamplers = new Dictionary<int, ProfilingSampler>();
-        bool                                        m_ExecutionExceptionWasRaised;
-        RenderGraphContext                          m_RenderGraphContext = new RenderGraphContext();
-        CommandBuffer                               m_PreviousCommandBuffer;
-        int                                         m_CurrentImmediatePassIndex;
-        List<int>[]                                 m_ImmediateModeResourceList = new List<int>[(int)RenderGraphResourceType.Count];
+        RenderGraphResourceRegistry m_Resources;
+        RenderGraphObjectPool m_RenderGraphPool = new RenderGraphObjectPool();
+        List<RenderGraphPass> m_RenderPasses = new List<RenderGraphPass>(64);
+        List<RendererListHandle> m_RendererLists = new List<RendererListHandle>(32);
+        RenderGraphDebugParams m_DebugParameters = new RenderGraphDebugParams();
+        RenderGraphLogger m_FrameInformationLogger = new RenderGraphLogger();
+        RenderGraphDefaultResources m_DefaultResources = new RenderGraphDefaultResources();
+        Dictionary<int, ProfilingSampler> m_DefaultProfilingSamplers = new Dictionary<int, ProfilingSampler>();
+        bool m_ExecutionExceptionWasRaised;
+        RenderGraphContext m_RenderGraphContext = new RenderGraphContext();
+        CommandBuffer m_PreviousCommandBuffer;
+        int m_CurrentImmediatePassIndex;
+        List<int>[] m_ImmediateModeResourceList = new List<int>[(int)RenderGraphResourceType.Count];
 
         // Compiled Render Graph info.
-        DynamicArray<CompiledResourceInfo>[]        m_CompiledResourcesInfos = new DynamicArray<CompiledResourceInfo>[(int)RenderGraphResourceType.Count];
-        DynamicArray<CompiledPassInfo>              m_CompiledPassInfos = new DynamicArray<CompiledPassInfo>();
-        Stack<int>                                  m_CullingStack = new Stack<int>();
+        DynamicArray<CompiledResourceInfo>[] m_CompiledResourcesInfos = new DynamicArray<CompiledResourceInfo>[(int)RenderGraphResourceType.Count];
+        DynamicArray<CompiledPassInfo> m_CompiledPassInfos = new DynamicArray<CompiledPassInfo>();
+        Stack<int> m_CullingStack = new Stack<int>();
 
-        int                                         m_ExecutionCount;
-        int                                         m_CurrentFrameIndex;
-        bool                                        m_HasRenderGraphBegun;
-        string                                      m_CurrentExecutionName;
-        bool                                        m_RendererListCulling;
-        Dictionary<string, RenderGraphDebugData>    m_DebugData = new Dictionary<string, RenderGraphDebugData>();
+        int m_ExecutionCount;
+        int m_CurrentFrameIndex;
+        bool m_HasRenderGraphBegun;
+        string m_CurrentExecutionName;
+        bool m_RendererListCulling;
+        Dictionary<string, RenderGraphDebugData> m_DebugData = new Dictionary<string, RenderGraphDebugData>();
 
         // Global list of living render graphs
-        static List<RenderGraph>                    s_RegisteredGraphs = new List<RenderGraph>();
+        static List<RenderGraph> s_RegisteredGraphs = new List<RenderGraph>();
 
         #region Public Interface
         /// <summary>Name of the Render Graph.</summary>

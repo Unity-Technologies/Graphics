@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static bool NeedsDebugDisplay(this PassDescriptor pass)
         {
-            return IsLightingOrMaterial(pass) || pass.lightMode == HDShaderPassNames.s_ForwardEmissiveForDeferredStr;
+            return IsLightingOrMaterial(pass);
         }
 
         public static bool IsRaytracing(this PassDescriptor pass)

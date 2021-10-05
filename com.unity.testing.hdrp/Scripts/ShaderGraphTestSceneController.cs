@@ -152,7 +152,7 @@ public class ShaderGraphTestSceneController : MonoBehaviour
                 else
                 {
                     bool active = ((mode - 1) == x);
-                    bool sgActive = active &&  viewingSG;
+                    bool sgActive = active && viewingSG;
                     bool biActive = active && !viewingSG;
                     if (!shGraphObjs[x].isStatic) shGraphObjs[x].SetActive(sgActive);
                     if (!builtInObjs[x].isStatic) builtInObjs[x].SetActive(biActive);

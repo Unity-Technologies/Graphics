@@ -64,13 +64,13 @@ namespace UnityEngine.Rendering.PostProcessing
     /// A volume parameter holding a <see cref="GradingMode"/> value.
     /// </summary>
     [Serializable]
-    public sealed class GradingModeParameter : ParameterOverride<GradingMode> {}
+    public sealed class GradingModeParameter : ParameterOverride<GradingMode> { }
 
     /// <summary>
     /// A volume parameter holding a <see cref="Tonemapper"/> value.
     /// </summary>
     [Serializable]
-    public sealed class TonemapperParameter : ParameterOverride<Tonemapper> {}
+    public sealed class TonemapperParameter : ParameterOverride<Tonemapper> { }
 
     /// <summary>
     /// This class holds settings for the Color Grading effect.
@@ -328,7 +328,7 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <remarks>
         /// This is only used when working with <see cref="GradingMode.LowDefinitionRange"/>.
         /// </remarks>
-        public SplineParameter masterCurve   = new SplineParameter { value = new Spline(new AnimationCurve(new Keyframe(0f, 0f, 1f, 1f), new Keyframe(1f, 1f, 1f, 1f)), 0f, false, new Vector2(0f, 1f)) };
+        public SplineParameter masterCurve = new SplineParameter { value = new Spline(new AnimationCurve(new Keyframe(0f, 0f, 1f, 1f), new Keyframe(1f, 1f, 1f, 1f)), 0f, false, new Vector2(0f, 1f)) };
 
         /// <summary>
         /// Remaps the red channel.
@@ -336,7 +336,7 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <remarks>
         /// This is only used when working with <see cref="GradingMode.LowDefinitionRange"/>.
         /// </remarks>
-        public SplineParameter redCurve      = new SplineParameter { value = new Spline(new AnimationCurve(new Keyframe(0f, 0f, 1f, 1f), new Keyframe(1f, 1f, 1f, 1f)), 0f, false, new Vector2(0f, 1f)) };
+        public SplineParameter redCurve = new SplineParameter { value = new Spline(new AnimationCurve(new Keyframe(0f, 0f, 1f, 1f), new Keyframe(1f, 1f, 1f, 1f)), 0f, false, new Vector2(0f, 1f)) };
 
         /// <summary>
         /// Remaps the green channel/
@@ -344,7 +344,7 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <remarks>
         /// This is only used when working with <see cref="GradingMode.LowDefinitionRange"/>.
         /// </remarks>
-        public SplineParameter greenCurve    = new SplineParameter { value = new Spline(new AnimationCurve(new Keyframe(0f, 0f, 1f, 1f), new Keyframe(1f, 1f, 1f, 1f)), 0f, false, new Vector2(0f, 1f)) };
+        public SplineParameter greenCurve = new SplineParameter { value = new Spline(new AnimationCurve(new Keyframe(0f, 0f, 1f, 1f), new Keyframe(1f, 1f, 1f, 1f)), 0f, false, new Vector2(0f, 1f)) };
 
         /// <summary>
         /// Remaps the blue channel.
@@ -352,7 +352,7 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <remarks>
         /// This is only used when working with <see cref="GradingMode.LowDefinitionRange"/>.
         /// </remarks>
-        public SplineParameter blueCurve     = new SplineParameter { value = new Spline(new AnimationCurve(new Keyframe(0f, 0f, 1f, 1f), new Keyframe(1f, 1f, 1f, 1f)), 0f, false, new Vector2(0f, 1f)) };
+        public SplineParameter blueCurve = new SplineParameter { value = new Spline(new AnimationCurve(new Keyframe(0f, 0f, 1f, 1f), new Keyframe(1f, 1f, 1f, 1f)), 0f, false, new Vector2(0f, 1f)) };
 
         /// <summary>
         /// Remaps the hue according to the current hue.
@@ -467,13 +467,17 @@ namespace UnityEngine.Rendering.PostProcessing
 
                 switch (settings.tonemapper.value)
                 {
-                    case Tonemapper.None: kernel = compute.FindKernel("KGenLut3D_NoTonemap");
+                    case Tonemapper.None:
+                        kernel = compute.FindKernel("KGenLut3D_NoTonemap");
                         break;
-                    case Tonemapper.Neutral: kernel = compute.FindKernel("KGenLut3D_NeutralTonemap");
+                    case Tonemapper.Neutral:
+                        kernel = compute.FindKernel("KGenLut3D_NeutralTonemap");
                         break;
-                    case Tonemapper.ACES: kernel = compute.FindKernel("KGenLut3D_AcesTonemap");
+                    case Tonemapper.ACES:
+                        kernel = compute.FindKernel("KGenLut3D_AcesTonemap");
                         break;
-                    case Tonemapper.Custom: kernel = compute.FindKernel("KGenLut3D_CustomTonemap");
+                    case Tonemapper.Custom:
+                        kernel = compute.FindKernel("KGenLut3D_CustomTonemap");
                         break;
                 }
 

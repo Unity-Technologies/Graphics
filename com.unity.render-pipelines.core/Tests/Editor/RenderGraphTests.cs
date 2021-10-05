@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 builder.WriteTexture(m_RenderGraph.ImportTexture(null));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 builder.WriteComputeBuffer(m_RenderGraph.ImportComputeBuffer(null));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 texture0 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             TextureHandle texture1;
@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 builder.ReadTexture(texture0);
                 texture1 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             // This pass writes to texture0 which is used so will not be culled out.
@@ -119,14 +119,14 @@ namespace UnityEngine.Rendering.Tests
             {
                 builder.WriteTexture(texture0);
                 builder.WriteTexture(texture1);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass3", out var passData))
             {
                 builder.ReadTexture(texture1);
                 builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 builder.AllowPassCulling(false);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -165,14 +165,14 @@ namespace UnityEngine.Rendering.Tests
             {
                 texture = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
                 builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
                 builder.ReadTexture(texture);
                 builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 texture = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             // Add dummy passes
@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
                 {
-                    builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
                 }
             }
 
@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 builder.ReadTexture(texture);
                 builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -227,14 +227,14 @@ namespace UnityEngine.Rendering.Tests
                 using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
                 {
                     texture = builder.CreateTransientTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-                    builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
                 }
 
                 using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
                 {
                     builder.ReadTexture(texture); // This is illegal (transient resource was created in previous pass)
                     builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
-                    builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
                 }
 
                 m_RenderGraph.CompileRenderGraph();
@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 texture = builder.CreateTransientTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
                 builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -275,7 +275,7 @@ namespace UnityEngine.Rendering.Tests
                 texture0 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
                 texture1 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
                 builder.EnableAsyncCompute(true);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             // Second pass creates a transient texture => Create/Release should happen in this pass but we want to delay the release until the first graphics pipe pass that sync with async queue.
@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.Tests
                 texture2 = builder.CreateTransientTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
                 builder.WriteTexture(texture0);
                 builder.EnableAsyncCompute(true);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             // This pass is the last to read texture0 => Release should happen in this pass but we want to delay the release until the first graphics pipe pass that sync with async queue.
@@ -293,7 +293,7 @@ namespace UnityEngine.Rendering.Tests
                 texture0 = builder.ReadTexture(texture0);
                 builder.WriteTexture(texture1);
                 builder.EnableAsyncCompute(true);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             // Just here to add "padding" to the number of passes to ensure resources are not released right at the first sync pass.
@@ -301,7 +301,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 texture3 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
                 builder.EnableAsyncCompute(false);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             // Pass prior to synchronization should be where textures are released.
@@ -309,7 +309,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 builder.WriteTexture(texture3);
                 builder.EnableAsyncCompute(false);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             // Graphics pass that reads texture1. This will request a sync with compute pipe. The previous pass should be the one releasing async textures.
@@ -319,7 +319,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.ReadTexture(texture3);
                 builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
                 builder.EnableAsyncCompute(false);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -337,14 +337,14 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 texture0 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
                 builder.CreateTransientTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
                 builder.WriteTexture(texture0);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             // Graphics pass that reads texture1. This will request a sync with compute pipe. The previous pass should be the one releasing async textures.
@@ -353,7 +353,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.ReadTexture(texture0);
                 builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
                 builder.EnableAsyncCompute(false);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -370,21 +370,21 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 texture0 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("Async_TestPass1", out var passData))
             {
                 texture0 = builder.WriteTexture(texture0);
                 builder.EnableAsyncCompute(true);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
                 builder.ReadTexture(texture0);
                 builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -403,7 +403,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 texture0 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("Async_TestPass1", out var passData))
@@ -411,14 +411,14 @@ namespace UnityEngine.Rendering.Tests
                 builder.ReadTexture(texture0);
                 texture1 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
                 builder.EnableAsyncCompute(true);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
                 builder.ReadTexture(texture1);
                 builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -437,14 +437,14 @@ namespace UnityEngine.Rendering.Tests
             {
                 texture0 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
                 builder.EnableAsyncCompute(true);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
                 builder.WriteTexture(texture0);
                 builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();
@@ -462,14 +462,14 @@ namespace UnityEngine.Rendering.Tests
             {
                 texture0 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
                 builder.EnableAsyncCompute(true);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
                 builder.ReadTexture(texture0);
                 builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => {});
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
             m_RenderGraph.CompileRenderGraph();

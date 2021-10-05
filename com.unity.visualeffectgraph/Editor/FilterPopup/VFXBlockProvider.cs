@@ -150,21 +150,21 @@ namespace UnityEditor.VFX.UI
 
         protected override string title
         {
-            get {return "Block"; }
+            get { return "Block"; }
         }
 
         protected override IEnumerable<VFXBlockProvider.Descriptor> GetDescriptors()
         {
             return VFXLibrary.GetBlocks()
                 .Where(b => b.AcceptParent(m_ContextController.model))
-                .Select(t => (Descriptor) new NewBlockDescriptor(t))
+                .Select(t => (Descriptor)new NewBlockDescriptor(t))
                 .Concat(SubGraphCache.GetItems(typeof(VisualEffectSubgraphBlock))
                     .Where(t =>
                         (((SubGraphCache.AdditionalBlockInfo)t.additionalInfos).compatibleType &
                             m_ContextController.model.contextType) != 0 &&
                         (((SubGraphCache.AdditionalBlockInfo)t.additionalInfos).compatibleData &
                             m_ContextController.model.ownedType) != 0)
-                    .Select(t => (Descriptor) new SubgraphBlockDescriptor(t)))
+                    .Select(t => (Descriptor)new SubgraphBlockDescriptor(t)))
                 .OrderBy(x => x.category)
                 .ThenBy(x => x.name);
         }

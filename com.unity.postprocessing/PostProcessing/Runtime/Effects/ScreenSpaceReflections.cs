@@ -74,13 +74,13 @@ namespace UnityEngine.Rendering.PostProcessing
     /// A volume parameter holding a <see cref="ScreenSpaceReflectionPreset"/> value.
     /// </summary>
     [Serializable]
-    public sealed class ScreenSpaceReflectionPresetParameter : ParameterOverride<ScreenSpaceReflectionPreset> {}
+    public sealed class ScreenSpaceReflectionPresetParameter : ParameterOverride<ScreenSpaceReflectionPreset> { }
 
     /// <summary>
     /// A volume parameter holding a <see cref="ScreenSpaceReflectionResolution"/> value.
     /// </summary>
     [Serializable]
-    public sealed class ScreenSpaceReflectionResolutionParameter : ParameterOverride<ScreenSpaceReflectionResolution> {}
+    public sealed class ScreenSpaceReflectionResolutionParameter : ParameterOverride<ScreenSpaceReflectionResolution> { }
 
     /// <summary>
     /// This class holds settings for the Screen-space Reflections effect.

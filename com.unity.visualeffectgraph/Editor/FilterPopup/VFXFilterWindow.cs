@@ -440,7 +440,7 @@ namespace UnityEditor.VFX.UI
             }
 
             // Create search result tree
-            m_SearchResultTree = new Element[] {new GroupElement(0, kSearchHeader)}
+            m_SearchResultTree = new Element[] { new GroupElement(0, kSearchHeader) }
                 .Union(searchResults.OrderBy(x => this.GetSearchResultRelevancy(x.name.ToLower(), lowerSearch)))
                 .ToArray();
             m_Stack.Clear();

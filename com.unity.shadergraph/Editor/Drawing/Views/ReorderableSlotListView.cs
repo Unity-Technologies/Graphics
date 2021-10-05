@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_AllowBareResources;
 
         internal delegate void ListRecreatedDelegate();
-        ListRecreatedDelegate m_OnListRecreatedCallback = new ListRecreatedDelegate(() => {});
+        ListRecreatedDelegate m_OnListRecreatedCallback = new ListRecreatedDelegate(() => { });
 
         string label => string.Format("{0}s", m_SlotType.ToString());
 

@@ -18,8 +18,11 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireBitangent
         , IMayRequireMeshUV
         , IMayRequireScreenPosition
+        , IMayRequireNDCPosition
+        , IMayRequirePixelPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
+        , IMayRequirePositionPredisplacement
         , IMayRequireVertexColor
         , IMayRequireTime
         , IMayRequireFaceSign
@@ -189,7 +192,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool canSetPrecision
         {
-            get { return asset?.subGraphGraphPrecision == GraphPrecision.Graph;  }
+            get { return asset?.subGraphGraphPrecision == GraphPrecision.Graph; }
         }
 
         public override void GetInputSlots<T>(MaterialSlot startingSlot, List<T> foundSlots)
@@ -296,7 +299,7 @@ namespace UnityEditor.ShaderGraph
                 arguments.Add(feedbackVar);
             }
 
-            sb.AppendIndentation();
+            sb.TryAppendIndentation();
             sb.Append(asset.functionName);
             sb.Append("(");
             bool firstArg = true;
@@ -574,12 +577,12 @@ namespace UnityEditor.ShaderGraph
             else if (!asset.isValid)
             {
                 hasError = true;
-                owner.AddValidationError(objectId, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
+                owner.AddValidationError(objectId, $"Sub Graph has errors, asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
             else if (!owner.isSubGraph && owner.activeTargets.Any(x => asset.unsupportedTargets.Contains(x)))
             {
                 SetOverrideActiveState(ActiveState.ExplicitInactive);
-                owner.AddValidationError(objectId, $"Subgraph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid} contains nodes that are unsuported by the current active targets");
+                owner.AddValidationError(objectId, $"Sub Graph contains nodes that are unsupported by the current active targets, asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
 
             // detect disconnected VT properties, and VT layer count mismatches
@@ -729,6 +732,22 @@ namespace UnityEditor.ShaderGraph
             return asset.requirements.requiresScreenPosition;
         }
 
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresNDCPosition;
+        }
+
+        public bool RequiresPixelPosition(ShaderStageCapability stageCapability)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresPixelPosition;
+        }
+
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
         {
             if (asset == null)
@@ -743,6 +762,14 @@ namespace UnityEditor.ShaderGraph
                 return NeededCoordinateSpace.None;
 
             return asset.requirements.requiresPosition;
+        }
+
+        public NeededCoordinateSpace RequiresPositionPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            if (asset == null)
+                return NeededCoordinateSpace.None;
+
+            return asset.requirements.requiresPositionPredisplacement;
         }
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)

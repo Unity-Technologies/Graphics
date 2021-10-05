@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Header("Lens Dirt")]
         [Tooltip("Specifies a Texture to add smudges or dust to the bloom effect.")]
-        public TextureParameter dirtTexture = new TextureParameter(null);
+        public Texture2DParameter dirtTexture = new Texture2DParameter(null);
 
         /// <summary>
         /// Controls the strength of the lens dirt.
@@ -171,6 +171,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public BloomResolutionParameter(BloomResolution value, bool overrideState = false) : base(value, overrideState) {}
+        public BloomResolutionParameter(BloomResolution value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

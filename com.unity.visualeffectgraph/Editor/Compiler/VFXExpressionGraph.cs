@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
         }
 
         public VFXExpressionGraph()
-        {}
+        { }
 
         private void AddExpressionDataRecursively(Dictionary<VFXExpression, ExpressionData> dst, VFXExpression exp, int depth = 0)
         {

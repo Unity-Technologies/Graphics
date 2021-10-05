@@ -105,7 +105,20 @@ namespace UnityEditor.VFX
                     }
                     else
                     {
-                        resource.GetOrCreateGraph().CompileForImport();
+                        //Workaround, use backup system to prevent any modification of the graph during compilation
+                        //The responsible of this unexpected change is PrepareSubgraphs => RecurseSubgraphRecreateCopy => ResyncSlots
+                        //It will let the VFXGraph in a really bad state after compilation.
+                        graph = resource.GetOrCreateGraph();
+                        var dependencies = new HashSet<ScriptableObject>();
+                        dependencies.Add(graph);
+                        graph.CollectDependencies(dependencies);
+                        var backup = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.ToArray(), CompressionLevel.None);
+
+                        graph.CompileForImport();
+
+                        VFXMemorySerializer.ExtractObjects(backup, false);
+                        //The backup during undo/redo is actually calling UnknownChange after ExtractObjects
+                        //You have to avoid because it will call ResyncSlot
                     }
                 }
                 else
@@ -251,7 +264,7 @@ namespace UnityEditor.VFX
                 var vfxResource = VisualEffectResource.GetResourceAtPath(path);
                 if (vfxResource != null)
                 {
-                    var graph = vfxResource.GetOrCreateGraph();
+                    vfxResource.GetOrCreateGraph().UpdateSubAssets();
                     vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
                 }
             }
@@ -486,7 +499,7 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
+                    Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e, e.StackTrace));
                 }
 
             systemNames.Sync(this);
@@ -937,6 +950,11 @@ namespace UnityEditor.VFX
                         }
                     }
                 }
+
+                // Check Graph Before Import can be needed to synchronize modified shaderGraph
+                foreach (var child in children)
+                    child.CheckGraphBeforeImport();
+
                 // Graph must have been sanitized at this point by the VFXGraphPreprocessor.OnPreprocess
                 BuildSubgraphDependencies();
                 PrepareSubgraphs();

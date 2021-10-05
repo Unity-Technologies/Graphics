@@ -10,7 +10,7 @@ using UnityEditor.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 
-namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
+namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     internal interface IGetNodePropertyDrawerPropertyData
     {
@@ -82,5 +82,11 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 attribute,
                 out var propertyVisualElement);
         }
+
+        internal virtual void DisposePropertyDrawer()
+        {
+        }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { DisposePropertyDrawer(); }
     }
 }

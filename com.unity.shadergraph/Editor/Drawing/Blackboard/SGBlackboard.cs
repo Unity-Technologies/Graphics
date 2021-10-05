@@ -37,6 +37,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_ScrollBoundaryBottom;
         VisualElement m_BottomResizer;
         TextField m_PathLabelTextField;
+        public VisualElement m_VariantExceededHelpBox;
 
         // --- Begin ISGControlledElement implementation
         public void OnControllerChanged(ref SGControllerChangedEvent e)
@@ -45,6 +46,21 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void OnControllerEvent(SGControllerEvent e)
         {
+        }
+
+        public void SetCurrentVariantUsage(int currentVariantCount, int maxVariantCount)
+        {
+            if (currentVariantCount < maxVariantCount && m_VariantExceededHelpBox != null)
+            {
+                RemoveAt(0);
+                m_VariantExceededHelpBox = null;
+            }
+            else if (maxVariantCount <= currentVariantCount && m_VariantExceededHelpBox == null)
+            {
+                var helpBox = HelpBoxRow.CreateVariantLimitHelpBox(currentVariantCount, maxVariantCount);
+                m_VariantExceededHelpBox = helpBox;
+                Insert(0, helpBox);
+            }
         }
 
         public BlackboardController controller
@@ -248,8 +264,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Checking for at least 2 children to make sure Children.First() and Children.Last() don't throw an exception
             if (index == -1 && childCount >= 2)
             {
-                index = localPos.y<Children().First().layout.yMin? 0 :
-                                   localPos.y> Children().Last().layout.yMax ? childCount : -1;
+                index = localPos.y < Children().First().layout.yMin ? 0 :
+                                   localPos.y > Children().Last().layout.yMax ? childCount : -1;
             }
 
             // Don't allow the default category to be displaced
@@ -300,7 +316,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.resolvedStyle.marginTop)).y;
                 }
 
-                m_DragIndicator.style.top =  indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
+                m_DragIndicator.style.top = indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
                 DragAndDrop.visualMode = DragAndDropVisualMode.Move;
             }
             else
@@ -559,7 +575,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             pathChangeAction.NewGraphPath = newPath;
             ViewModel.requestModelChangeAction(pathChangeAction);
 
-            m_SubTitleLabel.text =  BlackboardUtils.FormatPath(newPath);
+            m_SubTitleLabel.text = BlackboardUtils.FormatPath(newPath);
             m_EditPathCancelled = false;
         }
     }

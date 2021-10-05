@@ -3,7 +3,7 @@ using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX.HDRP
 {
-    public static class VFXHDRPSettingsUtility
+    static class VFXHDRPSettingsUtility
     {
         public static void RefreshVfxErrorsIfNeeded(ref bool needRefreshVfxErrors)
         {

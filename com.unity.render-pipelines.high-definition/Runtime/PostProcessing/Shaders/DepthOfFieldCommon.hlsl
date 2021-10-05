@@ -33,6 +33,8 @@ uint2 UnpackTileCoord(TileData tile)
 
 float CameraDepth(TEXTURE2D_X(depthMinMaxAvg), uint2 pixelCoords)
 {
+    pixelCoords = FromOutputPosSSToPreupsamplePosSS(pixelCoords);
+
 #ifndef USE_MIN_DEPTH
     return LoadCameraDepth(pixelCoords);
 #else

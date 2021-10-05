@@ -41,7 +41,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty RTGIRayLength;
         public SerializedProperty RTGIFullResolution;
         public SerializedProperty RTGIClampValue;
-        public SerializedProperty RTGIUpScaleRadius;
         public SerializedProperty RTGIRaySteps;
         public SerializedProperty RTGIDenoise;
         public SerializedProperty RTGIHalfResDenoise;
@@ -97,7 +96,6 @@ namespace UnityEditor.Rendering.HighDefinition
             RTGIRayLength = root.Find((GlobalLightingQualitySettings s) => s.RTGIRayLength);
             RTGIFullResolution = root.Find((GlobalLightingQualitySettings s) => s.RTGIFullResolution);
             RTGIClampValue = root.Find((GlobalLightingQualitySettings s) => s.RTGIClampValue);
-            RTGIUpScaleRadius = root.Find((GlobalLightingQualitySettings s) => s.RTGIUpScaleRadius);
             RTGIRaySteps = root.Find((GlobalLightingQualitySettings s) => s.RTGIRaySteps);
             RTGIDenoise = root.Find((GlobalLightingQualitySettings s) => s.RTGIDenoise);
             RTGIHalfResDenoise = root.Find((GlobalLightingQualitySettings s) => s.RTGIHalfResDenoise);

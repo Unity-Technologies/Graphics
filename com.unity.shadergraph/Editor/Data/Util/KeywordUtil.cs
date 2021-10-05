@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
             TypeCache.GetMethodsWithAttribute<BuiltinKeywordAttribute>()
                 .Where(method => method.IsStatic && method.ReturnType == typeof(KeywordDescriptor))
                 .Select(method =>
-                    (KeywordDescriptor)method.Invoke(null, new object[0] {}));
+                    (KeywordDescriptor)method.Invoke(null, new object[0] { }));
 
         public static ConcreteSlotValueType ToConcreteSlotValueType(this KeywordType keywordType)
         {
@@ -204,7 +204,7 @@ namespace UnityEditor.ShaderGraph
             for (int p = 0; p < permutations.Count; p++)
             {
                 // ShaderStringBuilder.Append doesnt apply indentation
-                sb.AppendIndentation();
+                sb.TryAppendIndentation();
 
                 // Append correct if
                 bool isLast = false;

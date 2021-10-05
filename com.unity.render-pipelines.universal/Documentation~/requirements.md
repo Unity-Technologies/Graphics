@@ -8,16 +8,18 @@ The following table shows the compatibility of URP package versions with differe
 
 | Package version | Minimum Unity version | Maximum Unity version |
 | --------------- | --------------------- | --------------------- |
-| 10.1.x          | 2020.2.0b5            | 2020.3.x              |
-| 10.0.x          | 2020.2.0a20           | 2020.3.x              |
-| 9.x.x           | 2020.1.0b6            | 2020.3.x              |
-| 8.2.x           | 2020.1.0b6            | 2020.1.x              |
-| 8.1.x           | 2020.1.0b6            | 2020.1.x              |
-| 8.0.x           | 2020.1.0a23           | 2020.1.x              |
-| 7.4.x           | 2019.3.2f1            | 2019.4.x              |
-| 7.3.x           | 2019.3.2f1            | 2019.4.x              |
-| 7.2.x           | 2019.3.0f6            | 2019.4.x              |
-| 7.1.8           | 2019.3.0f3            | 2019.4.x              |
+| 12.0.0          | 2021.2                | 2021.2                |
+| 11.0.0          | 2021.1                | 2021.1                |
+| 10.x            | 2020.2                | 2020.3                |
+| 9.x-preview     | 2020.1                | 2020.2                |
+| 8.x             | 2020.1                | 2020.1                |
+| 7.x             | 2019.3                | 2019.4                |
+
+Since the release of Unity 2021.1, graphics packages are [core Unity packages](https://docs.unity3d.com/2021.2/Documentation/Manual/pack-core.html).
+
+For each release of Unity (alpha, beta, patch release), the main Unity installer contains the up-to-date versions of the following graphics packages: SRP Core, URP, HDRP, Shader Graph, VFX Graph. Since the release of Unity 2021.1, the Package Manager shows only the major revisions of the graphics packages (version 11.0.0 for all Unity 2021.1.x releases, version 12.0.0 for all Unity 2021.2.x releases).
+
+You can install a different version of a graphics package from disk using the Package Manager, or by modifying the `manifest.json` file.
 
 ## Render pipeline compatibility
 

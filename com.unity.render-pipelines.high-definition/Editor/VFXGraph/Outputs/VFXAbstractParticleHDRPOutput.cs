@@ -50,9 +50,9 @@ namespace UnityEditor.VFX.HDRP
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, an emissive color field becomes available in the output to make particles glow.")]
         protected bool useEmissive = false;
-        protected VFXAbstractParticleHDRPOutput(bool strip = false) : base(strip) {}
+        protected VFXAbstractParticleHDRPOutput(bool strip = false) : base(strip) { }
 
-        protected virtual bool allowTextures { get { return GetOrRefreshShaderGraphObject() == null; }}
+        protected virtual bool allowTextures { get { return GetOrRefreshShaderGraphObject() == null; } }
 
         protected IEnumerable<VFXPropertyWithValue> baseColorMapProperties
         {

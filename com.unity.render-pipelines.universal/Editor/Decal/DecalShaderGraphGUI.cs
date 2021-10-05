@@ -64,8 +64,8 @@ namespace UnityEditor.Rendering.Universal
 
         public DecalShaderGraphGUI()
         {
-            m_MaterialScopeList.RegisterHeaderScope(Styles.inputs, (uint)Expandable.Inputs, DrawExposedProperties);
-            m_MaterialScopeList.RegisterHeaderScope(Styles.advancedOptions, (uint)Expandable.Advanced, DrawSortingProperties);
+            m_MaterialScopeList.RegisterHeaderScope(Styles.inputs, Expandable.Inputs, DrawExposedProperties);
+            m_MaterialScopeList.RegisterHeaderScope(Styles.advancedOptions, Expandable.Advanced, DrawSortingProperties);
         }
 
         /// <summary>

@@ -33,6 +33,9 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         bool m_IsActive = true;
 
+        [NonSerialized]
+        bool m_WasUsedByGenerator = false;
+
         [SerializeField]
         List<JsonData<MaterialSlot>> m_Slots = new List<JsonData<MaterialSlot>>();
 
@@ -186,6 +189,16 @@ namespace UnityEditor.ShaderGraph
         public virtual bool isActive
         {
             get { return m_IsActive; }
+        }
+
+        internal virtual bool wasUsedByGenerator
+        {
+            get { return m_WasUsedByGenerator; }
+        }
+
+        internal void SetUsedByGenerator()
+        {
+            m_WasUsedByGenerator = true;
         }
 
         //There are times when isActive needs to be set to a value explicitly, and
@@ -449,7 +462,7 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
-        protected internal virtual string GetOutputForSlot(SlotReference fromSocketRef,  ConcreteSlotValueType valueType, GenerationMode generationMode)
+        protected internal virtual string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
         {
             var slot = FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
             if (slot == null)
@@ -938,7 +951,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public virtual void UpdateNodeAfterDeserialization()
-        {}
+        { }
 
         public bool IsSlotConnected(int slotId)
         {
@@ -946,7 +959,7 @@ namespace UnityEditor.ShaderGraph
             return slot != null && owner.GetEdges(slot.slotReference).Any();
         }
 
-        public virtual void Setup() {}
+        public virtual void Setup() { }
 
         protected void EnqueSlotsForSerialization()
         {

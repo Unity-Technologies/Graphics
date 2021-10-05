@@ -14,14 +14,14 @@ namespace UnityEditor.Rendering.HighDefinition
     [CustomEditor(typeof(CustomPassVolume)), CanEditMultipleObjects]
     sealed class CustomPassVolumeEditor : Editor
     {
-        ReorderableList         m_CustomPassList;
-        string                  m_ListName;
-        CustomPassVolume        m_Volume;
-        MaterialEditor[]        m_MaterialEditors = new MaterialEditor[0];
-        int                     m_CustomPassMaterialsHash;
-        bool                    m_SupportListMultiEditing;
+        ReorderableList m_CustomPassList;
+        string m_ListName;
+        CustomPassVolume m_Volume;
+        MaterialEditor[] m_MaterialEditors = new MaterialEditor[0];
+        int m_CustomPassMaterialsHash;
+        bool m_SupportListMultiEditing;
 
-        const string            k_DefaultListName = "Custom Passes";
+        const string k_DefaultListName = "Custom Passes";
 
         static class Styles
         {
@@ -35,17 +35,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         class SerializedPassVolume
         {
-            public SerializedProperty   isGlobal;
-            public SerializedProperty   useTargetCamera;
-            public SerializedProperty   targetCamera;
-            public SerializedProperty   fadeRadius;
-            public SerializedProperty   customPasses;
-            public SerializedProperty   injectionPoint;
-            public SerializedProperty   priority;
+            public SerializedProperty isGlobal;
+            public SerializedProperty useTargetCamera;
+            public SerializedProperty targetCamera;
+            public SerializedProperty fadeRadius;
+            public SerializedProperty customPasses;
+            public SerializedProperty injectionPoint;
+            public SerializedProperty priority;
         }
 
 
-        SerializedPassVolume    m_SerializedPassVolume;
+        SerializedPassVolume m_SerializedPassVolume;
 
         void OnEnable()
         {
@@ -202,7 +202,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            float customPassListHeight =  m_CustomPassList.GetHeight();
+            float customPassListHeight = m_CustomPassList.GetHeight();
             var customPassRect = EditorGUILayout.GetControlRect(false, customPassListHeight);
             EditorGUI.BeginProperty(customPassRect, GUIContent.none, m_SerializedPassVolume.customPasses);
             {
@@ -217,12 +217,14 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             m_CustomPassList = new ReorderableList(passList.serializedObject, passList);
 
-            m_CustomPassList.drawHeaderCallback = (rect) => {
+            m_CustomPassList.drawHeaderCallback = (rect) =>
+            {
                 EditorGUI.LabelField(rect, k_DefaultListName, EditorStyles.largeLabel);
             };
 
             m_CustomPassList.multiSelect = false;
-            m_CustomPassList.drawElementCallback = (rect, index, active, focused) => {
+            m_CustomPassList.drawElementCallback = (rect, index, active, focused) =>
+            {
                 EditorGUI.BeginChangeCheck();
 
                 passList.serializedObject.ApplyModifiedProperties();
@@ -248,7 +250,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     return EditorGUI.GetPropertyHeight(customPass, null);
             };
 
-            m_CustomPassList.onAddCallback += (list) => {
+            m_CustomPassList.onAddCallback += (list) =>
+            {
                 var searchObject = ScriptableObject.CreateInstance<CustomPassListSearchWindow>();
                 searchObject.Initialize(AddCustomPass);
                 var windowPosition = GUIUtility.GUIToScreenPoint(Event.current.mousePosition);
@@ -259,7 +262,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_CustomPassList.onRemoveCallback = (list) =>
             {
-                ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                foreach (int index in list.selectedIndices)
+                    passList.DeleteArrayElementAtIndex(index);
+                serializedObject.ApplyModifiedProperties();
                 ClearCustomPassCache();
             };
 

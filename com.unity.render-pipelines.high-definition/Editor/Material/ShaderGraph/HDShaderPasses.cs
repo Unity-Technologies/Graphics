@@ -488,44 +488,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #endregion
 
-        #region Forward Emissive For Deferred
-
-        public static PassDescriptor GenerateForwardEmissiveForDeferredPass(bool useVFX, bool useTessellation)
-        {
-            return new PassDescriptor
-            {
-                // Definition
-                displayName = "ForwardEmissiveForDeferred",
-                referenceName = "SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED",
-                lightMode = "ForwardEmissiveForDeferred",
-                useInPreview = false,
-
-                // Collections
-                structs = GenerateStructs(null, useVFX, useTessellation),
-                requiredFields = CoreRequiredFields.Basic,
-                renderStates = CoreRenderStates.ForwardEmissiveForDeferred,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation),
-                defines = GenerateDefines(CoreDefines.ForwardEmissiveForDeferred, useVFX, useTessellation),
-                includes = GenerateIncludes(),
-
-                virtualTextureFeedback = true,
-                customInterpolators = CoreCustomInterpolators.Common,
-            };
-
-            IncludeCollection GenerateIncludes()
-            {
-                var includes = new IncludeCollection();
-                includes.Add(CoreIncludes.CorePregraph);
-                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.CoreUtility);
-                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassForwardEmissiveForDeferred, IncludeLocation.Postgraph);
-                return includes;
-            }
-        }
-
-        #endregion
-
         #region Back then front pass
 
         public static PassDescriptor GenerateBackThenFront(bool supportLighting, bool useVFX, bool useTessellation)
@@ -1362,13 +1324,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static class Defines
         {
             // Shadows
-            public static DefineCollection shadowLow = new DefineCollection { {CoreKeywordDescriptors.Shadow, 0} };
-            public static DefineCollection shadowMedium = new DefineCollection { {CoreKeywordDescriptors.Shadow, 1} };
-            public static DefineCollection shadowHigh = new DefineCollection { {CoreKeywordDescriptors.Shadow, 2} };
+            public static DefineCollection shadowLow = new DefineCollection { { CoreKeywordDescriptors.Shadow, 0 } };
+            public static DefineCollection shadowMedium = new DefineCollection { { CoreKeywordDescriptors.Shadow, 1 } };
+            public static DefineCollection shadowHigh = new DefineCollection { { CoreKeywordDescriptors.Shadow, 2 } };
 
             // Raytracing Quality
-            public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0} };
-            public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1} };
+            public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 } };
+            public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1 } };
         }
 
         #endregion

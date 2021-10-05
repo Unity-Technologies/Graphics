@@ -307,7 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.screenSpaceShadowArray = builder.ReadTexture(screenSpaceShadowArray);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "EvaluateShadowDebug" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "EvaluateShadowDebug" }));
 
                 builder.SetRenderFunc(
                     (ScreenSpaceShadowDebugPassData data, RenderGraphContext ctx) =>

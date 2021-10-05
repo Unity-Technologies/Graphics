@@ -12,15 +12,15 @@ namespace UnityEngine.Rendering.HighDefinition
     struct LocalVolumetricFogEngineData
     {
         public Vector3 scattering;    // [0, 1]
-        public float   extinction;    // [0, 1]
+        public float extinction;    // [0, 1]
         public Vector3 textureTiling;
-        public int     invertFade;    // bool...
+        public int invertFade;    // bool...
         public Vector3 textureScroll;
-        public float   rcpDistFadeLen;
+        public float rcpDistFadeLen;
         public Vector3 rcpPosFaceFade;
-        public float   endTimesRcpDistFadeLen;
+        public float endTimesRcpDistFadeLen;
         public Vector3 rcpNegFaceFade;
-        public int     useVolumeMask; // bool
+        public int useVolumeMask; // bool
         public Vector3 atlasOffset;   // coordinates in the atlas in pixels
         public LocalVolumetricFogFalloffMode falloffMode;
         public Vector4 maskSize;      // xyz: atlas size / mask size, w: mask size in pixels
@@ -29,19 +29,19 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             LocalVolumetricFogEngineData data;
 
-            data.scattering             = Vector3.zero;
-            data.extinction             = 0;
-            data.atlasOffset            = Vector3.zero;
-            data.textureTiling          = Vector3.one;
-            data.textureScroll          = Vector3.zero;
-            data.rcpPosFaceFade         = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-            data.rcpNegFaceFade         = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-            data.invertFade             = 0;
-            data.rcpDistFadeLen         = 0;
+            data.scattering = Vector3.zero;
+            data.extinction = 0;
+            data.atlasOffset = Vector3.zero;
+            data.textureTiling = Vector3.one;
+            data.textureScroll = Vector3.zero;
+            data.rcpPosFaceFade = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            data.rcpNegFaceFade = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            data.invertFade = 0;
+            data.rcpDistFadeLen = 0;
             data.endTimesRcpDistFadeLen = 1;
-            data.useVolumeMask          = 0;
-            data.maskSize               = Vector4.zero;
-            data.falloffMode            = LocalVolumetricFogFalloffMode.Linear;
+            data.useVolumeMask = 0;
+            data.maskSize = Vector4.zero;
+            data.falloffMode = LocalVolumetricFogFalloffMode.Linear;
 
             return data;
         }
@@ -121,31 +121,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
     struct LocalVolumetricFogList
     {
-        public List<OrientedBBox>            bounds;
+        public List<OrientedBBox> bounds;
         public List<LocalVolumetricFogEngineData> density;
     }
 
     struct VBufferParameters
     {
         public Vector3Int viewportSize;
-        public float      voxelSize;
-        public Vector4    depthEncodingParams;
-        public Vector4    depthDecodingParams;
+        public float voxelSize;
+        public Vector4 depthEncodingParams;
+        public Vector4 depthDecodingParams;
 
         public VBufferParameters(Vector3Int viewportSize, float depthExtent, float camNear, float camFar, float camVFoV,
                                  float sliceDistributionUniformity, float voxelSize)
         {
             this.viewportSize = viewportSize;
-            this.voxelSize    = voxelSize;
+            this.voxelSize = voxelSize;
 
             // The V-Buffer is sphere-capped, while the camera frustum is not.
             // We always start from the near plane of the camera.
 
-            float aspectRatio    = viewportSize.x / (float)viewportSize.y;
+            float aspectRatio = viewportSize.x / (float)viewportSize.y;
             float farPlaneHeight = 2.0f * Mathf.Tan(0.5f * camVFoV) * camFar;
-            float farPlaneWidth  = farPlaneHeight * aspectRatio;
+            float farPlaneWidth = farPlaneHeight * aspectRatio;
             float farPlaneMaxDim = Mathf.Max(farPlaneWidth, farPlaneHeight);
-            float farPlaneDist   = Mathf.Sqrt(camFar * camFar + 0.25f * farPlaneMaxDim * farPlaneMaxDim);
+            float farPlaneDist = Mathf.Sqrt(camFar * camFar + 0.25f * farPlaneMaxDim * farPlaneMaxDim);
 
             float nearDist = camNear;
             float farDist = Math.Min(nearDist + depthExtent, farPlaneDist);
@@ -215,19 +215,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public partial class HDRenderPipeline
     {
-        ComputeShader                 m_VolumeVoxelizationCS          = null;
-        ComputeShader                 m_VolumetricLightingCS          = null;
-        ComputeShader                 m_VolumetricLightingFilteringCS = null;
+        ComputeShader m_VolumeVoxelizationCS = null;
+        ComputeShader m_VolumetricLightingCS = null;
+        ComputeShader m_VolumetricLightingFilteringCS = null;
 
-        List<OrientedBBox>            m_VisibleVolumeBounds           = null;
-        List<LocalVolumetricFogEngineData> m_VisibleVolumeData             = null;
-        internal const int            k_MaxVisibleLocalVolumetricFogCount  = 512;
+        List<OrientedBBox> m_VisibleVolumeBounds = null;
+        List<LocalVolumetricFogEngineData> m_VisibleVolumeData = null;
+        internal const int k_MaxVisibleLocalVolumetricFogCount = 512;
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
-        ComputeBuffer                 m_VisibleVolumeBoundsBuffer     = null;
-        ComputeBuffer                 m_VisibleVolumeDataBuffer       = null;
+        ComputeBuffer m_VisibleVolumeBoundsBuffer = null;
+        ComputeBuffer m_VisibleVolumeDataBuffer = null;
 
-        ShaderVariablesVolumetric     m_ShaderVariablesVolumetricCB = new ShaderVariablesVolumetric();
+        ShaderVariablesVolumetric m_ShaderVariablesVolumetricCB = new ShaderVariablesVolumetric();
 
         // This size is shared between all cameras to create the volumetric 3D textures
         static Vector3Int s_CurrentVolumetricBufferSize;
@@ -276,11 +276,11 @@ namespace UnityEngine.Rendering.HighDefinition
             var controller = hdCamera.volumeStack.GetComponent<Fog>();
             Debug.Assert(controller != null);
 
-            int   viewportWidth  = hdCamera.actualWidth;
-            int   viewportHeight = hdCamera.actualHeight;
+            int viewportWidth = hdCamera.actualWidth;
+            int viewportHeight = hdCamera.actualHeight;
 
             float screenFraction;
-            int   sliceCount;
+            int sliceCount;
             if (controller.fogControlMode == FogControl.Balance)
             {
                 // Evaluate the ssFraction and sliceCount based on the control parameters
@@ -303,7 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     voxelSize = 1.0f / screenFraction; // Does not account for rounding (same function, above)
             }
 
-            int w = Mathf.RoundToInt(viewportWidth  * screenFraction);
+            int w = Mathf.RoundToInt(viewportWidth * screenFraction);
             int h = Mathf.RoundToInt(viewportHeight * screenFraction);
 
             // Round to nearest multiple of viewCount so that each views have the exact same number of slices (important for XR)
@@ -333,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!Fog.IsVolumetricFogEnabled(hdCamera))
                 return;
 
-            bool fog  = Fog.IsVolumetricFogEnabled(hdCamera);
+            bool fog = Fog.IsVolumetricFogEnabled(hdCamera);
             bool init = hdCamera.vBufferParams != null;
 
             if (fog ^ init)
@@ -391,9 +391,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Debug.Assert(rt != null);
 
-            int width  = rt.rt.width;
+            int width = rt.rt.width;
             int height = rt.rt.height;
-            int depth  = rt.rt.volumeDepth;
+            int depth = rt.rt.volumeDepth;
 
             bool realloc = (width < viewportWidth) || (height < viewportHeight) || (depth < viewportDepth);
 
@@ -401,9 +401,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 RTHandles.Release(rt);
 
-                width  = Math.Max(width,  viewportWidth);
+                width = Math.Max(width, viewportWidth);
                 height = Math.Max(height, viewportHeight);
-                depth  = Math.Max(depth,  viewportDepth);
+                depth = Math.Max(depth, viewportDepth);
 
                 rt = RTHandles.Alloc(width, height, depth, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
                     dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: name);
@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, HDUtils.PackedMipChainInfo depthMipInfo)
         {
-            if (Fog.IsVolumetricFogEnabled(hdCamera))
+            if (Fog.IsVolumetricFogEnabled(hdCamera) || VolumetricCloudsRequireMaxZ(hdCamera))
             {
                 if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 {
@@ -463,21 +463,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     int frameIndex = (int)VolumetricFrameIndex(hdCamera);
                     var currIdx = frameIndex & 1;
-                    var currentParams = hdCamera.vBufferParams[currIdx];
 
-                    float ratio = (float)currentParams.viewportSize.x / (float)hdCamera.actualWidth;
-                    passData.dilationWidth = ratio < 0.1f ? 2 :
-                        ratio < 0.5f ? 1 : 0;
+                    if (hdCamera.vBufferParams != null)
+                    {
+                        var currentParams = hdCamera.vBufferParams[currIdx];
+                        float ratio = (float)currentParams.viewportSize.x / (float)hdCamera.actualWidth;
+                        passData.dilationWidth = ratio < 0.1f ? 2 :
+                            ratio < 0.5f ? 1 : 0;
+                    }
+                    else
+                    {
+                        passData.dilationWidth = 1;
+                    }
 
                     passData.viewCount = hdCamera.viewCount;
 
                     passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZ8xBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
-                        { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask 8x" });
+                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask 8x" });
                     passData.maxZBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
-                        { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask" });
+                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask" });
                     passData.dilatedMaxZBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one / 16.0f, true, true)
-                        { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Dilated MaxZ mask" }));
+                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Dilated MaxZ mask" }));
 
                     builder.SetRenderFunc(
                         (GenerateMaxZMaskPassData data, RenderGraphContext ctx) =>
@@ -516,8 +523,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
                             ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._DilationWidth, data.dilationWidth);
 
-                            int finalMaskW = maskW / 2;
-                            int finalMaskH = maskH / 2;
+                            int finalMaskW = Mathf.CeilToInt(maskW / 2.0f);
+                            int finalMaskH = Mathf.CeilToInt(maskH / 2.0f);
 
                             dispatchX = HDUtils.DivRoundUp(finalMaskW, 8);
                             dispatchY = HDUtils.DivRoundUp(finalMaskH, 8);
@@ -622,10 +629,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Debug.Assert(m_VolumetricLightingCS != null);
 
-            m_VisibleVolumeBounds       = new List<OrientedBBox>();
-            m_VisibleVolumeData         = new List<LocalVolumetricFogEngineData>();
+            m_VisibleVolumeBounds = new List<OrientedBBox>();
+            m_VisibleVolumeData = new List<LocalVolumetricFogEngineData>();
             m_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleLocalVolumetricFogCount, Marshal.SizeOf(typeof(OrientedBBox)));
-            m_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleLocalVolumetricFogCount, Marshal.SizeOf(typeof(LocalVolumetricFogEngineData)));
+            m_VisibleVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleLocalVolumetricFogCount, Marshal.SizeOf(typeof(LocalVolumetricFogEngineData)));
         }
 
         internal void DestroyVolumetricLightingBuffers()
@@ -633,7 +640,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_VisibleVolumeDataBuffer);
             CoreUtils.SafeRelease(m_VisibleVolumeBoundsBuffer);
 
-            m_VisibleVolumeData   = null; // free()
+            m_VisibleVolumeData = null; // free()
             m_VisibleVolumeBounds = null; // free()
         }
 
@@ -719,7 +726,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareVisibleLocalVolumetricFogList)))
             {
                 Vector3 camPosition = hdCamera.camera.transform.position;
-                Vector3 camOffset   = Vector3.zero;// World-origin-relative
+                Vector3 camOffset = Vector3.zero;// World-origin-relative
 
                 if (ShaderConfig.s_CameraRelativeRendering != 0)
                 {
@@ -759,7 +766,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleVolumeDataBuffer.SetData(m_VisibleVolumeData);
 
                 // Fill the struct with pointers in order to share the data with the light loop.
-                localVolumetricFog.bounds  = m_VisibleVolumeBounds;
+                localVolumetricFog.bounds = m_VisibleVolumeBounds;
                 localVolumetricFog.density = m_VisibleVolumeData;
 
                 return localVolumetricFog;
@@ -910,7 +917,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
 
                     passData.densityBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
-                        { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferDensity" }));
+                    { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferDensity" }));
 
                     builder.SetRenderFunc(
                         (VolumeVoxelizationPassData data, RenderGraphContext ctx) =>
@@ -950,13 +957,13 @@ namespace UnityEngine.Rendering.HighDefinition
             //  (7)(5)    ( )( )    ( )( )    ( )( )    ( )( )    ( )(o)    ( )(x)    (o)(x)    (x)(x)
             // (2)(1)(3) ( )(o)( ) (o)(x)( ) (x)(x)(o) (x)(x)(x) (x)(x)(x) (x)(x)(x) (x)(x)(x) (x)(x)(x)
             //  (4)(6)    ( )( )    ( )( )    ( )( )    (o)( )    (x)( )    (x)(o)    (x)(x)    (x)(x)
-            coords[0] = new Vector2(0,  0);
-            coords[1] = new Vector2(-d,  0);
-            coords[2] = new Vector2(d,  0);
+            coords[0] = new Vector2(0, 0);
+            coords[1] = new Vector2(-d, 0);
+            coords[2] = new Vector2(d, 0);
             coords[3] = new Vector2(-r, -s);
-            coords[4] = new Vector2(r,  s);
+            coords[4] = new Vector2(r, s);
             coords[5] = new Vector2(r, -s);
-            coords[6] = new Vector2(-r,  s);
+            coords[6] = new Vector2(-r, s);
 
             // Rotate the sampling pattern by 15 degrees.
             const float cos15 = 0.96592582628906828675f;
@@ -1048,7 +1055,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZBuffer = builder.ReadTexture(maxZBuffer);
                     passData.lightingBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
-                        { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferLighting" }));
+                    { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferLighting" }));
 
                     if (passData.enableReprojection)
                     {

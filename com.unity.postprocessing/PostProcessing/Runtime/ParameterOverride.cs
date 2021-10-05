@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <returns>The value stored in this parameter</returns>
         public T GetValue<T>()
         {
-            return ((ParameterOverride<T>) this).value;
+            return ((ParameterOverride<T>)this).value;
         }
 
         /// <summary>
@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.PostProcessing
     /// A <see cref="ParameterOverride{T}"/> that holds a <c>bool</c> value.
     /// </summary>
     [Serializable]
-    public sealed class BoolParameter : ParameterOverride<bool> {}
+    public sealed class BoolParameter : ParameterOverride<bool> { }
 
     /// <summary>
     /// A <see cref="ParameterOverride{T}"/> that holds a <see cref="Color"/> value.

@@ -4,7 +4,6 @@
 # Read more under .yamato/docs/readme.md
 
 {% metadata_file .yamato/_cache_config.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -34,6 +33,10 @@ all_project_ci_nightly_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: 1 * * ?
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_trunk
          rerun: on_new_revision
@@ -42,6 +45,8 @@ all_project_ci_nightly_trunk:
       -  path: .yamato/all-urp.yml#Nightly_URP_trunk
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_trunk
+         rerun: on_new_revision
+      -  path: .yamato/all-lightmapper.yml#LightMapper_trunk
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_trunk
          rerun: on_new_revision
@@ -101,102 +106,6 @@ Trunk_verification_trunk:
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
-all_project_ci_2021.2:
-    name: ABV (all PR jobs) on 2021.2
-    variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/all-hdrp.yml#PR_HDRP_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/all-vfx.yml#PR_VFX_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/all-urp.yml#PR_URP_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/_abv.yml#General_Checks_2021.2
-         rerun: on_new_revision
-all_project_ci_nightly_2021.2:
-    name: Nightly on 2021.2
-    variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        CACHE_ARGS: '{{cache.flags}}'
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: 1 * * ?
-    dependencies:
-      -  path: .yamato/all-hdrp.yml#Nightly_HDRP_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/all-vfx.yml#Nightly_VFX_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/all-urp.yml#Nightly_URP_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/_abv.yml#General_Checks_2021.2
-         rerun: on_new_revision
-General_Checks_2021.2:
-    name: General Checks on 2021.2
-    variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/_formatting.yml#formatting
-         rerun: on_new_revision
-      -  path: .yamato/all-smoke_test.yml#Smoke_Test_2021.2
-         rerun: on_new_revision
-Trunk_verification_2021.2:
-    name: Trunk verification on 2021.2
-    variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_editmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_editmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_2021.2
-         rerun: on_new_revision
 all_project_ci_CUSTOM-REVISION:
     name: ABV (all PR jobs) on CUSTOM-REVISION
     variables:
@@ -230,6 +139,8 @@ all_project_ci_nightly_CUSTOM-REVISION:
       -  path: .yamato/all-urp.yml#Nightly_URP_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-lightmapper.yml#LightMapper_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision

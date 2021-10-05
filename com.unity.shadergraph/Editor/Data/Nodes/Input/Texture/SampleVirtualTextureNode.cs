@@ -180,11 +180,12 @@ namespace UnityEditor.ShaderGraph
         }
 
         public SampleVirtualTextureNode() : this(false, false)
-        {}
+        { }
 
         public SampleVirtualTextureNode(bool isLod = false, bool noResolve = false)
         {
             name = "Sample Virtual Texture";
+            synonyms = new string[] { "buffer" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -343,13 +344,13 @@ namespace UnityEditor.ShaderGraph
 
         void AppendVtSample(ShaderStringBuilder sb, string propertiesName, string vtInputVariable, string infoVariable, int layerIndex, string outputVariableName)
         {
-            sb.AppendIndentation();
+            sb.TryAppendIndentation();
             sb.Append(outputVariableName); sb.Append(" = ");
             sb.Append("SampleVTLayerWithTextureType(");
-            sb.Append(propertiesName);          sb.Append(", ");
-            sb.Append(vtInputVariable);         sb.Append(", ");
-            sb.Append(infoVariable);            sb.Append(", ");
-            sb.Append(layerIndex.ToString());   sb.Append(");");
+            sb.Append(propertiesName); sb.Append(", ");
+            sb.Append(vtInputVariable); sb.Append(", ");
+            sb.Append(infoVariable); sb.Append(", ");
+            sb.Append(layerIndex.ToString()); sb.Append(");");
             sb.AppendNewLine();
         }
 
@@ -393,7 +394,7 @@ namespace UnityEditor.ShaderGraph
                 string dyExpr = "0.0f";
 
                 // function header
-                s.AppendIndentation();
+                s.TryAppendIndentation();
                 s.Append("float4 ");
                 s.Append(functionName);
                 s.Append("(float2 uv");
@@ -475,7 +476,7 @@ namespace UnityEditor.ShaderGraph
                     if (layerOutputVariables.Count > 0)
                     {
                         // assign feedback variable
-                        sb.AppendIndentation();
+                        sb.TryAppendIndentation();
                         if (!noFeedback)
                         {
                             sb.Append("float4 ");
@@ -560,6 +561,9 @@ namespace UnityEditor.ShaderGraph
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
             // Feedback dithering requires screen position (and only works in Pixel Shader currently)
+            // Note that the code that makes use of the screen position is not actually in this node,
+            // but is activated by the presence of this node..
+            // via a bit of a hack..
             return stageCapability.HasFlag(ShaderStageCapability.Fragment) && !noFeedback;
         }
     }

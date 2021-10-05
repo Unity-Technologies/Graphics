@@ -371,7 +371,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Global lighting quality settings.</summary>
         public GlobalLightingQualitySettings lightingQualitySettings;
 
-    #pragma warning disable 618 // Type or member is obsolete
+#pragma warning disable 618 // Type or member is obsolete
         [Obsolete("For data migration")]
         internal bool m_ObsoleteincreaseSssSampleCount;
 
@@ -428,6 +428,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         [FormerlySerializedAs("supportRuntimeDebugDisplay"), Obsolete("Moved to HDGlobal Settings")]
         internal bool m_ObsoleteSupportRuntimeDebugDisplay;
-    #pragma warning restore 618
+#pragma warning restore 618
     }
 }

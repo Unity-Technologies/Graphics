@@ -16,7 +16,7 @@ public class AovOutput : MonoBehaviour
     Material _material;
     MaterialPropertyBlock _props;
 
-    (RTHandle output, RTHandle color, RTHandle depth, RTHandle normal, RTHandle motionvector)_rt;
+    (RTHandle output, RTHandle color, RTHandle depth, RTHandle normal, RTHandle motionvector) _rt;
 
     RTHandle RTAllocator(AOVBuffers bufferID)
     {

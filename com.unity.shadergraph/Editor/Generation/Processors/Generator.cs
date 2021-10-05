@@ -9,6 +9,7 @@ using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine.Rendering;
 using UnityEngine.Assertions;
 using Pool = UnityEngine.Pool;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -28,26 +29,27 @@ namespace UnityEditor.ShaderGraph
         ShaderStringBuilder m_Builder;
         List<PropertyCollector.TextureInfo> m_ConfiguredTextures;
         AssetCollection m_assetCollection;
+        bool m_humanReadable;
 
         public string generatedShader => m_Builder.ToCodeBlock();
         public List<PropertyCollector.TextureInfo> configuredTextures => m_ConfiguredTextures;
         public List<BlockNode> temporaryBlocks => m_TemporaryBlocks;
 
-        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, int shaderIdx = 0)
+        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, bool humanReadable = false, int shaderIdx = 0)
         {
-            m_GraphData  = graphData;
+            m_GraphData = graphData;
             m_OutputNode = outputNode;
-            Generate(mode, name, assetCollection, GetTargetImplementations(), shaderIdx);
+            Generate(mode, name, assetCollection, GetTargetImplementations(), humanReadable, shaderIdx);
         }
 
-        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets, int shaderIdx = 0)
+        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets, bool humanReadable = false, int shaderIdx = 0)
         {
-            m_GraphData  = graphData;
+            m_GraphData = graphData;
             m_OutputNode = outputNode;
-            Generate(mode, name, assetCollection, targets, shaderIdx);
+            Generate(mode, name, assetCollection, targets, humanReadable, shaderIdx);
         }
 
-        void Generate(GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets, int shaderIdx = 0)
+        void Generate(GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets, bool humanReadable = false, int shaderIdx = 0)
         {
             if (targets.Length > 0 && targets[0].TargetsTerrain())
                 name = TerrainSubTarget.GetTerrainShaderName(name, (TerrainSubTarget.TerrainShaders)shaderIdx);
@@ -56,9 +58,11 @@ namespace UnityEditor.ShaderGraph
             m_Name = name;
             m_ShaderIdx = shaderIdx;
 
-            m_Builder = new ShaderStringBuilder();
+            m_Builder = new ShaderStringBuilder(humanReadable: humanReadable);
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
             m_assetCollection = assetCollection;
+            m_humanReadable = humanReadable;
+            m_humanReadable = humanReadable;
 
             m_ActiveBlocks = m_GraphData.GetNodes<BlockNode>().ToList();
             m_TemporaryBlocks = new List<BlockNode>();
@@ -72,7 +76,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var targets = m_GraphData.activeTargets.ToList();
                 // Sort the built-in target to be last. This is currently a requirement otherwise it'll get picked up for other passes incorrectly
-                targets.Sort(delegate(Target target0, Target target1)
+                targets.Sort(delegate (Target target0, Target target1)
                 {
                     var result = target0.displayName.CompareTo(target1.displayName);
                     // If only one value is built-in, then sort it last
@@ -159,6 +163,11 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             string path = AssetDatabase.GUIDToAssetPath(m_GraphData.assetGuid);
+
+            // Send an action about our current variant usage. This will either add or clear a warning if it exists
+            var action = new ShaderVariantLimitAction(shaderKeywords.permutations.Count, ShaderGraphPreferences.variantLimit);
+            m_GraphData.owner?.graphDataStore?.Dispatch(action);
+
             if (shaderKeywords.permutations.Count > ShaderGraphPreferences.variantLimit)
             {
                 string graphName = "";
@@ -172,11 +181,16 @@ namespace UnityEditor.ShaderGraph
                 Debug.LogError($"Error in Shader Graph {graphName}:{ShaderKeyword.kVariantLimitWarning}");
 
                 m_ConfiguredTextures = shaderProperties.GetConfiguredTextures();
-                m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader);
+                m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader.Replace("Hidden/GraphErrorShader2", graphName));
+                // Don't continue building the shader, we've already built an error shader.
+                return;
             }
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
+            {
+                activeNode.SetUsedByGenerator();
                 activeNode.CollectShaderProperties(shaderProperties, m_Mode);
+            }
 
             // Collect excess shader properties from the TargetImplementation
             foreach (var target in m_Targets)
@@ -197,7 +211,6 @@ namespace UnityEditor.ShaderGraph
             using (m_Builder.BlockScope())
             {
                 GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode, graphInputOrderData);
-
                 for (int i = 0; i < m_Targets.Length; i++)
                 {
                     TargetSetupContext context = new TargetSetupContext(m_assetCollection);
@@ -375,6 +388,8 @@ namespace UnityEditor.ShaderGraph
             if (m_Mode == GenerationMode.Preview && !pass.useInPreview)
                 return;
 
+            Profiler.BeginSample("GenerateShaderPass");
+
             // --------------------------------------------------
             // Debug
 
@@ -393,13 +408,15 @@ namespace UnityEditor.ShaderGraph
                 !CustomInterpolatorUtils.generatorNodeOnly && (pass.customInterpolators == null || pass.customInterpolators.Count() == 0);
 
             // Initialize custom interpolator sub generator
+            // NOTE: propertyCollector is not really used anymore -- we use the subshader PropertyCollector instead
             CustomInterpSubGen customInterpSubGen = new CustomInterpSubGen(m_OutputNode != null);
 
             // Initiailize Collectors
-            // NOTE: propertyCollector is not really used anymore -- we use the subshader PropertyCollector instead
+            Profiler.BeginSample("CollectShaderKeywords");
             var propertyCollector = new PropertyCollector();
             var keywordCollector = new KeywordCollector();
             m_GraphData.CollectShaderKeywords(keywordCollector, m_Mode);
+            Profiler.EndSample();
 
             // Get upstream nodes from ShaderPass port mask
             List<AbstractMaterialNode> vertexNodes;
@@ -412,15 +429,21 @@ namespace UnityEditor.ShaderGraph
             if (m_OutputNode == null)
             {
                 // Update supported block list for current target implementation
+                Profiler.BeginSample("GetCurrentTargetActiveBlocks");
                 var activeBlockContext = new TargetActiveBlockContext(currentBlockDescriptors, pass);
                 m_Targets[targetIndex].GetActiveBlocks(ref activeBlockContext);
+                Profiler.EndSample();
 
                 void ProcessStackForPass(ContextData contextData, BlockFieldDescriptor[] passBlockMask,
                     List<AbstractMaterialNode> nodeList, List<MaterialSlot> slotList)
                 {
                     if (passBlockMask == null)
+                    {
+                        Profiler.EndSample();
                         return;
+                    }
 
+                    Profiler.BeginSample("ProcessStackForPass");
                     foreach (var blockFieldDescriptor in passBlockMask)
                     {
                         // Mask blocks on active state
@@ -450,6 +473,7 @@ namespace UnityEditor.ShaderGraph
                         slotList.Add(block.FindSlot<MaterialSlot>(0));
                         activeFields.baseInstance.Add(block.descriptor);
                     }
+                    Profiler.EndSample();
                 }
 
                 // Mask blocks per pass
@@ -491,9 +515,11 @@ namespace UnityEditor.ShaderGraph
             List<int>[] pixelNodePermutations = new List<int>[pixelNodes.Count];
 
             // Get active fields from upstream Node requirements
+            Profiler.BeginSample("GetActiveFieldsFromUpstreamNodes");
             ShaderGraphRequirementsPerKeyword graphRequirements;
             GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes,
                 vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
+            Profiler.EndSample();
 
             // Moved this up so that we can reuse the information to figure out which struct Descriptors
             // should be populated by custom interpolators.
@@ -506,10 +532,12 @@ namespace UnityEditor.ShaderGraph
             passStructs = customInterpSubGen.CopyModifyExistingPassStructs(passStructs, activeFields.baseInstance);
 
             // Get active fields from ShaderPass
+            Profiler.BeginSample("GetActiveFieldsFromPass");
             GenerationUtils.AddRequiredFields(pass.requiredFields, activeFields.baseInstance);
+            Profiler.EndSample();
 
             // Function Registry
-            var functionBuilder = new ShaderStringBuilder();
+            var functionBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
             var graphIncludes = new IncludeCollection();
             var functionRegistry = new FunctionRegistry(functionBuilder, graphIncludes, true);
 
@@ -528,10 +556,12 @@ namespace UnityEditor.ShaderGraph
 
             // Propagate active field requirements using dependencies
             // Must be executed before types are built
+            Profiler.BeginSample("PropagateActiveFieldReqs");
             foreach (var instance in activeFields.all.instances)
             {
                 GenerationUtils.ApplyFieldDependencies(instance, pass.fieldDependencies);
             }
+            Profiler.EndSample();
 
             // --------------------------------------------------
             // Pass Setup
@@ -565,7 +595,8 @@ namespace UnityEditor.ShaderGraph
             // Pass Code
 
             // Render State
-            using (var renderStateBuilder = new ShaderStringBuilder())
+            Profiler.BeginSample("RenderState");
+            using (var renderStateBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
             {
                 // Render states need to be separated by RenderState.Type
                 // The first passing ConditionalRenderState of each type is inserted
@@ -592,9 +623,10 @@ namespace UnityEditor.ShaderGraph
                 string command = GenerationUtils.GetSpliceCommand(renderStateBuilder.ToCodeBlock(), "RenderState");
                 spliceCommands.Add("RenderState", command);
             }
-
+            Profiler.EndSample();
             // Pragmas
-            using (var passPragmaBuilder = new ShaderStringBuilder())
+            Profiler.BeginSample("Pragmas");
+            using (var passPragmaBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
             {
                 if (pass.pragmas != null)
                 {
@@ -615,9 +647,10 @@ namespace UnityEditor.ShaderGraph
                 string command = GenerationUtils.GetSpliceCommand(passPragmaBuilder.ToCodeBlock(), "PassPragmas");
                 spliceCommands.Add("PassPragmas", command);
             }
-
+            Profiler.EndSample();
             // Keywords
-            using (var passKeywordBuilder = new ShaderStringBuilder())
+            Profiler.BeginSample("Keywords");
+            using (var passKeywordBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
             {
                 if (pass.keywords != null)
                 {
@@ -634,10 +667,11 @@ namespace UnityEditor.ShaderGraph
                 string command = GenerationUtils.GetSpliceCommand(passKeywordBuilder.ToCodeBlock(), "PassKeywords");
                 spliceCommands.Add("PassKeywords", command);
             }
-
+            Profiler.EndSample();
             // -----------------------------
             // Generated structs and Packing code
-            var interpolatorBuilder = new ShaderStringBuilder();
+            Profiler.BeginSample("StructsAndPacking");
+            var interpolatorBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
 
             if (passStructs != null)
             {
@@ -657,7 +691,7 @@ namespace UnityEditor.ShaderGraph
                         foreach (var instance in activeFields.allPermutations.instances)
                         {
                             var instanceGenerator = new ShaderStringBuilder();
-                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, instance, out instanceGenerator);
+                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, instance, m_humanReadable, out instanceGenerator);
                             var key = instanceGenerator.ToCodeBlock();
                             if (generatedPackedTypes.TryGetValue(key, out var value))
                                 value.Item2.Add(instance.permutationIndex);
@@ -685,7 +719,7 @@ namespace UnityEditor.ShaderGraph
                     else
                     {
                         ShaderStringBuilder localInterpolatorBuilder; // GenerateInterpolatorFunctions do the allocation
-                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, out localInterpolatorBuilder);
+                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, m_humanReadable, out localInterpolatorBuilder);
                         interpolatorBuilder.Concat(localInterpolatorBuilder);
                     }
                     //using interp index from functions, generate packed struct descriptor
@@ -699,15 +733,17 @@ namespace UnityEditor.ShaderGraph
             else
                 interpolatorBuilder.AppendLine("//Interpolator Packs: <None>");
             spliceCommands.Add("InterpolatorPack", interpolatorBuilder.ToCodeBlock());
+            Profiler.EndSample();
 
             // Generated String Builders for all struct types
-            var passStructBuilder = new ShaderStringBuilder();
+            Profiler.BeginSample("StructTypes");
+            var passStructBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
             if (passStructs != null)
             {
-                var structBuilder = new ShaderStringBuilder();
+                var structBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
                 foreach (StructDescriptor shaderStruct in passStructs)
                 {
-                    GenerationUtils.GenerateShaderStruct(shaderStruct, activeFields, out structBuilder);
+                    GenerationUtils.GenerateShaderStruct(shaderStruct, activeFields, m_humanReadable, out structBuilder);
                     structBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString()); //hard code structs to float, TODO: proper handle precision
                     passStructBuilder.Concat(structBuilder);
                 }
@@ -715,11 +751,13 @@ namespace UnityEditor.ShaderGraph
             if (passStructBuilder.length == 0)
                 passStructBuilder.AppendLine("//Pass Structs: <None>");
             spliceCommands.Add("PassStructs", passStructBuilder.ToCodeBlock());
+            Profiler.EndSample();
 
             // --------------------------------------------------
             // Graph Vertex
 
-            var vertexBuilder = new ShaderStringBuilder();
+            Profiler.BeginSample("GraphVertex");
+            var vertexBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
 
             // If vertex modification enabled
             if (activeFields.baseInstance.Contains(Fields.GraphVertex) && vertexSlots != null)
@@ -728,14 +766,17 @@ namespace UnityEditor.ShaderGraph
                 string vertexGraphInputName = "VertexDescriptionInputs";
                 string vertexGraphOutputName = "VertexDescription";
                 string vertexGraphFunctionName = "VertexDescriptionFunction";
-                var vertexGraphFunctionBuilder = new ShaderStringBuilder();
-                var vertexGraphOutputBuilder = new ShaderStringBuilder();
+                var vertexGraphFunctionBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
+                var vertexGraphOutputBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
 
                 // Build vertex graph outputs
                 // Add struct fields to active fields
+                Profiler.BeginSample("GenerateVertexDescriptionStruct");
                 GenerationUtils.GenerateVertexDescriptionStruct(vertexGraphOutputBuilder, vertexSlots, vertexGraphOutputName, activeFields.baseInstance);
+                Profiler.EndSample();
 
                 // Build vertex graph functions from ShaderPass vertex port mask
+                Profiler.BeginSample("GenerateVertexDescriptionFunction");
                 GenerationUtils.GenerateVertexDescriptionFunction(
                     m_GraphData,
                     vertexGraphFunctionBuilder,
@@ -750,27 +791,38 @@ namespace UnityEditor.ShaderGraph
                     vertexGraphInputName,
                     vertexGraphFunctionName,
                     vertexGraphOutputName);
+                Profiler.EndSample();
 
                 // Generate final shader strings
-                vertexBuilder.AppendLines(vertexGraphOutputBuilder.ToString());
-                vertexBuilder.AppendNewLine();
-                vertexBuilder.AppendLines(vertexGraphFunctionBuilder.ToString());
+                if (m_humanReadable)
+                {
+                    vertexBuilder.AppendLines(vertexGraphOutputBuilder.ToString());
+                    vertexBuilder.AppendNewLine();
+                    vertexBuilder.AppendLines(vertexGraphFunctionBuilder.ToString());
+                }
+                else
+                {
+                    vertexBuilder.Append(vertexGraphOutputBuilder.ToString());
+                    vertexBuilder.AppendNewLine();
+                    vertexBuilder.Append(vertexGraphFunctionBuilder.ToString());
+                }
             }
 
             // Add to splice commands
             if (vertexBuilder.length == 0)
                 vertexBuilder.AppendLine("// GraphVertex: <None>");
             spliceCommands.Add("GraphVertex", vertexBuilder.ToCodeBlock());
-
+            Profiler.EndSample();
             // --------------------------------------------------
             // Graph Pixel
 
+            Profiler.BeginSample("GraphPixel");
             // Setup
             string pixelGraphInputName = "SurfaceDescriptionInputs";
             string pixelGraphOutputName = "SurfaceDescription";
             string pixelGraphFunctionName = "SurfaceDescriptionFunction";
-            var pixelGraphOutputBuilder = new ShaderStringBuilder();
-            var pixelGraphFunctionBuilder = new ShaderStringBuilder();
+            var pixelGraphOutputBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
+            var pixelGraphFunctionBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable);
 
             // Build pixel graph outputs
             // Add struct fields to active fields
@@ -794,7 +846,7 @@ namespace UnityEditor.ShaderGraph
                 pixelGraphInputName,
                 pass.virtualTextureFeedback);
 
-            using (var pixelBuilder = new ShaderStringBuilder())
+            using (var pixelBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
             {
                 // Generate final shader strings
                 pixelBuilder.AppendLines(pixelGraphOutputBuilder.ToString());
@@ -806,29 +858,31 @@ namespace UnityEditor.ShaderGraph
                     pixelBuilder.AppendLine("// GraphPixel: <None>");
                 spliceCommands.Add("GraphPixel", pixelBuilder.ToCodeBlock());
             }
+            Profiler.EndSample();
 
             // --------------------------------------------------
             // Graph Functions
-
+            Profiler.BeginSample("GraphFunctions");
             if (functionBuilder.length == 0)
                 functionBuilder.AppendLine("// GraphFunctions: <None>");
             spliceCommands.Add("GraphFunctions", functionBuilder.ToCodeBlock());
-
+            Profiler.EndSample();
             // --------------------------------------------------
             // Graph Keywords
-
-            using (var keywordBuilder = new ShaderStringBuilder())
+            Profiler.BeginSample("GraphKeywords");
+            using (var keywordBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
             {
                 keywordCollector.GetKeywordsDeclaration(keywordBuilder, m_Mode);
                 if (keywordBuilder.length == 0)
                     keywordBuilder.AppendLine("// GraphKeywords: <None>");
                 spliceCommands.Add("GraphKeywords", keywordBuilder.ToCodeBlock());
             }
+            Profiler.EndSample();
 
             // --------------------------------------------------
             // Graph Properties
-
-            using (var propertyBuilder = new ShaderStringBuilder())
+            Profiler.BeginSample("GraphProperties");
+            using (var propertyBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
             {
                 subShaderProperties.GetPropertiesDeclaration(propertyBuilder, m_Mode, m_GraphData.graphDefaultConcretePrecision);
 
@@ -850,13 +904,14 @@ namespace UnityEditor.ShaderGraph
                     propertyBuilder.AppendLine("// GraphProperties: <None>");
                 spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlock());
             }
+            Profiler.EndSample();
 
             // --------------------------------------------------
             // Dots Instanced Graph Properties
 
             bool hasDotsProperties = subShaderProperties.HasDotsProperties();
 
-            using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
+            using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
             {
                 if (hasDotsProperties)
                     dotsInstancedPropertyBuilder.AppendLines(subShaderProperties.GetDotsInstancingPropertiesDeclaration(m_Mode));
@@ -868,12 +923,12 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Dots Instancing Options
 
-            using (var dotsInstancingOptionsBuilder = new ShaderStringBuilder())
+            using (var dotsInstancingOptionsBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
             {
                 // Hybrid Renderer V1 requires some magic defines to work, which we enable
                 // if the shader graph has a nonzero amount of DOTS instanced properties.
                 // This can be removed once Hybrid V1 is removed.
-                #if !ENABLE_HYBRID_RENDERER_V2
+#if !ENABLE_HYBRID_RENDERER_V2
                 if (hasDotsProperties)
                 {
                     dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE)  || defined(SHADER_API_GAMECORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
@@ -883,7 +938,7 @@ namespace UnityEditor.ShaderGraph
                     dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_HYBRID_V1_INSTANCING_ENABLED");
                     dotsInstancingOptionsBuilder.AppendLine("#endif");
                 }
-                #endif
+#endif
 
                 if (dotsInstancingOptionsBuilder.length == 0)
                     dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");
@@ -892,8 +947,8 @@ namespace UnityEditor.ShaderGraph
 
             // --------------------------------------------------
             // Graph Defines
-
-            using (var graphDefines = new ShaderStringBuilder())
+            Profiler.BeginSample("GraphDefines");
+            using (var graphDefines = new ShaderStringBuilder(humanReadable: m_humanReadable))
             {
                 graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
 
@@ -948,7 +1003,7 @@ namespace UnityEditor.ShaderGraph
                 // Add to splice commands
                 spliceCommands.Add("GraphDefines", graphDefines.ToCodeBlock());
             }
-
+            Profiler.EndSample();
             // --------------------------------------------------
             // Includes
 
@@ -997,7 +1052,7 @@ namespace UnityEditor.ShaderGraph
 
             // Debug output all active fields
 
-            using (var debugBuilder = new ShaderStringBuilder())
+            using (var debugBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
             {
                 if (isDebug)
                 {
@@ -1036,17 +1091,23 @@ namespace UnityEditor.ShaderGraph
             string[] sharedTemplateDirectories = pass.sharedTemplateDirectories;
 
             if (!File.Exists(passTemplatePath))
+            {
+                Profiler.EndSample();
                 return;
+            }
 
             // Process Template
+            Profiler.BeginSample("ProcessTemplate");
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands,
-                isDebug, sharedTemplateDirectories, m_assetCollection);
+                isDebug, sharedTemplateDirectories, m_assetCollection, m_humanReadable);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
 
+            Profiler.EndSample();
             // Turn off the skip flag so other passes behave correctly correctly.
             CustomInterpolatorUtils.generatorSkipFlag = false;
             CustomInterpolatorUtils.generatorNodeOnly = false;
+            Profiler.EndSample();
         }
     }
 }

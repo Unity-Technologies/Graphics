@@ -5,7 +5,7 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionStripTangent : VFXExpression
     {
-        public VFXExpressionStripTangent() : base(VFXExpression.Flags.PerElement | VFXExpression.Flags.InvalidOnCPU) {}
+        public VFXExpressionStripTangent() : base(VFXExpression.Flags.PerElement | VFXExpression.Flags.InvalidOnCPU) { }
 
         public override VFXValueType valueType => VFXValueType.Float3;
         public override VFXExpressionOperation operation => VFXExpressionOperation.None;

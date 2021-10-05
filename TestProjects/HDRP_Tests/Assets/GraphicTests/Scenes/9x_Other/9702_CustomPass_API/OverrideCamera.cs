@@ -6,15 +6,15 @@ using System.Linq;
 
 class OverrideCamera : CustomPass
 {
-    public Camera       customCamera0 = null;
-    public Camera       customCamera1 = null;
-    public Camera       customCamera2 = null;
-    public Camera       customCamera3 = null;
-    public Camera       customCamera4 = null;
+    public Camera customCamera0 = null;
+    public Camera customCamera1 = null;
+    public Camera customCamera2 = null;
+    public Camera customCamera3 = null;
+    public Camera customCamera4 = null;
 
-    RTHandle            temp;
-    RTHandle            halfResColor;
-    RTHandle            halfResDepth;
+    RTHandle temp;
+    RTHandle halfResColor;
+    RTHandle halfResDepth;
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {

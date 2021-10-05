@@ -296,10 +296,10 @@ namespace UnityEngine.Rendering
         /// <summary> Inverse the gradient direction. </summary>
         public bool inverseSDF;
 
-        /// <summary> Uniform angle used with multiple element enabled with Uniform distribution. </summary>
+        /// <summary> Uniform angle (in degrees) used with multiple element enabled with Uniform distribution. </summary>
         public float uniformAngle;
 
-        /// <summary> Uniform angle (in degree) used with multiple element enabled with Curve distribution. </summary>
+        /// <summary> Uniform angle (remap from -180.0f to 180.0f) used with multiple element enabled with Curve distribution. </summary>
         public AnimationCurve uniformAngleCurve;
     }
 

@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return false;
 
             var o = parameter.GetObjectRef<ScalableSettingLevelParameter>();
-            var(level, useOverride) = o.levelAndOverride;
+            var (level, useOverride) = o.levelAndOverride;
 
             var rect = EditorGUILayout.GetControlRect();
 

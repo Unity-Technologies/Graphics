@@ -31,11 +31,11 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             return enabled.value
                 && shutterAngle.value > 0f
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
                 // Don't render motion blur preview when the editor is not playing as it can in some
                 // cases results in ugly artifacts (i.e. when resizing the game view).
                 && Application.isPlaying
-            #endif
+#endif
                 && SystemInfo.supportsMotionVectors
                 && RenderTextureFormat.RGHalf.IsSupported()
                 && !context.stereoActive;
