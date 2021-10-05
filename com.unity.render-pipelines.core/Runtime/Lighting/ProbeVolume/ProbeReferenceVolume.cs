@@ -30,12 +30,12 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public static AdditionalGIBakeRequestsManager instance { get { return s_Instance; } }
 
-        private AdditionalGIBakeRequestsManager()
+        internal void Init()
         {
             SubscribeOnBakeStarted();
         }
 
-        ~AdditionalGIBakeRequestsManager()
+        internal void Cleanup()
         {
             UnsubscribeOnBakeStarted();
         }
@@ -547,8 +547,10 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
+        bool m_EnabledBySRP = false;
 
         internal bool isInitialized => m_ProbeReferenceVolumeInit;
+        internal bool enabledBySRP => m_EnabledBySRP;
 
         struct InitInfo
         {
@@ -606,6 +608,7 @@ namespace UnityEngine.Experimental.Rendering
 
         /// <summary>
         /// Initialize the Probe Volume system
+        /// </summary>
         /// <param name="parameters">Initialization parameters.</param>
         public void Initialize(in ProbeVolumeSystemParameters parameters)
         {
@@ -627,9 +630,20 @@ namespace UnityEngine.Experimental.Rendering
             {
                 UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.OnSceneSaved;
             }
+            AdditionalGIBakeRequestsManager.instance.Init();
 #endif
+            m_EnabledBySRP = true;
         }
 
+        /// <summary>
+        /// Communicate to the Probe Volume system whether the SRP enables Probe Volume.
+        /// It is important to keep in mind that this is not used by the system for anything else but book-keeping,
+        /// the SRP is still responsible to disable anything Probe volume related on SRP side.
+        /// </summary>
+        public void SetEnableStateFromSRP(bool srpEnablesPV)
+        {
+            m_EnabledBySRP = srpEnablesPV;
+        }
 
         // This is used for steps such as dilation that require the maximum order allowed to be loaded at all times. Should really never be used as a general purpose function.
         internal void ForceSHBand(ProbeVolumeSHBands shBands)
@@ -647,6 +661,10 @@ namespace UnityEngine.Experimental.Rendering
         public void Cleanup()
         {
             if (!m_ProbeReferenceVolumeInit) return;
+
+#if UNITY_EDITOR
+            AdditionalGIBakeRequestsManager.instance.Cleanup();
+#endif
 
             if (!m_IsInitialized)
             {
@@ -705,14 +723,48 @@ namespace UnityEngine.Experimental.Rendering
             m_ChunkInfo[cell.index] = cellChunks;
         }
 
+        bool CheckCompatibilityWithCollection(ProbeVolumeAsset asset, Dictionary<string, ProbeVolumeAsset> collection)
+        {
+            if (collection.Count > 0)
+            {
+                // Any one is fine, they should all have the same properties. We need to go through them anyway as some might be pending deletion already.
+                foreach (var collectionValue in collection.Values)
+                {
+                    // We don't care about this to check against, it is already pending deletion.
+                    if (m_PendingAssetsToBeUnloaded.ContainsKey(collectionValue.GetSerializedFullPath()))
+                        continue;
+
+                    return collectionValue.CompatibleWith(asset);
+                }
+            }
+            return true;
+        }
+
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
+
             if (m_PendingAssetsToBeLoaded.ContainsKey(key))
             {
                 m_PendingAssetsToBeLoaded.Remove(key);
             }
-            m_PendingAssetsToBeLoaded.Add(asset.GetSerializedFullPath(), asset);
+
+            if (!CheckCompatibilityWithCollection(asset, m_ActiveAssets))
+            {
+                Debug.LogError($"Trying to load Probe Volume data for a scene that has been baked with different settings than currently loaded ones. " +
+                               $"Please make sure all loaded scenes are in the same baking set.");
+                return;
+            }
+
+            // If we don't have any loaded asset yet, we need to verify the other queued assets.
+            if (!CheckCompatibilityWithCollection(asset, m_PendingAssetsToBeLoaded))
+            {
+                Debug.LogError($"Trying to load Probe Volume data for a scene that has been baked with different settings from other scenes that are being loaded. " +
+                                $"Please make sure all loaded scenes are in the same baking set.");
+                return;
+            }
+
+            m_PendingAssetsToBeLoaded.Add(key, asset);
             m_NeedLoadAsset = true;
 
             // Compute the max index dimension from all the loaded assets + assets we need to load
@@ -806,6 +858,12 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        internal void SetMinBrickAndMaxSubdiv(float minBrickSize, int maxSubdiv)
+        {
+            SetTRS(Vector3.zero, Quaternion.identity, minBrickSize);
+            SetMaxSubdivision(maxSubdiv);
+        }
+
         void LoadAsset(ProbeVolumeAsset asset)
         {
             if (asset.Version != (int)ProbeVolumeAsset.AssetVersion.Current)
@@ -817,9 +875,7 @@ namespace UnityEngine.Experimental.Rendering
             var path = asset.GetSerializedFullPath();
 
             // Load info coming originally from profile
-            SetTRS(Vector3.zero, Quaternion.identity, asset.minBrickSize);
-            SetMaxSubdivision(asset.maxSubdivision);
-
+            SetMinBrickAndMaxSubdiv(asset.minBrickSize, asset.maxSubdivision);
 
             for (int i = 0; i < asset.cells.Count; ++i)
             {

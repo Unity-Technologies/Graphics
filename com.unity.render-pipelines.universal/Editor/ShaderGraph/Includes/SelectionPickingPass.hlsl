@@ -15,9 +15,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
-
-    SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
-    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+    SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
     #if _ALPHATEST_ON
         // This isn't defined in the sprite passes. It looks like the built-in legacy shader will use this as it's default constant
