@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
                         case GraphicsDeviceType.OpenGLES2:
                         case GraphicsDeviceType.OpenGLES3:
                         case GraphicsDeviceType.Vulkan:
-                            return data.wireframeMode == WireframeMode.None;
+                            return data.wireframeMode == DebugWireframeMode.None;
                         default:
                             return true;
                     }

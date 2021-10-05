@@ -173,13 +173,13 @@ namespace UnityEngine.Rendering.Universal
         /// Current minimum luminance threshold value for albedo validation.
         /// Any albedo luminance values below this value will be considered invalid and will appear red on screen.
         /// </summary>
-        public float albedoMinLuminance = 0.01f;
+        public float albedoMinLuminance { get; set; } = 0.01f;
 
         /// <summary>
         /// Current maximum luminance threshold value for albedo validation.
         /// Any albedo luminance values above this value will be considered invalid and will appear blue on screen.
         /// </summary>
-        public float albedoMaxLuminance = 0.90f;
+        public float albedoMaxLuminance { get; set; } = 0.90f;
 
         float m_AlbedoHueTolerance = 0.104f;
 
@@ -189,7 +189,7 @@ namespace UnityEngine.Rendering.Universal
         public float albedoHueTolerance
         {
             get => m_AlbedoValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : m_AlbedoHueTolerance;
-            private set => m_AlbedoHueTolerance = value;
+            set => m_AlbedoHueTolerance = value;
         }
 
         float m_AlbedoSaturationTolerance = 0.214f;
@@ -200,30 +200,30 @@ namespace UnityEngine.Rendering.Universal
         public float albedoSaturationTolerance
         {
             get => m_AlbedoValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : m_AlbedoSaturationTolerance;
-            private set => m_AlbedoSaturationTolerance = value;
+            set => m_AlbedoSaturationTolerance = value;
         }
 
         /// <summary>
         /// Current target color value for albedo validation.
         /// </summary>
-        public Color albedoCompareColor = new Color(127f / 255f, 127f / 255f, 127f / 255f, 255f / 255f);
+        public Color albedoCompareColor { get; set; } = new Color(127f / 255f, 127f / 255f, 127f / 255f, 255f / 255f);
 
         /// <summary>
         /// Current minimum threshold value for metallic validation.
         /// Any metallic values below this value will be considered invalid and will appear red on screen.
         /// </summary>
-        public float metallicMinValue = 0.0f;
+        public float metallicMinValue { get; set; } = 0.0f;
 
         /// <summary>
         /// Current maximum threshold value for metallic validation.
         /// Any metallic values above this value will be considered invalid and will appear blue on screen.
         /// </summary>
-        public float metallicMaxValue = 0.9f;
+        public float metallicMaxValue { get; set; } = 0.9f;
 
         /// <summary>
         /// Current material validation mode.
         /// </summary>
-        public DebugMaterialValidationMode materialValidationMode;
+        public DebugMaterialValidationMode materialValidationMode { get; set; }
 
         #endregion
 
