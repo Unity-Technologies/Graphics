@@ -398,11 +398,7 @@ half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, ha
     half shadowFade = half(1.0);
 #endif
 
-#if defined(LIGHTMAP_SHADOW_MIXING) || defined(SHADOWS_SHADOWMASK) || !defined(_MAIN_LIGHT_SHADOWS_SCREEN)
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
-#else
-    return realtimeShadow;
-#endif
 }
 
 half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels)
