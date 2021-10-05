@@ -29,10 +29,15 @@ namespace UnityEditor.ShaderGraph
         private const int kUVsSlotId = 6;
         private const string kUVsSlotName = "UVs";
         private const int kLodSlotId = 7;
-        private const string kLodSlotName = "Lod";
+        private const string kLodSlotName = "LOD";
         private const int kLodThresholdSlotId = 8;
-        private const string kLodThresholdSlotName = "LodThreshold";
-
+        private const string kLodThresholdSlotName = "LODThreshold";
+        private const int kTilingSlotId = 10;
+        private const string kTilingSlotName = "Tiling";
+        private const int kOffsetSlotId = 11;
+        private const string kOffsetSlotName = "Offset";
+        private const int kPrimitiveSizeSlotId = 12;
+        private const string kPrimitiveSizeSlotName = "PrimitiveSize";
 
         // Output slots
         private const int kPixelDepthOffsetOutputSlotId = 0;
@@ -49,6 +54,9 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(kAmplitudeSlotId, kAmplitudeSlotName, kAmplitudeSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kStepsSlotId, kStepsSlotName, kStepsSlotName, SlotType.Input, 5.0f, ShaderStageCapability.Fragment));
             AddSlot(new UVMaterialSlot(kUVsSlotId, kUVsSlotName, kUVsSlotName, UVChannel.UV0, ShaderStageCapability.Fragment));
+            AddSlot(new Vector2MaterialSlot(kTilingSlotId, kTilingSlotName, kTilingSlotName, SlotType.Input, Vector2.one, ShaderStageCapability.Fragment));
+            AddSlot(new Vector2MaterialSlot(kOffsetSlotId, kOffsetSlotName, kOffsetSlotName, SlotType.Input, Vector2.zero, ShaderStageCapability.Fragment));
+            AddSlot(new Vector2MaterialSlot(kPrimitiveSizeSlotId, kPrimitiveSizeSlotName, kPrimitiveSizeSlotName, SlotType.Input, Vector2.one, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kLodSlotId, kLodSlotName, kLodSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kLodThresholdSlotId, kLodThresholdSlotName, kLodThresholdSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
 
@@ -65,6 +73,9 @@ namespace UnityEditor.ShaderGraph
                 kUVsSlotId,
                 kLodSlotId,
                 kLodThresholdSlotId,
+                kTilingSlotId,
+                kOffsetSlotId,
+                kPrimitiveSizeSlotId
             });
         }
 
@@ -144,6 +155,9 @@ return objectScale;");
             string amplitude = GetSlotValue(kAmplitudeSlotId, generationMode);
             string steps = GetSlotValue(kStepsSlotId, generationMode);
             string uvs = GetSlotValue(kUVsSlotId, generationMode);
+            string tiling = GetSlotValue(kTilingSlotId, generationMode);
+            string offset = GetSlotValue(kOffsetSlotId, generationMode);
+            string primitiveSize = GetSlotValue(kPrimitiveSizeSlotId, generationMode);
             string lod = GetSlotValue(kLodSlotId, generationMode);
             string lodThreshold = GetSlotValue(kLodThresholdSlotId, generationMode);
             string heightmap = GetSlotValue(kHeightmapSlotId, generationMode);
@@ -155,17 +169,25 @@ return objectScale;");
             string tmpMaxHeight = GetVariableNameForNode() + "_MaxHeight";
             string tmpViewDirUV = GetVariableNameForNode() + "_ViewDirUV";
             string tmpOutHeight = GetVariableNameForNode() + "_OutHeight";
+            string tmpUVs = GetVariableNameForNode() + "_UVs";
+            string tmpUVSpaceScale = GetVariableNameForNode() + "_UVSpaceScale";
 
             sb.AppendLines($@"
 $precision3 {tmpViewDir} = IN.{CoordinateSpace.Tangent.ToVariableName(InterpolatorType.ViewDirection)} * GetDisplacementObjectScale_$precision().xzy;
 $precision {tmpNdotV} = {tmpViewDir}.z;
 $precision {tmpMaxHeight} = {amplitude} * 0.01; // cm in the interface so we multiply by 0.01 in the shader to convert in meter
+{tmpMaxHeight} *= 2.0 / ( abs({tiling}.x) + abs({tiling}.y) ); // reduce height based on the tiling values
+
+$precision2 {tmpUVSpaceScale} = {tmpMaxHeight} * {tiling} / {primitiveSize};
 
 // Transform the view vector into the UV space.
-$precision3 {tmpViewDirUV}    = normalize($precision3({tmpViewDir}.xy * {tmpMaxHeight}, {tmpViewDir}.z)); // TODO: skip normalize
+$precision3 {tmpViewDirUV}    = normalize($precision3({tmpViewDir}.xy * {tmpUVSpaceScale}, {tmpViewDir}.z)); // TODO: skip normalize
 
 PerPixelHeightDisplacementParam {tmpPOMParam};
-{tmpPOMParam}.uv = {heightmap}.GetTransformedUV({uvs});");
+
+$precision2 {tmpUVs} = {uvs} * {tiling} + {offset};
+
+{tmpPOMParam}.uv = {heightmap}.GetTransformedUV({tmpUVs});");
 
             // to avoid crashes when steps gets too big, and
             // to avoid divide by zero, we clamp it to the range [1, 256]
@@ -174,7 +196,7 @@ PerPixelHeightDisplacementParam {tmpPOMParam};
 
             sb.AppendLines($@"
 $precision {tmpOutHeight};
-$precision2 {GetVariableNameForSlot(kParallaxUVsOutputSlotId)} = {heightmap}.GetTransformedUV({uvs}) + ParallaxOcclusionMapping{GetFunctionName()}({lod}, {lodThreshold}, {steps}, {tmpViewDirUV}, {tmpPOMParam}, {tmpOutHeight}, TEXTURE2D_ARGS({heightmap}.tex, {sampler}.samplerstate));
+$precision2 {GetVariableNameForSlot(kParallaxUVsOutputSlotId)} = {heightmap}.GetTransformedUV({tmpUVs}) + ParallaxOcclusionMapping{GetFunctionName()}({lod}, {lodThreshold}, {steps}, {tmpViewDirUV}, {tmpPOMParam}, {tmpOutHeight}, TEXTURE2D_ARGS({heightmap}.tex, {sampler}.samplerstate));
 
 $precision {GetVariableNameForSlot(kPixelDepthOffsetOutputSlotId)} = ({tmpMaxHeight} - {tmpOutHeight} * {tmpMaxHeight}) / max({tmpNdotV}, 0.0001);
 ");

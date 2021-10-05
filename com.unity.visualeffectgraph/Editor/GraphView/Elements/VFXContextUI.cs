@@ -650,7 +650,7 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        class GrowContext : IDisposable
+        internal class GrowContext : IDisposable
         {
             VFXContextUI m_Context;
             float m_PrevSize;
@@ -692,7 +692,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            using (var growContext = new GrowContext(this))
+            using (new GrowContext(this))
             {
                 controller.AddBlock(blockIndex, descriptor.CreateInstance(), true /* freshly created block, should init space */);
             }

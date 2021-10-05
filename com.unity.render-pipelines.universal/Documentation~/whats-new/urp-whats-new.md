@@ -80,6 +80,8 @@ The URP Global Settings section lets you define project-wide settings for URP. I
 
 Light Layers let you mask certain lights in a Scene to affect particular meshes. The lights assigned to a specific layer only affect meshes assigned to the same layer.
 
+For more information, see the page [Light layers](../lighting/light-layers.md).
+
 ### New URP package samples
 
 New URP samples are available in the Package Manager. The samples show use cases of URP features, their configuration, and practical applications in one or more scenes.

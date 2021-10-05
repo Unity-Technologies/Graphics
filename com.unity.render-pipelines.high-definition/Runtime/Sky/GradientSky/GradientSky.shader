@@ -69,6 +69,7 @@ Shader "Hidden/HDRP/Sky/GradientSky"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             ZWrite Off

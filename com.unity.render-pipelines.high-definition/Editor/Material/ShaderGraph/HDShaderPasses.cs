@@ -488,44 +488,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #endregion
 
-        #region Forward Emissive For Deferred
-
-        public static PassDescriptor GenerateForwardEmissiveForDeferredPass(bool useVFX, bool useTessellation)
-        {
-            return new PassDescriptor
-            {
-                // Definition
-                displayName = "ForwardEmissiveForDeferred",
-                referenceName = "SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED",
-                lightMode = "ForwardEmissiveForDeferred",
-                useInPreview = false,
-
-                // Collections
-                structs = GenerateStructs(null, useVFX, useTessellation),
-                requiredFields = CoreRequiredFields.Basic,
-                renderStates = CoreRenderStates.ForwardEmissiveForDeferred,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation),
-                defines = GenerateDefines(CoreDefines.ForwardEmissiveForDeferred, useVFX, useTessellation),
-                includes = GenerateIncludes(),
-
-                virtualTextureFeedback = true,
-                customInterpolators = CoreCustomInterpolators.Common,
-            };
-
-            IncludeCollection GenerateIncludes()
-            {
-                var includes = new IncludeCollection();
-                includes.Add(CoreIncludes.CorePregraph);
-                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.CoreUtility);
-                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassForwardEmissiveForDeferred, IncludeLocation.Postgraph);
-                return includes;
-            }
-        }
-
-        #endregion
-
         #region Back then front pass
 
         public static PassDescriptor GenerateBackThenFront(bool supportLighting, bool useVFX, bool useTessellation)

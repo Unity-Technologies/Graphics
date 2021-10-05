@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // }
 
         [SerializeField]
-        SpecularOcclusionMode m_SpecularOcclusionMode;
+        SpecularOcclusionMode m_SpecularOcclusionMode = SpecularOcclusionMode.FromAO;
         public SpecularOcclusionMode specularOcclusionMode
         {
             get => m_SpecularOcclusionMode;

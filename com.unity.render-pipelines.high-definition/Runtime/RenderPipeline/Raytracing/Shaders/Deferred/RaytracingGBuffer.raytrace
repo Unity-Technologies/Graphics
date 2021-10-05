@@ -58,7 +58,7 @@ uint _RayBinTileViewOffset;
 [shader("miss")]
 void MissShaderGBuffer(inout RayIntersectionGBuffer rayIntersection : SV_RayPayload)
 {
-    rayIntersection.t = 0;
+    rayIntersection.t = RAY_TRACING_DISTANCE_FLAG_SKY;
 }
 
 struct PixelCoordinates
