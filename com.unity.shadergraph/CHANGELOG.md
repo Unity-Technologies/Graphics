@@ -36,6 +36,7 @@ The version number for this package has increased due to a version update of a r
  - Fixed the Scene Depth node so it returns proper results in Eye space when using an orthographic camera [1311272]
  - Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
  - Fixed how graph errors were displayed when variant limits were reached [1355815]
+ - Fixed errors in the ShaderGraph Transform node [1368082]
 
 ## [12.0.0] - 2021-01-11
 
@@ -70,6 +71,7 @@ The version number for this package has increased due to a version update of a r
   - Added visible errors for invalid stage capability connections to shader graph.
   - Added a ShaderGraph animated preview framerate throttle.
   - Added many node synonyms for the Create Node search so that it's easier to find nodes.
+  - Added normal transforms to the Transform node
 
 ### Changed
 - Properties and Keywords are no longer separated by type on the blackboard. Categories allow for any combination of properties and keywords to be grouped together as the user defines.
