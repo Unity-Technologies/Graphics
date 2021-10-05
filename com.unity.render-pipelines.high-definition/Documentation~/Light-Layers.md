@@ -60,4 +60,4 @@ To restore the transmission effect, create a Point Light and assign it to the sa
 
 ![](Images/LightLayers3.png)
 
-For more information on this process, see Pierre Donzallaz’s [expert guide](https://docs.unity3d.com/uploads/ExpertGuides/Create_High-Quality_Light_Fixtures_in_Unity.pdf) on creating high quality light fixtures in Unity.
+For more information on this process, see Pierre Donzallaz’s [expert guide](https://pydonzallaz.files.wordpress.com/2019/02/create-high-quality-light-fixtures-in-unity.pdf) on creating high quality light fixtures in Unity.
