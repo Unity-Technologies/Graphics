@@ -514,10 +514,10 @@ namespace UnityEditor.VFX.UI
 
             m_Toolbar = new UnityEditor.UIElements.Toolbar();
 
-            var saveDropDownButton = new VFXSaveDropdownButton(this, VFXViewWindow.currentWindow);
+            var saveDropDownButton = new VFXSaveDropdownButton(this, VFXViewWindow.GetWindow(this));
             m_Toolbar.Add(saveDropDownButton);
 
-            var compileDropDownButton = new VFXCompileDropdownButton(this, VFXViewWindow.currentWindow);
+            var compileDropDownButton = new VFXCompileDropdownButton(this, VFXViewWindow.GetWindow(this));
             m_Toolbar.Add(compileDropDownButton);
 
             m_LinkedIcon = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "Linked.png"));
@@ -553,7 +553,7 @@ namespace UnityEditor.VFX.UI
             m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
             m_Toolbar.Add(m_ToggleComponentBoard);
 
-            var helpDropDownButton = new VFXHelpDropdownButton(this, VFXViewWindow.currentWindow);
+            var helpDropDownButton = new VFXHelpDropdownButton(this, VFXViewWindow.GetWindow(this));
             m_Toolbar.Add(helpDropDownButton);
             // End Toolbar
 
@@ -652,6 +652,7 @@ namespace UnityEditor.VFX.UI
         void OnOpenAttachMenu()
         {
             var attachPanel = ScriptableObject.CreateInstance<VFXAttachPanel>();
+            attachPanel.SetView(this);
             var bounds = new Rect(ViewToScreenPosition(m_AttachDropDownButton.worldBound.position), m_AttachDropDownButton.worldBound.size);
             bounds.xMin++;
             attachPanel.ShowAsDropDown(bounds, attachPanel.WindowSize, new[] { PopupLocation.BelowAlignLeft });
@@ -820,7 +821,7 @@ namespace UnityEditor.VFX.UI
 
         public void AttachToSelection()
         {
-            var vfxWindow = VFXViewWindow.currentWindow;
+            var vfxWindow = VFXViewWindow.GetWindow(this);
             if (TryAttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>()) && vfxWindow != null)
             {
                 string truncatedObjectName = TruncateName(Selection.activeObject.name, MaximumNameLengthInNotification);
@@ -895,7 +896,7 @@ namespace UnityEditor.VFX.UI
 
         void OnBackToParent()
         {
-            VFXViewWindow.currentWindow.PopResource();
+            VFXViewWindow.GetWindow(this).PopResource();
         }
 
         void OnToggleLock(ChangeEvent<bool> evt)
@@ -2612,7 +2613,7 @@ namespace UnityEditor.VFX.UI
 
         public void UpdateIsSubgraph()
         {
-            m_BackButton.style.display = controller.graph.visualEffectResource.isSubgraph && VFXViewWindow.currentWindow.CanPopResource()
+            m_BackButton.style.display = controller.graph.visualEffectResource.isSubgraph && VFXViewWindow.GetWindow(this).CanPopResource()
                 ? DisplayStyle.Flex
                 : DisplayStyle.None;
         }
