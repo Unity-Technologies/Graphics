@@ -41,56 +41,75 @@ namespace UnityEngine.VFX
                 }
             }
 
-            //const double kUnsetTime = double.MaxValue;
-            //double m_LastPlayableTime = kUnsetTime;
-            //double m_LastParticleTime = kUnsetTime;
+            const int kChunkError = int.MinValue;
+            private int m_LastChunk = kChunkError;
+            //private double m_LastGlobalTime = double.MinValue;
 
-            public void JumpToFrame(double globalTime, VisualEffect vfx)
+            private void OnEnterChunk(VisualEffect vfx)
+            {
+                vfx.Reinit();
+                vfx.Stop(); //Workaround
+            }
+
+            private void OnLeaveChunk(VisualEffect vfx)
+            {
+                vfx.Reinit();
+                vfx.Stop(); //Workaround
+            }
+
+            public void JumpToFrame(double globalTime, float deltaTime, VisualEffect vfx)
             {
                 if (vfx == null)
                     return;
 
                 //Find current chunk (TODOPAUL cache previous state)
-                Chunk currentCunk = default(Chunk);
-                foreach (var chunk in m_Chunks)
+                int currentChunkIndex = kChunkError;
+                for (int i = 0; i < m_Chunks.Length; ++i)
                 {
+                    var chunk = m_Chunks[i];
                     if (chunk.begin <= globalTime && globalTime <= chunk.end)
-                        currentCunk = chunk;
+                    {
+                        currentChunkIndex = i;
+                        break;
+                    }
                 }
 
-                //TODOPAUL: Should cache chunk index to detect jump exactly same frame
-                if (default(Chunk).events != currentCunk.events)
+                if (m_LastChunk != currentChunkIndex)
                 {
+                    if (m_LastChunk == kChunkError)
+                        OnEnterChunk(vfx);
+                    else
+                        OnLeaveChunk(vfx);
+
+                    m_LastChunk = currentChunkIndex;
+                }
+
+                //if (deltaTime == 0.0f)
+                //    vfx.pause = true;
+
+                if (currentChunkIndex != kChunkError)
+                {
+                    var chunk = m_Chunks[currentChunkIndex];
+
                     var expectedTime = globalTime;
-                    var currentTime = (double)vfx.time + currentCunk.begin;
+                    var currentTime = vfx.time + chunk.begin;
 
-                    //TODOPAUL: Arbitrary
                     var fixedStep = 1.0 / 60.0;
-
-                    //TODOPAUL: Arbitrary to detect scrub isn't needed
-                    /*if (0.0f <= offset && offset <= fixedStep && !vfx.pause)
-                        return;*/
-                    vfx.pause = true; //Hack
+                    vfx.pause = true; //For now, always pause
 
                     if (expectedTime < currentTime)
                     {
-                        currentTime = currentCunk.begin;
-                        vfx.Reinit();
-                        vfx.Stop(); //TODOPAUL: Workaround
+                        currentTime = chunk.begin;
+                        OnEnterChunk(vfx);
                     }
 
-                    expectedTime -= (double)Mathf.Epsilon;
                     while (currentTime < expectedTime)
                     {
-                        double jumpLength = 0.0f;
-                        if (GetNextEvent(currentTime, expectedTime, ref currentCunk, out var nextEvent))
-                        {
+                        double jumpLength;
+                        if (GetNextEvent(currentTime, expectedTime, ref chunk, out var nextEvent))
                             jumpLength = nextEvent.time - currentTime;
-                        }
                         else
-                        {
                             jumpLength = expectedTime - currentTime;
-                        }
 
                         var currentStepCount = (uint)(jumpLength / fixedStep);
                         if (currentStepCount == 0)
@@ -101,9 +120,7 @@ namespace UnityEngine.VFX
                         }
 
                         vfx.Simulate((float)fixedStep, currentStepCount);
-
                         ProcessEvent(nextEvent, vfx);
-
                         currentTime += fixedStep * currentStepCount;
                     }
                 }
@@ -170,8 +187,8 @@ namespace UnityEngine.VFX
                     currentChunk.events = currentChunk.events.Concat(
                     new Event[]
                     {
-                        new Event { playable = inputBehavior, type = Event.Type.Play, time = inputBehavior.clipStart + inputBehavior.easeIn },
-                        new Event { playable = inputBehavior, type = Event.Type.Stop, time = inputBehavior.clipEnd - inputBehavior.easeOut }
+                        new Event { playable = inputBehavior, type = Event.Type.Play, time = inputBehavior.easeIn },
+                        new Event { playable = inputBehavior, type = Event.Type.Stop, time = inputBehavior.easeOut }
                     }).ToArray();
 
                     chunks.Pop();
@@ -183,26 +200,6 @@ namespace UnityEngine.VFX
 
         ScrubbingCacheHelper m_ScrubbingCacheHelper;
 
-        //const float kUnsetTime = float.MaxValue;
-        //float m_LastPlayableTime = kUnsetTime;
-        //float m_LastParticleTime = kUnsetTime;
-
-        private float Simulate(float time, bool restart)
-        {
-            /*
-            if (restart)
-                m_VisualEffect.Reinit
-            var fixedStep = 1.0f / 60.0f;
-            var stepCount = (uint)(time / fixedStep);
-            if (stepCount > 1000) stepCount = 1000;
-            m_VisualEffect.Simulate(fixedStep, stepCount);
-            return m_VisualEffect.time + stepCount * fixedStep;
-            */
-
-            Debug.LogFormat("Simulate {0} - {1}", time, restart);
-            return time;
-        }
-
         public override void PrepareFrame(Playable playable, FrameData data)
         {
             if (m_ScrubbingCacheHelper == null)
@@ -212,7 +209,8 @@ namespace UnityEngine.VFX
             }
 
             var globalTime = playable.GetTime();
-            m_ScrubbingCacheHelper.JumpToFrame(globalTime, m_Target);
+            var deltaTime = data.deltaTime;
+            m_ScrubbingCacheHelper.JumpToFrame(globalTime, deltaTime, m_Target);
 
             /*var time = (float)playable.GetTime();
             var particleTime = m_Target.time;
@@ -234,19 +232,14 @@ namespace UnityEngine.VFX
         {
             base.OnBehaviourPause(playable, info);
             if (m_Target != null)
-            {
                 m_Target.pause = true;
-            }
         }
 
         public override void OnBehaviourPlay(Playable playable, FrameData info)
         {
-            //TODOPAUL: Not viable way to do it
             base.OnBehaviourPlay(playable, info);
             if (m_Target != null)
-            {
                 m_Target.pause = false;
-            }
         }
 
         //TODOPAUL: Temp
