@@ -149,6 +149,9 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("{");
                 using (sb.IndentScope())
                 {
+                    sb.AppendLine("positionOut = 0;");
+                    sb.AppendLine("normalOut = 0;");
+                    sb.AppendLine("tangentOut = 0;");
                     sb.AppendLine("for (int i = 0; i < 4; ++i)");
                     sb.AppendLine("{");
                     using (sb.IndentScope())
