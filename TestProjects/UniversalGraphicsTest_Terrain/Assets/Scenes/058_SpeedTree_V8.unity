@@ -713,7 +713,7 @@ MonoBehaviour:
     UseHDR: 0
     UseBackBuffer: 1
     ImageResolution: 2
-    ActiveImageTests: 2147483647
+    ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 0
   XRCompatible: 1
