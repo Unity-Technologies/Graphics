@@ -964,7 +964,14 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             // Inform the late latching system for XR once we're done with a render pass
             if (cameraData.xr.enabled)
+            {
+                cmd = CommandBufferPool.Get();
+
                 XRSystemUniversal.UnmarkShaderProperties(cmd, cameraData.xrUniversal);
+
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
 #endif
         }
 
