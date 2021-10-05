@@ -4,10 +4,18 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.0] - 2021-09-23
+
+### Added
+  - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
+
+### Fixed
+  - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
+  - Fixed unhandled exception when loading a subgraph with duplicate slots [1369039].
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
-  - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
   - Added categories to the blackboard, enabling more control over the organization of shader properties and keywords in the Shader Graph tool. These categories are also reflected in the Material Inspector for URP + HDRP, for materials created from shader graphs.
   - Added ability to define custom vertex-to-fragment interpolators.
   - Support for the XboxSeries platform has been added.
@@ -38,7 +46,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added visible errors for invalid stage capability connections to shader graph.
   - Added a ShaderGraph animated preview framerate throttle.
   - Added many node synonyms for the Create Node search so that it's easier to find nodes.
-  - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
 
 ### Changed
 - Properties and Keywords are no longer separated by type on the blackboard. Categories allow for any combination of properties and keywords to be grouped together as the user defines.
