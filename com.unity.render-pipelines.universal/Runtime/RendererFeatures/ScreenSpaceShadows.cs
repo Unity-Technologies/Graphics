@@ -167,6 +167,9 @@ namespace UnityEngine.Rendering.Universal
                 CommandBuffer cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
+                    var scaleBias = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+                    cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+
                     if (renderingData.cameraData.xr.enabled)
                     {
                         cmd.DrawProcedural(Matrix4x4.identity, m_Material, 0, MeshTopology.Quads, 4, 1, null);

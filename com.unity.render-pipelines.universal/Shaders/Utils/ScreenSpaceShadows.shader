@@ -16,8 +16,12 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
 
         struct Attributes
         {
-            float4 positionOS   : POSITION;
+#if _USE_DRAW_PROCEDURAL
+            uint vertexID : SV_VertexID;
+#else
+            float4 positionOS : POSITION;
             float2 texcoord : TEXCOORD0;
+#endif
             UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
@@ -34,12 +38,18 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             UNITY_SETUP_INSTANCE_ID(input);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
+#if _USE_DRAW_PROCEDURAL
+            output.positionCS = GetQuadVertexPosition(input.vertexID);
+            output.positionCS.xy = output.positionCS.xy * float2(2.0, -2.0) + float2(-1.0, 1.0); // convert to -1..1
+            output.uv = GetQuadTexCoord(input.vertexID);
+#else
             output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+            output.uv.xy = UnityStereoTransformScreenSpaceTex(input.texcoord);
+#endif
 
             float4 projPos = output.positionCS * 0.5;
             projPos.xy = projPos.xy + projPos.w;
 
-            output.uv.xy = UnityStereoTransformScreenSpaceTex(input.texcoord);
             output.uv.zw = projPos.xy;
 
             return output;
@@ -78,6 +88,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
 
             HLSLPROGRAM
             #pragma multi_compile _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _USE_DRAW_PROCEDURAL
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
 
             #pragma vertex   Vertex
