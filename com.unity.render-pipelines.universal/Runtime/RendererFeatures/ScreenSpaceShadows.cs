@@ -167,17 +167,15 @@ namespace UnityEngine.Rendering.Universal
                 CommandBuffer cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
-                    if (!renderingData.cameraData.xr.enabled)
+                    if (renderingData.cameraData.xr.enabled)
+                    {
+                        cmd.DrawProcedural(Matrix4x4.identity, m_Material, 0, MeshTopology.Quads, 4, 1, null);
+                    }
+                    else
                     {
                         cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material);
                         cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-                    }
-                    else
-                    {
-                        // Avoid setting and restoring camera view and projection matrices when in stereo.
-                        RenderTargetIdentifier screenSpaceShadowTexture = m_RenderTarget.Identifier();
-                        cmd.Blit(null, screenSpaceShadowTexture, m_Material);
                     }
 
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
@@ -206,6 +204,11 @@ namespace UnityEngine.Rendering.Universal
             // Profiling tag
             private static string m_ProfilerTag = "ScreenSpaceShadows Post";
             private static ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
+
+            internal ScreenSpaceShadowsPostPass()
+            {
+                useNativeRenderPass = false;
+            }
 
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
