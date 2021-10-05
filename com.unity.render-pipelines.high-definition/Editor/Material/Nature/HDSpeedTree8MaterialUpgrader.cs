@@ -122,4 +122,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
     }
+
+    class HDSpeedTree8PostProcessor : AssetPostprocessor
+    {
+        public void OnPostprocessSpeedTree(GameObject speedTree)
+        {
+            SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
+            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, stImporter, HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);
+        }
+    }
 }
