@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.PostProcessing
                     stereoRenderingMode = StereoRenderingMode.SinglePass;
                     numberOfEyes = 1;
 
-                    if (XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassMultiview)
+                    if (XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassMultiview && xrDesc.dimension == TextureDimension.Tex2DArray)
                     {
                         stereoRenderingMode = StereoRenderingMode.SinglePassMultiview;
                         numberOfEyes = 2;
