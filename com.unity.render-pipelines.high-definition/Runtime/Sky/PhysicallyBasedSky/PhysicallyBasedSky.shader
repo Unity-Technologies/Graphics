@@ -247,6 +247,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             ZWrite Off

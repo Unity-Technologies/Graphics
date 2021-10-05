@@ -82,5 +82,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 attribute,
                 out var propertyVisualElement);
         }
+
+        internal virtual void DisposePropertyDrawer()
+        {
+        }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { DisposePropertyDrawer(); }
     }
 }

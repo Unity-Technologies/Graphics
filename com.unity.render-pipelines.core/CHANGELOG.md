@@ -4,10 +4,23 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.0] - 2021-09-24
+
+### Added
+- Debug Panels Framework See `IDebugDisplaySettingsQuery`.
+
 ## [13.0.0] - 2021-09-01
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+### Added
+- New `IVolumeDebugSettings` interface and `VolumeDebugSettings<T>` class that stores the information for the Volumes Debug Panel.
+- Added AMD FidelityFX shaders which were originally in HDRP
+
+### Fixed
+- Fixed black pixel issue in AMD FidelityFX RCAS implementation
+- Fixed a critical issue on android devices & lens flares. Accidentally creating a 16 bit texture was causing gpus not supporting them to fail.
 
 ## [12.0.0] - 2021-01-11
 
@@ -51,6 +64,7 @@ The version number for this package has increased due to a version update of a r
 - Added UNITY_PREV_MATRIX_M and UNITY_PREV_MATRIX_I_M shader macros to support instanced motion vector rendering
 - Added new API to customize the rtHandleProperties of a particular RTHandle. This is a temporary work around to assist with viewport setup of Custom post process when dealing with DLSS or TAAU
 - Added `IAdditionalData` interface to identify the additional datas on the core package.
+- Added new API to draw color temperature for Lights.
 
 ### Fixed
 - Help boxes with fix buttons do not crop the label.
