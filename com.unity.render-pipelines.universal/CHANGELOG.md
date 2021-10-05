@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed memory leak with XR combined occlusion meshes. [case 1366173]
 - Fixed a bug with Sprite Targets in ShaderGraph not rendering correctly in game view [1352225]
 - Fix for rendering thumbnails. [case 1348209](https://issuetracker.unity3d.com/issues/preview-of-assets-do-not-show-in-the-project-window)
+- Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]
+
 
 ## [12.0.0] - 2021-01-11
 ### Added
