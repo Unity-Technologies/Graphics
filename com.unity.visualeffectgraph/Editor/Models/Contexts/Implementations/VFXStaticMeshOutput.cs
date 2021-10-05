@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
@@ -13,8 +14,8 @@ namespace UnityEditor.VFX
         [VFXSetting, Tooltip("Specifies the shader with which the mesh output is rendered.")]
         private Shader shader; // not serialized here but in VFXDataMesh
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Header("Rendering Options")]
-        protected int sortPriority = 0;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), FormerlySerializedAs("sortPriority"), SerializeField, Header("Rendering Options")]
+        protected int vfxSystemSortPriority = 0;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the mesh output will cast shadows.")]
         protected bool castShadows = false;
@@ -25,17 +26,17 @@ namespace UnityEditor.VFX
 
         public virtual bool hasMotionVector { get { return false; } } //TODO
 
-        int IVFXSubRenderer.sortPriority
+        int IVFXSubRenderer.vfxSystemSortPriority
         {
             get
             {
-                return sortPriority;
+                return vfxSystemSortPriority;
             }
             set
             {
-                if (sortPriority != value)
+                if (vfxSystemSortPriority != value)
                 {
-                    sortPriority = value;
+                    vfxSystemSortPriority = value;
                     Invalidate(InvalidationCause.kSettingChanged);
                 }
             }
@@ -233,7 +234,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                yield return new VFXMapping("sortPriority", sortPriority);
+                yield return new VFXMapping("sortPriority", vfxSystemSortPriority);
                 yield return new VFXMapping("castShadows", castShadows ? 1 : 0);
             }
         }
