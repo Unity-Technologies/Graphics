@@ -208,6 +208,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldPreCombine,
         DepthOfFieldCombine,
         LensFlareDataDriven,
+        LensFlareComputeOcclusionDataDriven,
+        LensFlareMergeOcclusionDataDriven,
         MotionBlur,
         MotionBlurMotionVecPrep,
         MotionBlurTileMinMax,
