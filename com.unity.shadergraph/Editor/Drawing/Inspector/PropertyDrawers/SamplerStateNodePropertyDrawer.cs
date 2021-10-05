@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(SamplerStateNode))]
-    class SamplerStateNodeNodePropertyDrawer : AbstractMaterialNodePropertyDrawer
+    class SamplerStateNodePropertyDrawer : AbstractMaterialNodePropertyDrawer
     {
         internal override void AddCustomNodeProperties(VisualElement parentElement, AbstractMaterialNode nodeBase, Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)
         {
