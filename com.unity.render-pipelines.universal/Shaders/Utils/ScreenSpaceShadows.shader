@@ -41,7 +41,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
 #if _USE_DRAW_PROCEDURAL
             output.positionCS = GetQuadVertexPosition(input.vertexID);
             output.positionCS.xy = output.positionCS.xy * float2(2.0, -2.0) + float2(-1.0, 1.0); // convert to -1..1
-            output.uv = GetQuadTexCoord(input.vertexID);
+            output.uv.xy = GetQuadTexCoord(input.vertexID);
 #else
             output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
             output.uv.xy = UnityStereoTransformScreenSpaceTex(input.texcoord);
