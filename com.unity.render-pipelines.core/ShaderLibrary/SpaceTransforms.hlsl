@@ -261,16 +261,19 @@ real3 TransformWorldToTangent(real3 normalWS, real3x3 tangentToWorld, bool doNor
     float3 col2 = cross(row0, row1);
 
     float determinant = dot(row0, col0);
-    float sgn = determinant<0.0 ? (-1.0) : 1.0;
 
     // inverse transposed but scaled by determinant
     // Will remove transpose part by using matrix as the first arg in the mul() below
     // this makes it the exact inverse of what TransformTangentToWorld() does.
     real3x3 matTBN_I_T = real3x3(col0, col1, col2);
-    real3 result = sgn * mul(matTBN_I_T, normalWS);
+    real3 result = mul(matTBN_I_T, normalWS);
     if (doNormalize)
-        return SafeNormalize(result);
-    return result;
+    {
+        float sgn = determinant < 0.0 ? (-1.0) : 1.0;
+        return SafeNormalize(sgn * result);
+    }
+    else
+        return result / determinant;
 }
 
 // this function is intended to work on Vectors/Directions
@@ -298,16 +301,19 @@ real3 TransformTangentToWorldDir(real3 dirWS, real3x3 tangentToWorld, bool doNor
     float3 col2 = cross(row0, row1);
 
     float determinant = dot(row0, col0);
-    float sgn = determinant < 0.0 ? (-1.0) : 1.0;
 
     // inverse transposed but scaled by determinant
     // Will remove transpose part by using matrix as the second arg in the mul() below
     // this makes it the exact inverse of what TransformWorldToTangentDir() does.
     real3x3 matTBN_I_T = real3x3(col0, col1, col2);
-    real3 result = sgn * mul(dirWS, matTBN_I_T);
+    real3 result = mul(dirWS, matTBN_I_T);
     if (doNormalize)
-        return SafeNormalize(result);
-    return result;
+    {
+        float sgn = determinant < 0.0 ? (-1.0) : 1.0;
+        return SafeNormalize(sgn * result);
+    }
+    else
+        return result / determinant;
 }
 
 real3 TransformTangentToObject(real3 dirTS, real3x3 tangentToWorld)
