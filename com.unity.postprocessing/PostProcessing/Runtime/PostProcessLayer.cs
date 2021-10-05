@@ -973,7 +973,7 @@ namespace UnityEngine.Rendering.PostProcessing
                     context.GetScreenSpaceTemporaryRT(cmd, lastTarget, 0, context.sourceFormat);
                     if (context.stereoActive && context.numberOfEyes > 1)
                     {
-                        if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced)
+                        if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced || context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassMultiview)
                         {
                             cmd.BlitFullscreenTriangleFromTexArray(context.source, lastTarget, RuntimeUtilities.copyFromTexArraySheet, 1, false, eye);
                             preparedStereoSource = true;
@@ -996,7 +996,7 @@ namespace UnityEngine.Rendering.PostProcessing
                     context.GetScreenSpaceTemporaryRT(cmd, lastTarget, 0, context.sourceFormat);
                     if (context.stereoActive)
                     {
-                        if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced)
+                        if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced || context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassMultiview)
                         {
                             cmd.BlitFullscreenTriangleFromTexArray(context.source, lastTarget, RuntimeUtilities.copyFromTexArraySheet, 1, false, eye);
                             preparedStereoSource = true;
@@ -1241,7 +1241,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 ApplyDefaultFlip(uberSheet.properties);
             }
 
-            if (context.stereoActive && context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced)
+            if (context.stereoActive && (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced || context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassMultiview))
             {
                 uberSheet.properties.SetFloat(ShaderIDs.DepthSlice, eye);
                 cmd.BlitFullscreenTriangleToTexArray(context.source, context.destination, uberSheet, 0, false, eye);
@@ -1282,7 +1282,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 if (context.stereoActive && context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced)
                     sheet.EnableKeyword("STEREO_INSTANCING_ENABLED");
 
-                if (context.stereoActive && context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced)
+                if (context.stereoActive && (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced || context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassMultiview))
                 {
                     sheet.properties.SetFloat(ShaderIDs.DepthSlice, eye);
                     cmd.BlitFullscreenTriangleToTexArray(context.source, context.destination, sheet, 0, false, eye);
@@ -1302,7 +1302,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 context.uberSheet = uberSheet;
                 int tempTarget = -1;
 
-                if (context.stereoActive && context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced)
+                if (context.stereoActive && (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced || context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassMultiview))
                     uberSheet.EnableKeyword("STEREO_INSTANCING_ENABLED");
 
                 if (antialiasingMode == Antialiasing.FastApproximateAntialiasing)
@@ -1334,7 +1334,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 dithering.Render(context);
 
                 ApplyFlip(context, uberSheet.properties);
-                if (context.stereoActive && context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced)
+                if (context.stereoActive && (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced || context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassMultiview))
                 {
                     uberSheet.properties.SetFloat(ShaderIDs.DepthSlice, eye);
                     cmd.BlitFullscreenTriangleToTexArray(context.source, context.destination, uberSheet, 0, false, eye);
