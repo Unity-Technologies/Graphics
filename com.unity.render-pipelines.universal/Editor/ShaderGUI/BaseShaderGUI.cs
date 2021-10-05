@@ -89,7 +89,7 @@ namespace UnityEditor
                 "Controls how the color of the Transparent surface blends with the Material color in the background.");
 
             public static readonly GUIContent preserveSpecularText = EditorGUIUtility.TrTextContent("Preserve Specular Lighting",
-                "Preserves specular lighting intensity and size by focusing blending to diffuse (transmitted) parts in transparent objects.");
+                "Preserves specular lighting intensity and size by not applying transparent alpha to the specular light contribution.");
 
             public static readonly GUIContent cullingText = EditorGUIUtility.TrTextContent("Render Face",
                 "Specifies which faces to cull from your geometry. Front culls front faces. Back culls backfaces. None means that both sides are rendered.");
@@ -703,12 +703,10 @@ namespace UnityEditor
                         material.EnableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
                     }
 
-                    // TODO: fog
-
                     // When doing off-screen transparency accumulation, we change blend factors as described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-                    bool offScreenAccumulateAlpha = false;    // TODO:
+                    bool offScreenAccumulateAlpha = false;
                     if (offScreenAccumulateAlpha)
-                        srcBlendA = UnityEngine.Rendering.BlendMode.Zero; // TODO:
+                        srcBlendA = UnityEngine.Rendering.BlendMode.Zero;
 
                     SetMaterialSrcDstBlendProperties(material, srcBlendRGB, dstBlendRGB, // RGB
                         srcBlendA, dstBlendA); // Alpha
