@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Header("Lens Dirt")]
         [Tooltip("Specifies a Texture to add smudges or dust to the bloom effect.")]
-        public TextureParameter dirtTexture = new TextureParameter(null);
+        public Texture2DParameter dirtTexture = new Texture2DParameter(null);
 
         /// <summary>
         /// Controls the strength of the lens dirt.

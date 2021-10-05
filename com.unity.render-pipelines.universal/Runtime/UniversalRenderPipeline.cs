@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
             DecalProjector.defaultMaterial = asset.decalMaterial;
 
             DebugManager.instance.RefreshEditor();
-            m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
+            m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
         }
 
         protected override void Dispose(bool disposing)
@@ -251,7 +251,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_GlobalSettings == null || UniversalRenderPipelineGlobalSettings.instance == null)
             {
                 m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
-                return;
+                if(m_GlobalSettings == null) return;
             }
 #endif
 
@@ -549,7 +549,8 @@ namespace UnityEngine.Rendering.Universal
 
                 // Helper function for updating cameraData with xrPass Data
                 m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
-
+                // Need to update XRSystem using baseCameraData to handle the case where camera position is modified in BeginCameraRendering
+                m_XRSystem.UpdateFromCamera(ref baseCameraData.xr, baseCameraData);
                 m_XRSystem.BeginLateLatching(baseCamera, xrPass);
             }
 #endif
@@ -911,7 +912,6 @@ namespace UnityEngine.Rendering.Universal
             bool isOverlayCamera = (cameraData.renderType == CameraRenderType.Overlay);
             if (isOverlayCamera)
             {
-                cameraData.requiresDepthTexture = false;
                 cameraData.requiresOpaqueTexture = false;
                 cameraData.postProcessingRequiresDepthTexture = false;
             }
@@ -1225,7 +1225,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
         {
-            DebugDisplaySettings debugDisplaySettings = DebugDisplaySettings.Instance;
+            var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
             ref CameraData cameraData = ref renderingData.cameraData;
 
             if (debugDisplaySettings.AreAnySettingsActive && !cameraData.isPreviewCamera)
