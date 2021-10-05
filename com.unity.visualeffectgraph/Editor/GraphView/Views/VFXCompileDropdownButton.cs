@@ -7,7 +7,6 @@ namespace UnityEditor.VFX.UI
 {
     class VFXCompileDropdownButton : DropDownButtonBase
     {
-        readonly VFXView m_VFXView;
         readonly Toggle m_AutoCompileToggle;
         readonly Toggle m_RuntimeModeToggle;
         readonly Toggle m_ShaderValidationToggle;
@@ -15,14 +14,12 @@ namespace UnityEditor.VFX.UI
 
         public VFXCompileDropdownButton(VFXView vfxView, VFXViewWindow parentWindow)
             : base(
-                parentWindow,
+                vfxView,
                 "VFXCompileDropdownPanel",
                 "Compile",
                 "compile-button",
                 Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/compile.png"))
         {
-            m_VFXView = vfxView;
-
             m_AutoCompileToggle = m_PopupContent.Q<Toggle>("autoCompile");
             m_AutoCompileToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleAutoCompile);
 
@@ -40,7 +37,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void OnOpenPopup()
         {
-            m_AutoCompileToggle.value = m_ParentWindow.autoCompile;
+            m_AutoCompileToggle.value = VFXViewWindow.GetWindow(m_VFXView).autoCompile;
             m_RuntimeModeToggle.value = m_VFXView.GetIsRuntimeMode();
             m_ShaderValidationToggle.value = m_VFXView.GetShaderValidation();
         }
@@ -52,7 +49,7 @@ namespace UnityEditor.VFX.UI
 
         void OnToggleAutoCompile(ChangeEvent<bool> evt)
         {
-            m_ParentWindow.autoCompile = evt.newValue;
+            VFXViewWindow.GetWindow(m_VFXView).autoCompile = evt.newValue;
         }
 
         void OnToggleRuntimeMode(ChangeEvent<bool> evt)
