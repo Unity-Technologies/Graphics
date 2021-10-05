@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added a SG node to get the main directional light direction.
+- Added an anchor position offset property to the Light Anchor component. (case 1362809)
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+- Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
 
 ### Fixed
 - Fixed the volume not being assigned on some scene templates.
