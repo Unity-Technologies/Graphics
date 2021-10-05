@@ -1,3 +1,43 @@
+## Branch notes for 2021.2/urp/xr/shadergraph_support_for_skybox_with_single_pass_stereo
+
+This branch contains a workaround for an issue where the skybox in UPR would be depth-clipped in stereo single-pass when using custom shaders (ShaderGraph or HLSL) because the constant buffer for the matrices would not contain the right matrices...
+The URP Skybox pass currently uses the built-in renderer which relies on projection matrices that are incompatible with URP, so we need to make sure that the generated sky shaders will use the built-in stereo matrix constant buffer instead of the one provided by URP.
+
+This will allow to create custom URP-compatible skybox shaders with support for XR SinglePass, until we fully port the skybox pass to URP.
+
+Workaround for :
+ * https://issuetracker.unity3d.com/issues/oculus-xr-custom-shadergraph-shader-in-skybox-breaks-single-pass-instanced-rendering-in-the-editor
+ * https://issuetracker.unity3d.com/issues/xr-urp-game-view-renders-black-when-using-custom-hlsl-skybox-shader-with-single-pass-instanced-stereo-rendering-mode
+
+### Why distribute using a branch ?
+
+This branch is only a workaround until the implementation of a URP skybox pass (instead of using built-in) is ready. This new pass will solve the issue with the matrix compatibility between URP and the built-in renderer and render this code obsolete.
+
+This branch will _not_ be merged in the main version of URP to prevent conflicts with future work, but instead is provided as a workaround that can be used until the new skybox pass is ready.
+
+### Usage
+
+#### ShaderGraph
+
+In ShaderGraph select the Material type named "Skybox". This will generate all the needed material settings and parameters for a Skybox shader and add the workaround for XR SinglePass matrices.
+
+When associated with a material, the shader will be able to be set as a "Skybox Material" in the "Lighting" panel.
+
+#### HLSL
+
+Near the start of your HLSL shader code, add `#define USE_STEREO_MATRICES_FROM_BUILTIN_RENDERPASS` to make sure the shader will use the correct matrices.
+
+When associated with a material, the shader will be able to be set as a "Skybox Material" in the "Lighting" panel.
+
+
+### Important notes
+
+The ShaderGraph material type that is added in this branch will not be included in the new URP render pass. This branch only provides a workaround.
+
+
+---
+---
+
 ## NOTE: We have migrated reported issues to FogBugz. You can only log further issues via the Unity bug tracker. To see how, read [this](https://unity3d.com/unity/qa/bug-reporting).
 
 # Unity Scriptable Render Pipeline
