@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.Universal
 
                 // Check for the current value
                 GUIContent selected = new GUIContent("None");
-                if(shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeEditor)
+                if (shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeEditor)
                     selected = new GUIContent("ShapeEditor");
                 else if (shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider && shadowCaster.shadowShape2DProvider != null)
                     selected = new GUIContent(GetCompactTypeName(shadowCaster.shadowShape2DProvider));

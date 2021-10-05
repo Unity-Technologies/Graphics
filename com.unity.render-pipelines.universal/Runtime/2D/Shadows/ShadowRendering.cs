@@ -56,7 +56,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-
         private static Material[] CreateMaterials(Shader shader, int pass = 0)
         {
             const int k_ColorChannels = 4;
@@ -180,8 +179,6 @@ namespace UnityEngine.Rendering.Universal
                 cmdBuffer.ReleaseTemporaryRT(m_RenderTargets[textureIndex].id);
         }
 
-
-
         public static void SetShadowProjectionGlobals(CommandBuffer cmdBuffer, ShadowCaster2D shadowCaster)
         {
             cmdBuffer.SetGlobalVector(k_ShadowModelScaleID, shadowCaster.m_CachedLossyScale);
@@ -193,7 +190,6 @@ namespace UnityEngine.Rendering.Universal
             else
                 cmdBuffer.SetGlobalFloat(k_ShadowContractionDistanceID, 0f);
         }
-
 
         public static void RenderProjectedShadows(CommandBuffer cmdBuffer, int layerToRender, Light2D light, List<ShadowCaster2D> shadowCasters, Material projectedShadowsMaterial, int pass)
         {
@@ -241,7 +237,7 @@ namespace UnityEngine.Rendering.Universal
                                     int numberOfMaterials = renderer.sharedMaterials.Length;
                                     if (shadowCaster.rendererSilhouette == ShadowCaster2D.RendererSilhoutteOptions.SelfShadowed)
                                     {
-                                        for(int materialIndex=0; materialIndex < numberOfMaterials; materialIndex++)
+                                        for (int materialIndex = 0; materialIndex < numberOfMaterials; materialIndex++)
                                             cmdBuffer.DrawRenderer(renderer, material, materialIndex, pass);
                                     }
                                     // No self shadowing
@@ -303,7 +299,7 @@ namespace UnityEngine.Rendering.Universal
                         using (new ProfilingScope(cmdBuffer, m_ProfilingSamplerShadowColorsLookup[colorBit]))
                         {
                             if (colorBit == 0)
-                                 cmdBuffer.ClearRenderTarget(RTClearFlags.All, Color.clear, 1, 1); 
+                                cmdBuffer.ClearRenderTarget(RTClearFlags.All, Color.clear, 1, 1);
                             else
                                 cmdBuffer.ClearRenderTarget(RTClearFlags.Stencil, Color.clear, 1, 1);
 

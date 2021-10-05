@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
-
     internal struct ShadowEdge
     {
         public int v0;
@@ -23,5 +22,4 @@ namespace UnityEngine.Rendering.Universal
             v1 = tmp;
         }
     }
-
 }

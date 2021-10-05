@@ -4,6 +4,7 @@ using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
 using Unity.Collections;
 
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -19,7 +20,7 @@ namespace UnityEngine.Rendering.Universal
     [AddComponentMenu("Rendering/2D/Shadow Caster 2D")]
     [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
 
-    public class ShadowCaster2D : ShadowCasterGroup2D
+    public class ShadowCaster2D : ShadowCasterGroup2D, ISerializationCallbackReceiver
     {
         public enum ComponentVersions
         {
@@ -59,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShapeProvider;
-        [SerializeField] ShadowCastingSources m_ShadowCastingSource = (ShadowCastingSources)( - 1);
+        [SerializeField] ShadowCastingSources m_ShadowCastingSource = (ShadowCastingSources)(-1);
 
         [SerializeField] internal ShadowMesh2D   m_ShadowMesh;
         [SerializeField] RendererSilhoutteOptions m_RendererSilhouette = RendererSilhoutteOptions.Unshadowed;
@@ -80,7 +81,9 @@ namespace UnityEngine.Rendering.Universal
         public Mesh mesh => m_ShadowMesh.mesh;
         public BoundingSphere boundingSphere => m_ShadowMesh.boundingSphere;
 
-        public float contractEdge { get { return m_ShadowMesh.contractEdge; }set { m_ShadowMesh.contractEdge = value; }
+        public float contractEdge
+        {
+            get { return m_ShadowMesh.contractEdge; } set { m_ShadowMesh.contractEdge = value; }
         }
 
         public Vector3[] shapePath => m_ShapePath;
@@ -112,7 +115,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_CachedLocalToWorldMatrix = transform.localToWorldMatrix;
         }
-
 
         public RendererSilhoutteOptions rendererSilhouette
         {
@@ -198,7 +200,7 @@ namespace UnityEngine.Rendering.Universal
                 NativeArray<int> nativeIndices = new NativeArray<int>(2 * m_ShapePath.Length, Allocator.Temp);
 
                 int lastIndex = m_ShapePath.Length - 1;
-                for (int i=0;i<m_ShapePath.Length;i++)
+                for (int i = 0; i < m_ShapePath.Length; i++)
                 {
                     int startingIndex = i << 1;
                     nativeIndices[startingIndex] = lastIndex;
@@ -377,7 +379,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-
         internal void DrawPreviewOutline()
         {
             if (m_ShadowMesh != null && mesh != null && m_ShadowCastingSource != ShadowCastingSources.None)
@@ -389,12 +390,24 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-
-
         void Reset()
         {
             Awake();
             OnEnable();
+        }
+
+        public void OnBeforeSerialize()
+        {
+            //m_ComponentVersion = k_CurrentComponentVersion;
+        }
+
+        public void OnAfterDeserialize()
+        {
+            // Upgrade from no serialized version
+            if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
+            {
+                // Flag this for requiring an upgrade to run
+            }
         }
 
 #endif

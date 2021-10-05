@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 shadowMesh.mesh.Clear();
             }
-
         }
 
         static public void PersistantDataCreated(Component component, ShadowMesh2D shadowMesh)

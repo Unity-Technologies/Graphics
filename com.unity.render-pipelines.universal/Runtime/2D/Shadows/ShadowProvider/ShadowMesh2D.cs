@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
         private void AddCircle(Vector3 center, float r, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, ref int vertexWritePos, ref int indexWritePos)
         {
             // Special case a full circle
-            float segments = 2 * k_CapsuleCapSegments; 
+            float segments = 2 * k_CapsuleCapSegments;
             float deltaAngle = 2 * Mathf.PI;
             float angle;
             int startWritePos = vertexWritePos;
@@ -41,11 +41,9 @@ namespace UnityEngine.Rendering.Universal
                 float x = r * Mathf.Cos(angle) + center.x;
                 float y = r * Mathf.Sin(angle) + center.y;
                 generatedIndices[indexWritePos++] = vertexWritePos;
-                generatedIndices[indexWritePos++] = i+1 < segments ? vertexWritePos+1 : startWritePos;
+                generatedIndices[indexWritePos++] = i + 1 < segments ? vertexWritePos + 1 : startWritePos;
                 generatedVertices[vertexWritePos++] = new Vector3(x, y, 0);
             }
-            
-            
         }
 
         private void AddCapsuleCap(Vector3 center, float r, Vector3 otherCenter, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, ref int vertexWritePos, ref int indexWritePos)
@@ -81,7 +79,6 @@ namespace UnityEngine.Rendering.Universal
             generatedVertices[vertexWritePos++] = new Vector3(r * Mathf.Cos(angle) + center.x, r * Mathf.Sin(angle) + center.y, 0);
         }
 
-
         private void AddCapsule(Vector3 pt0, Vector3 pt1, float r0, float r1, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, ref int vertexWritePos, ref int indexWritePos)
         {
             // Add Straight Segments
@@ -89,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
             Vector3 relOffset0 = new Vector3(delta.y, -delta.x, 0);
             Vector3 relOffset1 = new Vector3(-delta.y, delta.x, 0);
 
-            if(pt1.x < pt0.x)
+            if (pt1.x < pt0.x)
             {
                 Vector3 temp = pt0;
                 pt0 = pt1;
@@ -119,7 +116,7 @@ namespace UnityEngine.Rendering.Universal
             bool continueProcessing = true;
             while (indexToProcess < indices.Length  && continueProcessing)
             {
-                int index0 = indices[indexToProcess++]; 
+                int index0 = indices[indexToProcess++];
                 int index1 = indices[indexToProcess++];
 
                 generatedIndices[indexWritePos++] = vertexWritePos - 1;
@@ -135,7 +132,7 @@ namespace UnityEngine.Rendering.Universal
                     generatedIndices[indexWritePos++] = startWriteIndex;
                     continueProcessing = false;
                 }
-                
+
                 prevIndex = index1;
             }
 
@@ -224,7 +221,7 @@ namespace UnityEngine.Rendering.Universal
 
                 ShadowUtility.ClipEdges(generatedVertices, calculatedEdges, calculatedStartingEdges, calculatedIsClosedArray, contractEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
 
-                if(clippedStartingIndices.Length > 0)
+                if (clippedStartingIndices.Length > 0)
                     m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, calculatedIsClosedArray, true, IShadowShape2DProvider.OutlineTopology.Lines);
                 else
                 {
@@ -279,7 +276,7 @@ namespace UnityEngine.Rendering.Universal
                 NativeArray<ShadowEdge> clippedEdges;
                 NativeArray<int> clippedStartingIndices;
 
-                ShadowUtility.ClipEdges(vertices, edges, shapeStartingIndices, shapeIsClosedArray, contractEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices );
+                ShadowUtility.ClipEdges(vertices, edges, shapeStartingIndices, shapeIsClosedArray, contractEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
 
                 m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, shapeIsClosedArray, allowContraction, outlineTopology);
 

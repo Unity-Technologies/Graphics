@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.Universal
     internal class ShadowCaster2DEditor : PathComponentEditor<ShadowCasterPath>
     {
         [EditorTool("Edit Shadow Caster Shape", typeof(ShadowCaster2D))]
-        class ShadowCaster2DShadowCasterShapeTool : ShadowCaster2DShapeTool { };
+        class ShadowCaster2DShadowCasterShapeTool : ShadowCaster2DShapeTool {};
 
         private static class Styles
         {
@@ -71,7 +71,6 @@ namespace UnityEditor.Rendering.Universal
         CastingSourceDropDown m_CastingSourceDropDown;
 
 
-
         public void OnEnable()
         {
             m_RendererSilhouette = serializedObject.FindProperty("m_RendererSilhouette");
@@ -86,8 +85,6 @@ namespace UnityEditor.Rendering.Universal
             m_SortingLayerDropDown.OnEnable(serializedObject, "m_ApplyToSortingLayers");
 
             m_CastingSourceDropDown = new CastingSourceDropDown();
-
-            
         }
 
         public void ShadowCaster2DSceneGUI()
@@ -139,7 +136,7 @@ namespace UnityEditor.Rendering.Universal
                 if (m_ContractEdge.floatValue < 0)
                     m_ContractEdge.floatValue = 0;
 
-               
+
                 EditorGUILayout.PropertyField(m_EdgeProcessing, Styles.edgeProcessing);
             }
 
@@ -157,7 +154,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.PropertyField(m_RendererSilhouette, Styles.rendererSilhouette);
             }
-           
+
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel, null);
 

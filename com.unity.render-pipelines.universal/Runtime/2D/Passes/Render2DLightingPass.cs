@@ -374,7 +374,7 @@ namespace UnityEngine.Rendering.Universal
         //    for(int i=0;i<visibleLights.Count;i++)
         //        UpdateCorners(camera.transform.InverseTransformPoint(visibleLights[i].transform.position), ref minCorner, ref maxCorner);
 
-            
+
         //    Matrix4x4 cameraLightFrustum = Matrix4x4.Ortho(minCorner.x, maxCorner.x, minCorner.y, maxCorner.y, minCorner.z, maxCorner.z);
         //    return cameraLightFrustum;
         //}
