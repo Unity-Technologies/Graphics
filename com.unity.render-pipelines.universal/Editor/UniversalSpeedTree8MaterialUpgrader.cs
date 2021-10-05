@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Rendering.Universal;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -28,8 +29,13 @@ namespace UnityEditor.Rendering.Universal
     {
         void OnPostprocessSpeedTree(GameObject speedTree)
         {
-            SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
-            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, stImporter, UniversalSpeedTree8Upgrader.UniversalSpeedTree8MaterialFinalizer);
+            context.DependsOnCustomDependency("srp/default-pipeline");
+
+            if (GraphicsSettings.renderPipelineAsset is UniversalRenderPipelineAsset)
+            {
+                SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
+                SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, stImporter, UniversalSpeedTree8Upgrader.UniversalSpeedTree8MaterialFinalizer);
+            }
         }
     }
 }
