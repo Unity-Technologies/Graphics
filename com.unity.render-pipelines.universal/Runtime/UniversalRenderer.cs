@@ -722,6 +722,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Set the depth texture to the far Z if we do not have a depth prepass or copy depth
+            // Don't do this for Overlay cameras to not lose depth data in between cameras (as Base is guaranteed to be first)
             if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
             {
                 Shader.SetGlobalTexture(m_DepthTexture.id, SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
