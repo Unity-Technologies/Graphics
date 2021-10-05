@@ -853,7 +853,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if UNITY_EDITOR
-            if (isSceneViewCamera || isGizmosEnabled)
+            if (isSceneViewCamera || (isGizmosEnabled && lastCameraInTheStack))
             {
                 // Scene view camera should always resolve target (not stacked)
                 m_FinalDepthCopyPass.Setup(m_DepthTexture, RenderTargetHandle.CameraTarget);
