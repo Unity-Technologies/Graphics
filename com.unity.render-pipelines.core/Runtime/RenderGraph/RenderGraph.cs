@@ -596,12 +596,27 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return AddRenderPass(passName, out passData, GetDefaultProfilingSampler(passName));
         }
 
+        public struct RenderGraphExecution : IDisposable
+        {
+            RenderGraph renderGraph;
+
+            internal RenderGraphExecution(RenderGraph renderGraph)
+            {
+                this.renderGraph = renderGraph;
+            }
+
+            public void Dispose()
+            {
+                renderGraph.Execute();
+            }
+        }
+
         /// <summary>
         /// Begin using the render graph.
         /// This must be called before adding any pass to the render graph.
         /// </summary>
         /// <param name="parameters">Parameters necessary for the render graph execution.</param>
-        public void Begin(in RenderGraphParameters parameters)
+        public RenderGraphExecution RecordAndExecute(in RenderGraphParameters parameters)
         {
             m_CurrentFrameIndex = parameters.currentFrameIndex;
             m_CurrentExecutionName = parameters.executionName;
@@ -641,12 +656,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 m_Resources.BeginExecute(m_CurrentFrameIndex);
             }
+
+            return new RenderGraphExecution(this);
         }
 
         /// <summary>
         /// Execute the Render Graph in its current state.
         /// </summary>
-        public void Execute()
+        internal void Execute()
         {
             m_ExecutionExceptionWasRaised = false;
 
