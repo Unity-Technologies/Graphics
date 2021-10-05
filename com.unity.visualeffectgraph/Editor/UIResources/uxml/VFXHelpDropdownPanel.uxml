@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Box class="section">
+        <ui:Label text="Install Additional Samples" class="category" />
+        <ui:Button name="installSamples" text="VFX Graph Additions" tooltip="Installs pre built VFX examples" class="indented" />
+        <ui:Button name="graphAddition" text="Output Event Helpers" tooltip="Installs helper scripts to add behaviors on VFX events" class="indented" />
+    </ui:Box>
+    <ui:Box class="section alternate">
+        <ui:Label text="Documentation" class="category" />
+        <ui:Button name="gotoHome" text="VFX Graph Home" tooltip="Open Visual Effect Graph home page" class="indented link" />
+        <ui:Button name="gotoForum" text="Forum" tooltip="Open Visual Effect Graph sub-forum" class="indented link" />
+    </ui:Box>
+    <ui:Box class="section">
+        <ui:Label text="Examples and Resources" class="category" />
+        <ui:Button name="gotoSpaceShip" text="[Github] Spaceship Demo" tooltip="Open Spaceship Demo repository" class="indented link" />
+        <ui:Button name="gotoSamples" text="[Github] VFX Graph Samples" tooltip="Open VFX Graph Samples repository" class="indented link" />
+    </ui:Box>
+</UXML>

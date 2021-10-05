@@ -373,6 +373,7 @@ namespace UnityEditor.Rendering.Universal
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicGlossMap"));
             UpdateSurfaceTypeAndBlendMode(material);
+            UpdateDetailScaleOffset(material);
             BaseShaderGUI.SetupMaterialBlendMode(material);
         }
 
@@ -391,7 +392,22 @@ namespace UnityEditor.Rendering.Universal
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_SpecGlossMap"));
             CoreUtils.SetKeyword(material, "_SPECULAR_SETUP", true);
             UpdateSurfaceTypeAndBlendMode(material);
+            UpdateDetailScaleOffset(material);
             BaseShaderGUI.SetupMaterialBlendMode(material);
+        }
+
+        static void UpdateDetailScaleOffset(Material material)
+        {
+            // In URP details tile/offset is multipied with base tile/offset, where in builtin is not
+            // Basically we setup new tile/offset values that in shader they would result in same values as in builtin
+            // This archieved with inverted calculation where scale=detailScale/baseScale and tile=detailOffset-baseOffset*scale
+            var baseScale = material.GetTextureScale("_BaseMap");
+            var baseOffset = material.GetTextureOffset("_BaseMap");
+            var detailScale = material.GetTextureScale("_DetailAlbedoMap");
+            var detailOffset = material.GetTextureOffset("_DetailAlbedoMap");
+            var scale = new Vector2(baseScale.x == 0 ? 0 : detailScale.x / baseScale.x, baseScale.y == 0 ? 0 : detailScale.y / baseScale.y);
+            material.SetTextureScale("_DetailAlbedoMap", scale);
+            material.SetTextureOffset("_DetailAlbedoMap", new Vector2((detailOffset.x - baseOffset.x * scale.x), (detailOffset.y - baseOffset.y * scale.y)));
         }
 
         // Converts from legacy RenderingMode to new SurfaceType and BlendMode

@@ -103,6 +103,9 @@ namespace UnityEditor.VFX
                     }
                 }
             }
+            if (space == (VFXCoordinateSpace)int.MaxValue)
+                space = outputSlot.space;
+
             return space;
         }
 
