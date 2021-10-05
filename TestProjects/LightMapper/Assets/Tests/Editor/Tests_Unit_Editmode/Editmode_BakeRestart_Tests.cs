@@ -7,19 +7,18 @@ using UnityEditor;
 
 public class Editmode_BakeRestart_Tests
 {
-    /*
     public System.Collections.Generic.IEnumerable<bool> RunABake(float convergenceStop)
     {
         // Wait a few frames for the restart (cause a preparing stage)
         int frameCounter = 0;
-        while(!Lightmapping.isPreparing)
+        while (!Lightmapping.isPreparing)
         {
             frameCounter++;
             yield return false;
         }
 
         // Wait for the bake to start the baking stage
-        while(!Lightmapping.isBaking)
+        while (!Lightmapping.isBaking)
         {
             frameCounter++;
             yield return false;
@@ -30,7 +29,7 @@ public class Editmode_BakeRestart_Tests
         // Let it bake for a few frames
         frameCounter = 0;
         LightmapConvergence lc = Lightmapping.GetLightmapConvergence(0);
-        while(lc.progress < convergenceStop)
+        while (lc.progress < convergenceStop)
         {
             frameCounter++;
             lc = Lightmapping.GetLightmapConvergence(0);
@@ -62,7 +61,7 @@ public class Editmode_BakeRestart_Tests
     }
 
     [UnityTest]
-    public IEnumerator ActivateDirectLighting_DuringABake_DoesNotFallback ()
+    public IEnumerator ActivateDirectLighting_DuringABake_DoesNotFallback()
     {
         EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/BakeRestartScene.unity", OpenSceneMode.Single);
         yield return null;
@@ -73,7 +72,7 @@ public class Editmode_BakeRestart_Tests
         Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
 
         lightingSettings.lightmapper = LightingSettings.Lightmapper.ProgressiveGPU;
-        lightingSettings.mixedBakeMode =  MixedLightingMode.IndirectOnly;
+        lightingSettings.mixedBakeMode = MixedLightingMode.IndirectOnly;
         lightingSettings.directionalityMode = LightmapsMode.NonDirectional;
 
         GameObject dirLightGO = GameObject.FindGameObjectsWithTag("TheLight")[0];
@@ -112,7 +111,7 @@ public class Editmode_BakeRestart_Tests
     }
 
     [UnityTest]
-    public IEnumerator ActivateAO_DuringABake_DoesNotFallback ()
+    public IEnumerator ActivateAO_DuringABake_DoesNotFallback()
     {
         EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/BakeRestartScene.unity", OpenSceneMode.Single);
         yield return null;
@@ -158,7 +157,7 @@ public class Editmode_BakeRestart_Tests
     }
 
     [UnityTest]
-    public IEnumerator ActivateShadowmask_DuringABake_DoesNotFallback ()
+    public IEnumerator ActivateShadowmask_DuringABake_DoesNotFallback()
     {
         EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/BakeRestartScene.unity", OpenSceneMode.Single);
         yield return null;
@@ -169,7 +168,7 @@ public class Editmode_BakeRestart_Tests
         Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
 
         lightingSettings.lightmapper = LightingSettings.Lightmapper.ProgressiveGPU;
-        lightingSettings.mixedBakeMode =  MixedLightingMode.Shadowmask;
+        lightingSettings.mixedBakeMode = MixedLightingMode.Shadowmask;
 
         GameObject dirLightGO = GameObject.FindGameObjectsWithTag("TheLight")[0];
         dirLightGO.SetActive(true);
@@ -279,5 +278,4 @@ public class Editmode_BakeRestart_Tests
 
         clearAll();
     }
-    */
 }
