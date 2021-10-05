@@ -3,6 +3,17 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
+#if SHADER_API_GLES
+struct AttributesLensFlare
+{
+    float4 positionCS       : POSITION;
+    float2 uv               : TEXCOORD0;
+
+#ifndef FLARE_PREVIEW
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+#endif
+};
+#else
 struct AttributesLensFlare
 {
     uint vertexID : SV_VertexID;
@@ -11,6 +22,7 @@ struct AttributesLensFlare
     UNITY_VERTEX_INPUT_INSTANCE_ID
 #endif
 };
+#endif
 
 struct VaryingsLensFlare
 {
@@ -112,10 +124,10 @@ float GetOcclusion(float ratio)
         if (all(pos >= 0) && all(pos <= 1))
         {
             float depth0 = GetLinearDepthValue(pos);
-#ifdef UNITY_REVERSED_Z
-            if (_ScreenPosZ < depth0)
+#if defined(UNITY_REVERSED_Z)
+            if (depth0 > _ScreenPosZ)
 #else
-            if (_ScreenPosZ > depth0)
+            if (depth0 < _ScreenPosZ)
 #endif
                 contrib += sample_Contrib;
         }
