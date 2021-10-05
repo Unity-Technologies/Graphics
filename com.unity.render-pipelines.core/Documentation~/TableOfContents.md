@@ -1,7 +1,8 @@
 * [SRP Core](index.md)
 * [What's new](whats-new.md)
-  * [12](whats-new-12.md)
   * [13](whats-new-13.md)
+  * [12](whats-new-12.md)
+* [Upgrade guide](upgrade.md)
 * Camera components
   * [Free Camera](Free-Camera.md)
   * [Camera Switcher](Camera-Switcher.md)
