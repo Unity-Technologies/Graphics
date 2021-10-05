@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [HDRPHelpURLAttribute("Light-Component")]
     [AddComponentMenu("")] // Hide in menu
+    [DisallowMultipleComponent]
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
     public partial class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
