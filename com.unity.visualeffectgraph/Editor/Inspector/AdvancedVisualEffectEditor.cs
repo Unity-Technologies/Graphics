@@ -753,10 +753,12 @@ namespace UnityEditor.VFX
         {
             if (EditorWindow.HasOpenInstances<VFXViewWindow>())
             {
-                VFXViewWindow window = EditorWindow.GetWindowDontShow<VFXViewWindow>();
-                if (window.graphView?.locked == false)
+                foreach (var window in VFXViewWindow.GetAllWindows())
                 {
-                    window.graphView.AttachToSelection();
+                    if (window.graphView?.locked == false)
+                    {
+                        window.graphView.AttachToSelection();
+                    }
                 }
             }
         }
@@ -765,8 +767,10 @@ namespace UnityEditor.VFX
         {
             if (EditorWindow.HasOpenInstances<VFXViewWindow>())
             {
-                VFXViewWindow window = EditorWindow.GetWindowDontShow<VFXViewWindow>();
-                window.graphView.DetachIfDeleted();
+                foreach (var window in VFXViewWindow.GetAllWindows())
+                {
+                    window.graphView.DetachIfDeleted();
+                }
             }
         }
     }
