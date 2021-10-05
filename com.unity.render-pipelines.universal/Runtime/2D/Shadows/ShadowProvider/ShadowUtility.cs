@@ -487,7 +487,8 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<Vector3> tempVertices = new NativeArray<Vector3>(inVertices.Length * k_SafeSize, Allocator.Temp);
             NativeArray<ShadowEdge> tempEdges = new NativeArray<ShadowEdge>(inEdges.Length * k_SafeSize, Allocator.Temp);
             NativeArray<int> tmpShapeStartingEdge = new NativeArray<int>(inShapeStartingEdge.Length, Allocator.Temp);
-            
+
+            ShadowPathClipper.Clear();
 
             for (int i = 0; i < tmpShapeStartingEdge.Length; i++)
                 tmpShapeStartingEdge[i] = -1;
@@ -504,31 +505,13 @@ namespace UnityEngine.Rendering.Universal
 
                 if (inShapeIsClosedArray[shapeStartIndex])
                 {
-                    NativeArray<Vector3> verticesToClip = new NativeArray<Vector3>(numberOfEdges, Allocator.Temp);
+                    NativeArray<Vector3> verticesToClip = new NativeArray<Vector3>(numberOfEdges+1, Allocator.Temp);
                     for (int i = 0; i < numberOfEdges; i++)
                         verticesToClip[i] = inVertices[inEdges[i + currentShapeStart].v0];
 
-                    ShadowPathClipper.SetInputPath(verticesToClip);
-                    ShadowPathClipper.ContractPath(-contractEdge);
+                    verticesToClip[numberOfEdges] = inVertices[inEdges[numberOfEdges + currentShapeStart - 1].v1];
 
-                    // If we have an output path copy it out
-                    if (ShadowPathClipper.HasOutputPaths())
-                    {
-                        int outputPathLength = ShadowPathClipper.GetOutputPathLength();
-                        if (outputPathLength > 0)
-                        {
-                            tmpShapeStartingEdge[shapeStartIndex] = currentTempEdgeIndex;
-                            ShadowPathClipper.GetOutputPath(tempVertices, currentTempVertexIndex);
-
-                            // Create edges
-                            int lastVertexIndex = (outputPathLength - 1) + currentTempVertexIndex;
-                            for (int i = 0; i < outputPathLength; i++)
-                            {
-                                tempEdges[currentTempEdgeIndex++] = new ShadowEdge(lastVertexIndex, currentTempVertexIndex);
-                                lastVertexIndex = currentTempVertexIndex++;
-                            }
-                        }
-                    }
+                    ShadowPathClipper.AddInputPath(verticesToClip);
                 }
                 // If its an open shape just copy it to our output
                 else
@@ -550,6 +533,27 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            ShadowPathClipper.ContractPath(-contractEdge);
+
+            // If we have an output path copy it out
+            int outputPaths = ShadowPathClipper.GetOutputPaths();
+            for(int outputPath=0; outputPath < outputPaths; outputPath++)
+            {
+                int outputPathLength = ShadowPathClipper.GetOutputPathLength(outputPath);
+                if (outputPathLength > 0)
+                {
+                    tmpShapeStartingEdge[outputPath] = currentTempEdgeIndex;
+                    ShadowPathClipper.GetOutputPath(outputPath, tempVertices, currentTempVertexIndex);
+
+                    // Create edges
+                    int lastVertexIndex = (outputPathLength - 1) + currentTempVertexIndex;
+                    for (int i = 0; i < outputPathLength; i++)
+                    {
+                        tempEdges[currentTempEdgeIndex++] = new ShadowEdge(lastVertexIndex, currentTempVertexIndex);
+                        lastVertexIndex = currentTempVertexIndex++;
+                    }
+                }
+            }
 
             int shapeCount = 0;
             for (int i = 0; i < tmpShapeStartingEdge.Length; i++)
