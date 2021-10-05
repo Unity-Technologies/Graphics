@@ -235,6 +235,7 @@ real3x3 CreateTangentToWorld(real3 normal, real3 tangent, real flipSign)
 }
 
 // this function is intended to work on Normals (handles non-uniform scale)
+// tangentToWorld is the matrix representing the transformation of a normal from tangent to world space
 real3 TransformTangentToWorld(real3 normalTS, real3x3 tangentToWorld, bool doNormalize = false)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
@@ -248,6 +249,7 @@ real3 TransformTangentToWorld(real3 normalTS, real3x3 tangentToWorld, bool doNor
 // This function does the exact inverse of TransformTangentToWorld() and is
 // also decribed within comments in mikktspace.h and it follows implicitly
 // from the scalar triple product (google it).
+// tangentToWorld is the matrix representing the transformation of a normal from tangent to world space
 real3 TransformWorldToTangent(real3 normalWS, real3x3 tangentToWorld, bool doNormalize = true)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
@@ -277,6 +279,7 @@ real3 TransformWorldToTangent(real3 normalWS, real3x3 tangentToWorld, bool doNor
 }
 
 // this function is intended to work on Vectors/Directions
+// tangentToWorld is the matrix representing the transformation of a normal from tangent to world space
 real3 TransformWorldToTangentDir(real3 dirWS, real3x3 tangentToWorld, bool doNormalize = false)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
@@ -288,6 +291,7 @@ real3 TransformWorldToTangentDir(real3 dirWS, real3x3 tangentToWorld, bool doNor
 
 // this function is intended to work on Vectors/Directions
 // This function does the exact inverse of TransformWorldToTangentDir()
+// tangentToWorld is the matrix representing the transformation of a normal from tangent to world space
 real3 TransformTangentToWorldDir(real3 dirWS, real3x3 tangentToWorld, bool doNormalize = false)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
@@ -316,6 +320,7 @@ real3 TransformTangentToWorldDir(real3 dirWS, real3x3 tangentToWorld, bool doNor
         return result / determinant;
 }
 
+// tangentToWorld is the matrix representing the transformation of a normal from tangent to world space
 real3 TransformTangentToObject(real3 dirTS, real3x3 tangentToWorld)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
@@ -323,6 +328,7 @@ real3 TransformTangentToObject(real3 dirTS, real3x3 tangentToWorld)
     return TransformWorldToObjectNormal(normalWS);
 }
 
+// tangentToWorld is the matrix representing the transformation of a normal from tangent to world space
 real3 TransformObjectToTangent(real3 dirOS, real3x3 tangentToWorld)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
