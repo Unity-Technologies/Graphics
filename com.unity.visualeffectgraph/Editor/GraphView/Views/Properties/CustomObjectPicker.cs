@@ -74,7 +74,7 @@ namespace UnityEditor.VFX.UI
             //}
 
             var userQuery = context.searchQuery;
-            var providers = new[] {Search.SearchService.GetProvider("adb")};
+            var providers = new[] { Search.SearchService.GetProvider("adb") };
 
             using (var query = Search.SearchService.CreateContext(providers, $"t:{type.Name} {userQuery}", context.options))
             using (var request = Search.SearchService.Request(query))
