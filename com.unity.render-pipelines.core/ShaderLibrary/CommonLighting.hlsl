@@ -245,7 +245,7 @@ real3 GTAOMultiBounce(real visibility, real3 albedo)
     return max(x, ((x * a + b) * x + c) * x);
 }
 
-// Based on Oat and Sander's 2008 technique
+// Based on Oat and Sander's 2007 technique
 // Area/solidAngle of intersection of two cone
 real SphericalCapIntersectionSolidArea(real cosC1, real cosC2, real cosB)
 {
@@ -279,7 +279,7 @@ real SphericalCapIntersectionSolidArea(real cosC1, real cosC2, real cosB)
 // ref: Practical Realtime Strategies for Accurate Indirect Occlusion
 // http://blog.selfshadow.com/publications/s2016-shading-course/#course_content
 // Original Cone-Cone method with cosine weighted assumption (p129 s2016_pbs_activision_occlusion)
-real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS, real ambientOcclusion, real roughness)
+real GetSpecularOcclusionFromBentAO_ConeCone(real3 V, real3 bentNormalWS, real3 normalWS, real ambientOcclusion, real roughness)
 {
     // Retrieve cone angle
     // Ambient occlusion is cosine weighted, thus use following equation. See slide 129
@@ -288,6 +288,40 @@ real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS,
     real cosAs = exp2((-log(10.0) / log(2.0)) * Sq(roughness));
     real cosB = dot(bentNormalWS, reflect(-V, normalWS));
     return SphericalCapIntersectionSolidArea(cosAv, cosAs, cosB) / (TWO_PI * (1.0 - cosAs));
+}
+
+real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS, real ambientOcclusion, real roughness)
+{
+    // Pseudo code:
+    //SphericalGaussian NDF = WarpedGGXDistribution(normalWS, roughness, V);
+    //SphericalGaussian Visibility = VisibilityConeSG(bentNormalWS, ambientOcclusion);
+    //SphericalGaussian UpperHemisphere = UpperHemisphereSG(normalWS);
+    //return saturate( InnerProduct(NDF, Visibility) / InnerProduct(NDF, UpperHemisphere) );
+
+    // 1. Approximate visibility cone with a spherical gaussian of amplitude A=1
+    // For a cone angle X, we can determine sharpness so that all point inside the cone have a value > Y
+    // sharpness = (log(Y) - log(A)) / (cos(X) - 1)
+    // For AO cone, cos(X) = sqrt(1 - ambientOcclusion)
+    // -> for Y = 0.1, sharpness = -1.0 / (sqrt(1-ao) - 1)
+    float vs = -1.0f / (sqrt(1.0f - ambientOcclusion) - 1.0f);
+
+    // 2. Approximate upper hemisphere with sharpness = 0.8 and amplitude = 1
+    float us = 0.8f;
+
+    // 3. Compute warped SG Axis of GGX distribution
+    // Ref: All-Frequency Rendering of Dynamic, Spatially-Varying Reflectance
+    // https://www.microsoft.com/en-us/research/wp-content/uploads/2009/12/sg.pdf
+    float NoV = dot(V, normalWS);
+    float3 NDFAxis = (2 * NoV * normalWS - V) * (0.5f / max(roughness * roughness * NoV, 0.001f));
+
+    float umLength1 = length(NDFAxis + vs * bentNormalWS);
+    float umLength2 = length(NDFAxis + us * normalWS);
+    float d1 = 1 - exp(-2 * umLength1);
+    float d2 = 1 - exp(-2 * umLength2);
+
+    float expFactor1 = exp(umLength1 - umLength2 + us - vs);
+
+    return saturate(expFactor1 * (d1 * umLength2) / (d2 * umLength1));
 }
 
 // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse

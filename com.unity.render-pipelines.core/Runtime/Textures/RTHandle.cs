@@ -19,6 +19,29 @@ namespace UnityEngine.Rendering
         internal bool m_EnableHWDynamicScale = false;
         internal string m_Name;
 
+        internal bool m_UseCustomHandleScales = false;
+        internal RTHandleProperties m_CustomHandleProperties;
+
+        /// <summary>
+        /// By default, rtHandleProperties gets the global state of scalers against the global reference mode.
+        /// This method lets the current RTHandle use a local custom RTHandleProperties. This function is being used
+        /// by scalers such as TAAU and DLSS, which require to have a different resolution for color (independent of the RTHandleSystem).
+        /// </summary>
+        /// <param name="properties">Properties to set.</param>
+        public void SetCustomHandleProperties(in RTHandleProperties properties)
+        {
+            m_UseCustomHandleScales = true;
+            m_CustomHandleProperties = properties;
+        }
+
+        /// <summary>
+        /// Method that clears any custom handle property being set.
+        /// </summary>
+        public void ClearCustomHandleProperties()
+        {
+            m_UseCustomHandleScales = false;
+        }
+
         /// <summary>
         /// Scale factor applied to the RTHandle reference size.
         /// </summary>
@@ -34,9 +57,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         public Vector2Int referenceSize { get; internal set; }
         /// <summary>
-        /// Current properties of the RTHandle System
+        /// Current properties of the RTHandle System. If a custom property has been set through SetCustomHandleProperties method, it will be used that one instead.
         /// </summary>
-        public RTHandleProperties rtHandleProperties { get { return m_Owner.rtHandleProperties; } }
+        public RTHandleProperties rtHandleProperties { get { return m_UseCustomHandleScales ? m_CustomHandleProperties : m_Owner.rtHandleProperties; } }
         /// <summary>
         /// RenderTexture associated with the RTHandle
         /// </summary>

@@ -537,7 +537,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderSettings.ambientIntensity = 1.0f;
             RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
             RenderSettings.reflectionIntensity = 1.0f;
-            RenderSettings.customReflection = null;
+            RenderSettings.customReflectionTexture = null;
         }
 
         void BlitCubemap(CommandBuffer cmd, Cubemap source, RenderTexture dest)
@@ -1254,7 +1254,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderSettings.ambientIntensity = 1.0f;
             RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
             RenderSettings.reflectionIntensity = 1.0f;
-            RenderSettings.customReflection = null;
+            RenderSettings.customReflectionTexture = null;
 
             DynamicGI.UpdateEnvironment();
         }

@@ -20,7 +20,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: bc130a39c76dc3b428720e235088e037, type: 3}
+      m_Image: {fileID: 2800000, guid: 8d2b462398d6d8d43be9ae973c781087, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -74,19 +74,37 @@ MonoBehaviour:
     m_Untranslated: Next
   DoneButton:
     m_Untranslated: Done
-  m_NextButton: 
-  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
-  m_autoAdvance: 0
+  m_AutoAdvance: 0
+  Showing:
+    m_PersistentCalls:
+      m_Calls: []
+  Shown:
+    m_PersistentCalls:
+      m_Calls: []
+  Staying:
+    m_PersistentCalls:
+      m_Calls: []
+  CriteriaValidated:
+    m_PersistentCalls:
+      m_Calls: []
+  MaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  NonMaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
     m_PersistentCalls:
       m_Calls: []
-  m_OnBeforeTutorialQuit:
-    m_PersistentCalls:
-      m_Calls: []
   m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_NextButton: 
+  m_DoneButton: 
