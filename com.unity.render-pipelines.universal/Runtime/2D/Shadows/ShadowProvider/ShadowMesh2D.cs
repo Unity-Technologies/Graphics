@@ -273,7 +273,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // It would be better if we don't have to rerun SetShape after a contractEdge change.
-            if (m_EdgeProcessing == EdgeProcessing.Clipping)
+            if (m_EdgeProcessing == EdgeProcessing.Clipping && allowContraction)
             {
                 NativeArray<Vector3> clippedVertices;
                 NativeArray<ShadowEdge> clippedEdges;
@@ -296,9 +296,9 @@ namespace UnityEngine.Rendering.Universal
             shapeStartingIndices.Dispose();
         }
 
-        public void SetShapeWithLines(NativeArray<Vector3> vertices, NativeArray<int> indices)
+        public void SetShapeWithLines(NativeArray<Vector3> vertices, NativeArray<int> indices, bool allowContraction)
         {
-            SetShape(vertices, indices, IShadowShape2DProvider.OutlineTopology.Lines);
+            SetShape(vertices, indices, IShadowShape2DProvider.OutlineTopology.Lines, allowContraction);
         }
 
         public override void UpdateVertices(NativeArray<Vector3> vertices)

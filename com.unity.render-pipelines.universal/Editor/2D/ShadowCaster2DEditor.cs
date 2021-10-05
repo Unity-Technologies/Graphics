@@ -143,6 +143,11 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_EdgeProcessing, Styles.edgeProcessing);
             }
 
+            if ((ShadowCaster2D.ShadowCastingSources)m_CastingSource.intValue == ShadowCaster2D.ShadowCastingSources.ShapeEditor)
+                ShadowCaster2DInspectorGUI<ShadowCaster2DShadowCasterShapeTool>();
+            else if (EditorToolManager.IsActiveTool<ShadowCaster2DShadowCasterShapeTool>())
+                ToolManager.RestorePreviousTool();
+
             if (!HasRenderer())
             {
                 using (new EditorGUI.DisabledScope(true))  // Done to support multiedit
@@ -155,11 +160,6 @@ namespace UnityEditor.Rendering.Universal
            
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel, null);
-
-            if ((ShadowCaster2D.ShadowCastingSources)m_CastingSource.intValue == ShadowCaster2D.ShadowCastingSources.ShapeEditor)
-                ShadowCaster2DInspectorGUI<ShadowCaster2DShadowCasterShapeTool>();
-            else if(EditorToolManager.IsActiveTool<ShadowCaster2DShadowCasterShapeTool>())
-                ToolManager.RestorePreviousTool();
 
             serializedObject.ApplyModifiedProperties();
         }

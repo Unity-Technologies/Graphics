@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering.Universal
                     lastIndex = i;
                 }
 
-                m_ShadowMesh.SetShapeWithLines(nativePath, nativeIndices);
+                m_ShadowMesh.SetShapeWithLines(nativePath, nativeIndices, false);
 
                 nativePath.Dispose();
                 nativeIndices.Dispose();
