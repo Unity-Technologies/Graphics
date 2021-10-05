@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
 - Fixed range compression factor being clamped. (case 1365707)
 - Fixed tooltip not showing on labels in ShaderGraphs (1358483).
+- Fixed and optimize distance shadowmask fade.
 
 ## [13.0.0] - 2021-09-01
 
