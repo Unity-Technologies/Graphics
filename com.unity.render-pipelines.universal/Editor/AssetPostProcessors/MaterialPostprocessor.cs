@@ -131,21 +131,6 @@ namespace UnityEditor.Rendering.Universal
             s_NeedsSavingAssets = false;
         }
 
-        static private void UniversalSpeedTree8MaterialImportFinalizer(Material mat)
-        {
-            if (mat.HasFloat("_TwoSided"))
-                mat.SetFloat(Property.CullMode, mat.GetFloat("_TwoSided"));
-            UpdateMaterial(mat,
-                MaterialUpdateType.CreatedNewMaterial,
-                ShaderID.SpeedTree8);
-        }
-
-        void OnPostprocessSpeedTree(GameObject speedTree)
-        {
-            SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
-            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, stImporter, UniversalSpeedTree8MaterialImportFinalizer);
-        }
-
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             string upgradeLog = "";

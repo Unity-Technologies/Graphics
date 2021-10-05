@@ -171,7 +171,7 @@ namespace UnityEditor.Rendering.Universal
             upgraders.Add(new TerrainUpgrader("Nature/Terrain/Standard"));
             upgraders.Add(new SpeedTreeUpgrader("Nature/SpeedTree"));
             upgraders.Add(new SpeedTreeBillboardUpgrader("Nature/SpeedTree Billboard"));
-            upgraders.Add(new SpeedTree8Upgrader("Nature/SpeedTree8"));
+            upgraders.Add(new UniversalSpeedTree8Upgrader("Nature/SpeedTree8"));
 
             ////////////////////////////////////
             // Particle Upgraders             //
@@ -545,26 +545,6 @@ namespace UnityEditor.Rendering.Universal
         internal SpeedTreeBillboardUpgrader(string oldShaderName)
         {
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7Billboard));
-        }
-    }
-
-    internal class SpeedTree8Upgrader : SpeedTree8MaterialUpgrader
-    {
-        internal SpeedTree8Upgrader(string oldShaderName)
-            : base(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8), UniversalSpeedTree8MaterialFinalizer)
-        {
-            RenameFloat("_TwoSided", Property.CullMode);
-        }
-        static public void UniversalSpeedTree8MaterialFinalizer(Material mat)
-        {
-            SpeedTree8MaterialFinalizer(mat);
-
-            if (mat.HasFloat("_TwoSided"))
-                mat.SetFloat(Property.CullMode, mat.GetFloat("_TwoSided"));
-
-            Unity.Rendering.Universal.ShaderUtils.UpdateMaterial(mat,
-                Unity.Rendering.Universal.ShaderUtils.MaterialUpdateType.CreatedNewMaterial,
-                Unity.Rendering.Universal.ShaderUtils.ShaderID.SpeedTree8);
         }
     }
 
