@@ -515,8 +515,6 @@ namespace UnityEditor.ShaderGraph
                     if (ordered.Any())
                     {
                         var first = ordered.FirstOrDefault();
-                        if (first == ConcreteSlotValueType.Boolean)
-                            return ConcreteSlotValueType.Vector1;
                         return first;
                     }
                     break;
