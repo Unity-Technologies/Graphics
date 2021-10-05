@@ -736,7 +736,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Lights that need to be rendered in the shadow map atlas
             if (validShadowCastingLightsCount == 0)
-                return false;
+                return SetupForEmptyRendering(ref renderingData);
 
             int shadowCastingLightsBufferCount = m_ShadowSliceToAdditionalLightIndex.Count;
 
