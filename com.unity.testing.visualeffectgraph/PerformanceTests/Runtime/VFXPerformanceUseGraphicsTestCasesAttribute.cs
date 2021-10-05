@@ -27,6 +27,8 @@ namespace UnityEngine.VFX.PerformanceTest
             var currentSRP = QualitySettings.renderPipeline ?? GraphicsSettings.currentRenderPipeline;
             if (currentSRP == null)
                 return "BRP";
+            if (currentSRP.name.Contains("HDRenderPipeline"))
+                return "HDRP";
             return currentSRP.name;
         }
 
