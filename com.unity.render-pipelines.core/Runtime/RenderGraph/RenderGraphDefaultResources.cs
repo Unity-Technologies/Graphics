@@ -32,8 +32,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle blackTexture3DXR { get; private set; }
         /// <summary>Default white XR 2D texture.</summary>
         public TextureHandle whiteTextureXR { get; private set; }
-        /// <summary>Default shadow texture texture.</summary>
-        public TextureHandle tinyShadowTexture { get; private set; }
+        /// <summary>Default 1x1 shadow texture.</summary>
+        public TextureHandle defaultShadowTexture { get; private set; }
 
         internal RenderGraphDefaultResources()
         {
@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             blackTexture = renderGraph.ImportTexture(m_BlackTexture2D);
             whiteTexture = renderGraph.ImportTexture(m_WhiteTexture2D);
-            tinyShadowTexture = renderGraph.ImportTexture(m_ShadowTexture2D);
+            defaultShadowTexture = renderGraph.ImportTexture(m_ShadowTexture2D);
 
             clearTextureXR = renderGraph.ImportTexture(TextureXR.GetClearTexture());
             magentaTextureXR = renderGraph.ImportTexture(TextureXR.GetMagentaTexture());
