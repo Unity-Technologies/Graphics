@@ -251,7 +251,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_GlobalSettings == null || UniversalRenderPipelineGlobalSettings.instance == null)
             {
                 m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
-                return;
+                if(m_GlobalSettings == null) return;
             }
 #endif
 
