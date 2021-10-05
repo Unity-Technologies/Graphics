@@ -57,10 +57,10 @@ namespace UnityEditor.VFX.UI
 
         static SearchProvider CreateTextureProvider(Type type, TextureDimension textureDimension)
         {
-            return new SearchProvider("tex", "Texture", (context, _) => FetchTextures(type, textureDimension, context.searchQuery));
+            return new SearchProvider("tex", "Texture", (context, _) => FetchTextures(type, textureDimension, context));
         }
 
-        static IEnumerable<SearchItem> FetchTextures(Type type, TextureDimension textureDimension, string userQuery)
+        static IEnumerable<SearchItem> FetchTextures(Type type, TextureDimension textureDimension, SearchContext context)
         {
             // This piece of code is meant to put RenderTextures in a separate tab
             // But the display is right now buggy, so keep it for later use when display issue is fixed
@@ -73,9 +73,10 @@ namespace UnityEditor.VFX.UI
             //    renderTextureGroupProvider = createGroupProviderMethod.Invoke(null, new object[] { adbProvider, "Render Textures", 1, true }) as SearchProvider;;
             //}
 
+            var userQuery = context.searchQuery;
             var providers = new[] {Search.SearchService.GetProvider("adb")};
 
-            using (var query = Search.SearchService.CreateContext(providers, $"t:{type.Name} {userQuery}", SearchFlags.Packages))
+            using (var query = Search.SearchService.CreateContext(providers, $"t:{type.Name} {userQuery}", context.options))
             using (var request = Search.SearchService.Request(query))
             {
                 foreach (var r in request)
@@ -87,7 +88,7 @@ namespace UnityEditor.VFX.UI
 
             if (type != typeof(RenderTexture))
             {
-                using (var query = Search.SearchService.CreateContext(providers, $"t:{nameof(RenderTexture)} {userQuery}", SearchFlags.Packages))
+                using (var query = Search.SearchService.CreateContext(providers, $"t:{nameof(RenderTexture)} {userQuery}", context.options))
                 using (var request = Search.SearchService.Request(query))
                 {
                     foreach (var r in request)
