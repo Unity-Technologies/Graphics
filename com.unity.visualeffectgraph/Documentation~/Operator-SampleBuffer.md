@@ -58,5 +58,5 @@ The Operator has the following limitations:
 
 - This Operator expects a GraphicsBuffer created using the [Structured](https://docs.unity3d.com/ScriptReference/GraphicsBuffer.Target.Structured.html) target.
 - The stride of the GraphicsBuffer declaration must match with the structure stride.
-- The structure must be blittable. This means the structure can't store a reference to a Texture2D, but it can store a reference to another blittable structure.
+- The structure must be blittable. This means the structure can't store a reference to a Texture2D, but it can store any other blittable structure.
 - This Operator only supports structured buffers that use one of the blittable public type the Visual Effect Graph supports. For the list of avaialable types, see [Available types](#available-types).

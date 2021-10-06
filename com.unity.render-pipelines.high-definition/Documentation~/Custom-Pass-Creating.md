@@ -16,7 +16,7 @@ To create a Custom Pass, add a Custom Pass Volume component to your scene using 
 | Injection point | Use the drop-down to define when Unity executes this Custom Pass in the HDRP render loop.<br /><br />For more information about each injection point, see [**Injection Points**](#Injection Points.md) |
 | Priority        | If you have more than one Custom Pass Volume assigned to the same injection point, use this property to control the order that Unity executes them in.<br /><br />Unity executes these Volumes in order of Priority, starting with 0. |
 | Fade Radius     | Define when Unity starts to fade in the effect of the Custom Pass as you approach the Volume. <br />A value of 0 means HDRP applies this Volume’s effect immediately at the edge of the Volume. A high value means the effect starts to appear far away from the Volume. <br /><br />This property only appears when **Mode** is set to **Local**. |
-| Custom Passes   | Click the Add (**+**) button to create a Custom Pass. The Custom Pass Volume component has the following types of Custom Passes available by default:<br />**• FullScreen Custom Pass**: Use this to execute an effect that Unity applies to the Camera view or stores in the Custom Pass buffer. For more information, see [Full-screen Custom Pass](#Full-Screen-Custom-Pass).<br />**• DrawRenderers Custom Pass**: Use this to apply a Custom Pass to GameObjects that are in the Camera view. For more information, see [Draw renderers custom pass](#Draw-Renderers-Custom-Pass).<br /><br />If you create your own Custom Pass, it also appears in this drop-down. For more information, see [Scripting your own Custom Pass in C#](Custom-Pass-Scripting.md). <br /><br />If there are one or more Custom Passes in this component, you can click `**-**` to delete one. |
+| Custom Passes   | Click the Add (**+**) button to create a Custom Pass. The Custom Pass Volume component includes the following types of Custom Passes by default:<br />**• FullScreen Custom Pass**: Use this to execute an effect that Unity applies to the Camera view or stores in the Custom Pass buffer. For more information, see [Full-screen Custom Pass](#Full-Screen-Custom-Pass).<br />**• DrawRenderers Custom Pass**: Use this to apply a Custom Pass to GameObjects that are in the Camera view. For more information, see [Draw renderers custom pass](#Draw-Renderers-Custom-Pass).<br /><br />• **ObjectID Custom Pass**: Use this to apply a unique color controlled by the Object ID to GameObjects in your scene. For more information, see [Object ID Custom Pass](#Object-ID-Custom-Pass). <br /><br />If you create your own Custom Pass, it also appears in this drop-down. For more information, see [Scripting your own Custom Pass in C#](Custom-Pass-Scripting.md). <br /><br />If there are one or more Custom Passes in this component, you can click `**-**` to delete one. |
 
 <a name="Full-Screen-Custom-Pass"></a>
 
@@ -158,6 +158,83 @@ However, not all materials are supported by every injection point in a draw rend
 | After Post Process            | Unlit and Lit forward only with refraction            |
 
 When Unity renders a material that is not supported by the current injection point, it results in an undefined behavior. For example, rendering GameObjects with lit shaders in the **After Opaque Depth And Normal** injection point produces unexpected results.
+
+<a name="Object-ID-Custom-Pass"></a>
+
+## Object ID Custom Pass
+
+The **Object ID Custom Pass** draws GameObjects in the scene with a unique color controlled by the `Object ID`. It uses a built-in Material to draw the Object ID colors.
+
+### Object ID Custom Pass properties
+
+You can configure an Object ID Custom Pass in the **Custom Passes** panel using the following properties:
+
+![](C:/Users/Vic%20Cooper/Documents/GitHub/Graphics/com.unity.render-pipelines.high-definition/Documentation~/Images/Custom_Pass_ObjectID.png)
+
+| **Property**        | **Description**                                              |
+| ------------------- | ------------------------------------------------------------ |
+| Name                | Use this field to name this Custom Pass. Unity uses this as the name of the profiling marker for debugging. |
+| Target Color Buffer | Select the buffer that Unity writes the color data to:<br/><br/>**Camera:** Targets the current camera color buffer that renders the Custom Pass.<br/>**Custom:** Uses the Custom Pass buffer allocated in the HDRP Asset. <br/>**None:** Doesn’t write the data to a buffer. |
+| Target Depth Buffer | The target buffer where Unity writes and tests the depth and stencil data:<br/><br/>**Camera:** Targets the current camera depth buffer that renders the Custom Pass.<br/>**Custom:** Uses the Custom Pass buffer allocated in the HDRP Asset. <br/>**None:** Doesn’t write the data to a buffer.<br/><br/>This buffer does not contain transparent objects that have **Depth Write** enabled in the [shader properties](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.2/manual/Lit-Shader.html). |
+| Clear Flags         | A clear flag discards the contents of a buffer before Unity executes this Custom Pass.<br/> This property assigns a clear flag to one of the following buffers:<br/><br/>**None:** Doesn’t clear any buffers in this pass.<br/>**Color:** Clears the depth buffer.<br/>**Depth:** Clears the depth buffer and the stencil buffer.<br/>**All:** Clears the data in the color, depth and stencil buffers. |
+| Filters             | This section determines the GameObjects that Unity renders in this Custom Pass. |
+|Queue                     | Select the kind of materials that this Custom Pass renders.                                                           |
+| Layer Mask                        |Select the GameObject layer that this Custom Pass applies to.                                                 |
+| Overrides           |                                                              |
+|Override Depth                     |Enable this checkbox to override the depth render state in the materials of the rendered GameObjects.<br/><br/> This allows you to replace the default **Depth Test** value, and write the depth using custom values.                                                              |
+|Depth Test                     | When Unity renders an GameObjects, it uses the **Depth Test** value to check if it is behind another object. To do this, Unity tests the z-value (the depth) of a given GameObject’s pixel, and compares it against a value stored in the depth buffer. <br/>By default, **Depth Test** is set to **Less Equal**, allowing the original object to appear in front of the object it is tested against. Use the drop-down to select the comparison method to use for the depth test. Each comparison method changes how the Shader renders:<br/><br/>**Disabled**: Do not perform a depth test.<br/>**Never**: The depth test never passes.<br/>**Less**: The depth test passes if the pixel's z-value is less than the stored value.<br/>**Equal**: The depth test passes if the pixel's z-value is equal to the stored value.<br/>**Less Equa**l: The depth test passes if the pixel's z-value is less than or equal than the Z-buffers value. This renders the tested pixel in front of the other.<br/>**Greater**: The depth test passes if the pixel's z-value is greater than the stored value.<br/>**Not Equa**l: The depth test passes if the pixel's z-value is not equal to the stored value.<br/>**Greater Equa**l: The depth test passes if the pixel's z-value is greater than or equal to the stored value.<br/>**Always**: The depth test always passes, there is no comparison to the stored value.This setting only appears when you enable **Override Depth**.      |
+|Write Depth                     |Enable **Write Depth** to instruct Unity to write depth values for GameObjects that use this material. <br/>Disable it if you do not want Unity to write depth values for each GameObject.                                                              |
+|  Sorting                     | Select the way Unity sorts the GameObjects in your scene before it renders them.<br/><br/>For more information, see [Sorting criteria](https://docs.unity3d.com/ScriptReference/Rendering.SortingCriteria.html).                                          |
+
+### Generating Object IDs for a custom pass
+
+HDRP generates Object IDs before executing an Object ID custom pass.
+
+If you use a script to generate new GameObjects procedurally, call `AssignObjectIDs` to generate new Object IDs.
+
+The following script example shows the default `AssignObjectIDs` implementation that assigns Object ID colors incrementally:
+
+```c#
+public virtual void AssignObjectIDs()
+{
+    var rendererList = Resources.FindObjectsOfTypeAll(typeof(Renderer));
+
+    int index = 0;
+    foreach (Renderer renderer in rendererList)
+    {
+        MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+        float hue = (float)index / rendererList.Length;
+        propertyBlock.SetColor("ObjectColor", Color.HSVToRGB(hue, 0.7f, 1.0f));
+        renderer.SetPropertyBlock(propertyBlock);
+        index++;
+    }
+}
+```
+
+#### Generating a Custom Object ID
+
+To customize the way Unity generates a Object ID, override the `AssignObjectIDs` method. The following script example uses this method to assign Object ID colors randomly:
+
+```c#
+class RandomObjectIDs : ObjectIDCustomPass
+{
+    public override void AssignObjectIDs()
+    {
+        var rendererList = Resources.FindObjectsOfTypeAll(typeof(Renderer));
+        System.Random rand = new System.Random();
+
+        int index = 0;
+        foreach (Renderer renderer in rendererList)
+        {
+            MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+            float hue = (float)rand.NextDouble();
+            propertyBlock.SetColor("ObjectColor", Color.HSVToRGB(hue, 0.7f, 1.0f));
+            renderer.SetPropertyBlock(propertyBlock);
+            index++;
+        }
+    }
+}
+```
 
 <a name="Custom-Renderers-Pass-shader"></a>
 

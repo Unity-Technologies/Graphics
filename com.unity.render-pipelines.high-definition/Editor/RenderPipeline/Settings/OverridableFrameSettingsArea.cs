@@ -100,6 +100,18 @@ namespace UnityEditor.Rendering.HighDefinition
             return area;
         }
 
+        /// <summary>
+        /// Ammend the info on a FrameSettings drawer in the generation process.
+        /// </summary>
+        /// <param name="field">Targeted FrameSettings.</param>
+        /// <param name="overrideable">Override the method used to say if it will be overrideable or not. If not, the left checkbox will not be drawn.</param>
+        /// <param name="ignoreDependencies">Ignore the dependencies when checking if this is overrideable. (Normally, only work if dependency is enabled).</param>
+        /// <param name="customGetter">Custom method to get the value. Usefull for non boolean FrameSettings.</param>
+        /// <param name="customSetter">Custom method to set the value. Usefull for non boolean FrameSettings.</param>
+        /// <param name="overridedDefaultValue">Modify the default value displayed when override is disabled.</param>
+        /// <param name="labelOverride">Override the given label with this new one.</param>
+        /// <param name="hasMixedValues">Override the miltiple different state manually. Usefull when using customGetter and customSetter. This is static on the Editor run. But Editor is reconstructed if selection change so it should be ok.</param>
+        /// <param name="hideInUI">/!\ WARNING: Use with caution. Should not be used with current UX flow. Only usage should be really special cases.</param>
         public void AmmendInfo(FrameSettingsField field, Func<bool> overrideable = null, bool ignoreDependencies = false, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null, string labelOverride = null, bool hasMixedValues = false, bool hideInUI = false)
         {
             var matchIndex = fields.FindIndex(f => f.field == field);

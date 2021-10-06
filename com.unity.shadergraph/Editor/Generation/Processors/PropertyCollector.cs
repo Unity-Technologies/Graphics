@@ -180,6 +180,7 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine("#endif");
                 }
                 builder.AppendLine("CBUFFER_END");
+                builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
                 return;
             }
 

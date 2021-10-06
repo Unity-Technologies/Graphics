@@ -28,14 +28,13 @@ namespace UnityEditor.VFX.Operator
                         yield return type;
                     else
                     {
-                        var typeAttribute = type.GetCustomAttributes(typeof(VFXTypeAttribute), true).FirstOrDefault() as VFXTypeAttribute;
+                        var typeAttribute = VFXLibrary.GetAttributeFromSlotType(type);
                         if (typeAttribute != null && typeAttribute.usages.HasFlag(VFXTypeAttribute.Usage.GraphicsBuffer))
                             yield return type;
                     }
                 }
             }
         }
-
 
         protected override Type defaultValueType => typeof(float);
 

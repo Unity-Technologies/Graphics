@@ -206,5 +206,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             return this.CreateGUI((GraphData)actualObject);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

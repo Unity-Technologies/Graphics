@@ -217,7 +217,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
 #else
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    return color;
+    return half4(color.rgb, 1);
 #endif
 };
 

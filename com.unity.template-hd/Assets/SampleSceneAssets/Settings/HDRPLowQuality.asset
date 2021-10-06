@@ -131,6 +131,7 @@ MonoBehaviour:
       forceResolution: 0
       forcedPercentage: 100
       lowResTransparencyMinimumThreshold: 0
+      rayTracingHalfResThreshold: 50
     lowresTransparentSettings:
       enabled: 1
       checkerboardDepthBuffer: 1
@@ -183,7 +184,13 @@ MonoBehaviour:
       ContactShadowSampleCount: 04000000060000000a000000
       SSRMaxRaySteps: 080000001000000020000000
       SSGIRaySteps: 200000004000000080000000
-      SSGIFilterRadius: 100000000e0000000c000000
+      SSGIDenoise: 010101
+      SSGIHalfResDenoise: 010000
+      SSGIDenoiserRadius:
+      - 0.75
+      - 0.5
+      - 0.5
+      SSGISecondDenoise: 010101
       RTAORayLength:
       - 0.5
       - 3
@@ -203,7 +210,6 @@ MonoBehaviour:
       - 0.5
       - 0.8
       - 1.5
-      RTGIUpScaleRadius: 040000000400000004000000
       RTGIRaySteps: 200000003000000040000000
       RTGIDenoise: 010101
       RTGIHalfResDenoise: 010000
@@ -270,7 +276,7 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
-  m_Version: 20
+  m_Version: 21
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0

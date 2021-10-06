@@ -13,12 +13,9 @@ MonoBehaviour:
   m_Name: HDRISky
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   rotation:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
-    max: 360
   skyIntensityMode:
     m_OverrideState: 0
     m_Value: 0
@@ -28,11 +25,9 @@ MonoBehaviour:
   multiplier:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
   upperHemisphereLuxValue:
     m_OverrideState: 0
     m_Value: 2.4222004
-    min: 0
   upperHemisphereLuxColor:
     m_OverrideState: 0
     m_Value: {x: 0, y: 0, z: 0}
@@ -45,34 +40,35 @@ MonoBehaviour:
   updatePeriod:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
   includeSunInBaking:
     m_OverrideState: 0
     m_Value: 0
   hdriSky:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: 5fb993a599e7e9b4b825e1a28e6d2c07, type: 3}
-  enableDistortion:
+  distortionMode:
     m_OverrideState: 0
     m_Value: 0
-  procedural:
-    m_OverrideState: 0
-    m_Value: 1
   flowmap:
     m_OverrideState: 0
     m_Value: {fileID: 0}
   upperHemisphereOnly:
     m_OverrideState: 0
     m_Value: 1
-  scrollDirection:
+  scrollOrientation:
     m_OverrideState: 0
-    m_Value: 0
-    min: 0
-    max: 360
+    m_Value:
+      mode: 1
+      customValue: 0
+      additiveValue: 0
+      multiplyValue: 1
   scrollSpeed:
     m_OverrideState: 0
-    m_Value: 2
-    min: 0
+    m_Value:
+      mode: 1
+      customValue: 100
+      additiveValue: 0
+      multiplyValue: 1
   enableBackplate:
     m_OverrideState: 0
     m_Value: 0
@@ -88,31 +84,21 @@ MonoBehaviour:
   projectionDistance:
     m_OverrideState: 0
     m_Value: 16
-    min: 0.0000001
   plateRotation:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
-    max: 360
   plateTexRotation:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
-    max: 360
   plateTexOffset:
     m_OverrideState: 0
     m_Value: {x: 0, y: 0}
   blendAmount:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
-    max: 100
   shadowTint:
     m_OverrideState: 0
     m_Value: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-    hdr: 0
-    showAlpha: 1
-    showEyeDropper: 1
   pointLightShadow:
     m_OverrideState: 0
     m_Value: 0
@@ -122,6 +108,19 @@ MonoBehaviour:
   rectLightShadow:
     m_OverrideState: 0
     m_Value: 0
+  m_SkyVersion: 1
+  enableDistortion:
+    m_OverrideState: 0
+    m_Value: 0
+  procedural:
+    m_OverrideState: 0
+    m_Value: 1
+  scrollDirection:
+    m_OverrideState: 0
+    m_Value: 0
+  m_ObsoleteScrollSpeed:
+    m_OverrideState: 0
+    m_Value: 2
 --- !u!114 &-1910636803690822243
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -135,7 +134,6 @@ MonoBehaviour:
   m_Name: AmbientOcclusion
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   quality:
     m_OverrideState: 1
     m_Value: 3
@@ -145,75 +143,62 @@ MonoBehaviour:
   intensity:
     m_OverrideState: 1
     m_Value: 1
-    min: 0
-    max: 4
   directLightingStrength:
     m_OverrideState: 1
     m_Value: 0.8
-    min: 0
-    max: 1
   radius:
     m_OverrideState: 0
     m_Value: 2
-    min: 0.25
-    max: 5
+  spatialBilateralAggressiveness:
+    m_OverrideState: 0
+    m_Value: 0.15
   temporalAccumulation:
     m_OverrideState: 0
     m_Value: 1
   ghostingReduction:
     m_OverrideState: 0
     m_Value: 0.5
-    min: 0
-    max: 1
   blurSharpness:
     m_OverrideState: 0
     m_Value: 0.1
-    min: 0
-    max: 1
   layerMask:
     m_OverrideState: 0
     m_Value:
       serializedVersion: 2
-      m_Bits: 4294967295
+      m_Bits: 1847
+  occluderMotionRejection:
+    m_OverrideState: 0
+    m_Value: 1
+  receiverMotionRejection:
+    m_OverrideState: 0
+    m_Value: 1
   m_StepCount:
     m_OverrideState: 0
     m_Value: 6
-    min: 2
-    max: 32
   m_FullResolution:
     m_OverrideState: 0
     m_Value: 0
   m_MaximumRadiusInPixels:
     m_OverrideState: 0
     m_Value: 40
-    min: 16
-    max: 256
   m_BilateralUpsample:
     m_OverrideState: 0
     m_Value: 1
   m_DirectionCount:
     m_OverrideState: 0
     m_Value: 2
-    min: 1
-    max: 6
   m_RayLength:
     m_OverrideState: 1
     m_Value: 0.2
-    min: 0
-    max: 50
   m_SampleCount:
     m_OverrideState: 1
     m_Value: 2
-    min: 1
-    max: 64
   m_Denoise:
     m_OverrideState: 1
     m_Value: 0
   m_DenoiserRadius:
     m_OverrideState: 0
-    m_Value: 16
-    min: 1
-    max: 32
+    m_Value: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -242,14 +227,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d7593b3a9277ac4696b20006c21dde2, type: 3}
   m_Name: VisualEnvironment
   m_EditorClassIdentifier: 
-  active: 0
-  m_AdvancedMode: 0
+  active: 1
   skyType:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 1
-  skyAmbientMode:
+  cloudType:
     m_OverrideState: 0
     m_Value: 0
+  skyAmbientMode:
+    m_OverrideState: 1
+    m_Value: 0
+  windOrientation:
+    m_OverrideState: 0
+    m_Value: 0
+  windSpeed:
+    m_OverrideState: 0
+    m_Value: 100
   fogType:
     m_OverrideState: 0
     m_Value: 0

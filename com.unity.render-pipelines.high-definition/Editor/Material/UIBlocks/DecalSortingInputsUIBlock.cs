@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -53,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         protected override void OnGUIOpen()
         {
-            materialEditor.ShaderProperty(drawOrder, Styles.drawOrderText);
+            materialEditor.IntSliderShaderProperty(drawOrder, -HDRenderQueue.meshDecalPriorityRange, HDRenderQueue.meshDecalPriorityRange, Styles.drawOrderText);
             materialEditor.ShaderProperty(decalMeshBiasType, Styles.meshDecalBiasType);
             if ((int)decalMeshBiasType.floatValue == (int)DecalMeshDepthBiasType.DepthBias)
             {

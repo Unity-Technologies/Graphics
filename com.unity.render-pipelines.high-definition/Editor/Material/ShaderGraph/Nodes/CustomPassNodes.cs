@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Input", "High Definition Render Pipeline", "Custom Color Buffer")]
-    class CustomColorBufferNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireScreenPosition
+    class CustomColorBufferNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireScreenPosition, IMayRequireNDCPosition, IMayRequirePixelPosition
     {
         public CustomColorBufferNode()
         {
@@ -51,12 +51,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine($"$precision4 {GetVariableNameForSlot(kColorOutputSlotId)} = SampleCustomColor({uv}.xy);");
         }
 
-        public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
+        public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) =>
+            FindSlot<MaterialSlot>(kUvInputSlotId)?.RequiresScreenPosition(stageCapability) ?? false;
+
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) =>
+            FindSlot<MaterialSlot>(kUvInputSlotId)?.RequiresNDCPosition(stageCapability) ?? false;
+
+        public bool RequiresPixelPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) =>
+            FindSlot<MaterialSlot>(kUvInputSlotId)?.RequiresPixelPosition(stageCapability) ?? false;
     }
 
     [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Input", "High Definition Render Pipeline", "Custom Depth Buffer")]
-    class CustomDepthBufferNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireScreenPosition
+    class CustomDepthBufferNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireScreenPosition, IMayRequireNDCPosition, IMayRequirePixelPosition
     {
         public CustomDepthBufferNode()
         {
@@ -120,6 +127,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine($"$precision {GetVariableNameForSlot(kDepthOutputSlotId)} = {depthValue};");
         }
 
-        public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
+        public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) =>
+            FindSlot<MaterialSlot>(kUvInputSlotId)?.RequiresScreenPosition(stageCapability) ?? false;
+
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) =>
+            FindSlot<MaterialSlot>(kUvInputSlotId)?.RequiresNDCPosition(stageCapability) ?? false;
+
+        public bool RequiresPixelPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) =>
+            FindSlot<MaterialSlot>(kUvInputSlotId)?.RequiresPixelPosition(stageCapability) ?? false;
     }
 }

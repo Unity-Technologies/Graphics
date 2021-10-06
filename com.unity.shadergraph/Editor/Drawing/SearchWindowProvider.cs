@@ -154,6 +154,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateSubgraphAssets");
             foreach (var asset in NodeClassCache.knownSubGraphAssets)
             {
+                if (asset == null)
+                    continue;
+
                 var node = new SubGraphNode { asset = asset };
                 var title = asset.path.Split('/').ToList();
 

@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Input", "High Definition Render Pipeline", "HD Scene Color")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDSceneColorNode")]
-    class HDSceneColorNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireCameraOpaqueTexture, IMayRequireScreenPosition
+    class HDSceneColorNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireCameraOpaqueTexture, IMayRequireScreenPosition, IMayRequireNDCPosition, IMayRequirePixelPosition
     {
         public HDSceneColorNode()
         {
@@ -112,9 +112,14 @@ namespace UnityEditor.Rendering.HighDefinition
             return true;
         }
 
-        public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All)
-        {
-            return true;
-        }
+        public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) =>
+            FindSlot<MaterialSlot>(kUvInputSlotId)?.RequiresScreenPosition(stageCapability) ?? false;
+
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) =>
+            FindSlot<MaterialSlot>(kUvInputSlotId)?.RequiresNDCPosition(stageCapability) ?? false;
+
+        public bool RequiresPixelPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) =>
+            FindSlot<MaterialSlot>(kUvInputSlotId)?.RequiresPixelPosition(stageCapability) ?? false;
+
     }
 }

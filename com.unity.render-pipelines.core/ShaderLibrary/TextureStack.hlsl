@@ -95,6 +95,11 @@ struct VTProperty
 #define RESOLVE_SCALE_OVERRIDE float2(1,1)
 #endif
 
+#ifndef VT_CACHE_SAMPLER
+    #define VT_CACHE_SAMPLER sampler_clamp_trilinear_aniso4
+    SAMPLER(VT_CACHE_SAMPLER);
+#endif
+
 StructuredBuffer<GraniteTilesetConstantBuffer> _VTTilesetBuffer;
 
 #define DECLARE_STACK_CB(stackName) \
@@ -153,29 +158,7 @@ GraniteTilesetConstantBuffer GetConstantBuffer(GraniteStreamingTextureConstantBu
 #define jj(a, b) jj2(a, b)
 
 #define DECLARE_STACK_LAYER(stackName, layerSamplerName, layerIndex) \
-TEXTURE2D_ARRAY(stackName##_c##layerIndex);\
-SAMPLER(sampler##stackName##_c##layerIndex);\
-\
-float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quality)\
-{\
-    GraniteStreamingTextureConstantBuffer textureParamBlock;\
-    textureParamBlock.data[0] = stackName##_atlasparams[0];\
-    textureParamBlock.data[1] = stackName##_atlasparams[1];\
-\
-    GraniteTilesetConstantBuffer graniteParamBlock = GetConstantBuffer_##stackName(); \
-\
-    GraniteConstantBuffers grCB;\
-    grCB.tilesetBuffer = graniteParamBlock;\
-    grCB.streamingTextureBuffer = textureParamBlock;\
-\
-    GraniteCacheTexture cache;\
-    cache.TextureArray = stackName##_c##layerIndex;\
-    cache.Sampler = sampler##stackName##_c##layerIndex;\
-\
-    float4 output;\
-    VirtualTexturingSample(grCB.tilesetBuffer, info.lookupData, cache, layerIndex, lodCalculation, quality, output);\
-    return output;\
-}
+TEXTURE2D_ARRAY(stackName##_c##layerIndex);
 
 #define DECLARE_BUILD_PROPERTIES(stackName, layers, layer0Index, layer1Index, layer2Index, layer3Index)\
     VTProperty BuildVTProperties_##stackName()\
@@ -199,13 +182,13 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
         vtProperty.layerIndex[3] = layer3Index; \
         \
         vtProperty.cacheLayer[0].TextureArray = stackName##_c##layer0Index; \
-        vtProperty.cacheLayer[0].Sampler = sampler##stackName##_c##layer0Index;\
+        ASSIGN_SAMPLER(vtProperty.cacheLayer[0].Sampler, VT_CACHE_SAMPLER);\
         vtProperty.cacheLayer[1].TextureArray = stackName##_c##layer1Index; \
-        vtProperty.cacheLayer[1].Sampler = sampler##stackName##_c##layer1Index;\
+        ASSIGN_SAMPLER(vtProperty.cacheLayer[1].Sampler, VT_CACHE_SAMPLER);\
         vtProperty.cacheLayer[2].TextureArray = stackName##_c##layer2Index; \
-        vtProperty.cacheLayer[2].Sampler = sampler##stackName##_c##layer2Index;\
+        ASSIGN_SAMPLER(vtProperty.cacheLayer[2].Sampler, VT_CACHE_SAMPLER);\
         vtProperty.cacheLayer[3].TextureArray = stackName##_c##layer3Index; \
-        vtProperty.cacheLayer[3].Sampler = sampler##stackName##_c##layer3Index;\
+        ASSIGN_SAMPLER(vtProperty.cacheLayer[3].Sampler, VT_CACHE_SAMPLER);\
         \
         return vtProperty; \
     }

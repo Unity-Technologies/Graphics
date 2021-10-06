@@ -157,27 +157,6 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXSRPBinder
-    {
-        abstract public string templatePath { get; }
-        virtual public string runtimePath { get { return templatePath; } } //optional different path for .hlsl included in runtime
-        abstract public string SRPAssetTypeStr { get; }
-        abstract public Type SRPOutputDataType { get; }
-
-        public virtual void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null) { }
-
-        public virtual VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(VFXMaterialSerializedSettings materialSettings)
-        {
-            return VFXAbstractRenderedOutput.BlendMode.Opaque;
-        }
-
-        public virtual bool TransparentMotionVectorEnabled(Material mat) => true;
-
-        public virtual string GetShaderName(ShaderGraphVfxAsset shaderGraph) => string.Empty;
-
-        public virtual bool IsGraphDataValid(GraphData graph) => false;
-    }
-
     static class VFXLibrary
     {
         public static IEnumerable<VFXModelDescriptor<VFXContext>> GetContexts() { LoadIfNeeded(); return VFXViewPreference.displayExperimentalOperator ? m_ContextDescs : m_ContextDescs.Where(o => !o.info.experimental); }
@@ -186,6 +165,12 @@ namespace UnityEditor.VFX
         public static IEnumerable<VFXModelDescriptor<VFXSlot>> GetSlots() { LoadSlotsIfNeeded(); return m_SlotDescs.Values; }
         public static IEnumerable<Type> GetSlotsType() { LoadSlotsIfNeeded(); return m_SlotDescs.Keys; }
         public static bool IsSpaceableSlotType(Type type) { LoadSlotsIfNeeded(); return m_SlotSpaceable.Contains(type); }
+        public static VFXTypeAttribute GetAttributeFromSlotType(Type type)
+        {
+            LoadSlotsIfNeeded();
+            m_SlotAttribute.TryGetValue(type, out var attribute);
+            return attribute;
+        }
 
         public static IEnumerable<VFXModelDescriptorParameters> GetParameters() { LoadIfNeeded(); return m_ParametersDescs; }
 
@@ -306,6 +291,14 @@ namespace UnityEditor.VFX
                             m_SlotSpaceable.Add(slotDescType);
                         }
                     }
+
+                    m_SlotAttribute = new Dictionary<Type, VFXTypeAttribute>();
+                    foreach (var slotDescType in m_SlotDescs.Keys)
+                    {
+                        var attribute = slotDescType.GetCustomAttributes(typeof(VFXTypeAttribute), true).FirstOrDefault() as VFXTypeAttribute;
+                        m_SlotAttribute.Add(slotDescType, attribute);
+                    }
+
                     m_SlotLoaded = true;
                 }
             }
@@ -630,6 +623,7 @@ namespace UnityEditor.VFX
         private static volatile List<VFXModelDescriptorParameters> m_ParametersDescs;
         private static volatile Dictionary<Type, VFXModelDescriptor<VFXSlot>> m_SlotDescs;
         private static volatile HashSet<Type> m_SlotSpaceable;
+        private static volatile Dictionary<Type, VFXTypeAttribute> m_SlotAttribute;
 
         private static Object m_Lock = new Object();
         private static volatile bool m_Loaded = false;

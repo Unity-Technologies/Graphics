@@ -4,7 +4,6 @@
 # Read more under .yamato/docs/readme.md
 
 {% metadata_file .yamato/_cache_config.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -28,8 +27,7 @@ editor-pinning-update:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git checkout $GIT_BRANCH
-      -  python3 .yamato/script/editor_scripts/update_revisions.py --track trunk --ono-branch $ONO_BRANCH_TRUNK --api-key $ONO_API_KEY --commit-and-push --nr-commits-to-retrieve 1
-      -  python3 .yamato/script/editor_scripts/update_revisions.py --track 2021.2 --ono-branch $ONO_BRANCH_2021_2 --api-key $ONO_API_KEY --commit-and-push --nr-commits-to-retrieve 100
+      -  python3 .yamato/script/editor_scripts/update_revisions.py --track trunk --ono-branch $ONO_BRANCH_TRUNK --api-key $ONO_API_KEY --commit-and-push --nr-commits-to-retrieve 100
     triggers:
         recurring:
           -  branch: master

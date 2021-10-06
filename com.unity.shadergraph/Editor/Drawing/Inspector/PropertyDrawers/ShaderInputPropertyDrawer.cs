@@ -159,6 +159,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return propertySheet;
         }
 
+        void IPropertyDrawer.DisposePropertyDrawer() { }
+
         void BuildPropertyNameLabel(PropertySheet propertySheet)
         {
             string prefix;

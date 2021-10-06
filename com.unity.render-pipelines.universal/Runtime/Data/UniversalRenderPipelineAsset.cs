@@ -161,7 +161,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_RequireOpaqueTexture = false;
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] bool m_SupportsTerrainHoles = true;
-        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
@@ -198,6 +197,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
+        [SerializeField] bool m_ConservativeEnclosingSphere = false;
+        [SerializeField] int m_NumIterationsEnclosingSphere = 64;
 
         // Light Cookie Settings
         [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
@@ -209,6 +210,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_MixedLightingSupported = true;
         [SerializeField] bool m_SupportsLightLayers = false;
         [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
+        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
@@ -259,6 +261,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
+
+            // Only enable for new URP assets by default
+            instance.m_ConservativeEnclosingSphere = true;
 
             return instance;
         }
@@ -362,6 +367,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 // If previous version and current version are miss-matched then we are waiting for the upgrader to kick in
                 if (k_AssetPreviousVersion != k_AssetVersion)
+                    return null;
+
+                if (m_RendererDataList[m_DefaultRendererIndex].GetType().ToString()
+                    .Contains("Universal.ForwardRendererData"))
                     return null;
 
                 Debug.LogError(
@@ -907,6 +916,18 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseAdaptivePerformance; }
             set { m_UseAdaptivePerformance = value; }
+        }
+
+        public bool conservativeEnclosingSphere
+        {
+            get { return m_ConservativeEnclosingSphere; }
+            set { m_ConservativeEnclosingSphere = value; }
+        }
+
+        public int numItertionsEnclosingSphere
+        {
+            get { return m_NumIterationsEnclosingSphere; }
+            set { m_NumIterationsEnclosingSphere = value; }
         }
 
         public override Material defaultMaterial
