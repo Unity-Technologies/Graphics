@@ -310,8 +310,20 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        // Separate Preserve Specular Lighting from Premultiplied blend mode
-        // Previous (broken) premultiplied blend mode --> Alpha blend mode + Preserve Specular Lighting
+        // Separate Preserve Specular Lighting from Premultiplied blend mode.
+        // Update materials params for backwards compatibility. (Keep the same end result).
+        // - Previous (incorrect) premultiplied blend mode --> Alpha blend mode + Preserve Specular Lighting
+        // - Otherwise keep the blend mode and disable Preserve Specular Lighting
+        // - Correct premultiply mode is not possible in V5.
+        //
+        // This is run both hand-written and shadergraph materials.
+        //
+        // Hand-written and overridable shadergraphs always have blendModePreserveSpecular property, which
+        // is assumed to be new since we only run this for V5 -> V6 upgrade.
+        //
+        // Fixed shadergraphs do not have this keyword and are filtered out.
+        // The blend mode is baked in the generated shader, so there's no material properties to be upgraded.
+        // The shadergraph upgrade on re-import will handle the fixed shadergraphs.
         static void UpgradeV6(Material material, ShaderID shaderID)
         {
             var surfaceTypePID = Shader.PropertyToID(Property.SurfaceType);
