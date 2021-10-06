@@ -109,6 +109,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public TonemappingModeParameter mode = new TonemappingModeParameter(TonemappingMode.None);
 
         /// <summary>
+        /// Whether to use full ACES tonemap instead of an approximation.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Whether to use full ACES tonemap instead of an approximation.")]
+        public BoolParameter useFullACES = new BoolParameter(false);
+
+        /// <summary>
         /// Controls the transition between the toe and the mid section of the curve. A value of 0
         /// results in no transition and a value of 1 results in a very hard transition.
         /// This parameter is only used when <see cref="TonemappingMode.Custom"/> is set.

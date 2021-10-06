@@ -3885,7 +3885,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (passData.tonemappingMode)
                 {
                     case TonemappingMode.Neutral: passData.builderCS.EnableKeyword("TONEMAPPING_NEUTRAL"); break;
-                    case TonemappingMode.ACES: passData.builderCS.EnableKeyword("TONEMAPPING_ACES"); break;
+                    case TonemappingMode.ACES: passData.builderCS.EnableKeyword(m_Tonemapping.useFullACES.value ? "TONEMAPPING_ACES_FULL" : "TONEMAPPING_ACES_APPROX"); break;
                     case TonemappingMode.Custom: passData.builderCS.EnableKeyword("TONEMAPPING_CUSTOM"); break;
                     case TonemappingMode.External: passData.builderCS.EnableKeyword("TONEMAPPING_EXTERNAL"); break;
                 }

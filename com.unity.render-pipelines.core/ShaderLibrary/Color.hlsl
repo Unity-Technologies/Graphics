@@ -604,7 +604,9 @@ real3 CustomTonemap(real3 x, real3 curve, real4 toeSegmentA, real2 toeSegmentB, 
 
 // Filmic tonemapping (ACES fitting, unless TONEMAPPING_USE_FULL_ACES is set to 1)
 // Input is ACES2065-1 (AP0 w/ linear encoding)
+#ifndef TONEMAPPING_USE_FULL_ACES
 #define TONEMAPPING_USE_FULL_ACES 0
+#endif
 
 float3 AcesTonemap(float3 aces)
 {

@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
     sealed class TonemappingEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Mode;
+        SerializedDataParameter m_UseFullACES;
         SerializedDataParameter m_ToeStrength;
         SerializedDataParameter m_ToeLength;
         SerializedDataParameter m_ShoulderStrength;
@@ -44,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var o = new PropertyFetcher<Tonemapping>(serializedObject);
 
             m_Mode = Unpack(o.Find(x => x.mode));
+            m_UseFullACES = Unpack(o.Find(x => x.useFullACES));
             m_ToeStrength = Unpack(o.Find(x => x.toeStrength));
             m_ToeLength = Unpack(o.Find(x => x.toeLength));
             m_ShoulderStrength = Unpack(o.Find(x => x.shoulderStrength));
@@ -149,6 +151,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_LutContribution, EditorGUIUtility.TrTextContent("Contribution"));
 
                 EditorGUILayout.HelpBox("Use \"Edit > Rendering > Render Selected HDRP Camera to Log EXR\" to export a log-encoded frame for external grading.", MessageType.Info);
+            }
+            else if (m_Mode.value.intValue == (int)TonemappingMode.ACES)
+            {
+                PropertyField(m_UseFullACES);
             }
 
             if (hdrInPlayerSettings)
