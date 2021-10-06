@@ -402,10 +402,36 @@ namespace UnityEngine.Rendering.HighDefinition
             var obb = probeVolume.GetProbeVolumeEngineDataBoundingBox();
             var data = probeVolume.GetProbeVolumeEngineData();
 
+            switch (giSettings.neighboringVolumePropagationMode.value)
+            {
+                case ProbeDynamicGI.DynamicGINeighboringVolumePropagationMode.SampleNeighborsDirectionOnly:
+                {
+                    CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_DIRECTION_ONLY", true);
+                    CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION", false);
+                    break;
+                }
+                case ProbeDynamicGI.DynamicGINeighboringVolumePropagationMode.SampleNeighborsPositionAndDirection:
+                {
+                    CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_DIRECTION_ONLY", false);
+                    CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION", true);
+                    break;
+                }
+                case ProbeDynamicGI.DynamicGINeighboringVolumePropagationMode.Disabled:
+                default:
+                {
+                    CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_DIRECTION_ONLY", false);
+                    CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION", false);
+                    break;
+                }
+            }
+
+            cmd.SetComputeFloatParam(shader, "_ProbeVolumeDGIMaxNeighborDistance", data.maxNeighborDistance);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionXY", (int)data.resolutionXY);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionX", (int)data.resolutionX);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionY", (int)data.resolution.y);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionZ", (int)data.resolution.z);
+            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGILightLayers", unchecked((int)data.lightLayers));
+            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIEngineDataIndex", probeVolume.GetProbeVolumeEngineDataIndex());
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIResolutionInverse", data.resolutionInverse);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsRight", obb.right);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsUp", obb.up);

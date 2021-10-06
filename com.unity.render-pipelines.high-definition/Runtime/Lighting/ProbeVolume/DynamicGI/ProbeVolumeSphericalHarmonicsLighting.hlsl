@@ -295,6 +295,7 @@ SHIncomingIrradiance SHIncomingIrradianceCompute(SHOutgoingRadiosity shOutgoingR
 
     SHIncomingIrradiance shIncomingIrradiance;
 
+    [unroll]
     for (int i = 0; i < SH_COEFFICIENT_COUNT; ++i)
     {
         shIncomingIrradiance.data[i] = (shOutgoingRadiosity.data[i] / shConvolveCosineLobeConstants[i]) * PI;
