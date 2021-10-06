@@ -2587,7 +2587,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 SetProbeVolumeList(probeVolumes);
 
                 // Frustum cull probe volumes on the CPU. Can be performed as soon as the camera is set up.
-                MaskVolumeList maskVolumes = PrepareVisibleMaskVolumeList(renderContext, hdCamera, cmd);
+                MaskVolumeList maskVolumes = PrepareVisibleMaskVolumeList(hdCamera, cmd, m_RenderGraph);
 
                 // Note: Legacy Unity behave like this for ShadowMask
                 // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
@@ -2960,7 +2960,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                     }
 
-                    DispatchProbeVolumeDynamicGI(renderContext, hdCamera, cmd);
+                    ProbeVolumeDynamicGICommonData commonData = PrepareProbeVolumeDynamicGIData(hdCamera);
+                    if (commonData.mode != ProbeVolumeDynamicGIMode.None)
+                    {
+                        ExecuteProbeVolumeDynamicGI(cmd, commonData, m_ProbeVolumeAtlasSHRTHandle);
+                    }
 
                     hdCamera.xr.StartSinglePass(cmd);
 

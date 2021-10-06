@@ -6,6 +6,14 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        class PushLightListGlobalParamsPassData
+        {
+            public LightLoopGlobalParameters parameters;
+            public ComputeBufferHandle bigTileLightList;
+            public ComputeBufferHandle perVoxelOffset;
+            public ComputeBufferHandle perVoxelLightLists;
+        }
+
         Material m_DepthResolveMaterial;
         // Need to cache to avoid alloc of arrays...
         GBufferOutput m_GBufferOutput;
@@ -36,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthBufferMipChainInfo.Allocate();
 
             m_DepthPyramidDesc = new TextureDesc(ComputeDepthBufferMipChainSize, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "CameraDepthBufferMipChain" };
+            { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "CameraDepthBufferMipChain" };
 
         }
 
@@ -59,33 +67,33 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Buffers that may be output by the prepass.
             // They will be MSAA depending on the frame settings
-            public TextureHandle        depthBuffer;
-            public TextureHandle        depthAsColor;
-            public TextureHandle        normalBuffer;
-            public TextureHandle        motionVectorsBuffer;
+            public TextureHandle depthBuffer;
+            public TextureHandle depthAsColor;
+            public TextureHandle normalBuffer;
+            public TextureHandle motionVectorsBuffer;
 
             // GBuffer output. Will also contain a reference to the normal buffer (as it is shared between deferred and forward objects)
-            public GBufferOutput        gbuffer;
+            public GBufferOutput gbuffer;
 
-            public DBufferOutput        dbuffer;
+            public DBufferOutput dbuffer;
 
             // Additional buffers only for MSAA
-            public TextureHandle        depthValuesMSAA;
+            public TextureHandle depthValuesMSAA;
 
             // Resolved buffers for MSAA. When MSAA is off, they will be the same reference as the buffers above.
-            public TextureHandle        resolvedDepthBuffer;
-            public TextureHandle        resolvedNormalBuffer;
-            public TextureHandle        resolvedMotionVectorsBuffer;
+            public TextureHandle resolvedDepthBuffer;
+            public TextureHandle resolvedNormalBuffer;
+            public TextureHandle resolvedMotionVectorsBuffer;
 
             // Copy of the resolved depth buffer with mip chain
-            public TextureHandle        depthPyramidTexture;
+            public TextureHandle depthPyramidTexture;
             // Depth buffer used for low res transparents.
-            public TextureHandle        downsampledDepthBuffer;
+            public TextureHandle downsampledDepthBuffer;
 
-            public TextureHandle        stencilBuffer;
-            public ComputeBufferHandle  coarseStencilBuffer;
+            public TextureHandle stencilBuffer;
+            public ComputeBufferHandle coarseStencilBuffer;
 
-            public TextureHandle        flagMaskBuffer;
+            public TextureHandle flagMaskBuffer;
         }
 
         TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, bool msaa)
@@ -98,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             TextureDesc depthDesc = new TextureDesc(Vector2.one, true, true)
-                { depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"
+            { depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"
 #if UNITY_2020_2_OR_NEWER
                 , fastMemoryDesc = fastMemDesc
 #endif
@@ -117,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             TextureDesc normalDesc = new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = NeedClearGBuffer(hdCamera), clearColor = Color.black, bindTextureMS = msaa, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "NormalBufferMSAA" : "NormalBuffer"
+            { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = NeedClearGBuffer(hdCamera), clearColor = Color.black, bindTextureMS = msaa, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "NormalBufferMSAA" : "NormalBuffer"
 #if UNITY_2020_2_OR_NEWER
                 , fastMemoryDesc = fastMemDesc
 #endif
@@ -129,14 +137,14 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateDecalPrepassBuffer(RenderGraph renderGraph, bool msaa)
         {
             TextureDesc decalDesc = new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.clear, bindTextureMS = false, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "DecalPrepassBufferMSAA" : "DecalPrepassBuffer" };
+            { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.clear, bindTextureMS = false, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "DecalPrepassBufferMSAA" : "DecalPrepassBuffer" };
             return renderGraph.CreateTexture(decalDesc);
         }
 
         TextureHandle CreateMotionVectorBuffer(RenderGraph renderGraph, bool msaa, bool clear)
         {
             TextureDesc motionVectorDesc = new TextureDesc(Vector2.one, true, true)
-                { colorFormat = Builtin.GetMotionVectorFormat(), bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, clearColor = Color.clear, name = msaa ? "Motion Vectors MSAA" : "Motion Vectors" };
+            { colorFormat = Builtin.GetMotionVectorFormat(), bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, clearColor = Color.clear, name = msaa ? "Motion Vectors MSAA" : "Motion Vectors" };
             return renderGraph.CreateTexture(motionVectorDesc);
         }
 
@@ -172,15 +180,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        PrepassOutput RenderPrepass(RenderGraph     renderGraph,
-                                    TextureHandle   colorBuffer,
-                                    TextureHandle   sssBuffer,
-                                    TextureHandle   vtFeedbackBuffer,
-                                    CullingResults  cullingResults,
-                                    CullingResults  customPassCullingResults,
-                                    HDCamera        hdCamera,
-                                    AOVRequestData  aovRequest,
-                                    List<RTHandle>  aovBuffers)
+        PrepassOutput RenderPrepass(RenderGraph renderGraph,
+                                    TextureHandle colorBuffer,
+                                    TextureHandle sssBuffer,
+                                    TextureHandle vtFeedbackBuffer,
+                                    CullingResults cullingResults,
+                                    CullingResults customPassCullingResults,
+                                    HDCamera hdCamera,
+                                    AOVRequestData aovRequest,
+                                    List<RTHandle> aovBuffers)
         {
             m_IsDepthBufferCopyValid = false;
 
@@ -218,7 +226,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 BuildGPULightListOutput probeVolumeListOutput = new BuildGPULightListOutput();
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
                 {
-                    probeVolumeListOutput = BuildGPULightList(renderGraph, hdCamera, m_ProbeVolumeClusterData, m_ProbeVolumeCount, ref m_ShaderVariablesProbeVolumeLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
+                    probeVolumeListOutput = BuildGPULightList(
+                        renderGraph,
+                        hdCamera,
+                        m_ProbeVolumeClusterData,
+                        m_ProbeVolumeCount,
+                        ref m_ShaderVariablesProbeVolumeLightListCB,
+                        result.depthBuffer,
+                        result.stencilBuffer,
+                        result.gbuffer);
+                }
+
+                BuildGPULightListOutput maskVolumeListOutput = new BuildGPULightListOutput();
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume))
+                {
+                    maskVolumeListOutput = BuildGPULightList(
+                        renderGraph,
+                        hdCamera,
+                        m_MaskVolumeClusterData,
+                        m_MaskVolumeCount,
+                        ref m_ShaderVariablesMaskVolumeLightListCB,
+                        result.depthBuffer,
+                        result.stencilBuffer,
+                        result.gbuffer);
                 }
 
                 bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result, out var decalBuffer);
@@ -244,6 +274,56 @@ namespace UnityEngine.Rendering.HighDefinition
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
 
                 RenderDBuffer(renderGraph, hdCamera, decalBuffer, ref result, cullingResults);
+
+                // When evaluating probe volumes in material pass, we build a custom probe volume light list.
+                // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
+                {
+                    using (var builder = renderGraph.AddRenderPass<PushLightListGlobalParamsPassData>("PushProbeVolumeLightListGlobalParams", out var passData))
+                    {
+                        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                        passData.parameters = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_ProbeVolumeClusterData);
+
+                        passData.perVoxelOffset = builder.ReadComputeBuffer(probeVolumeListOutput.perVoxelOffset);
+                        passData.perVoxelLightLists = builder.ReadComputeBuffer(probeVolumeListOutput.perVoxelLightLists);
+
+                        passData.bigTileLightList = ComputeBufferHandle.nullHandle;
+                        if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                            passData.bigTileLightList = builder.ReadComputeBuffer(probeVolumeListOutput.bigTileLightList);
+
+                        builder.SetRenderFunc((PushLightListGlobalParamsPassData passData, RenderGraphContext ctx) =>
+                            DoPushProbeVolumeLightListGlobalParams(
+                                ctx.cmd,
+                                passData.perVoxelOffset,
+                                passData.perVoxelLightLists,
+                                passData.bigTileLightList));
+                    }
+
+                }
+
+                // Mask volumes always use a custom light list
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume))
+                {
+                    using (var builder = renderGraph.AddRenderPass<PushLightListGlobalParamsPassData>("PushMaskVolumeLightListGlobalParams", out var passData))
+                    {
+                        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                        passData.parameters = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_MaskVolumeClusterData);
+
+                        passData.perVoxelOffset = builder.ReadComputeBuffer(maskVolumeListOutput.perVoxelOffset);
+                        passData.perVoxelLightLists = builder.ReadComputeBuffer(maskVolumeListOutput.perVoxelLightLists);
+
+                        passData.bigTileLightList = ComputeBufferHandle.nullHandle;
+                        if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                            passData.bigTileLightList = builder.ReadComputeBuffer(maskVolumeListOutput.bigTileLightList);
+
+                        builder.SetRenderFunc((PushLightListGlobalParamsPassData passData, RenderGraphContext ctx) =>
+                            DoPushMaskVolumeLightListGlobalParams(
+                                ctx.cmd,
+                                passData.perVoxelOffset,
+                                passData.perVoxelLightLists,
+                                passData.bigTileLightList));
+                    }
+                }
 
                 RenderGBuffer(renderGraph, sssBuffer, vtFeedbackBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
 
