@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
@@ -15,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public Material overrideMaterial { get; set; }
         public int overrideMaterialPassIndex { get; set; }
+        public CameraTypeMask cameraTypeMask { get; set; } = CameraTypeMaskUtility.allTypes;
 
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
 
@@ -79,6 +79,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (!cameraTypeMask.Contains(renderingData.cameraData.cameraType))
+            {
+                return;
+            }
+
             SortingCriteria sortingCriteria = (renderQueueType == RenderQueueType.Transparent)
                 ? SortingCriteria.CommonTransparent
                 : renderingData.cameraData.defaultOpaqueSortFlags;
