@@ -70,11 +70,20 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
 
-            if (m_ActivationSlot == null)
+            if (m_ActivationSlot == null || m_ActivationSlot.name != "_vfx_enabled")
             {
-                var prop = new VFXPropertyWithValue(new VFXProperty(typeof(bool), "enabled"), !m_Disabled);
+                var oldSlot = m_ActivationSlot;
+
+                var prop = new VFXPropertyWithValue(new VFXProperty(typeof(bool), "_vfx_enabled"), !m_Disabled);
                 m_ActivationSlot = VFXSlot.Create(prop, VFXSlot.Direction.kInput);
                 m_ActivationSlot.SetOwner(this);
+
+                if (oldSlot != null)
+                {
+                    VFXSlot.CopyLinksAndValue(m_ActivationSlot, oldSlot, false);
+                    oldSlot.UnlinkAll(false, false);
+                    DestroyImmediate(oldSlot);
+                }
             }
         }
 

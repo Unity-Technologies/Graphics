@@ -76,7 +76,10 @@ namespace UnityEditor.VFX.UI
             var newAnchors = new List<VFXDataAnchorController>();
 
             m_SyncingSlots = true;
-            bool changed = UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
+            bool changed = false;
+            if (slotContainer.activationSlot != null)
+                changed = UpdateSlots(newAnchors, new[] { slotContainer.activationSlot }, true, true);
+            changed |= UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
             NewInputSet(newAnchors);
 
             foreach (var anchorController in m_InputPorts.Except(newAnchors))

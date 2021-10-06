@@ -785,7 +785,7 @@ namespace UnityEditor.VFX
         private static void BuildBlock(VFXContextCompiledData contextData, List<VFXSlot> linkedEventOut, VFXShaderWriter blockFunction, VFXShaderWriter blockCallFunction, HashSet<string> blockDeclared, Dictionary<VFXExpression, string> expressionToName, VFXBlock block, ref int blockIndex)
         {
             // Check enabled state
-            VFXExpression enabledExp = contextData.gpuMapper.FromNameAndId("enabled",blockIndex);
+            VFXExpression enabledExp = contextData.gpuMapper.FromNameAndId("_vfx_enabled",blockIndex);
             bool needsEnabledCheck = !enabledExp.Is(VFXExpression.Flags.Constant);
             if (!needsEnabledCheck && !enabledExp.Get<bool>())
                 throw new ArgumentException("This method should not be called on a disabled block");
