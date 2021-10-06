@@ -166,16 +166,16 @@ MonoBehaviour:
   active: 1
   normalBias:
     m_OverrideState: 1
-    m_Value: 0.731
+    m_Value: 1.088
   viewBias:
     m_OverrideState: 1
-    m_Value: 0.225
+    m_Value: 0.59
   scaleBiasWithMinProbeDistance:
     m_OverrideState: 1
     m_Value: 1
   samplingNoise:
     m_OverrideState: 1
-    m_Value: 0.125
+    m_Value: 0.078
 --- !u!114 &-4145478425724808730
 MonoBehaviour:
   m_ObjectHideFlags: 3
