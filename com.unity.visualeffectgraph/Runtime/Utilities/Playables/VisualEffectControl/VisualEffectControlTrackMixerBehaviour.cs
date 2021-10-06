@@ -57,6 +57,8 @@ namespace UnityEngine.VFX
                 vfx.Stop(); //Workaround
             }
 
+            static readonly double epsilon = (double)Mathf.Epsilon;
+
             public void JumpToFrame(double globalTime, float deltaTime, VisualEffect vfx)
             {
                 if (vfx == null)
@@ -84,18 +86,15 @@ namespace UnityEngine.VFX
                     m_LastChunk = currentChunkIndex;
                 }
 
-                //if (deltaTime == 0.0f)
-                //    vfx.pause = true;
-
                 if (currentChunkIndex != kChunkError)
                 {
                     var chunk = m_Chunks[currentChunkIndex];
 
                     var expectedTime = globalTime;
-                    var currentTime = vfx.time + chunk.begin;
+                    var currentTime = chunk.begin + vfx.time;
 
-                    var fixedStep = 1.0 / 60.0;
-                    vfx.pause = true; //For now, always pause
+                    var fixedStep = 1.0 / 60.0; //TODOPAUL: Use VFXManager settings
+                    vfx.pause = true; //For now, always on pause like shuriken mixer
 
                     if (expectedTime < currentTime)
                     {
@@ -103,25 +102,34 @@ namespace UnityEngine.VFX
                         OnEnterChunk(vfx);
                     }
 
+                    var eventList = GetEventsIndex(chunk, currentTime, expectedTime);
+                    var eventCount = eventList.Count();
+                    var nextEvent = 0;
                     while (currentTime < expectedTime)
                     {
-                        double jumpLength;
-                        if (GetNextEvent(currentTime, expectedTime, ref chunk, out var nextEvent))
-                            jumpLength = nextEvent.time - currentTime;
-                        else
-                            jumpLength = expectedTime - currentTime;
-
-                        var currentStepCount = (uint)(jumpLength / fixedStep);
-                        if (currentStepCount == 0)
+                        var currentEvent = default(Event);
+                        var currentStepCount = 0u;
+                        if (nextEvent < eventCount)
                         {
-                            currentStepCount = 1u;
-                            ProcessEvent(nextEvent, vfx);
-                            nextEvent.playable = null;
+                            currentEvent = chunk.events[eventList.ElementAt(nextEvent++)];
+                            currentStepCount = (uint)((currentEvent.time - currentTime) / fixedStep);
+                        }
+                        else
+                        {
+                            currentStepCount = (uint)((expectedTime - currentTime) / fixedStep);
+                            if (currentStepCount == 0)
+                            {
+                                //We reached the maximum precision according to fixedStep, no more event
+                                break;
+                            }
                         }
 
-                        vfx.Simulate((float)fixedStep, currentStepCount);
-                        ProcessEvent(nextEvent, vfx);
-                        currentTime += fixedStep * currentStepCount;
+                        if (currentStepCount != 0)
+                        {
+                            vfx.Simulate((float)fixedStep, currentStepCount);
+                            currentTime += fixedStep * currentStepCount;
+                        }
+                        ProcessEvent(currentEvent, vfx);
                     }
                 }
             }
@@ -137,21 +145,18 @@ namespace UnityEngine.VFX
                     vfx.Stop();
             }
 
-            bool GetNextEvent(double time, double maxTime, ref Chunk chunk, out Event nextEvent)
+            IEnumerable<int> GetEventsIndex(Chunk chunk, double minTime, double maxTime)
             {
-                nextEvent = default(Event);
-                foreach (var itEvent in chunk.events)
+                for (int i=0; i<chunk.events.Length; ++i)
                 {
-                    if (itEvent.time > maxTime)
-                        return false;
+                    var currentEvent = chunk.events[i];
 
-                    if (time < itEvent.time)
-                    {
-                        nextEvent = itEvent;
-                        return true;
-                    }
+                    if (currentEvent.time > maxTime)
+                        break;
+
+                    if (minTime <= currentEvent.time)
+                        yield return i;
                 }
-                return false;
             }
 
             public void Init(Playable playable)
@@ -202,6 +207,7 @@ namespace UnityEngine.VFX
 
         public override void PrepareFrame(Playable playable, FrameData data)
         {
+            /*
             if (m_ScrubbingCacheHelper == null)
             {
                 m_ScrubbingCacheHelper = new ScrubbingCacheHelper();
@@ -212,20 +218,7 @@ namespace UnityEngine.VFX
             var deltaTime = data.deltaTime;
             m_ScrubbingCacheHelper.JumpToFrame(globalTime, deltaTime, m_Target);
 
-            /*var time = (float)playable.GetTime();
-            var particleTime = m_Target.time;
-
-            m_LastParticleTime = particleTime;
-            // if particle system time has changed externally, a re-sync is needed
-            if (m_LastPlayableTime > time || !Mathf.Approximately(particleTime, m_LastParticleTime))
-                m_LastParticleTime = Simulate(time, true);
-            else if (m_LastPlayableTime < time)
-                m_LastParticleTime = Simulate(time - m_LastPlayableTime, false);
-
-            m_LastPlayableTime = time;
             */
-
-            //Debug.Log(time);
         }
 
         public override void OnBehaviourPause(Playable playable, FrameData info)
@@ -246,10 +239,22 @@ namespace UnityEngine.VFX
         static bool ignoreProcessFrame = true;
 
         // Called every frame that the timeline is evaluated. ProcessFrame is invoked after its' inputs.
-        public override void ProcessFrame(Playable playable, FrameData info, object playerData)
+        public override void ProcessFrame(Playable playable, FrameData data, object playerData)
         {
             SetDefaults(playerData as VisualEffect);
 
+            if (m_ScrubbingCacheHelper == null)
+            {
+                m_ScrubbingCacheHelper = new ScrubbingCacheHelper();
+                m_ScrubbingCacheHelper.Init(playable);
+            }
+
+            var globalTime = playable.GetTime();
+            var deltaTime = data.deltaTime;
+            m_ScrubbingCacheHelper.JumpToFrame(globalTime, deltaTime, m_Target);
+
+
+            //TODOPAUL : Remove following code
             if (ignoreProcessFrame)
                 return;
 
