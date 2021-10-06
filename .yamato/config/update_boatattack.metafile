@@ -14,7 +14,7 @@ reuse_blocks:
       - command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/BoatAttack
         retries: 3
 
-    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout $BA_UPDATE_PROJECT_REVISION
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/BoatAttack && git checkout $BA_UPDATE_PROJECT_REVISION
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/BoatAttack && git checkout %BA_UPDATE_PROJECT_REVISION%
 
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.core" /Y
@@ -41,20 +41,26 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-#  - name: OSX
-#    apis:
-#      - name: OpenGLCore
-#      - name: Metal
-#    build_configs:
-#      - name: mono
-#    color_spaces:
-#      - Linear
+  - name: OSX
+    apis:
+      - name: Metal
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 
 jobs:
   - name: PR <PROJECT_NAME>
     dependencies:
       - platform: Win
         api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - editmode
+          - playmode
+      - platform: OSX
+        api: Metal
         build_config: mono
         color_space: Linear
         test_platforms:
