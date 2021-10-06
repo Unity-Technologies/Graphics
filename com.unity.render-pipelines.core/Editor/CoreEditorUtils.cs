@@ -991,7 +991,16 @@ namespace UnityEditor.Rendering
             GameObjectUtility.SetParentAndAlign(go, context as GameObject);
             Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
             Selection.activeObject = go;
-            EditorApplication.ExecuteMenuItem("GameObject/Move To View");
+
+            if (parent != null)
+                go.transform.localPosition = Vector3.zero;
+            else
+            {
+                if (EditorPrefs.GetBool("Create3DObject.PlaceAtWorldOrigin", false))
+                    go.transform.localPosition = Vector3.zero;
+                else
+                    EditorApplication.ExecuteMenuItem("GameObject/Move To View");
+            }
             return go;
         }
 

@@ -4,6 +4,27 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.0] - 2021-09-24
+
+### Added
+- Added a SG node to get the main directional light direction.
+
+### Changed
+- MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+
+### Fixed
+- Fixed the volume not being assigned on some scene templates.
+- Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
+- Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
+- Fixed Probe volume debug exposure compensation to match the Lighting debug one.
+- Fixed lens flare occlusion issues with TAA. (1365098)
+- Fixed misleading text and improving the eye scene material samples. (case 1368665)
+- Fixed missing DisallowMultipleComponent annotations in HDAdditionalReflectionData and HDAdditionalLightData (case 1365879).
+- Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
+- Fixed decal position when created from context menu. (case 1368987)
+- Fixed the clouds not taking properly into account the fog when in distant mode and with a close far plane (case 1367993).
+- Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
+
 ## [13.0.0] - 2021-09-01
 
 ### Fixed
@@ -53,6 +74,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unexpectedly strong contribution from directional lights in path-traced volumetric scattering (case 1304688).
 - Fixed memory leak with XR combined occlusion meshes (case 1366173).
 - Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
+- Fixed support for light/shadow dimmers (volumetric or not) in path tracing.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
@@ -145,7 +167,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to render screen space global illumination in half resolution to achieve real-time compatible performance in high resolutions (case 1353727).
 - Added a built-in custom pass to draw object IDs.
 - Added an example in the documentation that shows how to use the accumulation API for high quality antialiasing (supersampling).
-- Added a SG node to get the main directional light direction.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -442,7 +463,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Allow negative wind speed parameter.
 - Fixed custom pass custom buffer not bound after being created inside a custom pass.
 - Fixed silhouette issue with emissive decals
-- Improve the first frames of SSR with algorithm PBR Accumulation.
+- Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
