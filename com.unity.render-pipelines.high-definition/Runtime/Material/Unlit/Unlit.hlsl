@@ -60,3 +60,8 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 
     return lightTransportData;
 }
+
+float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
+{
+    return float4(bsdfData.color, 0.0);
+}
