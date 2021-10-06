@@ -83,11 +83,15 @@ CBUFFER_END
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
+#define UNITY_PREV_MATRIX_M   unity_MatrixPreviousM
+#define UNITY_PREV_MATRIX_I_M unity_MatrixPreviousMI
 #else
 // Not defined already by built-in
 #define UNITY_MATRIX_I_M   unity_WorldToObject
 #define UNITY_MATRIX_I_P   (float4x4)0
 #define UNITY_MATRIX_I_VP  (float4x4)0
+#define UNITY_PREV_MATRIX_M   (float4x4)0
+#define UNITY_PREV_MATRIX_I_M (float4x4)0
 #endif
 
 

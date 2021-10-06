@@ -184,6 +184,10 @@ PrefabInstance:
       propertyPath: m_RendererIndex
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 1102861101, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
+      propertyPath: XRCompatible
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2105869044706732872, guid: 144d97346f1c24d4ebabd0eec382b95d,
         type: 3}
       propertyPath: m_RootOrder

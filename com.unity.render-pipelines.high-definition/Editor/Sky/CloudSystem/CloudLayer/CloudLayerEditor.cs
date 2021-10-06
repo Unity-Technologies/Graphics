@@ -10,7 +10,8 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(CloudLayer))]
     class CloudLayerEditor : VolumeComponentEditor
     {
-        readonly GUIContent scrollLabel     = new GUIContent("Scroll Orientation", "Sets the orientation of the distortion (in degrees).");
+        readonly GUIContent scrollOrientationLabel = new GUIContent("Orientation", "Controls the orientation of the distortion relative to the X world vector (in degrees).\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.");
+        readonly GUIContent scrollSpeedLabel = new GUIContent("Speed", "Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
 
         struct CloudMapParameter
         {
@@ -22,7 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedDataParameter exposure;
 
             public SerializedDataParameter distortion;
-            public SerializedDataParameter scrollDirection;
+            public SerializedDataParameter scrollOrientation;
             public SerializedDataParameter scrollSpeed;
             public SerializedDataParameter flowmap;
 
@@ -52,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 tint = Unpack(p.Find(x => x.tint)),
                 exposure = Unpack(p.Find(x => x.exposure)),
                 distortion = Unpack(p.Find(x => x.distortionMode)),
-                scrollDirection = Unpack(p.Find(x => x.scrollDirection)),
+                scrollOrientation = Unpack(p.Find(x => x.scrollOrientation)),
                 scrollSpeed = Unpack(p.Find(x => x.scrollSpeed)),
                 flowmap = Unpack(p.Find(x => x.flowmap)),
 
@@ -107,14 +108,16 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(map.exposure);
 
             PropertyField(map.distortion);
-            using (new IndentLevelScope())
+            if (map.distortion.value.intValue != (int)CloudDistortionMode.None)
             {
-                PropertyField(map.scrollDirection, scrollLabel);
-                PropertyField(map.scrollSpeed);
+                EditorGUI.indentLevel++;
+                PropertyField(map.scrollOrientation, scrollOrientationLabel);
+                PropertyField(map.scrollSpeed, scrollSpeedLabel);
                 if (map.distortion.value.intValue == (int)CloudDistortionMode.Flowmap)
                 {
                     PropertyField(map.flowmap);
                 }
+                EditorGUI.indentLevel--;
             }
 
             PropertyField(map.lighting);

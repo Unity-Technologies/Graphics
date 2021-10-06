@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph
         public RoundedRectangleNode()
         {
             name = "Rounded Rectangle";
+            synonyms = new string[] { "square" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

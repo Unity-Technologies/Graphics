@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Chromatic Aberration effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Chromatic Aberration")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Chromatic Aberration", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Post-Processing-Chromatic-Aberration")]
 
     public sealed class ChromaticAberration : VolumeComponentWithQuality, IPostProcessComponent
@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies a Texture which HDRP uses to shift the hue of chromatic aberrations.
         /// </summary>
         [Tooltip("Specifies a Texture which HDRP uses to shift the hue of chromatic aberrations.")]
-        public TextureParameter spectralLut = new TextureParameter(null);
+        public Texture2DParameter spectralLut = new Texture2DParameter(null);
 
         /// <summary>
         /// Controls the strength of the chromatic aberration effect.

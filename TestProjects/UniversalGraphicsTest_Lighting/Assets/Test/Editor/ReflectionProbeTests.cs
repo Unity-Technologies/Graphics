@@ -97,7 +97,7 @@ public class Editmode_ParametricReflectionProbeTests
                 probe.enabled = false;
                 result = Lightmapping.Bake();
                 probe.enabled = oldEnabledValue;
-                result &= Lightmapping.BakeAllReflectionProbesSnapshots();
+                result &= LightmappingExt.BakeAllReflectionProbesSnapshots();
             }
             break;
             case BakeAPI.BakeSingle:
@@ -110,7 +110,7 @@ public class Editmode_ParametricReflectionProbeTests
                 probe.enabled = false;
                 result = Lightmapping.Bake();
                 probe.enabled = oldEnabledValue;
-                result &= Lightmapping.BakeReflectionProbeSnapshot(probe);
+                result &= LightmappingExt.BakeReflectionProbeSnapshot(probe);
             }
             break;
         }

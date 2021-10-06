@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.LightingDebugMode,
                 autoEnum = typeof(DebugLightingMode),
                 getter = () => (int)data.DebugLightingMode,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.DebugLightingMode,
                 setIndex = (value) => data.DebugLightingMode = (DebugLightingMode)value
             };
@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel(DebugDisplaySettingsLighting data)
             {
+                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
+
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Lighting Debug Modes",

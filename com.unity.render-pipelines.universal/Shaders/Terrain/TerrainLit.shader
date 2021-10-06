@@ -86,7 +86,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             #pragma multi_compile_fog
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer assumeuniformscaling nomatrices nolightprobe nolightmap
+            #pragma instancing_options norenderinglayer assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #pragma shader_feature_local_fragment _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature_local _NORMALMAP
@@ -147,7 +147,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
@@ -162,7 +162,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
 
             //#pragma multi_compile_fog
             #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer assumeuniformscaling nomatrices nolightprobe nolightmap
+            #pragma instancing_options norenderinglayer assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature_local _NORMALMAP

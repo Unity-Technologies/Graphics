@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
         const string kUVInputName = "UV";
         const string kSamplerInputName = "Sampler";
         const string kDefaultSampleMacro = "SAMPLE_TEXTURE2D";
-        const string kSampleMacroNoBias  = "PLATFORM_SAMPLE_TEXTURE2D";
+        const string kSampleMacroNoBias = "PLATFORM_SAMPLE_TEXTURE2D";
 
 
         public override bool hasPreview { get { return true; } }
@@ -42,6 +42,7 @@ namespace UnityEditor.ShaderGraph
         public SampleTexture2DNode()
         {
             name = "Sample Texture 2D";
+            synonyms = new string[] { "tex2d" };
             UpdateNodeAfterDeserialization();
         }
 

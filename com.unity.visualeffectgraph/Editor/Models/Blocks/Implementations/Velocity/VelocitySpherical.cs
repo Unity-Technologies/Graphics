@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Block
     class VelocitySpherical : VelocityBase
     {
         public override string name { get { return string.Format(base.name, "Spherical"); } }
-        protected override bool altersDirection {  get { return true; } }
+        protected override bool altersDirection { get { return true; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

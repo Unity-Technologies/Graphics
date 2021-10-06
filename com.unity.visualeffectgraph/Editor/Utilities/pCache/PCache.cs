@@ -452,14 +452,14 @@ namespace UnityEditor.Experimental.VFX.Utility
                             var prop = data.properties[j];
                             switch (prop.Type)
                             {
-                                case "short": data.buckets[j].Add(binaryReader.ReadInt16());    break;
-                                case "ushort": data.buckets[j].Add(binaryReader.ReadUInt16());  break;
-                                case "int": data.buckets[j].Add(binaryReader.ReadInt32());      break;
-                                case "uint": data.buckets[j].Add(binaryReader.ReadUInt32());    break;
-                                case "char": data.buckets[j].Add(binaryReader.ReadSByte());     break;
-                                case "uchar": data.buckets[j].Add(binaryReader.ReadByte());     break;
-                                case "float": data.buckets[j].Add(binaryReader.ReadSingle());   break;
-                                case "double": data.buckets[j].Add(binaryReader.ReadDouble());  break;
+                                case "short": data.buckets[j].Add(binaryReader.ReadInt16()); break;
+                                case "ushort": data.buckets[j].Add(binaryReader.ReadUInt16()); break;
+                                case "int": data.buckets[j].Add(binaryReader.ReadInt32()); break;
+                                case "uint": data.buckets[j].Add(binaryReader.ReadUInt32()); break;
+                                case "char": data.buckets[j].Add(binaryReader.ReadSByte()); break;
+                                case "uchar": data.buckets[j].Add(binaryReader.ReadByte()); break;
+                                case "float": data.buckets[j].Add(binaryReader.ReadSingle()); break;
+                                case "double": data.buckets[j].Add(binaryReader.ReadDouble()); break;
                             }
                         }
                     }

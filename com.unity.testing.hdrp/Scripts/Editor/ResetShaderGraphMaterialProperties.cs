@@ -39,7 +39,7 @@ public class ResetMaterialProperties : MonoBehaviour
         {
             Type graphUtilType = Type.GetType("UnityEditor.ShaderGraph.GraphUtil, Unity.ShaderGraph.Editor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
             var isShaderGraph = graphUtilType.GetMethod("IsShaderGraph", BindingFlags.Public | BindingFlags.Static);
-            if ((bool)isShaderGraph.Invoke(null, new[] {mat}))
+            if ((bool)isShaderGraph.Invoke(null, new[] { mat }))
             {
                 var defaultProperties = new Material(mat.shader);
 

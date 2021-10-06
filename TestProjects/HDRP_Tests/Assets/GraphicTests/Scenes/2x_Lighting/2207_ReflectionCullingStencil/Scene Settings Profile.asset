@@ -33,8 +33,6 @@ MonoBehaviour:
   rotation:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
-    max: 360
   skyIntensityMode:
     m_OverrideState: 1
     m_Value: 0
@@ -44,11 +42,12 @@ MonoBehaviour:
   multiplier:
     m_OverrideState: 1
     m_Value: 1
-    min: 0
   upperHemisphereLuxValue:
     m_OverrideState: 1
     m_Value: 1
-    min: 0
+  upperHemisphereLuxColor:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 0, z: 0}
   desiredLuxValue:
     m_OverrideState: 1
     m_Value: 20000
@@ -58,28 +57,18 @@ MonoBehaviour:
   updatePeriod:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
   includeSunInBaking:
     m_OverrideState: 1
     m_Value: 0
   top:
     m_OverrideState: 1
     m_Value: {r: 0, g: 0, b: 0.3962264, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
   middle:
     m_OverrideState: 1
     m_Value: {r: 0.040939845, g: 0.23264207, b: 0.3773585, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
   bottom:
     m_OverrideState: 1
     m_Value: {r: 0, g: 0, b: 0, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
   gradientDiffusion:
     m_OverrideState: 1
     m_Value: 1
@@ -99,43 +88,33 @@ MonoBehaviour:
   maxShadowDistance:
     m_OverrideState: 1
     m_Value: 500
-    min: 0
+  directionalTransmissionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
   cascadeShadowSplitCount:
     m_OverrideState: 1
     m_Value: 4
-    min: 1
-    max: 4
   cascadeShadowSplit0:
     m_OverrideState: 1
     m_Value: 0.05
-    min: 0
-    max: 1
   cascadeShadowSplit1:
     m_OverrideState: 1
     m_Value: 0.15
-    min: 0
-    max: 1
   cascadeShadowSplit2:
     m_OverrideState: 1
     m_Value: 0.3
-    min: 0
-    max: 1
   cascadeShadowBorder0:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
   cascadeShadowBorder1:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
   cascadeShadowBorder2:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
   cascadeShadowBorder3:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
 --- !u!114 &114265733008192460
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -152,8 +131,6 @@ MonoBehaviour:
   rotation:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
-    max: 360
   skyIntensityMode:
     m_OverrideState: 1
     m_Value: 0
@@ -163,11 +140,12 @@ MonoBehaviour:
   multiplier:
     m_OverrideState: 1
     m_Value: 1
-    min: 0
   upperHemisphereLuxValue:
     m_OverrideState: 1
     m_Value: 1
-    min: 0
+  upperHemisphereLuxColor:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 0, z: 0}
   desiredLuxValue:
     m_OverrideState: 1
     m_Value: 20000
@@ -177,37 +155,24 @@ MonoBehaviour:
   updatePeriod:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
   includeSunInBaking:
     m_OverrideState: 1
     m_Value: 0
   sunSize:
     m_OverrideState: 1
     m_Value: 0.04
-    min: 0
-    max: 1
   sunSizeConvergence:
     m_OverrideState: 1
     m_Value: 5
-    min: 1
-    max: 10
   atmosphereThickness:
     m_OverrideState: 1
     m_Value: 1
-    min: 0
-    max: 5
   skyTint:
     m_OverrideState: 1
     m_Value: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-    hdr: 0
-    showAlpha: 1
-    showEyeDropper: 1
   groundColor:
     m_OverrideState: 1
     m_Value: {r: 0.369, g: 0.349, b: 0.341, a: 1}
-    hdr: 0
-    showAlpha: 1
-    showEyeDropper: 1
   enableSunDisk:
     m_OverrideState: 1
     m_Value: 1
@@ -227,6 +192,18 @@ MonoBehaviour:
   skyType:
     m_OverrideState: 1
     m_Value: 3
+  cloudType:
+    m_OverrideState: 0
+    m_Value: 0
+  skyAmbientMode:
+    m_OverrideState: 1
+    m_Value: 0
+  windOrientation:
+    m_OverrideState: 0
+    m_Value: 0
+  windSpeed:
+    m_OverrideState: 0
+    m_Value: 100
   fogType:
     m_OverrideState: 1
     m_Value: 0

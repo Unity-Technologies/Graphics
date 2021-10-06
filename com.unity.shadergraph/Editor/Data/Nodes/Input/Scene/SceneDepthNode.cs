@@ -41,6 +41,7 @@ namespace UnityEditor.ShaderGraph
         public SceneDepthNode()
         {
             name = "Scene Depth";
+            synonyms = new string[] { "zbuffer", "zdepth" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -92,7 +93,14 @@ namespace UnityEditor.ShaderGraph
             return
 @"
 {
-    Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
+    if (unity_OrthoParams.w == 1.0)
+    {
+        Out = LinearEyeDepth(ComputeWorldSpacePosition(UV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V);
+    }
+    else
+    {
+        Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
+    }
 }
 ";
         }

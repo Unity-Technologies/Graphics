@@ -42,16 +42,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 name: string.Format("{0}_ReflectionHistoryBuffer{1}", viewName, frameIndex));
         }
 
+        int CombineRayTracedReflectionsHistoryStateToMask(bool fullResolution, bool rayTraced)
+        {
+            // Combine the flags to define the current mask
+            int flagMask = 0;
+            flagMask |= (fullResolution ? (int)HDCamera.HistoryEffectFlags.FullResolution : 0);
+            flagMask |= (rayTraced ? (int)HDCamera.HistoryEffectFlags.RayTraced : 0);
+            return flagMask;
+        }
+
         private float EvaluateRayTracedReflectionHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
             // Evaluate the history validity
-            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, fullResolution, rayTraced) ? 1.0f : 0.0f;
+            int flagMask = CombineRayTracedReflectionsHistoryStateToMask(fullResolution, rayTraced);
+            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, flagMask) ? 1.0f : 0.0f;
             return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
         }
 
         private void PropagateRayTracedReflectionsHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
-            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, fullResolution, rayTraced);
+            int flagMask = CombineRayTracedReflectionsHistoryStateToMask(fullResolution, rayTraced);
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, flagMask);
         }
 
         #region Direction Generation
@@ -108,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.clearCoatMaskTexture = builder.ReadTexture(clearCoatTexture);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Reflection Ray Directions" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Reflection Ray Directions" }));
 
                 builder.SetRenderFunc(
                     (DirGenRTRPassData data, RenderGraphContext ctx) =>
@@ -197,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lightingTexture = builder.ReadTexture(lightingTexture);
                 passData.directionTexture = builder.ReadTexture(directionTexture);
                 passData.outputTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Reflection Ray Reflections" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Reflection Ray Reflections" }));
 
                 builder.SetRenderFunc(
                     (AdjustWeightRTRPassData data, RenderGraphContext ctx) =>
@@ -264,7 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
                 passData.lightingTexture = builder.ReadTexture(lightingTexture);
                 passData.outputTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Reflection Ray Reflections" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Reflection Ray Reflections" }));
 
                 builder.SetRenderFunc(
                     (UpscaleRTRPassData data, RenderGraphContext ctx) =>
@@ -313,7 +324,8 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.halfResolution = !fullResolution;
             deferredParameters.rayCountType = (int)RayCountValues.ReflectionDeferred;
             deferredParameters.lodBias = settings.textureLodBias.value;
-            deferredParameters.fallbackHierarchy = (int)(settings.fallbackHierachy.value);
+            deferredParameters.rayMiss = (int)(settings.rayMiss.value);
+            deferredParameters.lastBounceFallbackHierarchy = (int)(settings.lastBounceFallbackHierarchy.value);
 
             // Ray Marching parameters
             deferredParameters.mixedTracing = (settings.tracing.value == RayCastingMode.Mixed && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred) && !transparent;
@@ -346,7 +358,8 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
             deferredParameters.raytracingCB._RaytracingPreExposition = 0;
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 0;
-            deferredParameters.raytracingCB._RayTracingFallbackHierarchy = deferredParameters.fallbackHierarchy;
+            deferredParameters.raytracingCB._RayTracingRayMissFallbackHierarchy = deferredParameters.rayMiss;
+            deferredParameters.raytracingCB._RayTracingLastBounceFallbackHierarchy = deferredParameters.lastBounceFallbackHierarchy;
 
             return deferredParameters;
         }
@@ -406,7 +419,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float minSmoothness;
             public float smoothnessFadeStart;
             public float lodBias;
-            public int fallbackHierarchy;
+            public int rayMissfallbackHierarchy;
+            public int lastBouncefallbackHierarchy;
 
             // Other parameters
             public RayTracingAccelerationStructure accelerationStructure;
@@ -446,7 +460,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.minSmoothness = settings.minSmoothness;
                 passData.smoothnessFadeStart = settings.smoothnessFadeStart;
                 passData.lodBias = settings.textureLodBias.value;
-                passData.fallbackHierarchy = (int)settings.fallbackHierachy.value;
+                passData.rayMissfallbackHierarchy = (int)settings.rayMiss.value;
+                passData.lastBouncefallbackHierarchy = (int)settings.lastBounceFallbackHierarchy.value;
 
                 // Other parameters
                 passData.accelerationStructure = RequestAccelerationStructure();
@@ -462,7 +477,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.clearCoatMaskTexture = builder.ReadTexture(clearCoatTexture);
                 passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
                 passData.outputTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Reflections" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Reflections" }));
 
                 builder.SetRenderFunc(
                     (TraceQualityRTRPassData data, RenderGraphContext ctx) =>
@@ -479,13 +494,19 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RaytracingRayMaxLength = data.rayLength;
                         data.shaderVariablesRayTracingCB._RaytracingNumSamples = data.sampleCount;
                         // Set the number of bounces for reflections
+#if NO_RAY_RECURSION
+                        data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = 1;
+#else
                         data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = data.bounceCount;
+#endif
                         data.shaderVariablesRayTracingCB._RayTracingDiffuseLightingOnly = 0;
                         // Bind all the required scalars to the CB
                         data.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = data.minSmoothness;
                         data.shaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = data.smoothnessFadeStart;
                         data.shaderVariablesRayTracingCB._RayTracingLodBias = data.lodBias;
-                        data.shaderVariablesRayTracingCB._RayTracingFallbackHierarchy = data.fallbackHierarchy;
+                        data.shaderVariablesRayTracingCB._RayTracingRayMissFallbackHierarchy = data.rayMissfallbackHierarchy;
+                        data.shaderVariablesRayTracingCB._RayTracingLastBounceFallbackHierarchy = data.lastBouncefallbackHierarchy;
+
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Inject the ray-tracing sampling data

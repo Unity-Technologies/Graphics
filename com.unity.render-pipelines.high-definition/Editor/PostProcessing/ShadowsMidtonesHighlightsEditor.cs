@@ -35,13 +35,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var o = new PropertyFetcher<ShadowsMidtonesHighlights>(serializedObject);
 
-            m_Shadows         = Unpack(o.Find(x => x.shadows));
-            m_Midtones        = Unpack(o.Find(x => x.midtones));
-            m_Highlights      = Unpack(o.Find(x => x.highlights));
-            m_ShadowsStart    = Unpack(o.Find(x => x.shadowsStart));
-            m_ShadowsEnd      = Unpack(o.Find(x => x.shadowsEnd));
+            m_Shadows = Unpack(o.Find(x => x.shadows));
+            m_Midtones = Unpack(o.Find(x => x.midtones));
+            m_Highlights = Unpack(o.Find(x => x.highlights));
+            m_ShadowsStart = Unpack(o.Find(x => x.shadowsStart));
+            m_ShadowsEnd = Unpack(o.Find(x => x.shadowsEnd));
             m_HighlightsStart = Unpack(o.Find(x => x.highlightsStart));
-            m_HighlightsEnd   = Unpack(o.Find(x => x.highlightsEnd));
+            m_HighlightsEnd = Unpack(o.Find(x => x.highlightsEnd));
 
             m_Material = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/Shadows Midtones Highlights Curve"));
         }

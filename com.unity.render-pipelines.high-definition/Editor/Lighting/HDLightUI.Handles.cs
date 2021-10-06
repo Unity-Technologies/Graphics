@@ -655,7 +655,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                 Handles.color = handleColorAbove;
                                 widthHeight = DrawAreaLightHandle(widthHeight, withYAxis);
-                                widthHeight = Vector2.Max(Vector2.one * k_MinLightSize, widthHeight);
+                                widthHeight = Vector2.Max(Vector2.one * HDAdditionalLightData.k_MinLightSize, widthHeight);
                                 if (EditorGUI.EndChangeCheck())
                                 {
                                     Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Tube Light");

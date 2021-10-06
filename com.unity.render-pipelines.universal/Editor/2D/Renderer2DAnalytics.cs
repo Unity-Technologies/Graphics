@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.Universal.Analytics
         public const string k_Renderer2DDataString = "u2drendererdata";
     }
 
-    internal interface IAnalyticsData {};
+    internal interface IAnalyticsData { };
 
     [Serializable]
     internal struct Light2DData : IAnalyticsData

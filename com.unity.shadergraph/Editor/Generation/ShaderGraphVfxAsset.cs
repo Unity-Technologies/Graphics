@@ -147,7 +147,7 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 EnsureProperties();
                 var allProperties = m_Data.m_Properties.SelectValue().ToList();
-                var fragProperties =  new List<AbstractShaderProperty>();
+                var fragProperties = new List<AbstractShaderProperty>();
                 for (var i = 0; i < allProperties.Count(); i++)
                 {
                     if ((m_PropertiesStages[i] & ShaderStageCapability.Fragment) != 0)
@@ -163,7 +163,7 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 EnsureProperties();
                 var allProperties = m_Data.m_Properties.SelectValue().ToList();
-                var vertexProperties =  new List<AbstractShaderProperty>();
+                var vertexProperties = new List<AbstractShaderProperty>();
                 for (var i = 0; i < allProperties.Count(); i++)
                 {
                     if ((m_PropertiesStages[i] & ShaderStageCapability.Vertex) != 0)
@@ -191,7 +191,7 @@ namespace UnityEditor.ShaderGraph.Internal
             if ((m_Data == null || m_Data.m_Properties == null || !m_Data.m_Properties.Any()) && !String.IsNullOrEmpty(m_SerializedVfxAssetData.JSONnodeData))
             {
                 m_Data = new ShaderGraphVfxAssetData();
-                MultiJson.Deserialize(m_Data , m_SerializedVfxAssetData.JSONnodeData);
+                MultiJson.Deserialize(m_Data, m_SerializedVfxAssetData.JSONnodeData);
             }
 
             foreach (var property in m_Data.m_Properties.SelectValue())
@@ -205,7 +205,7 @@ namespace UnityEditor.ShaderGraph.Internal
             m_Data = null;
         }
 
-        void ISerializationCallbackReceiver.OnBeforeSerialize() {}
+        void ISerializationCallbackReceiver.OnBeforeSerialize() { }
 
         public GraphCode GetCode(OutputMetadata[] outputs)
         {

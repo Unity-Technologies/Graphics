@@ -442,7 +442,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Color for displaying materials using a true metallic color.</summary>
         public Color materialValidateTrueMetalColor = new Color(1.0f, 1.0f, 0.0f);
         /// <summary>Enable display of materials using a true metallic value.</summary>
-        public bool  materialValidateTrueMetal = false;
+        public bool materialValidateTrueMetal = false;
 
         /// <summary>
         /// Current Debug View Material.
@@ -492,11 +492,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // The index stored in this buffer could either be
         //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
         //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
-        int[]                m_DebugViewMaterial = new int[kDebugViewMaterialBufferLength + 1]; // No enum there because everything is generated from materials.
-        int                  m_DebugViewEngine = 0;  // No enum there because everything is generated from BSDFData
-        DebugViewVarying     m_DebugViewVarying = DebugViewVarying.None;
-        DebugViewProperties  m_DebugViewProperties = DebugViewProperties.None;
-        int                  m_DebugViewGBuffer = 0; // Can't use GBuffer enum here because the values are actually split between this enum and values from Lit.BSDFData
+        int[] m_DebugViewMaterial = new int[kDebugViewMaterialBufferLength + 1]; // No enum there because everything is generated from materials.
+        int m_DebugViewEngine = 0;  // No enum there because everything is generated from BSDFData
+        DebugViewVarying m_DebugViewVarying = DebugViewVarying.None;
+        DebugViewProperties m_DebugViewProperties = DebugViewProperties.None;
+        int m_DebugViewGBuffer = 0; // Can't use GBuffer enum here because the values are actually split between this enum and values from Lit.BSDFData
 
         internal int materialEnumIndex;
 
@@ -618,7 +618,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if Material debug is enabled.</returns>
         public bool IsDebugViewMaterialEnabled()
         {
-            int size = m_DebugViewMaterial ? [0] ?? 0;
+            int size = m_DebugViewMaterial?[0] ?? 0;
             bool enabled = false;
             for (int i = 1; i <= size; ++i)
             {

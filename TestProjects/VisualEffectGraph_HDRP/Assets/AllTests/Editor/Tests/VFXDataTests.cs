@@ -93,31 +93,16 @@ namespace UnityEditor.VFX.Test
             Assert.IsInstanceOf<VFXDataParticle>(output.GetData());
         }
 
-        string tempFilePath = "Assets/Temp_vfxTest_Ddata.vfx";
-
-        VFXGraph MakeTemporaryGraph()
-        {
-            if (System.IO.File.Exists(tempFilePath))
-            {
-                AssetDatabase.DeleteAsset(tempFilePath);
-            }
-            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
-            VisualEffectResource resource = asset.GetResource(); // force resource creation
-            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
-            graph.visualEffectResource = resource;
-            return graph;
-        }
-
         [OneTimeTearDown]
         public void CleanUp()
         {
-            AssetDatabase.DeleteAsset(tempFilePath);
+            VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
         [Test]
         public void CheckName_Sharing_Between_Output_Event()
         {
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var gameObj = new GameObject("CheckData_Sharing_Between_Output_Event");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
@@ -152,7 +137,7 @@ namespace UnityEditor.VFX.Test
             eventOutput_A.SetSettingValue("eventName", newName);
             name_A = eventOutput_A.GetSetting("eventName").value as string;
             name_B = eventOutput_B.GetSetting("eventName").value as string;
-            
+
             //Now, different names
             Assert.AreNotEqual(name_A, name_B);
             Assert.AreNotEqual(eventOutput_A.GetData(), eventOutput_B.GetData());

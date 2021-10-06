@@ -28,6 +28,7 @@ namespace UnityEditor.ShaderGraph
         public Vector4Node()
         {
             name = "Vector 4";
+            synonyms = new string[] { "4", "v4", "vec4", "float4" };
             UpdateNodeAfterDeserialization();
         }
 

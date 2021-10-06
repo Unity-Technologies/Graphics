@@ -8,7 +8,7 @@ namespace UnityEngine.NVIDIA
 {
     internal class DebugView
     {
-        #region Main Internal Methods
+#region Main Internal Methods
 
         internal void Reset() { InternalReset(); }
 
@@ -16,9 +16,9 @@ namespace UnityEngine.NVIDIA
 
         internal DebugUI.Widget CreateWidget() { return InternalCreateWidget(); }
 
-        #endregion
+#endregion
 
-        #region Private implementation
+#region Private implementation
 
         private enum DeviceState
         {
@@ -122,9 +122,9 @@ namespace UnityEngine.NVIDIA
             return targetArray;
         }
 
-        #endregion
+#endregion
 
-        #region Debug User Interface
+#region Debug User Interface
 
         private DebugUI.Container m_DebugWidget = null;
         private DebugUI.Table.Row[] m_DlssViewStateTableRows = null;
@@ -252,7 +252,7 @@ namespace UnityEngine.NVIDIA
             }
         }
 
-        #endregion
+#endregion
     }
 }
 #endif

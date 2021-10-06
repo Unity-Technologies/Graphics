@@ -194,6 +194,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public virtual void Destroy() {}
+        public virtual void Destroy() { }
     }
 }

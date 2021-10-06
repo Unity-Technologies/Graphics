@@ -68,7 +68,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float historyValidity;
             public bool occluderMotionRejection;
             public bool receiverMotionRejection;
-            public float exposureControl;
+            public bool exposureControl;
+            public bool fullResolution;
         }
 
         class HistoryValidityPassData
@@ -187,7 +188,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float pixelSpreadTangent;
             public bool occluderMotionRejection;
             public bool receiverMotionRejection;
-            public float exposureControl;
+            public int exposureControl;
+            public bool fullResolution;
 
             // Kernels
             public int temporalAccKernel;
@@ -218,16 +220,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.EnableAsyncCompute(false);
 
                 // Camera parameters
-                passData.texWidth = hdCamera.actualWidth;
-                passData.texHeight = hdCamera.actualHeight;
+                if (filterParams.fullResolution)
+                {
+                    passData.texWidth = hdCamera.actualWidth;
+                    passData.texHeight = hdCamera.actualHeight;
+                }
+                else
+                {
+                    passData.texWidth = hdCamera.actualWidth / 2;
+                    passData.texHeight = hdCamera.actualHeight / 2;
+                }
                 passData.viewCount = hdCamera.viewCount;
 
                 // Denoising parameters
-                passData.pixelSpreadTangent = HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
+                passData.pixelSpreadTangent = HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, passData.texWidth, passData.texHeight);
                 passData.historyValidity = filterParams.historyValidity;
                 passData.receiverMotionRejection = filterParams.receiverMotionRejection;
                 passData.occluderMotionRejection = filterParams.occluderMotionRejection;
-                passData.exposureControl = filterParams.exposureControl;
+                passData.exposureControl = filterParams.exposureControl ? 1 : 0;
+                passData.fullResolution = filterParams.fullResolution;
 
                 // Kernels
                 passData.temporalAccKernel = filterParams.singleChannel ? m_TemporalAccumulationSingleKernel : m_TemporalAccumulationColorKernel;
@@ -251,7 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Output buffers
                 passData.outputBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Output" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Output" }));
 
                 builder.SetRenderFunc(
                     (TemporalFilterPassData data, RenderGraphContext ctx) =>
@@ -273,18 +284,20 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._ReceiverMotionRejection, data.receiverMotionRejection ? 1 : 0);
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._OccluderMotionRejection, data.occluderMotionRejection ? 1 : 0);
                         ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._PixelSpreadAngleTangent, data.pixelSpreadTangent);
-                        ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._EnableExposureControl, data.exposureControl);
+                        ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._EnableExposureControl, data.exposureControl);
 
                         // Bind the output buffer
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._AccumulationOutputTextureRW, data.outputBuffer);
 
                         // Combine signal with history
+                        CoreUtils.SetKeyword(ctx.cmd, "FULL_RESOLUTION_FILTER", data.fullResolution);
                         ctx.cmd.DispatchCompute(data.temporalFilterCS, data.temporalAccKernel, numTilesX, numTilesY, data.viewCount);
 
                         // Make sure to copy the new-accumulated signal in our history buffer
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.copyHistoryKernel, HDShaderIDs._DenoiseInputTexture, data.outputBuffer);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.copyHistoryKernel, HDShaderIDs._DenoiseOutputTextureRW, data.historyBuffer);
                         ctx.cmd.DispatchCompute(data.temporalFilterCS, data.copyHistoryKernel, numTilesX, numTilesY, data.viewCount);
+                        CoreUtils.SetKeyword(ctx.cmd, "FULL_RESOLUTION_FILTER", true);
                     });
                 return passData.outputBuffer;
             }
@@ -401,15 +414,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Intermediate buffers
                 passData.intermediateSignalOutput = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate Filter Output" });
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate Filter Output" });
                 passData.intermediateValidityOutput = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate Validity output" });
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate Validity output" });
 
                 // Output textures
                 passData.outputBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Output" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Output" }));
                 passData.outputDistanceSignal = distanceBased ? builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Distance output" })) : new TextureHandle();
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Distance output" })) : new TextureHandle();
 
 
                 builder.SetRenderFunc(
@@ -419,6 +432,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         int tfTileSize = 8;
                         int numTilesX = (data.texWidth + (tfTileSize - 1)) / tfTileSize;
                         int numTilesY = (data.texHeight + (tfTileSize - 1)) / tfTileSize;
+
+                        // This variant of the function only supports full resolution
+                        CoreUtils.SetKeyword(ctx.cmd, "FULL_RESOLUTION_FILTER", true);
 
                         // Now that we have validated our history, let's accumulate
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._DenoiseInputTexture, data.noisyBuffer);

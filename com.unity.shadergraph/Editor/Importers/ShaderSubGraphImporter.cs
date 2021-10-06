@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(27, Extension, -905)]
+    [ScriptedImporter(30, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -56,8 +56,16 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        static bool NodeWasUsedByGraph(string nodeId, GraphData graphData)
+        {
+            var node = graphData.GetNodeFromId(nodeId);
+            return node?.wasUsedByGenerator ?? false;
+        }
+
         public override void OnImportAsset(AssetImportContext ctx)
         {
+            var importLog = new ShaderGraphImporter.AssetImportErrorLog(ctx);
+
             var graphAsset = ScriptableObject.CreateInstance<SubGraphAsset>();
             var subGraphPath = ctx.assetPath;
             var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
@@ -66,13 +74,15 @@ namespace UnityEditor.ShaderGraph
             var messageManager = new MessageManager();
             var graphData = new GraphData
             {
-                isSubGraph = true, assetGuid = subGraphGuid, messageManager = messageManager
+                isSubGraph = true,
+                assetGuid = subGraphGuid,
+                messageManager = messageManager
             };
             MultiJson.Deserialize(graphData, textGraph);
 
             try
             {
-                ProcessSubGraph(graphAsset, graphData);
+                ProcessSubGraph(graphAsset, graphData, importLog);
             }
             catch (Exception e)
             {
@@ -81,16 +91,22 @@ namespace UnityEditor.ShaderGraph
             }
             finally
             {
-                if (messageManager.AnyError())
+                var errors = messageManager.ErrorStrings((nodeId) => NodeWasUsedByGraph(nodeId, graphData));
+                int errCount = errors.Count();
+                if (errCount > 0)
                 {
+                    var firstError = errors.FirstOrDefault();
+                    importLog.LogError($"Sub Graph at {subGraphPath} has {errCount} error(s), the first is: {firstError}", graphAsset);
                     graphAsset.isValid = false;
-                    foreach (var pair in messageManager.GetNodeMessages())
+                }
+                else
+                {
+                    var warnings = messageManager.ErrorStrings((nodeId) => NodeWasUsedByGraph(nodeId, graphData), Rendering.ShaderCompilerMessageSeverity.Warning);
+                    int warningCount = warnings.Count();
+                    if (warningCount > 0)
                     {
-                        var node = graphData.GetNodeFromId(pair.Key);
-                        foreach (var message in pair.Value)
-                        {
-                            MessageManager.Log(node, subGraphPath, message, graphAsset);
-                        }
+                        var firstWarning = warnings.FirstOrDefault();
+                        importLog.LogWarning($"Sub Graph at {subGraphPath} has {warningCount} warning(s), the first is: {firstWarning}", graphAsset);
                     }
                 }
                 messageManager.ClearAll();
@@ -137,7 +153,7 @@ namespace UnityEditor.ShaderGraph
                     // Ensure that dependency path is relative to project
                     if (!string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/") && !assetPath.StartsWith("Assets/"))
                     {
-                        Debug.LogWarning($"Invalid dependency path: {assetPath}", graphAsset);
+                        importLog.LogWarning($"Invalid dependency path: {assetPath}", graphAsset);
                     }
                 }
 
@@ -151,7 +167,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static void ProcessSubGraph(SubGraphAsset asset, GraphData graph)
+        static void ProcessSubGraph(SubGraphAsset asset, GraphData graph, ShaderGraphImporter.AssetImportErrorLog importLog)
         {
             var graphIncludes = new IncludeCollection();
             var registry = new FunctionRegistry(new ShaderStringBuilder(), graphIncludes, true);
@@ -177,19 +193,44 @@ namespace UnityEditor.ShaderGraph
             List<AbstractMaterialNode> nodes = new List<AbstractMaterialNode>();
             NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode);
 
-            asset.effectiveShaderStage = ShaderStageCapability.All;
+            // flag the used nodes so we can filter out errors from unused nodes
+            foreach (var node in nodes)
+                node.SetUsedByGenerator();
+
+            // Start with a clean slate for the input/output capabilities and dependencies
+            asset.inputCapabilities.Clear();
+            asset.outputCapabilities.Clear();
+            asset.slotDependencies.Clear();
+
+            ShaderStageCapability effectiveShaderStage = ShaderStageCapability.All;
             foreach (var slot in outputSlots)
             {
                 var stage = NodeUtils.GetEffectiveShaderStageCapability(slot, true);
-                if (stage != ShaderStageCapability.All)
+                if (effectiveShaderStage == ShaderStageCapability.All && stage != ShaderStageCapability.All)
+                    effectiveShaderStage = stage;
+
+                asset.outputCapabilities.Add(new SlotCapability { slotName = slot.RawDisplayName(), capabilities = stage });
+
+                // Find all unique property nodes used by this slot and record a dependency for this input/output pair
+                var inputPropertyNames = new HashSet<string>();
+                var nodeSet = new HashSet<AbstractMaterialNode>();
+                NodeUtils.CollectNodeSet(nodeSet, slot);
+                foreach (var node in nodeSet)
                 {
-                    asset.effectiveShaderStage = stage;
-                    break;
+                    if (node is PropertyNode propNode && !inputPropertyNames.Contains(propNode.property.displayName))
+                    {
+                        inputPropertyNames.Add(propNode.property.displayName);
+                        var slotDependency = new SlotDependencyPair();
+                        slotDependency.inputSlotName = propNode.property.displayName;
+                        slotDependency.outputSlotName = slot.RawDisplayName();
+                        asset.slotDependencies.Add(slotDependency);
+                    }
                 }
             }
+            CollectInputCapabilities(asset, graph);
 
             asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode as SubGraphOutputNode);
-            asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
+            asset.requirements = ShaderGraphRequirements.FromNodes(nodes, effectiveShaderStage, false);
 
             // output precision is whatever the output node has as a graph precision, falling back to the graph default
             asset.outputGraphPrecision = outputNode.graphPrecision.GraphFallback(graph.graphDefaultPrecision);
@@ -225,14 +266,14 @@ namespace UnityEditor.ShaderGraph
 
             if (!anyErrors && containsCircularDependency)
             {
-                Debug.LogError($"Error in Graph at {assetPath}: Sub Graph contains a circular dependency.", asset);
+                importLog.LogError($"Error in Graph at {assetPath}: Sub Graph contains a circular dependency.", asset);
                 anyErrors = true;
             }
 
             if (anyErrors)
             {
                 asset.isValid = false;
-                registry.ProvideFunction(asset.functionName, sb => {});
+                registry.ProvideFunction(asset.functionName, sb => { });
                 return;
             }
 
@@ -245,6 +286,27 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            // Need to order the properties so that they are in the same order on a subgraph node in a shadergraph
+            // as they are in the blackboard for the subgraph itself.  The (blackboard) categories keep that ordering,
+            // so traverse those and add those items to the ordered properties list.  Needs to be used to set up the
+            // function _and_ to write out the final asset data so that the function call parameter order matches as well.
+            var orderedProperties = new List<AbstractShaderProperty>();
+            var propertiesList = graph.properties.ToList();
+            foreach (var category in graph.categories)
+            {
+                foreach (var child in category.Children)
+                {
+                    var prop = propertiesList.Find(p => p.guid == child.guid);
+                    // Not all properties in the category are actually on the graph.
+                    // In particular, it seems as if keywords are not properties on sub-graphs.
+                    if (prop != null)
+                        orderedProperties.Add(prop);
+                }
+            }
+
+            // If we are importing an older file that has not had categories generated for it yet, include those now.
+            orderedProperties.AddRange(graph.properties.Except(orderedProperties));
+
             // provide top level subgraph function
             // NOTE: actual concrete precision here shouldn't matter, it's irrelevant when building the subgraph asset
             registry.ProvideFunction(asset.functionName, asset.subGraphGraphPrecision, ConcretePrecision.Single, sb =>
@@ -254,7 +316,7 @@ namespace UnityEditor.ShaderGraph
 
                 // Generate the arguments... first INPUTS
                 var arguments = new List<string>();
-                foreach (var prop in graph.properties)
+                foreach (var prop in orderedProperties)
                 {
                     // apply fallback to the graph default precision (but don't convert to concrete)
                     // this means "graph switchable" properties will use the precision token
@@ -352,7 +414,8 @@ namespace UnityEditor.ShaderGraph
                     prop.OverrideGuid(namespaceId, nameId + "_Guid_" + i);
                 }
             }
-            asset.WriteData(graph.properties, graph.keywords, graph.dropdowns, collector.properties, outputSlots, graph.unsupportedTargets);
+
+            asset.WriteData(orderedProperties, graph.keywords, graph.dropdowns, collector.properties, outputSlots, graph.unsupportedTargets);
             outputSlots.Dispose();
         }
 
@@ -422,6 +485,32 @@ namespace UnityEditor.ShaderGraph
             ancestors.RemoveAt(ancestors.Count - 1);
 
             return false;
+        }
+
+        static void CollectInputCapabilities(SubGraphAsset asset, GraphData graph)
+        {
+            // Collect each input's capabilities. There can be multiple property nodes
+            // contributing to the same input, so we cache these in a map while building
+            var inputCapabilities = new Dictionary<string, SlotCapability>();
+
+            // Walk all property node output slots, computing and caching the capabilities for that slot
+            var propertyNodes = graph.GetNodes<PropertyNode>();
+            foreach (var propertyNode in propertyNodes)
+            {
+                foreach (var slot in propertyNode.GetOutputSlots<MaterialSlot>())
+                {
+                    var slotName = slot.RawDisplayName();
+                    SlotCapability capabilityInfo;
+                    if (!inputCapabilities.TryGetValue(slotName, out capabilityInfo))
+                    {
+                        capabilityInfo = new SlotCapability();
+                        capabilityInfo.slotName = slotName;
+                        inputCapabilities.Add(propertyNode.property.displayName, capabilityInfo);
+                    }
+                    capabilityInfo.capabilities &= NodeUtils.GetEffectiveShaderStageCapability(slot, false);
+                }
+            }
+            asset.inputCapabilities.AddRange(inputCapabilities.Values);
         }
     }
 }

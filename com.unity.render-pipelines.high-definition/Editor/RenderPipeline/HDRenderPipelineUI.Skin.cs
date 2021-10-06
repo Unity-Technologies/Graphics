@@ -94,7 +94,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent RTGIRayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
             public static readonly GUIContent RTGIClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
             public static readonly GUIContent RTGIFullResolution = EditorGUIUtility.TrTextContent("Full Resolution");
-            public static readonly GUIContent RTGIUpScaleRadius = EditorGUIUtility.TrTextContent("Upscale Radius");
             public static readonly GUIContent RTGIRaySteps = EditorGUIUtility.TrTextContent("Ray Steps");
             public static readonly GUIContent RTGIDenoise = EditorGUIUtility.TrTextContent("Denoise");
             public static readonly GUIContent RTGIHalfResDenoise = EditorGUIUtility.TrTextContent("Half Resolution Denoiser");
@@ -114,7 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Fog
             public static readonly GUIContent FogSettingsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Fog");
             public static readonly GUIContent FogSettingsBudget = EditorGUIUtility.TrTextContent("Volumetric Fog Budget");
-            public static readonly GUIContent FogSettingsRatio = EditorGUIUtility.TrTextContent("Volumetric Fog Ratio");
+            public static readonly GUIContent FogSettingsRatio = EditorGUIUtility.TrTextContent("Resolution Depth Ratio");
 
             public static readonly GUIContent materialQualityLevelContent = EditorGUIUtility.TrTextContent("Default Material Quality Level", "");
 
@@ -150,7 +149,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing (Preview)");
             public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode (Preview)");
             public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
-            public static readonly GUIContent rayTracingDX12OnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12.");
+            public static readonly GUIContent rayTracingRestrictionOnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12 and Playstation 5.");
             public static readonly GUIContent rayTracingMSAAUnsupported = EditorGUIUtility.TrTextContent("When Ray tracing is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
@@ -232,23 +231,22 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent DLSSSharpnessContent = EditorGUIUtility.TrTextContent("Sharpness", "NVIDIA Deep Learning Super Sampling pixel sharpness of upsampler. Controls how the DLSS upsampler will render edges on the image. More sharpness usually means more contrast and clearer image but can increase flickering and fireflies. This setting is ignored if use optimal settings is used");
 
             public const string DLSSPackageLabel = "NVIDIA Deep Learning Super Sampling (DLSS) is not active in this project. To activate it, install the NVIDIA package.";
-            public const string DLSSInstallButton = "Install NVIDIA Package";
 
-            public const  string   DLSSFeatureDetectedMsg = "Unity detected NVIDIA Deep Learning Super Sampling and will ignore the Fallback Upscale Filter.";
-            public const  string   DLSSFeatureNotDetectedMsg = "Unity cannot detect NVIDIA Deep Learning Super Sampling (DLSS) and will use the Fallback Upscale Filter instead.";
-            public const  string   DLSSIgnorePercentages = "Unity detected that NVIDIA Deep Learning Super Sampling (DLSS) is using Optimal Settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.";
-            public const  string   DLSSWinTargetWarning = "HDRP does not support DLSS for the current build target. To enable DLSS, set your build target to Windows x86_64.";
-            public const  string   DLSSSwitchTarget64Button = "Fix";
+            public const string DLSSFeatureDetectedMsg = "Unity detected NVIDIA Deep Learning Super Sampling and will ignore the Fallback Upscale Filter.";
+            public const string DLSSFeatureNotDetectedMsg = "Unity cannot detect NVIDIA Deep Learning Super Sampling (DLSS) and will use the Fallback Upscale Filter instead.";
+            public const string DLSSIgnorePercentages = "Unity detected that NVIDIA Deep Learning Super Sampling (DLSS) is using Optimal Settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.";
+            public const string DLSSWinTargetWarning = "HDRP does not support DLSS for the current build target. To enable DLSS, set your build target to Windows x86_64.";
+            public const string DLSSSwitchTarget64Button = "Fix";
             public static readonly GUIContent maxPercentage = EditorGUIUtility.TrTextContent("Maximum Screen Percentage", "Sets the maximum screen percentage that dynamic resolution can reach.");
             public static readonly GUIContent minPercentage = EditorGUIUtility.TrTextContent("Minimum Screen Percentage", "Sets the minimum screen percentage that dynamic resolution can reach.");
             public static readonly GUIContent dynResType = EditorGUIUtility.TrTextContent("Dynamic Resolution Type", "Specifies the type of dynamic resolution that HDRP uses.");
             public static readonly GUIContent useMipBias = EditorGUIUtility.TrTextContent("Use Mip Bias", "Offsets the mip bias to recover mode detail. This only works if the camera is utilizing TAA.");
-            public static readonly GUIContent upsampleFilter = EditorGUIUtility.TrTextContent("Upscale Filter", "Specifies the filter that HDRP uses for upscaling.");
-            public static readonly GUIContent fallbackUpsampleFilter = EditorGUIUtility.TrTextContent("Fallback Upscale Filter", "Specifies the filter that HDRP uses for upscaling as a fallback if Prepost Upscaler is not detected.");
+            public static readonly GUIContent upsampleFilter = EditorGUIUtility.TrTextContent("Default Upscale Filter", "Specifies the filter that HDRP uses for upscaling unless overwritten by API by the user.");
+            public static readonly GUIContent fallbackUpsampleFilter = EditorGUIUtility.TrTextContent("Default Fallback Upscale Filter", "Specifies the filter that HDRP uses for upscaling as a fallback if DLSS is not detected. Can be overwritten via API.");
             public static readonly GUIContent forceScreenPercentage = EditorGUIUtility.TrTextContent("Force Screen Percentage", "When enabled, HDRP uses the Forced Screen Percentage value as the screen percentage.");
             public static readonly GUIContent forcedScreenPercentage = EditorGUIUtility.TrTextContent("Forced Screen Percentage", "Sets a specific screen percentage value. HDRP forces this screen percentage for dynamic resolution.");
             public static readonly GUIContent lowResTransparencyMinimumThreshold = EditorGUIUtility.TrTextContent("Low Res Transparency Min Threshold", "The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.");
-            public const  string   lowResTransparencyThresholdDisabledMsg = "Low res transparency is currently disabled in the quality settings. \"Low Res Transparency Min Threshold\" will be ignored.";
+            public const string lowResTransparencyThresholdDisabledMsg = "Low res transparency is currently disabled in the quality settings. \"Low Res Transparency Min Threshold\" will be ignored.";
             public static readonly GUIContent rayTracingHalfResThreshold = EditorGUIUtility.TrTextContent("Ray Tracing Half Res Threshold", "The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution.");
 
             public static readonly GUIContent lowResTransparentEnabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, materials tagged as Low Res Transparent, will be rendered in a quarter res offscreen buffer and then composited to full res.");
@@ -265,6 +263,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent[] shadowBitDepthNames = { new GUIContent("32 bit"), new GUIContent("16 bit") };
             public static readonly int[] shadowBitDepthValues = { (int)DepthBits.Depth32, (int)DepthBits.Depth16 };
+
+            // TEMP: HDShadowFilteringQuality.VeryHigh - This filtering mode is not ready so disabling in UI
+            // To re-enable remove the two following light and re-enable the third one
+            public static readonly GUIContent[] shadowFilteringNames = { new GUIContent("Low"), new GUIContent("Medium"), new GUIContent("High") };
+            public static readonly int[] shadowFilteringValue = { 0, 1, 2 };
 
             public const string memoryDrawback = "Adds GPU memory";
             public const string shaderVariantDrawback = "Adds Shader Variants";

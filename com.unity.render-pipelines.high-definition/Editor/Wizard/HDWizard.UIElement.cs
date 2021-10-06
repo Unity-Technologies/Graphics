@@ -163,8 +163,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         class ToolbarRadio : UIElements.Toolbar, INotifyValueChanged<int>
         {
-            public new class UxmlFactory : UxmlFactory<ToolbarRadio, UxmlTraits> {}
-            public new class UxmlTraits : Button.UxmlTraits {}
+            public new class UxmlFactory : UxmlFactory<ToolbarRadio, UxmlTraits> { }
+            public new class UxmlTraits : Button.UxmlTraits { }
 
             List<ToolbarToggle> radios = new List<ToolbarToggle>();
 
@@ -227,7 +227,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     radios[radioLength - 1].RemoveFromClassList("LastRadio");
                 }
-                foreach (var(label, tooltip) in tabs)
+                foreach (var (label, tooltip) in tabs)
                     AddRadio(label, tooltip);
 
                 radios[radioLength - 1].AddToClassList("LastRadio");
@@ -301,7 +301,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         class HiddableUpdatableContainer : VisualElementUpdatable
         {
-            public HiddableUpdatableContainer(Func<bool> tester, bool haveFixer = false) : base(tester, haveFixer) {}
+            public HiddableUpdatableContainer(Func<bool> tester, bool haveFixer = false) : base(tester, haveFixer) { }
 
             public override void CheckUpdate()
             {
@@ -512,7 +512,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             protected override void UpdateDisplay(bool statusOK, bool haveFixer)
-            {}
+            { }
         }
 
         #endregion

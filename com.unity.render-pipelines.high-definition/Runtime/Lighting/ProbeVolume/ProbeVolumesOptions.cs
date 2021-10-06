@@ -2,13 +2,14 @@ using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Experimental.Rendering
 {
     /// <summary>
     /// A volume component that holds settings for the Probe Volumes System per-camera options.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Probe Volumes Options (Experimental)")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Probe Volumes Options (Experimental)", typeof(HDRenderPipeline))]
     public sealed class ProbeVolumesOptions : VolumeComponent
     {
         /// <summary>

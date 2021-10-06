@@ -19,8 +19,8 @@ namespace UnityEngine.Rendering
         private Quaternion m_OriginalCameraRotation;
         private Camera m_CurrentCamera = null;
 
-        GUIContent[]    m_CameraNames = null;
-        int[]           m_CameraIndices = null;
+        GUIContent[] m_CameraNames = null;
+        int[] m_CameraIndices = null;
 
         DebugUI.EnumField m_DebugEntry;
 
