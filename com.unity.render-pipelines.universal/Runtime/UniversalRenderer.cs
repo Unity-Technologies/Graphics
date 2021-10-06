@@ -513,9 +513,6 @@ namespace UnityEngine.Rendering.Universal
             bool useDepthPriming = (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || (m_DepthPrimingMode == DepthPrimingMode.Forced);
             useDepthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
 
-            // Temporarily disable depth priming on certain platforms such as Vulkan because we lack proper depth resolve support.
-            useDepthPriming &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan || cameraTargetDescriptor.msaaSamples == 1;
-
             if (useRenderPassEnabled || useDepthPriming)
             {
                 createDepthTexture |= createColorTexture;
@@ -726,7 +723,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Set the depth texture to the far Z if we do not have a depth prepass or copy depth
-            if (!requiresDepthPrepass && !requiresDepthCopyPass)
+            // Don't do this for Overlay cameras to not lose depth data in between cameras (as Base is guaranteed to be first)
+            if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
             {
                 Shader.SetGlobalTexture(m_DepthTexture.id, SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
             }
@@ -1138,7 +1136,7 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id, m_ColorBufferSystem.GetBufferA().id);
             else ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id);
 
-            m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
+            m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
             cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.id);
             //Set _AfterPostProcessTexture, users might still rely on this although it is now always the cameratarget due to swapbuffer
             cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.id);
