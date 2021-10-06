@@ -55,6 +55,6 @@ namespace UnityEngine.Rendering.Universal
             persistantShapeObject.SetShape(vertices, indices, IShadowShape2DProvider.OutlineTopology.Lines, true);
         }
 
-        void IShadowShape2DProvider.OnBeforeRender(IShadowShape2DProvider.ShadowShapes2D persistantShapeObject, Matrix4x4 cameraLightFrustum) { }
+        void IShadowShape2DProvider.OnBeforeRender(IShadowShape2DProvider.ShadowShapes2D persistantShapeObject, Bounds globalBounds) { }
     }
 }
