@@ -12,6 +12,9 @@ EditorBuildSettings:
     path: Assets/Scenes/035_Shader_TerrainShaders_deferred.unity
     guid: fa7b4e9f812398d41bdc005faebd62aa
   - enabled: 1
+    path: Assets/Scenes/035_Shader_TerrainShaders_RT.unity
+    guid: f04023880f698465dab01fc276e5541c
+  - enabled: 1
     path: Assets/Scenes/038_Shader_TerrainBlend.unity
     guid: 5578c9d8b0329024d8020e3094f70302
   - enabled: 1

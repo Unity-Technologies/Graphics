@@ -7,7 +7,6 @@ using UnityEditor;
 
 public class Editmode_Bake_Tests
 {
-    /*
     static void clearAll()
     {
         Lightmapping.Clear();
@@ -27,7 +26,7 @@ public class Editmode_Bake_Tests
     }
 
     [UnityTest]
-    public IEnumerator BakingWithATrousFiltering_DoesNotFallback ()
+    public IEnumerator BakingWithATrousFiltering_DoesNotFallback()
     {
         EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/BakeATrous.unity", OpenSceneMode.Single);
         yield return null;
@@ -38,7 +37,7 @@ public class Editmode_Bake_Tests
         Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
 
         lightingSettings.lightmapper = LightingSettings.Lightmapper.ProgressiveGPU;
-        lightingSettings.mixedBakeMode =  MixedLightingMode.IndirectOnly;
+        lightingSettings.mixedBakeMode = MixedLightingMode.IndirectOnly;
         lightingSettings.directionalityMode = LightmapsMode.NonDirectional;
 
         // Activate A-Trous filtering
@@ -86,5 +85,4 @@ public class Editmode_Bake_Tests
 
         clearAll();
     }
-    */
 }
