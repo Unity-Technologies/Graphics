@@ -116,20 +116,37 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
             => emissiveColor.colorValue = emissiveColorLDR.colorValue.linear * emissiveIntensity.floatValue;
 
-        internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialEditor materialEditor, Material[] materials)
+        internal static void UpdateEmissiveColorLDRAndIntensityFromEmissiveColor(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
         {
-            materialEditor.serializedObject.ApplyModifiedProperties();
-            foreach (Material target in materials)
-            {
-                target.UpdateEmissiveColorLDRFromIntensityAndEmissiveColor();
-            }
-            materialEditor.serializedObject.Update();
-        }
+            // specifies the max byte value to use when decomposing a float color into bytes with exposure
+            // this is the value used by Photoshop
+            const byte k_MaxByteForOverexposedColor = 191;
 
-        internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
-        {
-            Color emissiveColorLDRLinear = emissiveColor.colorValue / emissiveIntensity.floatValue;
-            emissiveColorLDR.colorValue = emissiveColorLDRLinear.gamma;
+            float intensity = 1f;
+            Color colorHDR = emissiveColor.colorValue;
+            Color colorLDR = colorHDR;
+
+            var maxColorComponent = emissiveColor.colorValue.maxColorComponent;
+            if (maxColorComponent != 0f)
+            {
+                int maxColorComponentIndex = 0;
+                if (colorLDR.r > colorLDR.g) maxColorComponentIndex = colorLDR.r > colorLDR.b ? 0 : 2;
+                if (colorLDR.g > colorLDR.r) maxColorComponentIndex = colorLDR.g > colorLDR.b ? 1 : 2;
+
+                // calibrate exposure to the max float color component
+                var scaleFactor = k_MaxByteForOverexposedColor / maxColorComponent;
+
+                // maintain maximal integrity of byte values to prevent off-by-one errors when scaling up a color one component at a time
+                colorLDR.r = Math.Min(k_MaxByteForOverexposedColor, (byte)Mathf.CeilToInt(scaleFactor * colorHDR.r)) / 255f;
+                colorLDR.g = Math.Min(k_MaxByteForOverexposedColor, (byte)Mathf.CeilToInt(scaleFactor * colorHDR.g)) / 255f;
+                colorLDR.b = Math.Min(k_MaxByteForOverexposedColor, (byte)Mathf.CeilToInt(scaleFactor * colorHDR.b)) / 255f;
+
+                intensity = colorHDR[maxColorComponentIndex] / colorLDR[maxColorComponentIndex];
+            }
+
+            colorLDR.a = 1.0f;
+            emissiveIntensity.floatValue = intensity;
+            emissiveColorLDR.colorValue = colorLDR.gamma;
         }
 
         internal static void DoEmissiveIntensityGUI(MaterialEditor materialEditor, MaterialProperty emissiveIntensity, MaterialProperty emissiveIntensityUnit)
@@ -200,13 +217,10 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 if (updateEmissiveColor)
-                    UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(emissiveColorLDR, emissiveIntensity, emissiveColor);
+                    UpdateEmissiveColorLDRAndIntensityFromEmissiveColor(emissiveColorLDR, emissiveIntensity, emissiveColor);
 
-                EditorGUI.BeginChangeCheck();
                 DoEmissiveTextureProperty(emissiveColorLDR);
                 DoEmissiveIntensityGUI(materialEditor, emissiveIntensity, emissiveIntensityUnit);
-                if (EditorGUI.EndChangeCheck())
-                    UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(emissiveColorLDR, emissiveIntensity, emissiveColor);
             }
 
             materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);

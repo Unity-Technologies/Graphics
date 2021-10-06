@@ -199,20 +199,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(this Material material)
-        {
-            const string kEmissiveColorLDR = "_EmissiveColorLDR";
-            const string kEmissiveColor = "_EmissiveColor";
-            const string kEmissiveIntensity = "_EmissiveIntensity";
-
-            if (material.HasProperty(kEmissiveColorLDR) && material.HasProperty(kEmissiveIntensity) && material.HasProperty(kEmissiveColor))
-            {
-                Color emissiveColorLDRLinear = material.GetColor(kEmissiveColor) / material.GetFloat(kEmissiveIntensity);
-                Color emissiveColorLDR = new Color(Mathf.LinearToGammaSpace(emissiveColorLDRLinear.r), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.g), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.b));
-                material.SetColor(kEmissiveColorLDR, emissiveColorLDR);
-            }
-        }
-
         public static DisplacementMode GetFilteredDisplacementMode(this Material material, DisplacementMode displacementMode)
         {
             if (material.HasProperty(kTessellationMode))
@@ -394,7 +380,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 intensity = LightUtils.ConvertEvToLuminance(intensity);
             material.SetFloat(kEmissiveIntensity, intensity);
             material.SetFloat(kEmissiveIntensityUnit, (float)unit);
-            material.SetColor(kEmissiveColor, material.GetColor(kEmissiveColorLDR).linear * intensity);
         }
 
         /// <summary>Set Alpha Clipping</summary>

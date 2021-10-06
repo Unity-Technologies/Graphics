@@ -138,6 +138,9 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_BASE", ((UVEmissiveMapping)material.GetFloat(kUVEmissive)) == UVEmissiveMapping.SameAsBase && material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
 
+            if (material.HasProperty(kUseEmissiveIntensity) && material.GetFloat(kUseEmissiveIntensity) != 0)
+                material.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
+
             // For migration of specular occlusion to specular mode we remove previous keyword
             // _ENABLESPECULAROCCLUSION is deprecated
             CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", false);

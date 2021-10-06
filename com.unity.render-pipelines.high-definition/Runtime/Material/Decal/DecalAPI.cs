@@ -81,6 +81,11 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
             CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
             CoreUtils.SetKeyword(material, "_EMISSIVEMAP", material.GetTexture(kEmissiveColorMap));
+
+            if (material.GetFloat(kUseEmissiveIntensity) == 0)
+                material.SetColor(kEmissiveColor, material.GetColor(kEmissiveColorHDR));
+            else
+                material.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
         }
     }
 }
