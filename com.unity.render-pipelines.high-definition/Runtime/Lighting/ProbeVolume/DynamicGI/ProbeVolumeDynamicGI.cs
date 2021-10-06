@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 using UnityEditor.Experimental;
@@ -389,6 +390,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", probeVolume.propagationBuffers.hitRadianceCache);
             cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.propagationBuffers.hitRadianceCache.count);
 
+            CoreUtils.SetKeyword(shader, "COMPUTE_INFINITE_BOUNCE", giSettings.infiniteBounce.value > 0);
+
             int numHits = probeVolume.propagationBuffers.neighborHits.count;
             int dispatchX = (numHits + 63) / 64;
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
@@ -402,10 +405,36 @@ namespace UnityEngine.Rendering.HighDefinition
             var obb = probeVolume.GetProbeVolumeEngineDataBoundingBox();
             var data = probeVolume.GetProbeVolumeEngineData();
 
+            switch (giSettings.neighborVolumePropagationMode.value)
+            {
+                case ProbeDynamicGI.DynamicGINeighboringVolumePropagationMode.SampleNeighborsDirectionOnly:
+                {
+                    CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_DIRECTION_ONLY", true);
+                    CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION", false);
+                    break;
+                }
+                case ProbeDynamicGI.DynamicGINeighboringVolumePropagationMode.SampleNeighborsPositionAndDirection:
+                {
+                    CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_DIRECTION_ONLY", false);
+                    CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION", true);
+                    break;
+                }
+                case ProbeDynamicGI.DynamicGINeighboringVolumePropagationMode.Disabled:
+                default:
+                {
+                    CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_DIRECTION_ONLY", false);
+                    CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION", false);
+                    break;
+                }
+            }
+
+            cmd.SetComputeFloatParam(shader, "_ProbeVolumeDGIMaxNeighborDistance", data.maxNeighborDistance);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionXY", (int)data.resolutionXY);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionX", (int)data.resolutionX);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionY", (int)data.resolution.y);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionZ", (int)data.resolution.z);
+            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGILightLayers", unchecked((int)data.lightLayers));
+            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIEngineDataIndex", probeVolume.GetProbeVolumeEngineDataIndex());
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIResolutionInverse", data.resolutionInverse);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsRight", obb.right);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsUp", obb.up);
@@ -428,6 +457,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_PreviousRadianceCacheAxis", probeVolume.propagationBuffers.GetReadRadianceCacheAxis());
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis", probeVolume.propagationBuffers.GetWriteRadianceCacheAxis());
             cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", probeVolume.propagationBuffers.radianceCacheAxis0.count);
+
+            PrecomputeAxisCacheLookup(giSettings.propagationSharpness.value);
+            cmd.SetComputeVectorArrayParam(shader, "_SortedNeighborAxis", s_sortedAxisLookups);
 
             int numHits = probeVolume.propagationBuffers.neighbors.count;
             int dispatchX = (numHits + 63) / 64;
@@ -565,6 +597,49 @@ namespace UnityEngine.Rendering.HighDefinition
             minDensity = Mathf.Min(minDensity, parameters.densityZ);
             return 1.0f / minDensity;
         }
+
+        // http://research.microsoft.com/en-us/um/people/johnsny/papers/sg.pdf
+        float SGEvaluateFromDirection(float sgAmplitude, float sgSharpness, Vector3 sgMean, Vector3 direction)
+        {
+            // MADD optimized form of: a.amplitude * exp(a.sharpness * (dot(a.mean, direction) - 1.0));
+            return sgAmplitude * Mathf.Exp(Vector3.Dot(sgMean, direction) * sgSharpness - sgSharpness);
+        }
+
+        void PrecomputeAxisCacheLookup(float sgSharpness)
+        {
+            if (!Mathf.Approximately(s_sortedAxisSharpness, sgSharpness))
+            {
+                for (int axisIndex = 0; axisIndex < s_NeighborAxis.Length; ++axisIndex)
+                {
+                    var axis = s_NeighborAxis[axisIndex];
+                    for (int neighborIndex = 0; neighborIndex < s_NeighborAxis.Length; ++neighborIndex)
+                    {
+                        var neighborDirection = s_NeighborAxis[neighborIndex];
+                        var sgWeight = SGEvaluateFromDirection(1, sgSharpness, neighborDirection, axis);
+                        s_tempAxisLookups[neighborIndex] = new Vector4(sgWeight, neighborIndex, 0, 0);
+                    }
+
+                    Array.Sort(s_tempAxisLookups, s_axisComparer);
+                    Array.Copy(s_tempAxisLookups, 0, s_sortedAxisLookups, axisIndex * s_NeighborAxis.Length, s_NeighborAxis.Length);
+                }
+
+                s_sortedAxisSharpness = sgSharpness;
+            }
+        }
+
+        class RelevantNeighborAxisLookupComparer : IComparer<Vector4>
+        {
+            public int Compare( Vector4 x, Vector4 y )
+            {
+                float diff = x.x - y.x;
+                return diff < 0 ? 1 : diff > 0 ? -1 : 0;
+            }
+        }
+
+        private static Vector4[] s_tempAxisLookups = new Vector4[s_NeighborAxis.Length];
+        private static Vector4[] s_sortedAxisLookups = new Vector4[s_NeighborAxis.Length * s_NeighborAxis.Length];
+        private static float s_sortedAxisSharpness = -1;
+        private static RelevantNeighborAxisLookupComparer s_axisComparer = new RelevantNeighborAxisLookupComparer();
     }
 
 } // UnityEngine.Experimental.Rendering.HDPipeline

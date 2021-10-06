@@ -33,6 +33,7 @@ namespace UnityEditor.ShaderGraph
     // + 1 Bump ShaderImporter version after _DissolveOnOcclusionOpacity parameter needed HLSLDeclaration.UnityPerMaterial declaration, changing codegen in 10.2.0.
     // + 1 Bump ShaderImporter version after _DissolveOnOcclusionOpacity parameter needed HLSLDeclaration.HybridPerInstance declaration
     // + 1 Bump ShaderImporter version after change to support dynamic GI extraction pass
+    // + 1 Bump ShaderImporter version after bugfixes to dynamic GI extraction pass
     // [ScriptedImporter(115, Extension, -902)]
     [ScriptedImporter(122, Extension, -902)]
 #else

@@ -95,12 +95,8 @@ void Frag(  Varyings varInput,
         GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
         float3 outAlbedo = float3(0,1,0);
-#ifdef UNLIT
-        outAlbedo.xyz = surfaceData.color;
-#else
         BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
         outAlbedo.xyz = GetDiffuseOrDefaultColor(bsdfData, 1.0).xyz;
-#endif
 
         // Output
         ExtraDataRequestOutput output;

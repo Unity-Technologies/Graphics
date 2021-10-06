@@ -192,7 +192,13 @@ uint ProbeVolumeFetchIndex(uint probeVolumeStart, uint probeVolumeOffset)
     return ProbeVolumeMaterialPassFetchIndex(probeVolumeStart, probeVolumeOffset);
 #else // #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
     // Access probe volume data from standard lightloop light list data structure.
+
+#if defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
+    return probeVolumeStart + probeVolumeOffset;
+#else
     return FetchIndex(probeVolumeStart, probeVolumeOffset);
+#endif
+
 #endif
 }
 

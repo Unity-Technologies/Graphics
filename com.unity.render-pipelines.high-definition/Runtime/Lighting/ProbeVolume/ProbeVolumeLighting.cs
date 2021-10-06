@@ -156,6 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Is the feature globally disabled?
         bool m_SupportProbeVolume = false;
+        bool m_SupportDynamicGI = false;
         private bool m_WasProbeVolumeDynamicGIEnabled;
 
         // Pre-allocate sort keys array to max size to avoid creating allocations / garbage at runtime.
@@ -215,6 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             m_SupportProbeVolume = asset.currentPlatformRenderPipelineSettings.supportProbeVolume && (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled);
+            m_SupportDynamicGI = m_SupportProbeVolume && asset.currentPlatformRenderPipelineSettings.supportProbeVolumeDynamicGI;
 
             s_ProbeVolumeAtlasResolution = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasResolution;
             if (GetApproxProbeVolumeAtlasSizeInByte(s_ProbeVolumeAtlasResolution) > HDRenderPipeline.k_MaxCacheSize)
@@ -1070,7 +1072,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.giSettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
             data.globalCB = m_ShaderVariablesGlobalCB;
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && m_SupportDynamicGI)
             {
                 data.mode = ProbeVolumeDynamicGIMode.Dispatch;
                 m_WasProbeVolumeDynamicGIEnabled = true;
@@ -1126,6 +1128,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float globalDistanceFadeStart = settings.distanceFadeStart.value;
             float globalDistanceFadeEnd = settings.distanceFadeEnd.value;
+
+            float offscreenUploadDistance = 0.0f;
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && m_SupportDynamicGI)
+            {
+                var dynamicGISettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
+                offscreenUploadDistance = (dynamicGISettings.neighborVolumePropagationMode.value == ProbeDynamicGI.DynamicGINeighboringVolumePropagationMode.Disabled)
+                    ? 0
+                    : Mathf.Min(dynamicGISettings.rangeInFrontOfCamera.value, dynamicGISettings.rangeBehindCamera.value);
+            }
+            float offscreenUploadDistanceSquared = offscreenUploadDistance * offscreenUploadDistance;
 
             using (new ProfilingScope(immediateCmd, ProfilingSampler.Get(HDProfileId.PrepareProbeVolumeList)))
             {
@@ -1195,8 +1207,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         // TODO: cache these?
                         var obb = volume.ConstructOBBEngineData(camOffset);
 
+                        Vector3 radialOffset = (ShaderConfig.s_CameraRelativeRendering != 0) ? obb.center : (obb.center - camPosition);
+                        float radialDistanceSquared = Vector3.Dot(radialOffset, radialOffset);
+
                         // Frustum cull on the CPU for now. TODO: do it on the GPU.
-                        if (GeometryUtils.Overlap(obb, hdCamera.frustum, hdCamera.frustum.planes.Length, hdCamera.frustum.corners.Length))
+                        if (GeometryUtils.Overlap(obb, hdCamera.frustum, hdCamera.frustum.planes.Length, hdCamera.frustum.corners.Length)
+                            || (offscreenUploadDistanceSquared > radialDistanceSquared))
                         {
                             var logVolume = CalculateProbeVolumeLogVolume(volume.parameters.size);
 
@@ -1464,7 +1480,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void DrawProbeVolumeDebugSHPreview(ProbeVolume probeVolume, Camera camera)
         {
             if (!m_SupportProbeVolume) { return; }
-            
+
             Material debugMaterial = GetDebugSHPreviewMaterial();
             if (debugMaterial == null) { return; }
 

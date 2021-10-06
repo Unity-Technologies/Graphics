@@ -3,12 +3,25 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationSphericalGaussians.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeSphericalHarmonicsLighting.hlsl"
+
+#define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+// Force probe volume bilateral filtering off to speed things up.
+// Comment out this line if you would like to use the project wide setting bilateral filtering defined in ShaderConfig.cs
+#define PROBE_VOLUMES_BILATERAL_FILTERING_MODE PROBEVOLUMESBILATERALFILTERINGMODES_DISABLED
+
+// Can force L1 or L0 sampling by modifying this define. When commented out it will use the project wide setting defined in ShaderConfig.cs
+// #define PROBE_VOLUMES_SAMPLING_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+
+#pragma multi_compile _ SAMPLE_NEIGHBORS_DIRECTION_ONLY SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION
 
 #pragma kernel PropagateLight
 #define GROUP_SIZE 64
 //#pragma enable_d3d11_debug_symbols
 
 float4 _RayAxis[NEIGHBOR_AXIS_COUNT];
+float4 _SortedNeighborAxis[NEIGHBOR_AXIS_COUNT * NEIGHBOR_AXIS_COUNT];
 
 StructuredBuffer<NeighborAxis> _ProbeVolumeNeighbors;
 int _ProbeVolumeNeighborsCount;
@@ -24,11 +37,15 @@ uint _ProbeVolumeDGIResolutionX;
 uint _ProbeVolumeDGIResolutionY;
 uint _ProbeVolumeDGIResolutionZ;
 float3 _ProbeVolumeDGIResolutionInverse;
+float _ProbeVolumeDGIMaxNeighborDistance;
 
 float3 _ProbeVolumeDGIBoundsRight;
 float3 _ProbeVolumeDGIBoundsUp;
 float3 _ProbeVolumeDGIBoundsExtents;
 float3 _ProbeVolumeDGIBoundsCenter;
+
+uint _ProbeVolumeDGILightLayers;
+int _ProbeVolumeDGIEngineDataIndex;
 
 float _RangeInFrontOfCamera;
 float _RangeBehindCamera;
@@ -55,6 +72,140 @@ float3 ProbeCoordinatesToWorldPosition(float3 probeCoordinates, float3x3 probeVo
     return mul(localPosition, probeVolumeLtw) + GetAbsolutePositionWS(_ProbeVolumeDGIBoundsCenter);
 }
 
+#if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+    void ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL0(
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+    void ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL1(
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+    void ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL2(
+#endif
+        PositionInputs posInput, float3 normalWS, float3 viewDirectionWS, uint renderingLayers,
+#if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+        out ProbeVolumeSphericalHarmonicsL0 coefficients,
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+        out ProbeVolumeSphericalHarmonicsL1 coefficients,
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+        out ProbeVolumeSphericalHarmonicsL2 coefficients,
+#endif
+        inout float weightHierarchy)
+{
+
+#if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+        ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL0, coefficients);
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+        ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL1, coefficients);
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+        ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL2, coefficients);
+#endif
+
+    for (int i = 0; i < (int)_ProbeVolumeCount; ++i)
+    {
+        ProbeVolumeEngineData probeVolumeData = _ProbeVolumeDatas[i];
+        OrientedBBox probeVolumeBounds = _ProbeVolumeBounds[i];
+
+        if (ProbeVolumeIsAllWavesComplete(weightHierarchy, probeVolumeData.volumeBlendMode)) { break; }
+
+        // Do not sample ourselves.
+        // TODO: We also likely only want to sample neighboring probe volumes if they are simulating dynamic GI (and ideally, only the dynamic GI portion).
+        if (i != _ProbeVolumeDGIEngineDataIndex)
+        {
+#if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+            ProbeVolumeAccumulateSphericalHarmonicsL0(
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+            ProbeVolumeAccumulateSphericalHarmonicsL1(
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+            ProbeVolumeAccumulateSphericalHarmonicsL2(
+#endif
+                posInput, normalWS, viewDirectionWS, renderingLayers,
+                probeVolumeData, probeVolumeBounds,
+                coefficients,
+                weightHierarchy
+            );
+        }
+    }
+}
+
+SHIncomingIrradiance ProbeVolumeEvaluateIncomingIrradiance(float3 positionWS, uint renderingLayers)
+{
+    float3 positionRWS = GetCameraRelativePositionWS(positionWS);
+    PositionInputs posInput;
+    ZERO_INITIALIZE(PositionInputs, posInput);
+    posInput.positionWS = positionRWS; // TODO: Be careful about RWS here.
+    // float2 positionNDC; // unused in probe volumes.
+    // uint2  positionSS; // unused in probe volumes.
+    // uint2  tileCoord;   // unused in probe volumes with light lists disabled.
+    // float  deviceDepth; // unused in probe volumes.
+    posInput.linearDepth = abs(mul(GetWorldToViewMatrix(), float4(positionRWS, 1.0)).z); // needed for depth fade. TODO: Should be a max(0.0) but need to figure out the sign flip here.
+
+    // Completely disable normal and view bias in this context by setting the normal and view to zero.
+    // They are only used for bias.
+    const float3 normalWSForBias = 0.0;
+    const float3 viewDirectionWSForBias = 0.0;
+    SHIncomingIrradiance shIncomingIrradiance;
+    ZERO_INITIALIZE(SHIncomingIrradiance, shIncomingIrradiance);
+    float weightHierarchy = 0.0;
+
+#if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+    #error "Need to define implementation of ProbeVolumeEvaluateIncomingRadiance for PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0"
+    // TODO:
+    // ProbeVolumeSphericalHarmonicsL0 coefficients;
+    // ProbeVolumeAccumulateSphericalHarmonicsL0(posInput, normalWS, normalWS, renderingLayers, coefficients, weightHierarchy);
+    // bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(normalWS, coefficients);
+
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+    #error "Need to define implementation of ProbeVolumeEvaluateIncomingRadiance for PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1"
+    // TODO:
+    // ProbeVolumeSphericalHarmonicsL1 coefficients;
+    // ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL1(posInput, normalWSForBias, viewDirectionWSForBias, renderingLayers, coefficients, weightHierarchy);
+
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+    ProbeVolumeSphericalHarmonicsL2 coefficients;
+    ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL2(posInput, normalWSForBias, viewDirectionWSForBias, renderingLayers, coefficients, weightHierarchy);
+
+    SHOutgoingRadiosityWithProjectedConstantsPacked outgoingRadiosityProjectedConstantsPacked;
+    [unroll] for (int i = 0; i < SH_PACKED_COEFFICIENT_COUNT; ++i) { outgoingRadiosityProjectedConstantsPacked.data[i] = coefficients.data[i]; }
+    SHOutgoingRadiosityWithProjectedConstants outgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(outgoingRadiosityProjectedConstantsPacked);
+    SHOutgoingRadiosity bakedOutgoingRadiosity = SHOutgoingRadiosityCompute(outgoingRadiosityProjectedConstants);
+    shIncomingIrradiance = SHIncomingIrradianceCompute(bakedOutgoingRadiosity);
+#endif
+
+    return shIncomingIrradiance;
+}
+
+float3 ProbeVolumeEvaluateIncomingRadiance(SHIncomingIrradiance shIncomingIrradiance, float3 directionWS)
+{
+    // TODO: Rather than simply point sampling the incoming radiance, we could approximately evaluate the integral of the axis SG and the SH term using very similar math
+    // to what we use for converting from SGs to SH in ProbePropagationCombine.compute.
+    // In short, we would generate a zonal harmonic that approximately represents our SG, use it as a window for our SH data, compute the integral of our windowed SH term over the sphere,
+    // and use that as the amplitude for our axis SG (likely requires careful normalization).
+    // Point sampling might be good enough - would just be nice to have the option to compare.
+    float3 incomingRadiance = IncomingRadianceCompute(shIncomingIrradiance, directionWS);
+
+    // Values can be negative due to ringing. Clip off negative values.
+    incomingRadiance = max(0.0, incomingRadiance);
+
+    return incomingRadiance;
+}
+
+bool IsBoundaryProbe(uint3 probeCoordinate, uint3 resolution)
+{
+    return (probeCoordinate.x == 0)
+        || (probeCoordinate.y == 0)
+        || (probeCoordinate.z == 0)
+        || ((probeCoordinate.x + 1) == resolution.x)
+        || ((probeCoordinate.y + 1) == resolution.y)
+        || ((probeCoordinate.z + 1) == resolution.z);
+}
+
+float3 ComputeNeighborBoundaryEdgeWorldPosition(float3 probeWorldPosition, int axisIndex, float3x3 probeVolumeLtw, inout float3 neighborWorldDirection)
+{
+    float3 neighborDirection = _RayAxis[axisIndex].xyz;
+    float neighborAxisLength = _RayAxis[axisIndex].w;
+    neighborWorldDirection = mul(neighborDirection, probeVolumeLtw);
+
+    return probeWorldPosition + neighborWorldDirection * neighborAxisLength * _ProbeVolumeDGIMaxNeighborDistance;
+}
+
 [numthreads(GROUP_SIZE, 1, 1)]
 void PropagateLight(uint3 id : SV_DispatchThreadID)
 {
@@ -68,42 +219,58 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         uint3 probeCoordinate = ProbeIndexToProbeCoordinatesUint(probeIndex);
 
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
-        const float3 worldPosition =  ProbeCoordinatesToWorldPosition(probeCoordinate, probeVolumeLtw);
+        const float3 probePositionWS =  ProbeCoordinatesToWorldPosition(probeCoordinate, probeVolumeLtw);
 
         // Early out at far distances
-        if (IsFarFromCamera(worldPosition, _RangeInFrontOfCamera, _RangeBehindCamera))
+        if (IsFarFromCamera(probePositionWS, _RangeInFrontOfCamera, _RangeBehindCamera))
         {
             return;
         }
 
+#if defined(SAMPLE_NEIGHBORS_DIRECTION_ONLY)
+        SHIncomingIrradiance shIncomingIrradiance;
+        ZERO_INITIALIZE(SHIncomingIrradiance, shIncomingIrradiance);
+        if (IsBoundaryProbe(probeCoordinate, uint3(_ProbeVolumeDGIResolutionX, _ProbeVolumeDGIResolutionY, _ProbeVolumeDGIResolutionZ)))
+        {
+            float3 neighborWorldDirection;
+            float3 boundaryEdgePositionWS = ComputeNeighborBoundaryEdgeWorldPosition(probePositionWS, axisIndex, probeVolumeLtw, neighborWorldDirection);
+            shIncomingIrradiance = ProbeVolumeEvaluateIncomingIrradiance(boundaryEdgePositionWS, _ProbeVolumeDGILightLayers);
+        }
+#endif
+
         float3 incomingRadiance = 0;
         float weight = 0.0f;
         float probeValidity = 0;
-        float3 axis = _RayAxis[axisIndex].xyz;
+        int neighborAxisIndexOffset = axisIndex * NEIGHBOR_AXIS_COUNT;
 
-        for(int i=0; i < NEIGHBOR_AXIS_COUNT; ++i)
+        // use NEIGHBOR_AXIS_COUNT for all of them
+        // use 17 for only the very small values trimmed (very subtle)
+        // use 10 for some quality loss (noticeable)
+        const int relevantAxisLookups = 10;
+
+        for(int l=0; l < relevantAxisLookups; ++l)
         {
+            float4 neighborAxisLookup = _SortedNeighborAxis[neighborAxisIndexOffset + l];
+            int i = (int)neighborAxisLookup.y;
+            float sgWeight = neighborAxisLookup.x;
+
             float3 neighborDirection = _RayAxis[i].xyz;
+            float3 neighborWorldDirection = neighborDirection;
+            neighborWorldDirection = mul(neighborDirection, probeVolumeLtw);
+
             uint sampleAxis = probeIndex * NEIGHBOR_AXIS_COUNT + i;
             NeighborAxis neighbor = _ProbeVolumeNeighbors[sampleAxis];
-
-            SphericalGaussian sg;
-            sg.amplitude = 1;
-            sg.sharpness = _PropagationSharpness;
-            sg.mean = neighborDirection;
-
-            float sgWeight = SGEvaluateFromDirection(sg, axis);
 
             uint hitIndex = 0;
             float probeAxisValidity = 0;
             UnpackIndicesAndValidityOnly(neighbor.hitIndexValidity, hitIndex, probeAxisValidity);
             probeValidity += probeAxisValidity;
 
+            float3 incomingNeighborRadiance = 0;
             if(hitIndex < (uint)_HitRadianceCacheAxisCount)
             {
                 // Hit
-                weight += sgWeight;
-                incomingRadiance += _HitRadianceCacheAxis[hitIndex] * sgWeight;
+                incomingNeighborRadiance = _HitRadianceCacheAxis[hitIndex];
             }
             else
             {
@@ -111,7 +278,6 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                 int3 offset = GetNeighborAxisOffset(i);
                 int3 neighborProbeCoordinate = probeCoordinate + offset;
 
-                //TODO: remove missed axis on generation to avoid this branch entirely here
                 if(neighborProbeCoordinate.x >= 0 && neighborProbeCoordinate.x < (int)_ProbeVolumeDGIResolutionX &&
                    neighborProbeCoordinate.y >= 0 && neighborProbeCoordinate.y < (int)_ProbeVolumeDGIResolutionY &&
                    neighborProbeCoordinate.z >= 0 && neighborProbeCoordinate.z < (int)_ProbeVolumeDGIResolutionZ)
@@ -119,14 +285,27 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                     uint neighborProbeIndex = ProbeCoordinateToIndex(neighborProbeCoordinate);
                     float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborProbeIndex, axisIndex);
 
-                    weight += sgWeight;
-                    incomingRadiance += prevAxisRadiance * sgWeight;
+                    incomingNeighborRadiance = prevAxisRadiance;
                 }
+#if defined(SAMPLE_NEIGHBORS_DIRECTION_ONLY) || defined(SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION)
+                else
+                {
+#if defined(SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION)
+                    // sample neighbor probe volumes to gather radiance from neighbor volumes
+                    float3 boundaryEdgePositionWS = ComputeNeighborBoundaryEdgeWorldPosition(probePositionWS, i, probeVolumeLtw, neighborWorldDirection);
+                    SHIncomingIrradiance shIncomingIrradiance = ProbeVolumeEvaluateIncomingIrradiance(boundaryEdgePositionWS, _ProbeVolumeDGILightLayers);
+#endif
+                    incomingNeighborRadiance = ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, neighborWorldDirection) * INV_PI;
+                }
+#endif
             }
+
+            weight += sgWeight;
+            incomingRadiance += incomingNeighborRadiance * sgWeight;
         }
 
         incomingRadiance *= rcp(max(weight, 0.00001));
-        probeValidity *= 1.0 / NEIGHBOR_AXIS_COUNT;
+        probeValidity *= 1.0 / relevantAxisLookups;
 
         lightingAndWeight.rgb += incomingRadiance * _PropagationContribution;
         WritePropagationOutput(probeIndex, axisIndex, lightingAndWeight, probeValidity);
