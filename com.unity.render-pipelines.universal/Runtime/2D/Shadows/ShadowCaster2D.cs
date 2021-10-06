@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    [DefaultExecutionOrder(2)]
+
     [AddComponentMenu("Rendering/2D/Shadow Caster 2D")]
     [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
 
@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int[] m_ApplyToSortingLayers = null;
         [SerializeField] Vector3[] m_ShapePath = null;
         [SerializeField] int  m_ShapePathHash = 0;
-
+        
         [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShapeProvider;
         [SerializeField] ShadowCastingSources m_ShadowCastingSource = (ShadowCastingSources)(-1);
