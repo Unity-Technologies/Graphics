@@ -53,6 +53,42 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        private CoordinateSpace m_NormalInputSpace = CoordinateSpace.World;
+
+        public CoordinateSpace normalInputSpace
+        {
+            get { return m_NormalInputSpace; }
+            set
+            {
+                if (m_NormalInputSpace == value)
+                    return;
+
+                m_NormalInputSpace = value;
+                Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+
+        [SerializeField]
+        private CoordinateSpace m_NormalOutputSpace = CoordinateSpace.Tangent;
+
+        public CoordinateSpace normalOutputSpace
+        {
+            get { return m_NormalOutputSpace; }
+            set
+            {
+                if (m_NormalOutputSpace == value)
+                    return;
+
+                m_NormalOutputSpace = value;
+                Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
@@ -122,13 +158,15 @@ namespace UnityEditor.ShaderGraph
                         , GetVariableNameForNode()
                         , GetSlotValue(NormalInputId, generationMode));
 
-                    sb.AppendLine("$precision4 {0} = $precision4(normalize({1}_X.zyx * {1}_Blend.x + {1}_Y.xzy * {1}_Blend.y + {1}_Z.xyz * {1}_Blend.z), 1);"
-                        , GetVariableNameForSlot(OutputSlotId)
+                    var outputVariable = GetVariableNameForSlot(OutputSlotId);
+                    sb.AppendLine("$precision4 {0} = $precision4({1}_X.zyx * {1}_Blend.x + {1}_Y.xzy * {1}_Blend.y + {1}_Z.xyz * {1}_Blend.z, 1);"
+                        , outputVariable
                         , GetVariableNameForNode());
-                    sb.AppendLine("$precision3x3 {0}_Transform = $precision3x3(IN.WorldSpaceTangent, IN.WorldSpaceBiTangent, IN.WorldSpaceNormal);", GetVariableNameForNode());
-                    sb.AppendLine("{0}.rgb = TransformWorldToTangent({0}.rgb, {1}_Transform);"
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , GetVariableNameForNode());
+
+                    // transform the normal from input to output space, and normalize
+                    var xform = new SpaceTransform(m_NormalInputSpace, m_NormalOutputSpace, ConversionType.Normal, normalize: true);
+                    outputVariable = $"{outputVariable}.rgb";
+                    SpaceTransformUtil.GenerateTransformCodeStatement(xform, outputVariable, outputVariable, sb);
                     break;
                 default:
                     // We want the sum of the 3 blend weights (by which we normalize them) to be > 0.
