@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug with Sprite Targets in ShaderGraph not rendering correctly in game view [1352225]
 - Fix for rendering thumbnails. [case 1348209](https://issuetracker.unity3d.com/issues/preview-of-assets-do-not-show-in-the-project-window)
 - Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]
+- Fixed an issue in where installing the Adaptive Performance package caused errors to the inspector UI [1368161](https://issuetracker.unity3d.com/issues/urp-package-throws-compilation-error-cs1525-when-imported-together-with-adaptive-performance-package)
 
 ## [12.0.0] - 2021-01-11
 ### Added
