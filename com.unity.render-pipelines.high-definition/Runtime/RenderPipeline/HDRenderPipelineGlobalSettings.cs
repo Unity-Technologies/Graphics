@@ -826,10 +826,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal ProbeVolumeSceneData GetOrCreateAPVSceneData()
         {
             if (apvScenesData == null)
-                apvScenesData = new ProbeVolumeSceneData((Object)this);
+                apvScenesData = new ProbeVolumeSceneData((Object)this, nameof(apvScenesData));
 
 
-            apvScenesData.SetParentObject((Object)this);
+            apvScenesData.SetParentObject((Object)this, nameof(apvScenesData));
             return apvScenesData;
         }
 

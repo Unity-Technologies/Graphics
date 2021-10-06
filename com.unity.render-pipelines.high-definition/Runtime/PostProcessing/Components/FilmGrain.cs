@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies a tileable Texture to use for the grain. The neutral value for this Texture is 0.5 which means that HDRP does not apply grain at this value.
         /// </summary>
         [Tooltip("Specifies a tileable Texture to use for the grain. The neutral value for this Texture is 0.5 which means that HDRP does not apply grain at this value.")]
-        public NoInterpTextureParameter texture = new NoInterpTextureParameter(null);
+        public Texture2DParameter texture = new Texture2DParameter(null);
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.

@@ -526,5 +526,26 @@ namespace UnityEngine.Rendering
             /// </summary>
             public int decimals = 3;
         }
+
+        /// <summary>
+        /// Simple message box widget, providing a couple of different styles.
+        /// </summary>
+        public class MessageBox : Widget
+        {
+            /// <summary>
+            /// Label style defines text color and background.
+            /// </summary>
+            public enum Style
+            {
+                Info,
+                Warning,
+                Error
+            }
+
+            /// <summary>
+            /// Style used to render displayName.
+            /// </summary>
+            public Style style = Style.Info;
+        }
     }
 }

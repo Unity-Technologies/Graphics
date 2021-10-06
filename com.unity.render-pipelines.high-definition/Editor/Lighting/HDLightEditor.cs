@@ -123,6 +123,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override void OnSceneGUI()
         {
+            if (targetAdditionalData == null)
+                return;
+
             // Each handles manipulate only one light
             // Thus do not rely on serialized properties
             HDLightType lightType = targetAdditionalData.type;
