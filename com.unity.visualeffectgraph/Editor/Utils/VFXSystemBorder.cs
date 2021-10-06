@@ -130,6 +130,13 @@ namespace UnityEditor.VFX.UI
 
         void OnTitleRelayout(GeometryChangedEvent e)
         {
+            Rect oldRoundedRect = new Rect(Mathf.Floor(e.oldRect.x), Mathf.Floor(e.oldRect.y), Mathf.Floor(e.oldRect.width), Mathf.Floor(e.oldRect.height));
+            Rect newRoundedRect = new Rect(Mathf.Floor(e.newRect.x), Mathf.Floor(e.newRect.y), Mathf.Floor(e.newRect.width), Mathf.Floor(e.newRect.height));
+            if (oldRoundedRect == newRoundedRect)
+            {
+                return;
+            }
+            
             UpdateTitleFieldRect();
             RecomputeBounds();
         }
@@ -137,7 +144,6 @@ namespace UnityEditor.VFX.UI
         void UpdateTitleFieldRect()
         {
             Rect rect = m_Title.layout;
-
             m_Title.parent.ChangeCoordinatesTo(m_TitleField.parent, rect);
 
 
@@ -186,16 +192,18 @@ namespace UnityEditor.VFX.UI
         }
 
         public bool m_WaitingRecompute;
+        private Rect m_previousBounds;
 
         public void RecomputeBounds()
         {
             if (m_WaitingRecompute)
                 return;
+            
             visible = true;
             //title width should be at least as wide as a context to be valid.
             float titleWidth = m_Title.layout.width;
-            bool invalidTitleWidth = float.IsNaN(titleWidth) || titleWidth < 50;
-            bool titleEmpty = string.IsNullOrEmpty(m_Title.text) || invalidTitleWidth;
+            bool shouldDeferRecompute = float.IsNaN(titleWidth) || titleWidth < 50;
+            bool titleEmpty = string.IsNullOrEmpty(m_Title.text) || shouldDeferRecompute;
             if (titleEmpty)
             {
                 m_Title.AddToClassList("empty");
@@ -226,22 +234,24 @@ namespace UnityEditor.VFX.UI
             }
 
             if (float.IsNaN(rect.xMin) || float.IsNaN(rect.yMin) || float.IsNaN(rect.width) || float.IsNaN(rect.height))
+            {
                 rect = Rect.zero;
-
-            rect = RectUtils.Inflate(rect, 20, titleEmpty ? 20 : m_Title.layout.height, 20, 20);
-
-            if (invalidTitleWidth)
-            {
-                SetPosition(rect);
-                if (!m_WaitingRecompute)
-                {
-                    m_WaitingRecompute = true;
-                    schedule.Execute(() => { m_WaitingRecompute = false; RecomputeBounds();  }).ExecuteLater(0); // title height might have changed if width have changed
-                }
+                shouldDeferRecompute = true;
             }
-            else
+
+            
+            rect = RectUtils.Inflate(rect, 20, titleEmpty ? 20 : m_Title.layout.height, 20, 20);
+            rect = new Rect(Mathf.Floor(rect.x), Mathf.Floor(rect.y), Mathf.Floor(rect.width), Mathf.Floor(rect.height));
+            if (rect != m_previousBounds)
             {
                 SetPosition(rect);
+                m_previousBounds = rect;
+            }
+
+            if (shouldDeferRecompute && !m_WaitingRecompute)
+            {
+                m_WaitingRecompute = true;
+                schedule.Execute(() => { m_WaitingRecompute = false; RecomputeBounds();  }).ExecuteLater(0); // title height might have changed if width have changed
             }
         }
 
