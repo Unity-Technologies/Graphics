@@ -153,7 +153,7 @@ class VisualEffectAssetEditor : Editor
     {
         for (int i = 0; i < m_OutputContexts.Count(); ++i)
         {
-            m_OutputContexts[i].sortPriority = i;
+            m_OutputContexts[i].vfxSystemSortPriority = i;
         }
     }
 
@@ -184,7 +184,7 @@ class VisualEffectAssetEditor : Editor
         {
             m_CurrentGraph = resource.GetOrCreateGraph();
             m_CurrentGraph.systemNames.Sync(m_CurrentGraph);
-            m_OutputContexts.AddRange(m_CurrentGraph.children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+            m_OutputContexts.AddRange(m_CurrentGraph.children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
         }
 
         m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
@@ -647,7 +647,7 @@ class VisualEffectAssetEditor : Editor
             VisualEffectResource resource = asset.GetResource();
 
             m_OutputContexts.Clear();
-            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
 
             m_ReorderableList.DoLayoutList();
 
