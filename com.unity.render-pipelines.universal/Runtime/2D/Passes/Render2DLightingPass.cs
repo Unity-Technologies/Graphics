@@ -333,58 +333,53 @@ namespace UnityEngine.Rendering.Universal
             return batchesDrawn;
         }
 
-        //private void UpdateCorners(Vector3 point, ref Vector3 minCorner, ref Vector3 maxCorner)
-        //{
-        //    if (point.x < minCorner.x)
-        //        minCorner.x = point.x;
-        //    if (point.y < minCorner.y)
-        //        minCorner.y = point.y;
-        //    if (point.z < minCorner.z)
-        //        minCorner.z = point.z;
+        private void UpdateCorners(Transform transform, Vector3 localPoint, ref Vector3 minCorner, ref Vector3 maxCorner)
+        {
+            Vector3 worldPoint = transform.TransformPoint(localPoint);
 
-        //    if (point.x > maxCorner.x)
-        //        maxCorner.x = point.x;
-        //    if (point.y > maxCorner.y)
-        //        maxCorner.y = point.y;
-        //    if (point.z > maxCorner.z)
-        //        maxCorner.z = point.z;
-        //}
+            if (worldPoint.x < minCorner.x)
+                minCorner.x = worldPoint.x;
+            if (worldPoint.y < minCorner.y)
+                minCorner.y = worldPoint.y;
+            if (worldPoint.z < minCorner.z)
+                minCorner.z = worldPoint.z;
 
-        //private Matrix4x4 CalculateCameraLightFrustum(Camera camera, ILight2DCullResult cullResult)
-        //{
-        //    //ShadowUtility.GetCameraFrustumCorners(camera, nearCorners, farCorners);
+            if (worldPoint.x > maxCorner.x)
+                maxCorner.x = worldPoint.x;
+            if (worldPoint.y > maxCorner.y)
+                maxCorner.y = worldPoint.y;
+            if (worldPoint.z > maxCorner.z)
+                maxCorner.z = worldPoint.z;
+        }
 
-        //    const int k_Corners = 4;
-        //    Vector2 planeSize = camera.GetFrustumPlaneSizeAt(camera.nearClipPlane);
+        private Bounds CalculateWorldSpaceBounds(Camera camera, ILight2DCullResult cullResult)
+        {
+            const int k_Corners = 4;
+            Vector3[] nearCorners = new Vector3[k_Corners];
+            Vector3[] farCorners = new Vector3[k_Corners];
+            camera.CalculateFrustumCorners(camera.rect, camera.nearClipPlane, camera.stereoActiveEye, nearCorners);
+            camera.CalculateFrustumCorners(camera.rect, camera.farClipPlane, camera.stereoActiveEye, farCorners);
 
-        //    Vector3[] nearCorners = new Vector3[k_Corners];
-        //    Vector3[] farCorners = new Vector3[k_Corners];
-        //    camera.CalculateFrustumCorners(camera.rect, camera.nearClipPlane, camera.stereoActiveEye, nearCorners);
-        //    camera.CalculateFrustumCorners(camera.rect, camera.farClipPlane, camera.stereoActiveEye, nearCorners);
+            Vector3 minCorner = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            Vector3 maxCorner = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+            for (int i = 0; i < k_Corners; i++)
+            {
+                UpdateCorners(camera.transform, nearCorners[i], ref minCorner, ref maxCorner);
+                UpdateCorners(camera.transform, farCorners[i], ref minCorner, ref maxCorner);
+            }
 
-        //    Vector3 minCorner = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-        //    Vector3 maxCorner = new Vector3(float.MinValue, float.MinValue, float.MinValue);
-        //    for (int i=0;i < k_Corners; i++)
-        //    {
-        //        UpdateCorners(nearCorners[i], ref minCorner, ref maxCorner);
-        //        UpdateCorners(farCorners[i], ref minCorner, ref maxCorner);
-        //    }
+            Vector3 center = 0.5f * (minCorner + maxCorner);
+            Vector3 size = maxCorner - minCorner;
 
-        //    List<Light2D> visibleLights = cullResult.visibleLights;
-        //    for(int i=0;i<visibleLights.Count;i++)
-        //        UpdateCorners(camera.transform.InverseTransformPoint(visibleLights[i].transform.position), ref minCorner, ref maxCorner);
-
-
-        //    Matrix4x4 cameraLightFrustum = Matrix4x4.Ortho(minCorner.x, maxCorner.x, minCorner.y, maxCorner.y, minCorner.z, maxCorner.z);
-        //    return cameraLightFrustum;
-        //}
+            return new Bounds(center, size); ;
+        }
 
         private void CallOnBeforeRender(Camera camera, ILight2DCullResult cullResult)
         {
             if (ShadowCasterGroup2DManager.shadowCasterGroups != null)
             {
-                //Matrix4x4 cameraLightFrustum = CalculateCameraLightFrustum(camera, cullResult);
-                Matrix4x4 cameraLightFrustum = camera.cullingMatrix;
+
+                Bounds bounds = CalculateWorldSpaceBounds(camera, cullResult);
 
                 List<ShadowCasterGroup2D> groups = ShadowCasterGroup2DManager.shadowCasterGroups;
                 for (int groupIndex = 0; groupIndex < groups.Count; groupIndex++)
@@ -399,7 +394,7 @@ namespace UnityEngine.Rendering.Universal
                             ShadowCaster2D shadowCaster = shadowCasters[shadowCasterIndex];
                             if (shadowCaster != null && shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider)
                             {
-                                ShapeProviderUtility.CallOnBeforeRender(shadowCaster.shadowShape2DProvider, shadowCaster.m_ShadowMesh, cameraLightFrustum);
+                                ShapeProviderUtility.CallOnBeforeRender(shadowCaster.shadowShape2DProvider, shadowCaster.m_ShadowMesh, bounds);
                             }
                         }
                     }

@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.Universal
             return indexToProcess;
         }
 
-        public override void SetShapeFromCapsules(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, bool ignoreLocalTransform)
+        public override void SetShapeFromCapsules(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii)
         {
             if (m_Mesh == null)
                 m_Mesh = new Mesh();
