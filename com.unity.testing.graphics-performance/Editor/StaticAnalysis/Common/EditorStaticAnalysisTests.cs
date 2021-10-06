@@ -117,7 +117,11 @@ public class EditorStaticAnalysisTests
 
     public static void StaticAnalysisExecute(StaticAnalysisEntry entry)
     {
-        var buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsyncGeneric(ShaderAnalysisReport.New(entry.asset, entry.buildTarget, entry.filter));
+        var build = EditorShaderTools.GenerateBuildReportAsyncGeneric(ShaderAnalysisReport.New(entry.asset, entry.buildTarget, entry.filter));
+        Debug.Log("Build: " + build);
+        Debug.Log("Build: " + entry.asset + " | " + entry.buildTarget + " | " + entry.filter);
+        var buildReportJob = (AsyncBuildReportJob)build;
+        Debug.Log("buildReportJob: " + buildReportJob);
         buildReportJob.throwOnError = true;
 
         var time = Time.realtimeSinceStartup;
