@@ -1132,7 +1132,7 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id, m_ColorBufferSystem.GetBufferA().id);
             else ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id);
 
-            m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
+            m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
             cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.id);
             //Set _AfterPostProcessTexture, users might still rely on this although it is now always the cameratarget due to swapbuffer
             cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.id);
