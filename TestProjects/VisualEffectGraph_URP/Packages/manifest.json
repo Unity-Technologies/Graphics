@@ -10,6 +10,7 @@
     "com.unity.shaderanalysis": "file:../../../com.unity.shaderanalysis",
     "com.unity.testing.visualeffectgraph": "file:../../../com.unity.testing.visualeffectgraph",
     "com.unity.testing.xr": "file:../../../com.unity.testing.xr",
+    "com.unity.timeline": "1.6.2",
     "com.unity.ugui": "1.0.0",
     "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
     "com.unity.xr.legacyinputhelpers": "2.1.2",
