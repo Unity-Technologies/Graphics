@@ -148,6 +148,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool NeedTemporarySubsurfaceBuffer()
         {
+             
+            return false;
+/*
             // Caution: need to be in sync with SubsurfaceScattering.cs USE_INTERMEDIATE_BUFFER (Can't make a keyword as it is a compute shader)
             // Typed UAV loads from FORMAT_R16G16B16A16_FLOAT is an optional feature of Direct3D 11.
             // Most modern GPUs support it. We can avoid performing a costly copy in this case.
@@ -158,6 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12 &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxOne &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxSeries);
+*/
         }
 
         // Albedo + SSS Profile and mask / Specular occlusion (when no SSS)
@@ -206,11 +210,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle cameraFilteringBuffer;
             public TextureHandle sssBuffer;
             public ComputeBufferHandle coarseStencilBuffer;
+            public TextureHandle coarseStencilTexture;
         }
 
         TextureHandle RenderSubsurfaceScatteringScreenSpace(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, in LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
         {
-            BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: false, ref prepassOutput);
+            //BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: false, ref prepassOutput);
 
             TextureHandle depthStencilBuffer = prepassOutput.depthBuffer;
             TextureHandle depthTexture = prepassOutput.depthPyramidTexture;
@@ -235,6 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.sssBuffer = builder.ReadTexture(lightingBuffers.sssBuffer);
                 passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
+                passData.coarseStencilTexture = builder.ReadTexture(prepassOutput.coarseStencilTexture);
                 if (passData.needTemporaryBuffer)
                 {
                     passData.cameraFilteringBuffer = builder.CreateTransientTexture(
@@ -261,7 +267,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.subsurfaceScatteringCS, data.subsurfaceScatteringCSKernel, HDShaderIDs._IrradianceSource, data.diffuseBuffer);
                         ctx.cmd.SetComputeTextureParam(data.subsurfaceScatteringCS, data.subsurfaceScatteringCSKernel, HDShaderIDs._SSSBufferTexture, data.sssBuffer);
 
-                        ctx.cmd.SetComputeBufferParam(data.subsurfaceScatteringCS, data.subsurfaceScatteringCSKernel, HDShaderIDs._CoarseStencilBuffer, data.coarseStencilBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.subsurfaceScatteringCS, data.subsurfaceScatteringCSKernel, HDShaderIDs._CoarseStencilBuffer, data.coarseStencilTexture);
+                        ctx.cmd.SetComputeTextureParam(data.subsurfaceScatteringCS, data.subsurfaceScatteringCSKernel, HDShaderIDs._StencilTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
 
                         if (data.needTemporaryBuffer)
                         {

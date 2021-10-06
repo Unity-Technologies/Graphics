@@ -33,9 +33,9 @@
 
 // Check for support of typed UAV loads from FORMAT_R16G16B16A16_FLOAT.
 // TODO: query the format support more precisely.
-#if !(defined(SHADER_API_PSSL) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_GAMECORE)) || defined(ENABLE_MSAA)
-#define USE_INTERMEDIATE_BUFFER
-#endif
+//#if !(defined(SHADER_API_PSSL) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_GAMECORE)) || defined(ENABLE_MSAA)
+//#define USE_INTERMEDIATE_BUFFER
+//#endif
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -59,7 +59,10 @@ int _SssSampleBudget;
 TEXTURE2D_X(_DepthTexture);                           // Z-buffer
 TEXTURE2D_X(_IrradianceSource);                       // Includes transmitted light
 
-StructuredBuffer<uint>  _CoarseStencilBuffer;
+TEXTURE2D_X_UINT4(_StencilTexture);
+
+//StructuredBuffer<uint>  _CoarseStencilBuffer;
+Texture2DArray<uint> _CoarseStencilBuffer;
 
 #ifdef USE_INTERMEDIATE_BUFFER
     RW_TEXTURE2D_X(float4, _CameraFilteringTexture);  // Target texture
@@ -263,31 +266,38 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     uint2 pixelCoord  = groupOffset + groupCoord;
     int2  cacheOffset = (int2)groupOffset - TEXTURE_CACHE_BORDER;
 
+/*
     if (groupThreadId == 0)
     {
         uint stencilRef = STENCILUSAGE_SUBSURFACE_SCATTERING;
 
         // Check whether the thread group needs to perform any work.
-        uint s00Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(0, 0), _CoarseStencilBufferSize.xy, groupId.z);
-        uint s10Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(1, 0), _CoarseStencilBufferSize.xy, groupId.z);
-        uint s01Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(0, 1), _CoarseStencilBufferSize.xy, groupId.z);
-        uint s11Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(1, 1), _CoarseStencilBufferSize.xy, groupId.z);
+        //uint s00Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(0, 0), _CoarseStencilBufferSize.xy, groupId.z);
+        //uint s10Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(1, 0), _CoarseStencilBufferSize.xy, groupId.z);
+        //uint s01Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(0, 1), _CoarseStencilBufferSize.xy, groupId.z);
+        //uint s11Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(1, 1), _CoarseStencilBufferSize.xy, groupId.z);
 
-        uint s00 = _CoarseStencilBuffer[s00Address];
-        uint s10 = _CoarseStencilBuffer[s10Address];
-        uint s01 = _CoarseStencilBuffer[s01Address];
-        uint s11 = _CoarseStencilBuffer[s11Address];
+        uint s00 = LOAD_TEXTURE2D_X(_CoarseStencilBuffer, 2 * groupId.xy + uint2(0, 0));//_CoarseStencilBuffer[s00Address];
+        uint s10 = LOAD_TEXTURE2D_X(_CoarseStencilBuffer, 2 * groupId.xy + uint2(1, 0));//_CoarseStencilBuffer[s10Address];
+        uint s01 = LOAD_TEXTURE2D_X(_CoarseStencilBuffer, 2 * groupId.xy + uint2(0, 1));//_CoarseStencilBuffer[s01Address];
+        uint s11 = LOAD_TEXTURE2D_X(_CoarseStencilBuffer, 2 * groupId.xy + uint2(1, 1));//_CoarseStencilBuffer[s11Address];
 
         uint HTileValue = s00 | s10 | s01 | s11;
         // Perform the stencil test (reject at the tile rate).
         processGroup = ((HTileValue & stencilRef) != 0);
     }
+*/
+
+    uint2 stencilSample = LOAD_TEXTURE2D_X(_StencilTexture, pixelCoord).xy;
+    bool processGroup2 = (GetStencilValue(stencilSample) & 0x4) != 0;
 
     // Wait for the LDS.
     GroupMemoryBarrierWithGroupSync();
 
-    if (!processGroup) { return; }
+    //if (!processGroup) { return; }
+    StoreResult(pixelCoord, processGroup2 ? float3(5,0,0) : float3(0,0,0));
 
+#if 0
     float3 centerIrradiance  = LOAD_TEXTURE2D_X(_IrradianceSource, pixelCoord).rgb;
     float  centerDepth       = 0;
     bool   passedStencilTest = TestLightingForSSS(centerIrradiance);
@@ -297,6 +307,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     {
         centerDepth = LOAD_TEXTURE2D_X(_DepthTexture, pixelCoord).r;
     }
+
 
 #if SSS_USE_LDS_CACHE
     uint2 cacheCoord = groupCoord + TEXTURE_CACHE_BORDER;
@@ -467,4 +478,5 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     totalWeight = max(totalWeight, FLT_MIN);
 
     StoreResult(pixelCoord, albedo * (totalIrradiance / totalWeight));
+#endif
 }

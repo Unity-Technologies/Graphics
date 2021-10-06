@@ -21,14 +21,15 @@
 TEXTURE2D_X_MSAA(uint2, _StencilTexture);
 RW_TEXTURE2D_X(uint2, _OutputStencilBuffer);
 #else
-TEXTURE2D_X_UINT2(_StencilTexture);
+TEXTURE2D_X_UINT4(_StencilTexture);
 #endif
 
 // TODO: Wasting 3 bytes here per entry, but still better than a texture as can be scalar read.
 // We could sub-index the right byte inside the uint, but it takes extra ALU and won't save bandwidth (just memory)
 // For now the extra memory cost is acceptable (3 bytes * 1/64th of a render target).
 // Note that using RawBuffers seems to have problem, so using structured buffers for now, but is worth revisiting if the perf difference is a concern.
-RWStructuredBuffer<uint>    _CoarseStencilBuffer;
+//RWStructuredBuffer<uint>    _CoarseStencilBuffer;
+RWTexture2DArray<uint>_CoarseStencilBuffer;
 
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     #define USE_INTRINSICS (PLATFORM_LANE_COUNT == 64)
@@ -101,8 +102,10 @@ void KERNEL_NAME(uint3 groupId          : SV_GroupID,
 
     if (isFirstThread)
     {
-        uint addressIndex = Get1DAddressFromPixelCoord(groupId.xy, _CoarseStencilBufferSize.xy, groupId.z);
-        _CoarseStencilBuffer[addressIndex] = perThreadCoarseStencilValue;
+        //uint addressIndex = Get1DAddressFromPixelCoord(groupId.xy, _CoarseStencilBufferSize.xy, groupId.z);
+        //_CoarseStencilBuffer[addressIndex] = perThreadCoarseStencilValue;
+        
+        _CoarseStencilBuffer[uint3(groupId.xy, 0)] = perThreadCoarseStencilValue | 0x1;
     }
 
 #endif
