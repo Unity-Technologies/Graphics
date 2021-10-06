@@ -369,6 +369,32 @@ Shader "HDRP/Unlit"
 
         Pass
         {
+            Name "DynamicGIDataSample"
+            Tags{ "LightMode" = "DynamicGIDataSample" }
+
+            Cull Off
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
+
+            #define SHADERPASS SHADERPASS_DYNAMIC_GIDATA_SAMPLE
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/ShaderPass/UnlitSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDynamicGIDataSample.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "ShadowCaster"
             Tags{ "LightMode" = "ShadowCaster" }
 
