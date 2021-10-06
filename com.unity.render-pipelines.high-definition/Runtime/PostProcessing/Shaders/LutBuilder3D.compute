@@ -62,6 +62,7 @@ CBUFFER_START(cb0)
     #define _MaxNits    _HDROutputParams.y
     #define _PaperWhite _HDROutputParams.z
     #define _RangeReductionMode    (int)_HDROutputParams2.x
+    #define _HueShift    _HDROutputParams2.y
 
 CBUFFER_END
 
@@ -295,7 +296,7 @@ float3 ProcessColorForHDR(float3 gradedColor)
     gradedColor = ACEScg_to_ACES(gradedColor);
     return HDRMappingACES(gradedColor.rgb, _PaperWhite, _RangeReductionMode, true);
 #else
-    return HDRMappingFromRec2020(gradedColor.rgb, _PaperWhite, _MinNits, _MaxNits, _RangeReductionMode, true);
+    return HDRMappingFromRec2020(gradedColor.rgb, _PaperWhite, _MinNits, _MaxNits, _RangeReductionMode, _HueShift, true);
 #endif
 
 #else

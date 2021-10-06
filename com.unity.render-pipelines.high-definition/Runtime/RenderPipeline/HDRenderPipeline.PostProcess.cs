@@ -3977,11 +3977,14 @@ namespace UnityEngine.Rendering.HighDefinition
             var maxNits = HDROutputSettings.main.maxToneMapLuminance;
             var paperWhite = HDROutputSettings.main.paperWhiteNits;
             int eetfMode = 0;
+            float hueShift = 0.0f;
+
             if (tonemappingComponent.mode.value == TonemappingMode.Neutral ||
                 tonemappingComponent.mode.value == TonemappingMode.Custom ||
                 tonemappingComponent.mode.value == TonemappingMode.External)
             {
                 bool luminanceOnly = tonemappingComponent.tonemapOnlyLuminance.value;
+                hueShift = luminanceOnly ? tonemappingComponent.hueShiftAmount.value : 0.0f;
                 if (tonemappingComponent.neutralHDRRangeReductionMode.value == NeutralRangeReductionMode.BT2390)
                 {
                     eetfMode = luminanceOnly ? (int)HDRRangeReduction.BT2390LumaOnly : (int)HDRRangeReduction.BT2390;
@@ -4007,7 +4010,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             hdrOutputParameters1 = new Vector4(minNits, maxNits, paperWhite, HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709 ? 1 : 2);
-            hdrOutputParameters2 = new Vector4(eetfMode, maxNits, paperWhite, 0);
+            hdrOutputParameters2 = new Vector4(eetfMode, hueShift, paperWhite, 0);
         }
 
         void ComputeShadowsMidtonesHighlights(out Vector4 shadows, out Vector4 midtones, out Vector4 highlights, out Vector4 limits)
