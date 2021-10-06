@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added public api and updated docs for Light2D shape properties.
-- Depth Texture setting for Overlay Camera.
+- Added Depth Texture setting for Overlay Camera.
+- Added Depth Priming support for Vulkan with MSAA.
 
 ### Changed
 
