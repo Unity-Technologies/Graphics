@@ -360,11 +360,7 @@ namespace UnityEditor.VFX.UI
                     {
                         nodeChanged |= RecreateInputSlotEdge(unusedEdges, nodeController, input);
                     }
-                    if (nodeController is VFXBlockController)
-                    {
-                        nodeChanged |= RecreateInputSlotEdge(unusedEdges, nodeController, ((VFXBlockController)nodeController).activationAnchorController);
-                    }
-                    else if (nodeController is VFXContextController)
+                    if (nodeController is VFXContextController)
                     {
                         VFXContextController contextController = nodeController as VFXContextController;
 
@@ -374,7 +370,6 @@ namespace UnityEditor.VFX.UI
                             foreach (var input in block.inputPorts)
                             {
                                 blockChanged |= RecreateInputSlotEdge(unusedEdges, block, input);
-                                blockChanged |= RecreateInputSlotEdge(unusedEdges, block, ((VFXBlockController)block).activationAnchorController);
                             }
                             if (blockChanged)
                                 nodeToUpdate.Add(block);

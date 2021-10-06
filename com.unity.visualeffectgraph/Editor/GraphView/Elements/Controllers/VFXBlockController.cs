@@ -12,9 +12,6 @@ namespace UnityEditor.VFX.UI
     class VFXBlockController : VFXNodeController
     {
         VFXContextController m_ContextController;
-        private VFXDataAnchorController m_ActivationAnchorController;
-
-        public VFXDataAnchorController activationAnchorController => m_ActivationAnchorController;
 
         public VFXBlockController(VFXBlock model, VFXContextController contextController) : base(model, contextController.viewController)
         {
@@ -31,8 +28,6 @@ namespace UnityEditor.VFX.UI
                     Debug.LogException(e);
                 }
             }
-
-            m_ActivationAnchorController = new VFXContextDataInputAnchorController(model.activationSlot, this, false);
         }
 
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
