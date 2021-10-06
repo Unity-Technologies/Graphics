@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Whether to use full ACES tonemap instead of an approximation.
         /// </summary>
         [AdditionalProperty]
-        [Tooltip("Whether to use full ACES tonemap instead of an approximation.")]
+        [Tooltip("Whether to use full ACES tonemap instead of an approximation. When outputting to an HDR display, full ACES is always used regardless of this checkbox.")]
         public BoolParameter useFullACES = new BoolParameter(false);
 
         /// <summary>
