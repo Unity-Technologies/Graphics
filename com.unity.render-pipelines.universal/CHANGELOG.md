@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Unlit and ParticlesUnlit shaders did not have HDR color selection for albedo [case 1283767](https://issuetracker.unity3d.com/issues/built-in-unlit-particle-shader-has-hdr-color-selection-for-albedo-urp-unlit-particles-do-not)
 - Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
 - Fixed ShadowCaster now requires varying normalWS to include changed normals from vertex shader in shader graph.
+- Fixed decals to work with native render pass [case 1353141](https://issuetracker.unity3d.com/issues/urp-decals-are-not-visible-in-game-view-after-modifying-urp-asset-properties)
+- Fixed decals to work with render scale [1353885](https://issuetracker.unity3d.com/issues/urp-builtin-to-urp-render-pipeline-converter-freezes-the-editor-when-converting-rendering-settings)
 - Fixed typo in numIterationsEnclosingSphere api name
 
 ## [13.0.0] - 2021-09-01
