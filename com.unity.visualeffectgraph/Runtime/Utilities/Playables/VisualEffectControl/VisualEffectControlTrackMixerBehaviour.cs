@@ -8,8 +8,6 @@ namespace UnityEngine.VFX
 {
     public class VisualEffectControlTrackMixerBehaviour : PlayableBehaviour
     {
-        VisualEffect m_Target;
-
         class ScrubbingCacheHelper
         {
             struct Event
@@ -272,6 +270,7 @@ namespace UnityEngine.VFX
         }
 
         ScrubbingCacheHelper m_ScrubbingCacheHelper;
+        VisualEffect m_Target;
 
         public override void OnBehaviourPause(Playable playable, FrameData info)
         {
@@ -310,7 +309,10 @@ namespace UnityEngine.VFX
 
         public override void OnPlayableDestroy(Playable playable)
         {
-            RestoreDefaults();
+            if (m_Target != null)
+                m_Target.pause = false;
+
+            m_Target = null;
             m_ScrubbingCacheHelper = null;
         }
 
@@ -318,22 +320,7 @@ namespace UnityEngine.VFX
         {
             if (m_Target == vfx)
                 return;
-
-            RestoreDefaults();
-
             m_Target = vfx;
-            if (m_Target != null)
-            {
-                //TODOPAUL: Clean
-            }
-        }
-
-        void RestoreDefaults()
-        {
-            if (m_Target == null)
-                return;
-
-            m_Target.pause = false;
         }
     }
 }
