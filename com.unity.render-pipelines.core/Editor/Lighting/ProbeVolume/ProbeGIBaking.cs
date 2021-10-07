@@ -5,9 +5,9 @@ using Unity.Collections;
 using System;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 
 using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
+using CellInfo = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.CellInfo;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
 
@@ -60,6 +60,8 @@ namespace UnityEngine.Experimental.Rendering
         static bool hasFoundBounds = false;
 
         static bool onAdditionalProbesBakeCompletedCalled = false;
+
+        static Dictionary<Vector3Int, int> m_CellPosToIndex = new Dictionary<Vector3Int, int>();
 
         static ProbeGIBaking()
         {
@@ -271,8 +273,11 @@ namespace UnityEngine.Experimental.Rendering
         internal static void PerformDilation()
         {
             Dictionary<int, List<string>> cell2Assets = new Dictionary<int, List<string>>();
+            List<CellInfo> tempLoadedCells = new List<CellInfo>();
             var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
             if (perSceneDataList.Length == 0) return;
+
+            var prv = ProbeReferenceVolume.instance;
 
             SetBakingContext(perSceneDataList);
 
@@ -299,23 +304,72 @@ namespace UnityEngine.Experimental.Rendering
             {
                 // Force maximum sh bands to perform dilation, we need to store what sh bands was selected from the settings as we need to restore
                 // post dilation.
-                var prevSHBands = ProbeReferenceVolume.instance.shBands;
-                ProbeReferenceVolume.instance.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
+                var prevSHBands = prv.shBands;
+                prv.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
 
                 // TODO: This loop is very naive, can be optimized, but let's first verify if we indeed want this or not.
                 for (int iterations = 0; iterations < dilationSettings.dilationIterations; ++iterations)
                 {
-                    // Make sure all is loaded before performing dilation.
-                    ProbeReferenceVolume.instance.PerformPendingOperations();
+                    // Make sure all assets are loaded before performing dilation.
+                    prv.PerformPendingOperations();
+                    // Try to load all available cells to the GPU. Might not succeed depending on the memory budget.
+                    prv.LoadAllCells();
 
                     // Dilate all cells
-                    List<ProbeReferenceVolume.Cell> dilatedCells = new List<ProbeReferenceVolume.Cell>(ProbeReferenceVolume.instance.cells.Values.Count);
+                    List<ProbeReferenceVolume.Cell> dilatedCells = new List<ProbeReferenceVolume.Cell>(prv.cells.Values.Count);
+                    bool everythingLoaded = !prv.hasUnloadedCells;
 
-                    foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
+                    if (everythingLoaded)
                     {
-                        var cell = cellInfo.cell;
-                        PerformDilation(cell, dilationSettings);
-                        dilatedCells.Add(cell);
+                        foreach (var cellInfo in prv.cells.Values)
+                        {
+                            var cell = cellInfo.cell;
+                            PerformDilation(cell, dilationSettings);
+                            dilatedCells.Add(cell);
+                        }
+                    }
+                    else
+                    {
+                        // When everything does not fit in memory, we are going to dilate one cell at a time.
+                        // To do so, we load the cell and all its neighbours and then dilate.
+                        // This is an inefficient use of memory but for now most of the time is spent in reading back the result anyway so it does not introduce any performance regression.
+
+                        // Free All memory to make room for each cell and its neighbors for dilation.
+                        prv.UnloadAllCells();
+
+                        foreach (var cellInfo in prv.cells.Values)
+                        {
+                            tempLoadedCells.Clear();
+
+                            var cell = cellInfo.cell;
+                            var cellPos = cell.position;
+                            // Load the cell and all its neighbors before doing dilation.
+                            for (int x = -1; x <= 1; ++x)
+                                for (int y = -1; y <= 1; ++y)
+                                    for (int z = -1; z <= 1; ++z)
+                                    {
+                                        Vector3Int pos = cellPos + new Vector3Int(x, y, z);
+                                        if (m_CellPosToIndex.TryGetValue(pos, out var cellToLoadIndex))
+                                        {
+                                            if (prv.cells.TryGetValue(cellToLoadIndex, out var cellToLoad))
+                                            {
+                                                if (prv.LoadCell(cellToLoad))
+                                                {
+                                                    tempLoadedCells.Add(cellToLoad);
+                                                }
+                                                else
+                                                    Debug.LogError($"Not enough memory to perform dilation for cell {cell.index}");
+                                            }
+                                        }
+                                    }
+
+                            PerformDilation(cell, dilationSettings);
+                            dilatedCells.Add(cell);
+
+                            // Free memory again.
+                            foreach (var cellToUnload in tempLoadedCells)
+                                prv.UnloadCell(cellToUnload);
+                        }
                     }
 
                     foreach (var sceneData in perSceneDataList)
@@ -324,12 +378,12 @@ namespace UnityEngine.Experimental.Rendering
                         string assetPath = asset.GetSerializedFullPath();
                         if (asset != null)
                         {
-                            ProbeReferenceVolume.instance.AddPendingAssetRemoval(asset);
+                            prv.AddPendingAssetRemoval(asset);
                         }
                     }
 
                     // Make sure unloading happens.
-                    ProbeReferenceVolume.instance.PerformPendingOperations();
+                    prv.PerformPendingOperations();
 
                     Dictionary<string, bool> assetCleared = new Dictionary<string, bool>();
                     // Put back cells
@@ -366,9 +420,8 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 // Need to restore the original sh bands
-                ProbeReferenceVolume.instance.ForceSHBand(prevSHBands);
+                prv.ForceSHBand(prevSHBands);
             }
-
         }
 
         static void OnAdditionalProbesBakeCompleted()
@@ -394,6 +447,8 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
+            m_CellPosToIndex.Clear();
+
             // Clear baked data
             Clear();
 
@@ -407,6 +462,8 @@ namespace UnityEngine.Experimental.Rendering
             for (int c = 0; c < numCells; ++c)
             {
                 var cell = bakingCells[c].cell;
+
+                m_CellPosToIndex.Add(cell.position, cell.index);
 
                 if (cell.probePositions == null)
                     continue;

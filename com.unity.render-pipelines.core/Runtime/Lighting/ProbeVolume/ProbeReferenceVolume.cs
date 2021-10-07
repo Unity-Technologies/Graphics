@@ -525,6 +525,8 @@ namespace UnityEngine.Experimental.Rendering
         internal bool isInitialized => m_ProbeReferenceVolumeInit;
         internal bool enabledBySRP => m_EnabledBySRP;
 
+        internal bool hasUnloadedCells => m_ToBeLoadedCells.size != 0;
+
         struct InitInfo
         {
             public Vector3Int pendingMinCellPosition;
@@ -590,8 +592,6 @@ namespace UnityEngine.Experimental.Rendering
             m_NeedsIndexRebuild = true;
             sceneData = parameters.sceneData;
 
-            m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(kTemporaryDataLocChunkCount * ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, "APV_Intermediate", out m_TemporaryDataLocationMemCost);
-
 #if UNITY_EDITOR
             if (sceneData != null)
             {
@@ -639,8 +639,6 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
-            m_TemporaryDataLocation.Cleanup();
-
             CleanupLoadedData();
             CleanupDebug();
             m_IsInitialized = false;
@@ -679,7 +677,9 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        void UnloadCell(CellInfo cellInfo)
+        // This one is internal for baking purpose only.
+        // Calling this from "outside" will not properly update Loaded/ToBeLoadedCells arrays and thus will break the state of streaming.
+        internal void UnloadCell(CellInfo cellInfo)
         {
             // Streaming might have never loaded the cell in the first place
             if (cellInfo.loaded)
@@ -694,6 +694,18 @@ namespace UnityEngine.Experimental.Rendering
 
                 ClearDebugData();
             }
+        }
+
+        internal void UnloadAllCells()
+        {
+            for (int i = 0; i < m_LoadedCells.size; ++i)
+            {
+                CellInfo cellInfo = m_LoadedCells[i];
+                UnloadCell(cellInfo);
+                m_ToBeLoadedCells.Add(cellInfo);
+            }
+
+            m_LoadedCells.Clear();
         }
 
         internal void AddCell(Cell cell, int assetInstanceID)
@@ -713,7 +725,9 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        bool LoadCell(CellInfo cellInfo)
+        // This one is internal for baking purpose only.
+        // Calling this from "outside" will not properly update Loaded/ToBeLoadedCells arrays and thus will break the state of streaming.
+        internal bool LoadCell(CellInfo cellInfo)
         {
             if (GetCellIndexUpdate(cellInfo.cell, out var cellUpdateInfo)) // Allocate indices
             {
@@ -722,6 +736,23 @@ namespace UnityEngine.Experimental.Rendering
             else
             {
                 return false;
+            }
+        }
+
+        // May not load all cells if there is not enough space given the current budget.
+        internal void LoadAllCells()
+        {
+            int loadedCellsCount = m_LoadedCells.size;
+            for (int i = 0; i < m_ToBeLoadedCells.size; ++i)
+            {
+                CellInfo cellInfo = m_ToBeLoadedCells[i];
+                if (LoadCell(cellInfo))
+                    m_LoadedCells.Add(cellInfo);
+            }
+
+            for (int i = loadedCellsCount; i < m_LoadedCells.size; ++i)
+            {
+                m_ToBeLoadedCells.Remove(m_LoadedCells[i]);
             }
         }
 
@@ -1016,6 +1047,8 @@ namespace UnityEngine.Experimental.Rendering
                 m_Index = new ProbeBrickIndex(memoryBudget);
                 m_CellIndices = new ProbeCellIndices(minCellPosition, maxCellPosition, (int)Mathf.Pow(3, m_MaxSubdivision - 1));
 
+                m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(kTemporaryDataLocChunkCount * ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, shBands, "APV_Intermediate", out m_TemporaryDataLocationMemCost);
+
                 // initialize offsets
                 m_PositionOffsets[0] = 0.0f;
                 float probeDelta = 1.0f / ProbeBrickPool.kBrickCellCount;
@@ -1229,6 +1262,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_Index.Cleanup();
                 m_CellIndices.Cleanup();
                 m_Pool.Cleanup();
+                m_TemporaryDataLocation.Cleanup();
             }
 
             m_ProbeReferenceVolumeInit = false;

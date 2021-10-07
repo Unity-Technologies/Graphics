@@ -144,23 +144,5 @@ namespace UnityEngine.Experimental.Rendering
             m_TempCellToLoadList.Clear();
             m_TempCellToUnloadList.Clear();
         }
-
-        internal int cellCount => cells.Count;
-
-        internal void ToggleCellLoading(int cellIndex)
-        {
-            if (cells.TryGetValue(cellIndex, out var cell))
-            {
-                if (cell.loaded)
-                {
-                    UnloadCell(cell);
-                }
-                else
-                {
-                    LoadCell(cell);
-                }
-            }
-
-        }
     }
 }
