@@ -149,6 +149,10 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        protected int m_DismissedVersion = 0;
+        public int dismissedUpdateVersion { get => m_DismissedVersion; set => m_DismissedVersion = value; }
+
         // by default, if this returns null, the system will allow creation of any previous version
         public virtual IEnumerable<int> allowedNodeVersions => null;
 
@@ -718,6 +722,8 @@ namespace UnityEditor.ShaderGraph
 
         public virtual void ValidateNode()
         {
+            if ((sgVersion < latestVersion) && (dismissedUpdateVersion < latestVersion))
+                owner.messageManager?.AddOrAppendError(owner, objectId, new ShaderMessage("There is a newer version of this node available. Inspect node for details.", Rendering.ShaderCompilerMessageSeverity.Warning));
         }
 
         public virtual bool canCutNode => true;
