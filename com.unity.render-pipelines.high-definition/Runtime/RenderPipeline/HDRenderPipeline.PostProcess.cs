@@ -65,6 +65,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_LutSize;
         GraphicsFormat m_LutFormat;
         HableCurve m_HableCurve;
+        RTHandle m_GradingAndTonemappingLUT;
+        int m_LutHash = -1;
 
         //Viewport information
         Vector2Int m_AfterDynamicResUpscaleRes = new Vector2Int(1, 1);
@@ -244,6 +246,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SetExposureTextureToEmpty(m_EmptyExposureTexture);
 
+            m_GradingAndTonemappingLUT = RTHandles.Alloc(m_LutSize, m_LutSize, m_LutSize, dimension: TextureDimension.Tex3D, colorFormat: m_LutFormat, filterMode: FilterMode.Bilinear, wrapMode: TextureWrapMode.Clamp, enableRandomWrite: true);
+
             resGroup = ResolutionGroup.BeforeDynamicResUpscale;
 
             m_DLSSPass = DLSSPass.Create(m_GlobalSettings);
@@ -282,12 +286,14 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ClearBlackMaterial);
             CoreUtils.Destroy(m_SMAAMaterial);
             CoreUtils.Destroy(m_TemporalAAMaterial);
+            CoreUtils.Destroy(m_GradingAndTonemappingLUT);
             CoreUtils.SafeRelease(m_HistogramBuffer);
             CoreUtils.SafeRelease(m_DebugImageHistogramBuffer);
             RTHandles.Release(m_DebugExposureData);
 
             m_ExposureCurveTexture = null;
             m_InternalSpectralLut = null;
+            m_GradingAndTonemappingLUT = null;
             m_FinalPassMaterial = null;
             m_ClearBlackMaterial = null;
             m_SMAAMaterial = null;
@@ -388,6 +394,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_DLSSPass != null)
                 m_DLSSPass.BeginFrame(camera);
+        }
+
+        int ComputeLUTHash()
+        {
+            //  hash = hash * 23 + parameters[i].GetHashCode();
+            return m_Tonemapping.GetHashCode() * 23 +
+                   m_WhiteBalance.GetHashCode() * 23 +
+                   m_ColorAdjustments.GetHashCode() * 23 +
+                   m_ChannelMixer.GetHashCode() * 23 +
+                   m_SplitToning.GetHashCode() * 23 +
+                   m_LiftGammaGain.GetHashCode() * 23 +
+                   m_ShadowsMidtonesHighlights.GetHashCode() * 23 +
+                   m_Curves.GetHashCode();
         }
 
         static void ValidateComputeBuffer(ref ComputeBuffer cb, int size, int stride, ComputeBufferType type = ComputeBufferType.Default)
@@ -4109,22 +4128,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle ColorGradingPass(RenderGraph renderGraph, HDCamera hdCamera)
         {
+            TextureHandle logLut = renderGraph.ImportTexture(m_GradingAndTonemappingLUT);
+
+            // Verify hash
+            var currentGradingHash = ComputeLUTHash();
+
+            // The lut we have already is ok.
+            if (currentGradingHash == m_LutHash)
+                return logLut;
+
+            // Else we update the hash and we recompute the LUT.
+            m_LutHash = currentGradingHash;
+
             using (var builder = renderGraph.AddRenderPass<ColorGradingPassData>("Color Grading", out var passData, ProfilingSampler.Get(HDProfileId.ColorGradingLUTBuilder)))
             {
-                TextureHandle logLut = renderGraph.CreateTexture(new TextureDesc(m_LutSize, m_LutSize)
-                {
-                    name = "Color Grading Log Lut",
-                    dimension = TextureDimension.Tex3D,
-                    slices = m_LutSize,
-                    depthBufferBits = DepthBits.None,
-                    colorFormat = m_LutFormat,
-                    filterMode = FilterMode.Bilinear,
-                    wrapMode = TextureWrapMode.Clamp,
-                    anisoLevel = 0,
-                    useMipMap = false,
-                    enableRandomWrite = true
-                });
-
                 PrepareColorGradingParameters(passData, hdCamera);
                 passData.logLut = builder.WriteTexture(logLut);
 
