@@ -245,8 +245,8 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
 
         // use NEIGHBOR_AXIS_COUNT for all of them
         // use 17 for only the very small values trimmed (very subtle)
-        // use 9 for some quality loss (noticeable)
-        const int relevantAxisLookups = 9;
+        // use 10 for some quality loss (noticeable)
+        const int relevantAxisLookups = 10;
 
         for(int l=0; l < relevantAxisLookups; ++l)
         {
