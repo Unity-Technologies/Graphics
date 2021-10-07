@@ -53,8 +53,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_RectLightShadow;
         SerializedDataParameter m_ShadowTint;
 
-        GUIContent[]    m_DistortionModes = { Styles.procedural, Styles.flowmap };
-        int[]           m_DistortionModeValues = { 1, 0 };
+        GUIContent[] m_DistortionModes = { Styles.procedural, Styles.flowmap };
+        int[] m_DistortionModeValues = { 1, 0 };
 
         RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
@@ -70,29 +70,29 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CommonUIElementsMask = 0xFFFFFFFF & ~(uint)(SkySettingsUIElement.IncludeSunInBaking);
 
             var o = new PropertyFetcher<HDRISky>(serializedObject);
-            m_hdriSky                   = Unpack(o.Find(x => x.hdriSky));
-            m_UpperHemisphereLuxValue   = Unpack(o.Find(x => x.upperHemisphereLuxValue));
-            m_UpperHemisphereLuxColor   = Unpack(o.Find(x => x.upperHemisphereLuxColor));
+            m_hdriSky = Unpack(o.Find(x => x.hdriSky));
+            m_UpperHemisphereLuxValue = Unpack(o.Find(x => x.upperHemisphereLuxValue));
+            m_UpperHemisphereLuxColor = Unpack(o.Find(x => x.upperHemisphereLuxColor));
 
-            m_DistortionMode            = Unpack(o.Find(x => x.distortionMode));
-            m_Flowmap                   = Unpack(o.Find(x => x.flowmap));
-            m_UpperHemisphereOnly       = Unpack(o.Find(x => x.upperHemisphereOnly));
-            m_ScrollOrientation         = Unpack(o.Find(x => x.scrollOrientation));
-            m_ScrollSpeed               = Unpack(o.Find(x => x.scrollSpeed));
+            m_DistortionMode = Unpack(o.Find(x => x.distortionMode));
+            m_Flowmap = Unpack(o.Find(x => x.flowmap));
+            m_UpperHemisphereOnly = Unpack(o.Find(x => x.upperHemisphereOnly));
+            m_ScrollOrientation = Unpack(o.Find(x => x.scrollOrientation));
+            m_ScrollSpeed = Unpack(o.Find(x => x.scrollSpeed));
 
-            m_EnableBackplate           = Unpack(o.Find(x => x.enableBackplate));
-            m_BackplateType             = Unpack(o.Find(x => x.backplateType));
-            m_GroundLevel               = Unpack(o.Find(x => x.groundLevel));
-            m_Scale                     = Unpack(o.Find(x => x.scale));
-            m_ProjectionDistance        = Unpack(o.Find(x => x.projectionDistance));
-            m_PlateRotation             = Unpack(o.Find(x => x.plateRotation));
-            m_PlateTexRotation          = Unpack(o.Find(x => x.plateTexRotation));
-            m_PlateTexOffset            = Unpack(o.Find(x => x.plateTexOffset));
-            m_BlendAmount               = Unpack(o.Find(x => x.blendAmount));
-            m_PointLightShadow          = Unpack(o.Find(x => x.pointLightShadow));
-            m_DirLightShadow            = Unpack(o.Find(x => x.dirLightShadow));
-            m_RectLightShadow           = Unpack(o.Find(x => x.rectLightShadow));
-            m_ShadowTint                = Unpack(o.Find(x => x.shadowTint));
+            m_EnableBackplate = Unpack(o.Find(x => x.enableBackplate));
+            m_BackplateType = Unpack(o.Find(x => x.backplateType));
+            m_GroundLevel = Unpack(o.Find(x => x.groundLevel));
+            m_Scale = Unpack(o.Find(x => x.scale));
+            m_ProjectionDistance = Unpack(o.Find(x => x.projectionDistance));
+            m_PlateRotation = Unpack(o.Find(x => x.plateRotation));
+            m_PlateTexRotation = Unpack(o.Find(x => x.plateTexRotation));
+            m_PlateTexOffset = Unpack(o.Find(x => x.plateTexOffset));
+            m_BlendAmount = Unpack(o.Find(x => x.blendAmount));
+            m_PointLightShadow = Unpack(o.Find(x => x.pointLightShadow));
+            m_DirLightShadow = Unpack(o.Find(x => x.dirLightShadow));
+            m_RectLightShadow = Unpack(o.Find(x => x.rectLightShadow));
+            m_ShadowTint = Unpack(o.Find(x => x.shadowTint));
 
             m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
             if (HDRenderPipelineGlobalSettings.instance?.renderPipelineResources != null)

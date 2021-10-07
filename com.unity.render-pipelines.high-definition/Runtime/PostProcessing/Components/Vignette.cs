@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies a black and white mask Texture to use as a vignette.
         /// </summary>
         [Tooltip("Specifies a black and white mask Texture to use as a vignette.")]
-        public TextureParameter mask = new TextureParameter(null);
+        public Texture2DParameter mask = new Texture2DParameter(null);
 
         /// <summary>
         /// Controls the opacity of the mask vignette. Lower values result in a more transparent vignette.
@@ -103,6 +103,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public VignetteModeParameter(VignetteMode value, bool overrideState = false) : base(value, overrideState) {}
+        public VignetteModeParameter(VignetteMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

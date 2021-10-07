@@ -34,22 +34,22 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Shifts the input hue (x-axis) according to the output hue (y-axis).
         /// </summary>
-        public TextureCurveParameter hueVsHue = new TextureCurveParameter(new TextureCurve(new Keyframe[] {}, 0.5f, true,  new Vector2(0f, 1f)));
+        public TextureCurveParameter hueVsHue = new TextureCurveParameter(new TextureCurve(new Keyframe[] { }, 0.5f, true, new Vector2(0f, 1f)));
 
         /// <summary>
         /// Adjusts saturation (y-axis) according to the input hue (x-axis).
         /// </summary>
-        public TextureCurveParameter hueVsSat = new TextureCurveParameter(new TextureCurve(new Keyframe[] {}, 0.5f, true,  new Vector2(0f, 1f)));
+        public TextureCurveParameter hueVsSat = new TextureCurveParameter(new TextureCurve(new Keyframe[] { }, 0.5f, true, new Vector2(0f, 1f)));
 
         /// <summary>
         /// Adjusts saturation (y-axis) according to the input saturation (x-axis).
         /// </summary>
-        public TextureCurveParameter satVsSat = new TextureCurveParameter(new TextureCurve(new Keyframe[] {}, 0.5f, false, new Vector2(0f, 1f)));
+        public TextureCurveParameter satVsSat = new TextureCurveParameter(new TextureCurve(new Keyframe[] { }, 0.5f, false, new Vector2(0f, 1f)));
 
         /// <summary>
         /// Adjusts saturation (y-axis) according to the input luminance (x-axis).
         /// </summary>
-        public TextureCurveParameter lumVsSat = new TextureCurveParameter(new TextureCurve(new Keyframe[] {}, 0.5f, false, new Vector2(0f, 1f)));
+        public TextureCurveParameter lumVsSat = new TextureCurveParameter(new TextureCurve(new Keyframe[] { }, 0.5f, false, new Vector2(0f, 1f)));
 
 #pragma warning disable 414
         [SerializeField]

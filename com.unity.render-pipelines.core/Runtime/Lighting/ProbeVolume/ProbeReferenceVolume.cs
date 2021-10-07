@@ -30,12 +30,12 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public static AdditionalGIBakeRequestsManager instance { get { return s_Instance; } }
 
-        private AdditionalGIBakeRequestsManager()
+        internal void Init()
         {
             SubscribeOnBakeStarted();
         }
 
-        ~AdditionalGIBakeRequestsManager()
+        internal void Cleanup()
         {
             UnsubscribeOnBakeStarted();
         }
@@ -228,7 +228,7 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public Shader probeDebugShader;
 
-        public ProbeVolumeSceneBounds sceneBounds;
+        public ProbeVolumeSceneData sceneData;
         public ProbeVolumeSHBands shBands;
     }
 
@@ -482,8 +482,8 @@ namespace UnityEngine.Experimental.Rendering
 
             public bool IsValid() => id != 0;
             public void Invalidate() => id = 0;
-            public static bool operator==(RegId lhs, RegId rhs) => lhs.id == rhs.id;
-            public static bool operator!=(RegId lhs, RegId rhs) => lhs.id != rhs.id;
+            public static bool operator ==(RegId lhs, RegId rhs) => lhs.id == rhs.id;
+            public static bool operator !=(RegId lhs, RegId rhs) => lhs.id != rhs.id;
             public override bool Equals(object obj)
             {
                 if ((obj == null) || !this.GetType().Equals(obj.GetType()))
@@ -500,22 +500,22 @@ namespace UnityEngine.Experimental.Rendering
             public override int GetHashCode() => id;
         }
 
-        bool                            m_IsInitialized = false;
-        int                             m_ID = 0;
-        RefVolTransform                 m_Transform;
-        int                             m_MaxSubdivision;
-        ProbeBrickPool                  m_Pool;
-        ProbeBrickIndex                 m_Index;
-        ProbeCellIndices                m_CellIndices;
-        List<Chunk>                     m_TmpSrcChunks = new List<Chunk>();
-        float[]                         m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
-        Dictionary<RegId, List<Chunk>>  m_Registry = new Dictionary<RegId, List<Chunk>>();
-        Bounds                          m_CurrGlobalBounds = new Bounds();
+        bool m_IsInitialized = false;
+        int m_ID = 0;
+        RefVolTransform m_Transform;
+        int m_MaxSubdivision;
+        ProbeBrickPool m_Pool;
+        ProbeBrickIndex m_Index;
+        ProbeCellIndices m_CellIndices;
+        List<Chunk> m_TmpSrcChunks = new List<Chunk>();
+        float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
+        Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
+        Bounds m_CurrGlobalBounds = new Bounds();
 
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
         Dictionary<int, CellChunkInfo> m_ChunkInfo = new Dictionary<int, CellChunkInfo>();
 
-        internal ProbeVolumeSceneBounds sceneBounds;
+        internal ProbeVolumeSceneData sceneData;
 
 
         /// <summary>
@@ -547,7 +547,10 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
+        bool m_EnabledBySRP = false;
+
         internal bool isInitialized => m_ProbeReferenceVolumeInit;
+        internal bool enabledBySRP => m_EnabledBySRP;
 
         struct InitInfo
         {
@@ -571,6 +574,8 @@ namespace UnityEngine.Experimental.Rendering
 
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         ProbeVolumeSHBands m_SHBands;
+
+        public ProbeVolumeSHBands shBands { get { return m_SHBands; } }
 
         internal bool clearAssetsOnVolumeClear = false;
 
@@ -603,6 +608,7 @@ namespace UnityEngine.Experimental.Rendering
 
         /// <summary>
         /// Initialize the Probe Volume system
+        /// </summary>
         /// <param name="parameters">Initialization parameters.</param>
         public void Initialize(in ProbeVolumeSystemParameters parameters)
         {
@@ -613,18 +619,40 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_MemoryBudget = parameters.memoryBudget;
-            // Temporarily reverting recent change to always allocate L2 (which is still required for dilation/debug right now)
-            m_SHBands = ProbeVolumeSHBands.SphericalHarmonicsL2;// parameters.shBands;
+            m_SHBands = parameters.shBands;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
             InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
-            sceneBounds = parameters.sceneBounds;
+            m_NeedsIndexRebuild = true;
+            sceneData = parameters.sceneData;
 #if UNITY_EDITOR
-            if (sceneBounds != null)
+            if (sceneData != null)
             {
-                UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneBounds.UpdateSceneBounds;
+                UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.OnSceneSaved;
             }
+            AdditionalGIBakeRequestsManager.instance.Init();
 #endif
+            m_EnabledBySRP = true;
+        }
+
+        /// <summary>
+        /// Communicate to the Probe Volume system whether the SRP enables Probe Volume.
+        /// It is important to keep in mind that this is not used by the system for anything else but book-keeping,
+        /// the SRP is still responsible to disable anything Probe volume related on SRP side.
+        /// </summary>
+        public void SetEnableStateFromSRP(bool srpEnablesPV)
+        {
+            m_EnabledBySRP = srpEnablesPV;
+        }
+
+        // This is used for steps such as dilation that require the maximum order allowed to be loaded at all times. Should really never be used as a general purpose function.
+        internal void ForceSHBand(ProbeVolumeSHBands shBands)
+        {
+            if (m_ProbeReferenceVolumeInit)
+                CleanupLoadedData();
+            m_SHBands = shBands;
+            m_ProbeReferenceVolumeInit = false;
+            InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, shBands);
         }
 
         /// <summary>
@@ -632,6 +660,12 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public void Cleanup()
         {
+            if (!m_ProbeReferenceVolumeInit) return;
+
+#if UNITY_EDITOR
+            AdditionalGIBakeRequestsManager.instance.Cleanup();
+#endif
+
             if (!m_IsInitialized)
             {
                 Debug.LogError("Probe Volume System has not been initialized first before calling cleanup.");
@@ -689,14 +723,48 @@ namespace UnityEngine.Experimental.Rendering
             m_ChunkInfo[cell.index] = cellChunks;
         }
 
+        bool CheckCompatibilityWithCollection(ProbeVolumeAsset asset, Dictionary<string, ProbeVolumeAsset> collection)
+        {
+            if (collection.Count > 0)
+            {
+                // Any one is fine, they should all have the same properties. We need to go through them anyway as some might be pending deletion already.
+                foreach (var collectionValue in collection.Values)
+                {
+                    // We don't care about this to check against, it is already pending deletion.
+                    if (m_PendingAssetsToBeUnloaded.ContainsKey(collectionValue.GetSerializedFullPath()))
+                        continue;
+
+                    return collectionValue.CompatibleWith(asset);
+                }
+            }
+            return true;
+        }
+
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
+
             if (m_PendingAssetsToBeLoaded.ContainsKey(key))
             {
                 m_PendingAssetsToBeLoaded.Remove(key);
             }
-            m_PendingAssetsToBeLoaded.Add(asset.GetSerializedFullPath(), asset);
+
+            if (!CheckCompatibilityWithCollection(asset, m_ActiveAssets))
+            {
+                Debug.LogError($"Trying to load Probe Volume data for a scene that has been baked with different settings than currently loaded ones. " +
+                               $"Please make sure all loaded scenes are in the same baking set.");
+                return;
+            }
+
+            // If we don't have any loaded asset yet, we need to verify the other queued assets.
+            if (!CheckCompatibilityWithCollection(asset, m_PendingAssetsToBeLoaded))
+            {
+                Debug.LogError($"Trying to load Probe Volume data for a scene that has been baked with different settings from other scenes that are being loaded. " +
+                                $"Please make sure all loaded scenes are in the same baking set.");
+                return;
+            }
+
+            m_PendingAssetsToBeLoaded.Add(key, asset);
             m_NeedLoadAsset = true;
 
             // Compute the max index dimension from all the loaded assets + assets we need to load
@@ -734,7 +802,8 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            m_NeedsIndexRebuild = m_Index == null || m_PendingInitInfo.pendingMinCellPosition != minCellPosition || m_PendingInitInfo.pendingMaxCellPosition != maxCellPosition;
+            // |= because this can be called more than once before rebuild is done.
+            m_NeedsIndexRebuild |= m_Index == null || m_PendingInitInfo.pendingMinCellPosition != minCellPosition || m_PendingInitInfo.pendingMaxCellPosition != maxCellPosition;
 
             m_PendingInitInfo.pendingMinCellPosition = minCellPosition;
             m_PendingInitInfo.pendingMaxCellPosition = maxCellPosition;
@@ -789,6 +858,12 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        internal void SetMinBrickAndMaxSubdiv(float minBrickSize, int maxSubdiv)
+        {
+            SetTRS(Vector3.zero, Quaternion.identity, minBrickSize);
+            SetMaxSubdivision(maxSubdiv);
+        }
+
         void LoadAsset(ProbeVolumeAsset asset)
         {
             if (asset.Version != (int)ProbeVolumeAsset.AssetVersion.Current)
@@ -798,6 +873,9 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             var path = asset.GetSerializedFullPath();
+
+            // Load info coming originally from profile
+            SetMinBrickAndMaxSubdiv(asset.minBrickSize, asset.maxSubdivision);
 
             for (int i = 0; i < asset.cells.Count; ++i)
             {
@@ -884,7 +962,7 @@ namespace UnityEngine.Experimental.Rendering
             sizeOfValidIndicesAtMaxRes.z = Mathf.CeilToInt((toEnd.z) / MinBrickSize()) - minValidLocalIdxAtMaxRes.z + 1;
 
             Vector3Int bricksForCell = new Vector3Int();
-            bricksForCell =  sizeOfValidIndicesAtMaxRes / CellSize(cell.minSubdiv);
+            bricksForCell = sizeOfValidIndicesAtMaxRes / CellSize(cell.minSubdiv);
 
             return bricksForCell.x * bricksForCell.y * bricksForCell.z;
         }
@@ -996,7 +1074,6 @@ namespace UnityEngine.Experimental.Rendering
                 ClearDebugData();
 
                 m_NeedLoadAsset = true;
-                m_NeedsIndexRebuild = true;
             }
         }
 

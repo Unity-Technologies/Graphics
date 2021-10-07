@@ -42,7 +42,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    #pragma warning disable 0659
+#pragma warning disable 0659
     class VFXExpressionSampleBuffer : VFXExpression
     {
         public VFXExpressionSampleBuffer() : this(null, VFXValueType.None, string.Empty, VFXValue<GraphicsBuffer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
@@ -58,7 +58,7 @@ namespace UnityEditor.VFX
             return m_SampledType;
         }
 
-        public VFXExpressionSampleBuffer(Type sampledType, VFXValueType fieldType, string path, VFXExpression graphicsBuffer, VFXExpression index, VFXExpression stride, VFXExpression count) : base(Flags.InvalidOnCPU,  graphicsBuffer, index, stride, count)
+        public VFXExpressionSampleBuffer(Type sampledType, VFXValueType fieldType, string path, VFXExpression graphicsBuffer, VFXExpression index, VFXExpression stride, VFXExpression count) : base(Flags.InvalidOnCPU, graphicsBuffer, index, stride, count)
         {
             m_SampledType = sampledType;
             m_FieldType = fieldType;

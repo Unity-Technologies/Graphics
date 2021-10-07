@@ -90,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepareVisibleLocalVolumetricFogList,
         UpdateLocalVolumetricFogAtlas,
 
+        // Volumetric clouds
         VolumetricClouds,
         VolumetricCloudsPrepare,
         VolumetricCloudsTrace,
@@ -98,6 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricCloudsUpscaleAndCombine,
         VolumetricCloudsShadow,
         VolumetricCloudMapGeneration,
+        VolumetricCloudsAmbientProbe,
 
         // RT Cluster
         RaytracingBuildCluster,
@@ -206,6 +208,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldPreCombine,
         DepthOfFieldCombine,
         LensFlareDataDriven,
+        LensFlareComputeOcclusionDataDriven,
+        LensFlareMergeOcclusionDataDriven,
         MotionBlur,
         MotionBlurMotionVecPrep,
         MotionBlurTileMinMax,

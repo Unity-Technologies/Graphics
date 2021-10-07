@@ -27,13 +27,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // is removed, all the leaves are removed to form a cell of maxElementSize again.
         class AtlasElement
         {
-            public Vector3Int       position;
-            public int              size;
-            public Texture          texture;
-            public int              hash;
+            public Vector3Int position;
+            public int size;
+            public Texture texture;
+            public int hash;
 
-            public AtlasElement[]   children = null;
-            public AtlasElement     parent = null;
+            public AtlasElement[] children = null;
+            public AtlasElement parent = null;
 
             // If the texture is null, then it means this space is free
             public bool IsFree() => texture == null && children == null;
@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public override string ToString() => $"3D Atlas Element, pos: {position}, size: {size}, texture:{texture}, children: {children != null}";
         }
 
-        List<AtlasElement>  m_Elements = new List<AtlasElement>();
+        List<AtlasElement> m_Elements = new List<AtlasElement>();
         // We keep track of cached texture in a map because it's faster to traverse than the element tree when looking for a texture
         Dictionary<Texture, AtlasElement> m_TextureElementsMap = new Dictionary<Texture, AtlasElement>();
 
@@ -416,10 +416,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Generating the first mip from the source texture into the atlas to save a copy.
                     GenerateMip(cmd, element.texture, Vector3Int.zero, 0, m_Atlas, element.position, 1);
 
-                    MipGenerationSwapData source = new MipGenerationSwapData { target = m_Atlas, offset = element.position, mipOffset = 0};
+                    MipGenerationSwapData source = new MipGenerationSwapData { target = m_Atlas, offset = element.position, mipOffset = 0 };
                     // m_MipMapGenerationTemp is allocated in quater res to save memory so we need to apply a mip offset when writing to it.
                     int tempMipOffset = (int)Mathf.Log((m_MipMapGenerationTemp.width / (element.size >> 2)), 2);
-                    MipGenerationSwapData destination = new MipGenerationSwapData { target = m_MipMapGenerationTemp, offset = Vector3Int.zero, mipOffset = tempMipOffset - 2};
+                    MipGenerationSwapData destination = new MipGenerationSwapData { target = m_MipMapGenerationTemp, offset = Vector3Int.zero, mipOffset = tempMipOffset - 2 };
 
                     for (int i = 2; i < mipMapCount; i++)
                     {

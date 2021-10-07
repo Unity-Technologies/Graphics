@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UI
         VFXPropertyAttributes attributes { get; }
         object[] customAttributes { get; }
         Type portType { get; }
-        int depth {get; }
+        int depth { get; }
         bool editable { get; }
 
         IEnumerable<int> filteredOutEnumerators { get; }
@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
             m_Name = name;
         }
 
-        VFXCoordinateSpace IPropertyRMProvider.space { get { return VFXCoordinateSpace.Local; } set {} }
+        VFXCoordinateSpace IPropertyRMProvider.space { get { return VFXCoordinateSpace.Local; } set { } }
 
         bool IPropertyRMProvider.IsSpaceInherited() { return false; }
 
@@ -74,7 +74,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public virtual IEnumerable<int>  filteredOutEnumerators { get { return null; } }
+        public virtual IEnumerable<int> filteredOutEnumerators { get { return null; } }
 
         string IPropertyRMProvider.name
         {
@@ -92,20 +92,20 @@ namespace UnityEditor.VFX.UI
         int IPropertyRMProvider.depth { get { return 0; } }
         bool IPropertyRMProvider.editable { get { return true; } }
         void IPropertyRMProvider.RetractPath()
-        {}
+        { }
         void IPropertyRMProvider.ExpandPath()
-        {}
+        { }
 
 
-        void IPropertyRMProvider.StartLiveModification() {}
-        void IPropertyRMProvider.EndLiveModification() {}
+        void IPropertyRMProvider.StartLiveModification() { }
+        void IPropertyRMProvider.EndLiveModification() { }
     }
 
     abstract class PropertyRM : VisualElement
     {
         public abstract void SetValue(object obj);
         public abstract object GetValue();
-        public virtual void SetMultiplier(object obj) {}
+        public virtual void SetMultiplier(object obj) { }
 
         public VisualElement m_Icon;
         Clickable m_IconClickable;
@@ -309,7 +309,7 @@ namespace UnityEditor.VFX.UI
                     VisualElement line = new VisualElement();
                     line.style.width = 1;
                     line.name = "line";
-                    line.style.marginLeft =  depthOffset + (i == 0 ? -2 : 0);
+                    line.style.marginLeft = depthOffset + (i == 0 ? -2 : 0);
                     line.style.marginRight = ((i == provider.depth - 1) ? 2 : 0);
 
                     Add(line);
@@ -349,7 +349,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static readonly Dictionary<Type, Type> m_TypeDictionary =  new Dictionary<Type, Type>
+        static readonly Dictionary<Type, Type> m_TypeDictionary = new Dictionary<Type, Type>
         {
             {typeof(Vector), typeof(VectorPropertyRM)},
             {typeof(Position), typeof(PositionPropertyRM)},
@@ -463,7 +463,7 @@ namespace UnityEditor.VFX.UI
     abstract class PropertyRM<T> : PropertyRM
     {
         public PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
-        {}
+        { }
         public override void SetValue(object obj)
         {
             if (obj != null)
@@ -480,7 +480,7 @@ namespace UnityEditor.VFX.UI
                     }
                     catch (System.Exception)
                     {
-                        Debug.Log("Error Trying to convert" + (obj != null ? obj.GetType().Name : "null") + " to " +  typeof(T).Name);
+                        Debug.Log("Error Trying to convert" + (obj != null ? obj.GetType().Name : "null") + " to " + typeof(T).Name);
                     }
                 }
             }

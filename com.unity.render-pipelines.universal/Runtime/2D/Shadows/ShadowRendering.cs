@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly Color[] k_ColorLookup = new Color[4] { new Color(0, 0, 0, 1), new Color(0, 0, 1, 0), new Color(0, 1, 0, 0), new Color(1, 0, 0, 0) };
         private static readonly ProfilingSampler[] m_ProfilingSamplerShadowColorsLookup = new ProfilingSampler[4] { m_ProfilingSamplerShadowsA, m_ProfilingSamplerShadowsB, m_ProfilingSamplerShadowsG, m_ProfilingSamplerShadowsR };
 
-        public static  uint maxTextureCount { get; private set; }
+        public static uint maxTextureCount { get; private set; }
 
         public static void InitializeBudget(uint maxTextureCount)
         {
@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
         private static Material GetSpriteSelfShadowMaterial(this Renderer2DData rendererData, int colorIndex)
         {
             //rendererData.spriteSelfShadowMaterial = null;
-            if (rendererData.spriteSelfShadowMaterial == null || rendererData.spriteSelfShadowMaterial.Length == 0 ||  rendererData.spriteShadowShader != rendererData.spriteSelfShadowMaterial[0].shader)
+            if (rendererData.spriteSelfShadowMaterial == null || rendererData.spriteSelfShadowMaterial.Length == 0 || rendererData.spriteShadowShader != rendererData.spriteSelfShadowMaterial[0].shader)
             {
                 rendererData.spriteSelfShadowMaterial = CreateMaterials(rendererData.spriteShadowShader);
             }
@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.Universal
         private static Material GetSpriteUnshadowMaterial(this Renderer2DData rendererData, int colorIndex)
         {
             //rendererData.spriteUnshadowMaterial = null;
-            if (rendererData.spriteUnshadowMaterial == null || rendererData.spriteUnshadowMaterial.Length == 0 ||  rendererData.spriteUnshadowShader != rendererData.spriteUnshadowMaterial[0].shader)
+            if (rendererData.spriteUnshadowMaterial == null || rendererData.spriteUnshadowMaterial.Length == 0 || rendererData.spriteUnshadowShader != rendererData.spriteUnshadowMaterial[0].shader)
             {
                 rendererData.spriteUnshadowMaterial = CreateMaterials(rendererData.spriteUnshadowShader);
             }

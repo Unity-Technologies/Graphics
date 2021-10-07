@@ -310,7 +310,7 @@ namespace UnityEditor.Rendering
             {
                 var name = "";
                 var order = 0;
-                var(fieldInfo, serializedProperty) = t;
+                var (fieldInfo, serializedProperty) = t;
                 var attr = (DisplayInfoAttribute[])fieldInfo.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
                 if (attr.Length != 0)
                 {

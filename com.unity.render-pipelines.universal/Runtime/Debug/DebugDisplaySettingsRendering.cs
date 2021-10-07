@@ -82,6 +82,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly NameAndTooltip MapOverlays = new() { name = "Map Overlays", tooltip = "Overlays render pipeline textures to validate the scene." };
             public static readonly NameAndTooltip MapSize = new() { name = "Map Size", tooltip = "Set the size of the render pipeline texture in the scene." };
             public static readonly NameAndTooltip AdditionalWireframeModes = new() { name = "Additional Wireframe Modes", tooltip = "Debug the scene with additional wireframe shader views that are different from those in the scene view." };
+            public static readonly NameAndTooltip WireframeNotSupportedWarning = new() { name = "Warning: This platform might not support wireframe rendering.", tooltip = "Some platforms, for example, mobile platforms using OpenGL ES and Vulkan, might not support wireframe rendering." };
             public static readonly NameAndTooltip Overdraw = new() { name = "Overdraw", tooltip = "Debug anywhere pixels are overdrawn on top of each other." };
             public static readonly NameAndTooltip PostProcessing = new() { name = "Post-processing", tooltip = "Override the controls for Post Processing in the scene." };
             public static readonly NameAndTooltip MSAA = new() { name = "MSAA", tooltip = "Use the checkbox to disable MSAA in the scene." };
@@ -101,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.MapOverlays,
                 autoEnum = typeof(DebugFullScreenMode),
                 getter = () => (int)data.debugFullScreenMode,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.debugFullScreenMode,
                 setIndex = (value) => data.debugFullScreenMode = (DebugFullScreenMode)value
             };
@@ -127,9 +128,32 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.AdditionalWireframeModes,
                 autoEnum = typeof(WireframeMode),
                 getter = () => (int)data.wireframeMode,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.wireframeMode,
-                setIndex = (value) => data.wireframeMode = (WireframeMode)value
+                setIndex = (value) => data.wireframeMode = (WireframeMode)value,
+                onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
+            };
+
+            internal static DebugUI.Widget CreateWireframeNotSupportedWarning(DebugDisplaySettingsRendering data) => new DebugUI.MessageBox
+            {
+                nameAndTooltip = Strings.WireframeNotSupportedWarning,
+                style = DebugUI.MessageBox.Style.Warning,
+                isHiddenCallback = () =>
+                {
+#if UNITY_EDITOR
+                    return true;
+#else
+                    switch (SystemInfo.graphicsDeviceType)
+                    {
+                        case GraphicsDeviceType.OpenGLES2:
+                        case GraphicsDeviceType.OpenGLES3:
+                        case GraphicsDeviceType.Vulkan:
+                            return data.wireframeMode == WireframeMode.None;
+                        default:
+                            return true;
+                    }
+#endif
+                }
             };
 
             internal static DebugUI.Widget CreateOverdraw(DebugDisplaySettingsRendering data) => new DebugUI.BoolField
@@ -168,7 +192,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.PixelValidationMode,
                 autoEnum = typeof(DebugValidationMode),
                 getter = () => (int)data.validationMode,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.validationMode,
                 setIndex = (value) => data.validationMode = (DebugValidationMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
@@ -179,7 +203,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.Channels,
                 autoEnum = typeof(PixelValidationChannels),
                 getter = () => (int)data.validationChannels,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.validationChannels,
                 setIndex = (value) => data.validationChannels = (PixelValidationChannels)value
             };
@@ -207,6 +231,8 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel(DebugDisplaySettingsRendering data)
             {
+                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
+
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Rendering Debug",
@@ -220,6 +246,7 @@ namespace UnityEngine.Rendering.Universal
                         WidgetFactory.CreateMSAA(data),
                         WidgetFactory.CreatePostProcessing(data),
                         WidgetFactory.CreateAdditionalWireframeShaderViews(data),
+                        WidgetFactory.CreateWireframeNotSupportedWarning(data),
                         WidgetFactory.CreateOverdraw(data)
                     }
                 });

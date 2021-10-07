@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphData.MoveItemInCategory(shaderInputReference, newIndexValue, associatedCategoryGuid);
         }
 
-        public Action<GraphData> modifyGraphDataAction =>  MoveShaderInput;
+        public Action<GraphData> modifyGraphDataAction => MoveShaderInput;
 
         internal string associatedCategoryGuid { get; set; }
 

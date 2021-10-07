@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this.graphData = inGraphData;
             this._keywordChangedCallback = () => graphData.OnKeywordChanged();
             this._dropdownChangedCallback = () => graphData.OnDropdownChanged();
-            this._precisionChangedCallback = () =>  graphData.ValidateGraph();
+            this._precisionChangedCallback = () => graphData.ValidateGraph();
 
             this._exposedFieldChangedCallback = newValue =>
             {
@@ -158,6 +158,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             UpdateEnableState();
             return propertySheet;
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
 
         void BuildPropertyNameLabel(PropertySheet propertySheet)
         {
@@ -841,7 +843,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         #region VT reorderable list handler
         void HandleVirtualTextureProperty(PropertySheet propertySheet, VirtualTextureShaderProperty virtualTextureProperty)
         {
-            var container = new IMGUIContainer(() => OnVTGUIHandler(virtualTextureProperty)) {name = "ListContainer"};
+            var container = new IMGUIContainer(() => OnVTGUIHandler(virtualTextureProperty)) { name = "ListContainer" };
             AddPropertyRowToSheet(propertySheet, container, "Layers");
 
             m_VTLayer_Name = new TextField();
@@ -1333,7 +1335,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             AddPropertyRowToSheet(propertySheet, field, "Default");
 
-            var container = new IMGUIContainer(() => OnKeywordGUIHandler()) {name = "ListContainer"};
+            var container = new IMGUIContainer(() => OnKeywordGUIHandler()) { name = "ListContainer" };
             AddPropertyRowToSheet(propertySheet, container, "Entries");
             container.SetEnabled(!keyword.isBuiltIn);
         }
@@ -1709,7 +1711,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 ids.Add(dropdownEntry.id);
             }
 
-            for (int x = 1;; x++)
+            for (int x = 1; ; x++)
             {
                 if (!ids.Contains(x))
                     return x;

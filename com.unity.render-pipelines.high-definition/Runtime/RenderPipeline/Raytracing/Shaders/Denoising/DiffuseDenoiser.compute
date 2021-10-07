@@ -4,6 +4,8 @@
 #pragma kernel GatherSingle                 GATHER_FILTER=GatherSingle     SINGLE_CHANNEL
 #pragma kernel GatherColor                  GATHER_FILTER=GatherColor
 
+#pragma multi_compile _ FULL_RESOLUTION_INPUT
+
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
@@ -63,18 +65,23 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Fetch the current pixel coordinate
-    uint2 centerCoord = groupId * DIFFUSE_DENOISER_TILE_SIZE + groupThreadId;
+    uint2 currentCoord = groupId * DIFFUSE_DENOISER_TILE_SIZE + groupThreadId;
+    #if FULL_RESOLUTION_INPUT
+    uint2 sourceCoord = currentCoord;
+    #else
+    uint2 sourceCoord = currentCoord * 2;
+    #endif
 
     // Read the central position
-    const BilateralData center = TapBilateralData(centerCoord);
+    const BilateralData center = TapBilateralData(sourceCoord);
 
     // If this is a background pixel, we are done
     if (center.z01 == 1.0)
     {
         #if SINGLE_CHANNEL
-        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = 0.0;
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
         #else
-        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, 0.0, 1.0);
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 1.0);
         #endif
     }
 
@@ -97,7 +104,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     const float sigma = 0.9 * denoisingRadius;
 
     // Index of the pixel in the 2x2 group that are used for the half res filter
-    int localIndex = (centerCoord.x & 1) + (centerCoord.y & 1) * 2;
+    int localIndex = (currentCoord.x & 1) + (currentCoord.y & 1) * 2;
 
     // Define the sample count for this pixel. 16 samples per pixels if it is a full res or 4 if half resolution
     const int numSamples = _HalfResolutionFilter ? 4 : 16;
@@ -136,7 +143,15 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     #endif
 
         // Tap the data for this pixel
+    #if FULL_RESOLUTION_INPUT
         uint2 tapCoord = nDC * _ScreenSize.xy;
+    #else
+        // Not all pixels can be fetched (only the 2x2 representative)
+        uint2 halfResTapCoord = (nDC * _ScreenSize.xy) / 2;
+        uint2 tapCoord = halfResTapCoord * 2;
+    #endif
+
+        // Fetch the corresponding data
         const BilateralData tapData = TapBilateralData(tapCoord);
 
         // If the tapped pixel is a background pixel or too far from the center pixel
@@ -150,10 +165,18 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         const float w = r > 0.001f ? gaussian(r, sigma) * ComputeBilateralWeight(center, tapData) : 1.0;
 
         // Accumulate the new sample
-    #if SINGLE_CHANNEL
-        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).x * w;
+    #if FULL_RESOLUTION_INPUT
+        #if SINGLE_CHANNEL
+            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).x * w;
+        #else
+            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xyz * w;
+        #endif
     #else
-        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xyz * w;
+        #if SINGLE_CHANNEL
+            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, halfResTapCoord).x * w;
+        #else
+            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, halfResTapCoord).xyz * w;
+        #endif
     #endif
         wSum += w;
     }
@@ -162,18 +185,18 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     if (wSum == 0.0)
     {
         #if SINGLE_CHANNEL
-        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x;
+        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, currentCoord).x;
         #else
-        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
+        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, currentCoord).xyz;
         #endif
         wSum += 1.0;
     }
 
     // Normalize the result
     #if SINGLE_CHANNEL
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = colorSum / wSum;
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = colorSum / wSum;
     #else
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(colorSum / wSum, 1.0);
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(colorSum / wSum, 1.0);
     #endif
 }
 
@@ -192,7 +215,11 @@ void FillGatherDataLDS(uint groupIndex, uint2 pixelCoord)
     float3 lighting = LOAD_TEXTURE2D_X(_DenoiseInputTexture, sampleCoord).xyz;
     gs_cacheLighting[groupIndex] = PackToR11G11B10f(lighting);
     #endif
+    #if FULL_RESOLUTION_INPUT
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sampleCoord).x;
+    #else
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sampleCoord * 2).x;
+    #endif
     gs_cacheDepth[groupIndex] = depthValue;
 }
 

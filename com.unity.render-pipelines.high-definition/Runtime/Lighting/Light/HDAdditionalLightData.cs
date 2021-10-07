@@ -31,9 +31,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [HDRPHelpURLAttribute("Light-Component")]
     [AddComponentMenu("")] // Hide in menu
+    [DisallowMultipleComponent]
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
-    public partial class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
+    public partial class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
     {
         internal const float k_MinLightSize = 0.01f; // Provide a small size of 1cm for line light
 
@@ -1114,7 +1115,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Shadow Settings
         [SerializeField, FormerlySerializedAs("shadowNearPlane")]
-        float    m_ShadowNearPlane = 0.1f;
+        float m_ShadowNearPlane = 0.1f;
         /// <summary>
         /// Controls the near plane distance of the shadows.
         /// </summary>
@@ -1133,7 +1134,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // PCSS settings
         [Range(1, 64)]
         [SerializeField, FormerlySerializedAs("blockerSampleCount")]
-        int      m_BlockerSampleCount = 24;
+        int m_BlockerSampleCount = 24;
         /// <summary>
         /// Controls the number of samples used to detect blockers for PCSS shadows.
         /// </summary>
@@ -1151,7 +1152,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Range(1, 64)]
         [SerializeField, FormerlySerializedAs("filterSampleCount")]
-        int      m_FilterSampleCount = 16;
+        int m_FilterSampleCount = 16;
         /// <summary>
         /// Controls the number of samples used to filter for PCSS shadows.
         /// </summary>
@@ -1269,7 +1270,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region HDShadow Properties API (from AdditionalShadowData)
         [ValueCopy] //we want separate object with same values
-        [SerializeField] private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
+        [SerializeField]
+        private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
         {
             @override = k_DefaultShadowResolution,
             useOverride = true,
@@ -2386,7 +2388,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float halfAngleTan = Mathf.Tan(0.5f * Mathf.Deg2Rad * (softnessScale * m_AngularDiameter) / 2);
                 softness = Mathf.Abs(halfAngleTan * frustumExtentZ / (2.0f * shadowRequest.splitData.cullingSphere.w));
                 float range = 2.0f * (1.0f / devProj.m22);
-                float rangeScale = Mathf.Abs(range)  / 100.0f;
+                float rangeScale = Mathf.Abs(range) / 100.0f;
                 shadowRequest.zBufferParam.x = rangeScale;
             }
             else
@@ -2776,8 +2778,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // We don't use the global settings of shadow mask by default
             light.lightShadowCasterMode = LightShadowCasterMode.Everything;
 
-            lightData.normalBias           = 0.75f;
-            lightData.slopeBias            = 0.5f;
+            lightData.normalBias = 0.75f;
+            lightData.slopeBias = 0.5f;
 
             // Enable filter/temperature mode by default for all light types
             lightData.useColorTemperature = true;
@@ -3004,7 +3006,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // m_Light.intensity is in luminance which is the value we need for emissive color
             Color value = legacyLight.color.linear * legacyLight.intensity;
 
-// We don't have access to the color temperature in the player because it's a private member of the Light component
+            // We don't have access to the color temperature in the player because it's a private member of the Light component
 #if UNITY_EDITOR
             if (useColorTemperature)
                 value *= Mathf.CorrelatedColorTemperatureToRGB(legacyLight.colorTemperature);
@@ -3518,7 +3520,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Deserialization callback
         /// </summary>
-        void ISerializationCallbackReceiver.OnAfterDeserialize() {}
+        void ISerializationCallbackReceiver.OnAfterDeserialize() { }
 
         /// <summary>
         /// Serialization callback

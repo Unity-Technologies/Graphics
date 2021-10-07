@@ -36,14 +36,14 @@ namespace UnityEditor.ShaderGraph
 
         public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, bool humanReadable = false)
         {
-            m_GraphData  = graphData;
+            m_GraphData = graphData;
             m_OutputNode = outputNode;
             Generate(mode, name, assetCollection, GetTargetImplementations(), humanReadable);
         }
 
         public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets, bool humanReadable = false)
         {
-            m_GraphData  = graphData;
+            m_GraphData = graphData;
             m_OutputNode = outputNode;
             Generate(mode, name, assetCollection, targets, humanReadable);
         }
@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var targets = m_GraphData.activeTargets.ToList();
                 // Sort the built-in target to be last. This is currently a requirement otherwise it'll get picked up for other passes incorrectly
-                targets.Sort(delegate(Target target0, Target target1)
+                targets.Sort(delegate (Target target0, Target target1)
                 {
                     var result = target0.displayName.CompareTo(target1.displayName);
                     // If only one value is built-in, then sort it last
@@ -158,6 +158,11 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             string path = AssetDatabase.GUIDToAssetPath(m_GraphData.assetGuid);
+
+            // Send an action about our current variant usage. This will either add or clear a warning if it exists
+            var action = new ShaderVariantLimitAction(shaderKeywords.permutations.Count, ShaderGraphPreferences.variantLimit);
+            m_GraphData.owner?.graphDataStore?.Dispatch(action);
+
             if (shaderKeywords.permutations.Count > ShaderGraphPreferences.variantLimit)
             {
                 string graphName = "";
@@ -172,6 +177,8 @@ namespace UnityEditor.ShaderGraph
 
                 m_ConfiguredTextures = shaderProperties.GetConfiguredTextures();
                 m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader.Replace("Hidden/GraphErrorShader2", graphName));
+                // Don't continue building the shader, we've already built an error shader.
+                return;
             }
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
@@ -886,7 +893,7 @@ namespace UnityEditor.ShaderGraph
                 // Hybrid Renderer V1 requires some magic defines to work, which we enable
                 // if the shader graph has a nonzero amount of DOTS instanced properties.
                 // This can be removed once Hybrid V1 is removed.
-                #if !ENABLE_HYBRID_RENDERER_V2
+#if !ENABLE_HYBRID_RENDERER_V2
                 if (hasDotsProperties)
                 {
                     dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE)  || defined(SHADER_API_GAMECORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
@@ -896,7 +903,7 @@ namespace UnityEditor.ShaderGraph
                     dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_HYBRID_V1_INSTANCING_ENABLED");
                     dotsInstancingOptionsBuilder.AppendLine("#endif");
                 }
-                #endif
+#endif
 
                 if (dotsInstancingOptionsBuilder.length == 0)
                     dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");

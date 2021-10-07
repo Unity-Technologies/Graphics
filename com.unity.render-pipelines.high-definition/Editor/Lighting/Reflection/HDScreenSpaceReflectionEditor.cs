@@ -49,40 +49,40 @@ namespace UnityEditor.Rendering.HighDefinition
             var o = new PropertyFetcher<ScreenSpaceReflection>(serializedObject);
 
             // Shared data
-            m_Enable                        = Unpack(o.Find(x => x.enabled));
-            m_Tracing                       = Unpack(o.Find(x => x.tracing));
-            m_MinSmoothness                 = Unpack(o.Find(x => x.minSmoothness));
-            m_SmoothnessFadeStart           = Unpack(o.Find(x => x.smoothnessFadeStart));
+            m_Enable = Unpack(o.Find(x => x.enabled));
+            m_Tracing = Unpack(o.Find(x => x.tracing));
+            m_MinSmoothness = Unpack(o.Find(x => x.minSmoothness));
+            m_SmoothnessFadeStart = Unpack(o.Find(x => x.smoothnessFadeStart));
 
             // SSR Data
-            m_ReflectSky                    = Unpack(o.Find(x => x.reflectSky));
-            m_UsedAlgorithm                 = Unpack(o.Find(x => x.usedAlgorithm));
-            m_DepthBufferThickness          = Unpack(o.Find(x => x.depthBufferThickness));
-            m_RayMaxIterations              = Unpack(o.Find(x => x.rayMaxIterations));
-            m_ScreenFadeDistance            = Unpack(o.Find(x => x.screenFadeDistance));
-            m_AccumulationFactor            = Unpack(o.Find(x => x.accumulationFactor));
+            m_ReflectSky = Unpack(o.Find(x => x.reflectSky));
+            m_UsedAlgorithm = Unpack(o.Find(x => x.usedAlgorithm));
+            m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
+            m_RayMaxIterations = Unpack(o.Find(x => x.rayMaxIterations));
+            m_ScreenFadeDistance = Unpack(o.Find(x => x.screenFadeDistance));
+            m_AccumulationFactor = Unpack(o.Find(x => x.accumulationFactor));
 
             // Generic ray tracing
-            m_RayMiss      = Unpack(o.Find(x => x.rayMiss));
-            m_LastBounce   = Unpack(o.Find(x => x.lastBounceFallbackHierarchy));
-            m_LayerMask                     = Unpack(o.Find(x => x.layerMask));
-            m_TextureLodBias                = Unpack(o.Find(x => x.textureLodBias));
-            m_RayLength                     = Unpack(o.Find(x => x.rayLength));
-            m_ClampValue                    = Unpack(o.Find(x => x.clampValue));
-            m_Denoise                       = Unpack(o.Find(x => x.denoise));
-            m_DenoiserRadius                = Unpack(o.Find(x => x.denoiserRadius));
-            m_AffectsSmoothSurfaces         = Unpack(o.Find(x => x.affectSmoothSurfaces));
-            m_Mode                          = Unpack(o.Find(x => x.mode));
+            m_RayMiss = Unpack(o.Find(x => x.rayMiss));
+            m_LastBounce = Unpack(o.Find(x => x.lastBounceFallbackHierarchy));
+            m_LayerMask = Unpack(o.Find(x => x.layerMask));
+            m_TextureLodBias = Unpack(o.Find(x => x.textureLodBias));
+            m_RayLength = Unpack(o.Find(x => x.rayLength));
+            m_ClampValue = Unpack(o.Find(x => x.clampValue));
+            m_Denoise = Unpack(o.Find(x => x.denoise));
+            m_DenoiserRadius = Unpack(o.Find(x => x.denoiserRadius));
+            m_AffectsSmoothSurfaces = Unpack(o.Find(x => x.affectSmoothSurfaces));
+            m_Mode = Unpack(o.Find(x => x.mode));
 
             // Mixed
-            m_RayMaxIterationsRT            = Unpack(o.Find(x => x.rayMaxIterationsRT));
+            m_RayMaxIterationsRT = Unpack(o.Find(x => x.rayMaxIterationsRT));
 
             // Performance
-            m_FullResolution                = Unpack(o.Find(x => x.fullResolution));
+            m_FullResolution = Unpack(o.Find(x => x.fullResolution));
 
             // Quality
-            m_SampleCount                   = Unpack(o.Find(x => x.sampleCount));
-            m_BounceCount                   = Unpack(o.Find(x => x.bounceCount));
+            m_SampleCount = Unpack(o.Find(x => x.sampleCount));
+            m_BounceCount = Unpack(o.Find(x => x.bounceCount));
 
             base.OnEnable();
         }
@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
                 PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
-                m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
+                m_SmoothnessFadeStart.value.floatValue = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
                 PropertyField(m_RayLength, k_RayLengthText);
                 PropertyField(m_ClampValue, k_ClampValueText);
                 PropertyField(m_SampleCount, k_SampleCountText);
@@ -140,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
                 PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
-                m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
+                m_SmoothnessFadeStart.value.floatValue = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
                 PropertyField(m_RayLength, k_RayLengthText);
                 PropertyField(m_ClampValue, k_ClampValueText);
                 PropertyField(m_FullResolution, k_FullResolutionText);
@@ -216,12 +216,12 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_Enable);
 
             // If ray tracing is supported display the tracing choice
-            if (HDRenderPipeline.pipelineSupportsRayTracing)
+            if (HDRenderPipeline.assetSupportsRayTracing)
                 PropertyField(m_Tracing, k_TracingText);
 
             // Flag to track if the ray tracing parameters were displayed
             RayCastingMode tracingMode = m_Tracing.value.GetEnumValue<RayCastingMode>();
-            bool rayTracingSettingsDisplayed = HDRenderPipeline.pipelineSupportsRayTracing
+            bool rayTracingSettingsDisplayed = HDRenderPipeline.assetSupportsRayTracing
                 && m_Tracing.overrideState.boolValue
                 && tracingMode != RayCastingMode.RayMarching;
 
@@ -238,7 +238,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
                 PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
                 PropertyField(m_ReflectSky, k_ReflectSkyText);
-                m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
+                m_SmoothnessFadeStart.value.floatValue = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
 
                 PropertyField(m_ScreenFadeDistance, k_ScreenFaceDistanceText);
                 PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
@@ -282,7 +282,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
             // RTR
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
+            if (HDRenderPipeline.assetSupportsRayTracing && m_Tracing.overrideState.boolValue &&
                 m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
             {
                 settings.TryLoad<float>(ref m_MinSmoothness);
@@ -303,7 +303,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
             // RTR
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
+            if (HDRenderPipeline.assetSupportsRayTracing && m_Tracing.overrideState.boolValue &&
                 m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
             {
                 CopySetting(ref m_MinSmoothness, settings.lightingQualitySettings.RTRMinSmoothness[level]);
@@ -324,17 +324,17 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool QualityEnabled()
         {
             // Quality always used for SSR
-            if (!HDRenderPipeline.rayTracingSupportedBySystem || m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
+            if (!HDRenderPipeline.assetSupportsRayTracing || m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
                 return true;
 
             // Handle the quality usage for RTR
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
 
-            // Define if the asset supports Peformance or Both Mode (Quality && Performance)
+            // Define if the asset supports Performance or Both Mode (Quality && Performance)
             bool assetSupportsPerf = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Performance;
             bool assetSupportsBoth = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both;
 
-            // Define if the volume is in Peformance or Mixed Mode
+            // Define if the volume is in Performance or Mixed Mode
             bool volumeIsInPerfOrMixed = (m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayTracing && m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance)
                 || (m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.Mixed);
 

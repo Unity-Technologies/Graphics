@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_refCounting[(int)index] == 0)
             {
-                int res  = (int)FGDTexture.Resolution;
+                int res = (int)FGDTexture.Resolution;
 
                 switch (index)
                 {

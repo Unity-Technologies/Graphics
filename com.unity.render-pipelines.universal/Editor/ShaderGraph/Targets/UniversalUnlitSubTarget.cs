@@ -29,12 +29,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var universalRPType = typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset);
             if (!context.HasCustomEditorForRenderPipeline(universalRPType))
             {
-                context.AddCustomEditorForRenderPipeline(typeof(ShaderGraphUnlitGUI).FullName, universalRPType);
+                var gui = typeof(ShaderGraphUnlitGUI);
+#if HAS_VFX_GRAPH
+                if (TargetsVFX())
+                    gui = typeof(VFXShaderGraphUnlitGUI);
+#endif
+                context.AddCustomEditorForRenderPipeline(gui.FullName, universalRPType);
             }
-
             // Process SubShaders
-            context.AddSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue));
-            context.AddSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue));
+            context.AddSubShader(PostProcessSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue)));
+            context.AddSubShader(PostProcessSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue)));
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -66,6 +70,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            base.GetFields(ref context);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -150,9 +155,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(CorePasses.ShadowCaster(target));
 
-                result.passes.Add(UnlitPasses.DepthNormalOnly(target));
+                // Currently neither of these passes (selection/picking) can be last for the game view for
+                // UI shaders to render correctly. Verify [1352225] before changing this order.
                 result.passes.Add(CorePasses.SceneSelection(target));
                 result.passes.Add(CorePasses.ScenePicking(target));
+
+                result.passes.Add(UnlitPasses.DepthNormalOnly(target));
 
                 return result;
             }
@@ -179,9 +187,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
 
-                result.passes.Add(UnlitPasses.DepthNormalOnly(target));
+                // Currently neither of these passes (selection/picking) can be last for the game view for
+                // UI shaders to render correctly. Verify [1352225] before changing this order.
                 result.passes.Add(CorePasses.SceneSelection(target));
                 result.passes.Add(CorePasses.ScenePicking(target));
+
+                result.passes.Add(UnlitPasses.DepthNormalOnly(target));
 
                 return result;
             }

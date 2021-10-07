@@ -66,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_NeedUpdateComputeBuffer;
 
-        internal Vector3Int GetCellIndexDimension() =>  m_CellCount;
+        internal Vector3Int GetCellIndexDimension() => m_CellCount;
         internal Vector3Int GetCellMinPosition() => m_CellMin;
 
         int GetFlatIndex(Vector3Int normalizedPos)

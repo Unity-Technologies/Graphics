@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Implement it if your CloudRenderer needs to render a texture to use for the light cookie (for example for cloud shadow rendering).
         /// </summary>
         /// <param name="builtinParams">Engine parameters that you can use to render the sun light cookie.</param>
-        public virtual void RenderSunLightCookie(BuiltinSunCookieParameters builtinParams) {}
+        public virtual void RenderSunLightCookie(BuiltinSunCookieParameters builtinParams) { }
 
         /// <summary>
         /// HDRP calls this function once every frame. Implement it if your CloudRenderer needs to iterate independently of the user defined update frequency (see CloudSettings UpdateMode).
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="builtinParams">Engine parameters that you can use to render the clouds.</param>
         /// <param name="renderForCubemap">Pass in true if you want to render the clouds into a cubemap for lighting. This is useful when the cloud renderer needs a different implementation in this case.</param>
-        public virtual void PreRenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap) {}
+        public virtual void PreRenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap) { }
 
         /// <summary>
         /// Whether the PreRenderClouds step is required.

@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        public ForwardLights() : this(InitParams.GetDefault()) {}
+        public ForwardLights() : this(InitParams.GetDefault()) { }
 
         internal ForwardLights(InitParams initParams)
         {
@@ -353,10 +353,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 SetupShaderLightConstants(cmd, ref renderingData);
 
+                bool lightCountCheck = (renderingData.cameraData.renderer.stripAdditionalLightOffVariants && renderingData.lightData.supportsAdditionalLights) || additionalLightsCount > 0;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
-                    additionalLightsCount > 0 && additionalLightsPerVertex && !useClusteredRendering);
+                    lightCountCheck && additionalLightsPerVertex && !useClusteredRendering);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
-                    additionalLightsCount > 0 && !additionalLightsPerVertex && !useClusteredRendering);
+                    lightCountCheck && !additionalLightsPerVertex && !useClusteredRendering);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ClusteredRendering,
                     useClusteredRendering);
 

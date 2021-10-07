@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="renderer">Renderer of callback.</param>
         /// <param name="cameraData">CameraData contains all relevant render target information for the camera.</param>
-        public virtual void OnCameraPreCull(ScriptableRenderer renderer, in CameraData cameraData) {}
+        public virtual void OnCameraPreCull(ScriptableRenderer renderer, in CameraData cameraData) { }
 
         /// <summary>
         /// Injects one or multiple <c>ScriptableRenderPass</c> in the renderer.

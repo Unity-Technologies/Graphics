@@ -150,7 +150,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         internal VisualElement CreateGUI(GraphData graphData)
         {
-            var propertySheet = new VisualElement() {name = "graphSettings"};
+            var propertySheet = new VisualElement() { name = "graphSettings" };
 
             if (graphData == null)
             {
@@ -206,5 +206,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             return this.CreateGUI((GraphData)actualObject);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

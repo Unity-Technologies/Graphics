@@ -10,8 +10,8 @@ namespace UnityEditor.Rendering.Universal
         private class LayerSelectionData
         {
             public SerializedObject serializedObject;
-            public Object[]         targets;
-            public int              layerID;
+            public Object[] targets;
+            public int layerID;
             public System.Action<SerializedObject> onSelectionChanged;
 
             public LayerSelectionData(SerializedObject so, int lid, Object[] tgts, System.Action<SerializedObject> selectionChangedCallback)

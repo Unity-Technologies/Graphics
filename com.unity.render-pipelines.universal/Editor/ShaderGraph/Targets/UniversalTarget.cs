@@ -10,6 +10,9 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEditor.ShaderGraph.Legacy;
+#if HAS_VFX_GRAPH
+using UnityEditor.VFX;
+#endif
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -69,6 +72,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     }
 
     sealed class UniversalTarget : Target, IHasMetadata, ILegacyTarget
+#if HAS_VFX_GRAPH
+        , IMaySupportVFX, IRequireVFXContext
+#endif
     {
         public override int latestVersion => 1;
 
@@ -77,7 +83,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public const string kPipelineTag = "UniversalPipeline";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
-        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] {"Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates" }).ToArray();
+        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[]
+        {
+            "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates"
+#if HAS_VFX_GRAPH
+            , "Packages/com.unity.visualeffectgraph/Editor/ShaderGraph/Templates"
+#endif
+        }).ToArray();
         public const string kUberTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/ShaderPass.template";
 
         // SubTarget
@@ -88,6 +100,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         // View
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
+#if HAS_VFX_GRAPH
+        Toggle m_SupportVFXToggle;
+#endif
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
@@ -122,6 +137,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         string m_CustomEditorGUI;
+
+        [SerializeField]
+        bool m_SupportVFX;
 
         internal override bool ignoreCustomInterpolators => false;
         internal override int padCustomInterpolatorLimit => 4;
@@ -366,7 +384,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 customEditorGUI = m_CustomGUIField.value;
                 onChange();
             });
-            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => { });
+
+#if HAS_VFX_GRAPH
+            if (VFXViewPreference.generateOutputContextWithShaderGraph)
+            {
+                // VFX Support
+                if (!(m_ActiveSubTarget.value is UniversalSubTarget))
+                    context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
+                else
+                {
+                    m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
+                    context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
+                    {
+                        m_SupportVFX = m_SupportVFXToggle.value;
+                    });
+                }
+            }
+#endif
         }
 
         // this is a copy of ZTestMode, but hides the "Disabled" option, which is invalid
@@ -561,6 +596,48 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
         {
             return scriptableRenderPipeline?.GetType() == typeof(UniversalRenderPipelineAsset);
+        }
+
+#if HAS_VFX_GRAPH
+        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        {
+            if (!(m_ActiveSubTarget.value is IRequireVFXContext vfxSubtarget))
+                return;
+
+            vfxSubtarget.ConfigureContextData(context, data);
+        }
+
+#endif
+
+        public bool CanSupportVFX()
+        {
+            if (m_ActiveSubTarget.value == null)
+                return false;
+
+            if (m_ActiveSubTarget.value is UniversalUnlitSubTarget)
+                return true;
+
+            if (m_ActiveSubTarget.value is UniversalLitSubTarget)
+                return true;
+
+            //It excludes:
+            // - UniversalDecalSubTarget
+            // - UniversalSpriteLitSubTarget
+            // - UniversalSpriteUnlitSubTarget
+            // - UniversalSpriteCustomLitSubTarget
+            return false;
+        }
+
+        public bool SupportsVFX()
+        {
+#if HAS_VFX_GRAPH
+            if (!CanSupportVFX())
+                return false;
+
+            return m_SupportVFX;
+#else
+            return false;
+#endif
         }
 
         [Serializable]
@@ -811,7 +888,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
                 sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
@@ -825,7 +902,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.SceneSelection(target),
                 pragmas = CorePragmas.Instanced,
-                defines = new DefineCollection { CoreDefines.SceneSelection, {CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
+                defines = new DefineCollection { CoreDefines.SceneSelection, { CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.SceneSelection,
 
@@ -849,7 +926,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
                 sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
@@ -863,7 +940,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.ScenePicking(target),
                 pragmas = CorePragmas.Instanced,
-                defines = new DefineCollection { CoreDefines.ScenePicking, {CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
+                defines = new DefineCollection { CoreDefines.ScenePicking, { CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.ScenePicking,
 
@@ -901,7 +978,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.SceneSelection(target),
                 pragmas = CorePragmas._2DDefault,
-                defines = new DefineCollection { CoreDefines.SceneSelection, {CoreKeywordDescriptors.AlphaClipThreshold, 0 } },
+                defines = new DefineCollection { CoreDefines.SceneSelection, { CoreKeywordDescriptors.AlphaClipThreshold, 0 } },
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.ScenePicking,
 
@@ -939,7 +1016,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.ScenePicking(target),
                 pragmas = CorePragmas._2DDefault,
-                defines = new DefineCollection { CoreDefines.ScenePicking, {CoreKeywordDescriptors.AlphaClipThreshold, 0 } },
+                defines = new DefineCollection { CoreDefines.ScenePicking, { CoreKeywordDescriptors.AlphaClipThreshold, 0 } },
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.SceneSelection,
 
@@ -1006,7 +1083,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         public static readonly FieldCollection ShadowCaster = new FieldCollection()
         {
-            StructFields.Attributes.normalOS,
+            StructFields.Varyings.normalWS,
         };
 
         public static readonly FieldCollection DepthNormals = new FieldCollection()

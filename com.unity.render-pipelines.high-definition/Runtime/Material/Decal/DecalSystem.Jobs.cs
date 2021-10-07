@@ -27,20 +27,20 @@ namespace UnityEngine.Rendering.HighDefinition
             internal JobHandle updateJobHandle { get { return m_UpdateJobHandle; } }
             private JobHandle m_UpdateJobHandle;
 
-            private TransformAccessArray    m_CachedTransforms = new TransformAccessArray(kDecalBlockSize);
-            private NativeArray<float3>     m_Positions = new NativeArray<float3>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            private TransformAccessArray m_CachedTransforms = new TransformAccessArray(kDecalBlockSize);
+            private NativeArray<float3> m_Positions = new NativeArray<float3>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             private NativeArray<quaternion> m_Rotations = new NativeArray<quaternion>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            private NativeArray<float3>     m_Scales = new NativeArray<float3>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            private NativeArray<float3>     m_Sizes = new NativeArray<float3>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            private NativeArray<float3>     m_Offsets = new NativeArray<float3>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            private NativeArray<float3> m_Scales = new NativeArray<float3>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            private NativeArray<float3> m_Sizes = new NativeArray<float3>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            private NativeArray<float3> m_Offsets = new NativeArray<float3>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             private NativeArray<quaternion> m_ResolvedRotations = new NativeArray<quaternion>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            private NativeArray<float3>     m_ResolvedScales = new NativeArray<float3>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            private NativeArray<float4x4>   m_ResolvedSizeOffsets = new NativeArray<float4x4>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            private NativeArray<float3> m_ResolvedScales = new NativeArray<float3>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            private NativeArray<float4x4> m_ResolvedSizeOffsets = new NativeArray<float4x4>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             private NativeArray<DecalScaleMode> m_ScaleModes = new NativeArray<DecalScaleMode>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             private NativeArray<float4x4> m_NormalToWorlds = new NativeArray<float4x4>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             private NativeArray<float4x4> m_DecalToWorlds = new NativeArray<float4x4>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             private NativeArray<BoundingSphere> m_BoundingSpheres = new NativeArray<BoundingSphere>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            private NativeArray<bool>       m_Dirty = new NativeArray<bool>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            private NativeArray<bool> m_Dirty = new NativeArray<bool>(kDecalBlockSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             private BoundingSphere[] m_CachedBoundingSpheres = new BoundingSphere[kDecalBlockSize];
 
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_Positions[index] = decalProjector.transform.position;
                 m_Rotations[index] = decalProjector.transform.rotation;
-                m_Scales[index]    = decalProjector.transform.lossyScale;
+                m_Scales[index] = decalProjector.transform.lossyScale;
                 m_Sizes[index] = decalProjector.size;
                 m_Offsets[index] = decalProjector.pivot;
                 m_ScaleModes[index] = decalProjector.scaleMode;
@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct UpdateJob : IJobParallelForTransform
         {
             private static readonly quaternion k_MinusYtoZRotation = quaternion.EulerXYZ(-math.PI / 2.0f, 0, 0);
-            private static readonly quaternion k_YtoZRotation      = quaternion.EulerXYZ(math.PI / 2.0f, 0, 0);
+            private static readonly quaternion k_YtoZRotation = quaternion.EulerXYZ(math.PI / 2.0f, 0, 0);
             private static readonly float3 sFloat3One = new float3(1, 1, 1);
             public float minDistance;
 

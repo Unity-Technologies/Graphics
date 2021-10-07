@@ -14,9 +14,9 @@ namespace UnityEditor.Rendering.HighDefinition
     sealed class DiffusionProfileOverrideEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_DiffusionProfiles;
-        Volume                  m_Volume;
+        Volume m_Volume;
 
-        DiffusionProfileSettingsListUI      listUI = new DiffusionProfileSettingsListUI();
+        DiffusionProfileSettingsListUI listUI = new DiffusionProfileSettingsListUI();
 
         static GUIContent m_DiffusionProfileLabel = new GUIContent("Diffusion Profile List", "Diffusion Profile List from current HDRenderPipeline Asset");
 

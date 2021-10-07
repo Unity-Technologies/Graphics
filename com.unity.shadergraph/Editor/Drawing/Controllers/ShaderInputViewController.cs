@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public Action<GraphData> modifyGraphDataAction =>  ChangeDisplayName;
+        public Action<GraphData> modifyGraphDataAction => ChangeDisplayName;
 
         // Reference to the shader input being modified
         internal ShaderInput shaderInputReference { get; set; }
@@ -143,7 +143,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public Action<GraphData> modifyGraphDataAction =>  ChangeReferenceName;
+        public Action<GraphData> modifyGraphDataAction => ChangeReferenceName;
 
         // Reference to the shader input being modified
         internal ShaderInput shaderInputReference { get; set; }
@@ -161,7 +161,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             shaderInputReference.overrideReferenceName = null;
         }
 
-        public Action<GraphData> modifyGraphDataAction =>  ResetReferenceName;
+        public Action<GraphData> modifyGraphDataAction => ResetReferenceName;
 
         // Reference to the shader input being modified
         internal ShaderInput shaderInputReference { get; set; }
@@ -182,7 +182,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public Action<GraphData> modifyGraphDataAction =>  DeleteShaderInput;
+        public Action<GraphData> modifyGraphDataAction => DeleteShaderInput;
 
         // Reference to the shader input(s) being deleted
         internal IList<ShaderInput> shaderInputsToDelete { get; set; } = new List<ShaderInput>();
@@ -224,7 +224,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     shaderProperty.onBeforeVersionChange += (_) => graphData.owner.RegisterCompleteObjectUndo($"Change {shaderProperty.displayName} Version");
                     break;
                 case ShaderKeyword shaderKeyword:
-                    ViewModel.inputTypeName = shaderKeyword.keywordType  + " Keyword";
+                    ViewModel.inputTypeName = shaderKeyword.keywordType + " Keyword";
                     ViewModel.inputTypeName = shaderKeyword.isBuiltIn ? "Built-in " + ViewModel.inputTypeName : ViewModel.inputTypeName;
                     break;
                 case ShaderDropdown shaderDropdown:

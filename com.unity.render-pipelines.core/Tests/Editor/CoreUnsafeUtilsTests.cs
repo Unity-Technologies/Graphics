@@ -27,8 +27,8 @@ namespace UnityEditor.Rendering.Tests
 
             public override int GetHashCode()
             {
-                fixed(float* fptr = &floatValue)
-                return intValue ^ *(int*)fptr;
+                fixed (float* fptr = &floatValue)
+                    return intValue ^ *(int*)fptr;
             }
         }
 

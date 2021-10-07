@@ -46,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering
         struct ReservedBrick
         {
             public Brick brick;
-            public int   flattenedIdx;
+            public int flattenedIdx;
         }
 
         struct VoxelMeta
@@ -61,12 +61,16 @@ namespace UnityEngine.Experimental.Rendering
             public List<ReservedBrick> bricks;
         }
 
-        Vector3Int      m_CenterRS;   // the anchor in ref space, around which the index is defined. [IMPORTANT NOTE! For now we always have it at 0, so is not passed to the shader, but is kept here until development is active in case we find it useful]
+        Vector3Int m_CenterRS;   // the anchor in ref space, around which the index is defined. [IMPORTANT NOTE! For now we always have it at 0, so is not passed to the shader, but is kept here until development is active in case we find it useful]
 
         Dictionary<Vector3Int, List<VoxelMeta>> m_VoxelToBricks;
-        Dictionary<RegId, BrickMeta>            m_BricksToVoxels;
+        Dictionary<RegId, BrickMeta> m_BricksToVoxels;
 
-        int m_VoxelSubdivLevel = 3;
+        int GetVoxelSubdivLevel()
+        {
+            int defaultVoxelSubdivLevel = 3;
+            return Mathf.Min(defaultVoxelSubdivLevel, ProbeReferenceVolume.instance.GetMaxSubdivision() - 1);
+        }
 
         bool m_NeedUpdateIndexComputeBuffer;
 
@@ -90,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering
         internal ProbeBrickIndex(ProbeVolumeTextureMemoryBudget memoryBudget)
         {
             Profiler.BeginSample("Create ProbeBrickIndex");
-            m_CenterRS     = new Vector3Int(0, 0, 0);
+            m_CenterRS = new Vector3Int(0, 0, 0);
 
             m_VoxelToBricks = new Dictionary<Vector3Int, List<VoxelMeta>>();
             m_BricksToVoxels = new Dictionary<RegId, BrickMeta>();
@@ -137,16 +141,16 @@ namespace UnityEngine.Experimental.Rendering
         {
             // create a list of all voxels this brick will touch
             int brick_subdiv = brick.subdivisionLevel;
-            int voxels_touched_cnt = (int)Mathf.Pow(3, Mathf.Max(0, brick_subdiv - m_VoxelSubdivLevel));
+            int voxels_touched_cnt = (int)Mathf.Pow(3, Mathf.Max(0, brick_subdiv - GetVoxelSubdivLevel()));
 
             Vector3Int ipos = brick.position;
-            int        brick_size = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
-            int        voxel_size = ProbeReferenceVolume.CellSize(m_VoxelSubdivLevel);
+            int brick_size = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
+            int voxel_size = ProbeReferenceVolume.CellSize(GetVoxelSubdivLevel());
 
             if (voxels_touched_cnt <= 1)
             {
-                Vector3 pos  = brick.position;
-                pos  = pos * (1.0f / voxel_size);
+                Vector3 pos = brick.position;
+                pos = pos * (1.0f / voxel_size);
                 ipos = new Vector3Int(Mathf.FloorToInt(pos.x) * voxel_size, Mathf.FloorToInt(pos.y) * voxel_size, Mathf.FloorToInt(pos.z) * voxel_size);
             }
 
@@ -161,7 +165,7 @@ namespace UnityEngine.Experimental.Rendering
         void ClearVoxel(Vector3Int pos, CellIndexUpdateInfo cellInfo)
         {
             Vector3Int vx_min, vx_max;
-            ClipToIndexSpace(pos, m_VoxelSubdivLevel, out vx_min, out vx_max, cellInfo);
+            ClipToIndexSpace(pos, GetVoxelSubdivLevel(), out vx_min, out vx_max, cellInfo);
             UpdatePhysicalIndex(vx_min, vx_max, -1, cellInfo);
         }
 
@@ -441,7 +445,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             // clip voxel to index space
             Vector3Int vx_min, vx_max;
-            ClipToIndexSpace(voxel, m_VoxelSubdivLevel, out vx_min, out vx_max, cellInfo);
+            ClipToIndexSpace(voxel, GetVoxelSubdivLevel(), out vx_min, out vx_max, cellInfo);
 
             foreach (var rbrick in bricks)
             {

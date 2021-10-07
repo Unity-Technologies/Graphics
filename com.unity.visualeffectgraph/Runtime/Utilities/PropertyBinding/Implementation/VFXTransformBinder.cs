@@ -40,9 +40,9 @@ namespace UnityEngine.VFX.Utility
 
         public override void UpdateBinding(VisualEffect component)
         {
-            component.SetVector3((int)Position, Target.transform.position);
-            component.SetVector3((int)Angles, Target.transform.eulerAngles);
-            component.SetVector3((int)Scale, Target.transform.localScale);
+            component.SetVector3((int)Position, Target.position);
+            component.SetVector3((int)Angles, Target.eulerAngles);
+            component.SetVector3((int)Scale, Target.localScale);
         }
 
         public override string ToString()

@@ -40,7 +40,7 @@ namespace UnityEditor.Graphing.Util
             }
             else
             {
-                messages[nodeId] = new List<ShaderMessage>() {error};
+                messages[nodeId] = new List<ShaderMessage>() { error };
             }
 
             nodeMessagesChanged = true;

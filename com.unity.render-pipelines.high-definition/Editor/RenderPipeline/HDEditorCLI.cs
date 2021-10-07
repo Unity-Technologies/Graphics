@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 action.operation = (CommandLineOperation)Enum.Parse(typeof(CommandLineOperation), args[i]);
                             }
-                            catch (Exception e) { Debug.Log(e.ToString());  }
+                            catch (Exception e) { Debug.Log(e.ToString()); }
                         }
                         break;
                     }

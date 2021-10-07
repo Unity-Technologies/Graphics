@@ -26,15 +26,17 @@ namespace UnityEditor.VFX.Operator
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression matrix = new VFXExpressionExtractMatrixFromMainCamera();
+            VFXExpression orthographic = new VFXExpressionIsMainCameraOrthographic();
             VFXExpression fov = new VFXExpressionExtractFOVFromMainCamera();
             VFXExpression nearPlane = new VFXExpressionExtractNearPlaneFromMainCamera();
             VFXExpression farPlane = new VFXExpressionExtractFarPlaneFromMainCamera();
+            VFXExpression orthographicSize = new VFXExpressionGetOrthographicSizeFromMainCamera();
             VFXExpression aspectRatio = new VFXExpressionExtractAspectRatioFromMainCamera();
             VFXExpression pixelDimensions = new VFXExpressionExtractPixelDimensionsFromMainCamera();
             VFXExpression depthBuffer = new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Depth);
             VFXExpression colorBuffer = new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Color);
 
-            return new[] { matrix, fov, nearPlane, farPlane, aspectRatio, pixelDimensions, depthBuffer, colorBuffer };
+            return new[] { matrix, orthographic, fov, nearPlane, farPlane, orthographicSize, aspectRatio, pixelDimensions, depthBuffer, colorBuffer };
         }
     }
 }

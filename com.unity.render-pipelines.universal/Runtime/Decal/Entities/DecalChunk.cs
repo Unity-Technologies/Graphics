@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
         public abstract void RemoveAtSwapBack(int index);
         public abstract void SetCapacity(int capacity);
 
-        public virtual void Dispose() {}
+        public virtual void Dispose() { }
 
         protected void ResizeNativeArray(ref TransformAccessArray array, DecalProjector[] decalProjectors, int capacity)
         {

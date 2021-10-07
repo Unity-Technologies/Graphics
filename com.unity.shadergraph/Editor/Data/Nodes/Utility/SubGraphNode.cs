@@ -18,6 +18,8 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireBitangent
         , IMayRequireMeshUV
         , IMayRequireScreenPosition
+        , IMayRequireNDCPosition
+        , IMayRequirePixelPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
         , IMayRequirePositionPredisplacement
@@ -190,7 +192,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool canSetPrecision
         {
-            get { return asset?.subGraphGraphPrecision == GraphPrecision.Graph;  }
+            get { return asset?.subGraphGraphPrecision == GraphPrecision.Graph; }
         }
 
         public override void GetInputSlots<T>(MaterialSlot startingSlot, List<T> foundSlots)
@@ -728,6 +730,22 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return asset.requirements.requiresScreenPosition;
+        }
+
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresNDCPosition;
+        }
+
+        public bool RequiresPixelPosition(ShaderStageCapability stageCapability)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresPixelPosition;
         }
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)

@@ -18,12 +18,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [Flags]
         public enum Features
         {
-            None                    = 0,
-            ShowDoubleSidedNormal   = 1 << 0,
-            All                     = ~0,
+            None = 0,
+            ShowDoubleSidedNormal = 1 << 0,
+            All = ~0,
 
-            Unlit                   = Lit ^ ShowDoubleSidedNormal, // hide double sided normal for unlit
-            Lit                     = All,
+            Unlit = Lit ^ ShowDoubleSidedNormal, // hide double sided normal for unlit
+            Lit = All,
         }
 
         class Styles

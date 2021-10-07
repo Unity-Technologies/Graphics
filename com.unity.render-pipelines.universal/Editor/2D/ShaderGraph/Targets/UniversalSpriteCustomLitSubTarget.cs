@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using UnityEditor.ShaderGraph;
-using UnityEditor.UIElements;
+
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, (evt) =>
+            context.AddProperty("Blending Mode", new UnityEngine.UIElements.EnumField(AlphaMode.Alpha) { value = target.alphaMode }, (evt) =>
             {
                 if (Equals(target.alphaMode, evt.newValue))
                     return;
@@ -91,9 +91,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     {
                         { SpriteLitPasses.Lit },
                         { SpriteLitPasses.Normal },
-                        { SpriteLitPasses.Forward },
+                        // Currently neither of these passes (selection/picking) can be last for the game view for
+                        // UI shaders to render correctly. Verify [1352225] before changing this order.
                         { CorePasses._2DSceneSelection(target) },
                         { CorePasses._2DScenePicking(target) },
+                        { SpriteLitPasses.Forward },
                     },
                 };
                 return result;

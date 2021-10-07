@@ -169,6 +169,11 @@ namespace UnityEditor.Rendering
         /// <summary>Reset All content</summary>
         public static readonly GUIContent resetAllButtonLabel = EditorGUIUtility.TrTextContent("Reset All");
 
+        /// <summary>
+        /// Empty space content in case that you want to keep the indentation but have nothing to write
+        /// </summary>
+        public static readonly GUIContent empty = EditorGUIUtility.TrTextContent(" ");
+
         #endregion
 
         static CoreEditorStyles()

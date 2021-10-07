@@ -21,9 +21,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialProperty layerCount = null;
 
-        bool[]          m_WithUV = new bool[kMaxLayerCount];
-        Material[]      m_MaterialLayers = new Material[kMaxLayerCount];
-        AssetImporter   m_MaterialImporter;
+        bool[] m_WithUV = new bool[kMaxLayerCount];
+        Material[] m_MaterialLayers = new Material[kMaxLayerCount];
+        AssetImporter m_MaterialImporter;
 
         int numLayer => (int)layerCount.floatValue;
 

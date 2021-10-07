@@ -63,13 +63,13 @@ namespace UnityEngine.Experimental.Rendering
 
         const int kMaxPoolWidth = 1 << 11; // 2048 texels is a d3d11 limit for tex3d in all dimensions
 
-        int                            m_AllocationSize;
+        int m_AllocationSize;
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
-        DataLocation                   m_Pool;
-        BrickChunkAlloc                m_NextFreeChunk;
-        Stack<BrickChunkAlloc>         m_FreeList;
+        DataLocation m_Pool;
+        BrickChunkAlloc m_NextFreeChunk;
+        Stack<BrickChunkAlloc> m_FreeList;
 
-        ProbeVolumeSHBands             m_SHBands;
+        ProbeVolumeSHBands m_SHBands;
 
         internal ProbeBrickPool(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
         {
@@ -178,7 +178,7 @@ namespace UnityEngine.Experimental.Rendering
                 for (int j = 0; j < kBrickProbeCountPerDim; j++)
                 {
                     int width = Mathf.Min(m_AllocationSize * kBrickProbeCountPerDim, source.width - src.x);
-                    Graphics.CopyTexture(source.TexL0_L1rx  , src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL0_L1rx  , dst.z + j, 0, dst.x, dst.y);
+                    Graphics.CopyTexture(source.TexL0_L1rx, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL0_L1rx, dst.z + j, 0, dst.x, dst.y);
 
                     Graphics.CopyTexture(source.TexL1_G_ry, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_G_ry, dst.z + j, 0, dst.x, dst.y);
                     Graphics.CopyTexture(source.TexL1_B_rz, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_B_rz, dst.z + j, 0, dst.x, dst.y);
@@ -234,13 +234,13 @@ namespace UnityEngine.Experimental.Rendering
             DataLocation loc;
 
             allocatedBytes = 0;
-            loc.TexL0_L1rx   = new Texture3D(width, height, depth, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
+            loc.TexL0_L1rx = new Texture3D(width, height, depth, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
             allocatedBytes += texelCount * 8;
 
-            loc.TexL1_G_ry = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+            loc.TexL1_G_ry = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
             allocatedBytes += texelCount * (compressed ? 1 : 4);
 
-            loc.TexL1_B_rz = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+            loc.TexL1_B_rz = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
             allocatedBytes += texelCount * (compressed ? 1 : 4);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)

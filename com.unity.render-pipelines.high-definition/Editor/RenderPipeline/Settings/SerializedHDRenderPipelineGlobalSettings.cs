@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty DLSSProjectId;
         public SerializedProperty useDLSSCustomProjectId;
 
-        public SerializedProperty apvSceneBounds;
+        public SerializedProperty apvScenesData;
 
         internal ReorderableList uiBeforeTransparentCustomPostProcesses;
         internal ReorderableList uiBeforeTAACustomPostProcesses;
@@ -108,8 +108,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             InitializeCustomPostProcessesLists();
 
-            defaultVolumeProfile  = serializedObject.FindProperty("m_DefaultVolumeProfile");
-            lookDevVolumeProfile  = serializedObject.FindProperty("m_LookDevVolumeProfile");
+            defaultVolumeProfile = serializedObject.FindProperty("m_DefaultVolumeProfile");
+            lookDevVolumeProfile = serializedObject.FindProperty("m_LookDevVolumeProfile");
 
             lightLayerName0 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName0);
             lightLayerName1 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName1);
@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DLSSProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.DLSSProjectId);
             useDLSSCustomProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.useDLSSCustomProjectId);
 
-            apvSceneBounds = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.apvScenesBounds);
+            apvScenesData = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.apvScenesData);
         }
 
         void InitializeCustomPostProcessesLists()

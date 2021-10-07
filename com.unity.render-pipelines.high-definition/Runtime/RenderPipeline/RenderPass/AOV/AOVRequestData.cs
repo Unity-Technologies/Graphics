@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static AOVRequestData NewDefault() => new AOVRequestData
         {
             m_Settings = AOVRequest.NewDefault(),
-            m_RequestedAOVBuffers = new AOVBuffers[] {},
+            m_RequestedAOVBuffers = new AOVBuffers[] { },
             m_Callback = null
         };
 

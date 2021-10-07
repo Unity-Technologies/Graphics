@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
     class PositionAABox : PositionBase
     {
-        public override string name { get { return string.Format(base.name, "AABox");; } }
+        public override string name { get { return string.Format(base.name, "AABox"); ; } }
 
         public class InputProperties
         {

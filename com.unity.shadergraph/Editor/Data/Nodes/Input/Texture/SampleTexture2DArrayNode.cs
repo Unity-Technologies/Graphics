@@ -29,13 +29,14 @@ namespace UnityEditor.ShaderGraph
         const string kSamplerInputName = "Sampler";
         const string kIndexInputName = "Index";
         const string kDefaultSampleMacro = "SAMPLE_TEXTURE2D_ARRAY";
-        const string kSampleMacroNoBias  = "PLATFORM_SAMPLE_TEXTURE2D_ARRAY";
+        const string kSampleMacroNoBias = "PLATFORM_SAMPLE_TEXTURE2D_ARRAY";
 
         public override bool hasPreview { get { return true; } }
 
         public SampleTexture2DArrayNode()
         {
             name = "Sample Texture 2D Array";
+            synonyms = new string[] { "stack", "pile", "tex2darray" };
             UpdateNodeAfterDeserialization();
         }
 
