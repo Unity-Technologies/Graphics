@@ -161,7 +161,7 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEF
                 if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsPointLightActive(lightData, position, normal))
                     list.localIndex[list.localPointCount++] = i;
             }
-            
+
             list.localCount = list.localPointCount;
         }
 
