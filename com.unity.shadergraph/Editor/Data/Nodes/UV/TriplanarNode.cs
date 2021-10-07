@@ -174,7 +174,7 @@ namespace UnityEditor.ShaderGraph
                         , GetVariableNameForNode());
 
                     // transform the normal from input to output space, and normalize
-                    
+
                     outputVariable = $"{outputVariable}.rgb";
                     SpaceTransformUtil.GenerateTransformCodeStatement(normalTransform, outputVariable, outputVariable, sb);
                     break;

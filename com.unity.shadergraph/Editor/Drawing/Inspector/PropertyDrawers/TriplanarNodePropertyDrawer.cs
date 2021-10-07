@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                     setNodesAsDirtyCallback?.Invoke();
                     node.owner.owner.RegisterCompleteObjectUndo("Change normal input space");
-                    node.inputSpace = (CoordinateSpace) evt.newValue;
+                    node.inputSpace = (CoordinateSpace)evt.newValue;
                     updateNodeViewsCallback?.Invoke();
                     node.Dirty(ModificationScope.Graph);
                 });
