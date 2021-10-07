@@ -19,8 +19,10 @@ The version number for this package has increased due to a version update of a r
 
 ### Added
  - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
+ - Added ShaderGraph import warning to old nodes and properties, and ability to dismiss the warning if old behavior is desired.
 
 ### Changed
+ - Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
 
 ### Fixed
  - Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
