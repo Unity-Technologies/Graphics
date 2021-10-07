@@ -3590,16 +3590,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
                     }
 
-                    if (parameters.probeVolumeEnabled)
-                    {
-                        // If probe volume feature is enabled, we toggle this feature on for all tiles.
-                        // This is necessary because all tiles must sample ambient probe fallback.
-                        // It is possible we could save a little bit of work by having 2x feature flags for probe volumes:
-                        // one specifiying which tiles contain probe volumes,
-                        // and another triggered for all tiles to handle fallback.
-                        baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
-                    }
-
                     localLightListCB.g_BaseFeatureFlags = baseFeatureFlags;
 
                     cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
@@ -3662,11 +3652,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!parameters.computeLightVariants)
                     {
                         baseFeatureFlags |= LightDefinitions.s_LightFeatureMaskFlags;
-                    }
-                    if (parameters.probeVolumeEnabled)
-                    {
-                        // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
-                        baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
                     }
 
                     // If we haven't run the light list building, we are missing some basic lighting flags.

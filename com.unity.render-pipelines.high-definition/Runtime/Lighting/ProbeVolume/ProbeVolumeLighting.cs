@@ -436,9 +436,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // As if the feature is enabled in the ShaderConfig, but disabled in the HDRenderPipelineAsset, we need to fallback to ambient probe only.
             SphericalHarmonicsL2 ambientProbeFallbackSH = m_SkyManager.GetAmbientProbe(hdCamera);
             SphericalHarmonicMath.PackCoefficients(s_AmbientProbeFallbackPackedCoeffs, ambientProbeFallbackSH);
-            for (int i = 0; i < 7; ++i)
-                for (int j = 0; j < 4; ++j)
-                    cb._ProbeVolumeAmbientProbeFallbackPackedCoeffs[i * 4 + j] = s_AmbientProbeFallbackPackedCoeffs[i][j];
         }
 
         unsafe void UpdateShaderVariablesGlobalProbeVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
@@ -526,9 +523,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SphericalHarmonicsL2 ambientProbeFallbackSH = m_SkyManager.GetAmbientProbe(hdCamera);
             SphericalHarmonicMath.PackCoefficients(s_AmbientProbeFallbackPackedCoeffs, ambientProbeFallbackSH);
-            for (int i = 0; i < 7; ++i)
-                for (int j = 0; j < 4; ++j)
-                    cb._ProbeVolumeAmbientProbeFallbackPackedCoeffs[i * 4 + j] = s_AmbientProbeFallbackPackedCoeffs[i][j];
         }
 
         void PushProbeVolumesGlobalParams(HDCamera hdCamera, CommandBuffer immediateCmd, RenderGraph renderGraph, ref ProbeVolumesRenderGraphResources rgResources)
