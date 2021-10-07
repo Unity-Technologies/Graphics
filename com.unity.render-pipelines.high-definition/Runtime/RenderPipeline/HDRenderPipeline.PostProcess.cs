@@ -3983,15 +3983,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 tonemappingComponent.mode.value == TonemappingMode.Custom ||
                 tonemappingComponent.mode.value == TonemappingMode.External)
             {
-                bool luminanceOnly = tonemappingComponent.tonemapOnlyLuminance.value;
-                hueShift = luminanceOnly ? tonemappingComponent.hueShiftAmount.value : 0.0f;
+                hueShift = tonemappingComponent.hueShiftAmount.value;
+
+                bool luminanceOnly = hueShift == 0;
                 if (tonemappingComponent.neutralHDRRangeReductionMode.value == NeutralRangeReductionMode.BT2390)
                 {
-                    eetfMode = luminanceOnly ? (int)HDRRangeReduction.BT2390LumaOnly : (int)HDRRangeReduction.BT2390;
+                    eetfMode = (int)HDRRangeReduction.BT2390;
                 }
                 if (tonemappingComponent.neutralHDRRangeReductionMode.value == NeutralRangeReductionMode.Reinhard)
                 {
-                    eetfMode = luminanceOnly ? (int)HDRRangeReduction.ReinhardLumaOnly : (int)HDRRangeReduction.Reinhard;
+                    eetfMode = (int)HDRRangeReduction.Reinhard;
                 }
             }
             if (tonemappingComponent.mode.value == TonemappingMode.ACES)

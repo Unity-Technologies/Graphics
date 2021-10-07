@@ -424,53 +424,138 @@ float3 PerformRangeReduction(float3 input, float minNits, float maxNits)
     return RotateICtCpToOutputSpace(ICtCp); // This moves back to linear too!
 }
 
+// TODO: This is very ad-hoc and eyeballed on a limited set. Would be nice to find a standard.
+float3 DesaturateReducedICtCp(float3 ICtCp, float maxNits)
+{
+    float saturationAmount =  pow(smoothstep(1.0f, 0.4f, ICtCp.x), 0.9f);
+    ICtCp.yz *= saturationAmount;
+    return ICtCp;
+}
+
+float LumaRangeReduction(float input, float minNits, float maxNits, int mode)
+{
+    if (mode == HDRRANGEREDUCTION_REINHARD)
+    {
+        return ReinhardTonemap(input, maxNits);
+    }
+    else if (mode == HDRRANGEREDUCTION_BT2390)
+    {
+        return BT2390EETF(input, minNits, maxNits);
+    }
+
+    return input;
+}
+
+float3 HuePreservingRangeReduction(float3 input, float minNits, float maxNits, int mode)
+{
+    float3 ICtCp = RotateOutputSpaceToICtCp(input);
+
+    float linearLuma = PQToLinear(ICtCp.x, MAX_PQ_VALUE);
+    linearLuma = LumaRangeReduction(linearLuma, minNits, maxNits, mode);
+    ICtCp.x = LinearToPQ(linearLuma);
+    ICtCp = DesaturateReducedICtCp(ICtCp, maxNits);
+
+    return RotateICtCpToOutputSpace(ICtCp);
+}
+
+float3 HueShiftingRangeReduction(float3 input, float minNits, float maxNits, int mode)
+{
+    float3 hueShiftedResult = input;
+    if (mode == HDRRANGEREDUCTION_REINHARD)
+    {
+        hueShiftedResult.x = ReinhardTonemap(input.x, maxNits);
+        hueShiftedResult.y = ReinhardTonemap(input.y, maxNits);
+        hueShiftedResult.z = ReinhardTonemap(input.z, maxNits);
+    }
+    else if(mode == HDRRANGEREDUCTION_BT2390)
+    {
+        hueShiftedResult.x = BT2390EETF(input.x, minNits, maxNits);
+        hueShiftedResult.y = BT2390EETF(input.y, minNits, maxNits);
+        hueShiftedResult.z = BT2390EETF(input.z, minNits, maxNits);
+    }
+    return hueShiftedResult;
+}
+
+// Ref "High Dynamic Rangecolor grading and displayin Frostbite" [Fry 2017]
+float3 FryHuePreserving(float3 input, float minNits, float maxNits, float hueShift, int mode)
+{
+    float3 ictcp = RotateOutputSpaceToICtCp(input);
+
+    // Hue-preserving range compression requires desaturation in order to achieve a natural look. We adaptively desaturate the input based on its luminance.
+    float saturationAmount = pow(smoothstep(1.0, 0.3, ictcp.x), 1.3);
+    float3 col = RotateICtCpToOutputSpace(ictcp * float3(1, saturationAmount.xx));
+
+    // Only compress luminance starting at a certain point. Dimmer inputs are passed through without modification.
+    float linearSegmentEnd = 0.25f;
+
+    // Hue-preserving mapping
+    float maxCol = max(col.x, max(col.y, col.z));
+    float mappedMax = maxCol;
+    if (maxCol > linearSegmentEnd)
+    {
+        mappedMax = LumaRangeReduction(maxCol, minNits, maxNits, mode);
+    }
+
+    float3 compressedHuePreserving = col * mappedMax / maxCol;
+
+    // Non-hue preserving mapping
+    float3 perChannelCompressed = 0;
+    perChannelCompressed.x = col.x > linearSegmentEnd ? LumaRangeReduction(col.x, minNits, maxNits, mode) : col.x;
+    perChannelCompressed.y = col.y > linearSegmentEnd ? LumaRangeReduction(col.y, minNits, maxNits, mode) : col.y;
+    perChannelCompressed.z = col.z > linearSegmentEnd ? LumaRangeReduction(col.z, minNits, maxNits, mode) : col.z;
+
+    // Combine hue-preserving and non-hue-preserving colors. Absolute hue preservation looks unnatural, as bright colors *appear* to have been hue shifted.
+    // Actually doing some amount of hue shifting looks more pleasing
+    col = lerp(perChannelCompressed, compressedHuePreserving, 1-hueShift);
+
+    float3 ictcpMapped = RotateOutputSpaceToICtCp(col);
+
+    // Smoothly ramp off saturation as brightness increases, but keep some even for very bright input
+    float postCompressionSaturationBoost = 0.3 * smoothstep(1.0, 0.5, ictcp.x);
+
+    // Re-introduce some hue from the pre-compression color. Something similar could be accomplished by delaying the luma-dependent desaturation before range compression.
+    // Doing it here however does a better job of preserving perceptual luminance of highly saturated colors. Because in the hue-preserving path we only range-compress the max channel,
+    // saturated colors lose luminance. By desaturating them more aggressively first, compressing, and then re-adding some saturation, we can preserve their brightness to a greater extent.
+    ictcpMapped.yz = lerp(ictcpMapped.yz, ictcp.yz * ictcpMapped.x / max(1e-3, ictcp.x), postCompressionSaturationBoost);
+
+    col = RotateICtCpToOutputSpace(ictcpMapped);
+
+    return col;
+
+}
+
 float3 PerformRangeReduction(float3 input, float minNits, float maxNits, int mode, float hueShift)
 {
     float3 outputValue = input;
+    bool reduceLuma = hueShift < 1.0f;
+    bool needHueShiftVersion = hueShift > 0.0f;
+
     if (mode == HDRRANGEREDUCTION_NONE)
     {
         outputValue = input;
     }
-    else if (mode == HDRRANGEREDUCTION_REINHARD_LUMA_ONLY || mode == HDRRANGEREDUCTION_BT2390LUMA_ONLY)
+    else
     {
-        float3 ICtCp = RotateOutputSpaceToICtCp(input);
-        float3 hueShiftedResult = 0;
+        float3 huePreserving = reduceLuma ? HuePreservingRangeReduction(input, minNits, maxNits, mode) : 0;
+        float3 hueShifted = needHueShiftVersion ? HueShiftingRangeReduction(input, minNits, maxNits, mode) : 0;
 
-        float linearLuma = PQToLinear(ICtCp.x, MAX_PQ_VALUE);
-        if (mode == HDRRANGEREDUCTION_REINHARD_LUMA_ONLY)
+        if (reduceLuma && !needHueShiftVersion)
         {
-            linearLuma = ReinhardTonemap(linearLuma, maxNits);
-            hueShiftedResult.x = ReinhardTonemap(input.x, maxNits);
-            hueShiftedResult.y = ReinhardTonemap(input.y, maxNits);
-            hueShiftedResult.z = ReinhardTonemap(input.z, maxNits);
+            outputValue = huePreserving;
         }
-        else if (mode == HDRRANGEREDUCTION_BT2390LUMA_ONLY)
+        else if (!reduceLuma && needHueShiftVersion)
         {
-            linearLuma = BT2390EETF(linearLuma, minNits, maxNits);
-            hueShiftedResult.x = BT2390EETF(input.x, minNits, maxNits);
-            hueShiftedResult.y = BT2390EETF(input.y, minNits, maxNits);
-            hueShiftedResult.z = BT2390EETF(input.z, minNits, maxNits);
+            outputValue = hueShifted;
         }
+        else
+        {
+            // We need to combine the two cases
+            outputValue = lerp(huePreserving, hueShifted, hueShift);
+        }
+    }
 
-        ICtCp.x = LinearToPQ(linearLuma);
-
-        outputValue = lerp(RotateICtCpToOutputSpace(ICtCp), hueShiftedResult, hueShift);
-    }
-    else if (mode == HDRRANGEREDUCTION_REINHARD)
-    {
-        outputValue.x = ReinhardTonemap(input.x, maxNits);
-        outputValue.y = ReinhardTonemap(input.y, maxNits);
-        outputValue.z = ReinhardTonemap(input.z, maxNits);
-    }
-    else if (mode == HDRRANGEREDUCTION_BT2390)
-    {
-        outputValue.x = BT2390EETF(input.x, minNits, maxNits);
-        outputValue.y = BT2390EETF(input.y, minNits, maxNits);
-        outputValue.z = BT2390EETF(input.z, minNits, maxNits);
-    }
     return outputValue;
 }
-
 
 // --------------------------------------------------------------------------------------------
 

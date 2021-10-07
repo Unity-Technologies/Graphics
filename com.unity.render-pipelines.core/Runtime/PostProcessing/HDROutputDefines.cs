@@ -13,14 +13,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         None,
         /// <summary>
-        /// Reinhard tonemapping only on luminance.
-        /// </summary>
-        ReinhardLumaOnly,
-        /// <summary>
-        /// BT2390 Hermite spline EETF range reduction only on luminance.
-        /// </summary>
-        BT2390LumaOnly,
-        /// <summary>
         /// Reinhard tonemapping.
         /// </summary>
         Reinhard,

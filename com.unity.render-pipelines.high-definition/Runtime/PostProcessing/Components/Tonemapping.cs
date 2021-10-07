@@ -190,15 +190,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDRACESPresetParameter acesPreset = new HDRACESPresetParameter(HDRACESPreset.ACES1000Nits);
 
         /// <summary>
-        /// Whether to tonemap only the luminance when HDR Output is enabled, while keeping chroma intact.
+        /// How much hue we want to preserve. Values closer to 0 try to preserve hue, while as values get closer to 1 hue shifts are reintroduced.
         /// </summary>
-        [Tooltip("Whether to tonemap only the luminance when HDR Output is enabled, while keeping chroma intact.")]
-        public BoolParameter tonemapOnlyLuminance = new BoolParameter(true);
-
-        /// <summary>
-        /// How much hue shift we want to preserve, tonemapping luma only will preserve hue, but if content relies on hue shift this slider helps reintroducing some.
-        /// </summary>
-        [Tooltip("How much hue shift we want to preserve, tonemapping luma only will preserve hue, but if content relies on hue shift this slider helps reintroducing some.")]
+        [Tooltip("How much hue we want to preserve. Values closer to 0 try to preserve hue, while as values get closer to 1 hue shifts are reintroduced.")]
         public ClampedFloatParameter hueShiftAmount = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
 
         /// <summary>

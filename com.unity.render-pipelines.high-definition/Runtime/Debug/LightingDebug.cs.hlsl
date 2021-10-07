@@ -74,6 +74,14 @@
 #define EXPOSUREDEBUGMODE_METERING_WEIGHTED (4)
 
 //
+// UnityEngine.Rendering.HighDefinition.HDRDebugMode:  static fields
+//
+#define HDRDEBUGMODE_NONE (0)
+#define HDRDEBUGMODE_GAMUT_VIEW (1)
+#define HDRDEBUGMODE_GAMUT_CLIP (2)
+#define HDRDEBUGMODE_VALUES_ABOVE_PAPER_WHITE (3)
+
+//
 // UnityEngine.Rendering.HighDefinition.ProbeVolumeDebugMode:  static fields
 //
 #define PROBEVOLUMEDEBUGMODE_NONE (0)
