@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
  - Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
  - Fixed unhandled exception when loading a subgraph with duplicate slots [1366200] (https://issuetracker.unity3d.com/product/unity/issues/guid/1366200/)
+ - Fixed Triplanar ShaderGraph node to handle arbitrary input and output coordinate spaces [1346477] (https://issuetracker.unity3d.com/issues/shader-graph-rotating-gameobject-get-material-stretched-when-using-triplanar-node)
 
 ## [13.0.0] - 2021-09-01
 
