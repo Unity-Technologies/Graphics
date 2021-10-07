@@ -390,6 +390,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", probeVolume.propagationBuffers.hitRadianceCache);
             cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.propagationBuffers.hitRadianceCache.count);
 
+            CoreUtils.SetKeyword(shader, "COMPUTE_INFINITE_BOUNCE", giSettings.infiniteBounce.value > 0);
+
             int numHits = probeVolume.propagationBuffers.neighborHits.count;
             int dispatchX = (numHits + 63) / 64;
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
