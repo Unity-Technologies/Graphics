@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Advanced control to bias the distance from the normal of the hit surface to perform direct lighting evaluation on")]
         public ClampedFloatParameter bias = new ClampedFloatParameter(0.05f, 0.0f, 0.33f);
         [Tooltip("Advanced control for how probes at volume boundaries propagate light from neighboring Probe Volumes.\n\nDisabled: No light is propagated across neighbors.\n\nSample Neighbors Direction Only: Samples all probe volumes once per probe and evaluates light from the resulting probe data for each axis.\n\nSample Neighbors Position and Direction: Samples all probe volumes for all propagation axes at each axes neighboring probe position.\nPotentially more accurate than Sample Neighbors Direction Only, but significantly more expensive.")]
-        public DynamicGINeighboringVolumePropagationModeParameter neighboringVolumePropagationMode = new DynamicGINeighboringVolumePropagationModeParameter(DynamicGINeighboringVolumePropagationMode.SampleNeighborsPositionAndDirection);
+        public DynamicGINeighboringVolumePropagationModeParameter neighborVolumePropagationMode = new DynamicGINeighboringVolumePropagationModeParameter(DynamicGINeighboringVolumePropagationMode.SampleNeighborsDirectionOnly);
 
         [Tooltip("Debug Contribution control for mixing in baked indirect lighting")]
         public ClampedFloatParameter bakeAmount = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);

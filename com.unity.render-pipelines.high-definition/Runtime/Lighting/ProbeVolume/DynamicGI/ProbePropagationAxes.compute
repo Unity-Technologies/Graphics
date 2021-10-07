@@ -21,6 +21,7 @@
 //#pragma enable_d3d11_debug_symbols
 
 float4 _RayAxis[NEIGHBOR_AXIS_COUNT];
+float4 _SortedNeighborAxis[NEIGHBOR_AXIS_COUNT * NEIGHBOR_AXIS_COUNT];
 
 StructuredBuffer<NeighborAxis> _ProbeVolumeNeighbors;
 int _ProbeVolumeNeighborsCount;
@@ -96,7 +97,7 @@ float3 ProbeCoordinatesToWorldPosition(float3 probeCoordinates, float3x3 probeVo
 #elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
         ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL2, coefficients);
 #endif
-    
+
     for (int i = 0; i < (int)_ProbeVolumeCount; ++i)
     {
         ProbeVolumeEngineData probeVolumeData = _ProbeVolumeDatas[i];
@@ -168,7 +169,7 @@ SHIncomingIrradiance ProbeVolumeEvaluateIncomingIrradiance(float3 positionWS, ui
     shIncomingIrradiance = SHIncomingIrradianceCompute(bakedOutgoingRadiosity);
 #endif
 
-    return shIncomingIrradiance;   
+    return shIncomingIrradiance;
 }
 
 float3 ProbeVolumeEvaluateIncomingRadiance(SHIncomingIrradiance shIncomingIrradiance, float3 directionWS)
@@ -188,7 +189,7 @@ float3 ProbeVolumeEvaluateIncomingRadiance(SHIncomingIrradiance shIncomingIrradi
 
 bool IsBoundaryProbe(uint3 probeCoordinate, uint3 resolution)
 {
-    return (probeCoordinate.x == 0) 
+    return (probeCoordinate.x == 0)
         || (probeCoordinate.y == 0)
         || (probeCoordinate.z == 0)
         || ((probeCoordinate.x + 1) == resolution.x)
@@ -201,7 +202,7 @@ float3 ComputeNeighborBoundaryEdgeWorldPosition(float3 probeWorldPosition, int a
     float3 neighborDirection = _RayAxis[axisIndex].xyz;
     float neighborAxisLength = _RayAxis[axisIndex].w;
     neighborWorldDirection = mul(neighborDirection, probeVolumeLtw);
-    
+
     return probeWorldPosition + neighborWorldDirection * neighborAxisLength * _ProbeVolumeDGIMaxNeighborDistance;
 }
 
@@ -240,32 +241,36 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         float3 incomingRadiance = 0;
         float weight = 0.0f;
         float probeValidity = 0;
-        float3 axis = _RayAxis[axisIndex].xyz;
+        int neighborAxisIndexOffset = axisIndex * NEIGHBOR_AXIS_COUNT;
 
-        for(int i=0; i < NEIGHBOR_AXIS_COUNT; ++i)
+        // use NEIGHBOR_AXIS_COUNT for all of them
+        // use 17 for only the very small values trimmed (very subtle)
+        // use 9 for some quality loss (noticeable)
+        const int relevantAxisLookups = 9;
+
+        for(int l=0; l < relevantAxisLookups; ++l)
         {
+            float4 neighborAxisLookup = _SortedNeighborAxis[neighborAxisIndexOffset + l];
+            int i = (int)neighborAxisLookup.y;
+            float sgWeight = neighborAxisLookup.x;
+
             float3 neighborDirection = _RayAxis[i].xyz;
             float3 neighborWorldDirection = neighborDirection;
+            neighborWorldDirection = mul(neighborDirection, probeVolumeLtw);
+
             uint sampleAxis = probeIndex * NEIGHBOR_AXIS_COUNT + i;
             NeighborAxis neighbor = _ProbeVolumeNeighbors[sampleAxis];
-
-            SphericalGaussian sg;
-            sg.amplitude = 1;
-            sg.sharpness = _PropagationSharpness;
-            sg.mean = neighborDirection;
-
-            float sgWeight = SGEvaluateFromDirection(sg, axis);
 
             uint hitIndex = 0;
             float probeAxisValidity = 0;
             UnpackIndicesAndValidityOnly(neighbor.hitIndexValidity, hitIndex, probeAxisValidity);
             probeValidity += probeAxisValidity;
 
+            float3 incomingNeighborRadiance = 0;
             if(hitIndex < (uint)_HitRadianceCacheAxisCount)
             {
                 // Hit
-                weight += sgWeight;
-                incomingRadiance += _HitRadianceCacheAxis[hitIndex] * sgWeight;
+                incomingNeighborRadiance = _HitRadianceCacheAxis[hitIndex];
             }
             else
             {
@@ -280,8 +285,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                     uint neighborProbeIndex = ProbeCoordinateToIndex(neighborProbeCoordinate);
                     float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborProbeIndex, axisIndex);
 
-                    weight += sgWeight;
-                    incomingRadiance += prevAxisRadiance * sgWeight;
+                    incomingNeighborRadiance = prevAxisRadiance;
                 }
 #if defined(SAMPLE_NEIGHBORS_DIRECTION_ONLY) || defined(SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION)
                 else
@@ -291,15 +295,17 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                     float3 boundaryEdgePositionWS = ComputeNeighborBoundaryEdgeWorldPosition(probePositionWS, i, probeVolumeLtw, neighborWorldDirection);
                     SHIncomingIrradiance shIncomingIrradiance = ProbeVolumeEvaluateIncomingIrradiance(boundaryEdgePositionWS, _ProbeVolumeDGILightLayers);
 #endif
-                    weight += sgWeight;
-                    incomingRadiance += ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, neighborWorldDirection) * INV_PI * sgWeight;
+                    incomingNeighborRadiance = ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, neighborWorldDirection) * INV_PI;
                 }
 #endif
             }
+
+            weight += sgWeight;
+            incomingRadiance += incomingNeighborRadiance * sgWeight;
         }
 
         incomingRadiance *= rcp(max(weight, 0.00001));
-        probeValidity *= 1.0 / NEIGHBOR_AXIS_COUNT;
+        probeValidity *= 1.0 / relevantAxisLookups;
 
         lightingAndWeight.rgb += incomingRadiance * _PropagationContribution;
         WritePropagationOutput(probeIndex, axisIndex, lightingAndWeight, probeValidity);
