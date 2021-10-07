@@ -119,7 +119,7 @@ public class SimpleBRGExample : MonoBehaviour
             new Vector4(0, 0, 1, 1),
         };
 
-        // Instance data is placed into the buffer like this:
+        // In this simple example, the instance data is placed into the buffer like this:
         // Offset | Description
         //      0 | 64 bytes of zeroes, so loads from address 0 return zeroes
         //     64 | 32 uninitialized bytes to make working with SetData easier, otherwise unnecessary
@@ -127,7 +127,7 @@ public class SimpleBRGExample : MonoBehaviour
         //    240 | unity_WorldToObject, three packed float3x4 matrices
         //    384 | _BaseColor, three float4s
 
-        // Compute start addresses for the different instanced properties. unity_objectToWorld starts
+        // Compute start addresses for the different instanced properties. unity_ObjectToWorld starts
         // at address 96 instead of 64, because the computeBufferStartIndex parameter of SetData
         // is expressed as source array elements, so it is easier to work in multiples of sizeof(PackedMatrix).
         uint byteAddressObjectToWorld = kSizeOfPackedMatrix * 2;
@@ -226,7 +226,7 @@ public class SimpleBRGExample : MonoBehaviour
         drawCommands->drawRanges[0].filterSettings = new BatchFilterSettings { renderingLayerMask = 0xffffffff, };
 
         // Finally, write the actual visible instance indices to their array. In a more complicated
-        // example, this output would depend on what we determined to be visible, but in this example
+        // implementation, this output would depend on what we determined to be visible, but in this example
         // we will just assume that everything is visible.
         for (int i = 0; i < kNumInstances; ++i)
             drawCommands->visibleInstances[i] = i;
