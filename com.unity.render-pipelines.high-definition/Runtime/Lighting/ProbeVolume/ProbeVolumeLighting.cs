@@ -1133,7 +1133,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && m_SupportDynamicGI)
             {
                 var dynamicGISettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
-                offscreenUploadDistance = (dynamicGISettings.neighboringVolumePropagationMode.value == ProbeDynamicGI.DynamicGINeighboringVolumePropagationMode.Disabled)
+                offscreenUploadDistance = (dynamicGISettings.neighborVolumePropagationMode.value == ProbeDynamicGI.DynamicGINeighboringVolumePropagationMode.Disabled)
                     ? 0
                     : Mathf.Min(dynamicGISettings.rangeInFrontOfCamera.value, dynamicGISettings.rangeBehindCamera.value);
             }
