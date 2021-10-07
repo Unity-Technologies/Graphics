@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.0] - 2021-09-24
 
+### Added
+ - Adding ability to automatically cast Bools to Vector types in ShaderGraph [1359160]
+
 ### Fixed
  - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
  - Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
