@@ -38,8 +38,8 @@ public struct DrawKey : IEquatable<DrawKey>
     {
         return
             meshID == other.meshID &&
-            submeshIndex == other.submeshIndex && 
-            material == other.material && 
+            submeshIndex == other.submeshIndex &&
+            material == other.material &&
             shadows == other.shadows;
     }
 }
@@ -141,14 +141,14 @@ public unsafe class RenderBRG : MonoBehaviour
     [BurstCompile]
     private struct CullingJob : IJobParallelFor
     {
-        [DeallocateOnJobCompletion][ReadOnly] 
+        [DeallocateOnJobCompletion][ReadOnly]
         public NativeArray<FrustumPlanes.PlanePacket4> planes;
 
         [ReadOnly]
         public NativeArray<DrawRenderer> renderers;
 
         [WriteOnly]
-        public NativeArray<ulong> rendererVisibility;        
+        public NativeArray<ulong> rendererVisibility;
 
         public void Execute(int index)
         {
@@ -158,7 +158,7 @@ public unsafe class RenderBRG : MonoBehaviour
 
             ulong visibleBits = 0;
             for (int i = start; i < end; i++)
-            { 
+            {
                 ulong bit = FrustumPlanes.Intersect2NoPartial(planes, renderers[i].bounds) == FrustumPlanes.IntersectResult.In ? 1ul : 0ul;
                 visibleBits |= bit << (i-start);
             }
@@ -212,7 +212,7 @@ public unsafe class RenderBRG : MonoBehaviour
                 bool visible = (rendererVisibility[rendererIndex / 64] & (1ul << (rendererIndex % 64))) != 0;
 
                 if (visible)
-                { 
+                {
                     draws.visibleInstances[outIndex] = instanceIndices[i];
                     outIndex++;
                 }
@@ -224,7 +224,7 @@ public unsafe class RenderBRG : MonoBehaviour
                 {
                     var visibleCount = outIndex - batchStartIndex;
                     if (visibleCount > 0)
-                    { 
+                    {
                         draws.drawCommands[outBatch] = new BatchDrawCommand
                         {
                             visibleOffset = (uint)batchStartIndex,
@@ -250,7 +250,7 @@ public unsafe class RenderBRG : MonoBehaviour
                         var visibleDrawCount = outBatch - rangeStartIndex;
                         if (visibleDrawCount > 0)
                         {
-                            draws.batchDrawRanges[outRange] = new BatchDrawRange
+                            draws.drawRanges[outRange] = new BatchDrawRange
                             {
                                 drawCommandsBegin = (uint)rangeStartIndex,
                                 drawCommandsCount = (uint)visibleDrawCount,
@@ -277,7 +277,7 @@ public unsafe class RenderBRG : MonoBehaviour
 
             draws.drawCommandCount = outBatch;
             draws.visibleInstanceCount = outIndex;
-            draws.batchDrawRangeCount = outRange;
+            draws.drawRangeCount = outRange;
             drawCommands[0] = draws;
         }
     }
@@ -292,12 +292,12 @@ public unsafe class RenderBRG : MonoBehaviour
         var planes = FrustumPlanes.BuildSOAPlanePackets(cullingContext.cullingPlanes, Allocator.TempJob);
 
         BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
-        drawCommands.batchDrawRanges = Malloc<BatchDrawRange>(m_drawRanges.Length);
+        drawCommands.drawRanges = Malloc<BatchDrawRange>(m_drawRanges.Length);
         drawCommands.drawCommands = Malloc<BatchDrawCommand>(m_drawBatches.Length);
         drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
 
         // Zero init: Culling job sets the values!
-        drawCommands.batchDrawRangeCount = 0;
+        drawCommands.drawRangeCount = 0;
         drawCommands.drawCommandCount = 0;
         drawCommands.visibleInstanceCount = 0;
 
@@ -310,10 +310,10 @@ public unsafe class RenderBRG : MonoBehaviour
         var rendererVisibility = new NativeArray<ulong>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
         var cullingJob = new CullingJob
-        {            
-            planes = planes, 
+        {
+            planes = planes,
             renderers = m_renderers,
-            rendererVisibility = rendererVisibility 
+            rendererVisibility = rendererVisibility
         };
 
         var drawOutputJob = new DrawCommandOutputJob
@@ -352,7 +352,7 @@ public unsafe class RenderBRG : MonoBehaviour
         // Fill the GPU-persistent scene data ComputeBuffer
         int bigDataBufferVector4Count = 4 /*zero*/ + 1 /*probes*/ + 1 /*speccube*/ + 7 /*SH*/ + m_renderers.Length * 3 * 2 /*per renderer 4x3 matrix+inverse*/;
         var vectorBuffer = new NativeArray<Vector4>(bigDataBufferVector4Count, Allocator.Temp);
-        
+
         // First 4xfloat4 of ComputeBuffer needed to be zero filled for default property fall back!
         vectorBuffer[0] = new Vector4(0, 0, 0, 0);
         vectorBuffer[1] = new Vector4(0, 0, 0, 0);
@@ -429,7 +429,7 @@ public unsafe class RenderBRG : MonoBehaviour
             var shadows = renderer.shadowCastingMode;
 
             for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
-            { 
+            {
                 var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
 
                 var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows };
@@ -455,10 +455,10 @@ public unsafe class RenderBRG : MonoBehaviour
 
                     // Different renderer settings? -> new range
                     var rangeKey = new RangeKey { shadows = shadows };
-                    var drawRange = new DrawRange 
-                    { 
-                        key = rangeKey, 
-                        drawCount = 0,  
+                    var drawRange = new DrawRange
+                    {
+                        key = rangeKey,
+                        drawCount = 0,
                         drawOffset = 0
                     };
 
@@ -542,7 +542,7 @@ public unsafe class RenderBRG : MonoBehaviour
         }
         m_internalDrawIndex.Dispose();
 
-        // Bounds ("infinite") 
+        // Bounds ("infinite")
         UnityEngine.Bounds bounds = new Bounds(new Vector3(0, 0, 0), new Vector3(1048576.0f, 1048576.0f, 1048576.0f));
         m_BatchRendererGroup.SetGlobalBounds(bounds);
 
@@ -593,7 +593,7 @@ public unsafe class RenderBRG : MonoBehaviour
     private void OnDestroy()
     {
         if (m_initialized)
-        { 
+        {
             // NOTE: Don't need to remove batch or unregister BatchRendererGroup resources. BRG.Dispose takes care of that.
             m_BatchRendererGroup.Dispose();
             m_GPUPersistentInstanceData.Dispose();

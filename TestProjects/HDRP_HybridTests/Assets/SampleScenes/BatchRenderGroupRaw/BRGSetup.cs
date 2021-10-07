@@ -60,9 +60,9 @@ public unsafe class BRGSetup : MonoBehaviour
 
         BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
 
-        drawCommands.batchDrawRangeCount = 1;
-        drawCommands.batchDrawRanges = Malloc<BatchDrawRange>(1);
-        drawCommands.batchDrawRanges[0] = new BatchDrawRange
+        drawCommands.drawRangeCount = 1;
+        drawCommands.drawRanges = Malloc<BatchDrawRange>(1);
+        drawCommands.drawRanges[0] = new BatchDrawRange
         {
             drawCommandsBegin = 0,
             drawCommandsCount = 1,
