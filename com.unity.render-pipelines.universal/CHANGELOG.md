@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Unlit and ParticlesUnlit shaders did not have HDR color selection for albedo [case 1283767](https://issuetracker.unity3d.com/issues/built-in-unlit-particle-shader-has-hdr-color-selection-for-albedo-urp-unlit-particles-do-not)
 - Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
 - Fixed ShadowCaster now requires varying normalWS to include changed normals from vertex shader in shader graph.
+- Fixed typo in numIterationsEnclosingSphere api name
 
 ## [13.0.0] - 2021-09-01
 ### Added
