@@ -11,12 +11,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     class TriplanarNodePropertyDrawer : AbstractMaterialNodePropertyDrawer
     {
         TriplanarNode node;
-        PropertyRow normalInputPropRow;
+        PropertyRow inputPropRow;
         PropertyRow normalOutputPropRow;
 
         void UpdateVisibility()
         {
-            normalInputPropRow.visible = (node.textureType == TextureType.Normal);
             normalOutputPropRow.visible = (node.textureType == TextureType.Normal);
         }
 
@@ -30,23 +29,23 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             node = nodeBase as TriplanarNode;
 
-            var previewField = new EnumField(node.normalInputSpace);
-            normalInputPropRow = new PropertyRow(new Label("Normal Input Space"));
-            normalInputPropRow.Add(previewField, (field) =>
+            var previewField = new EnumField(node.inputSpace);
+            inputPropRow = new PropertyRow(new Label("Input Space"));
+            inputPropRow.Add(previewField, (field) =>
             {
                 field.RegisterValueChangedCallback(evt =>
                 {
-                    if (evt.newValue.Equals(node.normalInputSpace))
+                    if (evt.newValue.Equals(node.inputSpace))
                         return;
 
                     setNodesAsDirtyCallback?.Invoke();
                     node.owner.owner.RegisterCompleteObjectUndo("Change normal input space");
-                    node.normalInputSpace = (CoordinateSpace) evt.newValue;
+                    node.inputSpace = (CoordinateSpace) evt.newValue;
                     updateNodeViewsCallback?.Invoke();
                     node.Dirty(ModificationScope.Graph);
                 });
             });
-            parentElement.Add(normalInputPropRow);
+            parentElement.Add(inputPropRow);
 
             previewField = new EnumField(node.normalOutputSpace);
             normalOutputPropRow = new PropertyRow(new Label("Normal Output Space"));
@@ -68,7 +67,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             UpdateVisibility();
 
-            // TODO: how is this unregistered???
             node.RegisterCallback(OnNodeModified);
         }
 

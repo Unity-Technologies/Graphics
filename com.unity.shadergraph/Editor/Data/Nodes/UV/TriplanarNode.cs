@@ -24,6 +24,9 @@ namespace UnityEditor.ShaderGraph
         const string kTileInputName = "Tile";
         const string kBlendInputName = "Blend";
 
+        PositionMaterialSlot positionSlot => FindInputSlot<PositionMaterialSlot>(PositionInputId);
+        NormalMaterialSlot normalSlot => FindInputSlot<NormalMaterialSlot>(NormalInputId);
+
         public override bool hasPreview { get { return true; } }
 
         public TriplanarNode()
@@ -54,18 +57,20 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private CoordinateSpace m_NormalInputSpace = CoordinateSpace.World;
+        private CoordinateSpace m_InputSpace = CoordinateSpace.AbsoluteWorld;
 
-        public CoordinateSpace normalInputSpace
+        public CoordinateSpace inputSpace
         {
-            get { return m_NormalInputSpace; }
+            get { return m_InputSpace; }
             set
             {
-                if (m_NormalInputSpace == value)
+                if (m_InputSpace == value)
                     return;
 
-                m_NormalInputSpace = value;
-                Dirty(ModificationScope.Graph);
+                m_InputSpace = value;
+
+                Setup();
+                Dirty(ModificationScope.Topological); // needed to update slot views
 
                 ValidateNode();
             }
@@ -89,13 +94,16 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        internal SpaceTransform normalTransform =>
+            new SpaceTransform(inputSpace, normalOutputSpace, ConversionType.Normal, normalize: true);
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
             AddSlot(new Texture2DInputMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName));
             AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input));
-            AddSlot(new PositionMaterialSlot(PositionInputId, kPositionInputName, kPositionInputName, CoordinateSpace.AbsoluteWorld));
-            AddSlot(new NormalMaterialSlot(NormalInputId, kNormalInputName, kNormalInputName, CoordinateSpace.World));
+            AddSlot(new PositionMaterialSlot(PositionInputId, kPositionInputName, kPositionInputName, inputSpace));
+            AddSlot(new NormalMaterialSlot(NormalInputId, kNormalInputName, kNormalInputName, inputSpace));
             AddSlot(new Vector1MaterialSlot(TileInputId, kTileInputName, kTileInputName, SlotType.Input, 1));
             AddSlot(new Vector1MaterialSlot(BlendInputId, kBlendInputName, kBlendInputName, SlotType.Input, 1));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, TextureInputId, SamplerInputId, PositionInputId, NormalInputId, TileInputId, BlendInputId });
@@ -106,6 +114,8 @@ namespace UnityEditor.ShaderGraph
             base.Setup();
             var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputId);
             textureSlot.defaultType = (textureType == TextureType.Normal ? Texture2DShaderProperty.DefaultType.NormalMap : Texture2DShaderProperty.DefaultType.White);
+            positionSlot.space = inputSpace;
+            normalSlot.space = inputSpace;
         }
 
         // Node generations
@@ -164,9 +174,9 @@ namespace UnityEditor.ShaderGraph
                         , GetVariableNameForNode());
 
                     // transform the normal from input to output space, and normalize
-                    var xform = new SpaceTransform(m_NormalInputSpace, m_NormalOutputSpace, ConversionType.Normal, normalize: true);
+                    
                     outputVariable = $"{outputVariable}.rgb";
-                    SpaceTransformUtil.GenerateTransformCodeStatement(xform, outputVariable, outputVariable, sb);
+                    SpaceTransformUtil.GenerateTransformCodeStatement(normalTransform, outputVariable, outputVariable, sb);
                     break;
                 default:
                     // We want the sum of the 3 blend weights (by which we normalize them) to be > 0.
@@ -207,34 +217,31 @@ namespace UnityEditor.ShaderGraph
 
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
-            return CoordinateSpace.AbsoluteWorld.ToNeededCoordinateSpace() | CoordinateSpace.World.ToNeededCoordinateSpace();
+            return positionSlot.RequiresPosition();
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
-            return CoordinateSpace.World.ToNeededCoordinateSpace();
+            NeededCoordinateSpace neededSpaces = normalSlot.RequiresNormal();
+            if (m_TextureType == TextureType.Normal)
+                neededSpaces |= normalTransform.RequiresNormal;
+            return neededSpaces;
         }
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
-            switch (m_TextureType)
-            {
-                case TextureType.Normal:
-                    return CoordinateSpace.World.ToNeededCoordinateSpace();
-                default:
-                    return NeededCoordinateSpace.None;
-            }
+            NeededCoordinateSpace neededSpaces = NeededCoordinateSpace.None;
+            if (m_TextureType == TextureType.Normal)
+                neededSpaces |= normalTransform.RequiresTangent;
+            return neededSpaces;
         }
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
         {
-            switch (m_TextureType)
-            {
-                case TextureType.Normal:
-                    return CoordinateSpace.World.ToNeededCoordinateSpace();
-                default:
-                    return NeededCoordinateSpace.None;
-            }
+            NeededCoordinateSpace neededSpaces = NeededCoordinateSpace.None;
+            if (m_TextureType == TextureType.Normal)
+                neededSpaces |= normalTransform.RequiresBitangent;
+            return neededSpaces;
         }
     }
 }
