@@ -1072,7 +1072,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.giSettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
             data.globalCB = m_ShaderVariablesGlobalCB;
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && m_SupportDynamicGI)
             {
                 data.mode = ProbeVolumeDynamicGIMode.Dispatch;
                 m_WasProbeVolumeDynamicGIEnabled = true;
