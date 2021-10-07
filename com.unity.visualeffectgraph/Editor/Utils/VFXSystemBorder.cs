@@ -11,7 +11,7 @@ using UnityObject = UnityEngine.Object;
 namespace UnityEditor.VFX.UI
 {
     class VFXSystemBorderFactory : UxmlFactory<VFXSystemBorder>
-    {}
+    { }
 
 
     class VFXSystemBorder : GraphElement, IControlledElement<VFXSystemController>, IDisposable
@@ -198,7 +198,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_WaitingRecompute)
                 return;
-            
+
             visible = true;
             //title width should be at least as wide as a context to be valid.
             float titleWidth = m_Title.layout.width;
@@ -239,7 +239,6 @@ namespace UnityEditor.VFX.UI
                 shouldDeferRecompute = true;
             }
 
-            
             rect = RectUtils.Inflate(rect, 20, titleEmpty ? 20 : m_Title.layout.height, 20, 20);
             rect = new Rect(Mathf.Floor(rect.x), Mathf.Floor(rect.y), Mathf.Floor(rect.width), Mathf.Floor(rect.height));
             if (rect != m_previousBounds)
@@ -251,7 +250,7 @@ namespace UnityEditor.VFX.UI
             if (shouldDeferRecompute && !m_WaitingRecompute)
             {
                 m_WaitingRecompute = true;
-                schedule.Execute(() => { m_WaitingRecompute = false; RecomputeBounds();  }).ExecuteLater(0); // title height might have changed if width have changed
+                schedule.Execute(() => { m_WaitingRecompute = false; RecomputeBounds(); }).ExecuteLater(0); // title height might have changed if width have changed
             }
         }
 
