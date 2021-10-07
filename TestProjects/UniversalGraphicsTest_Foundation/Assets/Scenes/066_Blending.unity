@@ -1652,7 +1652,7 @@ MonoBehaviour:
     AverageCorrectnessThreshold: 0.00001
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 1
-    UseBackBuffer: 0
+    UseBackBuffer: 1
     ImageResolution: 3
     ActiveImageTests: 1
     ActivePixelTests: 7
