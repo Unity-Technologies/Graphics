@@ -136,7 +136,7 @@ namespace UnityEditor.VFX.UI
             {
                 return;
             }
-            
+
             UpdateTitleFieldRect();
             RecomputeBounds();
         }
