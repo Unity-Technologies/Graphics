@@ -30,6 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HDRMinNits;
         SerializedDataParameter m_HDRMaxNits;
         SerializedDataParameter m_HDRAcesPreset;
+        SerializedDataParameter m_HDRFallbackMode;
 
         public override bool hasAdditionalProperties => true;
 
@@ -62,6 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HDRMinNits = Unpack(o.Find(x => x.minNits));
             m_HDRMaxNits = Unpack(o.Find(x => x.maxNits));
             m_HDRAcesPreset = Unpack(o.Find(x => x.acesPreset));
+            m_HDRFallbackMode = Unpack(o.Find(x => x.fallbackMode));
 
             m_Material = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/Custom Tonemapper Curve"));
         }
@@ -159,10 +161,13 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.LabelField("HDR Output");
                 int hdrTonemapMode = m_Mode.value.intValue;
-                if (m_Mode.value.intValue == (int)TonemappingMode.Custom || m_Mode.value.intValue == (int)TonemappingMode.External)
+                if (m_Mode.value.intValue == (int)TonemappingMode.Custom || hdrTonemapMode == (int)TonemappingMode.External)
                 {
-                    EditorGUILayout.HelpBox("The selected tonmapping mode is not supported in HDR Output mode. It will fall-back to neutral tonmapping when outputting to HDR devices.", MessageType.Warning);
-                    hdrTonemapMode = (int)TonemappingMode.Neutral;
+                    EditorGUILayout.HelpBox("The selected tonmapping mode is not supported in HDR Output mode. Select a fallback mode.", MessageType.Warning);
+                    PropertyField(m_HDRFallbackMode);
+                    hdrTonemapMode = (m_HDRFallbackMode.value.intValue == (int)FallbackHDRTonemap.ACES) ? (int)TonemappingMode.ACES :
+                                     (m_HDRFallbackMode.value.intValue == (int)FallbackHDRTonemap.Neutral) ? (int)TonemappingMode.Neutral :
+                                     (int)TonemappingMode.None;
                 }
 
                 if (hdrTonemapMode == (int)TonemappingMode.Neutral)

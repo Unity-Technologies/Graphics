@@ -3892,6 +3892,12 @@ namespace UnityEngine.Rendering.HighDefinition
         void PrepareColorGradingParameters(ColorGradingPassData passData, HDCamera camera)
         {
             passData.tonemappingMode = m_TonemappingFS ? m_Tonemapping.mode.value : TonemappingMode.None;
+            bool tonemappingIsActive = m_Tonemapping.IsActive() && m_TonemappingFS;
+            if (HDROutputIsActive(camera) && m_TonemappingFS)
+            {
+                passData.tonemappingMode = m_Tonemapping.GetHDRTonemappingMode();
+                tonemappingIsActive = m_TonemappingFS && passData.tonemappingMode != TonemappingMode.None;
+            }
 
             passData.builderCS = defaultResources.shaders.lutBuilder3DCS;
             passData.builderKernel = passData.builderCS.FindKernel("KBuild");
@@ -3899,7 +3905,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Setup lut builder compute & grab the kernel we need
             passData.builderCS.shaderKeywords = null;
 
-            if (m_Tonemapping.IsActive() && m_TonemappingFS)
+            if (tonemappingIsActive)
             {
                 switch (passData.tonemappingMode)
                 {
@@ -3914,7 +3920,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.builderCS.EnableKeyword("TONEMAPPING_NONE");
             }
 
-            if (HDROutputIsActive(camera))
+            if (HDROutputIsActive(camera) && m_TonemappingFS)
             {
                 if (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709)
                 {
@@ -3998,9 +4004,9 @@ namespace UnityEngine.Rendering.HighDefinition
             int eetfMode = 0;
             float hueShift = 0.0f;
 
-            if (tonemappingComponent.mode.value == TonemappingMode.Neutral ||
-                tonemappingComponent.mode.value == TonemappingMode.Custom ||
-                tonemappingComponent.mode.value == TonemappingMode.External)
+            TonemappingMode hdrTonemapMode = tonemappingComponent.GetHDRTonemappingMode();
+
+            if (hdrTonemapMode == TonemappingMode.Neutral)
             {
                 hueShift = tonemappingComponent.hueShiftAmount.value;
 
@@ -4014,7 +4020,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     eetfMode = (int)HDRRangeReduction.Reinhard;
                 }
             }
-            if (tonemappingComponent.mode.value == TonemappingMode.ACES)
+            if (hdrTonemapMode == TonemappingMode.ACES)
             {
                 eetfMode = (int)tonemappingComponent.acesPreset.value;
             }
@@ -4126,6 +4132,7 @@ namespace UnityEngine.Rendering.HighDefinition
             highlights.w = 0f;
         }
 
+        // TODO: This can easily go async.
         TextureHandle ColorGradingPass(RenderGraph renderGraph, HDCamera hdCamera)
         {
             TextureHandle logLut = renderGraph.ImportTexture(m_GradingAndTonemappingLUT);

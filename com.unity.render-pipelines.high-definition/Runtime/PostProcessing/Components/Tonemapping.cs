@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Neutral,
 
         /// <summary>
-        /// Close approximation of the reference ACES tonemapper for a more filmic look.
+        /// ACES tonemapper for a more filmic look.
         /// </summary>
         ACES,
 
@@ -71,6 +71,24 @@ namespace UnityEngine.Rendering.HighDefinition
         ACES4000Nits = HDRRangeReduction.ACES4000Nits,
     }
 
+    /// <summary>
+    /// Tonemap mode to be used when outputting to HDR device and when the main mode is not supported on HDR.
+    /// </summary>
+    public enum FallbackHDRTonemap
+    {
+        /// <summary>
+        /// No tonemapping.
+        /// </summary>
+        None = 0,
+        /// <summary>
+        /// Tonemapping mode with minimal impact on color hue and saturation.
+        /// </summary>
+        Neutral,
+        /// <summary>
+        /// ACES tonemapper for a more filmic look.
+        /// </summary>
+        ACES
+    }
 
     [Serializable]
     public sealed class NeutralRangeReductionModeParameter : VolumeParameter<NeutralRangeReductionMode>
@@ -92,6 +110,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public HDRACESPresetParameter(HDRACESPreset value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    [Serializable]
+    public sealed class FallbackHDRTonemapParameter : VolumeParameter<FallbackHDRTonemap>
+    {
+        /// <summary>
+        /// Creates a new <see cref="FallbackHDRTonemapParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public FallbackHDRTonemapParameter(FallbackHDRTonemap value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -190,6 +219,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDRACESPresetParameter acesPreset = new HDRACESPresetParameter(HDRACESPreset.ACES1000Nits);
 
         /// <summary>
+        /// Specifies the fallback tonemapping algorithm to use when outputting to an HDR device, when the main mode is not supported.
+        /// </summary>
+        /// <seealso cref="TonemappingMode"/>
+        [Tooltip("Specifies the fallback tonemapping algorithm to use when outputting to an HDR device, when the main mode is not supported.")]
+        public FallbackHDRTonemapParameter fallbackMode = new FallbackHDRTonemapParameter(FallbackHDRTonemap.Neutral);
+
+        /// <summary>
         /// How much hue we want to preserve. Values closer to 0 try to preserve hue, while as values get closer to 1 hue shifts are reintroduced.
         /// </summary>
         [Tooltip("How much hue we want to preserve. Values closer to 0 try to preserve hue, while as values get closer to 1 hue shifts are reintroduced.")]
@@ -231,6 +267,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ValidateLUT() && lutContribution.value > 0f;
 
             return mode.value != TonemappingMode.None;
+        }
+
+        internal TonemappingMode GetHDRTonemappingMode()
+        {
+            if (mode.value == TonemappingMode.Custom ||
+                mode.value == TonemappingMode.External)
+            {
+                if (fallbackMode.value == FallbackHDRTonemap.None) return TonemappingMode.None;
+                if (fallbackMode.value == FallbackHDRTonemap.Neutral) return TonemappingMode.Neutral;
+                if (fallbackMode.value == FallbackHDRTonemap.ACES) return TonemappingMode.ACES;
+            }
+
+            return mode.value;
         }
 
         /// <summary>
