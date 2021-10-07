@@ -3209,8 +3209,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int i = 0, n = m_ProbeVolumeCount; i < n; i++)
                     {
-                        // Probe volumes are not lights and therefore should not affect light classification.
-                        LightFeatureFlags featureFlags = 0;
+                        LightFeatureFlags featureFlags = LightFeatureFlags.ProbeVolume;
                         float probeVolumeMaxBiasWS = probeVolumeNormalBiasEnabled ? (probeVolumes.data[i].normalBiasWS + probeVolumes.data[i].viewBiasWS) : 0.0f;
                         CreateBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, probeVolumeMaxBiasWS, out LightVolumeData volumeData, out SFiniteLightBound bound);
                         if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
