@@ -157,7 +157,7 @@ void RayGen()
         ray.Direction = cameraDirection;
     }
 
-    // Create and init the PathIntersection structure for this
+    // Create and init the PathIntersection structure for this pixel
     PathIntersection pathIntersection;
     pathIntersection.value = 1.0;
     pathIntersection.alpha = 1.0;
@@ -166,7 +166,7 @@ void RayGen()
     pathIntersection.maxRoughness = 0.0;
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-    pathIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
+    pathIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle / min(tileCount.x, tileCount.y);
     pathIntersection.cone.width = 0.0;
 
     // Evaluate the ray intersection
