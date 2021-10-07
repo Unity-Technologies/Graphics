@@ -7,6 +7,8 @@
 * [Getting started](InstallingAndConfiguringURP.md)
   * [Create a Project from a Template](creating-a-new-project-with-urp.md)
   * [Install URP into an existing Project](InstallURPIntoAProject.md)
+  * [Package samples](package-samples.md)
+    * [URP Package Samples](package-sample-urp-package-samples.md)
 * [Render Pipeline Concepts](urp-concepts.md)
   * [The URP Asset](universalrp-asset.md)
   * [URP Global Settings](urp-global-settings.md)
@@ -97,6 +99,9 @@
     * [Visualizing normal vectors](writing-shaders-urp-unlit-normals.md)
     * [Reconstruct the world space positions](writing-shaders-urp-reconstruct-world-position.md)
   * [URP ShaderLab Pass tags](urp-shaders/urp-shaderlab-pass-tags.md)
+* [How to](how-to.md)
+  * [Blit in XR](renderer-features/how-to-fullscreen-blit-in-xr-spi.md)
+  * [Use Render Objects Renderer Feature](containers/how-to-custom-effect-render-objects.md)
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
 
