@@ -468,9 +468,9 @@ Shader ""Hidden/GraphErrorShader2""
 
                 Generator generator;
                 if (targets != null)
-                    generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection, targets, shaderIdx);
+                    generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection, targets, shaderIdx: shaderIdx);
                 else
-                    generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection, shaderIdx);
+                    generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection, shaderIdx: shaderIdx);
 
                 shaderString = generator.generatedShader;
                 configuredTextures = generator.configuredTextures;
