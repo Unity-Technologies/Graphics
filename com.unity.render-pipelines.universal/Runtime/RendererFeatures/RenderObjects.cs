@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             public string passTag = "RenderObjectsFeature";
             public RenderPassEvent Event = RenderPassEvent.AfterRenderingOpaques;
+            public CameraTypeMask cameraTypeMask = CameraTypeMaskUtility.allTypes;
 
             public FilterSettings filterSettings = new FilterSettings();
 
@@ -40,13 +41,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // TODO: expose opaque, transparent, all ranges as drop down
             public RenderQueueType RenderQueueType;
             public LayerMask LayerMask;
-            public CameraTypeMask CameraTypeMask;
             public string[] PassNames;
 
             public FilterSettings()
             {
                 RenderQueueType = RenderQueueType.Opaque;
-                CameraTypeMask = CameraTypeMaskUtility.allTypes;
                 LayerMask = 0;
             }
         }
@@ -79,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             renderObjectsPass = new RenderObjectsPass(settings.passTag, settings.Event, filter.PassNames,
                 filter.RenderQueueType, filter.LayerMask, settings.cameraSettings);
 
-            renderObjectsPass.cameraTypeMask = filter.CameraTypeMask;
+            renderObjectsPass.cameraTypeMask = settings.cameraTypeMask;
 
             renderObjectsPass.overrideMaterial = settings.overrideMaterial;
             renderObjectsPass.overrideMaterialPassIndex = settings.overrideMaterialPassIndex;

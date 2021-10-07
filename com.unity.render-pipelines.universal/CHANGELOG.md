@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added public api and updated docs for Light2D shape properties.
 - Depth Texture setting for Overlay Camera.
+- Render Objects now has an option to only run on certain camera types using a camera type mask.
 
 ### Changed
 
