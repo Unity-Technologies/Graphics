@@ -1,25 +1,49 @@
 # Branch On Input Connection Node
 
 ## Description
-This node supports conditional logic in a Sub Graph. It has two states: connected and not connected. Shader Graph determines the node's connection mode with the status of two ports. The first of these is the node's Input port itself. The second of these is the Property port of the [node representing this Sub Graph in a parent graph](Sub-graph-Node). The [Branch Node](Branch-Node) is the model for this functionality.
+The Branch On Input Connection node allows you to change the behavior of a Subgraph based on the connected state of an input property in the parent Shader Graph. It has two states: connected and not connected.
 
-This functionality is not compatible with Virtual Streaming Texture properties.
+Shader Graph uses two ports to determine the node's connection state:
 
-### Adding branching logic
-1. From your Blackboard, select the relevant **Property** and add it to your Sub Graph.
-2. In the **Graph Inspector**, enable **Custom Binding** and designate a **Label**.
-3. Wire the **Property** to the **Input** port of the Test Input Connection Node. The **Input** port only accepts Properties.
-4. Wire one node to the **Connected** port and another to the **Not Connected** port.
-5. Select an output node and connect it to the **Out** port.
-6. Use the Sub Graph in your graph.
+- The Branch On Input Connection node's **Input** port.
 
-If you disable the **Custom Binding** setting, the **Property** disconnects from this node, and Unity displays a warning.
+- The Subgraph node's corresponding Property port in the parent Shader Graph. For more information on Subgraph nodes, see [Sub Graph Node](Sub-graph-Node).
+
+The Branch On Input Connection node's functionality is based on the [Branch Node](Branch-Node).
+
+> [!NOTE]
+> You can't use the Branch On Input Connection node with a Streaming Virtual Texture Property. For more information on Streaming Virtual Texturing, see [Using Streaming Virtual Texturing in Shader Graph](https://docs.unity3d.com/Documentation/Manual/svt-use-in-shader-graph.html).
+
+### Use the Branch On Input Connection node in a Subgraph
+
+1. Open the Subgraph where you want to add a Branch On Input Connection node.
+
+2. In the Blackboard, do one of the following:
+
+    - To add a new property, select **Add** (+), then select a property type from the menu. Enter a name for your new property and press Enter. Then, select your property in the Blackboard and drag it onto your graph to create a Property node.
+
+    - Select an existing property and drag it onto your graph to create a Property node.
+
+3. With your Property node selected, in the Graph Inspector, enable **Use Custom Binding**.
+
+    > [!NOTE]
+    > If you disable **Use Custom Binding**, you can't connect your Property node to the Branch On Input Connection node. If you've already made a connection, the Unity Editor breaks the connection and displays a warning on the node.
+
+4. In the **Label** field, enter the label for the default value that should display on the Subgraph node's port binding. For more information on port bindings, see [Port Bindings](Port-Bindings.md).
+
+5. Press Spacebar or right-click and select **Create Node**. Search for or locate the **Branch On Input Connection** node in the Create Node Menu, select the node, then click again or press Enter to add it to your Subgraph.
+
+6. Select the output port on your Property node to start a connection, and drag the connection to the Branch On Connection node's **Input** port.
+
+7. Connect a node to the **Connected** port to specify the value Shader Graph should use when the **Input** port is connected on the Subgraph node in the parent graph. Connect another node to the **NotConnected** port to specify the value that Shader Graph should use when the **Input** port isn't connected.
+
+8. Connect any valid node to the **Output** port to tell Shader Graph what to do with the output value.
 
 ## Ports
 
-| **Name**     | **Direction** | **Type** | **Description** |
-| :---         | :---          | :------  | :----------     |
-| Input        | Input         | Property |      x           |
-| Connected    | Input         | Float    |        x         |
-| NotConnected | Input         | Float    |        x         |
-| Out          | Output        | Float    |        x         |
+| **Name**     | **Direction** | **Type**          | **Description** |
+| :---         | :---          | :------           | :----------     |
+| Input        | Input         | Property          | The property that determines the branching logic based on its connection in the parent Shader Graph.         |
+| Connected    | Input         | Dynamic Vector    | The value that to send to the **Out** port when **Input** is connected in the parent Shader Graph.       |
+| NotConnected | Input         | Dynamic Vector    | The value that to send to the **Out** port when **Input** isn't connected in the parent Shader Graph.  |
+| Out          | Output        | Dynamic Vector    | Outputs either the value of either **Connected** or **NotConnected**, depending on whether the property specified in **Input** is connected in the parent Shader Graph.        |
