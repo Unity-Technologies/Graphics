@@ -239,6 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._HeightFogBaseHeight = crBaseHeight;
             cb._GlobalFogAnisotropy = anisotropy.value;
             cb._VolumetricFilteringEnabled = ((int)denoisingMode.value & (int)FogDenoisingMode.Gaussian) != 0 ? 1 : 0;
+            cb._FogDirectionalOnly = directionalLightsOnly.value ? 1 : 0;
         }
     }
 
