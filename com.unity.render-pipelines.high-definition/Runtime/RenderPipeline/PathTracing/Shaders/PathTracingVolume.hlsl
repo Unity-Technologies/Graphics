@@ -1,9 +1,7 @@
 #ifndef UNITY_PATH_TRACING_VOLUME_INCLUDED
 #define UNITY_PATH_TRACING_VOLUME_INCLUDED
 
-#ifdef HAS_LIGHTLOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
-#endif
 
 float ComputeHeightFogMultiplier(float height)
 {
@@ -17,42 +15,46 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
     if (!_FogEnabled || !_EnableVolumetricFog)
         return false;
 
-    // This will determin the interval in which volumetric scattering can occur
+    // This will determine the interval in which volumetric scattering can occur
     float tMin, tMax;
     float pdfVol = 1.0;
     float tFog = min(t, _MaxFogDistance);
 
-#ifdef HAS_LIGHTLOOP
-
-    float pickedLightWeight;
-    float localWeight = PickLocalLightInterval(WorldRayOrigin(), WorldRayDirection(), inputSample, lightPosition, pickedLightWeight, tMin, tMax);
-
-    if (localWeight < 0.0)
-        return false;
-
-    sampleLocalLights = inputSample < localWeight;
-    if (sampleLocalLights)
+    if (_FogDirectionalOnly)
     {
-        tMax = min(tMax, tFog);
-        if (tMin >= tMax)
+        if (!_DirectionalLightCount)
             return false;
 
-        inputSample /= localWeight;
-        pdfVol *= localWeight * pickedLightWeight;
-    }
-    else
-    {
         tMin = 0.0;
         tMax = tFog;
-
-        inputSample -= localWeight;
-        inputSample /= 1.0 - localWeight;
-        pdfVol *= 1.0 - localWeight;
     }
-#else
-    tMin = 0.0;
-    tMax = tFog;
-#endif
+    else // Directional and local lights
+    {
+        float pickedLightWeight;
+        float localWeight = PickLocalLightInterval(WorldRayOrigin(), WorldRayDirection(), inputSample, lightPosition, pickedLightWeight, tMin, tMax);
+
+        if (localWeight < 0.0)
+            return false;
+
+        sampleLocalLights = inputSample < localWeight;
+        if (sampleLocalLights)
+        {
+            tMax = min(tMax, tFog);
+            if (tMin >= tMax)
+                return false;
+
+            inputSample = RescaleSampleUnder(inputSample, localWeight);
+            pdfVol *= localWeight * pickedLightWeight;
+        }
+        else
+        {
+            tMin = 0.0;
+            tMax = tFog;
+
+            inputSample = RescaleSampleOver(inputSample, localWeight);
+            pdfVol *= 1.0 - localWeight;
+        }
+    }
 
     // FIXME: not quite sure what the sigmaT value is supposed to be...
     const float sigmaT = _HeightFogBaseExtinction;
@@ -62,27 +64,18 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
 
     if (inputSample >= transmittanceThreshold)
     {
-        // Re-scale the sample
-        inputSample -= transmittanceThreshold;
-        inputSample /= 1.0 - transmittanceThreshold;
-
-        // Adjust the pdf
+        inputSample = RescaleSampleOver(inputSample, transmittanceThreshold);
         pdf *= 1.0 - transmittanceThreshold;
 
         return false;
     }
 
-    // Re-scale the sample
-    inputSample /= transmittanceThreshold;
-
-    // Adjust the pdf
+    inputSample = RescaleSampleUnder(inputSample, transmittanceThreshold);
     pdf *= pdfVol * transmittanceThreshold;
 
     // Exponential sampling
     float transmittance = transmittanceTMax + inputSample * (transmittanceTMin - transmittanceTMax);
     t = -log(transmittance) / sigmaT;
-
-    // Adjust the pdf
     pdf *= sigmaT * transmittance / (transmittanceTMin - transmittanceTMax);
 
     return true;
@@ -93,8 +86,6 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
 {
     // Reset the ray intersection color, which will store our final result
     pathIntersection.value = 0.0;
-
-#ifdef HAS_LIGHTLOOP
 
     // Grab depth information
     uint currentDepth = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
@@ -108,8 +99,7 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
     // Create the list of active lights (a local light can be forced by providing its position)
     LightList lightList = CreateLightList(scatteringPosition, sampleLocalLights, lightPosition);
 
-    // Bunch of variables common to material and light sampling
-    float pdf;
+    float pdf, shadowOpacity;
     float3 value;
 
     RayDesc ray;
@@ -121,7 +111,7 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
     // Light sampling
     if (computeDirect)
     {
-        if (SampleLights(lightList, inputSample, scatteringPosition, 0.0, true, ray.Direction, value, pdf, ray.TMax))
+        if (SampleLights(lightList, inputSample, scatteringPosition, 0.0, true, ray.Direction, value, pdf, ray.TMax, shadowOpacity))
         {
             // FIXME: Apply phase function and divide by pdf (only isotropic for now, and not sure about sigmaS value)
             value *= _HeightFogBaseScattering.xyz * ComputeHeightFogMultiplier(scatteringPosition.y) * INV_FOUR_PI / pdf;
@@ -137,12 +127,11 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
                          RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, nextPathIntersection);
 
-                pathIntersection.value += value * nextPathIntersection.value;
+                pathIntersection.value += value * GetLightTransmission(nextPathIntersection.value, shadowOpacity);
             }
         }
     }
 
-#endif // HAS_LIGHTLOOP
 }
 
 #endif // UNITY_PATH_TRACING_VOLUME_INCLUDED
