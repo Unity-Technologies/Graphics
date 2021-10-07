@@ -9,9 +9,7 @@ namespace UnityEngine.VFX
     public class VisualEffectControlTrackMixerBehaviour : PlayableBehaviour
     {
         VisualEffect m_Target;
-        bool[] enabledStates;
 
-        //TODOPAUL: Rename
         class ScrubbingCacheHelper
         {
             struct Event
@@ -45,7 +43,6 @@ namespace UnityEngine.VFX
             const int kChunkError = int.MinValue;
             private int m_LastChunk = kChunkError;
             private double m_LastPlayableTime = double.MinValue;
-            private double m_LastParticleTime = double.MinValue;
 
             private void OnEnterChunk(VisualEffect vfx)
             {
@@ -59,7 +56,7 @@ namespace UnityEngine.VFX
                 vfx.Stop(); //Workaround
             }
 
-            //Debug only, will be removed at the end
+            //Debug only, will be removed int the end
             enum dbg_state
             {
                 Playing,
@@ -67,7 +64,6 @@ namespace UnityEngine.VFX
                 ScrubbingBackward,
                 OutChunk
             }
-
             private int scrubbingID = Shader.PropertyToID("scrubbing");
             private void UpdateScrubbingState(VisualEffect vfx, dbg_state scrubbing)
             {
@@ -89,13 +85,13 @@ namespace UnityEngine.VFX
                 return a < 0 ? -a : a;
             }
 
-            public void Update(double globalTime, float deltaTime, VisualEffect vfx)
+            public void Update(double playableTime, float deltaTime, VisualEffect vfx)
             {
                 if (vfx == null)
                     return;
 
                 var paused = deltaTime == 0.0;
-                var playingBackward = globalTime < m_LastPlayableTime;
+                var playingBackward = playableTime < m_LastPlayableTime;
                 var dbg = dbg_state.OutChunk;
 
                 //Find current chunk (TODOPAUL cache previous state to speed up)
@@ -103,7 +99,7 @@ namespace UnityEngine.VFX
                 for (int i = 0; i < m_Chunks.Length; ++i)
                 {
                     var chunk = m_Chunks[i];
-                    if (chunk.begin <= globalTime && globalTime <= chunk.end)
+                    if (chunk.begin <= playableTime && playableTime <= chunk.end)
                     {
                         currentChunkIndex = i;
                         break;
@@ -127,81 +123,83 @@ namespace UnityEngine.VFX
 
                     var chunk = m_Chunks[currentChunkIndex];
 
-                    var expectedNextTime = globalTime;
                     var actualCurrentTime = chunk.begin + vfx.time;
 
                     if (!playingBackward)
                     {
-                        if (Abs(m_LastParticleTime - actualCurrentTime) < VFXManager.maxDeltaTime)
+                        if (Abs(m_LastPlayableTime - actualCurrentTime) < VFXManager.maxDeltaTime)
                         {
-                            //Remove the float part and only keep double precision
-                            actualCurrentTime = m_LastParticleTime;
+                            //Remove the float part from VFX and only keep double precision
+                            actualCurrentTime = m_LastPlayableTime;
                         }
                         else
                         {
                             //VFX is too late on timeline
-                            //TODOPAUL: In that case, we could have already consume event...
+                            //TODOPAUL: In that case, we could have already consume event, it can be problematic
                         }
                     }
                     else
                     {
                         dbg = dbg_state.ScrubbingBackward;
                         actualCurrentTime = chunk.begin;
-                        m_LastParticleTime = actualCurrentTime;
+                        m_LastPlayableTime = actualCurrentTime;
                         OnEnterChunk(vfx);
                     }
 
                     double expectedCurrentTime;
                     if (paused)
-                        expectedCurrentTime = expectedNextTime;
+                        expectedCurrentTime = playableTime;
                     else
-                        expectedCurrentTime = expectedNextTime - VFXManager.fixedTimeStep;
+                        expectedCurrentTime = playableTime - VFXManager.fixedTimeStep;
 
-                    var eventList = GetEventsIndex(chunk, actualCurrentTime, expectedCurrentTime);
-                    var eventCount = eventList.Count();
-                    var nextEvent = 0;
-
-                    var fixedStep = VFXManager.maxDeltaTime; //TODOPAUL, reduce the interval in case of paused ?
-                    while (actualCurrentTime < expectedCurrentTime)
                     {
-                        var currentEvent = default(Event);
-                        var currentStepCount = 0u;
-                        if (nextEvent < eventCount)
+                        //1. Process adjustment if actualCurrentTime < expectedCurrentTime
+                        var eventList = GetEventsIndex(chunk, actualCurrentTime, expectedCurrentTime);
+                        var eventCount = eventList.Count();
+                        var nextEvent = 0;
+
+                        var fixedStep = VFXManager.maxDeltaTime; //TODOPAUL, reduce the interval in case of paused ?
+                        while (actualCurrentTime < expectedCurrentTime)
                         {
-                            currentEvent = chunk.events[eventList.ElementAt(nextEvent++)];
-                            currentStepCount = (uint)((currentEvent.time - actualCurrentTime) / fixedStep);
-                        }
-                        else
-                        {
-                            currentStepCount = (uint)((expectedCurrentTime - actualCurrentTime) / fixedStep);
-                            if (currentStepCount == 0)
+                            var currentEvent = default(Event);
+                            uint currentStepCount;
+                            if (nextEvent < eventCount)
                             {
-                                //We reached the maximum precision according to fixedStep & no more event
-                                break;
+                                currentEvent = chunk.events[eventList.ElementAt(nextEvent++)];
+                                currentStepCount = (uint)((currentEvent.time - actualCurrentTime) / fixedStep);
                             }
-                        }
+                            else
+                            {
+                                currentStepCount = (uint)((expectedCurrentTime - actualCurrentTime) / fixedStep);
+                                if (currentStepCount == 0)
+                                {
+                                    //We reached the maximum precision according to fixedStep & no more event
+                                    break;
+                                }
+                            }
 
-                        if (currentStepCount != 0)
-                        {
-                            if (dbg != dbg_state.ScrubbingBackward)
-                                dbg = dbg_state.ScrubbingForward;
+                            if (currentStepCount != 0)
+                            {
+                                if (dbg != dbg_state.ScrubbingBackward)
+                                    dbg = dbg_state.ScrubbingForward;
 
-                            vfx.Simulate((float)fixedStep, currentStepCount);
-                            actualCurrentTime += fixedStep * currentStepCount;
+                                vfx.Simulate((float)fixedStep, currentStepCount);
+                                actualCurrentTime += fixedStep * currentStepCount;
+                            }
+                            ProcessEvent(currentEvent, vfx);
                         }
-                        ProcessEvent(currentEvent, vfx);
                     }
 
-                    eventList = GetEventsIndex(chunk, actualCurrentTime, expectedNextTime);
-                    foreach (var itEvent in eventList)
+                    //Sending incoming event
                     {
-                        ProcessEvent(chunk.events[itEvent], vfx);
+                        var eventList = GetEventsIndex(chunk, actualCurrentTime, playableTime);
+                        foreach (var itEvent in eventList)
+                            ProcessEvent(chunk.events[itEvent], vfx);
                     }
-                    m_LastParticleTime = expectedNextTime;
                 }
 
                 UpdateScrubbingState(vfx, dbg);
-                m_LastPlayableTime = globalTime;
+                m_LastPlayableTime = playableTime;
             }
 
             void ProcessEvent(Event currentEvent, VisualEffect vfx)
@@ -289,9 +287,6 @@ namespace UnityEngine.VFX
                 m_Target.pause = false;
         }
 
-        //TODOPAUL: Temp
-        static bool ignoreProcessFrame = true;
-
         // Called every frame that the timeline is evaluated. ProcessFrame is invoked after its' inputs.
         public override void ProcessFrame(Playable playable, FrameData data, object playerData)
         {
@@ -306,85 +301,16 @@ namespace UnityEngine.VFX
             var globalTime = playable.GetTime();
             var deltaTime = data.deltaTime;
             m_ScrubbingCacheHelper.Update(globalTime, deltaTime, m_Target);
-
-
-            //TODOPAUL : Remove following code
-            if (ignoreProcessFrame)
-                return;
-
-            if (m_Target == null)
-                return;
-
-            int inputCount = playable.GetInputCount();
-
-            float totalWeight = 0f;
-            float greatestWeight = 0f;
-
-            //TODOPAUL : Focus a bit more on this code
-            int playableIndex = 0;
-            for (int i = 0; i < inputCount; i++)
-            {
-                var inputWeight = playable.GetInputWeight(i);
-                var inputPlayable = (ScriptPlayable<VisualEffectControlPlayableBehaviour>)playable.GetInput(i);
-                VisualEffectControlPlayableBehaviour input = inputPlayable.GetBehaviour();
-
-                totalWeight += inputWeight;
-
-                // use the text with the highest weight
-                if (inputWeight > greatestWeight)
-                {
-                    greatestWeight = inputWeight;
-                    playableIndex = 0;
-                }
-            }
-
-            if (greatestWeight > 0.0f)
-            {
-                if (m_Target.enabled != true)
-                {
-                    //Workaround to avoid the play event by default -_-'
-                    m_Target.enabled = true;
-                    m_Target.Stop();
-                }
-            }
-            else
-            {
-                m_Target.enabled = false;
-            }
-
-            bool playingState = greatestWeight == 1.0f;
-            if (enabledStates[playableIndex] != playingState)
-            {
-                if (playingState)
-                    m_Target.Play();
-                else
-                    m_Target.Stop();
-
-                enabledStates[playableIndex] = playingState;
-            }
-
-            // blend to the default values
-            //TODOPAUL: Clean
-            //m_TrackBinding.color = Color.Lerp(m_DefaultColor, blendedColor, totalWeight);
-            //m_TrackBinding.fontSize = Mathf.RoundToInt(Mathf.Lerp(m_DefaultFontSize, blendedFontSize, totalWeight));
-            //m_TrackBinding.text = text;
         }
 
         public override void OnPlayableCreate(Playable playable)
         {
-            //see m_ScrubbingCacheHelper  in /CinemachineMixer.cs?L174:25
-            //var test = (ScriptPlayable<VisualEffectControlPlayableBehaviour>)playable.GetInput(0);
-            //var test2 = test.GetBehaviour();
-            //var test3 = PlayableExtensions.GetDuration(playable.GetInput(0));
-
-            enabledStates = new bool[playable.GetInputCount()];
             m_ScrubbingCacheHelper = null;
         }
 
         public override void OnPlayableDestroy(Playable playable)
         {
             RestoreDefaults();
-            enabledStates = null;
             m_ScrubbingCacheHelper = null;
         }
 
