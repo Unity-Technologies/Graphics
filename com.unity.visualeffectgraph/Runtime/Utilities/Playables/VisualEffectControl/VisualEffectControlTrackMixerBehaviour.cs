@@ -11,6 +11,7 @@ namespace UnityEngine.VFX
         VisualEffect m_Target;
         bool[] enabledStates;
 
+        //TODOPAUL: Rename
         class ScrubbingCacheHelper
         {
             struct Event
@@ -43,7 +44,8 @@ namespace UnityEngine.VFX
 
             const int kChunkError = int.MinValue;
             private int m_LastChunk = kChunkError;
-            //private double m_LastGlobalTime = double.MinValue;
+            private double m_LastPlayableTime = double.MinValue;
+            private double m_LastParticleTime = double.MinValue;
 
             private void OnEnterChunk(VisualEffect vfx)
             {
@@ -57,15 +59,47 @@ namespace UnityEngine.VFX
                 vfx.Stop(); //Workaround
             }
 
-            static readonly double epsilon = (double)Mathf.Epsilon;
+            //Debug only, will be removed at the end
+            enum dbg_state
+            {
+                Playing,
+                ScrubbingForward,
+                ScrubbingBackward,
+                OutChunk
+            }
 
-            public void JumpToFrame(double globalTime, float deltaTime, VisualEffect vfx)
+            private int scrubbingID = Shader.PropertyToID("scrubbing");
+            private void UpdateScrubbingState(VisualEffect vfx, dbg_state scrubbing)
+            {
+                if (vfx.HasUInt(scrubbingID))
+                    vfx.SetUInt(scrubbingID, (uint)scrubbing);
+            }
+
+            private double Min(double a, double b)
+            {
+                return a < b ? a : b;
+            }
+            private double Max(double a, double b)
+            {
+                return a < b ? a : b;
+            }
+
+            private double Abs(double a)
+            {
+                return a < 0 ? -a : a;
+            }
+
+            public void Update(double globalTime, float deltaTime, VisualEffect vfx)
             {
                 if (vfx == null)
                     return;
 
-                //Find current chunk (TODOPAUL cache previous state)
-                int currentChunkIndex = kChunkError;
+                var paused = deltaTime == 0.0;
+                var playingBackward = globalTime < m_LastPlayableTime;
+                var dbg = dbg_state.OutChunk;
+
+                //Find current chunk (TODOPAUL cache previous state to speed up)
+                var currentChunkIndex = kChunkError;
                 for (int i = 0; i < m_Chunks.Length; ++i)
                 {
                     var chunk = m_Chunks[i];
@@ -86,52 +120,88 @@ namespace UnityEngine.VFX
                     m_LastChunk = currentChunkIndex;
                 }
 
+                vfx.pause = paused;
                 if (currentChunkIndex != kChunkError)
                 {
+                    dbg = dbg_state.Playing;
+
                     var chunk = m_Chunks[currentChunkIndex];
 
-                    var expectedTime = globalTime;
-                    var currentTime = chunk.begin + vfx.time;
+                    var expectedNextTime = globalTime;
+                    var actualCurrentTime = chunk.begin + vfx.time;
 
-                    var fixedStep = 1.0 / 60.0; //TODOPAUL: Use VFXManager settings
-                    vfx.pause = true; //For now, always on pause like shuriken mixer
-
-                    if (expectedTime < currentTime)
+                    if (!playingBackward)
                     {
-                        currentTime = chunk.begin;
+                        if (Abs(m_LastParticleTime - actualCurrentTime) < VFXManager.maxDeltaTime)
+                        {
+                            //Remove the float part and only keep double precision
+                            actualCurrentTime = m_LastParticleTime;
+                        }
+                        else
+                        {
+                            //VFX is too late on timeline
+                            //TODOPAUL: In that case, we could have already consume event...
+                        }
+                    }
+                    else
+                    {
+                        dbg = dbg_state.ScrubbingBackward;
+                        actualCurrentTime = chunk.begin;
+                        m_LastParticleTime = actualCurrentTime;
                         OnEnterChunk(vfx);
                     }
 
-                    var eventList = GetEventsIndex(chunk, currentTime, expectedTime);
+                    double expectedCurrentTime;
+                    if (paused)
+                        expectedCurrentTime = expectedNextTime;
+                    else
+                        expectedCurrentTime = expectedNextTime - VFXManager.fixedTimeStep;
+
+                    var eventList = GetEventsIndex(chunk, actualCurrentTime, expectedCurrentTime);
                     var eventCount = eventList.Count();
                     var nextEvent = 0;
-                    while (currentTime < expectedTime)
+
+                    var fixedStep = VFXManager.maxDeltaTime; //TODOPAUL, reduce the interval in case of paused ?
+                    while (actualCurrentTime < expectedCurrentTime)
                     {
                         var currentEvent = default(Event);
                         var currentStepCount = 0u;
                         if (nextEvent < eventCount)
                         {
                             currentEvent = chunk.events[eventList.ElementAt(nextEvent++)];
-                            currentStepCount = (uint)((currentEvent.time - currentTime) / fixedStep);
+                            currentStepCount = (uint)((currentEvent.time - actualCurrentTime) / fixedStep);
                         }
                         else
                         {
-                            currentStepCount = (uint)((expectedTime - currentTime) / fixedStep);
+                            currentStepCount = (uint)((expectedCurrentTime - actualCurrentTime) / fixedStep);
                             if (currentStepCount == 0)
                             {
-                                //We reached the maximum precision according to fixedStep, no more event
+                                //We reached the maximum precision according to fixedStep & no more event
                                 break;
                             }
                         }
 
                         if (currentStepCount != 0)
                         {
+                            if (dbg != dbg_state.ScrubbingBackward)
+                                dbg = dbg_state.ScrubbingForward;
+
                             vfx.Simulate((float)fixedStep, currentStepCount);
-                            currentTime += fixedStep * currentStepCount;
+                            actualCurrentTime += fixedStep * currentStepCount;
                         }
                         ProcessEvent(currentEvent, vfx);
                     }
+
+                    eventList = GetEventsIndex(chunk, actualCurrentTime, expectedNextTime);
+                    foreach (var itEvent in eventList)
+                    {
+                        ProcessEvent(chunk.events[itEvent], vfx);
+                    }
+                    m_LastParticleTime = expectedNextTime;
                 }
+
+                UpdateScrubbingState(vfx, dbg);
+                m_LastPlayableTime = globalTime;
             }
 
             void ProcessEvent(Event currentEvent, VisualEffect vfx)
@@ -147,7 +217,7 @@ namespace UnityEngine.VFX
 
             IEnumerable<int> GetEventsIndex(Chunk chunk, double minTime, double maxTime)
             {
-                for (int i=0; i<chunk.events.Length; ++i)
+                for (int i = 0; i < chunk.events.Length; ++i)
                 {
                     var currentEvent = chunk.events[i];
 
@@ -165,7 +235,7 @@ namespace UnityEngine.VFX
                 int inputCount = playable.GetInputCount();
 
                 var playableBehaviors = new List<VisualEffectControlPlayableBehaviour>();
-                for (int i= 0; i < inputCount; ++i)
+                for (int i = 0; i < inputCount; ++i)
                 {
                     var inputPlayable = (ScriptPlayable<VisualEffectControlPlayableBehaviour>)playable.GetInput(i);
                     var inputBehavior = inputPlayable.GetBehaviour();
@@ -205,22 +275,6 @@ namespace UnityEngine.VFX
 
         ScrubbingCacheHelper m_ScrubbingCacheHelper;
 
-        public override void PrepareFrame(Playable playable, FrameData data)
-        {
-            /*
-            if (m_ScrubbingCacheHelper == null)
-            {
-                m_ScrubbingCacheHelper = new ScrubbingCacheHelper();
-                m_ScrubbingCacheHelper.Init(playable);
-            }
-
-            var globalTime = playable.GetTime();
-            var deltaTime = data.deltaTime;
-            m_ScrubbingCacheHelper.JumpToFrame(globalTime, deltaTime, m_Target);
-
-            */
-        }
-
         public override void OnBehaviourPause(Playable playable, FrameData info)
         {
             base.OnBehaviourPause(playable, info);
@@ -251,7 +305,7 @@ namespace UnityEngine.VFX
 
             var globalTime = playable.GetTime();
             var deltaTime = data.deltaTime;
-            m_ScrubbingCacheHelper.JumpToFrame(globalTime, deltaTime, m_Target);
+            m_ScrubbingCacheHelper.Update(globalTime, deltaTime, m_Target);
 
 
             //TODOPAUL : Remove following code
