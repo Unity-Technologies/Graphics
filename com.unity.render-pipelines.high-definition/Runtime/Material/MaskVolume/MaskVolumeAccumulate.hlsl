@@ -32,7 +32,12 @@ void MaskVolumeAccumulate(PositionInputs posInput, float3 normalWS, uint renderi
     uint v_maskVolumeIdx = maskVolumeStart;
     while (v_maskVolumeListOffset < maskVolumeCount)
     {
+#if SHADERPASS == SHADERPASS_DYNAMIC_GIDATA_SAMPLE || SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
+        v_maskVolumeIdx = v_maskVolumeListOffset;
+#else
         v_maskVolumeIdx = MaskVolumeFetchIndex(maskVolumeStart, v_maskVolumeListOffset);
+#endif
+        
 #if SCALARIZE_LIGHT_LOOP
         uint s_maskVolumeIdx = ScalarizeElementIndex(v_maskVolumeIdx, fastPath);
 #else

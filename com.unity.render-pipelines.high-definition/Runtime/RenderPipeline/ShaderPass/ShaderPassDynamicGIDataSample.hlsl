@@ -69,7 +69,8 @@ void Frag(  Varyings varInput,
     float quadLen = ceil(_RequestCount / _QuadHeight);
     float2 drawSize = float2(quadLen, _QuadHeight);
 
-    int localIdx = input.positionSS.y * quadLen + input.positionSS.x;
+    int2 texel = floor(input.positionSS.xy);
+    int localIdx = texel.y * quadLen + texel.x;
 
     if (localIdx < _RequestCount)
     {

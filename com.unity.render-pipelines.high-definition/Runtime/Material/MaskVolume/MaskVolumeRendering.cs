@@ -233,21 +233,27 @@ namespace UnityEngine.Rendering.HighDefinition
             DestroyMaskVolumeBuffers();
         }
 
-        unsafe void UpdateShaderVariablesGlobalMaskVolumesDefault(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
+        void UpdateShaderVariablesGlobalMaskVolumesDefault(ref ShaderVariablesGlobal cb)
         {
             cb._EnableMaskVolumes = 0;
             cb._MaskVolumeCount = 0;
         }
 
-        unsafe void UpdateShaderVariablesGlobalMaskVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
+        void UpdateShaderVariablesGlobalMaskVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
+        {
+            var enableMaskVolumes = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume);
+            UpdateShaderVariablesGlobalMaskVolumes(ref cb, enableMaskVolumes);
+        }
+
+        void UpdateShaderVariablesGlobalMaskVolumes(ref ShaderVariablesGlobal cb, bool enableMaskVolumes)
         {
             if (!m_SupportMaskVolume)
             {
-                UpdateShaderVariablesGlobalMaskVolumesDefault(ref cb, hdCamera);
+                UpdateShaderVariablesGlobalMaskVolumesDefault(ref cb);
                 return;
             }
 
-            cb._EnableMaskVolumes = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume) ? 1u : 0u;
+            cb._EnableMaskVolumes = enableMaskVolumes ? 1u : 0u;
             cb._MaskVolumeCount = (uint)m_VisibleMaskVolumeBounds.Count;
             cb._MaskVolumeAtlasResolutionAndSliceCount = new Vector4(
                     s_MaskVolumeAtlasResolution,
@@ -267,7 +273,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Debug.Assert(m_SupportMaskVolume);
 
-            if (m_EnableRenderGraph)
+            if (renderGraph != null)
             {
                 using (var builder = renderGraph.AddRenderPass<PushMaskVolumesGlobalParamsPassData>("Push Mask Volumes Global Params", out var passData))
                 {
@@ -293,9 +299,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void PushMaskVolumesGlobalParamsDefault(HDCamera hdCamera, CommandBuffer immediateCmd, RenderGraph renderGraph)
         {
-            Debug.Assert(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume) == false);
+            Debug.Assert(hdCamera == null || hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume) == false);
 
-            if (m_EnableRenderGraph)
+            if (renderGraph != null)
             {
                 using (var builder = renderGraph.AddRenderPass<PushMaskVolumesGlobalParamsPassData>("Push Mask Volumes Global Params", out var passData))
                 {
@@ -394,10 +400,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         maskVolumeAtlasSize = size,
                     };
 
-                    volume.SetDataSHL0(s_MaskVolumeAtlasBlitDataSHL0Buffer);
+                    volume.SetDataSHL0(immediateCmd, s_MaskVolumeAtlasBlitDataSHL0Buffer);
 
                     // Execute upload
-                    if (m_EnableRenderGraph)
+                    if (renderGraph != null)
                     {
                         using (var builder = renderGraph.AddRenderPass<UploadMaskVolumePassData>("Upload Mask Volume", out var passData))
                         {
@@ -457,8 +463,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ));
 
             cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasScale,
-                        volume.parameters.scale
-                    );
+                volume.parameters.scale
+            );
             cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasBias,
                 volume.parameters.bias
             );
@@ -493,7 +499,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             maskVolumeAtlas.ResetAllocator();
 
-            if (m_EnableRenderGraph)
+            if (renderGraph != null)
             {
                 using (var builder = renderGraph.AddRenderPass<ClearMaskVolumesAtlasPassData>("Clear Mask Volume Atlas", out var passData))
                 {
@@ -522,6 +528,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_SupportMaskVolume)
                 return maskVolumes;
 
+            if (!m_EnableRenderGraph)
+                renderGraph = null;
+
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume))
             {
                 PushMaskVolumesGlobalParamsDefault(hdCamera, immediateCmd, renderGraph);
@@ -530,21 +539,38 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 PrepareVisibleMaskVolumeListBuffers(hdCamera, immediateCmd, renderGraph, ref maskVolumes);
                 PushMaskVolumesGlobalParams(hdCamera, immediateCmd, renderGraph, ref maskVolumes.resources);
+
+                // Fill the struct with pointers in order to share the data with the light loop.
+                maskVolumes.bounds = m_VisibleMaskVolumeBounds;
+                maskVolumes.data = m_VisibleMaskVolumeData;
             }
 
             return maskVolumes;
         }
 
+        internal void PrepareGlobalMaskVolumeList(CommandBuffer immediateCmd)
+        {
+            MaskVolumeList maskVolumes = new MaskVolumeList();
+
+            if (!currentAsset.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection).IsEnabled(FrameSettingsField.MaskVolume))
+            {
+                PushMaskVolumesGlobalParamsDefault(null, immediateCmd, null);
+            }
+            else
+            {
+                PrepareVisibleMaskVolumeListBuffers(null, immediateCmd, null, ref maskVolumes);
+                PushMaskVolumesGlobalParams(null, immediateCmd, null, ref maskVolumes.resources);
+                
+                UpdateShaderVariablesGlobalMaskVolumes(ref m_ShaderVariablesGlobalCB, true);
+                ConstantBuffer.PushGlobal(immediateCmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+            }
+        }
+        
         void PrepareVisibleMaskVolumeListBuffers(HDCamera hdCamera, CommandBuffer immediateCmd, RenderGraph renderGraph, ref MaskVolumeList maskVolumes)
         {
-            var settings = hdCamera.volumeStack.GetComponent<MaskVolumeController>();
-
-            float globalDistanceFadeStart = settings.distanceFadeStart.value;
-            float globalDistanceFadeEnd = settings.distanceFadeEnd.value;
-
             using (new ProfilingScope(immediateCmd, ProfilingSampler.Get(HDProfileId.PrepareMaskVolumeList)))
             {
-                if (m_EnableRenderGraph)
+                if (renderGraph != null)
                 {
                     maskVolumes.resources.boundsBuffer = renderGraph.ImportComputeBuffer(s_VisibleMaskVolumeBoundsBuffer);
                     maskVolumes.resources.dataBuffer = renderGraph.ImportComputeBuffer(s_VisibleMaskVolumeDataBuffer);
@@ -553,12 +579,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ClearMaskVolumeAtlasIfRequested(immediateCmd, renderGraph, ref maskVolumes.resources);
 
-                Vector3 camPosition = hdCamera.camera.transform.position;
-                Vector3 camOffset = Vector3.zero;// World-origin-relative
+                var isViewDependent = hdCamera != null;
 
-                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                float globalDistanceFadeStart = default;
+                float globalDistanceFadeEnd = default;
+                Vector3 camPosition = Vector3.zero;
+                Vector3 camOffset = Vector3.zero; // World-origin-relative
+                if (isViewDependent)
                 {
-                    camOffset = camPosition; // Camera-relative
+                    var settings = hdCamera.volumeStack.GetComponent<MaskVolumeController>();
+
+                    globalDistanceFadeStart = settings.distanceFadeStart.value;
+                    globalDistanceFadeEnd = settings.distanceFadeEnd.value;
+                    
+                    camPosition = hdCamera.camera.transform.position;
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        camOffset = camPosition; // Camera-relative
                 }
 
                 m_VisibleMaskVolumeBounds.Clear();
@@ -577,31 +613,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     MaskVolumeHandle volume = volumes[maskVolumesIndex];
 
-                    float maskVolumeDepthFromCameraWS = Vector3.Dot(hdCamera.camera.transform.forward, volume.position - camPosition);
-                    bool isVisible = maskVolumeDepthFromCameraWS < Mathf.Min(globalDistanceFadeEnd, volume.parameters.distanceFadeEnd);
-                    isVisible &= volume.parameters.weight >= 1e-5f;
+                    var isVisible = volume.parameters.weight >= 1e-5f && volume.IsDataAssigned();
 
-                    bool isNeeded = false;
-                    if (volume.IsDataAssigned() && isVisible)
+                    // When hdCamera is null we are preparing for some view-independent baking, so we consider all valid volumes visible.
+                    if (isViewDependent && isVisible)
                     {
-                        // TODO: cache these?
-                        var obb = new OrientedBBox(Matrix4x4.TRS(volume.position, volume.rotation, volume.parameters.size));
+                        float maskVolumeDepthFromCameraWS = Vector3.Dot(hdCamera.camera.transform.forward, volume.position - camPosition);
+                        isVisible = maskVolumeDepthFromCameraWS < Mathf.Min(globalDistanceFadeEnd, volume.parameters.distanceFadeEnd);
 
-                        // Handle camera-relative rendering.
-                        obb.center -= camOffset;
-
-                        // Frustum cull on the CPU for now. TODO: do it on the GPU.
-                        if (GeometryUtils.Overlap(obb, hdCamera.frustum, hdCamera.frustum.planes.Length, hdCamera.frustum.corners.Length))
+                        if (isVisible)
                         {
-                            var logVolume = CalculateMaskVolumeLogVolume(volume.parameters.size);
+                            // TODO: cache these?
+                            var obb = new OrientedBBox(Matrix4x4.TRS(volume.position, volume.rotation, volume.parameters.size));
 
-                            m_MaskVolumeSortKeys[sortCount++] = PackMaskVolumeSortKey(logVolume, maskVolumesIndex);
+                            // Handle camera-relative rendering.
+                            obb.center -= camOffset;
 
-                            isNeeded = true;
+                            // Frustum cull on the CPU for now. TODO: do it on the GPU.
+                            isVisible = GeometryUtils.Overlap(obb, hdCamera.frustum, hdCamera.frustum.planes.Length, hdCamera.frustum.corners.Length);
                         }
                     }
 
-                    if (!isNeeded)
+                    if (isVisible)
+                    {
+                        var logVolume = CalculateMaskVolumeLogVolume(volume.parameters.size);
+                        m_MaskVolumeSortKeys[sortCount++] = PackMaskVolumeSortKey(logVolume, maskVolumesIndex);
+                    }
+                    else
                     {
                         ReleaseMaskVolumeFromAtlas(volume);
                     }
@@ -626,7 +664,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // TODO: cache these?
                     var resolution = volume.GetResolution();
-                    var data = ConvertToEngineData(volume.parameters, resolution, globalDistanceFadeStart, globalDistanceFadeEnd);
+                    var data = ConvertToEngineData(volume.parameters, resolution, isViewDependent, globalDistanceFadeStart, globalDistanceFadeEnd);
 
                     m_VisibleMaskVolumeBounds.Add(obb);
                     m_VisibleMaskVolumeData.Add(data);
@@ -635,15 +673,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_VisibleMaskVolumeBoundsBuffer.SetData(m_VisibleMaskVolumeBounds);
                 s_VisibleMaskVolumeDataBuffer.SetData(m_VisibleMaskVolumeData);
 
-                // Fill the struct with pointers in order to share the data with the light loop.
-                maskVolumes.bounds = m_VisibleMaskVolumeBounds;
-                maskVolumes.data = m_VisibleMaskVolumeData;
-
                 // For now, only upload one volume per frame.
-                // This is done:
-                // 1) To timeslice upload cost across N frames for N volumes.
-                // 2) To avoid creating a sync point between compute buffer upload and each volume upload.
-                const int volumeUploadedToAtlasCapacity = 1;
+                // This is done to timeslice upload cost across N frames for N volumes.
+                // Uncap upload capacity when baking.
+                int volumeUploadedToAtlasCapacity = isViewDependent ? 1 : int.MaxValue;
                 int volumeUploadedToAtlasSHCount = 0;
 
                 for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
@@ -669,12 +702,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         break;
                     }
                 }
-
-                return;
             }
         }
         
-        MaskVolumeEngineData ConvertToEngineData(MaskVolumeArtistParameters parameters, Vector3Int resolution, float globalDistanceFadeStart, float globalDistanceFadeEnd)
+        MaskVolumeEngineData ConvertToEngineData(MaskVolumeArtistParameters parameters, Vector3Int resolution, bool useDistanceFade, float globalDistanceFadeStart, float globalDistanceFadeEnd)
         {
             MaskVolumeEngineData data = new MaskVolumeEngineData();
 
@@ -697,12 +728,20 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rcpNegFaceFade.x = Mathf.Min(1.0f / negativeFade.x, float.MaxValue);
             data.rcpNegFaceFade.z = Mathf.Min(1.0f / negativeFade.z, float.MaxValue);
 
-            float distanceFadeStart = Mathf.Min(globalDistanceFadeStart, parameters.distanceFadeStart);
-            float distanceFadeEnd = Mathf.Min(globalDistanceFadeEnd, parameters.distanceFadeEnd);
+            if (useDistanceFade)
+            {
+                float distanceFadeStart = Mathf.Min(globalDistanceFadeStart, parameters.distanceFadeStart);
+                float distanceFadeEnd = Mathf.Min(globalDistanceFadeEnd, parameters.distanceFadeEnd);
 
-            float distFadeLen = Mathf.Max(distanceFadeEnd - distanceFadeStart, 0.00001526f);
-            data.rcpDistFadeLen = 1.0f / distFadeLen;
-            data.endTimesRcpDistFadeLen = distanceFadeEnd * data.rcpDistFadeLen;
+                float distFadeLen = Mathf.Max(distanceFadeEnd - distanceFadeStart, 0.00001526f);
+                data.rcpDistFadeLen = 1.0f / distFadeLen;
+                data.endTimesRcpDistFadeLen = distanceFadeEnd * data.rcpDistFadeLen;
+            }
+            else
+            {
+                data.rcpDistFadeLen = 1.0f;
+                data.endTimesRcpDistFadeLen = float.MaxValue;
+            }
 
             data.scale = parameters.scale;
             data.bias = parameters.bias;

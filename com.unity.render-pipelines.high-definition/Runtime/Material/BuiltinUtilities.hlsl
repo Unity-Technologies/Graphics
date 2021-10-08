@@ -131,7 +131,7 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
 }
 
 #ifdef SHADERPASS
-#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
+#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD || SHADERPASS == SHADERPASS_DYNAMIC_GIDATA_SAMPLE || SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaskVolume/MaskVolume.hlsl"
 #endif
 #endif // #ifdef SHADERPASS
@@ -142,7 +142,7 @@ float3 SampleMaskVolume(float3 positionRWS, float3 normalWS)
     float3 mask = 0.0f;
 
 #ifdef SHADERPASS
-#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
+#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD || SHADERPASS == SHADERPASS_DYNAMIC_GIDATA_SAMPLE || SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
 
     // Need PositionInputs for indexing mask volume clusters, but they are not available from the current SampleMaskVolume() function signature.
     // Reconstruct.

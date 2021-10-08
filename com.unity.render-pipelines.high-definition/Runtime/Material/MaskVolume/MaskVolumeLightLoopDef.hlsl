@@ -97,7 +97,7 @@ uint MaskVolumeMaterialPassFetchIndex(uint lightStart, uint lightOffset)
 
 void MaskVolumeGetCountAndStart(PositionInputs posInput, out uint maskVolumeStart, out uint maskVolumeCount)
 {
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+#if !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS != SHADERPASS_DYNAMIC_GIDATA_SAMPLE && SHADERPASS != SHADERPASS_LIGHT_TRANSPORT
 
     // Access mask volume data from custom mask volume light list data structure.
     MaskVolumeMaterialPassGetCountAndStart(posInput, LIGHTCATEGORY_MASK_VOLUME, maskVolumeStart, maskVolumeCount);

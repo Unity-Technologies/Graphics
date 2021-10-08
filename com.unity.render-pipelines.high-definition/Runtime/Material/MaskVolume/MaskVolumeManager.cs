@@ -98,6 +98,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void IMaskVolumeList.SetMaskVolumeAtlasKeyPrevious(int i, MaskVolume.MaskVolumeAtlasKey key) => m_Volumes[i].SetMaskVolumeAtlasKeyPrevious(key);
 
         int IMaskVolumeList.GetDataSHL0Length(int i) => m_Volumes[i].GetPayload().dataSHL0.Length;
-        void IMaskVolumeList.SetDataSHL0(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().dataSHL0);
+        void IMaskVolumeList.SetDataSHL0(CommandBuffer cmd, int i, ComputeBuffer buffer) => cmd.SetComputeBufferData(buffer, m_Volumes[i].GetPayload().dataSHL0);
     }
 }
