@@ -667,8 +667,12 @@ namespace UnityEditor.Rendering.HighDefinition
                                 {
                                     using (new Handles.DrawingScope(shadowFrustumMatrix))
                                         DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, nearPlane, drawApex: false);
+                                    range = SliderLineHandle(Vector3.zero, Vector3.forward, range);
                                 }
-                                range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range); //also draw handles
+                                else
+                                {
+                                    range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range);
+                                }
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                 Handles.color = wireframeColorAbove;
                                 DrawAreaLightWireframe(widthHeight);
@@ -676,8 +680,12 @@ namespace UnityEditor.Rendering.HighDefinition
                                 {
                                     using (new Handles.DrawingScope(shadowFrustumMatrix))
                                         DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, nearPlane, drawApex: false);
+                                    range = SliderLineHandle(Vector3.zero, Vector3.forward, range);
                                 }
-                                range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range); //also draw handles
+                                else
+                                {
+                                    range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range);
+                                }
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = handleColorBehind;
                                 widthHeight = DrawAreaLightHandle(widthHeight, withYAxis);
