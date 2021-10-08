@@ -22,6 +22,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void SetMaskVolumeAtlasKeyPrevious(int i, MaskVolume.MaskVolumeAtlasKey key);
 
         int GetDataSHL0Length(int i);
-        void SetDataSHL0(int i, ComputeBuffer buffer);
+        void SetDataSHL0(CommandBuffer cmd, int i, ComputeBuffer buffer);
     }
 }

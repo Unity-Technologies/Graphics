@@ -65,8 +65,6 @@ namespace UnityEngine.Rendering.HighDefinition
         List<int> processingIdxToOutputIdx = new List<int>();
 
         internal RTHandle dummyColor;
-        internal ComputeBuffer readbackBuffer;
-        internal ComputeBuffer inputBuffer;
 
         private struct ProbeBakeNeighborData
         {
@@ -519,13 +517,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (passIdx >= 0)
             {
                 material.SetPass(passIdx);
-
-                // Globally set, very lazily :P
-                cmd.SetGlobalBuffer("_RequestsInputData", inputBuffer);
                 cmd.SetGlobalVector("_MaterialRequestsInfo", new Vector4(requestCount, startOfList, quadHeight, 0));
-
-                cmd.SetRandomWriteTarget(1, readbackBuffer);
-                cmd.SetRenderTarget(dummyColor);
                 HDUtils.DrawFullScreen(cmd, dummyDrawRect, material, dummyColor, null, passIdx);
             }
         }
@@ -544,8 +536,15 @@ namespace UnityEngine.Rendering.HighDefinition
             var cmd = CommandBufferPool.Get("Execute Dynamic GI extra data requests");
 
             // Alloc input to the max size
-            inputBuffer = new ComputeBuffer(maxSubListSize, Marshal.SizeOf<ExtraDataRequests>());
-            readbackBuffer = new ComputeBuffer(extraRequestsOutput.Count, Marshal.SizeOf<ExtraDataRequestOutput>());
+            var inputBuffer = new ComputeBuffer(maxSubListSize, Marshal.SizeOf<ExtraDataRequests>());
+            var readbackBuffer = new ComputeBuffer(extraRequestsOutput.Count, Marshal.SizeOf<ExtraDataRequestOutput>());
+
+            HDRenderPipeline.currentPipeline.PrepareGlobalMaskVolumeList(cmd);
+
+            // Globally set, very lazily :P
+            cmd.SetGlobalBuffer("_RequestsInputData", inputBuffer);
+            cmd.SetRandomWriteTarget(1, readbackBuffer);
+            cmd.SetRenderTarget(dummyColor);
 
             int currStart = 0;
             for (int subList = 0; subList < subListSizes.Count; ++subList)
@@ -558,12 +557,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     int itemsThisDraw = Mathf.Min(subListSize - draw * kMaxRequestsPerDraw, kMaxRequestsPerDraw);
                     // Fill input buffer to what is needed.
-                    List<ExtraDataRequests> inputs = new List<ExtraDataRequests>();
+                    ExtraDataRequests[] inputs = new ExtraDataRequests[itemsThisDraw];
                     for (int i = 0; i < itemsThisDraw; ++i)
                     {
-                        inputs.Add(sortedRequests[currStart + i].dataReq);
+                        inputs[i] = sortedRequests[currStart + i].dataReq;
                     }
-                    inputBuffer.SetData(inputs.ToArray(), 0, 0, itemsThisDraw);
+                    cmd.SetComputeBufferData(inputBuffer, inputs, 0, 0, itemsThisDraw);
 
                     ExecuteARequestList(cmd, sortedRequests[currStart].material, inputBuffer,  currStart, itemsThisDraw);
                     currStart += itemsThisDraw;
