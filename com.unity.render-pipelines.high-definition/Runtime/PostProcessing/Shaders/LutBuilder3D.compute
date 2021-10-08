@@ -4,7 +4,9 @@
 #pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB
 #pragma multi_compile_local GRADE_IN_SRGB GRADE_IN_ACESCG
 
-#define TONEMAPPING_ACES (defined(TONEMAPPING_ACES_APPROX) || defined(TONEMAPPING_ACES_FULL))
+#if (defined(TONEMAPPING_ACES_APPROX) || defined(TONEMAPPING_ACES_FULL))
+#define TONEMAPPING_ACES
+#endif
 #define TONEMAPPING_USE_FULL_ACES defined(TONEMAPPING_ACES_FULL)
 
 #pragma kernel KBuild
