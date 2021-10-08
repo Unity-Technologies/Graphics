@@ -3136,7 +3136,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Shadows
 
-    <size=8>Rasterization</size>'
+    <size=8>Ray Traced</size>'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 629ab6f6948c603418a378b3e3210d77, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 629ab6f6948c603418a378b3e3210d77, type: 2}
@@ -5099,13 +5099,13 @@ MonoBehaviour:
     - Only Directional lights offer the color shadow as
     an option.
 
-    - Semi-Transparent shadows are supported by Directionnal lights
+    - Semi-Transparent shadows are supported by Directional lights
     by default and punctuals lights (spotlight, point light) as an option.
 
 
     -
-    Only refractive materials cast colored shadows since its values are defined by
-    the transmittance color parameter.
+    Only refractive materials cast colored shadows since their values are defined
+    by the transmittance color parameter.
 
 
     - Transparent materials with a refraction
@@ -5951,7 +5951,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: A. Light types
+  m_text: Light types
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 629ab6f6948c603418a378b3e3210d77, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 629ab6f6948c603418a378b3e3210d77, type: 2}
@@ -6224,11 +6224,11 @@ MonoBehaviour:
   m_text: '<size=2>Limitations</size>
 
 
-    - Area Lights Ray Traced shadows does
-    not support semi-transparent and colored shadows. (A)
+    - Area Lights Ray Traced shadows do not
+    support semi-transparent and colored shadows. (A)
 
-    - Does not take into
-    account Mesh Renderer''s option "Cast Shadows: Two sided".'
+    - Does not take into account
+    Mesh Renderer''s option "Cast Shadows: Two sided".'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 629ab6f6948c603418a378b3e3210d77, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 629ab6f6948c603418a378b3e3210d77, type: 2}
@@ -6797,12 +6797,12 @@ MonoBehaviour:
 
     - Materials need to support Double Sided.
     If not, the ray will never exit the medium, resulting in extremely dark glass
-    in path tracing.
+    in path tracing. (D)
 
-    - For hollow objects, Normal Mode needs to be set to Flip.
-    (B)
+    - For hollow objects, Normal Mode needs to be set to
+    Flip.
 
-    - For solid objects, Normal Mode needs to be set to None. (B)'
+    - For solid objects, Normal Mode needs to be set to None.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 629ab6f6948c603418a378b3e3210d77, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 629ab6f6948c603418a378b3e3210d77, type: 2}
