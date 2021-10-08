@@ -123,8 +123,8 @@ void RayGen()
 
     // Jitter them (we use 4x10 dimensions of our sequence during path tracing atm, so pick the next available ones)
     float4 jitteredPixelCoord = float4(pixelCoord, 1.0, 1.0);
-    jitteredPixelCoord.x += GetSample(pixelCoord, _RaytracingSampleIndex, 40) / tileCount.x;
-    jitteredPixelCoord.y += GetSample(pixelCoord, _RaytracingSampleIndex, 41) / tileCount.y;
+    jitteredPixelCoord.x += (GetSample(pixelCoord, _RaytracingSampleIndex, 40) + tileIndex.x) / tileCount.x;
+    jitteredPixelCoord.y += (GetSample(pixelCoord, _RaytracingSampleIndex, 41) + tileIndex.y) / tileCount.y;
 
     // Create the ray descriptor for this pixel
     RayDesc ray;
