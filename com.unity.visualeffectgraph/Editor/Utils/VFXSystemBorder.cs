@@ -128,11 +128,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        bool IsDifferenceTooSmall(float x, float y)
+        {
+            return Mathf.Abs(x - y) < 1f;
+        }
+
         void OnTitleRelayout(GeometryChangedEvent e)
         {
-            Rect oldRoundedRect = new Rect(Mathf.Floor(e.oldRect.x), Mathf.Floor(e.oldRect.y), Mathf.Floor(e.oldRect.width), Mathf.Floor(e.oldRect.height));
-            Rect newRoundedRect = new Rect(Mathf.Floor(e.newRect.x), Mathf.Floor(e.newRect.y), Mathf.Floor(e.newRect.width), Mathf.Floor(e.newRect.height));
-            if (oldRoundedRect == newRoundedRect)
+            if (IsDifferenceTooSmall(e.oldRect.x, e.newRect.x) &&
+                IsDifferenceTooSmall(e.oldRect.y, e.newRect.y) &&
+                IsDifferenceTooSmall(e.oldRect.width, e.newRect.height) &&
+                IsDifferenceTooSmall(e.oldRect.height, e.newRect.height))
             {
                 return;
             }
@@ -192,7 +198,6 @@ namespace UnityEditor.VFX.UI
         }
 
         public bool m_WaitingRecompute;
-        private Rect m_previousBounds;
 
         public void RecomputeBounds()
         {
@@ -236,21 +241,21 @@ namespace UnityEditor.VFX.UI
             if (float.IsNaN(rect.xMin) || float.IsNaN(rect.yMin) || float.IsNaN(rect.width) || float.IsNaN(rect.height))
             {
                 rect = Rect.zero;
-                shouldDeferRecompute = true;
             }
 
             rect = RectUtils.Inflate(rect, 20, titleEmpty ? 20 : m_Title.layout.height, 20, 20);
-            rect = new Rect(Mathf.Floor(rect.x), Mathf.Floor(rect.y), Mathf.Floor(rect.width), Mathf.Floor(rect.height));
-            if (rect != m_previousBounds)
+            if (shouldDeferRecompute)
             {
                 SetPosition(rect);
-                m_previousBounds = rect;
+                if (!m_WaitingRecompute)
+                {
+                    m_WaitingRecompute = true;
+                    schedule.Execute(() => { m_WaitingRecompute = false; RecomputeBounds(); }).ExecuteLater(0); // title height might have changed if width have changed
+                }
             }
-
-            if (shouldDeferRecompute && !m_WaitingRecompute)
+            else
             {
-                m_WaitingRecompute = true;
-                schedule.Execute(() => { m_WaitingRecompute = false; RecomputeBounds(); }).ExecuteLater(0); // title height might have changed if width have changed
+                SetPosition(rect);
             }
         }
 
