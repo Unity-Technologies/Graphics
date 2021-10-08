@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-#if defined(__BUILTINGIUTILITIES_HLSL__) && defined(SHADERPASS) && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)
+#if defined(__BUILTINGIUTILITIES_HLSL__) && defined(SHADERPASS) && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD || SHADERPASS == SHADERPASS_DYNAMIC_GIDATA_SAMPLE || SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
     Out = SampleMaskVolume(Position, Normal);
 #else
     Out = 0;
