@@ -54,7 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Procedural Virtual Texture compatibility with SRP Batcher [1329336] (https://issuetracker.unity3d.com/issues/procedural-virtual-texture-node-will-make-a-shadergraph-incompatible-with-srp-batcher)
 - Fixed an issue where SubGraph keywords would not deduplicate before counting towards the permutation limit [1343528] (https://issuetracker.unity3d.com/issues/shader-graph-graph-is-generating-too-many-variants-error-is-thrown-when-using-subgraphs-with-keywords)
 - Fixed a serialization bug wrt PVT property flags when using subgraphs. This fixes SRP batcher compatibility.
-
+- Fixed ShaderGraph errors caused by very large or very small default values for color or float properties [1313932]
 
 ## [10.3.0] - 2020-11-03
 
