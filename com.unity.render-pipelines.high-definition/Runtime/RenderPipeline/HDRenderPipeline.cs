@@ -199,9 +199,28 @@ namespace UnityEngine.Rendering.HighDefinition
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
         }
 
-        static bool HDROutputIsActive(HDCamera camera)
+        static bool HDROutputIsActive()
         {
-            return HDROutputSettings.main.active && camera.camera.cameraType == CameraType.Game;
+            return HDROutputSettings.main.active;
+        }
+
+        void SetHDRState(HDCamera camera)
+        {
+#if UNITY_EDITOR
+            bool hdrInPlayerSettings = UnityEditor.PlayerSettings.useHDRDisplay;
+            if (hdrInPlayerSettings && HDROutputSettings.main.available)
+            {
+                if (camera.camera.cameraType != CameraType.Game)
+                    HDROutputSettings.main.RequestHDRModeChange(false);
+                else
+                    HDROutputSettings.main.RequestHDRModeChange(true);
+            }
+#endif
+            // Make sure HDR auto tonemap is off
+            if (HDROutputSettings.main.active)
+            {
+                HDROutputSettings.main.automaticHDRTonemapping = false;
+            }
         }
 
         readonly SkyManager m_SkyManager = new SkyManager();
@@ -1948,12 +1967,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Updates RTHandle
             hdCamera.BeginRender(cmd);
 
-            // Make sure HDR auto tonemap is off
-            if (HDROutputSettings.main.active)
-            {
-                HDROutputSettings.main.automaticHDRTonemapping = false;
-            }
-
+            SetHDRState(hdCamera);
 
             if (m_RayTracingSupported)
             {

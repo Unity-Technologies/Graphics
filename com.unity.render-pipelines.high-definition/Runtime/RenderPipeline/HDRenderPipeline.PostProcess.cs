@@ -406,7 +406,8 @@ namespace UnityEngine.Rendering.HighDefinition
                    m_SplitToning.GetHashCode() * 23 +
                    m_LiftGammaGain.GetHashCode() * 23 +
                    m_ShadowsMidtonesHighlights.GetHashCode() * 23 +
-                   m_Curves.GetHashCode();
+                   m_Curves.GetHashCode() * 23 +
+                   HDROutputIsActive().GetHashCode();
         }
 
         static void ValidateComputeBuffer(ref ComputeBuffer cb, int size, int stride, ComputeBufferType type = ComputeBufferType.Default)
@@ -537,7 +538,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = LensFlareDataDrivenPass(renderGraph, hdCamera, source);
 
                 TextureHandle bloomTexture = BloomPass(renderGraph, hdCamera, source);
-                TextureHandle logLutOutput = ColorGradingPass(renderGraph, hdCamera);
+                TextureHandle logLutOutput = ColorGradingPass(renderGraph);
                 source = UberPass(renderGraph, hdCamera, logLutOutput, bloomTexture, source);
                 PushFullScreenDebugTexture(renderGraph, source, hdCamera.postProcessRTScales, FullScreenDebugMode.ColorLog);
 
@@ -3889,11 +3890,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle logLut;
         }
 
-        void PrepareColorGradingParameters(ColorGradingPassData passData, HDCamera camera)
+        void PrepareColorGradingParameters(ColorGradingPassData passData)
         {
             passData.tonemappingMode = m_TonemappingFS ? m_Tonemapping.mode.value : TonemappingMode.None;
             bool tonemappingIsActive = m_Tonemapping.IsActive() && m_TonemappingFS;
-            if (HDROutputIsActive(camera) && m_TonemappingFS)
+            if (HDROutputIsActive() && m_TonemappingFS)
             {
                 passData.tonemappingMode = m_Tonemapping.GetHDRTonemappingMode();
                 tonemappingIsActive = m_TonemappingFS && passData.tonemappingMode != TonemappingMode.None;
@@ -3920,7 +3921,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.builderCS.EnableKeyword("TONEMAPPING_NONE");
             }
 
-            if (HDROutputIsActive(camera) && m_TonemappingFS)
+            if (HDROutputIsActive() && m_TonemappingFS)
             {
                 if (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709)
                 {
@@ -4133,7 +4134,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: This can easily go async.
-        TextureHandle ColorGradingPass(RenderGraph renderGraph, HDCamera hdCamera)
+        TextureHandle ColorGradingPass(RenderGraph renderGraph)
         {
             TextureHandle logLut = renderGraph.ImportTexture(m_GradingAndTonemappingLUT);
 
@@ -4149,7 +4150,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<ColorGradingPassData>("Color Grading", out var passData, ProfilingSampler.Get(HDProfileId.ColorGradingLUTBuilder)))
             {
-                PrepareColorGradingParameters(passData, hdCamera);
+                PrepareColorGradingParameters(passData);
                 passData.logLut = builder.WriteTexture(logLut);
 
                 builder.SetRenderFunc(
@@ -4456,7 +4457,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.uberPostCS.EnableKeyword("GAMMA2_OUTPUT");
                 }
 
-                if (HDROutputIsActive(hdCamera))
+                if (HDROutputIsActive())
                 {
                     if (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709)
                     {
@@ -4817,6 +4818,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public Vector4 hdroutParameters;
             public Vector4 hdroutParameters2;
+            public int outputColorSpace;
 
             public TextureHandle inputTest;
 
@@ -4847,7 +4849,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.viewportSize = postProcessViewportSize;
 
                 // Film Grain
-                passData.filmGrainEnabled = m_FilmGrain.IsActive() && m_FilmGrainFS && !HDROutputIsActive(hdCamera); // TODO: Investigate how to make grain work with HDR.
+                passData.filmGrainEnabled = m_FilmGrain.IsActive() && m_FilmGrainFS && !HDROutputIsActive(); // TODO: Investigate how to make grain work with HDR.
                 if (m_FilmGrain.type.value != FilmGrainLookup.Custom)
                     passData.filmGrainTexture = defaultResources.textures.filmGrainTex[(int)m_FilmGrain.type.value];
                 else
@@ -4856,7 +4858,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.filmGrainResponse = m_FilmGrain.response.value;
 
                 // Dithering
-                passData.ditheringEnabled = hdCamera.dithering && m_DitheringFS && !HDROutputIsActive(hdCamera);
+                passData.ditheringEnabled = hdCamera.dithering && m_DitheringFS && !HDROutputIsActive();
 
                 passData.source = builder.ReadTexture(source);
                 passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
@@ -4864,8 +4866,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.destination = builder.WriteTexture(finalRT);
                 passData.uiBuffer = builder.ReadTexture(uiBuffer);
 
-                if (HDROutputIsActive(hdCamera))
+                passData.outputColorSpace = 0;
+                if (HDROutputIsActive())
                 {
+                    // This looks dumb now that we only have two options, but we'll have more at some point.
+                    passData.outputColorSpace = HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709 ? 0 :
+                                                HDROutputSettings.main.displayColorGamut == ColorGamut.Rec2020 ? 1 : 0;
                     GetHDROutputParameters(m_Tonemapping, out passData.hdroutParameters, out passData.hdroutParameters2);
                 }
 
@@ -4957,11 +4963,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             finalPassMaterial.DisableKeyword("ENABLE_ALPHA");
 
-                        // TODO_FCC: IMPORTANT! FIX OR IT WILL CAPTURE.
-                        bool processHDR = HDROutputIsActive(hdCamera) && HDUtils.PostProcessIsFinalPass(data.hdCamera);
+                        bool processHDR = HDROutputIsActive() && HDUtils.PostProcessIsFinalPass(data.hdCamera);
                         if (processHDR)
                         {
-                            if (HDROutputSettings.main.active && HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709)
+                            if (data.outputColorSpace == 0)
                             {
                                 finalPassMaterial.EnableKeyword("HDR_OUTPUT_SCRGB");
                             }
@@ -5000,7 +5005,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             finalPassMaterial.EnableKeyword("APPLY_AFTER_POST");
                             finalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, data.afterPostProcessTexture);
                         }
-                        else if (!HDROutputIsActive(data.hdCamera) && data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
+                        else if (!HDROutputIsActive() && data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
                         {
                             finalPassMaterial.EnableKeyword("APPLY_AFTER_POST");
                             finalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, data.afterPostProcessTexture);
