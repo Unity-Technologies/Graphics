@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="vrUsage">Special treatment of the VR eye texture used in stereoscopic rendering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns></returns>
         public static RTHandle Alloc(
@@ -64,6 +65,7 @@ namespace UnityEngine.Rendering
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
             string name = ""
         )
         {
@@ -86,6 +88,7 @@ namespace UnityEngine.Rendering
                 bindTextureMS,
                 useDynamicScale,
                 memoryless,
+                vrUsage,
                 name
             );
         }
@@ -111,7 +114,7 @@ namespace UnityEngine.Rendering
             string name = ""
         )
         {
-            return s_DefaultInstance.Alloc(
+            var result = s_DefaultInstance.Alloc(
                 descriptor.width,
                 descriptor.height,
                 descriptor.volumeDepth,
@@ -130,8 +133,10 @@ namespace UnityEngine.Rendering
                 descriptor.bindMS,
                 descriptor.useDynamicScale,
                 descriptor.memoryless,
+                descriptor.vrUsage,
                 name
             );
+            return result;
         }
 
         /// <summary>
@@ -154,6 +159,7 @@ namespace UnityEngine.Rendering
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="vrUsage">Special treatment of the VR eye texture used in stereoscopic rendering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns>A new RTHandle.</returns>
         public static RTHandle Alloc(
@@ -174,6 +180,7 @@ namespace UnityEngine.Rendering
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
             string name = ""
         )
         {
@@ -195,6 +202,7 @@ namespace UnityEngine.Rendering
                 bindTextureMS,
                 useDynamicScale,
                 memoryless,
+                vrUsage,
                 name
             );
         }
@@ -240,6 +248,7 @@ namespace UnityEngine.Rendering
                 descriptor.bindMS,
                 descriptor.useDynamicScale,
                 descriptor.memoryless,
+                descriptor.vrUsage,
                 name
             );
         }
@@ -264,6 +273,7 @@ namespace UnityEngine.Rendering
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="vrUsage">Special treatment of the VR eye texture used in stereoscopic rendering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns></returns>
         public static RTHandle Alloc(
@@ -284,6 +294,7 @@ namespace UnityEngine.Rendering
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
             string name = ""
         )
         {
@@ -305,6 +316,7 @@ namespace UnityEngine.Rendering
                 bindTextureMS,
                 useDynamicScale,
                 memoryless,
+                vrUsage,
                 name
             );
         }
@@ -352,6 +364,7 @@ namespace UnityEngine.Rendering
                 descriptor.bindMS,
                 descriptor.useDynamicScale,
                 descriptor.memoryless,
+                descriptor.vrUsage,
                 name
             );
         }

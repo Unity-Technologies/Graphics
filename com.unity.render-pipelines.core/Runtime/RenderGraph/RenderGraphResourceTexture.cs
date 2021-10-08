@@ -136,6 +136,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool useDynamicScale;
         ///<summary>Memory less flag.</summary>
         public RenderTextureMemoryless memoryless;
+        ///<summary>Special treatment of the VR eye texture used in stereoscopic rendering.</summary>
+        public VRTextureUsage vrUsage;
         ///<summary>Texture name.</summary>
         public string name;
 #if UNITY_2020_2_OR_NEWER
@@ -159,11 +161,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 slices = TextureXR.slices;
                 dimension = TextureXR.dimension;
+                vrUsage = VRTextureUsage.TwoEyes;
             }
             else
             {
                 slices = 1;
                 dimension = TextureDimension.Tex2D;
+                vrUsage = VRTextureUsage.None;
             }
         }
 
@@ -207,7 +211,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// TextureDesc constructor for a texture using a functor for scaling
         /// </summary>
-        /// <param name="func">Function used to determnine the texture size</param>
+        /// <param name="func">Function used to determine the texture size</param>
         /// <param name="dynamicResolution">Use dynamic resolution</param>
         /// <param name="xrReady">Set this to true if the Texture is a render texture in an XR setting.</param>
         public TextureDesc(ScaleFunc func, bool dynamicResolution = false, bool xrReady = false)
@@ -265,6 +269,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 hashCode = hashCode * 23 + (int)wrapMode;
                 hashCode = hashCode * 23 + (int)dimension;
                 hashCode = hashCode * 23 + (int)memoryless;
+                hashCode = hashCode * 23 + (int)vrUsage;
                 hashCode = hashCode * 23 + anisoLevel;
                 hashCode = hashCode * 23 + (enableRandomWrite ? 1 : 0);
                 hashCode = hashCode * 23 + (useMipMap ? 1 : 0);
@@ -346,15 +351,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 case TextureSizeMode.Explicit:
                     graphicsResource = RTHandles.Alloc(desc.width, desc.height, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, desc.vrUsage, name);
                     break;
                 case TextureSizeMode.Scale:
                     graphicsResource = RTHandles.Alloc(desc.scale, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, desc.vrUsage, name);
                     break;
                 case TextureSizeMode.Functor:
                     graphicsResource = RTHandles.Alloc(desc.func, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, desc.vrUsage, name);
                     break;
             }
         }
