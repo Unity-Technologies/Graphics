@@ -179,8 +179,8 @@ namespace UnityEditor.Experimental.Rendering
             if (serialized.highestSubdivisionLevelOverride.intValue < 0)
                 serialized.highestSubdivisionLevelOverride.intValue = maxSubdiv;
 
-            serialized.highestSubdivisionLevelOverride.intValue = EditorGUILayout.IntSlider(Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride.intValue, 0, maxSubdiv);
-            serialized.lowestSubdivisionLevelOverride.intValue = EditorGUILayout.IntSlider(Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride.intValue, 0, maxSubdiv);
+            serialized.highestSubdivisionLevelOverride.intValue = Mathf.Min(maxSubdiv, EditorGUILayout.IntSlider(Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride.intValue, 0, maxSubdiv));
+            serialized.lowestSubdivisionLevelOverride.intValue = Mathf.Min(maxSubdiv, EditorGUILayout.IntSlider(Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride.intValue, 0, maxSubdiv));
             serialized.lowestSubdivisionLevelOverride.intValue = Mathf.Min(serialized.lowestSubdivisionLevelOverride.intValue, serialized.highestSubdivisionLevelOverride.intValue);
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();

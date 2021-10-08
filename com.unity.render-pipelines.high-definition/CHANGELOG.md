@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decal position when created from context menu. (case 1368987)
 - Fixed the clouds not taking properly into account the fog when in distant mode and with a close far plane (case 1367993).
 - Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
+- Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
+- Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
 
 ## [13.0.0] - 2021-09-01
 

@@ -518,6 +518,15 @@ namespace UnityEngine.Experimental.Rendering
         // Information of the probe volume asset that is being loaded (if one is pending)
         Dictionary<string, ProbeVolumeAsset> m_ActiveAssets = new Dictionary<string, ProbeVolumeAsset>();
 
+
+        // Ref counting here as a separate dictionary as a temporary measure to facilitate future changes that will soon go in.
+        // cell.index, refCount
+        Dictionary<int, int> m_CellRefCounting = new Dictionary<int, int>();
+        void InvalidateAllCellRefs()
+        {
+            m_CellRefCounting.Clear();
+        }
+
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
         bool m_EnabledBySRP = false;
@@ -658,7 +667,18 @@ namespace UnityEngine.Experimental.Rendering
 
         void RemoveCell(Cell cell)
         {
-            if (cells.TryGetValue(cell.index, out var cellInfo))
+            bool needsRemoving = true;
+            if (m_CellRefCounting.ContainsKey(cell.index))
+            {
+                m_CellRefCounting[cell.index]--;
+                needsRemoving = m_CellRefCounting[cell.index] <= 0;
+                if (needsRemoving)
+                {
+                    m_CellRefCounting[cell.index] = 0;
+                }
+            }
+
+            if (needsRemoving && cells.TryGetValue(cell.index, out var cellInfo))
             {
                 cells.Remove(cell.index);
 
@@ -710,6 +730,11 @@ namespace UnityEngine.Experimental.Rendering
 
         internal void AddCell(Cell cell, int assetInstanceID)
         {
+            if (m_CellRefCounting.ContainsKey(cell.index))
+                m_CellRefCounting[cell.index]++;
+            else
+                m_CellRefCounting.Add(cell.index, 1);
+
             // The same cell can exist in more than one asset
             // Need to check existence because we don't want to add cells more than once to streaming structures
             // TODO: Check perf if relevant?
@@ -937,6 +962,9 @@ namespace UnityEngine.Experimental.Rendering
             // Load the ones that are already active but reload if we said we need to load
             if (m_HasChangedIndex)
             {
+                // We changed index so all assets are going to be re-loaded, hence the refs will be repopulated from scratch
+                InvalidateAllCellRefs();
+
                 foreach (var asset in m_ActiveAssets.Values)
                 {
                     LoadAsset(asset);
