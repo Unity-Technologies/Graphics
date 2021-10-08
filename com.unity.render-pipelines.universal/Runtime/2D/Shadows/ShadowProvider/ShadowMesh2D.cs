@@ -28,16 +28,17 @@ namespace UnityEngine.Rendering.Universal
         public  EdgeProcessing edgeProcessing { get { return m_EdgeProcessing; } set { m_EdgeProcessing = value; } }
         public float contractEdge { get { return m_ContractEdge; } set { m_ContractEdge = value; } }
 
-        private void AddCircle(Vector3 center, float r, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, ref int vertexWritePos, ref int indexWritePos)
+        private void AddCircle(Vector3 center, float r, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, bool reverseWindingOrder, ref int vertexWritePos, ref int indexWritePos)
         {
+            float direction = reverseWindingOrder ? 1 : -1;
+
             // Special case a full circle
             float segments = 2 * k_CapsuleCapSegments;
-            float deltaAngle = 2 * Mathf.PI;
             float angle;
             int startWritePos = vertexWritePos;
             for (int i = 0; i < segments; i++)
             {
-                angle = -(deltaAngle * (float)i / (float)segments);
+                angle = direction * (2 * Mathf.PI * (float)i / (float)segments);
                 float x = r * Mathf.Cos(angle) + center.x;
                 float y = r * Mathf.Sin(angle) + center.y;
                 generatedIndices[indexWritePos++] = vertexWritePos;
@@ -46,7 +47,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void AddCapsuleCap(Vector3 center, float r, Vector3 otherCenter, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, ref int vertexWritePos, ref int indexWritePos)
+        private void AddCapsuleCap(Vector3 center, float r, Vector3 otherCenter, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, bool reverseWindingOrder, ref int vertexWritePos, ref int indexWritePos)
         {
             float startAngle;
             float endAngle;
@@ -59,9 +60,18 @@ namespace UnityEngine.Rendering.Universal
             float centerAngle = absCenterAngle * angleSign;
 
             // This is hard coded for a half circle
-            float ThreeHalfsPI = 1.5f * Mathf.PI;
-            startAngle = centerAngle + ThreeHalfsPI;
-            endAngle = startAngle - Mathf.PI;
+            if (reverseWindingOrder)
+            {
+                float HalfPI = 0.5f * Mathf.PI;
+                startAngle = centerAngle + HalfPI;
+                endAngle = startAngle + Mathf.PI;
+            }
+            else
+            {
+                float ThreeHalfsPI = 1.5f * Mathf.PI;
+                startAngle = centerAngle + ThreeHalfsPI;
+                endAngle = startAngle - Mathf.PI;
+            }
 
             float deltaAngle = endAngle - startAngle;
             float angle;
@@ -79,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
             generatedVertices[vertexWritePos++] = new Vector3(r * Mathf.Cos(angle) + center.x, r * Mathf.Sin(angle) + center.y, 0);
         }
 
-        private void AddCapsule(Vector3 pt0, Vector3 pt1, float r0, float r1, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, ref int vertexWritePos, ref int indexWritePos)
+        private void AddCapsule(Vector3 pt0, Vector3 pt1, float r0, float r1, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, bool reverseWindingOrder, ref int vertexWritePos, ref int indexWritePos)
         {
             // Add Straight Segments
             Vector3 delta = (pt1 - pt0).normalized;
@@ -96,10 +106,10 @@ namespace UnityEngine.Rendering.Universal
             int circle0Start = vertexWritePos;
 
             // Add circles
-            AddCapsuleCap(pt0, r0, pt1, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
+            AddCapsuleCap(pt0, r0, pt1, generatedVertices, generatedIndices, reverseWindingOrder, ref vertexWritePos, ref indexWritePos);
             generatedIndices[indexWritePos++] = vertexWritePos - 1;
             generatedIndices[indexWritePos++] = vertexWritePos;
-            AddCapsuleCap(pt1, r1, pt0, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
+            AddCapsuleCap(pt1, r1, pt0, generatedVertices, generatedIndices, reverseWindingOrder, ref vertexWritePos, ref indexWritePos);
             generatedIndices[indexWritePos++] = vertexWritePos - 1;
             generatedIndices[indexWritePos++] = circle0Start;
         }
@@ -139,8 +149,7 @@ namespace UnityEngine.Rendering.Universal
             return indexToProcess;
         }
 
-        public override void SetShapeFromCapsules(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii)
-        {
+        public override void SetShapeFromCapsules(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, IShadowShape2DProvider.WindingOrder windingOrder = IShadowShape2DProvider.WindingOrder.Clockwise, bool allowContraction = true)        {
             if (m_Mesh == null)
                 m_Mesh = new Mesh();
 
@@ -149,6 +158,9 @@ namespace UnityEngine.Rendering.Universal
                 m_Mesh.Clear();
                 return;
             }
+
+            bool reverseWindingOrder = windingOrder == IShadowShape2DProvider.WindingOrder.CounterClockwise;
+
 
             int circleCount = 0;
             int capsuleCount = 0;
@@ -194,9 +206,9 @@ namespace UnityEngine.Rendering.Universal
                     Vector3 pt1 = vertices[v1];
 
                     if (vertices[v0].x == vertices[v1].x && vertices[v0].y == vertices[v1].y)
-                        AddCircle(pt0, r0, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
+                        AddCircle(pt0, r0, generatedVertices, generatedIndices, reverseWindingOrder, ref vertexWritePos, ref indexWritePos);
                     else
-                        AddCapsule(pt0, pt1, r0, r1, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
+                        AddCapsule(pt0, pt1, r0, r1, generatedVertices, generatedIndices, reverseWindingOrder, ref vertexWritePos, ref indexWritePos);
 
                     indicesProcessed += 2;
                 }
@@ -212,6 +224,9 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<bool> calculatedIsClosedArray;
 
             ShadowUtility.CalculateEdgesFromLines(generatedIndices, out calculatedEdges, out calculatedStartingEdges, out calculatedIsClosedArray);
+
+            if(reverseWindingOrder)
+                ShadowUtility.ReverseWindingOrder(calculatedStartingEdges, calculatedEdges);
 
             if (m_EdgeProcessing == EdgeProcessing.Clipping)
             {
@@ -245,7 +260,7 @@ namespace UnityEngine.Rendering.Universal
             calculatedStartingEdges.Dispose();
         }
 
-        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, IShadowShape2DProvider.OutlineTopology outlineTopology, bool allowContraction = true)
+        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, IShadowShape2DProvider.OutlineTopology outlineTopology, IShadowShape2DProvider.WindingOrder windingOrder = IShadowShape2DProvider.WindingOrder.Clockwise, bool allowContraction = true)
         {
             NativeArray<ShadowEdge> edges;
             NativeArray<int> shapeStartingIndices;
@@ -268,6 +283,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 ShadowUtility.CalculateEdgesFromLines(indices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
             }
+
+            if (windingOrder == IShadowShape2DProvider.WindingOrder.CounterClockwise)
+                ShadowUtility.ReverseWindingOrder(shapeStartingIndices, edges);
 
             // It would be better if we don't have to rerun SetShape after a contractEdge change.
             if (m_EdgeProcessing == EdgeProcessing.Clipping && allowContraction)
@@ -295,7 +313,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void SetShapeWithLines(NativeArray<Vector3> vertices, NativeArray<int> indices, bool allowContraction)
         {
-            SetShape(vertices, indices, IShadowShape2DProvider.OutlineTopology.Lines, allowContraction);
+            SetShape(vertices, indices, IShadowShape2DProvider.OutlineTopology.Lines, allowContraction: allowContraction);
         }
 
         public override void UpdateVertices(NativeArray<Vector3> vertices)

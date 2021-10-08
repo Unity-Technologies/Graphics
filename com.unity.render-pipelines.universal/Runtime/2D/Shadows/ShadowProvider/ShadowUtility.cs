@@ -444,7 +444,7 @@ namespace UnityEngine.Rendering.Universal
             InitializeShapeIsClosedArray(outShapeStartingEdge, out outShapeIsClosedArray);
         }
 
-        static public void ReverseWindingOrder(NativeArray<Vector3> inVertices, NativeArray<int> inShapeStartingEdge, NativeArray<ShadowEdge> inOutSortedEdges)
+        static public void ReverseWindingOrder(NativeArray<int> inShapeStartingEdge, NativeArray<ShadowEdge> inOutSortedEdges)
         {
             for (int shapeIndex = 0; shapeIndex < inShapeStartingEdge.Length; shapeIndex++)
             {
@@ -452,7 +452,7 @@ namespace UnityEngine.Rendering.Universal
                 if (startingIndex < 0)
                     return;
 
-                int endIndex = inShapeStartingEdge.Length;
+                int endIndex = inOutSortedEdges.Length;
                 if ((shapeIndex + 1) < inShapeStartingEdge.Length && inShapeStartingEdge[shapeIndex + 1] > -1)
                     endIndex = inShapeStartingEdge[shapeIndex + 1];
 
