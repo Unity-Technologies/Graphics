@@ -158,6 +158,11 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             string path = AssetDatabase.GUIDToAssetPath(m_GraphData.assetGuid);
+
+            // Send an action about our current variant usage. This will either add or clear a warning if it exists
+            var action = new ShaderVariantLimitAction(shaderKeywords.permutations.Count, ShaderGraphPreferences.variantLimit);
+            m_GraphData.owner?.graphDataStore?.Dispatch(action);
+
             if (shaderKeywords.permutations.Count > ShaderGraphPreferences.variantLimit)
             {
                 string graphName = "";
@@ -172,6 +177,8 @@ namespace UnityEditor.ShaderGraph
 
                 m_ConfiguredTextures = shaderProperties.GetConfiguredTextures();
                 m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader.Replace("Hidden/GraphErrorShader2", graphName));
+                // Don't continue building the shader, we've already built an error shader.
+                return;
             }
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())

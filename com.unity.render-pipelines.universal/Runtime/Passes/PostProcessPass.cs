@@ -955,9 +955,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)Screen.width, (float)Screen.height,
                 usePanini, paniniDistance, paniniCropToFit,
                 true,
+                camera.transform.position,
                 gpuVP,
                 cmd, source,
                 (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
+                ShaderConstants._FlareOcclusionTex, ShaderConstants._FlareOcclusionIndex,
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
                 ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
                 false);
@@ -1537,6 +1539,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _UserLut = Shader.PropertyToID("_UserLut");
             public static readonly int _DownSampleScaleFactor = Shader.PropertyToID("_DownSampleScaleFactor");
 
+            public static readonly int _FlareOcclusionTex = Shader.PropertyToID("_FlareOcclusionTex");
+            public static readonly int _FlareOcclusionIndex = Shader.PropertyToID("_FlareOcclusionIndex");
             public static readonly int _FlareTex = Shader.PropertyToID("_FlareTex");
             public static readonly int _FlareColorValue = Shader.PropertyToID("_FlareColorValue");
             public static readonly int _FlareData0 = Shader.PropertyToID("_FlareData0");
