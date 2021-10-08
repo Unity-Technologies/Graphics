@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // We don't want distortion in Lit
             new TransparencyUIBlock(MaterialUIBlock.ExpandableBit.Transparency, features: TransparencyUIBlock.Features.All & ~TransparencyUIBlock.Features.Distortion),
             new EmissionUIBlock(MaterialUIBlock.ExpandableBit.Emissive),
-            new LitAdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, AdvancedOptionsUIBlock.Features.StandardLit),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, AdvancedOptionsUIBlock.Features.StandardLit),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
