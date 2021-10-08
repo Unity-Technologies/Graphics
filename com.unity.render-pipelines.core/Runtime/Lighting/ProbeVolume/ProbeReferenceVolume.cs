@@ -728,7 +728,7 @@ namespace UnityEngine.Experimental.Rendering
             m_LoadedCells.Clear();
         }
 
-        internal void AddCell(Cell cell, int assetInstanceID)
+        void AddCell(Cell cell, int assetInstanceID)
         {
             if (m_CellRefCounting.ContainsKey(cell.index))
                 m_CellRefCounting[cell.index]++;

@@ -8,6 +8,7 @@ using UnityEditor;
 
 using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
 using CellInfo = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.CellInfo;
+using Cell = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.Cell;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
 
@@ -62,6 +63,7 @@ namespace UnityEngine.Experimental.Rendering
         static bool onAdditionalProbesBakeCompletedCalled = false;
 
         static Dictionary<Vector3Int, int> m_CellPosToIndex = new Dictionary<Vector3Int, int>();
+        static Dictionary<int, Cell> m_BakedCells = new Dictionary<int, Cell>();
 
         static ProbeGIBaking()
         {
@@ -302,6 +304,9 @@ namespace UnityEngine.Experimental.Rendering
 
             if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f)
             {
+                // Make sure all assets are loaded before performing dilation.
+                prv.PerformPendingOperations();
+
                 // Force maximum sh bands to perform dilation, we need to store what sh bands was selected from the settings as we need to restore
                 // post dilation.
                 var prevSHBands = prv.shBands;
@@ -310,8 +315,6 @@ namespace UnityEngine.Experimental.Rendering
                 // TODO: This loop is very naive, can be optimized, but let's first verify if we indeed want this or not.
                 for (int iterations = 0; iterations < dilationSettings.dilationIterations; ++iterations)
                 {
-                    // Make sure all assets are loaded before performing dilation.
-                    prv.PerformPendingOperations();
                     // Try to load all available cells to the GPU. Might not succeed depending on the memory budget.
                     prv.LoadAllCells();
 
@@ -448,6 +451,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_CellPosToIndex.Clear();
+            m_BakedCells.Clear();
 
             // Clear baked data
             Clear();
@@ -473,7 +477,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
-                cell.minSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision();
+                cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
 
                 for (int i = 0; i < numProbes; ++i)
                 {
@@ -541,7 +545,7 @@ namespace UnityEngine.Experimental.Rendering
                 cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell, out var minValidLocalIdxAtMaxRes, out var sizeOfValidIndicesAtMaxRes);
                 cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Count);
 
-                probeRefVolume.AddCell(cell, -1);
+                m_BakedCells[cell.index] = cell;
                 UnityEngine.Profiling.Profiler.EndSample();
             }
 
@@ -563,9 +567,8 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // Put cells into the respective assets
-            foreach (var cellInfo in probeRefVolume.cells.Values)
+            foreach (var cell in m_BakedCells.Values)
             {
-                var cell = cellInfo.cell;
                 foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
                 {
                     // This scene has a reference volume authoring component in it?
@@ -574,7 +577,7 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         var asset = data2Asset[data];
                         asset.cells.Add(cell);
-                        var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(scene);
+                        var profile = probeRefVolume.sceneData.GetProfileForScene(scene);
                         asset.StoreProfileData(profile);
                         Debug.Assert(profile != null);
                         CellCountInDirections(out asset.minCellPosition, out asset.maxCellPosition, profile.cellSizeInMeters);
