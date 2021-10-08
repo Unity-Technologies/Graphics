@@ -121,6 +121,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
 - Fixed Opacity as Density blending artifacts on Terrain that that caused Terrain to have modified splat weights of zero in some areas and greater than one in others.
 - UniversalRenderPipeineAsset can now use multi-edit.
+- Fixed ShaderGraph needing updated normals for ShadowCaster in URP.
 
 ## [10.2.0] - 2020-10-19
 
