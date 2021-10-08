@@ -251,7 +251,7 @@ namespace UnityEngine.Rendering.Universal
 
 #pragma warning disable 0618 // Obsolete usage: Backwards compatibility for passes set with RenderTargetIdentifiers
                             if (pass.colorAttachments[i] == m_CameraColorTarget.nameID && needCustomCameraColorClear && (clearFlag & ClearFlag.Color) != 0)
-                                m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(cameraData.camera.backgroundColor), 1.0f, 0);
+                                m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(cameraData.backgroundColor, 1.0f, 0);
                             else if ((pass.clearFlag & ClearFlag.Color) != 0)
                                 m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(pass.clearColor), 1.0f, 0);
 #pragma warning restore 0618
@@ -700,10 +700,10 @@ namespace UnityEngine.Rendering.Universal
 
                 if (!Graphics.preserveFramebufferAlpha &&
                     RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32,
-                        FormatUsage.Linear, FormatUsage.Render))
+                        FormatUsage.Linear | FormatUsage.Render))
                     hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
                 else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat,
-                    FormatUsage.Linear, FormatUsage.Render))
+                    FormatUsage.Linear | FormatUsage.Render))
                     hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
                 else
                     hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);

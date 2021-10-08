@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering
         /// <param name="array">The array whose elements should be added to the end of the DynamicArray. The array itself cannot be null, but it can contain elements that are null, if type T is a reference type.</param>
         public void AddRange(DynamicArray<T> array)
         {
-            Reserve(size + array.size);
+            Reserve(size + array.size, true);
             for (int i = 0; i < array.size; ++i)
                 m_Array[size++] = array[i];
         }

@@ -18,11 +18,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RTHandle destination { get; set; }
         internal int MssaSamples { get; set; }
         Material m_CopyDepthMaterial;
+
+        internal bool m_CopyResolvedDepth;
+
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
+            m_CopyResolvedDepth = false;
         }
 
         /// <summary>
@@ -70,7 +74,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cameraSamples = MssaSamples;
 
                 // When auto resolve is supported or multisampled texture is not supported, set camera samples to 1
-                if (SystemInfo.supportsMultisampleAutoResolve || SystemInfo.supportsMultisampledTextures == 0)
+                if (SystemInfo.supportsMultisampleAutoResolve || SystemInfo.supportsMultisampledTextures == 0 || m_CopyResolvedDepth)
                     cameraSamples = 1;
 
                 CameraData cameraData = renderingData.cameraData;
