@@ -174,12 +174,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_CharlieFabricLambert.shader")]
             public Shader preIntegratedFGD_CharlieFabricLambertPS;
-            [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_Marschner.shader")]
-            public Shader preIntegratedFGD_MarschnerPS;
             [Reload("Runtime/Material/AxF/PreIntegratedFGD_Ward.shader")]
             public Shader preIntegratedFGD_WardPS;
             [Reload("Runtime/Material/AxF/PreIntegratedFGD_CookTorrance.shader")]
             public Shader preIntegratedFGD_CookTorrancePS;
+            [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_Marschner.shader")]
+            public Shader preIntegratedFGD_MarschnerPS;
+            [Reload("Runtime/Material/Hair/MultipleScattering/HairMultipleScatteringPreIntegration.compute")]
+            public ComputeShader preIntegratedFiberScatteringCS;
 
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]
@@ -317,6 +319,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader temporalAntialiasingPS;
             [Reload("Runtime/PostProcessing/Shaders/LensFlareDataDriven.shader")]
             public Shader lensFlareDataDrivenPS;
+            [Reload("Runtime/PostProcessing/Shaders/LensFlareMergeOcclusionDataDriven.compute")]
+            public ComputeShader lensFlareMergeOcclusionCS;
             [Reload("Runtime/PostProcessing/Shaders/DLSSBiasColorMask.shader")]
             public Shader DLSSBiasColorMaskPS;
             [Reload("Runtime/PostProcessing/Shaders/CompositeWithUIAndOETF.shader")]
@@ -360,6 +364,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader temporalFilterCS;
             [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseDenoiser.compute")]
             public ComputeShader diffuseDenoiserCS;
+
+#if UNITY_EDITOR
+            // Furnace Testing (BSDF Energy Conservation)
+            [Reload("Tests/Editor/Utilities/FurnaceTests.compute")]
+            public ComputeShader furnaceTestCS;
+#endif
 
 #if UNITY_EDITOR
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
@@ -417,10 +427,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture2D rankingTile256SPP;
             [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile256SPP.png")]
             public Texture2D scramblingTile256SPP;
-
-            // Pre-integration LUTs
-            [Reload("Runtime/RenderPipelineResources/Texture/PreintegratedAzimuthalScattering.exr")]
-            public Texture2D preintegratedAzimuthalScattering;
 
             // Clouds textures
             [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/CloudLutRainAO.png")]

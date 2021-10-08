@@ -561,6 +561,9 @@ namespace UnityEditor.ShaderGraph
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
             // Feedback dithering requires screen position (and only works in Pixel Shader currently)
+            // Note that the code that makes use of the screen position is not actually in this node,
+            // but is activated by the presence of this node..
+            // via a bit of a hack..
             return stageCapability.HasFlag(ShaderStageCapability.Fragment) && !noFeedback;
         }
     }

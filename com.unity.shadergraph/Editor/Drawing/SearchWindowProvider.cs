@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             var depNode = (AbstractMaterialNode)Activator.CreateInstance(type);
                             depNode.ChangeVersion(i);
                             if (multiple)
-                                AddEntries(depNode, titleAttribute.title.Append($"V{i}").ToArray(), nodeEntries);
+                                AddEntries(depNode, titleAttribute.title.Append($"v{i}").ToArray(), nodeEntries);
                             else
                                 AddEntries(depNode, titleAttribute.title, nodeEntries);
                         }

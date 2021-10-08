@@ -103,6 +103,11 @@ namespace UnityEngine.Rendering.Universal
             get => 2.0f;
         }
 
+        public static int maxNumIterationsEnclosingSphere
+        {
+            get => 1000;
+        }
+
         // Amount of Lights that can be shaded per object (in the for loop in the shader)
         public static int maxPerObjectLights
         {
@@ -176,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
             DecalProjector.defaultMaterial = asset.decalMaterial;
 
             DebugManager.instance.RefreshEditor();
-            m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
+            m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
         }
 
         protected override void Dispose(bool disposing)
@@ -246,7 +251,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_GlobalSettings == null || UniversalRenderPipelineGlobalSettings.instance == null)
             {
                 m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
-                return;
+                if(m_GlobalSettings == null) return;
             }
 #endif
 
@@ -544,7 +549,8 @@ namespace UnityEngine.Rendering.Universal
 
                 // Helper function for updating cameraData with xrPass Data
                 m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
-
+                // Need to update XRSystem using baseCameraData to handle the case where camera position is modified in BeginCameraRendering
+                m_XRSystem.UpdateFromCamera(ref baseCameraData.xr, baseCameraData);
                 m_XRSystem.BeginLateLatching(baseCamera, xrPass);
             }
 #endif
@@ -856,14 +862,6 @@ namespace UnityEngine.Rendering.Universal
             cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
             cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ? cameraData.maxShadowDistance : 0.0f;
 
-            // Getting the background color from preferences to add to the preview camera
-#if UNITY_EDITOR
-            if (cameraData.camera.cameraType == CameraType.Preview)
-            {
-                camera.backgroundColor = CoreRenderPipelinePreferences.previewBackgroundColor;
-            }
-#endif
-
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             if (isSceneViewCamera)
             {
@@ -906,7 +904,6 @@ namespace UnityEngine.Rendering.Universal
             bool isOverlayCamera = (cameraData.renderType == CameraRenderType.Overlay);
             if (isOverlayCamera)
             {
-                cameraData.requiresDepthTexture = false;
                 cameraData.requiresOpaqueTexture = false;
                 cameraData.postProcessingRequiresDepthTexture = false;
             }
@@ -929,6 +926,17 @@ namespace UnityEngine.Rendering.Universal
             cameraData.SetViewAndProjectionMatrix(camera.worldToCameraMatrix, projectionMatrix);
 
             cameraData.worldSpaceCameraPos = camera.transform.position;
+
+            var backgroundColorSRGB = camera.backgroundColor;
+            // Get the background color from preferences if preview camera
+#if UNITY_EDITOR
+            if (camera.cameraType == CameraType.Preview && camera.clearFlags != CameraClearFlags.SolidColor)
+            {
+                backgroundColorSRGB = CoreRenderPipelinePreferences.previewBackgroundColor;
+            }
+#endif
+
+            cameraData.backgroundColor = CoreUtils.ConvertSRGBToActiveColorSpace(backgroundColorSRGB);
         }
 
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
@@ -1220,7 +1228,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
         {
-            DebugDisplaySettings debugDisplaySettings = DebugDisplaySettings.Instance;
+            var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
             ref CameraData cameraData = ref renderingData.cameraData;
 
             if (debugDisplaySettings.AreAnySettingsActive && !cameraData.isPreviewCamera)
