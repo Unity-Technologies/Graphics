@@ -44,9 +44,9 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHC)
 #define unity_LightData             LoadDOTSInstancedData_LightData()
 #define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
-#define unity_RenderingLayer        UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_RenderingLayer)
+#define unity_RenderingLayer        LoadDOTSInstancedData_RenderingLayer()
 
-// Not supported by hybrid renderer. Just define them as constants.
+// Not supported by BatchRendererGroup. Just define them as constants.
 // ------------------------------------------------------------------------------
 static const float2x4 unity_LightIndices = float2x4(0,0,0,0, 0,0,0,0);
 
