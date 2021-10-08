@@ -654,6 +654,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int m_ProbeVolumeEngineDataIndex = -1;
         internal OrientedBBox m_BoundingBox;
         internal ProbeVolumeEngineData m_EngineData;
+        internal int m_simulationFrameTick = -1;
 
         private ProbeVolumeSettingsKey bakeKey = new ProbeVolumeSettingsKey
         {
@@ -771,7 +772,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool dataNeedsDilation = false;
 #endif
         [SerializeField] private VolumeGlobalUniqueID globalUniqueID = VolumeGlobalUniqueID.zero;
-        
+
         [SerializeField] internal ProbeVolumeAsset probeVolumeAsset = null;
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
         internal ProbePropagationBuffers m_PropagationBuffers;
@@ -827,7 +828,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Quaternion volumeRotation, Quaternion assetRotation, Vector3 position, bool supportDynamicGI)
         {
             Quaternion sphericalHarmonicWSFromOS = Quaternion.Inverse(assetRotation) * volumeRotation;
-            
+
             // Only enforce uniquing the key based on position if dynamic GI is enabled.
             // If dynamic GI is enabled, two probe volumes that point to the same asset, streamed in at different locations need unique space in the atlas (because their dynamic GI component is different).
             // If dynamic GI is disabled, two probe volumes that point to the same asset, streamed in at different locations should share space in the atlas, since their baked data is identical.
@@ -1084,6 +1085,16 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void CleanupBuffers()
         {
             CleanupBuffers(m_VolumeBuffers);
+        }
+
+        internal void SetLastSimulatedFrame(int simulationFrameTick)
+        {
+            m_simulationFrameTick = simulationFrameTick;
+        }
+
+        internal int GetLastSimulatedFrame()
+        {
+            return m_simulationFrameTick;
         }
 
         public static void CleanupBuffers(ProbeVolumeBuffers buffers)
