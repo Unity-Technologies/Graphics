@@ -89,7 +89,6 @@ namespace UnityEngine.Rendering.HighDefinition
             InvertOrthographic(ref deviceProjection, ref view, out invViewProjection);
         }
 
-        // Currently area light shadows are not supported
         public static void ExtractRectangleAreaLightData(VisibleLight visibleLight, float forwardOffset, float areaLightShadowCone, float shadowNearPlane, Vector2 shapeSize, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality,
             out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
         {
