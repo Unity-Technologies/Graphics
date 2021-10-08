@@ -298,6 +298,14 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
 
 // Helper to handle camera relative space
 
+float3 GetCameraPositionWS()
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    return 0;
+#endif
+    return _WorldSpaceCameraPos;
+}
+
 float4x4 ApplyCameraTranslationToMatrix(float4x4 modelMatrix)
 {
     // To handle camera relative rendering we substract the camera position in the model matrix

@@ -1,12 +1,8 @@
 using UnityEditor.ShaderGraph;
 using UnityEngine;
-using static UnityEditor.Rendering.BuiltIn.ShaderUtils;
-using UnityEditor.Rendering.BuiltIn;
 using System;
 using UnityEditor.ShaderGraph.Internal;
 using System.Linq;
-// TODO: remove this dependency to builtin target
-using UnityEditor.Rendering.BuiltIn.ShaderGraph;
 using BlendMode = UnityEngine.Rendering.BlendMode;
 using BlendOp = UnityEditor.ShaderGraph.BlendOp;
 using UnityEngine.UIElements;
@@ -15,14 +11,12 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 {
-    [GenerateBlocks]
+    [GenerateBlocks("Fullscreen")]
     internal struct FullscreenBlocks
     {
-        public static BlockFieldDescriptor color = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "Color", "Color",
+        public static BlockFieldDescriptor color = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "FullscreenColor", "Color",
             "SURFACEDESCRIPTION_COLOR", new ColorControl(UnityEngine.Color.grey, true), ShaderStage.Fragment);
-        public static BlockFieldDescriptor alpha = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "Alpha", "Alpha",
-            "SURFACEDESCRIPTION_Alpha", new FloatControl(1), ShaderStage.Fragment);
-        public static BlockFieldDescriptor depth = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "Depth", "Depth",
+        public static BlockFieldDescriptor depth = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "FullscreenDepth", "Depth",
             "SURFACEDESCRIPTION_DEPTH", new FloatControl(0), ShaderStage.Fragment);
     }
 
@@ -97,18 +91,18 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] { "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Templates" }).ToArray();
 
         // HLSL includes
-        static readonly string kFullscreenDrawProceduralInclude = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenDrawProcedural.hlsl";
-        static readonly string kFullscreenBlitInclude = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenBlit.hlsl";
-        static readonly string kFullscreenCommon = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenCommon.hlsl";
-        static readonly string kTemplatePath = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Templates/ShaderPass.template";
-        static readonly string kCommon = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl";
-        static readonly string kColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
-        static readonly string kTexture = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl";
-        static readonly string kInstancing = "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl";
-        static readonly string kFullscreenShaderPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenShaderPass.cs.hlsl";
-        static readonly string kSpaceTransforms = "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl";
-        static readonly string kFunctions = "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl";
-        static readonly string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
+        protected static readonly string kFullscreenCommon = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenCommon.hlsl";
+        protected static readonly string kTemplatePath = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Templates/ShaderPass.template";
+        protected static readonly string kCommon = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl";
+        protected static readonly string kColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
+        protected static readonly string kTexture = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl";
+        protected static readonly string kInstancing = "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl";
+        protected static readonly string kFullscreenShaderPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenShaderPass.cs.hlsl";
+        protected static readonly string kSpaceTransforms = "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl";
+        protected static readonly string kFunctions = "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl";
+        protected static readonly string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
+        protected virtual string fullscreenDrawProceduralInclude => "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenDrawProcedural.hlsl";
+        protected virtual string fullscreenBlitInclude => "Packages/com.unity.shadergraph/Editor/Generation/Targets/Fullscreen/Includes/FullscreenBlit.hlsl";
 
         FullscreenData m_FullscreenData;
 
@@ -127,14 +121,11 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-
-            if (context.customEditorForRenderPipelines.Count == 0)
-                context.SetDefaultShaderGUI(GetDefaultShaderGUI().FullName);
-
+            context.SetDefaultShaderGUI(GetDefaultShaderGUI().FullName);
             context.AddSubShader(GenerateSubShader());
         }
 
-        protected abstract IncludeCollection pregraphIncludes { get; }
+        protected virtual IncludeCollection pregraphIncludes => new IncludeCollection();
         protected abstract string pipelineTag { get; }
 
         protected virtual Type GetDefaultShaderGUI() => typeof(FullscreenShaderGUI);
@@ -288,9 +279,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             {
                 StructFields.Varyings.positionCS,
                 StructFields.Varyings.texCoord0,
+                StructFields.Varyings.texCoord1,
                 StructFields.Varyings.instanceID,
-                // BuiltInStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,
-                // BuiltInStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,
             }
         };
 
@@ -318,7 +308,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 validPixelBlocks = new BlockFieldDescriptor[]
                 {
                     FullscreenBlocks.color,
-                    FullscreenBlocks.alpha,
+                    BlockFields.SurfaceDescription.Alpha,
                     FullscreenBlocks.depth,
                 },
 
@@ -335,6 +325,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 {
                     StructFields.Attributes.uv0, // Always need uv0 to calculate the other properties in fullscreen node code
                     StructFields.Varyings.texCoord0,
+                    StructFields.Varyings.texCoord1, // We store the view direction computed in the vertex in the texCoord1
                     StructFields.Attributes.vertexID, // Need the vertex Id for the DrawProcedural case
                 },
 
@@ -366,14 +357,13 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             {
                 default:
                 case FullscreenCompatibility.Blit:
-                    fullscreenPass.includes.Add(kFullscreenBlitInclude, IncludeLocation.Postgraph);
+                    fullscreenPass.includes.Add(fullscreenBlitInclude, IncludeLocation.Postgraph);
+                    Debug.Log(fullscreenBlitInclude);
                     break;
                 case FullscreenCompatibility.DrawProcedural:
-                    fullscreenPass.includes.Add(kFullscreenDrawProceduralInclude, IncludeLocation.Postgraph);
+                    fullscreenPass.includes.Add(fullscreenDrawProceduralInclude, IncludeLocation.Postgraph);
+                    Debug.Log(fullscreenDrawProceduralInclude);
                     break;
-                    // case FullscreenCompatibility.CustomRenderTexture:
-                    //     fullscreenPass.includes.Add(kCustomRenderTextureInclude, IncludeLocation.Postgraph);
-                    // break;
             }
 
             return fullscreenPass;
@@ -403,30 +393,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
         public override bool IsActive() => true;
 
-        public override void ProcessPreviewMaterial(Material material)
-        {
-            // if (target.allowMaterialOverride)
-            {
-                // copy our target's default settings into the material
-                // (technically not necessary since we are always recreating the material from the shader each time,
-                // which will pull over the defaults from the shader definition)
-                // but if that ever changes, this will ensure the defaults are set
-                // TODO:
-                // material.SetFloat(Property.Blend(), (float)target.alphaMode);
-                // material.SetFloat(Property.ZWriteControl(), target.zWrite ? 1 : 0); // TODO
-                // material.SetFloat(Property.ZTest(), (float)target.depthTestMode);
-            }
-
-            // We always need these properties regardless of whether the material is allowed to override
-            // Queue control & offset enable correct automatic render queue behavior
-            // Control == 0 is automatic, 1 is user-specified render queue
-            // material.SetFloat(Property.QueueOffset(), 0.0f);
-            // material.SetFloat(Property.QueueControl(), (float)BuiltInBaseShaderGUI.QueueControl.Auto);
-
-            // call the full unlit material setup function
-            // BuiltInUnlitGUI.UpdateMaterial(material);
-        }
-
         public override void GetFields(ref TargetFieldContext context)
         {
             context.AddField(UnityEditor.ShaderGraph.Fields.GraphPixel);
@@ -436,7 +402,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             context.AddBlock(FullscreenBlocks.color);
-            context.AddBlock(FullscreenBlocks.alpha);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
             context.AddBlock(FullscreenBlocks.depth, fullscreenData.depthWrite);
         }
 
@@ -487,17 +453,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            // TODO: cleanup
-            // context.AddProperty("Compatibility", new EnumField(fullscreenData.fullscreenMode) { value = fullscreenData.fullscreenMode }, (evt) =>
-            // {
-            //     if (Equals(fullscreenData.fullscreenMode, evt.newValue))
-            //         return;
-
-            //     registerUndo("Change Compatibility");
-            //     fullscreenData.fullscreenMode = (FullscreenMode)evt.newValue;
-            //     onChange();
-            // });
-
             context.AddProperty("Allow Material Override", new Toggle() { value = fullscreenData.allowMaterialOverride }, (evt) =>
             {
                 if (Equals(fullscreenData.allowMaterialOverride, evt.newValue))
@@ -698,13 +653,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
              });
 
         }
-
-        #region SubShader
-        static class SubShaders
-        {
-
-        }
-        #endregion
     }
 
     internal static class FullscreenPropertyCollectorExtension
@@ -746,6 +694,20 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 hlslDeclarationOverride = hlslDeclaration,
                 value = value,
                 overrideReferenceName = prop,
+            });
+        }
+
+        public static void AddFloatProperty(this PropertyCollector collector, string referenceName, float defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare, bool generatePropertyBlock = true)
+        {
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                floatType = FloatType.Default,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = declarationType,
+                value = defaultValue,
+                generatePropertyBlock = generatePropertyBlock,
+                overrideReferenceName = referenceName,
             });
         }
     }
