@@ -1315,6 +1315,20 @@ real UnpackHeightmap(real4 height)
 // Misc utilities
 // ----------------------------------------------------------------------------
 
+// Decodes HDR textures. Handles full HDR, dLDR and RGBM formats
+float3 DecodeHDR(float4 data, float4 decodeInstructions)
+{
+    // Take into account texture alpha if decodeInstructions.w is true(the alpha value affects the RGB channels)
+    float alpha = decodeInstructions.w * (data.a - 1.0) + 1.0;
+
+    // If Linear mode is not supported we can skip exponent part
+    #if defined(UNITY_COLORSPACE_GAMMA)
+    return (decodeInstructions.x * alpha) * data.rgb;
+    #else
+    return (decodeInstructions.x * pow(alpha, decodeInstructions.y)) * data.rgb;
+    #endif
+}
+
 // Simple function to test a bitfield
 bool HasFlag(uint bitfield, uint flag)
 {
