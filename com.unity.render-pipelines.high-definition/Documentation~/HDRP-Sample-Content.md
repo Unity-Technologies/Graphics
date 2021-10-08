@@ -46,3 +46,10 @@ This Sample includes the following Lens Flare examples that you can use in your 
 - A scene you can use to preview Lens Flare Assets
 - A scene to showcases the use of Lens Flares with interior lighting
 - A scene to showcases the use of Lens Flares with a directional light
+
+## Transparency Setup Samples
+
+![Transparency Setup Samples](Images/TransparencySetupSample.png)
+
+This Sample includes examples and informations on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing). 
+To take advantage of all the content of the sample, a GPU that supports [Ray Tracing](Ray-Tracing-Getting-Started.md) is needed. 
