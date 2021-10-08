@@ -431,8 +431,8 @@ namespace UnityEditor.VFX.Test
         }
 
         //Cover unexpected behavior : 1307562
-        [UnityTest]
-        public IEnumerable Verify_Orphan_Dependencies_Are_Correctly_Cleared()
+        [Test]
+        public void Verify_Orphan_Dependencies_Are_Correctly_Cleared()
         {
             string path = null;
             {
@@ -488,7 +488,6 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(1, recordedSize.GroupBy(o => o).Count());
             Assert.AreNotEqual(0u, recordedSize[0]);
-            yield return null;
         }
 
         //Cover regression test : 1315191
