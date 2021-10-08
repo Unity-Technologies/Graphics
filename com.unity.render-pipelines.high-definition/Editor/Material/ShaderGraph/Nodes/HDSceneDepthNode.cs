@@ -72,6 +72,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!generationMode.IsPreview())
             {
                 registry.builder.AppendLine("StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;");
+                registry.builder.AppendLine("float4  _DepthPyramidBufferSize;");
 
                 registry.ProvideFunction(GetFunctionName(), s =>
                 {
@@ -79,10 +80,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (s.BlockScope())
                     {
                         s.AppendLine("#if defined(REQUIRE_DEPTH_TEXTURE) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)");
-                        s.AppendLine("int2 coord = int2(uv * _ScreenSize.xy);");
-                        s.AppendLine("int2 mipCoord  = coord.xy >> int(lod);");
-                        s.AppendLine("int2 mipOffset = _DepthPyramidMipLevelOffsets[int(lod)];");
-                        s.AppendLine("return LOAD_TEXTURE2D_X(_CameraDepthTexture, mipOffset + mipCoord).r;");
+                        s.AppendLine("float2 uvOffset = _DepthPyramidMipLevelOffsets[int(lod)] * _DepthPyramidBufferSize.zw;");
+                        s.AppendLine("$precision2 UVScale = _RTHandleScale.xy * (_ScreenSize.xy / _DepthPyramidBufferSize.xy);");
+                        s.AppendLine("$precision lodScale = exp2(uint(lod));");
+                        s.AppendLine("$precision2 lodUV = (uv * UVScale) / lodScale;");
+                        s.AppendLine("$precision2 halfTextel = _DepthPyramidBufferSize.zw * 0.5;");
+                        s.AppendLine("$precision2 lodSize = _DepthPyramidBufferSize.zw * _ScreenSize.xy / lodScale;");
+                        s.AppendLine("$precision2 clampedUV = clamp(uvOffset + lodUV, uvOffset + halfTextel, uvOffset + lodSize - halfTextel);");
+                        s.AppendLine("return SAMPLE_TEXTURE2D_X(_CameraDepthTexture, s_linear_clamp_sampler, clampedUV).r;");
                         s.AppendLine("#endif");
 
                         s.AppendLine("return 0.0;");
@@ -111,56 +116,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine($"$precision3 {GetVariableNameForSlot(k_OutputSlotId)} = {depth};");
             }
         }
-
-        //         protected override MethodInfo GetFunctionToConvert()
-        //         {
-        //             switch (m_DepthSamplingMode)
-        //             {
-        //                 case DepthSamplingMode.Raw:
-        //                     return GetType().GetMethod("Unity_SceneDepth_Raw", BindingFlags.Static | BindingFlags.NonPublic);
-        //                 case DepthSamplingMode.Eye:
-        //                     return GetType().GetMethod("Unity_SceneDepth_Eye", BindingFlags.Static | BindingFlags.NonPublic);
-        //                 case DepthSamplingMode.Linear01:
-        //                 default:
-        //                     return GetType().GetMethod("Unity_SceneDepth_Linear01", BindingFlags.Static | BindingFlags.NonPublic);
-        //             }
-        //         }
-
-        //         static string Unity_SceneDepth_Linear01(
-        //             [Slot(0, Binding.ScreenPosition)] Vector4 UV,
-        //             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
-        //         {
-        //             return
-        // @"
-        // {
-        //     Out = Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
-        // }
-        // ";
-        //         }
-
-        //         static string Unity_SceneDepth_Raw(
-        //             [Slot(0, Binding.ScreenPosition)] Vector4 UV,
-        //             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
-        //         {
-        //             return
-        // @"
-        // {
-        //     Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy);
-        // }
-        // ";
-        //         }
-
-        //         static string Unity_SceneDepth_Eye(
-        //             [Slot(0, Binding.ScreenPosition)] Vector4 UV,
-        //             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
-        //         {
-        //             return
-        // @"
-        // {
-        //     Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
-        // }
-        // ";
-        //         }
 
         public bool RequiresDepthTexture(ShaderStageCapability stageCapability) => true;
 
