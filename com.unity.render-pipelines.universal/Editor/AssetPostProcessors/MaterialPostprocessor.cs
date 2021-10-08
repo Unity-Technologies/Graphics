@@ -343,22 +343,34 @@ namespace UnityEditor.Rendering.Universal
 
             if (isTransparent)
             {
-                var blendModePreserveSpecularPID = Shader.PropertyToID(Property.BlendModePreserveSpecular);
-                if (material.HasProperty(blendModePreserveSpecularPID))
+                if (shaderID == ShaderID.Unlit)
                 {
                     var blendModePID = Shader.PropertyToID(Property.BlendMode);
                     var blendMode = (BaseShaderGUI.BlendMode)material.GetFloat(blendModePID);
-                    if (blendMode == BaseShaderGUI.BlendMode.Premultiply)
-                    {
-                        material.SetFloat(blendModePID, (float)BaseShaderGUI.BlendMode.Alpha);
-                        material.SetFloat(blendModePreserveSpecularPID, 1.0f);
-                    }
-                    else
-                    {
-                        material.SetFloat(blendModePreserveSpecularPID, 0.0f);
-                    }
 
-                    BaseShaderGUI.SetMaterialKeywords(material);
+                    // Premultiply used to be "Premultiply (* alpha in shader)" aka Alpha blend
+                    if (blendMode == BaseShaderGUI.BlendMode.Premultiply)
+                        material.SetFloat(blendModePID, (float)BaseShaderGUI.BlendMode.Alpha);
+                }
+                else
+                {
+                    var blendModePreserveSpecularPID = Shader.PropertyToID(Property.BlendModePreserveSpecular);
+                    if (material.HasProperty(blendModePreserveSpecularPID))
+                    {
+                        var blendModePID = Shader.PropertyToID(Property.BlendMode);
+                        var blendMode = (BaseShaderGUI.BlendMode)material.GetFloat(blendModePID);
+                        if (blendMode == BaseShaderGUI.BlendMode.Premultiply)
+                        {
+                            material.SetFloat(blendModePID, (float)BaseShaderGUI.BlendMode.Alpha);
+                            material.SetFloat(blendModePreserveSpecularPID, 1.0f);
+                        }
+                        else
+                        {
+                            material.SetFloat(blendModePreserveSpecularPID, 0.0f);
+                        }
+
+                        BaseShaderGUI.SetMaterialKeywords(material);
+                    }
                 }
             }
         }
