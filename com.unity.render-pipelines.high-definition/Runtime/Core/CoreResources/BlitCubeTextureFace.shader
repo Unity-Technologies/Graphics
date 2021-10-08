@@ -22,6 +22,7 @@ Shader "Hidden/SRP/BlitCubeTextureFace"
 
             TEXTURECUBE(_InputTex);
             SAMPLER(sampler_InputTex);
+            float4 _InputTex_HDR;
 
             float _FaceIndex;
             float _LoD;
@@ -59,7 +60,9 @@ Shader "Hidden/SRP/BlitCubeTextureFace"
 
             float4 frag (Varyings input) : SV_Target
             {
-                return SAMPLE_TEXTURECUBE_LOD(_InputTex, sampler_InputTex, input.texcoord, _LoD);
+                float4 color = SAMPLE_TEXTURECUBE_LOD(_InputTex, sampler_InputTex, input.texcoord, _LoD);
+                color.rgb = DecodeHDR(color, _InputTex_HDR);
+                return color;
             }
 
             ENDHLSL

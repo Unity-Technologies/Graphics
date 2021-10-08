@@ -45,6 +45,7 @@ Shader "Hidden/Debug/ReflectionProbePreview"
 
             TEXTURECUBE(_Cubemap);
             SAMPLER(sampler_Cubemap);
+            float4 _Cubemap_HDR;
 
             float3 _CameraWorldPosition;
             float _MipLevel;
@@ -67,6 +68,7 @@ Shader "Hidden/Debug/ReflectionProbePreview"
                 float3 V = normalize(i.positionWS - GetPrimaryCameraPosition());
                 float3 R = reflect(V, i.normalWS);
                 float4 color = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, R, _MipLevel).rgba;
+                color.rgb = DecodeHDR(color, _Cubemap_HDR);
                 color = color * exp2(_Exposure) * GetCurrentExposureMultiplier();
 
                 return float4(color);

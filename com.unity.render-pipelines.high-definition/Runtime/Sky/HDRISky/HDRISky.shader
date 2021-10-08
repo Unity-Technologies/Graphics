@@ -49,6 +49,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
+    float4 _Cubemap_HDR;
 
     TEXTURE2D(_Flowmap);
     SAMPLER(sampler_Flowmap);
@@ -204,7 +205,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
             // Sample twice
             float3 color1 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir + alpha.x*dd, 0).rgb;
+            color1.rgb = DecodeHDR(color1, _Cubemap_HDR);
             float3 color2 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir + alpha.y*dd, 0).rgb;
+            color2.rgb = DecodeHDR(color2, _Cubemap_HDR);
 
             // Blend color samples
             return lerp(color1, color2, abs(2.0 * alpha.x));
@@ -212,7 +215,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         else
 #endif
 
-        return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+        return DecodeHDR(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0), _Cubemap_HDR);
     }
 
     float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)
