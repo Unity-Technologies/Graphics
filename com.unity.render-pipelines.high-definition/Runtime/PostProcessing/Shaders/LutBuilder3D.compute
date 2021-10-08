@@ -297,16 +297,15 @@ float3 ProcessColorForHDR(float3 gradedColor)
 {
 #ifdef HDR_OUTPUT
 
-#if TONEMAPPING_ACES
+#ifdef TONEMAPPING_ACES
     gradedColor = ACEScg_to_ACES(gradedColor);
     return HDRMappingACES(gradedColor.rgb, _PaperWhite, _RangeReductionMode, true);
 #else
     return HDRMappingFromRec2020(gradedColor.rgb, _PaperWhite, _MinNits, _MaxNits, _RangeReductionMode, _HueShift, true);
 #endif
 
-#else
-    return gradedColor;
 #endif
+    return gradedColor;
 }
 
 
