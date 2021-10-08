@@ -1,23 +1,14 @@
-#if UNITY_WII || UNITY_IOS || UNITY_IPHONE || UNITY_PS4 || UNITY_XBOXONE || UNITY_WSA || UNITY_WEBGL || ENABLE_IL2CPP
-#define UNITY_AOT_PLATFORM
-#endif
-
-// Use ATTRIBUTE_DYNAMIC_QUERY to force using the dynamic query
-// On AOT platform, force to use the dynamic query as generic struct requires JIT
-#if UNITY_AOT_PLATFORM || ATTRIBUTE_DYNAMIC_QUERY
-#define USE_DYNAMIC_QUERY
-#else
-#define USE_STATIC_QUERY
-#endif
-
 using System;
 using System.Linq;
 using System.Reflection;
-
-#if USE_DYNAMIC_QUERY
 using System.Collections.Generic;
-#endif
 
+// TODO: Evaluate performance improvement at domain reload, vs all type attribute parsing.
+
+// Note: Static method is about 10x faster at querying for generic API than dynamic method
+// Note: This is safe for AOT platforms:
+//  - If you use the object based API, it will fallback on a in memory dictionary
+//  - If you use the generic API, the AOT compiler will pick up the associated classes and include them into the build.
 namespace UnityEngine.Rendering
 {
     #region Public API
@@ -34,12 +25,8 @@ namespace UnityEngine.Rendering
         /// <param name="target"></param>
         public SupportedOnAttribute(Type subject, Type target)
         {
-#if USE_STATIC_QUERY
             IsSupportedOn.RegisterStaticRelation(subject, target);
-#endif
-#if USE_DYNAMIC_QUERY
             IsSupportedOn.RegisterDynamicRelation(subject, target);
-#endif
         }
     }
 
@@ -56,12 +43,7 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         public static bool IsRelated<TSubject, TTarget>()
         {
-#if USE_DYNAMIC_QUERY
-            return DynamicIsRelated<TSubject, TTarget>();
-#endif
-#if USE_STATIC_QUERY
             return StaticIsRelated<TSubject, TTarget>();
-#endif
         }
 
         /// <summary>
@@ -72,12 +54,7 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         public static bool IsRelated(Type subject, Type target)
         {
-#if USE_DYNAMIC_QUERY
             return DynamicIsRelated(subject, target);
-#endif
-#if USE_STATIC_QUERY
-            return StaticIsRelated(subject, target);
-#endif
         }
 
         /// <summary>
@@ -87,12 +64,7 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         public static bool HasRelations<TSubject>()
         {
-#if USE_DYNAMIC_QUERY
-            return DynamicHasRelations<TSubject>();
-#endif
-#if USE_STATIC_QUERY
             return StaticHasRelations<TSubject>();
-#endif
         }
 
         /// <summary>
@@ -102,12 +74,7 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         public static bool HasRelations(Type subject)
         {
-#if USE_DYNAMIC_QUERY
             return DynamicHasRelations(subject);
-#endif
-#if USE_STATIC_QUERY
-            return StaticHasRelations(subject);
-#endif
         }
     }
 
@@ -120,12 +87,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Use it to know if <typeparam name="TSubject"/> explicitly support at least one type.
         /// </summary>
-        public static bool Value
-#if USE_DYNAMIC_QUERY
-            { get; private set; } = IsSupportedOn.DynamicHasRelations(typeof(TSubject));
-#else
-        { get; private set; } = false;
-#endif
+        public static bool Value { get; private set; } = false;
     }
 
     /// <summary>
@@ -135,25 +97,18 @@ namespace UnityEngine.Rendering
     /// <typeparam name="TTarget"></typeparam>
     public struct IsSupportedOn<TSubject, TTarget>
     {
-#if USE_STATIC_QUERY
         static bool InternalValue
         { get; set; } = false;
-#endif
 
         /// <summary>
         /// Use it to know if <typeparamref name="TSubject"/> explicitly supports <typeparamref name="TTarget"/>.
         /// </summary>
         public static bool Value
-#if USE_DYNAMIC_QUERY
-            => IsSupportedOn.DynamicIsRelated(typeof(TSubject), typeof(TTarget));
-#else
             => HasIsSupportedOn<TSubject>.Value && InternalValue || !HasIsSupportedOn<TSubject>.Value;
-#endif
     }
     #endregion
 
     #region Static Query support
-#if USE_STATIC_QUERY
     public static partial class IsSupportedOn
     {
         /// <summary>
@@ -197,11 +152,9 @@ namespace UnityEngine.Rendering
                 .GetValue(null);
         }
     }
-#endif
     #endregion
 
     #region Dynamic Query Support
-#if USE_DYNAMIC_QUERY
     public static partial class IsSupportedOn
     {
         static DynamicTypeRelation s_Relations = new DynamicTypeRelation();
@@ -233,7 +186,6 @@ namespace UnityEngine.Rendering
             return s_Relations.HasRelations(subject);
         }
     }
-#endif
     #endregion
 
     #region Registration Executor

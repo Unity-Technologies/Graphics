@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     ///
     /// This is an alternative to static storage (in generic type) which may not be available for AOT platforms.
     /// </summary>
-    class DynamicTypeRelation
+    public class DynamicTypeRelation
     {
         Dictionary<Type, HashSet<Type>> m_Dictionary = new Dictionary<Type, HashSet<Type>>();
 
@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="subject"></param>
         /// <param name="target"></param>
-        internal void RegisterRelation(Type subject, Type target)
+        public void RegisterRelation(Type subject, Type target)
         {
             if (!m_Dictionary.TryGetValue(subject, out var targets))
             {
@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Set the value in a dictionary.
         /// </summary>
-        internal bool IsRelated<TSubject, TTarget>() => IsRelated(typeof(TSubject), typeof(TTarget));
+        public bool IsRelated<TSubject, TTarget>() => IsRelated(typeof(TSubject), typeof(TTarget));
 
         /// <summary>
         /// Are the provided type related?
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering
         /// <param name="subject"></param>
         /// <param name="target"></param>
         /// <returns></returns>
-        internal bool IsRelated(Type subject, Type target)
+        public bool IsRelated(Type subject, Type target)
         {
             var hasRelations = m_Dictionary.TryGetValue(subject, out var targets);
             return hasRelations && targets.Contains(target) || !hasRelations;
@@ -49,14 +49,14 @@ namespace UnityEngine.Rendering
         /// Does <typeparamref name="TSubject"/> have a relationship as a subject?
         /// </summary>
         /// <returns></returns>
-        internal bool HasRelations<TSubject>() => HasRelations(typeof(TSubject));
+        public bool HasRelations<TSubject>() => HasRelations(typeof(TSubject));
 
         /// <summary>
         /// Does <paramref name="subject"/> have a relationship as a subject?
         /// </summary>
         /// <param name="subject"></param>
         /// <returns></returns>
-        internal bool HasRelations(Type subject)
+        public bool HasRelations(Type subject)
         {
             return m_Dictionary.ContainsKey(subject);
         }
