@@ -398,7 +398,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int ComputeLUTHash()
         {
-            //  hash = hash * 23 + parameters[i].GetHashCode();
             return m_Tonemapping.GetHashCode() * 23 +
                    m_WhiteBalance.GetHashCode() * 23 +
                    m_ColorAdjustments.GetHashCode() * 23 +

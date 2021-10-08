@@ -62,7 +62,6 @@ namespace UnityEngine.Rendering.HighDefinition
         HDRenderPipelineRenderAOV,
         HDRenderPipelineAllRenderRequest,
         CullResultsCull,
-        UICullResults,
         CustomPassCullResultsCull,
         DisplayCookieAtlas,
         RenderWireFrame,

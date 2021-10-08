@@ -973,7 +973,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "HDRDebug" }));
 
-                // TODO: Put here tonemap type.
                 passData.hdrDebugParams = new Vector4(k_SizeOfHDRXYMapping, k_SizeOfHDRXYMapping, 0, 0);
                 passData.xyTexture = builder.ReadTexture(xyBuff);
 

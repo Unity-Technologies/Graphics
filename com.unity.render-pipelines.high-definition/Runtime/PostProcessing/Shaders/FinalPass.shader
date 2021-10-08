@@ -25,7 +25,6 @@ Shader "Hidden/HDRP/FinalPass"
 #if defined(HDR_OUTPUT_REC2020) || defined(HDR_OUTPUT_SCRGB)
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
 #endif
-        #pragma enable_d3d11_debug_symbols
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D(_GrainTexture);
