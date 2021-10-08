@@ -165,9 +165,9 @@ namespace UnityEditor.Rendering.Universal
             },
 
             // Required fields
-            requiredAttributes = new List<string>()
+            requiredVaryings = new List<string>()
             {
-                "Attributes.normalOS",
+                "Varyings.normalWS",
             },
 
             // Render State Overrides

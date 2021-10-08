@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multi-edit for UniversalRenderPipelineAsset.
 - Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
 - Drawing order of SRPDefaultUnlit is now the same as the Built-in Render Pipeline. [case 1325883](https://issuetracker.unity3d.com/product/unity/issues/guid/1325883/)
+- Fixed ShaderGraph needing updated normals for ShadowCaster in URP.
 
 ## [7.7.0] - 2021-04-28
 
