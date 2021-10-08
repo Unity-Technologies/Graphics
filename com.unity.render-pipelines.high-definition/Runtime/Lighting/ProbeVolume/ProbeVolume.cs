@@ -421,6 +421,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool highlightRinging;
         public bool drawValidity;
         public bool drawNeighbors;
+        public bool drawEmission;
         public bool drawOctahedralDepthRays;
         public float neighborsQuadScale;
         public int drawOctahedralDepthRayIndexX;
@@ -507,6 +508,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.highlightRinging = false;
             this.drawValidity = false;
             this.drawNeighbors = false;
+            this.drawEmission = false;
             this.drawOctahedralDepthRays = false;
             this.neighborsQuadScale = 1;
             this.drawOctahedralDepthRayIndexX = 0;
@@ -654,6 +656,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int m_ProbeVolumeEngineDataIndex = -1;
         internal OrientedBBox m_BoundingBox;
         internal ProbeVolumeEngineData m_EngineData;
+        internal int m_simulationFrameTick = -1;
 
         private ProbeVolumeSettingsKey bakeKey = new ProbeVolumeSettingsKey
         {
@@ -771,7 +774,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool dataNeedsDilation = false;
 #endif
         [SerializeField] private VolumeGlobalUniqueID globalUniqueID = VolumeGlobalUniqueID.zero;
-        
+
         [SerializeField] internal ProbeVolumeAsset probeVolumeAsset = null;
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
         internal ProbePropagationBuffers m_PropagationBuffers;
@@ -827,7 +830,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Quaternion volumeRotation, Quaternion assetRotation, Vector3 position, bool supportDynamicGI)
         {
             Quaternion sphericalHarmonicWSFromOS = Quaternion.Inverse(assetRotation) * volumeRotation;
-            
+
             // Only enforce uniquing the key based on position if dynamic GI is enabled.
             // If dynamic GI is enabled, two probe volumes that point to the same asset, streamed in at different locations need unique space in the atlas (because their dynamic GI component is different).
             // If dynamic GI is disabled, two probe volumes that point to the same asset, streamed in at different locations should share space in the atlas, since their baked data is identical.
@@ -892,96 +895,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return probeVolumeAsset.rotation;
         }
 
-        bool CheckMigrationRequirement()
-        {
-            if (probeVolumeAsset == null) return false;
-            if (probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.Current) return false;
-            return true;
-        }
-
         void Migrate()
         {
-            // Must not be called at deserialization time if require other component
-            while (CheckMigrationRequirement())
-            {
-                ApplyMigration();
-            }
-        }
-
-        void ApplyMigration()
-        {
-            switch ((ProbeVolumeAsset.AssetVersion)probeVolumeAsset.Version)
-            {
-                case ProbeVolumeAsset.AssetVersion.First:
-                    ApplyMigrationAddProbeVolumesAtlasEncodingModes();
-                    break;
-
-                case ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes:
-                    ApplyMigrationAddOctahedralDepthVarianceFromLightmapper();
-                    break;
-                case ProbeVolumeAsset.AssetVersion.AddOctahedralDepthVarianceFromLightmapper:
-                    ApplyMigrationAddRotation();
-                    break;
-                default:
-                    // No migration required.
-                    break;
-            }
-        }
-
-        void ApplyMigrationAddProbeVolumesAtlasEncodingModes()
-        {
-            Debug.Assert(probeVolumeAsset != null && probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.First);
-
-            probeVolumeAsset.m_Version = (int)ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes;
-
-            int probeLength = probeVolumeAsset.dataSH.Length;
-
-            ProbeVolumePayload.Allocate(ref probeVolumeAsset.payload, probeLength);
-
-            for (int i = 0; i < probeLength; ++i)
-            {
-                ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, probeVolumeAsset.dataSH[i], i);
-            }
-
-            probeVolumeAsset.dataSH = null;
-            probeVolumeAsset.dataValidity = null;
-            probeVolumeAsset.dataOctahedralDepth = null;
-        }
-
-        void ApplyMigrationAddOctahedralDepthVarianceFromLightmapper()
-        {
-            Debug.Assert(probeVolumeAsset != null && probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes);
-
-            probeVolumeAsset.m_Version = (int)ProbeVolumeAsset.AssetVersion.AddOctahedralDepthVarianceFromLightmapper;
-
-            if (probeVolumeAsset.payload.dataOctahedralDepth == null) { return; }
-
-            int probeLength = ProbeVolumePayload.GetLength(ref probeVolumeAsset.payload);
-            var dataOctahedralDepthMigrated = new float[probeLength * ProbeVolumePayload.GetDataOctahedralDepthStride()];
-
-            // Previously, the lightmapper only returned scalar mean depth values for octahedralDepth.
-            // Now it returns float2(depthMean, depthMean^2) which can be used to reconstruct a variance estimate.
-            int dataOctahedralDepthLengthPrevious = probeVolumeAsset.payload.dataOctahedralDepth.Length;
-            for (int i = 0; i < dataOctahedralDepthLengthPrevious; ++i)
-            {
-                float depthMean = probeVolumeAsset.payload.dataOctahedralDepth[i];
-
-                // For our migration, simply initialize our depthMeanSquared slots with depthMean * depthMean, which will reconstruct a zero variance estimate.
-                // Really, the user will want to rebake to get a real variance estimate. This migration just ensures we do not error out.
-                float depthMeanSquared = depthMean * depthMean;
-                dataOctahedralDepthMigrated[i * 2 + 0] = depthMean;
-                dataOctahedralDepthMigrated[i * 2 + 1] = depthMeanSquared;
-            }
-            probeVolumeAsset.payload.dataOctahedralDepth = dataOctahedralDepthMigrated;
-        }
-
-        void ApplyMigrationAddRotation()
-        {
-            Debug.Assert(probeVolumeAsset != null && probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.AddOctahedralDepthVarianceFromLightmapper);
-
-            probeVolumeAsset.m_Version = (int)ProbeVolumeAsset.AssetVersion.AddRotation;
-
-            probeVolumeAsset.rotation = transform.rotation;
+            if (probeVolumeAsset != null)
+                probeVolumeAsset.Migrate(this);
         }
 
         protected void OnEnable()
@@ -1093,6 +1010,16 @@ namespace UnityEngine.Rendering.HighDefinition
             CleanupBuffers(m_VolumeBuffers);
         }
 
+        internal void SetLastSimulatedFrame(int simulationFrameTick)
+        {
+            m_simulationFrameTick = simulationFrameTick;
+        }
+
+        internal int GetLastSimulatedFrame()
+        {
+            return m_simulationFrameTick;
+        }
+
         public static void CleanupBuffers(ProbeVolumeBuffers buffers)
         {
             CleanupBuffer(buffers.SHL01Buffer);
@@ -1103,7 +1030,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // returns true if released it
         public static bool CleanupBuffer(ComputeBuffer buffer)
         {
-            if (buffer != null && buffer.IsValid())
+            if (buffer != null
+                && buffer.IsValid())
             {
                 buffer.Release();
                 return true;
@@ -1119,11 +1047,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 || !buffer.IsValid()
                 || buffer.count != count)
             {
-                if (buffer != null && buffer.IsValid())
-                {
-                    buffer.Dispose();
-                }
-
+                CleanupBuffer(buffer);
                 buffer = new ComputeBuffer(count, Marshal.SizeOf(typeof(T)), ComputeBufferType.Structured);
                 return true;
             }
@@ -1372,7 +1296,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (parameters.supportDynamicGI)
             {
-                ProbeVolumeDynamicGI.instance.ConstructNeighborData(m_ProbePositions, ref probeVolumeAsset, in parameters);
+                ProbeVolumeDynamicGI.instance.ConstructNeighborData(m_ProbePositions, transform.rotation, ref probeVolumeAsset, in parameters);
             }
 
             UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);

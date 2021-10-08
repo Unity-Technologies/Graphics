@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent s_DrawValidityLabel = new GUIContent("Draw Validity", "Visualize per-probe validity. Green is full validity, no backfaces visible. Red is no validity, max backfaces visible.");
             internal static readonly GUIContent s_HighlightRingingLabel = new GUIContent("Highlight Ringing", "Negative values on probes due to ringing will be highlighted and blinked in red.");
             internal static readonly GUIContent s_DrawNeighborsLabel = new GUIContent("Draw Neighbors", "Enable or disable drawing probe neighborhood to debug dynamic gi.");
+            internal static readonly GUIContent s_DrawEmissionLabel = new GUIContent("Draw Emission", "Show neighborhood emission instead of albedo.");
             internal static readonly GUIContent s_NeighborsQuadScaleLabel = new GUIContent("Draw Neighbors Scale", "The size of the debug quads when viewing draw neighbors mode");
             internal static readonly GUIContent s_DrawOctahedralDepthRays = new GUIContent("Draw Octahedral Depth Rays", "Enable or disable drawing rays to visualize to the octahedral depth data.");
             internal static readonly GUIContent s_DrawOctahedralDepthRayIndexX = new GUIContent("Octahedral Depth Rays Probe X", "Specifies the x index of the probe to visualize octahedral depth rays for.");

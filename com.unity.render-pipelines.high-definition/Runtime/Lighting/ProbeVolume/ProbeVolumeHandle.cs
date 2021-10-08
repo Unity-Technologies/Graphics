@@ -53,6 +53,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetHitNeighborAxis(ComputeBuffer buffer) => m_List.SetHitNeighborAxis(m_Index, buffer);
         public void SetNeighborAxis(ComputeBuffer buffer) => m_List.SetNeighborAxis(m_Index, buffer);
 
+        public void SetLastSimulatedFrame(int simulationFrameTick) => m_List.SetLastSimulatedFrame(m_Index, simulationFrameTick);
+        public int GetLastSimulatedFrame() => m_List.GetLastSimulatedFrame(m_Index);
+
+        public bool AbleToSimulateDynamicGI()
+        {
+            return parameters.supportDynamicGI
+                   && IsDataAssigned()
+                   && HasNeighbors()
+                   && GetProbeVolumeEngineDataIndex() >= 0;
+        }
+
 #if UNITY_EDITOR
         public bool IsHiddenInScene() => m_List.IsHiddenInScene(m_Index);
 #endif

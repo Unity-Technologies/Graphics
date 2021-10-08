@@ -246,11 +246,15 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumeDebug,
         BuildGPULightListProbeVolumes,
         PushProbeVolumeLightListGlobalParameters,
-        ProbeVolumeDynamicGI,
         PrepareMaskVolumeList,
         MaskVolumeDebug,
         BuildGPULightListMaskVolumes,
         PushMaskVolumeLightListGlobalParameters,
+        ProbeVolumeDynamicGI,
+        ProbeVolumeDynamicGIClear,
+        ProbeVolumeDynamicGIHits,
+        ProbeVolumeDynamicGIAxes,
+        ProbeVolumeDynamicGICombine,
 
         AOVExecute,
         // Enum AOVBuffers

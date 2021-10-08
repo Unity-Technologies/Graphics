@@ -10,11 +10,19 @@ struct PackedNeighborHit
     uint indexValidity;
     uint albedoDistance;
     uint normalAxis;
+    uint emission;
 };
 
 struct PackedNeighborMiss
 {
     uint indexValidity;
+};
+
+struct NeighborAxisLookup
+{
+    float3 neighborDirection;
+    float sgWeight;
+    int index;
 };
 
 struct NeighborAxis
@@ -33,6 +41,18 @@ float4 UnpackAlbedoAndDistance(uint packedVal, float maxNeighborDistance)
     outVal.a *= maxNeighborDistance * sqrt(3.0f);
 
     return outVal;
+}
+
+float3 UnpackEmission(uint packedVal)
+{
+    float3 outVal;
+    outVal.r = ((packedVal >> 0) & 255) / 255.0f;
+    outVal.g = ((packedVal >> 8) & 255) / 255.0f;
+    outVal.b = ((packedVal >> 16) & 255) / 255.0f;
+
+    float multiplier = ((packedVal >> 24) & 255) / 32.0f;
+
+    return outVal * multiplier;
 }
 
 float3 UnpackNormal(uint packedVal)

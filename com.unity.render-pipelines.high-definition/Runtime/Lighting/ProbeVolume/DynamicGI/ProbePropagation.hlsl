@@ -5,9 +5,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationGlobals.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeDynamicGI.hlsl"
 
+int _ProbeVolumeProbeCount;
+
 RWStructuredBuffer<float3> _RadianceCacheAxis;
 StructuredBuffer<float3> _PreviousRadianceCacheAxis;
-int _RadianceCacheAxisCount;
 
 int _ProbeVolumeIndex;
 float _LeakMultiplier;
@@ -26,15 +27,8 @@ bool IsFarFromCamera(float3 worldPosition, float rangeInFrontOfCamera, float ran
 
 float3 ReadPreviousPropagationAxis(uint probeIndex, uint axisIndex)
 {
-    const uint index = probeIndex * NEIGHBOR_AXIS_COUNT + axisIndex;
-
-    // TODO: remove this if check with stricter checks on construction side in C#
-    if(index < (uint)_RadianceCacheAxisCount)
-    {
-        return _PreviousRadianceCacheAxis[index];
-    }
-
-    return 0;
+    const uint index = axisIndex * _ProbeVolumeProbeCount + probeIndex;
+    return _PreviousRadianceCacheAxis[index];
 }
 
 float3 NormalizeOutputRadiance(float4 lightingAndWeight, float probeValidity)
@@ -48,16 +42,10 @@ float3 NormalizeOutputRadiance(float4 lightingAndWeight, float probeValidity)
     return radiance;
 }
 
-void WritePropagationOutput(uint probeIndex, uint axisIndex, float4 lightingAndWeight, float probeValidity)
+void WritePropagationOutput(uint index, float4 lightingAndWeight, float probeValidity)
 {
-    const uint index = probeIndex * NEIGHBOR_AXIS_COUNT + axisIndex;
-
-    // TODO: remove this if check with stricter checks on construction side in C#
-    if(index < (uint)_RadianceCacheAxisCount)
-    {
-        const float3 finalRadiance = NormalizeOutputRadiance(lightingAndWeight, probeValidity);
-        _RadianceCacheAxis[index] = finalRadiance;
-    }
+    const float3 finalRadiance = NormalizeOutputRadiance(lightingAndWeight, probeValidity);
+    _RadianceCacheAxis[index] = finalRadiance;
 }
 
 

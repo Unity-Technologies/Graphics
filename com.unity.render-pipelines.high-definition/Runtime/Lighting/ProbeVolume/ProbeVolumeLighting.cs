@@ -1092,9 +1092,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (data.mode == ProbeVolumeDynamicGIMode.Dispatch)
                 {
+                    // Update Probe Volume Data via Dynamic GI Propagation
+                    ProbeVolumeDynamicGI.instance.ResetSimulationRequests();
                     float maxRange = Mathf.Max(data.giSettings.rangeBehindCamera.value, data.giSettings.rangeInFrontOfCamera.value);
 
-                    // Update Probe Volume Data via Dynamic GI Propagation
+                    // add simulation requests
                     for (int probeVolumeIndex = 0; probeVolumeIndex < data.volumes.Count; ++probeVolumeIndex)
                     {
                         ProbeVolumeHandle volume = data.volumes[probeVolumeIndex];
@@ -1104,8 +1106,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         float maxExtent = Mathf.Max(obb.extentX, Mathf.Max(obb.extentY, obb.extentZ));
                         if (obb.center.magnitude < (maxRange + maxExtent))
                         {
-                            ProbeVolumeDynamicGI.instance.DispatchProbePropagation(cmd, volume, data.giSettings, in data.globalCB, probeVolumeAtlas);
+                            ProbeVolumeDynamicGI.instance.AddSimulationRequest(data.volumes, probeVolumeIndex);
                         }
+                    }
+
+                    // dispatch max number of simulation requests this frame
+                    var sortedRequests = ProbeVolumeDynamicGI.instance.SortSimulationRequests(out var numSimulationRequests);
+                    for (int i = 0; i < numSimulationRequests; ++i)
+                    {
+                        var simulationRequest = sortedRequests[i];
+                        ProbeVolumeHandle volume = data.volumes[simulationRequest.probeVolumeIndex];
+                        ProbeVolumeDynamicGI.instance.DispatchProbePropagation(cmd, volume, data.giSettings, in data.globalCB, probeVolumeAtlas);
                     }
                 }
                 else if (data.mode == ProbeVolumeDynamicGIMode.Clear)
@@ -1113,7 +1124,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int probeVolumeIndex = 0; probeVolumeIndex < data.volumes.Count; ++probeVolumeIndex)
                     {
                         ProbeVolumeHandle volume = data.volumes[probeVolumeIndex];
-                        ProbeVolumeDynamicGI.instance.ClearProbePropagation(cmd, volume, data.giSettings, in data.globalCB, probeVolumeAtlas);
+                        ProbeVolumeDynamicGI.instance.ClearProbePropagation(volume);
                     }
                 }
             }

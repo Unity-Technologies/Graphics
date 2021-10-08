@@ -1,0 +1,25 @@
+#pragma kernel ClearPreviousRadianceCache
+#define GROUP_SIZE 64
+//#pragma enable_d3d11_debug_symbols
+
+
+RWStructuredBuffer<float3> _RadianceCacheAxis0;
+RWStructuredBuffer<float3> _RadianceCacheAxis1;
+RWStructuredBuffer<float3> _HitRadianceCacheAxis;
+int _RadianceCacheAxisCount;
+int _HitRadianceCacheAxisCount;
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void ClearPreviousRadianceCache(uint3 id : SV_DispatchThreadID)
+{
+    const int axisIndex = id.x;
+    if (axisIndex < _RadianceCacheAxisCount)
+    {
+        _RadianceCacheAxis0[axisIndex] = 0;
+        _RadianceCacheAxis1[axisIndex] = 0;
+    }
+    if (axisIndex < _HitRadianceCacheAxisCount)
+    {
+        _HitRadianceCacheAxis[axisIndex] = 0;
+    }
+}

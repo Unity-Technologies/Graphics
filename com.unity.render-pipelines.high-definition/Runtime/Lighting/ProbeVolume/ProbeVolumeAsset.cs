@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AddProbeVolumesAtlasEncodingModes,
             AddOctahedralDepthVarianceFromLightmapper,
             AddRotation,
+            RearrangeNeighborData,
             // Add new version here and they will automatically be the Current one
             Max,
             Current = Max - 1
@@ -279,6 +280,14 @@ namespace UnityEngine.Rendering.HighDefinition
             this.dilationIterations = dilationIterations;
         }
 
+        [ContextMenu("Reserialize")]
+        void Reserialize()
+        {
+            Migrate(null);
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
+        }
+        
         [ContextMenu("Reserialize All")]
         void ReserializeAll()
         {
@@ -290,6 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var path = AssetDatabase.GUIDToAssetPath(assetGuids[i]);
                 var asset = AssetDatabase.LoadAssetAtPath<ProbeVolumeAsset>(path);
+                asset.Migrate(null);
                 EditorUtility.SetDirty(asset);
             }
             EditorUtility.DisplayProgressBar(k_ProgressBarTitle, "Saving assets", 5f / 6f);
@@ -297,5 +307,123 @@ namespace UnityEngine.Rendering.HighDefinition
             EditorUtility.ClearProgressBar();
         }
 #endif
+
+        internal void Migrate(ProbeVolume volume)
+        {
+#if UNITY_EDITOR
+            var isDirty = false;
+#endif
+            while (Version < (int)AssetVersion.Current)
+            {
+                var nextVersion = Version + 1;
+                bool migrationFailed = false;
+                switch ((AssetVersion)nextVersion)
+                {
+                    case AssetVersion.AddProbeVolumesAtlasEncodingModes:
+                        ApplyMigrationAddProbeVolumesAtlasEncodingModes();
+                        break;
+                    case AssetVersion.AddOctahedralDepthVarianceFromLightmapper:
+                        ApplyMigrationAddOctahedralDepthVarianceFromLightmapper();
+                        break;
+                    case AssetVersion.AddRotation:
+                        migrationFailed = !TryApplyMigrationAddRotation(volume);
+                        break;
+                    case AssetVersion.RearrangeNeighborData:
+                        ApplyMigrationRearrangeNeighborData();
+                        break;
+                }
+
+                if (migrationFailed)
+                    break;
+
+                m_Version = nextVersion;
+#if UNITY_EDITOR
+                isDirty = true;
+#endif
+            }
+            
+#if UNITY_EDITOR
+            if (isDirty)
+                EditorUtility.SetDirty(this);
+#endif
+        }
+
+        void ApplyMigrationAddProbeVolumesAtlasEncodingModes()
+        {
+            int probeLength = dataSH.Length;
+
+            ProbeVolumePayload.Allocate(ref payload, probeLength);
+
+            for (int i = 0; i < probeLength; ++i)
+            {
+                ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref payload, dataSH[i], i);
+            }
+
+            dataSH = null;
+            dataValidity = null;
+            dataOctahedralDepth = null;
+        }
+
+        void ApplyMigrationAddOctahedralDepthVarianceFromLightmapper()
+        {
+            if (payload.dataOctahedralDepth == null)
+                return;
+
+            int probeLength = ProbeVolumePayload.GetLength(ref payload);
+            var dataOctahedralDepthMigrated = new float[probeLength * ProbeVolumePayload.GetDataOctahedralDepthStride()];
+
+            // Previously, the lightmapper only returned scalar mean depth values for octahedralDepth.
+            // Now it returns float2(depthMean, depthMean^2) which can be used to reconstruct a variance estimate.
+            int dataOctahedralDepthLengthPrevious = payload.dataOctahedralDepth.Length;
+            for (int i = 0; i < dataOctahedralDepthLengthPrevious; ++i)
+            {
+                float depthMean = payload.dataOctahedralDepth[i];
+
+                // For our migration, simply initialize our depthMeanSquared slots with depthMean * depthMean, which will reconstruct a zero variance estimate.
+                // Really, the user will want to rebake to get a real variance estimate. This migration just ensures we do not error out.
+                float depthMeanSquared = depthMean * depthMean;
+                dataOctahedralDepthMigrated[i * 2 + 0] = depthMean;
+                dataOctahedralDepthMigrated[i * 2 + 1] = depthMeanSquared;
+            }
+            payload.dataOctahedralDepth = dataOctahedralDepthMigrated;
+        }
+
+        bool TryApplyMigrationAddRotation(ProbeVolume volume)
+        {
+            if (volume == null)
+            {
+                Debug.LogWarning($"Data version of Probe Volume Asset \"{name}\" can't be updated on it's own, rotation is required. Open a scene with an enabled Probe Volume that uses this asset to update it.", this);
+                return false;
+            }
+
+            rotation = volume.transform.rotation;
+            return true;
+        }
+
+        void ApplyMigrationRearrangeNeighborData()
+        {
+            var neighborAxis = payload.neighborAxis;
+            if (neighborAxis == null)
+                return;
+
+            // Neighbor data was grouped by probe: Probe0_Dir0, .., Probe0_DirN, Probe1_Dir0 .., Probe1_DirN, etc.
+            // Rearrange so they are grouped by direction: Dir0_Probe0, .., Dir0_ProbeN, etc.
+
+            var axisCount = neighborAxis.Length;
+            var directionCount = ProbeVolumeDynamicGI.s_NeighborAxis.Length;
+
+            var neighborAxisMigrated = new NeighborAxis[axisCount];
+            var writeAxis = 0;
+            for (int direction = 0; direction < directionCount; direction++)
+            {
+                // Iterate over probes reading the same direction.
+                for (int readAxis = direction; readAxis < axisCount; readAxis += directionCount)
+                {
+                    neighborAxisMigrated[writeAxis] = neighborAxis[readAxis];
+                    writeAxis++;
+                }
+            }
+            payload.neighborAxis = neighborAxisMigrated;
+        }
     }
 }

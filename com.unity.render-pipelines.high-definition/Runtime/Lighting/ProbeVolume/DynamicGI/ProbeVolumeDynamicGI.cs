@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint indexValidity;
         public uint albedoDistance;
         public uint normalAxis;
+        public uint emission;
     }
 
     [Serializable]
@@ -62,50 +63,149 @@ namespace UnityEngine.Rendering.HighDefinition
         private static ProbeVolumeDynamicGI s_Instance = new ProbeVolumeDynamicGI();
         public static ProbeVolumeDynamicGI instance { get { return s_Instance; } }
 
-        internal static readonly float s_DiagonalDist = Mathf.Sqrt(3.0f);
-        internal static readonly float s_Diagonal = 1.0f / s_DiagonalDist;
-        internal static readonly float s_2DDiagonalDist = Mathf.Sqrt(2.0f);
-        internal static readonly float s_2DDiagonal = 1.0f / s_2DDiagonalDist;
+        internal static float s_DiagonalDist;
+        internal static float s_Diagonal;
+        internal static float s_2DDiagonalDist;
+        internal static float s_2DDiagonal;
+        internal static Vector4[] s_NeighborAxis;
 
+        private ComputeShader _PropagationClearRadianceShader = null;
         private ComputeShader _PropagationHitsShader = null;
         private ComputeShader _PropagationAxesShader = null;
         private ComputeShader _PropagationCombineShader = null;
 
+        private NeighborAxisLookup[] _sortedNeighborAxisLookups;
+        private ComputeBuffer _sortedNeighborAxisLookupsBuffer;
+        private ProbeVolumeSimulationRequest[] _probeVolumeSimulationRequests;
 
-        internal static readonly Vector4[] s_NeighborAxis =
+        private const int MAX_SIMULATIONS_PER_FRAME = 128;
+        private float _sortedAxisSharpness = -1;
+        private int _probeVolumeSimulationRequestCount = 0;
+        private int _probeVolumeSimulationFrameTick = 0;
+
+        public enum PropagationAxisAmount
         {
-            // middle slice
-            new Vector4( 1,  0,  0, 1),
-            new Vector4( s_2DDiagonal,  0,  s_2DDiagonal, s_2DDiagonalDist),
-            new Vector4( s_2DDiagonal,  0, -s_2DDiagonal, s_2DDiagonalDist),
-            new Vector4(-1,  0,  0, 1),
-            new Vector4(-s_2DDiagonal,  0,  s_2DDiagonal, s_2DDiagonalDist),
-            new Vector4(-s_2DDiagonal,  0, -s_2DDiagonal, s_2DDiagonalDist),
-            new Vector4( 0,  0,  1, 1),
-            new Vector4( 0,  0, -1, 1),
+            All = 0,
+            Most,
+            Least
+        }
 
-            // upper slice
-            new Vector4( 0,  1,  0, 1),
-            new Vector4( s_2DDiagonal,  s_2DDiagonal,  0, s_2DDiagonalDist),
-            new Vector4( s_Diagonal,  s_Diagonal,  s_Diagonal, s_DiagonalDist),
-            new Vector4( s_Diagonal,  s_Diagonal, -s_Diagonal, s_DiagonalDist),
-            new Vector4(-s_2DDiagonal,  s_2DDiagonal,  0, s_2DDiagonalDist),
-            new Vector4(-s_Diagonal,  s_Diagonal,  s_Diagonal, s_DiagonalDist),
-            new Vector4(-s_Diagonal,  s_Diagonal, -s_Diagonal, s_DiagonalDist),
-            new Vector4( 0,  s_2DDiagonal,  s_2DDiagonal, s_2DDiagonalDist),
-            new Vector4( 0,  s_2DDiagonal, -s_2DDiagonal, s_2DDiagonalDist),
+        ProbeVolumeDynamicGI()
+        {
+            s_DiagonalDist = Mathf.Sqrt(3.0f);
+            s_Diagonal = 1.0f / s_DiagonalDist;
+            s_2DDiagonalDist = Mathf.Sqrt(2.0f);
+            s_2DDiagonal = 1.0f / s_2DDiagonalDist;
 
-            // lower slice
-            new Vector4( 0, -1,  0, 1),
-            new Vector4( s_2DDiagonal, -s_2DDiagonal,  0, s_2DDiagonalDist),
-            new Vector4( s_Diagonal, -s_Diagonal,  s_Diagonal, s_DiagonalDist),
-            new Vector4( s_Diagonal, -s_Diagonal, -s_Diagonal, s_DiagonalDist),
-            new Vector4(-s_2DDiagonal, -s_2DDiagonal,  0, s_2DDiagonalDist),
-            new Vector4(-s_Diagonal, -s_Diagonal,  s_Diagonal, s_DiagonalDist),
-            new Vector4(-s_Diagonal, -s_Diagonal, -s_Diagonal, s_DiagonalDist),
-            new Vector4( 0, -s_2DDiagonal,  s_2DDiagonal, s_2DDiagonalDist),
-            new Vector4( 0, -s_2DDiagonal, -s_2DDiagonal, s_2DDiagonalDist),
-        };
+            s_NeighborAxis = new Vector4[]
+            {
+                // middle slice
+                new Vector4( 1,  0,  0, 1),
+                new Vector4( s_2DDiagonal,  0,  s_2DDiagonal, s_2DDiagonalDist),
+                new Vector4( s_2DDiagonal,  0, -s_2DDiagonal, s_2DDiagonalDist),
+                new Vector4(-1,  0,  0, 1),
+                new Vector4(-s_2DDiagonal,  0,  s_2DDiagonal, s_2DDiagonalDist),
+                new Vector4(-s_2DDiagonal,  0, -s_2DDiagonal, s_2DDiagonalDist),
+                new Vector4( 0,  0,  1, 1),
+                new Vector4( 0,  0, -1, 1),
+
+                // upper slice
+                new Vector4( 0,  1,  0, 1),
+                new Vector4( s_2DDiagonal,  s_2DDiagonal,  0, s_2DDiagonalDist),
+                new Vector4( s_Diagonal,  s_Diagonal,  s_Diagonal, s_DiagonalDist),
+                new Vector4( s_Diagonal,  s_Diagonal, -s_Diagonal, s_DiagonalDist),
+                new Vector4(-s_2DDiagonal,  s_2DDiagonal,  0, s_2DDiagonalDist),
+                new Vector4(-s_Diagonal,  s_Diagonal,  s_Diagonal, s_DiagonalDist),
+                new Vector4(-s_Diagonal,  s_Diagonal, -s_Diagonal, s_DiagonalDist),
+                new Vector4( 0,  s_2DDiagonal,  s_2DDiagonal, s_2DDiagonalDist),
+                new Vector4( 0,  s_2DDiagonal, -s_2DDiagonal, s_2DDiagonalDist),
+
+                // lower slice
+                new Vector4( 0, -1,  0, 1),
+                new Vector4( s_2DDiagonal, -s_2DDiagonal,  0, s_2DDiagonalDist),
+                new Vector4( s_Diagonal, -s_Diagonal,  s_Diagonal, s_DiagonalDist),
+                new Vector4( s_Diagonal, -s_Diagonal, -s_Diagonal, s_DiagonalDist),
+                new Vector4(-s_2DDiagonal, -s_2DDiagonal,  0, s_2DDiagonalDist),
+                new Vector4(-s_Diagonal, -s_Diagonal,  s_Diagonal, s_DiagonalDist),
+                new Vector4(-s_Diagonal, -s_Diagonal, -s_Diagonal, s_DiagonalDist),
+                new Vector4( 0, -s_2DDiagonal,  s_2DDiagonal, s_2DDiagonalDist),
+                new Vector4( 0, -s_2DDiagonal, -s_2DDiagonal, s_2DDiagonalDist),
+            };
+
+            _sortedNeighborAxisLookups = new NeighborAxisLookup[s_NeighborAxis.Length * s_NeighborAxis.Length];
+            _probeVolumeSimulationRequests = new ProbeVolumeSimulationRequest[MAX_SIMULATIONS_PER_FRAME];
+        }
+
+        private bool _clearAllActive = false;
+        public void ClearAllActive(bool clearAll)
+        {
+            _clearAllActive = clearAll;
+        }
+
+        private bool _overrideInfiniteBounce = false;
+        private float _overrideInfiniteBounceValue;
+        public void OverrideInfiniteBounce(bool setOverride, float value = 0)
+        {
+            _overrideInfiniteBounce = setOverride;
+            _overrideInfiniteBounceValue = value;
+        }
+
+        private int _maxSimulationsPerFrame = MAX_SIMULATIONS_PER_FRAME;
+        public void OverrideMaxSimulationsPerFrame(bool setOverride, int maxSimulations)
+        {
+            if (setOverride)
+            {
+                _maxSimulationsPerFrame = maxSimulations;
+            }
+            else
+            {
+                _maxSimulationsPerFrame = MAX_SIMULATIONS_PER_FRAME;
+            }
+        }
+
+        private PropagationAxisAmount _propagationAxisAmount = PropagationAxisAmount.All;
+        public void OverridePropagationAxisAmount(bool setOverride, PropagationAxisAmount amount)
+        {
+            if (setOverride)
+            {
+                _propagationAxisAmount = amount;
+            }
+            else
+            {
+                _propagationAxisAmount = PropagationAxisAmount.All;
+            }
+        }
+
+        public struct ProbeVolumeDynamicGIStats
+        {
+            public int numSimulatedProbeVolumes;
+            public int numSimulatedProbes;
+            public int totalDynamicGIProbes;
+
+            public void Reset()
+            {
+                numSimulatedProbeVolumes = 0;
+                numSimulatedProbes = 0;
+                totalDynamicGIProbes = 0;
+            }
+
+            internal void SimulationRequested(ProbeVolumeHandle probeVolume)
+            {
+                ++totalDynamicGIProbes;
+            }
+
+            internal void Simulated(ProbeVolumeHandle probeVolume)
+            {
+                ++numSimulatedProbeVolumes;
+                numSimulatedProbes += probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
+            }
+        }
+
+        private ProbeVolumeDynamicGIStats _stats;
+        public ProbeVolumeDynamicGIStats GetStats()
+        {
+            return _stats;
+        }
 
         internal static void AllocateNeighbors(ref ProbeVolumePayload payload, int numMissedAxis, int numHitAxis, int numAxis)
         {
@@ -152,27 +252,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static void SetNeighborDataHit(ref ProbeVolumePayload payload, Vector3 albedo, Vector3 normal, float distance, float validity, int probeIndex, int axis, int neighborIndex, float maxDensity)
+        internal static void SetNeighborDataHit(ref ProbeVolumePayload payload, Vector3 albedo, Vector3 emission, Vector3 normal, float distance, float validity, int probeIndex, int axis, int hitIndex, float maxDensity)
         {
-            ref var neighborData = ref payload.hitNeighborAxis;
-            if (neighborIndex >= neighborData.Length)
+            ref var neighborDataHits = ref payload.hitNeighborAxis;
+            if (hitIndex >= neighborDataHits.Length)
             {
                 Debug.Assert(false, "Probe Volume Neighbor Indexing Code Error");
                 return;
             }
 
-            neighborData[neighborIndex] = new PackedNeighborHit
+            neighborDataHits[hitIndex] = new PackedNeighborHit
             {
                 indexValidity = PackIndexAndValidity((uint) probeIndex, (uint) axis, validity),
                 albedoDistance = PackAlbedoAndDistance(albedo, distance, maxDensity * s_DiagonalDist),
-                normalAxis = PackNormalAndAxis(normal, axis)
+                normalAxis = PackNormalAndAxis(normal, axis),
+                emission = PackEmission(emission)
             };
         }
 
         private static void SetNeighborData(ref ProbeVolumePayload payload, float validity, int probeIndex, int axis, uint hitIndexOrMiss)
         {
-            var axisIndex = probeIndex * s_NeighborAxis.Length + axis;
             ref var neighborData = ref payload.neighborAxis;
+            var probeCount = neighborData.Length / s_NeighborAxis.Length;
+            var axisIndex = axis * probeCount + probeIndex;
             if (axisIndex >= neighborData.Length)
             {
                 Debug.Assert(false, "Probe Volume Neighbor Indexing Code Error");
@@ -199,6 +301,27 @@ namespace UnityEngine.Rendering.HighDefinition
             packedOutput |= ((uint)(albedoG * 255.5f) << 8);
             packedOutput |= ((uint)(albedoB * 255.5f) << 16);
             packedOutput |= ((uint)(normalizedDistance * 255.5f) << 24);
+
+            return packedOutput;
+        }
+
+        private static uint PackEmission(Vector3 color)
+        {
+            var maxChannel = color.x > color.y ? color.x : color.y;
+            maxChannel = maxChannel > color.z ? maxChannel : color.z;
+
+            // This byte value in M will result in the color range [0, 1].
+            const float multiplierToByteScale = 32f;
+
+            byte m = (byte)Mathf.CeilToInt(maxChannel * multiplierToByteScale);
+            color *= 255f * multiplierToByteScale / m;
+
+            uint packedOutput = 0;
+
+            packedOutput |= (uint)Mathf.Min(255f, color.x) << 0;
+            packedOutput |= (uint)Mathf.Min(255f, color.y) << 8;
+            packedOutput |= (uint)Mathf.Min(255f, color.z) << 16;
+            packedOutput |= (uint)m << 24;
 
             return packedOutput;
         }
@@ -279,11 +402,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Allocate(RenderPipelineResources resources)
         {
-            Dispose(); // To avoid double alloc.
+            Cleanup(); // To avoid double alloc.
 
+            _PropagationClearRadianceShader = resources.shaders.probePropagationClearRadianceCS;
             _PropagationHitsShader = resources.shaders.probePropagationHitsCS;
             _PropagationAxesShader = resources.shaders.probePropagationAxesCS;
             _PropagationCombineShader = resources.shaders.probePropagationCombineCS;
+
+            ProbeVolume.EnsureBuffer<NeighborAxisLookup>(ref _sortedNeighborAxisLookupsBuffer, _sortedNeighborAxisLookups.Length);
 
 #if UNITY_EDITOR
             _ProbeVolumeDebugNeighbors = resources.shaders.probeVolumeDebugNeighbors;
@@ -292,40 +418,37 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        public void Dispose()
+        internal void Cleanup()
         {
 #if UNITY_EDITOR
             RTHandles.Release(dummyColor);
 #endif
-        }
-
-        private bool _clearAllActive = false;
-        public void ClearAllActive(bool clearAll)
-        {
-            _clearAllActive = clearAll;
+            _sortedAxisSharpness = -1;
+            ProbeVolume.CleanupBuffer(_sortedNeighborAxisLookupsBuffer);
         }
 
 
         internal void DispatchProbePropagation(CommandBuffer cmd, ProbeVolumeHandle probeVolume, ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RenderTargetIdentifier probeVolumeAtlasSHRTHandle)
         {
-            if (probeVolume.parameters.supportDynamicGI
-                && probeVolume.IsDataAssigned()
-                && probeVolume.HasNeighbors()
-                && probeVolume.GetProbeVolumeEngineDataIndex() >= 0)
-            {
-                InitializePropagationBuffers(probeVolume);
+            var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume);
 
-                if (giSettings.clear.value || _clearAllActive)
-                {
-                    ClearRadianceCache(probeVolume);
-                }
+            DispatchClearPreviousRadianceCache(cmd, probeVolume, previousRadianceCacheInvalid || giSettings.clear.value || _clearAllActive);
 
-                DispatchPropagationHits(cmd, probeVolume, in giSettings);
-                DispatchPropagationAxes(cmd, probeVolume, in giSettings);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIHits)))
+                DispatchPropagationHits(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIAxes)))
+                DispatchPropagationAxes(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGICombine)))
                 DispatchPropagationCombine(cmd, probeVolume, in giSettings, in shaderGlobals, probeVolumeAtlasSHRTHandle);
-                probeVolume.propagationBuffers.SwapRadianceCaches();
-            }
-            else
+
+            _stats.Simulated(probeVolume);
+            probeVolume.propagationBuffers.SwapRadianceCaches();
+            probeVolume.SetLastSimulatedFrame(_probeVolumeSimulationFrameTick);
+        }
+
+        internal void ClearProbePropagation(ProbeVolumeHandle probeVolume)
+        {
+            if (probeVolume.AbleToSimulateDynamicGI())
             {
                 if (CleanupPropagation(probeVolume))
                 {
@@ -335,28 +458,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void ClearProbePropagation(CommandBuffer cmd, ProbeVolumeHandle probeVolume, ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RenderTargetIdentifier probeVolumeAtlasSHRTHandle)
+        void DispatchClearPreviousRadianceCache(CommandBuffer cmd, ProbeVolumeHandle probeVolume, bool previousRadianceCacheInvalid)
         {
-            if (probeVolume.parameters.supportDynamicGI
-                && probeVolume.IsDataAssigned()
-                && probeVolume.HasNeighbors()
-                && probeVolume.GetProbeVolumeEngineDataIndex() >= 0)
+            if (previousRadianceCacheInvalid)
             {
-                if (probeVolume.parameters.supportDynamicGI
-                    && probeVolume.IsDataAssigned()
-                    && probeVolume.HasNeighbors()
-                    && probeVolume.GetProbeVolumeEngineDataIndex() >= 0)
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIClear)))
                 {
-                    if (CleanupPropagation(probeVolume))
-                    {
-                        // trigger an update so original bake data gets set since Dynamic GI was disabled
-                        probeVolume.SetDataUpdated(true);
-                    }
+                    var kernel = _PropagationClearRadianceShader.FindKernel("ClearPreviousRadianceCache");
+                    var shader = _PropagationClearRadianceShader;
+
+                    cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis0", probeVolume.propagationBuffers.radianceCacheAxis0);
+                    cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis1", probeVolume.propagationBuffers.radianceCacheAxis1);
+                    cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", probeVolume.propagationBuffers.radianceCacheAxis0.count);
+                    cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", probeVolume.propagationBuffers.hitRadianceCache);
+                    cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.propagationBuffers.hitRadianceCache.count);
+
+                    int numHits = Mathf.Max(probeVolume.propagationBuffers.radianceCacheAxis0.count, probeVolume.propagationBuffers.hitRadianceCache.count);
+                    int dispatchX = (numHits + 63) / 64;
+                    cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
                 }
             }
         }
 
-        void DispatchPropagationHits(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings)
+        void DispatchPropagationHits(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, bool previousRadianceCacheInvalid)
         {
             var kernel = _PropagationHitsShader.FindKernel("AccumulateLightingDirectional");
             var shader = _PropagationHitsShader;
@@ -375,10 +499,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeNeighborHits", probeVolume.propagationBuffers.neighborHits);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeNeighborHitCount", probeVolume.propagationBuffers.neighborHits.count);
             cmd.SetComputeFloatParam(shader, "_IndirectScale", giSettings.indirectMultiplier.value);
+            cmd.SetComputeFloatParam(shader, "_BakedEmissionMultiplier", giSettings.bakedEmissionMultiplier.value);
             cmd.SetComputeFloatParam(shader, "_RayBias", giSettings.bias.value);
             cmd.SetComputeFloatParam(shader, "_LeakMultiplier", giSettings.leakMultiplier.value);
             cmd.SetComputeFloatParam(shader, "_DirectContribution", giSettings.directContribution.value);
-            cmd.SetComputeFloatParam(shader, "_InfiniteBounce", giSettings.infiniteBounce.value);
             cmd.SetComputeFloatParam(shader, "_InfiniteBounceSharpness", giSettings.infiniteBounceSharpness.value);
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
 
@@ -390,14 +514,25 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", probeVolume.propagationBuffers.hitRadianceCache);
             cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.propagationBuffers.hitRadianceCache.count);
 
-            CoreUtils.SetKeyword(shader, "COMPUTE_INFINITE_BOUNCE", giSettings.infiniteBounce.value > 0);
+            // TODO: replace with real one
+            cmd.SetComputeTextureParam(shader, kernel, "_HierarchicalVarianceScreenSpaceShadowsTexture", TextureXR.GetWhiteTexture());
+
+            float infBounce = giSettings.infiniteBounce.value;
+            if (_overrideInfiniteBounce)
+            {
+                infBounce = _overrideInfiniteBounceValue;
+            }
+
+            cmd.SetComputeFloatParam(shader, "_InfiniteBounce", infBounce);
+            CoreUtils.SetKeyword(shader, "COMPUTE_INFINITE_BOUNCE", infBounce > 0);
+            CoreUtils.SetKeyword(shader, "PREVIOUS_RADIANCE_CACHE_INVALID", previousRadianceCacheInvalid);
 
             int numHits = probeVolume.propagationBuffers.neighborHits.count;
             int dispatchX = (numHits + 63) / 64;
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
 
-        void DispatchPropagationAxes(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings)
+        void DispatchPropagationAxes(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, bool previousRadianceCacheInvalid)
         {
             var kernel = _PropagationAxesShader.FindKernel("PropagateLight");
             var shader = _PropagationAxesShader;
@@ -419,13 +554,28 @@ namespace UnityEngine.Rendering.HighDefinition
                     CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION", true);
                     break;
                 }
-                case ProbeDynamicGI.DynamicGINeighboringVolumePropagationMode.Disabled:
                 default:
                 {
                     CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_DIRECTION_ONLY", false);
                     CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION", false);
                     break;
                 }
+            }
+
+            switch (_propagationAxisAmount)
+            {
+                case PropagationAxisAmount.All:
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_MOST", false);
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_LEAST", false);
+                    break;
+                case PropagationAxisAmount.Most:
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_MOST", true);
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_LEAST", false);
+                    break;
+                case PropagationAxisAmount.Least:
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_MOST", false);
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_LEAST", true);
+                    break;
             }
 
             cmd.SetComputeFloatParam(shader, "_ProbeVolumeDGIMaxNeighborDistance", data.maxNeighborDistance);
@@ -443,6 +593,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeNeighbors", probeVolume.propagationBuffers.neighbors);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeNeighborsCount", probeVolume.propagationBuffers.neighbors.count);
+            cmd.SetComputeIntParam(shader, "_ProbeVolumeProbeCount", probeVolume.propagationBuffers.neighbors.count / s_NeighborAxis.Length);
             cmd.SetComputeFloatParam(shader, "_LeakMultiplier", giSettings.leakMultiplier.value);
             cmd.SetComputeFloatParam(shader, "_PropagationContribution", giSettings.propagationContribution.value);
             cmd.SetComputeFloatParam(shader, "_PropagationSharpness", giSettings.propagationSharpness.value);
@@ -456,10 +607,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeBufferParam(shader, kernel, "_PreviousRadianceCacheAxis", probeVolume.propagationBuffers.GetReadRadianceCacheAxis());
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis", probeVolume.propagationBuffers.GetWriteRadianceCacheAxis());
-            cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", probeVolume.propagationBuffers.radianceCacheAxis0.count);
 
             PrecomputeAxisCacheLookup(giSettings.propagationSharpness.value);
-            cmd.SetComputeVectorArrayParam(shader, "_SortedNeighborAxis", s_sortedAxisLookups);
+            cmd.SetComputeBufferParam(shader, kernel, "_SortedNeighborAxisLookups", _sortedNeighborAxisLookupsBuffer);
+            CoreUtils.SetKeyword(shader, "PREVIOUS_RADIANCE_CACHE_INVALID", previousRadianceCacheInvalid);
 
             int numHits = probeVolume.propagationBuffers.neighbors.count;
             int dispatchX = (numHits + 63) / 64;
@@ -491,6 +642,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateRight, key.rotation * new Vector3(1.0f, 0.0f, 0.0f));
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateUp, key.rotation * new Vector3(0.0f, 1.0f, 0.0f));
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateForward, key.rotation * new Vector3(0.0f, 0.0f, 1.0f));
+
+            var dynamicRotation = probeVolume.rotation;
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasDynamicSHRotateRight, dynamicRotation * new Vector3(1.0f, 0.0f, 0.0f));
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasDynamicSHRotateUp, dynamicRotation * new Vector3(0.0f, 1.0f, 0.0f));
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasDynamicSHRotateForward, dynamicRotation * new Vector3(0.0f, 0.0f, 1.0f));
 
             cmd.SetComputeIntParam(shader, HDShaderIDs._ProbeVolumeAtlasReadBufferCount, numProbes);
 
@@ -548,7 +704,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return didDispose;
         }
 
-        private void InitializePropagationBuffers(ProbeVolumeHandle probeVolume)
+        private bool InitializePropagationBuffers(ProbeVolumeHandle probeVolume)
         {
             probeVolume.EnsureVolumeBuffers();
             if (ProbeVolume.EnsureBuffer<PackedNeighborHit>(ref probeVolume.propagationBuffers.neighborHits, probeVolume.HitNeighborAxisLength))
@@ -564,31 +720,15 @@ namespace UnityEngine.Rendering.HighDefinition
             int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
             int numAxis = numProbes * s_NeighborAxis.Length;
 
-            bool radianceChanged = ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.hitRadianceCache, probeVolume.HitNeighborAxisLength);
+            bool previousRadianceCacheInvalid = ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.hitRadianceCache, probeVolume.HitNeighborAxisLength);
             if (ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.radianceCacheAxis0, numAxis))
             {
                 ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.radianceCacheAxis1, numAxis);
-
                 probeVolume.propagationBuffers.radianceReadIndex = 0;
-                radianceChanged = true;
+                previousRadianceCacheInvalid = true;
             }
 
-            if (radianceChanged)
-            {
-                ClearRadianceCache(probeVolume);
-            }
-        }
-
-        void ClearRadianceCache(ProbeVolumeHandle probeVolume)
-        {
-            int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
-            int numAxis = numProbes * s_NeighborAxis.Length;
-            Vector3[] axisZeroes = new Vector3[numAxis];
-            Vector3[] hitZeroes = new Vector3[probeVolume.HitNeighborAxisLength];
-
-            probeVolume.propagationBuffers.radianceCacheAxis0.SetData(axisZeroes);
-            probeVolume.propagationBuffers.radianceCacheAxis1.SetData(axisZeroes);
-            probeVolume.propagationBuffers.hitRadianceCache.SetData(hitZeroes);
+            return previousRadianceCacheInvalid;
         }
 
         internal static float GetMaxNeighborDistance(in ProbeVolumeArtistParameters parameters)
@@ -605,41 +745,106 @@ namespace UnityEngine.Rendering.HighDefinition
             return sgAmplitude * Mathf.Exp(Vector3.Dot(sgMean, direction) * sgSharpness - sgSharpness);
         }
 
-        void PrecomputeAxisCacheLookup(float sgSharpness)
+        unsafe void PrecomputeAxisCacheLookup(float sgSharpness)
         {
-            if (!Mathf.Approximately(s_sortedAxisSharpness, sgSharpness))
+            if (!Mathf.Approximately(_sortedAxisSharpness, sgSharpness))
             {
                 for (int axisIndex = 0; axisIndex < s_NeighborAxis.Length; ++axisIndex)
                 {
                     var axis = s_NeighborAxis[axisIndex];
+                    var sortedAxisStart = axisIndex * s_NeighborAxis.Length;
                     for (int neighborIndex = 0; neighborIndex < s_NeighborAxis.Length; ++neighborIndex)
                     {
                         var neighborDirection = s_NeighborAxis[neighborIndex];
                         var sgWeight = SGEvaluateFromDirection(1, sgSharpness, neighborDirection, axis);
-                        s_tempAxisLookups[neighborIndex] = new Vector4(sgWeight, neighborIndex, 0, 0);
+                        sgWeight /= neighborDirection.w * neighborDirection.w;
+                        _sortedNeighborAxisLookups[sortedAxisStart + neighborIndex] = new NeighborAxisLookup(neighborIndex, sgWeight, neighborDirection);
                     }
 
-                    Array.Sort(s_tempAxisLookups, s_axisComparer);
-                    Array.Copy(s_tempAxisLookups, 0, s_sortedAxisLookups, axisIndex * s_NeighborAxis.Length, s_NeighborAxis.Length);
+                    fixed (NeighborAxisLookup* sortedAxisPtr = &_sortedNeighborAxisLookups[sortedAxisStart])
+                    {
+                        CoreUnsafeUtils.QuickSort<NeighborAxisLookup>(s_NeighborAxis.Length, sortedAxisPtr);
+                    }
                 }
 
-                s_sortedAxisSharpness = sgSharpness;
+                _sortedNeighborAxisLookupsBuffer.SetData(_sortedNeighborAxisLookups);
+                _sortedAxisSharpness = sgSharpness;
             }
         }
 
-        class RelevantNeighborAxisLookupComparer : IComparer<Vector4>
+        internal void ResetSimulationRequests()
         {
-            public int Compare( Vector4 x, Vector4 y )
+            _stats.Reset();
+            _probeVolumeSimulationRequestCount = 0;
+            ++_probeVolumeSimulationFrameTick;
+        }
+
+        internal void AddSimulationRequest(List<ProbeVolumeHandle> volumes, int probeVolumeIndex)
+        {
+            var probeVolume = volumes[probeVolumeIndex];
+            if (probeVolume.AbleToSimulateDynamicGI() && _probeVolumeSimulationRequestCount < _probeVolumeSimulationRequests.Length)
             {
-                float diff = x.x - y.x;
+                _stats.SimulationRequested(probeVolume);
+                var lastSimulatedFrame = probeVolume.GetLastSimulatedFrame();
+                _probeVolumeSimulationRequests[_probeVolumeSimulationRequestCount] = new ProbeVolumeSimulationRequest
+                {
+                    probeVolumeIndex = probeVolumeIndex,
+                    simulationFrameDelta = Mathf.Abs(lastSimulatedFrame - _probeVolumeSimulationFrameTick)
+                };
+                ++_probeVolumeSimulationRequestCount;
+            }
+            else
+            {
+                if (CleanupPropagation(probeVolume))
+                {
+                    // trigger an update so original bake data gets set since Dynamic GI was disabled
+                    probeVolume.SetDataUpdated(true);
+                }
+            }
+        }
+
+        unsafe internal ProbeVolumeSimulationRequest[] SortSimulationRequests(out int numSimulationRequests)
+        {
+            fixed (ProbeVolumeSimulationRequest* requestPtr = &_probeVolumeSimulationRequests[0])
+            {
+                CoreUnsafeUtils.QuickSort<ProbeVolumeSimulationRequest>(_probeVolumeSimulationRequestCount, requestPtr);
+            }
+
+            numSimulationRequests = Mathf.Min(_probeVolumeSimulationRequestCount, _maxSimulationsPerFrame);
+
+            return _probeVolumeSimulationRequests;
+        }
+
+        internal struct ProbeVolumeSimulationRequest : IComparable<ProbeVolumeSimulationRequest>
+        {
+            public int probeVolumeIndex;
+            public int simulationFrameDelta;
+
+            public int CompareTo(ProbeVolumeSimulationRequest other)
+            {
+                return other.simulationFrameDelta - simulationFrameDelta;
+            }
+        }
+
+        struct NeighborAxisLookup : IComparable<NeighborAxisLookup>
+        {
+            public Vector3 neighborDirection;
+            public float sgWeight;
+            public int index;
+
+            public NeighborAxisLookup(int index, float sgWeight, Vector3 neighborDirection)
+            {
+                this.index = index;
+                this.sgWeight = sgWeight;
+                this.neighborDirection = neighborDirection;
+            }
+
+            public int CompareTo(NeighborAxisLookup other)
+            {
+                float diff = sgWeight - other.sgWeight;
                 return diff < 0 ? 1 : diff > 0 ? -1 : 0;
             }
         }
-
-        private static Vector4[] s_tempAxisLookups = new Vector4[s_NeighborAxis.Length];
-        private static Vector4[] s_sortedAxisLookups = new Vector4[s_NeighborAxis.Length * s_NeighborAxis.Length];
-        private static float s_sortedAxisSharpness = -1;
-        private static RelevantNeighborAxisLookupComparer s_axisComparer = new RelevantNeighborAxisLookupComparer();
     }
 
 } // UnityEngine.Experimental.Rendering.HDPipeline

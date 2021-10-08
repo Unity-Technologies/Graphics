@@ -27,6 +27,9 @@ float4 _ProbeVolumeAtlasResolutionAndSliceCount;
 float3 _ProbeVolumeAtlasSHRotateRight;
 float3 _ProbeVolumeAtlasSHRotateUp;
 float3 _ProbeVolumeAtlasSHRotateForward;
+float3 _ProbeVolumeAtlasDynamicSHRotateRight;
+float3 _ProbeVolumeAtlasDynamicSHRotateUp;
+float3 _ProbeVolumeAtlasDynamicSHRotateForward;
 
 StructuredBuffer<float3> _RadianceCacheAxis;
 int _RadianceCacheAxisCount;
@@ -127,14 +130,17 @@ SHIncomingIrradiance ProjectPropagationAxisFromPeak(uint probeIndex)
     SHIncomingIrradiance incomingIrradiance;
     ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
 
-    uint localIndex = probeIndex * NEIGHBOR_AXIS_COUNT;
+    uint localIndex = probeIndex;
     for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
     {
         float3 radiance = _RadianceCacheAxis[localIndex].xyz;
         float3 direction = _RayAxis[axis].xyz;
+        const float3x3 probeVolumeAtlasDynamicSHRotate = float3x3(_ProbeVolumeAtlasDynamicSHRotateRight, _ProbeVolumeAtlasDynamicSHRotateUp, _ProbeVolumeAtlasDynamicSHRotateForward);
+        direction = mul(direction, probeVolumeAtlasDynamicSHRotate);
+        
         SHIncomingIrradianceAccumulate(incomingIrradiance, direction, radiance);
         //FCCAddToOutputRepresentation(radiance, direction, incomingIrradiance);
-        localIndex++;
+        localIndex += _ProbeVolumeAtlasReadBufferCount;
     }
 
     return incomingIrradiance;
@@ -213,17 +219,19 @@ SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
     SHIncomingIrradiance incomingIrradiance;
     ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
 
-    uint localIndex = probeIndex * NEIGHBOR_AXIS_COUNT;
+    uint localIndex = probeIndex;
     for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
     {
         float3 radiance = _RadianceCacheAxis[localIndex].xyz;
         float3 direction = _RayAxis[axis].xyz;
+        const float3x3 probeVolumeAtlasDynamicSHRotate = float3x3(_ProbeVolumeAtlasDynamicSHRotateRight, _ProbeVolumeAtlasDynamicSHRotateUp, _ProbeVolumeAtlasDynamicSHRotateForward);
+        direction = mul(direction, probeVolumeAtlasDynamicSHRotate);
 
         SHIncomingIrradiance incomingIrradianceCurrentSG = SHIncomingIrradianceComputeFromSphericalGaussian(direction, _PropagationSharpness, radiance);
 
         SHIncomingIrradianceAccumulateFromSHIncomingIrradiance(incomingIrradiance, incomingIrradianceCurrentSG);
 
-        localIndex++;
+        localIndex += _ProbeVolumeAtlasReadBufferCount;
     }
 
     return incomingIrradiance;

@@ -1,14 +1,8 @@
 using System;
-using UnityEngine.Rendering;
-using UnityEngine.Serialization;
-using UnityEditor.Experimental;
-using Unity.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using UnityEditor;
-using UnityEditor.Rendering.HighDefinition;
-using UnityEngine.Experimental.Rendering;
 
 [assembly: InternalsVisibleTo("Unity.Entities.Hybrid.HybridComponents")]
 [assembly: InternalsVisibleTo("Unity.Rendering.Hybrid")]
@@ -33,15 +27,20 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct ExtraDataRequests
         {
             internal Vector2 uv;
-            internal Vector3 pos;
-            internal Vector3 N;
-            internal int requestIndex;
+            internal Vector2 uvDdx;
+            internal Vector2 uvDdy;
+            internal Vector3 position;
+            internal Vector3 positionDdx;
+            internal Vector3 positionDdy;
+            internal Vector3 normalWS;
+            internal int requestIdx;
         }
 
         [GenerateHLSL(needAccessors = false)]
         internal struct ExtraDataRequestOutput
         {
             internal Vector3 albedo;
+            internal Vector3 emission;
         }
 
         internal struct RequestInput
@@ -57,7 +56,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private const int kDummyRTHeight = 64;
         private const int kDummyRTWidth = 4096;
-        private const int kMaxRequestsPerDraw = kDummyRTWidth * kDummyRTHeight;
+        private const int kMaxRequestsPerColumn = kDummyRTHeight / 2;
+        private const int kMaxRequestsPerRow = kDummyRTWidth / 2;
+        private const int kMaxRequestsPerDraw = kMaxRequestsPerColumn * kMaxRequestsPerRow;
 
         internal Dictionary<RequestInput, List<ExtraDataRequests>> requestsList = new Dictionary<RequestInput, List<ExtraDataRequests>>();
         internal List<ExtraDataRequestOutput> extraRequestsOutput = new List<ExtraDataRequestOutput>();
@@ -68,28 +69,33 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private struct ProbeBakeNeighborData
         {
-            public Vector3[] neighborColor;
+            public Vector3[] neighborAlbedo;
+            public Vector3[] neighborEmission;
             public Vector3[] neighborNormal;
             public float[] neighborDistance;
             public int[] requestIndex;
             public float validity;
         }
 
-        internal void ConstructNeighborData(Vector3[] probePositions, ref ProbeVolumeAsset probeVolumeAsset, in ProbeVolumeArtistParameters parameters)
+        internal void ConstructNeighborData(Vector3[] probePositionsWS, Quaternion rotation, ref ProbeVolumeAsset probeVolumeAsset, in ProbeVolumeArtistParameters parameters)
         {
             requestsList.Clear();
             extraRequestsOutput.Clear();
 
-            int numProbes = probePositions.Length;
+            int numProbes = probePositionsWS.Length;
             Debug.Assert(numProbes == probeVolumeAsset.payload.dataValidity.Length);
             var neighborBakeDatas = new ProbeBakeNeighborData[numProbes];
 
+            Vector3 voxelSize = new Vector3(1.0f / parameters.densityX, 1.0f / parameters.densityY, 1.0f / parameters.densityZ);
+            Matrix4x4 voxelTransform = Matrix4x4.TRS(Vector3.zero, rotation, voxelSize);
+            Matrix4x4 inverseVoxelTransform = Matrix4x4.Inverse(voxelTransform);
+            
             int hits = 0;
             for (int i = 0; i < numProbes; ++i)
             {
-                var probePosition = probePositions[i];
+                var probePositionWS = probePositionsWS[i];
                 var validity = probeVolumeAsset.payload.dataValidity[i];
-                hits += GenerateBakeNeighborData(probePosition, ref neighborBakeDatas[i], in parameters, validity);
+                hits += GenerateBakeNeighborData(probePositionWS, voxelTransform, inverseVoxelTransform, ref neighborBakeDatas[i], validity);
             }
 
             ExecutePendingRequests();
@@ -115,6 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Shader.SetGlobalBuffer("_ProbeVolumeDebugNeighborHits", probeVolume.propagationBuffers.neighborHits);
                     Shader.SetGlobalInt("_ProbeVolumeDebugNeighborHitCount", probeVolume.propagationBuffers.neighborHits.count);
                     Shader.SetGlobalFloat("_ProbeVolumeDebugNeighborQuadScale", probeVolume.parameters.neighborsQuadScale);
+                    Shader.SetGlobalInt("_ProbeVolumeDebugNeighborMode", probeVolume.parameters.drawEmission ? 1 : 0);
 
                     HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
                     if (hdrp != null)
@@ -151,7 +158,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (neighborData.requestIndex[i] >= 0)
                 {
                     var extraDataRequestOutput = RetrieveRequestOutput(neighborData.requestIndex[i]);
-                    neighborData.neighborColor[i] = extraDataRequestOutput.albedo;
+                    neighborData.neighborAlbedo[i] = extraDataRequestOutput.albedo;
+                    neighborData.neighborEmission[i] = extraDataRequestOutput.emission;
                 }
             }
         }
@@ -162,35 +170,32 @@ namespace UnityEngine.Rendering.HighDefinition
             return extraRequestsOutput[requestIndex];
         }
 
-        private int GenerateBakeNeighborData(Vector3 position, ref ProbeBakeNeighborData neighborBakeData, in ProbeVolumeArtistParameters parameters, float validity)
+        private int GenerateBakeNeighborData(Vector3 positionWS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, ref ProbeBakeNeighborData neighborBakeData, float validity)
         {
             InitBakeNeighborData(ref neighborBakeData);
 
             int hits = 0;
             for (int i = 0; i < s_NeighborAxis.Length; ++i)
             {
-                Vector4 axis = s_NeighborAxis[i];
-                Vector3 dirAxis = axis;
-                float distance = ComputeScaledNeighborDistance(i, in parameters);
-
-                int requestIndex = -1;
+                var offsetVS = (Vector3)ProbeVolumeAsset.s_Offsets[i];
+                
                 float hitDistance = 0.0f;
                 Vector3 normal = Vector3.zero;
-                GetNormalAndRequestTicketForOccluder(position, dirAxis * distance, ref requestIndex, ref hitDistance, ref normal);
+                var requestIndex = GetRequestIndexForOccluder(positionWS, offsetVS, voxelTransform, inverseVoxelTransform, ref hitDistance, ref normal);
 
-                if(hitDistance > 0)
+                neighborBakeData.requestIndex[i] = requestIndex;
+                if (requestIndex != -1)
                 {
-                    neighborBakeData.requestIndex[i] = requestIndex;
                     neighborBakeData.neighborDistance[i] = hitDistance;
                     neighborBakeData.neighborNormal[i] = normal;
                     hits++;
                 }
                 else
                 {
-                    neighborBakeData.neighborColor[i] = Vector3.zero;
+                    neighborBakeData.neighborAlbedo[i] = Vector3.zero;
+                    neighborBakeData.neighborEmission[i] = Vector3.zero;
                     neighborBakeData.neighborDistance[i] = 0;
-                    neighborBakeData.neighborNormal[i] = -dirAxis.normalized;
-                    neighborBakeData.requestIndex[i] = -1;
+                    neighborBakeData.neighborNormal[i] = Vector3.zero;
                 }
             }
 
@@ -200,7 +205,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void InitBakeNeighborData(ref ProbeBakeNeighborData bakeNeighborData)
         {
-            bakeNeighborData.neighborColor = new Vector3[s_NeighborAxis.Length];
+            bakeNeighborData.neighborAlbedo = new Vector3[s_NeighborAxis.Length];
+            bakeNeighborData.neighborEmission = new Vector3[s_NeighborAxis.Length];
             bakeNeighborData.neighborNormal = new Vector3[s_NeighborAxis.Length];
             bakeNeighborData.neighborDistance = new float[s_NeighborAxis.Length];
             bakeNeighborData.requestIndex = new int[s_NeighborAxis.Length];
@@ -226,7 +232,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int axis = 0; axis < s_NeighborAxis.Length; ++axis)
                 {
                     var distance = neighborBakeData.neighborDistance[axis];
-                    var color = neighborBakeData.neighborColor[axis];
+                    var albedo = neighborBakeData.neighborAlbedo[axis];
+                    var emission = neighborBakeData.neighborEmission[axis];
                     var normal = neighborBakeData.neighborNormal[axis];
 
                     if (distance == 0)
@@ -238,7 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                     {
                         // hit
-                        SetNeighborDataHit(ref probeVolumeAsset.payload, color, normal, distance, validity, i, axis, hitAxisCount, maxNeighborDistance );
+                        SetNeighborDataHit(ref probeVolumeAsset.payload, albedo, emission, normal, distance, validity, i, axis, hitAxisCount, maxNeighborDistance );
                         SetNeighborData(ref probeVolumeAsset.payload, validity, i, axis, (uint)hitAxisCount);
                         ++hitAxisCount;
                     }
@@ -247,51 +254,41 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        private bool GetNormalAndRequestTicketForOccluder(Vector3 worldPosition, Vector3 ray, ref int requestIndex, ref float outDistance, ref Vector3 normal)
+        private int GetRequestIndexForOccluder(Vector3 positionWS, Vector3 offsetVS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, ref float outDistance, ref Vector3 normalWS)
         {
-            Vector3 normalizedRay = ray.normalized;
+            var offsetWS = voxelTransform.MultiplyVector(offsetVS);
+            var neighborDistanceWS = offsetWS.magnitude;
+            if (neighborDistanceWS == 0f)
+                return -1;
+            
+            var directionWS = offsetWS / neighborDistanceWS;
             var collisionLayerMask = ~0;
 
-            RaycastHit[] outBoundHits = Physics.RaycastAll(worldPosition, normalizedRay, ray.magnitude, collisionLayerMask);
-            RaycastHit[] inBoundHits = Physics.RaycastAll(worldPosition + ray, -1.0f * normalizedRay, ray.magnitude, collisionLayerMask);
+            RaycastHit[] outBoundHits = Physics.RaycastAll(positionWS, directionWS, neighborDistanceWS, collisionLayerMask);
+            RaycastHit[] inBoundHits = Physics.RaycastAll(positionWS + offsetWS, -1.0f * directionWS, neighborDistanceWS, collisionLayerMask);
 
             bool hasMeshColliderHits = HasMeshColliderHits(outBoundHits, inBoundHits);
             if (hasMeshColliderHits)
             {
                 int outIndex = 0;
-                outDistance = FindDistance(outBoundHits, ray.magnitude, ref outIndex, false);
+                outDistance = FindDistance(outBoundHits, neighborDistanceWS, ref outIndex, false);
                 if (outBoundHits.Length > 0)
                 {
                     RaycastHit hit = outBoundHits[outIndex];
                     MeshCollider collider = hit.collider as MeshCollider;
                     if (collider != null)
                     {
-                        requestIndex = EnqueueExtraDataRequest(hit, worldPosition + normalizedRay * outDistance);
-                        normal = outBoundHits[outIndex].normal;
-                        if (requestIndex < 0)
+                        var requestIndex = EnqueueExtraDataRequest(voxelTransform, inverseVoxelTransform, hit, positionWS + directionWS * outDistance);
+                        if (requestIndex != -1)
                         {
-                            outDistance = 0;
-                            return false;
+                            normalWS = inverseVoxelTransform.MultiplyVector(outBoundHits[outIndex].normal).normalized;
+                            return requestIndex;
                         }
                     }
-                    else
-                    {
-                        outDistance = 0;
-                        requestIndex = -1;
-                        // put a normal opposite of ray if no mesh collider found
-                        normal = -normalizedRay;
-                    }
                 }
-                else
-                {
-                    outDistance = 0;
-                    requestIndex = -1;
-                }
-
-                return true;
             }
 
-            return false;
+            return -1;
         }
 
         private static float FindDistance(RaycastHit[] hits, float maxDist, ref int index, bool findInDistance)
@@ -345,20 +342,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        private static float ComputeScaledNeighborDistance(int neighborAxis, in ProbeVolumeArtistParameters parameters)
-        {
-            var distance = new Vector3(1.0f / parameters.densityX, 1.0f / parameters.densityY, 1.0f / parameters.densityZ);
-            var offset = ProbeVolumeAsset.s_Offsets[neighborAxis];
-            var fOffset = new Vector3(offset.x, offset.y, offset.z);
-            fOffset.x = Mathf.Abs(offset.x);
-            fOffset.y = Mathf.Abs(offset.y);
-            fOffset.z = Mathf.Abs(offset.z);
-
-            var scaledOffset = Vector3.Scale(distance, fOffset);
-            return scaledOffset.magnitude;
-        }
-
-        private int EnqueueExtraDataRequest(RaycastHit hit, Vector3 hitPosition)
+        private int EnqueueExtraDataRequest(Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, RaycastHit hit, Vector3 hitPositionWS)
         {
             int requestTicket = -1;
 
@@ -394,11 +378,49 @@ namespace UnityEngine.Rendering.HighDefinition
                     requestInput.mesh = mesh;
                     requestInput.renderer = renderer;
                     requestInput.subMesh = submesh;
-                    requestTicket = EnqueueRequest(requestInput, hit.textureCoord, hitPosition, hit.normal);
+                    
+                    // World-space sample size
+                    var hitNormalWS = hit.normal;
+                    var hitNormalVS = inverseVoxelTransform.MultiplyVector(hitNormalWS);
+                    Vector3 hitPositionDdxVS;
+                    Vector3 hitPositionDdyVS;
+                    if (hitNormalVS.x == 0f && hitNormalVS.z == 0f)
+                    {
+                        hitPositionDdxVS = Vector3.right;
+                        hitPositionDdyVS = Vector3.forward;
+                    }
+                    else
+                    {
+                        hitPositionDdxVS = ExtendToCubeBounds(Vector3.Cross(Vector3.down, hitNormalVS));
+                        hitPositionDdyVS = ExtendToCubeBounds(Vector3.Cross(hitPositionDdxVS, hitNormalVS));
+                    }
+                    var hitPositionDdxWS = voxelTransform.MultiplyVector(hitPositionDdxVS);
+                    var hitPositionDdyWS = voxelTransform.MultiplyVector(hitPositionDdyVS);
+                    
+                    // UV-space sample size
+                    var worldToRenderer = renderer.transform.worldToLocalMatrix;
+                    var hitPositionDdxOS = worldToRenderer.MultiplyVector(hitPositionDdxWS);
+                    var hitPositionDdyOS = worldToRenderer.MultiplyVector(hitPositionDdyWS);
+                    var sampleAreaOS = hitPositionDdxOS.magnitude * hitPositionDdyOS.magnitude;
+                    var uvDistributionMetric = mesh.GetUVDistributionMetric(0);
+                    var sampleSideUV = Mathf.Sqrt(sampleAreaOS / uvDistributionMetric);
+                    
+                    requestTicket = EnqueueRequest(requestInput,
+                        hit.textureCoord, new Vector2(sampleSideUV, 0f), new Vector2(0f, sampleSideUV),
+                        hitPositionWS, hitPositionDdxWS, hitPositionDdyWS,
+                        hitNormalWS);
                 }
             }
 
             return requestTicket;
+        }
+
+        static Vector3 ExtendToCubeBounds(Vector3 value)
+        {
+            var maxAxis = Mathf.Abs(value.x);
+            maxAxis = Mathf.Max(maxAxis, Mathf.Abs(value.y));
+            maxAxis = Mathf.Max(maxAxis, Mathf.Abs(value.z));
+            return maxAxis == 0f ? value : value / maxAxis;
         }
 
         internal void ClearContent()
@@ -407,26 +429,31 @@ namespace UnityEngine.Rendering.HighDefinition
             extraRequestsOutput.Clear();
         }
 
-        private int EnqueueRequest(RequestInput input, Vector2 uv, Vector3 posWS, Vector3 normalWS)
+        private int EnqueueRequest(RequestInput input,
+            Vector2 uv, Vector2 uvDdx, Vector2 uvDdy,
+            Vector3 posWS, Vector3 posWSDdx, Vector3 posWSDdy,
+            Vector3 normalWS)
         {
-            ExtraDataRequestOutput output;
-            output.albedo = new Vector3(0.0f, 0.0f, 0.0f);
-
             int requestIndex = extraRequestsOutput.Count;
-            extraRequestsOutput.Add(output);
+            extraRequestsOutput.Add(default);
 
             ExtraDataRequests request;
-            request.requestIndex = requestIndex;
+            request.requestIdx = requestIndex;
             request.uv = uv;
-            request.pos = posWS;
-            request.N = normalWS;
+            request.uvDdx = uvDdx;
+            request.uvDdy = uvDdy;
+            request.position = posWS;
+            request.positionDdx = posWSDdx;
+            request.positionDdy = posWSDdy;
+            request.normalWS = normalWS;
 
-            if (!requestsList.ContainsKey(input))
+            if (!requestsList.TryGetValue(input, out var list))
             {
-                requestsList.Add(input, new List<ExtraDataRequests>());
+                list = new List<ExtraDataRequests>();
+                requestsList.Add(input, list);
             }
 
-            requestsList[input].Add(request);
+            list.Add(request);
 
             return requestIndex;
         }
@@ -488,7 +515,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var requestData in requestsForMaterial)
                 {
                     SortedRequests sortedReq = new SortedRequests(requestData, currMaterial);
-                    processingIdxToOutputIdx.Add(requestData.requestIndex);
+                    processingIdxToOutputIdx.Add(requestData.requestIdx);
                     outRequests.Add(sortedReq);
                 }
                 maxSubListSize = Mathf.Max(maxSubListSize, requestsForMaterial.Count);
@@ -500,10 +527,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void ExecuteARequestList(CommandBuffer cmd, Material material, ComputeBuffer inputBuffer, int startOfList, int requestCount)
         {
-            int quadHeight = kDummyRTHeight;
-            int requiredQuadLen = Mathf.CeilToInt(requestCount * (1.0f / quadHeight));
+            int requestsPerRow = Mathf.CeilToInt(requestCount * (1.0f / kMaxRequestsPerColumn));
 
-            Rect dummyDrawRect = new Rect(0, 0, requiredQuadLen, quadHeight);
+            Rect dummyDrawRect = new Rect(0, 0, requestsPerRow * 2, kDummyRTHeight);
 
             var passIdx = -1;
             for (int i = 0; i < material.passCount; ++i)
@@ -517,7 +543,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (passIdx >= 0)
             {
                 material.SetPass(passIdx);
-                cmd.SetGlobalVector("_MaterialRequestsInfo", new Vector4(requestCount, startOfList, quadHeight, 0));
+                var hasBakedEmission = material.globalIlluminationFlags == MaterialGlobalIlluminationFlags.BakedEmissive ? 1f : 0f;
+                cmd.SetGlobalVector("_MaterialRequestsInfo", new Vector4(requestCount, startOfList, kMaxRequestsPerColumn, hasBakedEmission));
                 HDUtils.DrawFullScreen(cmd, dummyDrawRect, material, dummyColor, null, passIdx);
             }
         }
