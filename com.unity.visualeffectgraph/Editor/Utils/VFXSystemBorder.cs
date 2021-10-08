@@ -137,7 +137,7 @@ namespace UnityEditor.VFX.UI
         {
             if (IsDifferenceTooSmall(e.oldRect.x, e.newRect.x) &&
                 IsDifferenceTooSmall(e.oldRect.y, e.newRect.y) &&
-                IsDifferenceTooSmall(e.oldRect.width, e.newRect.height) &&
+                IsDifferenceTooSmall(e.oldRect.width, e.newRect.width) &&
                 IsDifferenceTooSmall(e.oldRect.height, e.newRect.height))
             {
                 return;
