@@ -406,7 +406,12 @@ namespace UnityEngine.Rendering.HighDefinition
                    m_LiftGammaGain.GetHashCode() * 23 +
                    m_ShadowsMidtonesHighlights.GetHashCode() * 23 +
                    m_Curves.GetHashCode() * 23 +
-                   HDROutputIsActive().GetHashCode();
+                   HDROutputIsActive().GetHashCode()
+#if UNITY_EDITOR
+                   * 23 + UnityEditor.PlayerSettings.D3DHDRBitDepth.GetHashCode()
+
+#endif
+                   ;
         }
 
         static void ValidateComputeBuffer(ref ComputeBuffer cb, int size, int stride, ComputeBufferType type = ComputeBufferType.Default)
