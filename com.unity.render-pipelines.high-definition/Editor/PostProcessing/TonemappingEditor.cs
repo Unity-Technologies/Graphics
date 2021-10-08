@@ -194,6 +194,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (hdrTonemapMode == (int)TonemappingMode.ACES)
                 {
                     PropertyField(m_HDRAcesPreset);
+                    PropertyField(m_HDRDetectPaperWhite);
+                    EditorGUI.indentLevel++;
+                    using (new EditorGUI.DisabledScope(m_HDRDetectPaperWhite.value.boolValue))
+                    {
+                        PropertyField(m_HDRPaperwhite);
+                    }
+                    EditorGUI.indentLevel--;
                 }
             }
         }
