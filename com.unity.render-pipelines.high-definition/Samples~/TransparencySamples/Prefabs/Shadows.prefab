@@ -5951,7 +5951,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Light types
+  m_text: A. Light types
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 629ab6f6948c603418a378b3e3210d77, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 629ab6f6948c603418a378b3e3210d77, type: 2}
