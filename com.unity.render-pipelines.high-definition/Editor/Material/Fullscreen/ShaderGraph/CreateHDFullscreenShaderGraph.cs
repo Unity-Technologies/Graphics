@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var blockDescriptors = new[]
             {
                 FullscreenBlocks.color,
-                FullscreenBlocks.alpha,
+                BlockFields.SurfaceDescription.Alpha,
             };
 
             GraphUtil.CreateNewGraphWithOutputs(new[] { target }, blockDescriptors);
