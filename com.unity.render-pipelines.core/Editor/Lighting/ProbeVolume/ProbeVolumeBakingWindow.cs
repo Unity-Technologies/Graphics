@@ -173,6 +173,12 @@ namespace UnityEngine.Experimental.Rendering
 
         void RefreshAfterUndo()
         {
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
+            {
+                // Feature not enabled, nothing to do.
+                return;
+            }
+
             InitializeBakingSetList();
 
             OnBakingSetSelected(m_BakingSets);

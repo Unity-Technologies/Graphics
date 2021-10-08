@@ -43,4 +43,10 @@ float2 ParallaxMapping(TEXTURE2D_PARAM(heightMap, sampler_heightMap), half3 view
     return offset;
 }
 
+float2 ParallaxMappingChannel(TEXTURE2D_PARAM(heightMap, sampler_heightMap), half3 viewDirTS, half scale, float2 uv, int channel)
+{
+    half h = SAMPLE_TEXTURE2D(heightMap, sampler_heightMap, uv)[channel];
+    float2 offset = ParallaxOffset1Step(h, scale, viewDirTS);
+    return offset;
+}
 #endif // UNIVERSAL_PARALLAX_MAPPING_INCLUDED

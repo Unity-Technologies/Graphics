@@ -23,7 +23,12 @@ float3 GetPositionBias(float3 geomNormal, float bias, bool below)
 // Compute scalar visibility for shadow mattes, between 0 and 1
 float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
 {
-    LightList lightList = CreateLightList(position, normal);
+    // Select active types of lights
+    bool withPoint = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_PUNCTUAL;
+    bool withArea = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_AREA;
+    bool withDistant = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_DIRECTIONAL;
+
+    LightList lightList = CreateLightList(position, normal, DEFAULT_LIGHT_LAYERS, withPoint, withArea, withDistant);
 
     RayDesc rayDescriptor;
     rayDescriptor.Origin = position + normal * _RaytracingRayBias;
