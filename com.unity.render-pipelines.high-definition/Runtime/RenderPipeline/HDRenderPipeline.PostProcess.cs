@@ -1954,6 +1954,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public int pbDoFGatherKernel;
             public ComputeShader pbDoFDilateCS;
             public int pbDoFDilateKernel;
+            public ComputeShader pbDoFCombineCS;
+            public int pbDoFCombineKernel;
             public int minMaxCoCTileSize;
 
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
@@ -2034,6 +2036,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.pbDoFDilateKernel = parameters.pbDoFDilateCS.FindKernel("KMain");
             parameters.pbDoFGatherCS = defaultResources.shaders.dofGatherCS;
             parameters.pbDoFGatherKernel = parameters.pbDoFGatherCS.FindKernel("KMain");
+            parameters.pbDoFCombineCS = defaultResources.shaders.dofCombineCS;
+            parameters.pbDoFCombineKernel = parameters.pbDoFGatherCS.FindKernel("KMain");
             parameters.minMaxCoCTileSize = 8;
 
             parameters.camera = camera;
@@ -2716,9 +2720,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // The sensor scale is used to convert the CoC size from mm to screen pixels
                     float sensorScale;
                     if (dofParameters.camera.camera.gateFit == Camera.GateFitMode.Horizontal)
-                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.x) * dofParameters.camera.camera.pixelWidth / (float)dofParameters.resolution;
+                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.x) * dofParameters.camera.camera.pixelWidth;
                     else
-                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.y) * dofParameters.camera.camera.pixelHeight / (float)dofParameters.resolution; ;
+                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.y) * dofParameters.camera.camera.pixelHeight;
 
                     // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
                     // Note: Focus distance is in meters, but focalLength and sensor size are in mm.
@@ -2809,7 +2813,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
+            bool isScaled = dofParameters.resolution != DepthOfFieldResolution.Full;
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldGatherNear)))
             {
                 cs = dofParameters.pbDoFGatherCS;
                 kernel = dofParameters.pbDoFGatherKernel;
@@ -2821,15 +2826,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, 0, 0, (float)dofParameters.resolution));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourcePyramid != null ? sourcePyramid : source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, scaledDof);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, isScaled ? scaledDof : destination);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileList, minMaxCoCPing, 0);
                 BlueNoise.BindDitheredTextureSet(cmd, dofParameters.ditheredTextureSet);
                 int scaledWidth = (dofParameters.viewportSize.x / (int)dofParameters.resolution + 7) / 8;
                 int scaledHeight = (dofParameters.viewportSize.y / (int)dofParameters.resolution + 7) / 8;
 
                 cmd.DispatchCompute(cs, kernel, scaledWidth, scaledHeight, dofParameters.camera.viewCount);
+            }
 
-                HDUtils.BlitCameraTexture(cmd, scaledDof, destination);
+            if (isScaled)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
+                {
+                    cs = dofParameters.pbDoFCombineCS;
+                    kernel = dofParameters.pbDoFCombineKernel;
+                    float sampleCount = Mathf.Max(dofParameters.nearSampleCount, dofParameters.farSampleCount);
+                    float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
+
+                    float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputNearTexture, scaledDof);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+
+                    cmd.DispatchCompute(cs, kernel, (dofParameters.viewportSize.x + 7) / 8, (dofParameters.viewportSize.y + 7) / 8, dofParameters.camera.viewCount);
+                }
             }
         }
 

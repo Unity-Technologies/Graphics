@@ -39,7 +39,7 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define PER_TILE_BG_FG_CLASSIFICATION
 #define PHYSICAL_WEIGHTS
 #define FORCE_POINT_SAMPLING
-//#define USE_BLUE_NOISE
+#define USE_BLUE_NOISE
 
 #define GROUP_RES  8u
 #define GROUP_SIZE (GROUP_RES * GROUP_RES)
@@ -174,7 +174,7 @@ struct SampleData
 float GetCoCRadius(int2 positionSS)
 {
     float CoCRadius = LOAD_TEXTURE2D_X(_InputCoCTexture, ResScale * positionSS).x;
-    return CoCRadius;
+    return CoCRadius / ResScale;
 }
 
 CTYPE GetColorSample(float2 sampleTC, float lod)
@@ -189,7 +189,7 @@ CTYPE GetColorSample(float2 sampleTC, float lod)
     return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, uv, lod).CTYPE_SWIZZLE;
 #else
     float2 uv = ClampAndScaleUVPostProcessTextureForPoint((ResScale * sampleTC + 0.5) * _PostProcessScreenSize.zw);
-    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, uv, 0.0).CTYPE_SWIZZLE;
+    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, uv, ResScale - 1.0).CTYPE_SWIZZLE;
 #endif
 }
 
@@ -206,18 +206,18 @@ float GetSampleWeight(float cocRadius)
 
 void LoadTileData(float2 sampleTC, SampleData centerSample, inout DoFTile tileData)
 {
-    float4 cocRanges = LOAD_TEXTURE2D_X(_TileList, sampleTC / TILE_RES);
+    float4 cocRanges = LOAD_TEXTURE2D_X(_TileList, ResScale * sampleTC / TILE_RES);
 
     // Note: for the far-field, we don't need to search further than than the central CoC.
     // If there is a larger CoC that overlaps the central pixel then it will have greater depth
-    tileData.maxRadius = max(2 * abs(centerSample.CoC), -cocRanges.w);
+    tileData.maxRadius = max(2 * abs(centerSample.CoC), -cocRanges.w) / ResScale;
 
     // Detect tiles than need more samples
     tileData.numSamples = NumRings;
     tileData.numSamples = tileData.maxRadius > 0 ? tileData.numSamples : 0;
 
 #ifdef ADAPTIVE_SAMPLING
-    float minRadius = min(cocRanges.x, -cocRanges.z);
+    float minRadius = min(cocRanges.x, -cocRanges.z) / ResScale;
     tileData.numSamples = (minRadius / tileData.maxRadius < 0.1) ? tileData.numSamples * 4 : tileData.numSamples;
 #endif
 
@@ -389,8 +389,8 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
 #else
             //float r1 = InterleavedGradientNoise(posInputs.positionSS.xy, 2 * i + blueNoiseOffset);
             //float r2 = InterleavedGradientNoise(posInputs.positionSS.xy, 2 * i + blueNoiseOffset + 1);
-            float r1 = RandomFloat01(rngState, 2 * i);
-            float r2 = RandomFloat01(rngState, 2 * i + 1);
+            float r1 = RandomFloat01(rngState, ring * tileData.numSamples * 2 + 2 * i);
+            float r2 = RandomFloat01(rngState, ring * tileData.numSamples * 2 + 2 * i + 1);
 #endif
 
 #ifdef STRATIFY
@@ -469,11 +469,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float4 outColor;
     float outAlpha;
-#ifdef FAST_APPROXIMAION
-    DoFGatherFast(posInputs, tileData, centerSample, outColor, outAlpha);
-#else
     DoFGatherRings(posInputs, tileData, centerSample, outColor, outAlpha);
-#endif
 
     //DebugTiles(tileData, outColor);
 
@@ -483,6 +479,18 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     //outColor.xyz = outAlpha > 0 ? outColor.xyz : originalColor.xyz;
     outColor.xyz = lerp(centerSample.color.xyz, outColor.xyz, smoothstep(0, 0.01, outAlpha));
     outColor.w = outAlpha;
+#endif
+
+#if 0
+    float4 cocRanges = LOAD_TEXTURE2D_X(_TileList, ResScale * posInputs.positionSS / TILE_RES);
+    float minRadius = min(cocRanges.x, -cocRanges.z);
+    if (minRadius / tileData.maxRadius < 0.1) outColor.xyz = lerp(outColor.xyz, float3(1, 0, 0), 0.95);
+#endif
+
+#if 0
+    outColor.x = abs(tileData.maxRadius) / 12;
+    outColor.y = abs(tileData.maxRadius) / 12;
+    outColor.z = abs(tileData.maxRadius) / 12;
 #endif
 
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = (CTYPE) outColor;
