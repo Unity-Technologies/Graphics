@@ -16,6 +16,7 @@ namespace UnityEditor.VFX
         private static bool m_AdvancedLogs = false;
         private static VFXMainCameraBufferFallback m_CameraBuffersFallback = VFXMainCameraBufferFallback.PreferMainCamera;
         private static bool m_MultithreadUpdateEnabled = true;
+        private static bool m_PrewarmInterpretation_WIP = false;
 
         public static bool generateOutputContextWithShaderGraph
         {
@@ -80,6 +81,15 @@ namespace UnityEditor.VFX
             }
         }
 
+        public static bool prewarmInterpretation_WIP
+        {
+            get
+            {
+                LoadIfNeeded();
+                return m_PrewarmInterpretation_WIP;
+            }
+        }
+
         public const string experimentalOperatorKey = "VFX.displayExperimentalOperatorKey";
         public const string extraDebugInfoKey = "VFX.ExtraDebugInfo";
         public const string forceEditionCompilationKey = "VFX.ForceEditionCompilation";
@@ -87,6 +97,7 @@ namespace UnityEditor.VFX
         public const string advancedLogsKey = "VFX.AdvancedLogs";
         public const string cameraBuffersFallbackKey = "VFX.CameraBuffersFallback";
         public const string multithreadUpdateEnabledKey = "VFX.MultithreadUpdateEnabled";
+        public const string prewarmInterpretationKey = "VFX.PrewarmInterpretationWIP_TEMP_TO_BE_REMOVED";
 
         private static void LoadIfNeeded()
         {
@@ -100,6 +111,7 @@ namespace UnityEditor.VFX
                 m_AdvancedLogs = EditorPrefs.GetBool(advancedLogsKey, false);
                 m_CameraBuffersFallback = (VFXMainCameraBufferFallback)EditorPrefs.GetInt(cameraBuffersFallbackKey, (int)VFXMainCameraBufferFallback.PreferMainCamera);
                 m_MultithreadUpdateEnabled = EditorPrefs.GetBool(multithreadUpdateEnabledKey, true);
+                m_PrewarmInterpretation_WIP = EditorPrefs.GetBool(prewarmInterpretationKey, true);
                 m_Loaded = true;
             }
         }
@@ -157,6 +169,8 @@ namespace UnityEditor.VFX
 
                     var userTemplateDirectory = EditorGUILayout.DelayedTextField(new GUIContent("User Systems", "Directory for user-generated VFX templates (e.g. Assets/VFX/Templates)"), VFXResources.defaultResources.userTemplateDirectory);
 
+                    m_PrewarmInterpretation_WIP = EditorGUILayout.Toggle(new GUIContent("! Prewarm Interpretation WIP !", "TODO."), m_PrewarmInterpretation_WIP);
+
                     if (GUI.changed)
                     {
                         EditorPrefs.SetBool(experimentalOperatorKey, m_DisplayExperimentalOperator);
@@ -166,6 +180,7 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetBool(allowShaderExternalizationKey, m_AllowShaderExternalization);
                         EditorPrefs.SetInt(cameraBuffersFallbackKey, (int)m_CameraBuffersFallback);
                         EditorPrefs.SetBool(multithreadUpdateEnabledKey, m_MultithreadUpdateEnabled);
+                        EditorPrefs.SetBool(prewarmInterpretationKey, m_PrewarmInterpretation_WIP);
                         userTemplateDirectory = userTemplateDirectory.Replace('\\', '/');
                         userTemplateDirectory = userTemplateDirectory.TrimEnd(new char[] { '/' });
                         userTemplateDirectory = userTemplateDirectory.TrimStart(new char[] { '/' });

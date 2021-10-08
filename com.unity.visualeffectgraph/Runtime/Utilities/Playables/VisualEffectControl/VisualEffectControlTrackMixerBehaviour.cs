@@ -185,6 +185,7 @@ namespace UnityEngine.VFX
                                 actualCurrentTime += fixedStep * currentStepCount;
                             }
                             ProcessEvent(currentEvent, vfx);
+                            HandleHackyPrewarmVariant(currentEvent, vfx, chunk);
                         }
                     }
 
@@ -192,12 +193,37 @@ namespace UnityEngine.VFX
                     {
                         var eventList = GetEventsIndex(chunk, actualCurrentTime, playableTime);
                         foreach (var itEvent in eventList)
+                        {
                             ProcessEvent(chunk.events[itEvent], vfx);
+                            HandleHackyPrewarmVariant(chunk.events[itEvent], vfx, chunk);
+                        }
                     }
                 }
 
                 UpdateScrubbingState(vfx, dbg);
                 m_LastPlayableTime = playableTime;
+            }
+
+
+            void HandleHackyPrewarmVariant(Event lastEventPlayed, VisualEffect vfx, Chunk chunk)
+            {
+#if UNITY_EDITOR
+                if (lastEventPlayed.playable == null)
+                    return;
+
+                //Hacky test which only works in editor
+                //See https://unity.slack.com/archives/G1BTWN88Z/p1633009015259800?thread_ts=1631626170.114700&cid=G1BTWN88Z
+                bool useVariantInterpretation = UnityEditor.EditorPrefs.GetBool("VFX.PrewarmInterpretationWIP_TEMP_TO_BE_REMOVED", true);
+                if (useVariantInterpretation
+                    && lastEventPlayed.type == Event.Type.Play
+                    && lastEventPlayed.time == chunk.events.FirstOrDefault().time)
+                {
+                    var prewarmDuration = Abs(lastEventPlayed.time - chunk.begin);
+                    var prewarmStepCount = (uint)(prewarmDuration / VFXManager.maxDeltaTime);
+                    vfx.Reinit();
+                    vfx.Simulate(VFXManager.maxDeltaTime, prewarmStepCount);
+                }
+#endif
             }
 
             void ProcessEvent(Event currentEvent, VisualEffect vfx)
