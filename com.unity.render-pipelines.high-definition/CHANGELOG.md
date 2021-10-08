@@ -6,7 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.0.0] - 2021-09-01
 
+### Added
+
+- Added support for HDR output devices.
+- Added option to use full ACES tonemap instead of the approximation.
+
 ### Fixed
+
 - Fixed impossibility to release the cursor in the template.
 - Fixed assert failure when enabling the probe volume system for the first time.
 - Significantly improved performance of APV probe debug.
@@ -41,6 +47,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
 - Surface ReflectionTypeLoadExceptions in HDUtils.GetRenderPipelineMaterialList(). Without surfacing these exceptions, developers cannot act on any underlying reflection errors in the HDRP assembly.
+- Optimized color grading LUT building.
+- Made ACEScg the default color space for color grading.
 
 ## [12.0.0] - 2021-01-11
 
