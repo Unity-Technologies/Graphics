@@ -242,6 +242,9 @@ namespace UnityEngine.Rendering.HighDefinition
         OrientedBBox IProbeVolumeList.ConstructOBBEngineData(int i, Vector3 camOffset)  => m_Volumes[i].ConstructOBBEngineData(camOffset);
         ref ProbePropagationBuffers IProbeVolumeList.GetPropagationBuffers(int i) => ref m_Volumes[i].m_PropagationBuffers;
 
+        void IProbeVolumeList.SetLastSimulatedFrame(int i, int simulationFrameTick) => m_Volumes[i].SetLastSimulatedFrame(simulationFrameTick);
+        int IProbeVolumeList.GetLastSimulatedFrame(int i) => m_Volumes[i].GetLastSimulatedFrame();
+
         bool IProbeVolumeList.HasNeighbors(int i)
         {
             bool hasNeighbors = false;
