@@ -465,11 +465,22 @@ namespace UnityEngine.Rendering.Universal
 
                     ShadowEdge edgeA = inOutSortedEdges[edgeAIndex];
                     ShadowEdge edgeB = inOutSortedEdges[edgeBIndex];
+
                     edgeA.Reverse();
                     edgeB.Reverse();
 
                     inOutSortedEdges[edgeAIndex] = edgeB;
                     inOutSortedEdges[edgeBIndex] = edgeA;
+                }
+
+                bool isOdd = (count & 1) == 1;
+                if (isOdd)  
+                {
+                    int edgeAIndex = startingIndex + (count >> 1);
+                    ShadowEdge edgeA = inOutSortedEdges[edgeAIndex];
+
+                    edgeA.Reverse();
+                    inOutSortedEdges[edgeAIndex] = edgeA;
                 }
             }
         }
