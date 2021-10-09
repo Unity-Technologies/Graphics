@@ -72,16 +72,16 @@ namespace UnityEngine.Rendering.HighDefinition
         private ComputeShader _PropagationAxesShader = null;
         private ComputeShader _PropagationCombineShader = null;
 
-        private Vector4[] _tempAxisLookups;
+        private AxisVector4[] _tempAxisLookups;
         private Vector4[] _sortedAxisLookups;
-        private RelevantNeighborAxisLookupComparer _axisComparer;
         private ProbeVolumeSimulationRequest[] _probeVolumeSimulationRequests;
-        private RelevantProbeVolumeSimulationComparer _requestComparer;
 
         private const int MAX_SIMULATIONS_PER_FRAME = 128;
+        private const int INITIAL_RADIANCE_ZERO_SET_SIZE = 1024 * 1024;
         private float _sortedAxisSharpness = -1;
         private int _probeVolumeSimulationRequestCount = 0;
         private int _probeVolumeSimulationFrameTick = 0;
+        private Vector3[] _radianceZeroValues;
 
 
         ProbeVolumeDynamicGI()
@@ -126,12 +126,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 new Vector4( 0, -s_2DDiagonal, -s_2DDiagonal, s_2DDiagonalDist),
             };
 
-            _tempAxisLookups = new Vector4[s_NeighborAxis.Length];
+            _tempAxisLookups = new AxisVector4[s_NeighborAxis.Length];
             _sortedAxisLookups = new Vector4[s_NeighborAxis.Length * s_NeighborAxis.Length];
             _probeVolumeSimulationRequests = new ProbeVolumeSimulationRequest[MAX_SIMULATIONS_PER_FRAME];
-
-            _axisComparer = new RelevantNeighborAxisLookupComparer();
-            _requestComparer = new RelevantProbeVolumeSimulationComparer();
         }
 
         internal static void AllocateNeighbors(ref ProbeVolumePayload payload, int numMissedAxis, int numHitAxis, int numAxis)
@@ -306,7 +303,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Allocate(RenderPipelineResources resources)
         {
-            Dispose(); // To avoid double alloc.
+            Cleanup(); // To avoid double alloc.
+
+            _radianceZeroValues = new Vector3[INITIAL_RADIANCE_ZERO_SET_SIZE];
 
             _PropagationHitsShader = resources.shaders.probePropagationHitsCS;
             _PropagationAxesShader = resources.shaders.probePropagationAxesCS;
@@ -319,8 +318,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        public void Dispose()
+        internal void Cleanup()
         {
+            _radianceZeroValues = null;
+
 #if UNITY_EDITOR
             RTHandles.Release(dummyColor);
 #endif
@@ -615,12 +616,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
             int numAxis = numProbes * s_NeighborAxis.Length;
-            Vector3[] axisZeroes = new Vector3[numAxis];
-            Vector3[] hitZeroes = new Vector3[probeVolume.HitNeighborAxisLength];
 
-            probeVolume.propagationBuffers.radianceCacheAxis0.SetData(axisZeroes);
-            probeVolume.propagationBuffers.radianceCacheAxis1.SetData(axisZeroes);
-            probeVolume.propagationBuffers.hitRadianceCache.SetData(hitZeroes);
+            int maxRequiredSize = Mathf.Max(numAxis, probeVolume.HitNeighborAxisLength);
+            if (_radianceZeroValues.Length < maxRequiredSize)
+            {
+                Array.Resize(ref _radianceZeroValues, maxRequiredSize);
+            }
+
+            probeVolume.propagationBuffers.radianceCacheAxis0.SetData(_radianceZeroValues, 0, 0, numAxis);
+            probeVolume.propagationBuffers.radianceCacheAxis1.SetData(_radianceZeroValues, 0, 0, numAxis);
+            probeVolume.propagationBuffers.hitRadianceCache.SetData(_radianceZeroValues, 0, 0, probeVolume.HitNeighborAxisLength);
         }
 
         internal static float GetMaxNeighborDistance(in ProbeVolumeArtistParameters parameters)
@@ -637,7 +642,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return sgAmplitude * Mathf.Exp(Vector3.Dot(sgMean, direction) * sgSharpness - sgSharpness);
         }
 
-        void PrecomputeAxisCacheLookup(float sgSharpness)
+        unsafe void PrecomputeAxisCacheLookup(float sgSharpness)
         {
             if (!Mathf.Approximately(_sortedAxisSharpness, sgSharpness))
             {
@@ -648,11 +653,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var neighborDirection = s_NeighborAxis[neighborIndex];
                         var sgWeight = SGEvaluateFromDirection(1, sgSharpness, neighborDirection, axis);
-                        _tempAxisLookups[neighborIndex] = new Vector4(sgWeight, neighborIndex, 0, 0);
+                        _tempAxisLookups[neighborIndex] = new AxisVector4(new Vector4(sgWeight, neighborIndex, 0, 0));
                     }
 
-                    Array.Sort(_tempAxisLookups, _axisComparer);
-                    Array.Copy(_tempAxisLookups, 0, _sortedAxisLookups, axisIndex * s_NeighborAxis.Length, s_NeighborAxis.Length);
+                    fixed (AxisVector4* axisPtr = &_tempAxisLookups[0])
+                    {
+                        CoreUnsafeUtils.QuickSort<AxisVector4>(_tempAxisLookups.Length, axisPtr);
+                    }
+                    fixed (Vector4* sortedAxisPtr = &_sortedAxisLookups[axisIndex * s_NeighborAxis.Length])
+                    {
+                        CoreUnsafeUtils.CopyTo(_tempAxisLookups, sortedAxisPtr, s_NeighborAxis.Length);
+                    }
                 }
 
                 _sortedAxisSharpness = sgSharpness;
@@ -688,37 +699,45 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal ProbeVolumeSimulationRequest[] SortSimulationRequests(out int numSimulationRequests)
+        unsafe internal ProbeVolumeSimulationRequest[] SortSimulationRequests(out int numSimulationRequests)
         {
-            Array.Sort(_probeVolumeSimulationRequests, 0, _probeVolumeSimulationRequestCount, _requestComparer);
-            numSimulationRequests = _probeVolumeSimulationRequestCount;
-            numSimulationRequests = Mathf.Min(numSimulationRequests, _maxSimulationsPerFrame);
+            fixed (ProbeVolumeSimulationRequest* requestPtr = &_probeVolumeSimulationRequests[0])
+            {
+                CoreUnsafeUtils.QuickSort<ProbeVolumeSimulationRequest>(_probeVolumeSimulationRequestCount, requestPtr);
+            }
+
+            numSimulationRequests = Mathf.Min(_probeVolumeSimulationRequestCount, _maxSimulationsPerFrame);
 
             return _probeVolumeSimulationRequests;
         }
 
-        internal struct ProbeVolumeSimulationRequest
+        internal struct ProbeVolumeSimulationRequest : IComparable<ProbeVolumeSimulationRequest>
         {
             public int probeVolumeIndex;
             public int simulationFrameDelta;
-        }
 
-        class RelevantProbeVolumeSimulationComparer : IComparer<ProbeVolumeSimulationRequest>
-        {
-            public int Compare( ProbeVolumeSimulationRequest x, ProbeVolumeSimulationRequest y )
+            public int CompareTo(ProbeVolumeSimulationRequest other)
             {
-                return y.simulationFrameDelta - x.simulationFrameDelta;
+                return other.simulationFrameDelta - simulationFrameDelta;
             }
         }
 
-        class RelevantNeighborAxisLookupComparer : IComparer<Vector4>
+        struct AxisVector4 : IComparable<AxisVector4>
         {
-            public int Compare( Vector4 x, Vector4 y )
+            public Vector4 value;
+
+            public AxisVector4(Vector4 newValue)
             {
-                float diff = x.x - y.x;
+                value = newValue;
+            }
+
+            public int CompareTo(AxisVector4 other)
+            {
+                float diff = value.x - other.value.x;
                 return diff < 0 ? 1 : diff > 0 ? -1 : 0;
             }
         }
+
     }
 
 } // UnityEngine.Experimental.Rendering.HDPipeline
