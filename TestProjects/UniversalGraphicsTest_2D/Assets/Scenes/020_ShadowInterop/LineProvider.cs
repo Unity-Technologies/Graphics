@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
             indices[14] = 8;
             indices[15] = 9;
 
-            persistantShapeObject.SetShape(vertices, indices, IShadowShape2DProvider.OutlineTopology.Lines, true);
+            persistantShapeObject.SetShape(vertices, indices, IShadowShape2DProvider.OutlineTopology.Lines);
         }
 
         void IShadowShape2DProvider.OnBeforeRender(IShadowShape2DProvider.ShadowShapes2D persistantShapeObject, Bounds globalBounds) { }
