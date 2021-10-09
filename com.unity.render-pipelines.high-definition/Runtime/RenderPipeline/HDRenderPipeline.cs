@@ -1174,6 +1174,7 @@ namespace UnityEngine.Rendering.HighDefinition
             MousePositionDebug.instance.Cleanup();
 
             DecalSystem.instance.Cleanup();
+            ProbeVolumeDynamicGI.instance.Cleanup();
 
             m_MaterialList.ForEach(material => material.Cleanup());
 
