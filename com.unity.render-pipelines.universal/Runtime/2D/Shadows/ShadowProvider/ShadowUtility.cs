@@ -543,7 +543,7 @@ namespace UnityEngine.Rendering.Universal
             for (int outputPath = 0; outputPath < outputPaths; outputPath++)
             {
                 int outputPathLength = ShadowPathClipper.GetOutputPathLength(outputPath);
-                if (outputPathLength > 0)
+                if (outputPathLength > 0 && tmpShapeStartingEdge.Length > outputPath)
                 {
                     tmpShapeStartingEdge[outputPath] = currentTempEdgeIndex;
                     ShadowPathClipper.GetOutputPath(outputPath, tempVertices, currentTempVertexIndex);
