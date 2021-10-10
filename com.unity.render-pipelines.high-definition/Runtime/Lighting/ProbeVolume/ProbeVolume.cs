@@ -1107,7 +1107,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // returns true if released it
         public static bool CleanupBuffer(ComputeBuffer buffer)
         {
-            if (buffer != null && buffer.IsValid())
+            if (buffer != null
+                && buffer.IsValid())
             {
                 buffer.Release();
                 return true;
@@ -1123,11 +1124,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 || !buffer.IsValid()
                 || buffer.count != count)
             {
-                if (buffer != null && buffer.IsValid())
-                {
-                    buffer.Dispose();
-                }
-
+                CleanupBuffer(buffer);
                 buffer = new ComputeBuffer(count, Marshal.SizeOf(typeof(T)), ComputeBufferType.Structured);
                 return true;
             }
