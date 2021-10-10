@@ -596,8 +596,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private bool InitializePropagationBuffers(ProbeVolumeHandle probeVolume)
         {
-            bool previousRadianceCacheInvalid = false;
-
             probeVolume.EnsureVolumeBuffers();
             if (ProbeVolume.EnsureBuffer<PackedNeighborHit>(ref probeVolume.propagationBuffers.neighborHits, probeVolume.HitNeighborAxisLength))
             {
@@ -612,7 +610,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
             int numAxis = numProbes * s_NeighborAxis.Length;
 
-            ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.hitRadianceCache, probeVolume.HitNeighborAxisLength);
+            bool previousRadianceCacheInvalid = ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.hitRadianceCache, probeVolume.HitNeighborAxisLength);
             if (ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.radianceCacheAxis0, numAxis))
             {
                 ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.radianceCacheAxis1, numAxis);
