@@ -1,8 +1,16 @@
+#pragma multi_compile _ COMPUTE_INFINITE_BOUNCE
+#pragma multi_compile _ PREVIOUS_RADIANCE_CACHE_INVALID
+
+#pragma kernel AccumulateLightingDirectional
+#define GROUP_SIZE 64
+//#pragma enable_d3d11_debug_symbols
+
+
 #define SHADOW_MINIMAL
 #define LIGHT_EVALUATION_NO_HEIGHT_FOG
-
 #define DEBUGGING 0
 #define SUPPORTS_AREA_LIGHTS 1
+
 
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -11,11 +19,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationSphericalGaussians.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationLighting.hlsl"
 
-#pragma kernel AccumulateLightingDirectional
-#define GROUP_SIZE 64
-//#pragma enable_d3d11_debug_symbols
 
-#pragma multi_compile _ COMPUTE_INFINITE_BOUNCE
 
 RWStructuredBuffer<float3> _HitRadianceCacheAxis;
 int _HitRadianceCacheAxisCount;
@@ -106,14 +110,18 @@ void GatherLighting(SurfaceHitData hit, inout float4 lighting)
 
 float3 EstimateIncomingBounceLightSG(uint probeIndex, PackedNeighborHit neighborData)
 {
-    float3 normal = UnpackNormal(neighborData.normalAxis);
-    float4 albedoDistance = UnpackAlbedoAndDistance(neighborData.albedoDistance, _ProbeVolumeDGIMaxNeighborDistance);
+    #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
+        return 0;
+    #else
+        float3 normal = UnpackNormal(neighborData.normalAxis);
+        float4 albedoDistance = UnpackAlbedoAndDistance(neighborData.albedoDistance, _ProbeVolumeDGIMaxNeighborDistance);
 
-    float3 incomingIrradiance = EvaluateBRDFLambertApproximate(probeIndex, normal, _InfiniteBounceSharpness, _RayAxis);
-    incomingIrradiance *= _InfiniteBounce * INV_PI;
-    incomingIrradiance *= albedoDistance.rgb;
+        float3 incomingIrradiance = EvaluateBRDFLambertApproximate(probeIndex, normal, _InfiniteBounceSharpness, _RayAxis);
+        incomingIrradiance *= _InfiniteBounce * INV_PI;
+        incomingIrradiance *= albedoDistance.rgb;
 
-    return incomingIrradiance;
+        return incomingIrradiance;
+    #endif
 }
 
 float3 ProbeIndexToProbeCoordinates(uint probeIndex)
@@ -170,11 +178,13 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         const float3 probeCoordinate = ProbeIndexToProbeCoordinates(probeIndex);
         const float3 worldPosition =  ProbeCoordinatesToWorldPosition(probeCoordinate, probeVolumeLtw);
 
-        // Early out at far distances
-        if (IsFarFromCamera(worldPosition, _RangeInFrontOfCamera, _RangeBehindCamera))
-        {
-            return;
-        }
+        #if !defined(PREVIOUS_RADIANCE_CACHE_INVALID)
+            // Early out at far distances only when the previous radiance cache is valid
+            if (IsFarFromCamera(worldPosition, _RangeInFrontOfCamera, _RangeBehindCamera))
+            {
+                return;
+            }
+        #endif
 
         #if defined(COMPUTE_INFINITE_BOUNCE)
             float3 prevValue = EstimateIncomingBounceLightSG(probeIndex, neighborData);

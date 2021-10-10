@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private ProbeVolumeSimulationRequest[] _probeVolumeSimulationRequests;
 
         private const int MAX_SIMULATIONS_PER_FRAME = 128;
-        private const int INITIAL_RADIANCE_ZERO_SET_SIZE = 1024 * 1024;
+        private const int INITIAL_RADIANCE_ZERO_SET_SIZE = 1024;
         private float _sortedAxisSharpness = -1;
         private int _probeVolumeSimulationRequestCount = 0;
         private int _probeVolumeSimulationFrameTick = 0;
@@ -356,15 +356,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void DispatchProbePropagation(CommandBuffer cmd, ProbeVolumeHandle probeVolume, ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RenderTargetIdentifier probeVolumeAtlasSHRTHandle)
         {
-            InitializePropagationBuffers(probeVolume);
+            var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume);
 
             if (giSettings.clear.value || _clearAllActive)
             {
                 ClearRadianceCache(probeVolume);
             }
 
-            DispatchPropagationHits(cmd, probeVolume, in giSettings);
-            DispatchPropagationAxes(cmd, probeVolume, in giSettings);
+            DispatchPropagationHits(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
+            DispatchPropagationAxes(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
             DispatchPropagationCombine(cmd, probeVolume, in giSettings, in shaderGlobals, probeVolumeAtlasSHRTHandle);
 
             probeVolume.propagationBuffers.SwapRadianceCaches();
@@ -383,7 +383,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void DispatchPropagationHits(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings)
+        void DispatchPropagationHits(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, bool previousRadianceCacheInvalid)
         {
             var kernel = _PropagationHitsShader.FindKernel("AccumulateLightingDirectional");
             var shader = _PropagationHitsShader;
@@ -424,13 +424,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeFloatParam(shader, "_InfiniteBounce", infBounce);
             CoreUtils.SetKeyword(shader, "COMPUTE_INFINITE_BOUNCE", infBounce > 0);
+            CoreUtils.SetKeyword(shader, "PREVIOUS_RADIANCE_CACHE_INVALID", previousRadianceCacheInvalid);
 
             int numHits = probeVolume.propagationBuffers.neighborHits.count;
             int dispatchX = (numHits + 63) / 64;
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
 
-        void DispatchPropagationAxes(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings)
+        void DispatchPropagationAxes(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, bool previousRadianceCacheInvalid)
         {
             var kernel = _PropagationAxesShader.FindKernel("PropagateLight");
             var shader = _PropagationAxesShader;
@@ -493,6 +494,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             PrecomputeAxisCacheLookup(giSettings.propagationSharpness.value);
             cmd.SetComputeVectorArrayParam(shader, "_SortedNeighborAxis", _sortedAxisLookups);
+
+            CoreUtils.SetKeyword(shader, "PREVIOUS_RADIANCE_CACHE_INVALID", previousRadianceCacheInvalid);
 
             int numHits = probeVolume.propagationBuffers.neighbors.count;
             int dispatchX = (numHits + 63) / 64;
@@ -581,8 +584,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return didDispose;
         }
 
-        private void InitializePropagationBuffers(ProbeVolumeHandle probeVolume)
+        private bool InitializePropagationBuffers(ProbeVolumeHandle probeVolume)
         {
+            bool previousRadianceCacheInvalid = false;
+
             probeVolume.EnsureVolumeBuffers();
             if (ProbeVolume.EnsureBuffer<PackedNeighborHit>(ref probeVolume.propagationBuffers.neighborHits, probeVolume.HitNeighborAxisLength))
             {
@@ -597,19 +602,15 @@ namespace UnityEngine.Rendering.HighDefinition
             int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
             int numAxis = numProbes * s_NeighborAxis.Length;
 
-            bool radianceChanged = ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.hitRadianceCache, probeVolume.HitNeighborAxisLength);
+            ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.hitRadianceCache, probeVolume.HitNeighborAxisLength);
             if (ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.radianceCacheAxis0, numAxis))
             {
                 ProbeVolume.EnsureBuffer<Vector3>(ref probeVolume.propagationBuffers.radianceCacheAxis1, numAxis);
-
                 probeVolume.propagationBuffers.radianceReadIndex = 0;
-                radianceChanged = true;
+                previousRadianceCacheInvalid = true;
             }
 
-            if (radianceChanged)
-            {
-                ClearRadianceCache(probeVolume);
-            }
+            return previousRadianceCacheInvalid;
         }
 
         void ClearRadianceCache(ProbeVolumeHandle probeVolume)
