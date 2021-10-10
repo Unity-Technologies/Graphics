@@ -224,13 +224,11 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
         const float3 probePositionWS =  ProbeCoordinatesToWorldPosition(probeCoordinate, probeVolumeLtw);
 
-        #if !defined(PREVIOUS_RADIANCE_CACHE_INVALID)
-            // Early out at far distances only when the previous radiance cache is valid
-            if (IsFarFromCamera(probePositionWS, _RangeInFrontOfCamera, _RangeBehindCamera))
-            {
-                return;
-            }
-        #endif
+        // Early out at far distances
+        if (IsFarFromCamera(probePositionWS, _RangeInFrontOfCamera, _RangeBehindCamera))
+        {
+            return;
+        }
 
 #if defined(SAMPLE_NEIGHBORS_DIRECTION_ONLY)
         SHIncomingIrradiance shIncomingIrradiance;

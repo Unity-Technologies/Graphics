@@ -178,13 +178,11 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         const float3 probeCoordinate = ProbeIndexToProbeCoordinates(probeIndex);
         const float3 worldPosition =  ProbeCoordinatesToWorldPosition(probeCoordinate, probeVolumeLtw);
 
-        #if !defined(PREVIOUS_RADIANCE_CACHE_INVALID)
-            // Early out at far distances only when the previous radiance cache is valid
-            if (IsFarFromCamera(worldPosition, _RangeInFrontOfCamera, _RangeBehindCamera))
-            {
-                return;
-            }
-        #endif
+        // Early out at far distances
+        if (IsFarFromCamera(worldPosition, _RangeInFrontOfCamera, _RangeBehindCamera))
+        {
+            return;
+        }
 
         #if defined(COMPUTE_INFINITE_BOUNCE)
             float3 prevValue = EstimateIncomingBounceLightSG(probeIndex, neighborData);
