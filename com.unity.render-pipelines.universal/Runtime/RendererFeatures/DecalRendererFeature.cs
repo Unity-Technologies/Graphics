@@ -478,6 +478,7 @@ namespace UnityEngine.Rendering.Universal
                         );
                     }
                     m_CopyDepthPass.MssaSamples = 1;
+                    m_CopyDepthPass.CopyToDepth = true;
 
                     renderer.EnqueuePass(m_CopyDepthPass);
                     renderer.EnqueuePass(m_DBufferRenderPass);
