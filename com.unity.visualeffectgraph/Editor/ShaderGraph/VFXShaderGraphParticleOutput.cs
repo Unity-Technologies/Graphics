@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -64,17 +65,17 @@ namespace UnityEditor.VFX
                 var shaderGraphParticleOutput = (VFXShaderGraphParticleOutput)target;
                 var shaderGraph = shaderGraphParticleOutput.GetOrRefreshShaderGraphObject();
                 var materialShadowOverride = VFXLibrary.currentSRPBinder.TryGetCastShadowFromMaterial(shaderGraph, shaderGraphParticleOutput.materialSettings, out var castShadow);
-                var materialQueueOffsetOverride = VFXLibrary.currentSRPBinder.TryGetQueueOffset(shaderGraph, shaderGraphParticleOutput.materialSettings, out var queueOffset) && shaderGraphParticleOutput.subOutput.supportsMaterialOffset;
+                var materialSortingPriorityOverride = VFXLibrary.currentSRPBinder.TryGetQueueOffset(shaderGraph, shaderGraphParticleOutput.materialSettings, out var queueOffset) && shaderGraphParticleOutput.subOutput.supportsSortingPriority;
 
                 // Indicate material override from shaderGraph which is hiding output properties.
-                if (materialShadowOverride || materialQueueOffsetOverride)
+                if (materialShadowOverride || materialSortingPriorityOverride)
                 {
-                    var msg = "The ShaderGraph material is overriding some settings:";
+                    var msg = new StringBuilder("The ShaderGraph material is overriding some settings:");
                     if (materialShadowOverride)
-                        msg += string.Format("\n - castShadow = {0}", castShadow ? "true" : "false");
-                    if (materialQueueOffsetOverride)
-                        msg += string.Format("\n - materialOffset = {0}", queueOffset);
-                    EditorGUILayout.HelpBox(msg, MessageType.Info);
+                        msg.AppendFormat("\n - Cast Shadow = {0}", castShadow ? "true" : "false");
+                    if (materialSortingPriorityOverride)
+                        msg.AppendFormat("\n - Sorting Priority = {0}", queueOffset);
+                    EditorGUILayout.HelpBox(msg.ToString(), MessageType.Info);
                 }
 
                 // Indicate caution to the user if transparent motion vectors are disabled and motion vectors are enabled.
@@ -201,7 +202,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override int GetMaterialOffset()
+        public override int GetMaterialSortingPriority()
         {
             var shaderGraph = GetOrRefreshShaderGraphObject();
             if (shaderGraph != null && shaderGraph.generatesWithShaderGraph && VFXLibrary.currentSRPBinder != null)
@@ -211,7 +212,7 @@ namespace UnityEditor.VFX
                     return queueOffset;
                 }
             }
-            return base.materialOffset;
+            return sortingPriority;
         }
 
         public BlendMode GetMaterialBlendMode()
@@ -399,7 +400,7 @@ namespace UnityEditor.VFX
                                 yield return nameof(castShadows);
 
                             if (VFXLibrary.currentSRPBinder.TryGetQueueOffset(shaderGraph, materialSettings, out var queueOffset))
-                                yield return nameof(materialOffset);
+                                yield return nameof(sortingPriority);
                         }
                     }
                 }
@@ -617,9 +618,7 @@ namespace UnityEditor.VFX
                         if (readsTangent || hasNormalPort) // needs tangent
                             yield return $"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper(CultureInfo.InvariantCulture)}";
 
-                        needsPosWS |= graphCode.requirements.requiresPosition != NeededCoordinateSpace.None ||
-                            graphCode.requirements.requiresScreenPosition ||
-                            graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None;
+                        needsPosWS |= NeedsPositionWorldInterpolator(graphCode);
                     }
 
                     // TODO Put that per pass ?
@@ -748,6 +747,13 @@ namespace UnityEditor.VFX
                 graphCodes.Clear();
         }
 
+        private static bool NeedsPositionWorldInterpolator(GraphCode graphCode)
+        {
+            return graphCode.requirements.requiresPosition != NeededCoordinateSpace.None
+                    || graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None
+                    || graphCode.requirements.requiresScreenPosition;
+        }
+
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get
@@ -820,9 +826,7 @@ namespace UnityEditor.VFX
                                 callSG.builder.AppendLine("INSG.TangentSpaceBiTangent = float3(0.0f, 1.0f, 0.0f);");
                         }
 
-                        if (graphCode.requirements.requiresPosition != NeededCoordinateSpace.None ||
-                            graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None ||
-                            graphCode.requirements.requiresScreenPosition || graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
+                        if (NeedsPositionWorldInterpolator(graphCode))
                         {
                             callSG.builder.AppendLine("float3 posRelativeWS = VFXGetPositionRWS(i.VFX_VARYING_POSWS);");
                             callSG.builder.AppendLine("float3 posAbsoluteWS = VFXGetPositionAWS(i.VFX_VARYING_POSWS);");
@@ -852,20 +856,6 @@ namespace UnityEditor.VFX
                                     callSG.builder.AppendLine("INSG.AbsoluteWorldSpacePositionPredisplacement = posAbsoluteWS;");
                             }
 
-                            callSG.builder.AppendLine("{");
-                            if (graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
-                                callSG.builder.AppendLine("float2 localPixelPosition = i.VFX_VARYING_POSCS.xy;");
-                            if (graphCode.requirements.requiresNDCPosition)
-                                callSG.builder.AppendLine("float2 localNDCPosition = localPixelPosition.xy / _ScreenParams.w;");
-
-                            if (graphCode.requirements.requiresScreenPosition)
-                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(VFXTransformPositionWorldToClip(i.VFX_VARYING_POSWS), _ProjectionParams.x);");
-                            if (graphCode.requirements.requiresNDCPosition)
-                                callSG.builder.AppendLine("INSG.NDCPosition = localPixelPosition / _ScreenParams.xy;");
-                            if (graphCode.requirements.requiresPixelPosition)
-                                callSG.builder.AppendLine("INSG.PixelPosition = localPixelPosition;");
-                            callSG.builder.AppendLine("}");
-
                             if (graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
                             {
                                 callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(VFXGetPositionRWS(i.VFX_VARYING_POSWS));");
@@ -878,6 +868,23 @@ namespace UnityEditor.VFX
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Tangent) != 0)
                                     callSG.builder.AppendLine("INSG.TangentSpaceViewDirection = mul(tbn, V);");
                             }
+
+                            if (graphCode.requirements.requiresScreenPosition)
+                            {
+                                //ScreenPosition is expected to be the raw screen pos (float4) before the w division in pixel (SharedCode.template.hlsl)
+                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(VFXTransformPositionWorldToClip(i.VFX_VARYING_POSWS), _ProjectionParams.x);");
+                            }
+                        }
+
+                        if (graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
+                        {
+                            callSG.builder.AppendLine("{");
+
+                            if (graphCode.requirements.requiresNDCPosition)
+                                callSG.builder.AppendLine("INSG.NDCPosition = i.VFX_VARYING_POSCS.xy / _ScreenParams.xy;");
+                            if (graphCode.requirements.requiresPixelPosition)
+                                callSG.builder.AppendLine("INSG.PixelPosition = i.VFX_VARYING_POSCS.xy;");
+                            callSG.builder.AppendLine("}");
                         }
 
                         if (graphCode.requirements.requiresMeshUVs.Contains(UVChannel.UV0))

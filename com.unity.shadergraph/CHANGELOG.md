@@ -4,6 +4,17 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.0] - 2021-09-24
+
+### Added
+ - Adding ability to automatically cast Bools to Vector types in ShaderGraph [1359160]
+
+### Fixed
+ - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
+ - Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
+ - Fixed unhandled exception when loading a subgraph with duplicate slots [1366200] (https://issuetracker.unity3d.com/product/unity/issues/guid/1366200/)
+ - Fixed a bug that Parallax Mapping and Parallax Occlusion Mapping nodes don't use the same channel to sample heightmap by adding drop-downs for channel selecting to both of the nodes. [1347270] (https://fogbugz.unity3d.com/f/cases/1347270/)
+
 ## [13.0.0] - 2021-09-01
 
 Version Updated
@@ -11,8 +22,10 @@ The version number for this package has increased due to a version update of a r
 
 ### Added
  - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
+ - Added ShaderGraph import warning to old nodes and properties, and ability to dismiss the warning if old behavior is desired.
 
 ### Changed
+ - Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
 
 ### Fixed
  - Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
@@ -26,6 +39,10 @@ The version number for this package has increased due to a version update of a r
  - Fixed an issue where ShaderGraph "view shader" commands were opening in individual windows, and blocking Unity from closing [1367188]
  - Improved screenspace position accuracy in the fragment shader by using VPOS [1352662] (https://issuetracker.unity3d.com/issues/shadergraph-dither-node-results-in-artifacts-when-far-from-origin-caused-by-screen-position-breaking-down)
  - Fixed the node searcher results to prefer names over synonyms [1366058]
+ - Fixed the Scene Depth node so it returns proper results in Eye space when using an orthographic camera [1311272]
+ - Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
+ - Fixed how graph errors were displayed when variant limits were reached [1355815]
+ - Fixed errors in the ShaderGraph Transform node [1368082]
 
 ## [12.0.0] - 2021-01-11
 
@@ -60,6 +77,7 @@ The version number for this package has increased due to a version update of a r
   - Added visible errors for invalid stage capability connections to shader graph.
   - Added a ShaderGraph animated preview framerate throttle.
   - Added many node synonyms for the Create Node search so that it's easier to find nodes.
+  - Added normal transforms to the Transform node
 
 ### Changed
 - Properties and Keywords are no longer separated by type on the blackboard. Categories allow for any combination of properties and keywords to be grouped together as the user defines.

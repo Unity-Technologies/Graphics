@@ -100,7 +100,8 @@ namespace UnityEditor.Rendering.Universal
                 PostProcessingWarningDrawer,
                 CED.Group(
                     DrawerRenderingClearDepth,
-                    DrawerRenderingRenderShadows
+                    DrawerRenderingRenderShadows,
+                    DrawerRenderingDepthTexture
                 )
             );
 
