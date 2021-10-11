@@ -3,7 +3,7 @@ using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
 namespace UnityEditor.ShaderFoundry
 {
-    public static class ShaderBuilderExtensions
+    internal static class ShaderBuilderExtensions
     {
         const string m_SpaceToken = " ";
         const string m_EqualToken = "=";
@@ -124,6 +124,7 @@ namespace UnityEditor.ShaderFoundry
             }
             builder.Add(function.Name);
         }
+
         internal static void AddDeclarationString(this ShaderBuilder builder, ShaderFunction function)
         {
             var parentBlock = function.ParentBlock;
@@ -181,8 +182,8 @@ namespace UnityEditor.ShaderFoundry
             builder.Add(m_SpaceToken, m_EqualToken, m_SpaceToken);
             builder.AddCallString(function, arguments);
             builder.Add(m_SemicolonToken);
-
         }
+
         internal static void AddCallStatementWithNewReturn(this ShaderBuilder builder, ShaderFunction function, string returnVariableName, params string[] arguments)
         {
             builder.Indentation();
@@ -356,7 +357,7 @@ namespace UnityEditor.ShaderFoundry
                 return null;
 
             string result = "";
-            for(var i = 0; i < 4; ++i)
+            for (var i = 0; i < 4; ++i)
             {
                 var mask = (value >> (i * 4)) & 0b1111;
                 if (mask == 0)
