@@ -108,7 +108,7 @@ FragOutput DefaultFullscreenFragmentShader(PackedVaryings packedInput)
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
-    output.color.rgb = surfaceDescription.FullscreenColor;
+    output.color.rgb = surfaceDescription.BaseColor;
     output.color.a = surfaceDescription.Alpha;
 #ifdef DEPTH_WRITE
     output.depth = surfaceDescription.FullscreenDepth;

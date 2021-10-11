@@ -307,7 +307,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 },
                 validPixelBlocks = new BlockFieldDescriptor[]
                 {
-                    FullscreenBlocks.color,
+                    BlockFields.SurfaceDescription.BaseColor,
                     BlockFields.SurfaceDescription.Alpha,
                     FullscreenBlocks.depth,
                 },
@@ -399,7 +399,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            context.AddBlock(FullscreenBlocks.color);
+            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
             context.AddBlock(FullscreenBlocks.depth, fullscreenData.depthWrite);
         }
