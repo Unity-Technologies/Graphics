@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool pipelineSupportsRayTracing => HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.rayTracingSupported;
 #if UNITY_EDITOR
-        internal static bool buildPipelineSupportsRayTracing => HDRenderPipeline.currentPipeline != null && (HDRenderPipeline.currentPipeline.m_AssetSupportsRayTracing && HDRenderPipeline.buildTargetSupportsRayTracing);
+        internal static bool assetSupportsRayTracing => HDRenderPipeline.currentPipeline != null && (HDRenderPipeline.currentPipeline.m_AssetSupportsRayTracing);
 #endif
 
         internal static bool pipelineSupportsScreenSpaceShadows => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows : false;
