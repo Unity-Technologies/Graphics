@@ -4,6 +4,25 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.0] - 2021-09-24
+
+### Fixed
+- Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
+
+## [13.0.0] - 2021-09-01
+
+### Fixed
+- Prevent vector truncation error in HDRP Decal template
+- Fix potential infinite compilation when using subgraphs [Case 1346576](https://issuetracker.unity3d.com/product/unity/issues/guid/1346576/)
+- Prevent out of sync serialization of VFX assets that could cause the asset to be dirtied without reason
+- Fix undetermitism in space with LocalToWorld and WorldToLocal operators [Case 1355820](https://issuetracker.unity3d.com/product/unity/issues/guid/1355820/)
+- Unexpected compilation error while modifying ShaderGraph exposed properties [Case 1361601](https://issuetracker.unity3d.com/product/unity/issues/guid/1361601/)
+- Compilation issue while using new SG integration and SampleTexture/SampleMesh [Case 1359391](https://issuetracker.unity3d.com/product/unity/issues/guid/1359391/)
+- Added a missing paste option in the context menu for VFX contexts. Also the paste options is now disabled when uneffective
+- Prevent VFX Graph compilation each time a property's min/max value is changed
+- Prevent vfx re-compilation in some cases when a value has not changed
+- Eye dropper in the color fields kept updating after pressing the Esc key
+
 ## [12.0.0] - 2021-01-11
 ### Added
 - Added support for Texture2D Arrays in Flipbooks
@@ -23,7 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Is Inside subgraph into VFX Graph additions package
 - The VFX editor automatically attach to the current selection if the selected gameobject uses the currently edited VFX asset
 - Two new buttons are available in the editor's tool bar. One will display a popup panel to handle attachement and one to lock/unlock the current attachement
-
+- Improved toolbar design: added icons, removed labels and grouped commands into dropdown menus
 
 ### Changed
 - Allow remaking an existing link.
@@ -94,6 +113,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - GPU hang on some initialize dispatch during dichotomy (platform specific)
 - Compilation error undeclared identifier 'Infinity' [Case 1328592](https://issuetracker.unity3d.com/product/unity/issues/guid/1328592/)
 - Exposed Parameter placement can be moved after sanitize
+- Fix rendering artifacts on some mobile devices [Case 1149057](https://issuetracker.unity3d.com/product/unity/issues/guid/1149057/)
+- Fix compilation failure on OpenGLES [Case 1348666](https://issuetracker.unity3d.com/product/unity/issues/guid/1348666/)
+- Don't open an empty VFX Graph Editor when assigning a VFX Asset to a Visual Effect GameObject from the inspector [Case 1347399](https://issuetracker.unity3d.com/product/unity/issues/guid/1347399/)
+- Visual Effect inspector input fields don't lose focus anymore while typing (Random seed)
+- Subgraph output properties tooltips were not easily editable when multiline
 
 ## [11.0.0] - 2020-10-21
 ### Added

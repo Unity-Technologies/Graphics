@@ -4,7 +4,6 @@
 # Read more under .yamato/docs/readme.md
 
 {% metadata_file .yamato/_cache_config.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -21,19 +20,6 @@ HDRP_PerformanceTests_trunk:
       -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk
-         rerun: on_new_revision
-HDRP_PerformanceTests_2021.2:
-    name: HDRP_PerformanceTests on 2021.2
-    variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        GIT_BRANCH: master
-        CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_2021.2
          rerun: on_new_revision
 HDRP_PerformanceTests_CUSTOM-REVISION:
     name: HDRP_PerformanceTests on CUSTOM-REVISION

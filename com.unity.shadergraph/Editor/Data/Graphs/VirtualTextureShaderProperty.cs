@@ -75,9 +75,8 @@ namespace UnityEditor.ShaderGraph
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
-                HLSLDeclaration decl = HLSLDeclaration.UnityPerMaterial;
-                if (value.procedural)
-                    decl = GetDefaultHLSLDeclaration();
+                // PVT should always be Global to be compatible with SRP batcher
+                HLSLDeclaration decl = (value.procedural) ? HLSLDeclaration.Global : HLSLDeclaration.UnityPerMaterial;
 
                 action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_CBDecl", decl, concretePrecision)
                 {
@@ -206,8 +205,11 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnAfterDeserialize(string json)
         {
-            // VT shader properties must always be exposed
-            generatePropertyBlock = true;
+            if (!value.procedural)
+            {
+                // non procedural VT shader properties must always be exposed
+                generatePropertyBlock = true;
+            }
         }
     }
 }
