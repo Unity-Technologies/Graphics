@@ -281,6 +281,8 @@ namespace UnityEngine.Rendering.HighDefinition
         void CleanupPostProcess()
         {
             RTHandles.Release(m_EmptyExposureTexture);
+            RTHandles.Release(m_GradingAndTonemappingLUT);
+            m_GradingAndTonemappingLUT = null;
             m_EmptyExposureTexture = null;
 
             CoreUtils.Destroy(m_ExposureCurveTexture);
@@ -289,14 +291,12 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ClearBlackMaterial);
             CoreUtils.Destroy(m_SMAAMaterial);
             CoreUtils.Destroy(m_TemporalAAMaterial);
-            CoreUtils.Destroy(m_GradingAndTonemappingLUT);
             CoreUtils.SafeRelease(m_HistogramBuffer);
             CoreUtils.SafeRelease(m_DebugImageHistogramBuffer);
             RTHandles.Release(m_DebugExposureData);
 
             m_ExposureCurveTexture = null;
             m_InternalSpectralLut = null;
-            m_GradingAndTonemappingLUT = null;
             m_FinalPassMaterial = null;
             m_ClearBlackMaterial = null;
             m_SMAAMaterial = null;
