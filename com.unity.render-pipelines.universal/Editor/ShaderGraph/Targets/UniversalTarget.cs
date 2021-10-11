@@ -308,12 +308,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
             m_ActiveSubTarget.value.target = this;
 
-            // OnAfterMultiDeserialize order is not guaranteed to be hierarchical (target, subtarget).
-            // Update subTargets after Target has been deserialized and target <-> subtarget references are intact.
-            foreach (var st in m_SubTargets)
-            {
-                st?.OnAfterParentTargetDeserialized();
-            }
+            // OnAfterMultiDeserialize order is not guaranteed to be hierarchical (target->subtarget).
+            // Update active subTarget (only, since the target is shared and non-active subTargets could override active settings)
+            // after Target has been deserialized and target <-> subtarget references are intact.
+            m_ActiveSubTarget.value.OnAfterParentTargetDeserialized();
         }
 
         public override void GetFields(ref TargetFieldContext context)
