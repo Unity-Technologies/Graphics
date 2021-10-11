@@ -307,7 +307,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // Upgrade old incorrect Premultiplied blend into
                 // equivalent Alpha + Preserve Specular blend mode.
-                if (this.sgVersion == 0)
+                if (this.sgVersion < 1)
                 {
                     if (target.alphaMode == AlphaMode.Premultiply)
                     {
