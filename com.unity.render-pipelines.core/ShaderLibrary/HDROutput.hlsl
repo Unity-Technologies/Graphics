@@ -425,9 +425,12 @@ float3 PerformRangeReduction(float3 input, float minNits, float maxNits)
 }
 
 // TODO: This is very ad-hoc and eyeballed on a limited set. Would be nice to find a standard.
-float3 DesaturateReducedICtCp(float3 ICtCp, float maxNits)
+float3 DesaturateReducedICtCp(float3 ICtCp, float lumaPre, float maxNits)
 {
-    float saturationAmount =  pow(smoothstep(1.0f, 0.4f, ICtCp.x), 0.9f);
+    float saturationAmount = min(1.0f, ICtCp.x / max(lumaPre, 1e-6f)); // BT2390, but only when getting darker.
+    //saturationAmount = min(lumaPre / ICtCp.x, ICtCp.x / lumaPre); // Actual BT2390 suggestion
+    saturationAmount *= saturationAmount;
+    //saturationAmount =  pow(smoothstep(1.0f, 0.4f, ICtCp.x), 0.9f);   // A smoothstepp-y function.
     ICtCp.yz *= saturationAmount;
     return ICtCp;
 }
@@ -450,10 +453,11 @@ float3 HuePreservingRangeReduction(float3 input, float minNits, float maxNits, i
 {
     float3 ICtCp = RotateOutputSpaceToICtCp(input);
 
+    float lumaPreRed = ICtCp.x;
     float linearLuma = PQToLinear(ICtCp.x, MAX_PQ_VALUE);
     linearLuma = LumaRangeReduction(linearLuma, minNits, maxNits, mode);
     ICtCp.x = LinearToPQ(linearLuma);
-    ICtCp = DesaturateReducedICtCp(ICtCp, maxNits);
+    ICtCp = DesaturateReducedICtCp(ICtCp, lumaPreRed, maxNits);
 
     return RotateICtCpToOutputSpace(ICtCp);
 }

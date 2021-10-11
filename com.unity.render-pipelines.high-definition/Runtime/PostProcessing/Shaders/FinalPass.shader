@@ -28,7 +28,6 @@ Shader "Hidden/HDRP/FinalPass"
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D(_GrainTexture);
-        TEXTURE2D(_HDRImageTest);
 
         TEXTURE2D_X(_AfterPostProcessTexture);
         TEXTURE2D_ARRAY(_BlueNoiseTexture);
