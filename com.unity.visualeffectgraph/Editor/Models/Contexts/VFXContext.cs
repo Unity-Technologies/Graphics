@@ -233,6 +233,11 @@ namespace UnityEditor.VFX
         protected override void OnAdded()
         {
             base.OnAdded();
+
+            var data = GetData();
+            if (data != null)
+                data.OnRegisteredContextHasBeenAdded(this);
+
             if (hasBeenCompiled || CanBeCompiled())
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
