@@ -1,11 +1,8 @@
 using NUnit.Framework;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Tests;
-
-[assembly: SupportedOn(typeof(__A), typeof(__B))]
 
 namespace UnityEngine.Rendering.Tests
 {
+    [SupportedOn(typeof(__A), typeof(__B))]
     class __A { }
     class __B { }
     class __C { }
