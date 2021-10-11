@@ -84,3 +84,5 @@ If a transparent material has **Receive SSR Transparent** enabled, HDRP always u
 ### Ray-traced reflection
 
 Currently, ray tracing in HDRP does not support [decals](decal.md). This means that, when you use ray-traced reflection, decals do not appear in reflective surfaces.
+
+If a transparent material has **Receive SSR Transparent** enabled, HDRP will evaluate the reflections as smooth.
