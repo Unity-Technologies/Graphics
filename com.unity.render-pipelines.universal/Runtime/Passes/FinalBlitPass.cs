@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cameraTarget,
                         RenderBufferLoadAction.Load,
                         RenderBufferStoreAction.Store,
-                        ClearFlag.Depth,
+                        ClearFlag.None,
                         Color.black);
 
                     Camera camera = cameraData.camera;

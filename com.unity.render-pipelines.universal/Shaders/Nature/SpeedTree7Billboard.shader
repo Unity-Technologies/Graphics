@@ -116,7 +116,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
-            ColorMask R
+            ColorMask 0
 
             HLSLPROGRAM
 

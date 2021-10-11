@@ -30,7 +30,7 @@ VaryingsDepthOnlyParticle DepthOnlyVertex(AttributesDepthOnlyParticle input)
     return output;
 }
 
-half DepthOnlyFragment(VaryingsDepthOnlyParticle input) : SV_TARGET
+half4 DepthOnlyFragment(VaryingsDepthOnlyParticle input) : SV_TARGET
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -57,7 +57,7 @@ half DepthOnlyFragment(VaryingsDepthOnlyParticle input) : SV_TARGET
         AlphaDiscard(albedo.a, _Cutoff);
     #endif
 
-    return input.clipPos.z;
+    return 0;
 }
 
 #endif // UNIVERSAL_PARTICLES_LIT_DEPTH_ONLY_PASS_INCLUDED

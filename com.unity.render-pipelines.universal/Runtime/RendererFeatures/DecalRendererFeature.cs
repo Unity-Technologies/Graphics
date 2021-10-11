@@ -392,10 +392,7 @@ namespace UnityEngine.Rendering.Universal
                     m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);
 
                     if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
-                    {
                         m_DBufferRenderPass.deferredLights = universalRenderer.deferredLights;
-                        m_DBufferRenderPass.deferredLights.DisableFramebufferFetchInput();
-                    }
                     break;
             }
 
@@ -484,11 +481,6 @@ namespace UnityEngine.Rendering.Universal
                     renderer.EnqueuePass(m_ForwardEmissivePass);
                     break;
             }
-        }
-
-        internal override bool SupportsNativeRenderPass()
-        {
-            return m_Technique == DecalTechnique.GBuffer || m_Technique == DecalTechnique.ScreenSpace;
         }
 
         protected override void Dispose(bool disposing)

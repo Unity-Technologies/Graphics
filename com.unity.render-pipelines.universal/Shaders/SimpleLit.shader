@@ -214,7 +214,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask R
+            ColorMask 0
             Cull[_Cull]
 
             HLSLPROGRAM
@@ -417,7 +417,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask R
+            ColorMask 0
             Cull[_Cull]
 
             HLSLPROGRAM

@@ -21,7 +21,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
-    return packedInput.positionCS.z;
+    return 0;
 }
 
 #endif

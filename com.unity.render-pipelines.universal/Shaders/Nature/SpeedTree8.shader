@@ -197,7 +197,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask R
+            ColorMask 0
 
             HLSLPROGRAM
 

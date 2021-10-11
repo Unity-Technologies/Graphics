@@ -115,7 +115,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask R
+            ColorMask 0
             Cull[_Cull]
 
             HLSLPROGRAM

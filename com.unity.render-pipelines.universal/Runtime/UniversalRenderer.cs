@@ -712,9 +712,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
-            // Also skip if Deferred+RenderPass as CameraDepthTexture is used and filled by the GBufferPass
-            // however we might need the depth texture with Forward-only pass rendered to it, so enable the copy depth in that case
-            if (requiresDepthCopyPass && !(this.actualRenderingMode == RenderingMode.Deferred && useRenderPassEnabled && !renderPassInputs.requiresDepthTexture))
+            if (requiresDepthCopyPass)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
 
@@ -844,7 +842,6 @@ namespace UnityEngine.Rendering.Universal
                     if (!depthTargetResolved && cameraData.xr.copyDepth)
                     {
                         m_XRCopyDepthPass.Setup(m_ActiveCameraDepthAttachment, RenderTargetHandle.GetCameraTarget(cameraData.xr));
-                        m_XRCopyDepthPass.CopyToDepth = true;
                         EnqueuePass(m_XRCopyDepthPass);
                     }
                 }
@@ -863,7 +860,6 @@ namespace UnityEngine.Rendering.Universal
                 // Scene view camera should always resolve target (not stacked)
                 Assertions.Assert.IsTrue(lastCameraInTheStack, "Editor camera must resolve target upon finish rendering.");
                 m_FinalDepthCopyPass.Setup(m_DepthTexture, RenderTargetHandle.CameraTarget);
-                m_FinalDepthCopyPass.CopyToDepth = true;
                 m_FinalDepthCopyPass.MssaSamples = 0;
                 EnqueuePass(m_FinalDepthCopyPass);
             }

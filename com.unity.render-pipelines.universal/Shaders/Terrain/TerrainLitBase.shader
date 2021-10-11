@@ -152,7 +152,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask R
+            ColorMask 0
 
             HLSLPROGRAM
             #pragma target 2.0
