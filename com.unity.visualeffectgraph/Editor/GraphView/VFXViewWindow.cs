@@ -65,12 +65,12 @@ namespace UnityEditor.VFX.UI
 
         public static VFXViewWindow ShowWindow(VisualEffectAsset vfxAsset)
         {
-            return ShowWindowGeneric(x => x.controller.graph.visualEffectResource.asset == vfxAsset);
+            return ShowWindowGeneric(x => x.controller == null || x.controller.graph.visualEffectResource.asset == vfxAsset);
         }
 
         public static VFXViewWindow ShowWindow(VisualEffectResource vfxResource)
         {
-            return ShowWindowGeneric(x => x.controller.graph.visualEffectResource == vfxResource);
+            return ShowWindowGeneric(x => x.controller == null || x.controller.graph.visualEffectResource == vfxResource);
         }
 
         public static VFXViewWindow GetWindow(VFXGraph vfxGraph)
