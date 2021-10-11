@@ -358,11 +358,9 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 default:
                 case FullscreenCompatibility.Blit:
                     fullscreenPass.includes.Add(fullscreenBlitInclude, IncludeLocation.Postgraph);
-                    Debug.Log(fullscreenBlitInclude);
                     break;
                 case FullscreenCompatibility.DrawProcedural:
                     fullscreenPass.includes.Add(fullscreenDrawProceduralInclude, IncludeLocation.Postgraph);
-                    Debug.Log(fullscreenDrawProceduralInclude);
                     break;
             }
 

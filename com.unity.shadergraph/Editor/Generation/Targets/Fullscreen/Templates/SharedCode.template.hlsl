@@ -29,8 +29,8 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     float3 viewDirWS = normalize(input.texCoord1.xyz);
     float linearDepth = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(input.texCoord0.xy), _ZBufferParams);
     float3 cameraForward = -UNITY_MATRIX_V[2].xyz;
-    float distance_to_camera = linearDepth / dot(viewDirWS, cameraForward);
-    float3 positionWS = viewDirWS * distance_to_camera + GetCameraPositionWS();
+    float camearDistance = linearDepth / dot(viewDirWS, cameraForward);
+    float3 positionWS = viewDirWS * camearDistance + GetCameraPositionWS();
 
     $SurfaceDescriptionInputs.ObjectSpaceTangent:                       output.ObjectSpaceTangent = TransformWorldToObjectDir(output.WorldSpaceTangent);
     $SurfaceDescriptionInputs.ViewSpaceTangent:                         output.ViewSpaceTangent = TransformWorldToViewDir(output.WorldSpaceTangent);
