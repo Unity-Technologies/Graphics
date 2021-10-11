@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the clouds not taking properly into account the fog when in distant mode and with a close far plane (case 1367993).
 - Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
 - Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
+- Fixed the volumetric clouds debug view not taking into account the exposure and leading to Nans (case 1365054).
 
 ## [12.0.0] - 2021-01-11
 
