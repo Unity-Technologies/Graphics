@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
+- Unexpected change in some VFXAsset before reimport [Case 1370626](https://issuetracker.unity3d.com/product/unity/issues/guid/1370626/)
 
 ## [13.0.0] - 2021-09-01
 
