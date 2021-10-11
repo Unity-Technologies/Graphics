@@ -141,6 +141,15 @@ namespace UnityEditor.VFX
             // Empty implementation by default
         }
 
+        public void OnRegisteredContextHasBeenAdded(VFXContext context)
+        {
+            if (!m_Owners.Contains(context))
+                throw new InvalidOperationException(string.Format("Unexpected OnRegisterContextHasBeenAdded from context {0} to {1}", context, this));
+
+            if (m_Parent != context.GetParent())
+                m_Parent = context.GetParent();
+        }
+
         // Never call this directly ! Only context must call this through SetData
         public void OnContextAdded(VFXContext context)
         {
