@@ -82,6 +82,12 @@ namespace UnityEngine.Rendering.HighDefinition
         private int _probeVolumeSimulationRequestCount = 0;
         private int _probeVolumeSimulationFrameTick = 0;
 
+        public enum PropagationAxisAmount
+        {
+            All = 0,
+            Most,
+            Least
+        }
 
         ProbeVolumeDynamicGI()
         {
@@ -129,6 +135,47 @@ namespace UnityEngine.Rendering.HighDefinition
             _sortedAxisLookups = new Vector4[s_NeighborAxis.Length * s_NeighborAxis.Length];
             _probeVolumeSimulationRequests = new ProbeVolumeSimulationRequest[MAX_SIMULATIONS_PER_FRAME];
         }
+
+        private bool _clearAllActive = false;
+        public void ClearAllActive(bool clearAll)
+        {
+            _clearAllActive = clearAll;
+        }
+
+        private bool _overrideInfiniteBounce = false;
+        private float _overrideInfiniteBounceValue;
+        public void OverrideInfiniteBounce(bool setOverride, float value = 0)
+        {
+            _overrideInfiniteBounce = setOverride;
+            _overrideInfiniteBounceValue = value;
+        }
+
+        private int _maxSimulationsPerFrame = MAX_SIMULATIONS_PER_FRAME;
+        public void OverrideMaxSimulationsPerFrame(bool setOverride, int maxSimulations)
+        {
+            if (setOverride)
+            {
+                _maxSimulationsPerFrame = maxSimulations;
+            }
+            else
+            {
+                _maxSimulationsPerFrame = MAX_SIMULATIONS_PER_FRAME;
+            }
+        }
+
+        private PropagationAxisAmount _propagationAxisAmount = PropagationAxisAmount.All;
+        public void OverridePropagationAxisAmount(bool setOverride, PropagationAxisAmount amount)
+        {
+            if (setOverride)
+            {
+                _propagationAxisAmount = amount;
+            }
+            else
+            {
+                _propagationAxisAmount = PropagationAxisAmount.All;
+            }
+        }
+
 
         internal static void AllocateNeighbors(ref ProbeVolumePayload payload, int numMissedAxis, int numHitAxis, int numAxis)
         {
@@ -323,32 +370,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        private bool _clearAllActive = false;
-        public void ClearAllActive(bool clearAll)
-        {
-            _clearAllActive = clearAll;
-        }
-
-        private bool _overrideInfiniteBounce = false;
-        private float _overrideInfiniteBounceValue;
-        public void OverrideInfiniteBounce(bool setOverride, float value = 0)
-        {
-            _overrideInfiniteBounce = setOverride;
-            _overrideInfiniteBounceValue = value;
-        }
-
-        private int _maxSimulationsPerFrame = MAX_SIMULATIONS_PER_FRAME;
-        public void OverrideMaxSimulationsPerFrame(bool setOverride, int maxSimulations)
-        {
-            if (setOverride)
-            {
-                _maxSimulationsPerFrame = maxSimulations;
-            }
-            else
-            {
-                _maxSimulationsPerFrame = MAX_SIMULATIONS_PER_FRAME;
-            }
-        }
 
         internal void DispatchProbePropagation(CommandBuffer cmd, ProbeVolumeHandle probeVolume, ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RenderTargetIdentifier probeVolumeAtlasSHRTHandle)
         {
@@ -464,13 +485,28 @@ namespace UnityEngine.Rendering.HighDefinition
                     CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION", true);
                     break;
                 }
-                case ProbeDynamicGI.DynamicGINeighboringVolumePropagationMode.Disabled:
                 default:
                 {
                     CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_DIRECTION_ONLY", false);
                     CoreUtils.SetKeyword(shader, "SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION", false);
                     break;
                 }
+            }
+
+            switch (_propagationAxisAmount)
+            {
+                case PropagationAxisAmount.All:
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_MOST", false);
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_LEAST", false);
+                    break;
+                case PropagationAxisAmount.Most:
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_MOST", true);
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_LEAST", false);
+                    break;
+                case PropagationAxisAmount.Least:
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_MOST", false);
+                    CoreUtils.SetKeyword(shader, "PROPAGATION_AXIS_LEAST", true);
+                    break;
             }
 
             cmd.SetComputeFloatParam(shader, "_ProbeVolumeDGIMaxNeighborDistance", data.maxNeighborDistance);
