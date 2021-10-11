@@ -12,6 +12,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             Marschner
         }
 
+        public enum ColorParameterization
+        {
+            BaseColor,
+            Melanin,
+            Absorption
+        }
+
         public enum GeometryType
         {
             Cards,
@@ -21,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public enum ScatteringMode
         {
             Approximate,
-            DensityVolume
+            Advanced
         }
 
         [SerializeField]
@@ -42,21 +49,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
+        ColorParameterization m_ColorParameterization = ColorParameterization.BaseColor;
+
+        public ColorParameterization colorParameterization
+        {
+            get => m_ColorParameterization;
+            set => m_ColorParameterization = value;
+        }
+
+        [SerializeField]
         GeometryType m_GeometryType;
 
         public GeometryType geometryType
         {
             get => m_GeometryType;
             set => m_GeometryType = value;
-        }
-
-        [SerializeField]
-        bool m_UseRoughenedAzimuthalScattering = false;
-
-        public bool useRoughenedAzimuthalScattering
-        {
-            get => m_UseRoughenedAzimuthalScattering;
-            set => m_UseRoughenedAzimuthalScattering = value;
         }
     }
 }

@@ -11,6 +11,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Output ParticleStrip Line"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLinesHW"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleLineOutput; } }
+        public override bool implementsMotionVector { get { return true; } }
 
         protected override IEnumerable<string> filteredOutSettings
         {

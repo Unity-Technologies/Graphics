@@ -734,7 +734,21 @@ namespace UnityEditor.VFX.UI
                         BuildValue(subSlot);
                         if (m_Indeterminate) return;
                     }
-                    m_ValueBuilder.Add(o => field.SetValue(o[o.Count - 2], o[o.Count - 1]));
+                    m_ValueBuilder.Add(o =>
+                    {
+                        var newValue = o[o.Count - 1];
+                        var target = o[o.Count - 2];
+
+                        if (field.FieldType != newValue.GetType())
+                        {
+                            object convertedValue;
+                            if (!VFXConverter.TryConvertTo(newValue, field.FieldType, out convertedValue))
+                                throw new InvalidOperationException(string.Format("VFXDataAnchorGizmo is failing to convert from {0} to {1}", newValue.GetType(), field.FieldType));
+                            newValue = convertedValue;
+                        }
+
+                        field.SetValue(target, newValue);
+                    });
                     m_ValueBuilder.Add(o => o.RemoveAt(o.Count - 1));
                 }
             }

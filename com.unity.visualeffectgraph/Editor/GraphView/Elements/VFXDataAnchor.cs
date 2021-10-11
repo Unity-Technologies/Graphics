@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEngine.Profiling;
 
@@ -275,7 +276,28 @@ namespace UnityEditor.VFX.UI
             }
             else if (controller.direction == Direction.Input && Event.current.modifiers == EventModifiers.Alt)
             {
-                VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == controller.portType.UserFriendlyName());
+                var targetType = controller.portType;
+
+                var attribute = VFXLibrary.GetAttributeFromSlotType(controller.portType);
+                VFXModelDescriptorParameters parameterDesc;
+                if (attribute != null && attribute.usages.HasFlag(VFXTypeAttribute.Usage.ExcludeFromProperty))
+                {
+                    parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t =>
+                    {
+                        if (!t.model.outputSlots[0].CanLink(controller.model))
+                            return false;
+                        var attributeCandidate = VFXLibrary.GetAttributeFromSlotType(t.model.type);
+                        return attributeCandidate == null || !attributeCandidate.usages.HasFlag(VFXTypeAttribute.Usage.ExcludeFromProperty);
+                    });
+                }
+                else
+                {
+                    parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t =>
+                    {
+                        return t.model.type == targetType;
+                    });
+                }
+
                 if (parameterDesc != null)
                 {
                     Vector2 pos = view.contentViewContainer.GlobalToBound(position) - new Vector2(140, 20);

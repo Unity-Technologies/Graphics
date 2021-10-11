@@ -1,0 +1,14 @@
+<UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="container" pickingMode="Ignore">
+        <ui:Button name="AttachButton" text="Attach" />
+        <ui:VisualElement style="flex-direction:Row;margin-top:4px;" pickingMode="Ignore">
+            <ui:Label name="PickTitle" text="Select a target" pickingMode="Ignore" />
+            <ui:TextField name="PickLabel" pickingMode="Ignore">
+                <ui:VisualElement name="VFXIcon" />
+                <ui:Button name="PickButton" tooltip="Click here to pick a VFX in the scene">
+                    <ui:VisualElement name="PickIcon" />
+                </ui:Button>
+            </ui:TextField>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</UXML>

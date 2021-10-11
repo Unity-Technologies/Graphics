@@ -156,7 +156,7 @@ namespace UnityEditor.VFX
             changed = TwoSidedSizeHandle(Color.blue, zFaceMiddle, minusZFaceMiddle, center, sizeZProperty, centerProperty) || changed;
 
 
-            changed = gizmo.PositionGizmo(box.center, centerProperty, true) || changed;
+            changed = gizmo.PositionGizmo(box.center, Vector3.zero, centerProperty, true) || changed;
 
             return changed;
         }

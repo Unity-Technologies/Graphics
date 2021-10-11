@@ -22,8 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         static string[] passTemplateMaterialDirectories = new string[]
         {
-            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Hair/ShaderGraph/",
-            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Hair/ShaderGraph/"
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
@@ -35,6 +34,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override bool requireSplitLighting => false;
         protected override bool supportPathtracing => true;
         protected override string pathtracingInclude => CoreIncludes.kHairPathtracing;
+
+        // Only allow advanced scattering for Marschner Strands explicitly set to advanced.
+        private bool useAdvancedMultipleScattering =>
+            hairData.materialType == ShaderGraph.HairData.MaterialType.Marschner &&
+            hairData.geometryType == HairData.GeometryType.Strands &&
+            hairData.scatteringMode == HairData.ScatteringMode.Advanced;
 
         HairData m_HairData;
 
@@ -56,8 +61,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static FieldDescriptor HairStrandDirection = new FieldDescriptor(string.Empty, "HairStrandDirection", "_HAIR_STRAND_DIRECTION 1");
         public static FieldDescriptor UseLightFacingNormal = new FieldDescriptor(string.Empty, "UseLightFacingNormal", "_USE_LIGHT_FACING_NORMAL 1");
         public static FieldDescriptor Transmittance = new FieldDescriptor(string.Empty, "Transmittance", "_TRANSMITTANCE 1");
-        public static FieldDescriptor UseRoughenedAzimuthalScattering = new FieldDescriptor(string.Empty, "UseRoughenedAzimuthalScattering", "_USE_ROUGHENED_AZIMUTHAL_SCATTERING 1");
-        public static FieldDescriptor ScatteringDensityVolume = new FieldDescriptor(string.Empty, "ScatteringDensityVolume", "_USE_DENSITY_VOLUME_SCATTERING 1");
+        public static FieldDescriptor ScatteringAdvanced = new FieldDescriptor(string.Empty, "ScatteringAdvanced", "_USE_ADVANCED_MULTIPLE_SCATTERING 1");
+        public static FieldDescriptor AbsorptionFromColor = new FieldDescriptor(string.Empty, "AbsorptionFromColor", "_ABSORPTION_FROM_COLOR 1");
+        public static FieldDescriptor AbsorptionFromMelanin = new FieldDescriptor(string.Empty, "AbsorptionFromMelanin", "_ABSORPTION_FROM_MELANIN 1");
 
         public override void GetFields(ref TargetFieldContext context)
         {
@@ -72,8 +78,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(RimTransmissionIntensity, descs.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
             context.AddField(UseLightFacingNormal, hairData.geometryType == HairData.GeometryType.Strands);
             context.AddField(Transmittance, descs.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
-            context.AddField(UseRoughenedAzimuthalScattering, hairData.useRoughenedAzimuthalScattering);
-            context.AddField(ScatteringDensityVolume, hairData.scatteringMode == HairData.ScatteringMode.DensityVolume);
+            context.AddField(ScatteringAdvanced, useAdvancedMultipleScattering);
+            context.AddField(AbsorptionFromColor, hairData.colorParameterization == HairData.ColorParameterization.BaseColor);
+            context.AddField(AbsorptionFromMelanin, hairData.colorParameterization == HairData.ColorParameterization.Melanin);
 
             // Misc
             context.AddField(SpecularAA, lightingData.specularAA &&
@@ -101,11 +108,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             else
             {
-                context.AddBlock(HDBlockFields.SurfaceDescription.RadialSmoothness, hairData.useRoughenedAzimuthalScattering);
+                // Color parameterization for cortex (default is base color)
+                context.AddBlock(HDBlockFields.SurfaceDescription.AbsorptionCoefficient, hairData.colorParameterization == HairData.ColorParameterization.Absorption);
+                context.AddBlock(HDBlockFields.SurfaceDescription.Eumelanin, hairData.colorParameterization == HairData.ColorParameterization.Melanin);
+                context.AddBlock(HDBlockFields.SurfaceDescription.Pheomelanin, hairData.colorParameterization == HairData.ColorParameterization.Melanin);
+
+                // Need to explicitly remove the base color here as it is by default always included.
+                if (hairData.colorParameterization != HairData.ColorParameterization.BaseColor)
+                    context.activeBlocks.Remove(BlockFields.SurfaceDescription.BaseColor);
+
+                context.AddBlock(HDBlockFields.SurfaceDescription.RadialSmoothness);
                 context.AddBlock(HDBlockFields.SurfaceDescription.CuticleAngle);
 
                 // TODO: Refraction Index
                 // Right now, the Marschner model implicitly assumes a human hair IOR of 1.55.
+
+                // Dual Scattering Inputs (Global Scattering)
+                context.AddBlock(HDBlockFields.SurfaceDescription.StrandCountProbe, useAdvancedMultipleScattering);
+                context.AddBlock(HDBlockFields.SurfaceDescription.StrandShadowBias, useAdvancedMultipleScattering);
             }
         }
 
