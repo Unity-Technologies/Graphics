@@ -6,7 +6,7 @@ HDR Output can be enabled for a given platform in **Player Settings > Other Sett
 
 ## Tonemapping for HDR Output
 
-When the *Use display in HDR mode* option is set in the player settings, all the HDR related options appear in the Tonemapping [TODO ADD LINK] volume component. The available options depend on the Tonemapping mode selected.
+When the *Use display in HDR mode* option is set in the player settings, all the HDR related options appear in the  [Tonemapping](Post-Processing-Tonemapping.md) volume component. The available options depend on the Tonemapping mode selected.
 
 Unlike tonemapping for LDR displays, the tonemapping for HDR screens require to take into account the capabilities of the device. In particular it is important to adapt to three values:
 
