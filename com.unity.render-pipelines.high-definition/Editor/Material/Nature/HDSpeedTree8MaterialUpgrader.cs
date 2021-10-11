@@ -129,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public void OnPostprocessSpeedTree(GameObject speedTree)
         {
             context.DependsOnCustomDependency("srp/default-pipeline");
-            if (RenderPipelineManager.currentPipeline is HDRenderPipelineAsset)
+            if (RenderPipelineManager.currentPipeline is HDRenderPipeline)
             {
                 SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
                 SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, stImporter, HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);
