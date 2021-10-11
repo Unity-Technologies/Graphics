@@ -268,7 +268,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool QualityEnabled()
         {
             // Quality always used for SSGI
-            if (!HDRenderPipeline.buildTargetSupportsRayTracing || !m_RayTracing.value.boolValue)
+            if (!HDRenderPipeline.assetSupportsRayTracing || !m_RayTracing.value.boolValue)
                 return true;
 
             // Handle the quality usage for RTGI
