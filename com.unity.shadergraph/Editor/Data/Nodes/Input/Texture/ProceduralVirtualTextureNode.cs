@@ -21,8 +21,9 @@ namespace UnityEditor.ShaderGraph
 
             vtProperty.displayName = "ProceduralVirtualTexture";
             vtProperty.overrideReferenceName = "MyPVT";
-            vtProperty.generatePropertyBlock = false;
+            vtProperty.generatePropertyBlock = true;
             vtProperty.value.procedural = true;
+            vtProperty.hidden = true;
 
             UpdateName();
         }

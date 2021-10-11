@@ -60,6 +60,14 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine($"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}");
                 }
             }
+            else
+            {
+                // adds properties in this format so: [ProceduralTextureStack.MyStack(0)] [NoScaleOffset] MyStack_0("Procedural Stack Placeholder", 2D) = "white" {}
+                for (int layer = 0; layer < value.layers.Count; layer++)
+                {
+                    builder.AppendLine($"{hideTagString}[ProceduralTextureStack.{referenceName}({layer})][NoScaleOffset]{referenceName}_{layer}(\"{"Procedural Stack Placeholder"}\", 2D) = \"white\" {{}}");
+                }
+            }
         }
 
         internal override string GetPropertyBlockString()
@@ -205,11 +213,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnAfterDeserialize(string json)
         {
-            if (!value.procedural)
-            {
-                // non procedural VT shader properties must always be exposed
-                generatePropertyBlock = true;
-            }
+            generatePropertyBlock = true;
         }
     }
 }
