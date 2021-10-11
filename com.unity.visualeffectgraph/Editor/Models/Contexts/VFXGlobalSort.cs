@@ -36,6 +36,7 @@ namespace UnityEditor.VFX
         {
             get
             {
+                yield return new VFXMapping("globalSort", 1);
                 yield return new VFXMapping("isPerCameraSort", IsPerCamera(sortCriterion) ? 1 : 0);
             }
         }
