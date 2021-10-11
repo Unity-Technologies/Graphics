@@ -6,6 +6,7 @@ namespace UnityEditor.Experimental.Rendering
 
         internal SerializedProperty globalVolume;
         internal SerializedProperty size;
+        internal SerializedProperty overridesSubdivision;
         internal SerializedProperty highestSubdivisionLevelOverride;
         internal SerializedProperty lowestSubdivisionLevelOverride;
         internal SerializedProperty objectLayerMask;
@@ -23,7 +24,7 @@ namespace UnityEditor.Experimental.Rendering
             geometryDistanceOffset = serializedObject.FindProperty("geometryDistanceOffset");
             highestSubdivisionLevelOverride = serializedObject.FindProperty("highestSubdivLevelOverride");
             lowestSubdivisionLevelOverride = serializedObject.FindProperty("lowestSubdivLevelOverride");
-
+            overridesSubdivision = serializedObject.FindProperty("overridesSubdivLevels");
         }
 
         internal void Apply()
