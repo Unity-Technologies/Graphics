@@ -49,7 +49,7 @@ all_project_ci_nightly_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-lightmapper.yml#LightMapper_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-postprocessing.yml#Postprocessing_trunk
+      -  path: .yamato/all-postprocessing.yml#PostProcessing_trunk
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_trunk
          rerun: on_new_revision
@@ -163,7 +163,7 @@ all_project_ci_nightly_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/all-lightmapper.yml#LightMapper_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-postprocessing.yml#Postprocessing_CUSTOM-REVISION
+      -  path: .yamato/all-postprocessing.yml#PostProcessing_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision

@@ -23,7 +23,7 @@ jobs:
       - .yamato/all-shadergraph.yml#Nightly_ShaderGraph_<TRACK>
       - .yamato/_templates.yml#all_template_ci_<TRACK>
       - .yamato/all-lightmapper.yml#LightMapper_<TRACK>
-      - .yamato/all-postprocessing.yml#Postprocessing_<TRACK>
+      - .yamato/all-postprocessing.yml#PostProcessing_<TRACK>
       - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
     triggers:
         recurring:
