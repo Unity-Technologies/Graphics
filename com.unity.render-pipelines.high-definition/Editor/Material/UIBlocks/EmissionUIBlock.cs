@@ -103,19 +103,6 @@ namespace UnityEditor.Rendering.HighDefinition
             UVMappingMaskEmissive = FindProperty(kUVMappingMaskEmissive);
         }
 
-        internal static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(MaterialEditor materialEditor, Material[] materials)
-        {
-            materialEditor.serializedObject.ApplyModifiedProperties();
-            foreach (Material target in materials)
-            {
-                target.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
-            }
-            materialEditor.serializedObject.Update();
-        }
-
-        internal static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
-            => emissiveColor.colorValue = emissiveColorLDR.colorValue.linear * emissiveIntensity.floatValue;
-
         internal static void UpdateEmissiveColorLDRAndIntensityFromEmissiveColor(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
         {
             // specifies the max byte value to use when decomposing a float color into bytes with exposure

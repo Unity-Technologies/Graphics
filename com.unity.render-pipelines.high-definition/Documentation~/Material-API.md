@@ -1,4 +1,4 @@
-# Using materials with C# scripts
+# Material Scripting API
 
 All the parameters of a material asset that you see in the Inspector window are accessible via script, giving you the power to change or animate how a material works at runtime.
 
@@ -22,7 +22,8 @@ public class CreateCutoutMaterial : MonoBehaviour
     {
         var material = new Material(Shader.Find("HDRP/Lit"));
         material.SetFloat("_AlphaCutoffEnable", 1.0f);
-        material.SetFloat("_AlphaCutoff", 0.2f);
+        material.SetFloat("_AlphaCutoff", 0.2f); // Settings this property is for HDRP
+        material.SetFloat("_Cutoff", 0.2f); // Setting this property is for the GI baking system
         HDMaterial.ValidateMaterial(material);
     }
 }
@@ -30,9 +31,11 @@ public class CreateCutoutMaterial : MonoBehaviour
 
 ## HDRP Material API
 
-Additionally, HDRP provides a set of functions to modify common properties. Calling one of these functions with a valid material will always leave it in a valid state.
+However, some properties of HDRP shaders are not independent, and they require changes to other properties in order to have any effect.
+To help modifying these properties, HDRP provides a set of functions that will take care of setting all the required states.
 
 This list of available methods is in the [Scripting API](../api/UnityEngine.Rendering.HighDefinition.HDMaterial.html).
+Refer to the documentation to know with which shaders the function is compatible.
 
 This is the same example as above but using the helper functions:
 
@@ -44,8 +47,8 @@ public class CreateCutoutMaterial : MonoBehaviour
     void Start()
     {
         var material = new Material(Shader.Find("HDRP/Lit"));
-        material.SetAlphaClipping(true);
-        material.SetAlphaCutoff(0.2f);
+        HDMaterial.SetAlphaClipping(material, true);
+        HDMaterial.SetAlphaCutoff(material, 0.2f);
     }
 }
 ```

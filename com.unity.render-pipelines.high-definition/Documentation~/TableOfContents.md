@@ -84,7 +84,6 @@
   * [Material Type](Material-Type.md)
   * [Tessellation](Tessellation.md)
   * [Surface Type](Surface-Type.md)
-  * [Using materials with C# scripts](Material-Scripting.md)
   * [Renderer and Material Priority](Renderer-And-Material-Priority.md)
   * [Decal](Decal.md)
   * Subsurface Scattering
@@ -214,7 +213,7 @@
   * [Custom Material Inspector](hdrp-custom-material-inspector.md)
   * [Creating and Editing Lights at Runtime](creating-and-editing-lights-at-runtime.md)
   * [Creating a Decal Projector at Runtime](creating-a-decal-projector-at-runtime.md)
-  * [Adjusting Emissive Intensity at Runtime](adjusting-emissive-intensity-at-runtime.md)
+  * [Editing materials at Runtime](Material-API.md)
   * [Editing Frame Settings at Runtime](Frame-Settings-API.md)
   * [Editing Volumes at Runtime](Volumes-API.md)
   * [Render Graph](render-graph.md)

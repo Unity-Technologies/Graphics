@@ -338,10 +338,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        /// <summary>Set the Rendering Pass</summary>
+        /// <summary>Set the Rendering Pass on Lit, Unlit and Shadergraph shaders.</summary>
         /// <param name="material">The material to change.</param>
         /// <param name="value">The rendering pass to set.</param>
-        public static void SetRenderingPass(this Material material, RenderingPass value)
+        public static void SetRenderingPass(Material material, RenderingPass value)
         {
             bool isTransparent = (SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent;
             var type = RenderingPassToQueue(value, isTransparent);
@@ -352,10 +352,10 @@ namespace UnityEngine.Rendering.HighDefinition
             material.renderQueue = ChangeType(type, sortingPriority, alphaClipping, receiveDecals);
         }
 
-        /// <summary>Set the Emissive Color</summary>
+        /// <summary>Set the Emissive Color on Lit, Unlit and Decal shaders.</summary>
         /// <param name="material">The material to change.</param>
-        /// <param name="value">The emissive color.</param>
-        public static void SetEmissiveColor(this Material material, Color value)
+        /// <param name="value">The emissive color. In LDR if the material uses a separate emissive intensity value, in HDR otherwise.</param>
+        public static void SetEmissiveColor(Material material, Color value)
         {
             if (material.GetFloat(kUseEmissiveIntensity) > 0.0f)
             {
@@ -370,65 +370,87 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        /// <summary>Set the Emissive Intensity</summary>
+        /// <summary>Set to true to use a separate LDR color and intensity value for the emission color. Compatible with Lit, Unlit and Decal shaders.</summary>
+        /// <param name="material">The material to change.</param>
+        /// <param name="value">True to use separate color and intensity values.</param>
+        public static void SetUseEmissiveIntensity(Material material, bool value)
+        {
+            material.SetFloat(kUseEmissiveIntensity, value ? 1.0f : 0.0f);
+            if (value)
+                material.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
+            else if (material.HasProperty(kEmissiveColorHDR))
+                material.SetColor(kEmissiveColor, material.GetColor(kEmissiveColorHDR));
+        }
+
+        /// <summary>Returns wether the material uses separate color and intensity values on Lit, Unlit and Decal shaders.</summary>
+        /// <param name="material">The material to change.</param>
+        /// <returns>True if the material uses separate color and intensity values.</returns>
+        public static bool GetUseEmissiveIntensity(Material material)
+        {
+            return material.GetFloat(kUseEmissiveIntensity) > 0.0f;
+        }
+
+        /// <summary>Set the Emissive Intensity on Lit, Unlit and Decal shaders. If the material doesn't use emissive intensity, this won't have any effect.</summary>
         /// <param name="material">The material to change.</param>
         /// <param name="intensity">The emissive intensity.</param>
         /// <param name="unit">The unit of the intensity parameter.</param>
-        public static void SetEmissiveIntensity(this Material material, float intensity, EmissiveIntensityUnit unit)
+        public static void SetEmissiveIntensity(Material material, float intensity, EmissiveIntensityUnit unit)
         {
             if (unit == EmissiveIntensityUnit.EV100)
                 intensity = LightUtils.ConvertEvToLuminance(intensity);
             material.SetFloat(kEmissiveIntensity, intensity);
             material.SetFloat(kEmissiveIntensityUnit, (float)unit);
+            if (material.GetFloat(kUseEmissiveIntensity) > 0.0f)
+                material.SetColor(kEmissiveColor, material.GetColor(kEmissiveColorLDR).linear * intensity);
         }
 
-        /// <summary>Set Alpha Clipping</summary>
+        /// <summary>Set Alpha Clipping on Lit and Unlit shaders.</summary>
         /// <param name="material">The material to change.</param>
         /// <param name="value">True to enable alpha clipping.</param>
-        public static void SetAlphaClipping(this Material material, bool value)
+        public static void SetAlphaClipping(Material material, bool value)
         {
             material.SetFloat(kAlphaCutoffEnabled, value ? 1.0f : 0.0f);
             material.SetupBaseUnlitKeywords();
         }
 
-        /// <summary>Set Alpha Cutoff</summary>
+        /// <summary>Set Alpha Cutoff on Lit and Unlit shaders.</summary>
         /// <param name="material">The material to change.</param>
         /// <param name="cutoff">The alpha cutoff value between 0 and 1.</param>
-        public static void SetAlphaCutoff(this Material material, float cutoff)
+        public static void SetAlphaCutoff(Material material, float cutoff)
         {
             material.SetFloat(kAlphaCutoff, cutoff);
             material.SetFloat("_Cutoff", cutoff);
         }
 
-        /// <summary>Set the Diffusion profile on a standard HDRP shader.</summary>
+        /// <summary>Set the Diffusion profile on Lit shaders.</summary>
         /// <param name="material">The material to change.</param>
         /// <param name="profile">The Diffusion Profile Asset.</param>
-        public static void SetDiffusionProfile(this Material material, DiffusionProfileSettings profile)
+        public static void SetDiffusionProfile(Material material, DiffusionProfileSettings profile)
         {
             float hash = profile != null ? HDShadowUtils.Asfloat(profile.profile.hash) : 0;
             material.SetFloat(HDShaderIDs._DiffusionProfileHash, hash);
 
 #if UNITY_EDITOR
-            material.SetDiffusionProfileAsset(profile, HDShaderIDs._DiffusionProfileAsset);
+            SetDiffusionProfileAsset(material, profile, HDShaderIDs._DiffusionProfileAsset);
 #endif
         }
 
-        /// <summary>Set the Diffusion profile on a Shader Graph material.</summary>
+        /// <summary>Set a Diffusion profile on a Shader Graph material.</summary>
         /// <param name="material">The material to change.</param>
         /// <param name="profile">The Diffusion Profile Asset.</param>
         /// <param name="referenceName">The reference name of the Diffusion Profile property in the Shader Graph.</param>
-        public static void SetDiffusionProfileShaderGraph(this Material material, DiffusionProfileSettings profile, string referenceName)
+        public static void SetDiffusionProfileShaderGraph(Material material, DiffusionProfileSettings profile, string referenceName)
         {
             float hash = profile != null ? HDShadowUtils.Asfloat(profile.profile.hash) : 0;
             material.SetFloat(referenceName, hash);
 
 #if UNITY_EDITOR
-            material.SetDiffusionProfileAsset(profile, Shader.PropertyToID(referenceName + "_Asset"));
+            SetDiffusionProfileAsset(material, profile, Shader.PropertyToID(referenceName + "_Asset"));
 #endif
         }
 
 #if UNITY_EDITOR
-        internal static void SetDiffusionProfileAsset(this Material material, DiffusionProfileSettings profile, int assetPropertyId, int index = 0)
+        internal static void SetDiffusionProfileAsset(Material material, DiffusionProfileSettings profile, int assetPropertyId, int index = 0)
         {
             Vector4 guid = Vector3.zero;
             if (profile != null)
@@ -437,6 +459,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var externalRefs = MaterialExternalReferences.GetMaterialExternalReferences(material);
             externalRefs.SetDiffusionProfileReference(index, profile);
+        }
+
+        /// <summary>Get the Diffusion profile on Lit shaders.</summary>
+        /// <param name="material">The material to access.</param>
+        /// <returns>The Diffusion Profile Asset.</returns>
+        public static DiffusionProfileSettings GetDiffusionProfile(Material material)
+        {
+            return GetDiffusionProfileAsset(material, HDShaderIDs._DiffusionProfileAsset);
+        }
+
+        /// <summary>Get the Diffusion profile on a Shader Graph material.</summary>
+        /// <param name="material">The material to access.</param>
+        /// <returns>The Diffusion Profile Asset.</returns>
+        public static DiffusionProfileSettings GetDiffusionProfileShaderGraph(Material material)
+        {
+            return GetDiffusionProfileAsset(material, HDShaderIDs._DiffusionProfileAsset);
+        }
+
+        internal static DiffusionProfileSettings GetDiffusionProfileAsset(Material material, int assetPropertyId)
+        {
+            string guid = HDUtils.ConvertVector4ToGUID(material.GetVector(assetPropertyId));
+            return UnityEditor.AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
         }
 #endif
 
