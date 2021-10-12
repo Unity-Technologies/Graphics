@@ -1,10 +1,7 @@
 #define SUPPORT_DYNAMIC
 
 using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
-using UnityEditor;
 
 // Note: This is safe for AOT platforms:
 //  - If you use the object based API, it will fallback on a in memory dictionary
@@ -66,10 +63,12 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         ///     Set the value in the static types
+        ///
+        ///     Note: This API is public because it is used by Source Generators to statically register the types.
         /// </summary>
         /// <param name="subject">Which type will support <paramref name="target" />.</param>
         /// <param name="target">Defines what to support.</param>
-        internal static void RegisterStaticRelation(Type subject, Type target)
+        public static void RegisterStaticRelation(Type subject, Type target)
         {
             // Note: Null Ref for types.
             //   We fetch an API that is defined below, we fully own the type definition.
@@ -92,13 +91,14 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         ///     Set the value in a dictionary.
+        ///
+        ///     Note: This API is public because it is used by Source Generators to statically register the types.
         ///     Note for AOT platforms: it may be required to use the dynamic backend because using generic structs
         ///     require JIT.
         /// </summary>
         /// <param name="subject">Which type will support <paramref name="target" />.</param>
         /// <param name="target">Defines what to support.</param>
-        [Conditional("SUPPORT_DYNAMIC")]
-        internal static void RegisterDynamicRelation(Type subject, Type target)
+        public static void RegisterDynamicRelation(Type subject, Type target)
         {
 #if SUPPORT_DYNAMIC
             s_Relations.RegisterRelation(subject, target);
@@ -174,37 +174,4 @@ namespace UnityEngine.Rendering
         public static bool Value
             => HasIsSupportedOn<TSubject>.Value && internalValue || !HasIsSupportedOn<TSubject>.Value;
     }
-
-    #region Registration Executor
-
-    /// <summary>
-    ///     Execute the registration code of the attribute.
-    ///     NOTE: This can be replaced by a code generation at compile time when available.
-    /// </summary>
-    static class SupportedOnAttributeSetter
-    {
-        static bool s_AssemblyConstructorRan = false;
-#if UNITY_EDITOR
-        [InitializeOnLoadMethod]
-#endif
-        [RuntimeInitializeOnLoadMethod]
-        static void Initialize()
-        {
-            if (s_AssemblyConstructorRan)
-                return;
-
-            // Note: Querying type with attribute with TypeCache is 4x faster that querying for assembly attribute
-            foreach (var type in TypeCache.GetTypesWithAttribute<SupportedOnAttribute>())
-            {
-                var attribute = type.GetCustomAttributes(typeof(SupportedOnAttribute)).FirstOrDefault() as SupportedOnAttribute;
-                if (attribute?.target == null)
-                    continue;
-
-                IsSupportedOn.RegisterStaticRelation(type, attribute.target);
-                IsSupportedOn.RegisterDynamicRelation(type, attribute.target);
-            }
-        }
-    }
-
-    #endregion
 }
