@@ -703,17 +703,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 1280
-    TargetHeight: 720
-    PerPixelCorrectnessThreshold: 0.002
+    TargetWidth: 1000
+    TargetHeight: 600
+    PerPixelCorrectnessThreshold: 0.001
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
     AverageCorrectnessThreshold: 0.005
-    IncorrectPixelsThreshold: 0.000006814697
+    IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
-    UseBackBuffer: 1
-    ImageResolution: 2
-    ActiveImageTests: 2147483647
+    UseBackBuffer: 0
+    ImageResolution: 0
+    ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 0
   XRCompatible: 1
