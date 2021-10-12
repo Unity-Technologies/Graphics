@@ -1271,6 +1271,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_BricksLoaded = false;
 
+            UnloadAllCells();
+
             if (m_ProbeReferenceVolumeInit)
             {
                 m_Index.Cleanup();
