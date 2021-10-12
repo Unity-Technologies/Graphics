@@ -16,9 +16,9 @@ MonoBehaviour:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
-    ColorSpace: 1
-    BuildPlatform: 24
-    GraphicsDevice: 21
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
-    Reason: Fail on Linux Vulkan
+    Reason: Failing
