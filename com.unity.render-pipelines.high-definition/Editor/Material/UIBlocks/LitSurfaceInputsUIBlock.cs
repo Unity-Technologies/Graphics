@@ -112,13 +112,9 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         MaterialProperty[] UVBase = new MaterialProperty[kMaxLayerCount];
-        const string kUVBase = "_UVBase";
         MaterialProperty[] TexWorldScale = new MaterialProperty[kMaxLayerCount];
-        const string kTexWorldScale = "_TexWorldScale";
         MaterialProperty[] InvTilingScale = new MaterialProperty[kMaxLayerCount];
-        const string kInvTilingScale = "_InvTilingScale";
         MaterialProperty[] UVMappingMask = new MaterialProperty[kMaxLayerCount];
-        const string kUVMappingMask = "_UVMappingMask";
 
         MaterialProperty[] baseColor = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] baseColorMap = new MaterialProperty[kMaxLayerCount];
@@ -159,20 +155,16 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty displacementMode = null;
 
         MaterialProperty tangentMap = null;
-        const string kTangentMap = "_TangentMap";
         MaterialProperty tangentMapOS = null;
-        const string kTangentMapOS = "_TangentMapOS";
         MaterialProperty anisotropy = null;
         const string kAnisotropy = "_Anisotropy";
         MaterialProperty anisotropyMap = null;
-        const string kAnisotropyMap = "_AnisotropyMap";
 
         MaterialProperty energyConservingSpecularColor = null;
         const string kEnergyConservingSpecularColor = "_EnergyConservingSpecularColor";
         MaterialProperty specularColor = null;
         const string kSpecularColor = "_SpecularColor";
         MaterialProperty specularColorMap = null;
-        const string kSpecularColorMap = "_SpecularColorMap";
 
         MaterialProperty[] diffusionProfileHash = new MaterialProperty[kMaxLayerCount];
         const string kDiffusionProfileHash = "_DiffusionProfileHash";
@@ -181,7 +173,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty[] subsurfaceMask = new MaterialProperty[kMaxLayerCount];
         const string kSubsurfaceMask = "_SubsurfaceMask";
         MaterialProperty[] subsurfaceMaskMap = new MaterialProperty[kMaxLayerCount];
-        const string kSubsurfaceMaskMap = "_SubsurfaceMaskMap";
         MaterialProperty[] thickness = new MaterialProperty[kMaxLayerCount];
         const string kThickness = "_Thickness";
         MaterialProperty[] thicknessMap = new MaterialProperty[kMaxLayerCount];

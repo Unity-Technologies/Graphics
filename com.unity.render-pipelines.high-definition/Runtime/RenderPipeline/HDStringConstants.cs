@@ -1130,6 +1130,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal const string kUVBase = "_UVBase";
         internal const string kTexWorldScale = "_TexWorldScale";
+        internal const string kInvTilingScale = "_InvTilingScale";
         internal const string kUVMappingMask = "_UVMappingMask";
         internal const string kUVDetail = "_UVDetail";
         internal const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
@@ -1149,6 +1150,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kRefractionModel = "_RefractionModel";
         internal const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
+        internal const string kCutoff = "_Cutoff";
         internal const string kAlphaCutoff = "_AlphaCutoff";
         internal const string kUseShadowThreshold = "_UseShadowThreshold";
         internal const string kAlphaCutoffShadow = "_AlphaCutoffShadow";

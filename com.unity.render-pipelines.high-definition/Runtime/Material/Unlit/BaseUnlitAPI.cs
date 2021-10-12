@@ -288,10 +288,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetColor("_Color", color);
             }
 
-            if (material.HasProperty("_AlphaCutoff")) // Same for all our materials
+            if (material.HasProperty(kAlphaCutoff)) // Same for all our materials
             {
-                var cutoff = material.GetFloat("_AlphaCutoff");
-                material.SetFloat("_Cutoff", cutoff);
+                var cutoff = material.GetFloat(kAlphaCutoff);
+                material.SetFloat(kCutoff, cutoff);
             }
         }
 

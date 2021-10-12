@@ -419,7 +419,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static void SetAlphaCutoff(Material material, float cutoff)
         {
             material.SetFloat(kAlphaCutoff, cutoff);
-            material.SetFloat("_Cutoff", cutoff);
+            material.SetFloat(kCutoff, cutoff);
         }
 
         /// <summary>Set the Diffusion profile on Lit shaders.</summary>
@@ -485,6 +485,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         // this will work on ALL shadergraph-built shaders, in memory or asset based
+        // duplicated from GraphUtil.cs in shadergraph package, because it's not available outside the editor
         internal static bool IsShaderGraph(Material material)
         {
             var shaderGraphTag = material.GetTag("ShaderGraphShader", false, null);
