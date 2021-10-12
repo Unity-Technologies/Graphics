@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingLightCluster = new HDRaytracingLightCluster();
             m_RayTracingLightCluster.Initialize(this);
 
-            // Setup acceleration structure culling parameters. Dynamic parameters are set every frame.            
+            // Setup acceleration structure culling parameters. Dynamic parameters are set every frame.
             m_RASCullingConfig.lodParameters.orthoSize = 0;
             m_RASCullingConfig.lodParameters.isOrthographic = false;
 
@@ -534,7 +534,7 @@ namespace UnityEngine.Rendering.HighDefinition
             instanceTest.layerMask = -1;
             instanceTest.shadowCastingModeMask = -1;
             instanceTest.instanceMask = (uint)RayTracingRendererFlag.Opaque;
-           
+
             m_RASInstanceTests.Add(instanceTest);
 
             rayTracedShadows &= !ptEnabled;
@@ -549,7 +549,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 instanceTest.instanceMask = (uint)RayTracingRendererFlag.CastShadowTransparent;
 
                 m_RASInstanceTests.Add(instanceTest);
-              
+
                 instanceTest.allowTransparentMaterials = false;
                 instanceTest.allowOpaqueMaterials = true;
                 instanceTest.allowAlphaTestedMaterials = true;
