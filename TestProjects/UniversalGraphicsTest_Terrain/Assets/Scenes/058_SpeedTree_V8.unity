@@ -705,11 +705,11 @@ MonoBehaviour:
   ImageComparisonSettings:
     TargetWidth: 1280
     TargetHeight: 720
-    PerPixelCorrectnessThreshold: 0.001
+    PerPixelCorrectnessThreshold: 0.002
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
     AverageCorrectnessThreshold: 0.005
-    IncorrectPixelsThreshold: 0.00003814697
+    IncorrectPixelsThreshold: 0.000006814697
     UseHDR: 0
     UseBackBuffer: 1
     ImageResolution: 2
