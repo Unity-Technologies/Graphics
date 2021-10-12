@@ -239,7 +239,7 @@ namespace UnityEditor.Rendering
             return true;
         }
 
-        internal static bool Show(Vector2 position, IProvider provider)
+        public static bool Show(Vector2 position, IProvider provider)
         {
             // If the window is already open, close it instead.
             var wins = Resources.FindObjectsOfTypeAll(typeof(FilterWindow));

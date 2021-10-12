@@ -86,13 +86,18 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.Space();
 
             //Add renderer
-            if (GUILayout.Button("Add Renderer Feature", EditorStyles.miniButton))
+            using (var hscope = new EditorGUILayout.HorizontalScope())
             {
-                AddPassMenu();
+                if (GUILayout.Button("Add Renderer Feature", EditorStyles.miniButton))
+                {
+                    var r = hscope.rect;
+                    var pos = new Vector2(r.x + r.width / 2f, r.yMax + 18f);
+                    FilterWindow.Show(pos, new ScriptableRendererFeatureProvider(this));
+;                }
             }
         }
 
-        private bool GetCustomTitle(Type type, out string title)
+        internal bool GetCustomTitle(Type type, out string title)
         {
             var isSingleFeature = type.GetCustomAttribute<DisallowMultipleRendererFeature>();
             if (isSingleFeature != null)
@@ -215,25 +220,7 @@ namespace UnityEditor.Rendering.Universal
             menu.DropDown(new Rect(position, Vector2.zero));
         }
 
-        private void AddPassMenu()
-        {
-            GenericMenu menu = new GenericMenu();
-            TypeCache.TypeCollection types = TypeCache.GetTypesDerivedFrom<ScriptableRendererFeature>();
-            foreach (Type type in types)
-            {
-                var data = target as ScriptableRendererData;
-                if (data.DuplicateFeatureCheck(type))
-                {
-                    continue;
-                }
-
-                string path = GetMenuNameFromType(type);
-                menu.AddItem(new GUIContent(path), false, AddComponent, type.Name);
-            }
-            menu.ShowAsContext();
-        }
-
-        private void AddComponent(object type)
+        internal void AddComponent(string type)
         {
             serializedObject.Update();
 
@@ -309,23 +296,6 @@ namespace UnityEditor.Rendering.Universal
 
             // Force save / refresh
             ForceSave();
-        }
-
-        private string GetMenuNameFromType(Type type)
-        {
-            string path;
-            if (!GetCustomTitle(type, out path))
-            {
-                path = ObjectNames.NicifyVariableName(type.Name);
-            }
-
-            if (type.Namespace != null)
-            {
-                if (type.Namespace.Contains("Experimental"))
-                    path += " (Experimental)";
-            }
-
-            return path;
         }
 
         private string ValidateName(string name)
