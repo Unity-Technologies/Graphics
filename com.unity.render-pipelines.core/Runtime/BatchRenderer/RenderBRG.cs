@@ -372,7 +372,14 @@ public unsafe class RenderBRG : MonoBehaviour
         m_drawRanges = new NativeList<DrawRange>(Allocator.Persistent);
 
         // Fill the GPU-persistent scene data ComputeBuffer
-        int bigDataBufferVector4Count = 4 /*zero*/ + 1 /*probes*/ + 1 /*speccube*/ + 7 /*SH*/ + 2 * m_renderers.Length /* per renderer lightmapindex + scale/offset*/ + m_renderers.Length * 3 * 2 /*per renderer 4x3 matrix+inverse*/;
+        int bigDataBufferVector4Count = 
+            4 /*zero*/ 
+            + 1 /*probes*/ 
+            + 1 /*speccube*/ 
+            + 7 * m_renderers.Length /*per renderer SH*/ 
+            + 1 * m_renderers.Length /*per renderer probe occlusion*/
+            + 2 * m_renderers.Length /* per renderer lightmapindex + scale/offset*/ 
+            + m_renderers.Length * 3 * 2 /*per renderer 4x3 matrix+inverse*/;
         var vectorBuffer = new NativeArray<Vector4>(bigDataBufferVector4Count, Allocator.Temp);
 
         // First 4xfloat4 of ComputeBuffer needed to be zero filled for default property fall back!
@@ -382,27 +389,20 @@ public unsafe class RenderBRG : MonoBehaviour
         vectorBuffer[3] = new Vector4(0, 0, 0, 0);
         var startOffset = 4;
 
-        // Fill global data (shared between all batches)
-        var probesOcclusionOffset = startOffset;
-        vectorBuffer[probesOcclusionOffset] = new Vector4(1, 1, 1, 1);
-        startOffset++;
-
         var specCubeOffset = startOffset;
         vectorBuffer[specCubeOffset] = ReflectionProbe.defaultTextureHDRDecodeValues;
         startOffset++;
-
-        var SHOffset = startOffset;
-        var SH = new SHProperties(RenderSettings.ambientProbe);
-        vectorBuffer[SHOffset + 0] = SH.SHAr;
-        vectorBuffer[SHOffset + 1] = SH.SHAg;
-        vectorBuffer[SHOffset + 2] = SH.SHAb;
-        vectorBuffer[SHOffset + 3] = SH.SHBr;
-        vectorBuffer[SHOffset + 4] = SH.SHBg;
-        vectorBuffer[SHOffset + 5] = SH.SHBb;
-        vectorBuffer[SHOffset + 6] = SH.SHC;
-        startOffset += 7;
         
-        var lightMapIndexOffset = startOffset;
+        var SHArOffset = startOffset;
+        var SHAgOffset = SHArOffset + m_renderers.Length;
+        var SHAbOffset = SHAgOffset + m_renderers.Length;
+        var SHBrOffset = SHAbOffset + m_renderers.Length;
+        var SHBgOffset = SHBrOffset + m_renderers.Length;
+        var SHBbOffset = SHBgOffset + m_renderers.Length;
+        var SHCOffset = SHBbOffset + m_renderers.Length;
+        
+        var probeOcclusionOffset = SHCOffset + m_renderers.Length;
+        var lightMapIndexOffset = probeOcclusionOffset + m_renderers.Length;
         var lightMapScaleOffset = lightMapIndexOffset + m_renderers.Length;
         var localToWorldOffset = lightMapScaleOffset + m_renderers.Length;
         var worldToLocalOffset = localToWorldOffset + m_renderers.Length * 3;
@@ -411,6 +411,8 @@ public unsafe class RenderBRG : MonoBehaviour
         
         var lightmaps = LightMaps.GetLightmapsStruct();
         var materialMap = LightMaps.GenerateRenderersToMaterials(renderers, lightmaps);
+        
+        LightProbesQuery lpq = new LightProbesQuery(Allocator.Temp);
         
         for (int i = 0; i < renderers.Length; i++) 
         {
@@ -426,6 +428,7 @@ public unsafe class RenderBRG : MonoBehaviour
 
             // Disable the existing Unity MeshRenderer to avoid double rendering!
             renderer.enabled = false;
+
             /*  mat4x3 packed like this:
                   p1.x, p1.w, p2.z, p3.y,
                   p1.y, p2.x, p2.w, p3.z,
@@ -435,17 +438,30 @@ public unsafe class RenderBRG : MonoBehaviour
 
             vectorBuffer[i + lightMapIndexOffset] = new Vector4(renderer.lightmapIndex, 0, 0, 0);
             vectorBuffer[i + lightMapScaleOffset] = renderer.lightmapScaleOffset;
-            
-            var m = renderer.transform.localToWorldMatrix;
+
+            var rendererTransform = renderer.transform;
+            var m = rendererTransform.localToWorldMatrix;
             vectorBuffer[i * 3 + 0 + localToWorldOffset] = new Vector4(m.m00, m.m10, m.m20, m.m01);
             vectorBuffer[i * 3 + 1 + localToWorldOffset] = new Vector4(m.m11, m.m21, m.m02, m.m12);
             vectorBuffer[i * 3 + 2 + localToWorldOffset] = new Vector4(m.m22, m.m03, m.m13, m.m23);
 
-            var mi = renderer.transform.worldToLocalMatrix;
+            var mi = rendererTransform.worldToLocalMatrix;
             vectorBuffer[i * 3 + 0 + worldToLocalOffset] = new Vector4(mi.m00, mi.m10, mi.m20, mi.m01);
             vectorBuffer[i * 3 + 1 + worldToLocalOffset] = new Vector4(mi.m11, mi.m21, mi.m02, mi.m12);
             vectorBuffer[i * 3 + 2 + worldToLocalOffset] = new Vector4(mi.m22, mi.m03, mi.m13, mi.m23);
 
+            lpq.CalculateInterpolatedLightAndOcclusionProbe(rendererTransform.position, -1, out var lp, out var probeOcclusion);
+            
+            var sh = new SHProperties(lp);
+            vectorBuffer[SHArOffset + i] = sh.SHAr;
+            vectorBuffer[SHAgOffset + i] = sh.SHAg;
+            vectorBuffer[SHAbOffset + i] = sh.SHAb;
+            vectorBuffer[SHBrOffset + i] = sh.SHBr;
+            vectorBuffer[SHBgOffset + i] = sh.SHBg;
+            vectorBuffer[SHBbOffset + i] = sh.SHBb;
+            vectorBuffer[SHCOffset + i] = sh.SHC;
+
+            vectorBuffer[probeOcclusionOffset + i] = probeOcclusion;
 
             // Renderer bounds
             var transformedBounds = AABB.Transform(m, meshFilter.sharedMesh.bounds.ToAABB());
@@ -617,15 +633,15 @@ public unsafe class RenderBRG : MonoBehaviour
         batchMetadata[1] = CreateMetadataValue(worldToObjectID, worldToLocalOffset * UnsafeUtility.SizeOf<Vector4>(), true);
         batchMetadata[2] = CreateMetadataValue(lightmapSTID, lightMapScaleOffset * UnsafeUtility.SizeOf<Vector4>(), true);
         batchMetadata[3] = CreateMetadataValue(lightmapIndexID, lightMapIndexOffset * UnsafeUtility.SizeOf<Vector4>(), true);
-        batchMetadata[4] = CreateMetadataValue(probesOcclusionID, probesOcclusionOffset * UnsafeUtility.SizeOf<Vector4>(), false);
+        batchMetadata[4] = CreateMetadataValue(probesOcclusionID, probeOcclusionOffset * UnsafeUtility.SizeOf<Vector4>(), true);
         batchMetadata[5] = CreateMetadataValue(specCubeID, specCubeOffset * UnsafeUtility.SizeOf<Vector4>(), false);
-        batchMetadata[6] = CreateMetadataValue(SHArID, (SHOffset + 0) * UnsafeUtility.SizeOf<Vector4>(), false);
-        batchMetadata[7] = CreateMetadataValue(SHAgID, (SHOffset + 1) * UnsafeUtility.SizeOf<Vector4>(), false);
-        batchMetadata[8] = CreateMetadataValue(SHAbID, (SHOffset + 2) * UnsafeUtility.SizeOf<Vector4>(), false);
-        batchMetadata[9] = CreateMetadataValue(SHBrID, (SHOffset + 3) * UnsafeUtility.SizeOf<Vector4>(), false);
-        batchMetadata[10] = CreateMetadataValue(SHBgID, (SHOffset + 4) * UnsafeUtility.SizeOf<Vector4>(), false);
-        batchMetadata[11] = CreateMetadataValue(SHBbID, (SHOffset + 5) * UnsafeUtility.SizeOf<Vector4>(), false);
-        batchMetadata[12] = CreateMetadataValue(SHCID, (SHOffset + 6) * UnsafeUtility.SizeOf<Vector4>(), false);
+        batchMetadata[6] = CreateMetadataValue(SHArID, SHArOffset * UnsafeUtility.SizeOf<Vector4>(), true);
+        batchMetadata[7] = CreateMetadataValue(SHAgID, SHAgOffset * UnsafeUtility.SizeOf<Vector4>(), true);
+        batchMetadata[8] = CreateMetadataValue(SHAbID, SHAbOffset * UnsafeUtility.SizeOf<Vector4>(), true);
+        batchMetadata[9] = CreateMetadataValue(SHBrID, SHBrOffset * UnsafeUtility.SizeOf<Vector4>(), true);
+        batchMetadata[10] = CreateMetadataValue(SHBgID, SHBgOffset * UnsafeUtility.SizeOf<Vector4>(), true);
+        batchMetadata[11] = CreateMetadataValue(SHBbID, SHBbOffset * UnsafeUtility.SizeOf<Vector4>(), true);
+        batchMetadata[12] = CreateMetadataValue(SHCID, SHCOffset * UnsafeUtility.SizeOf<Vector4>(), true);
 
         // Register batch
         m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistanceBufferId);
