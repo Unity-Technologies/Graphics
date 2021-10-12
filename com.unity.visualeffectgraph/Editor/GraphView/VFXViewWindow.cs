@@ -271,10 +271,31 @@ namespace UnityEditor.VFX.UI
             if (window == null)
             {
                 window = CreateInstance<VFXViewWindow>();
-                window.Show(true);
+            }
+
+            var lastVFXWindow = s_windows.LastOrDefault(x => x.Value != window).Value;
+            if (!TryToTabNextTo(lastVFXWindow, window))
+            {
+                if (!TryToTabNextTo(GetWindowDontShow<SceneView>(), window))
+                {
+                    window.Show(true);
+                }
             }
 
             return window;
+        }
+
+        static bool TryToTabNextTo(EditorWindow nextToWindow, EditorWindow window)
+        {
+            if (nextToWindow?.m_Parent is DockArea dockArea)
+            {
+                var index = dockArea.m_Panes.IndexOf(nextToWindow);
+                dockArea.AddTab(index + 1, window);
+
+                return true;
+            }
+
+            return false;
         }
 
         void OnEnterPanel(AttachToPanelEvent e)
