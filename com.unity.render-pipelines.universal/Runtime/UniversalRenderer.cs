@@ -594,6 +594,11 @@ namespace UnityEngine.Rendering.Universal
                 if (useRenderPassEnabled)
                     useRenderPassEnabled = DebugHandler.IsRenderPassSupported;
             }
+            if (this.actualRenderingMode == RenderingMode.Deferred)
+            {
+                if (m_DeferredLights.UseRenderPass && (RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent || !useRenderPassEnabled))
+                    m_DeferredLights.DisableFramebufferFetchInput();
+            }
 
             // Allocate m_DepthTexture if used
             if (this.actualRenderingMode == RenderingMode.Deferred || requiresDepthPrepass || requiresDepthCopyPass)
