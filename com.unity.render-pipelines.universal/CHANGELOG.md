@@ -48,6 +48,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]
 - Fixed an issue in where installing the Adaptive Performance package caused errors to the inspector UI [1368161](https://issuetracker.unity3d.com/issues/urp-package-throws-compilation-error-cs1525-when-imported-together-with-adaptive-performance-package)
 
+### Changed
+- Remove use of deprecated UNITY_USE_NATIVE_HDR keyword in shaders.
+
 ## [12.0.0] - 2021-01-11
 ### Added
 - Added support for default sprite mask shaders for the 2D Renderer in URP.
