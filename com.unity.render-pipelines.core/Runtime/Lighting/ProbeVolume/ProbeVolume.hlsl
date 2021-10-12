@@ -12,6 +12,28 @@ SAMPLER(s_linear_clamp_sampler);
 SAMPLER(s_point_clamp_sampler);
 #endif
 
+#undef _PoolDim
+#define _PoolDim uint3(2048, 512, 4)
+#undef _ViewBias
+#define _ViewBias 0.295
+#undef _MinCellPosition
+#define _MinCellPosition float3(-1,-1,-1)
+#undef _PVSamplingNoise
+#define _PVSamplingNoise 0.078
+#undef _CellIndicesDim
+#define _CellIndicesDim float3(2,2,2)
+#undef _CellInMeters
+#define _CellInMeters 40.5
+#undef _CellInMinBricks
+#define _CellInMinBricks 27
+#undef _MinBrickSize
+#define _MinBrickSize 1.5
+#undef _IndexChunkSize
+#define _IndexChunkSize 243
+#undef _NormalBias
+#define _NormalBias 0.544
+
+
 struct APVResources
 {
     StructuredBuffer<int> index;
@@ -188,10 +210,10 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     float4 posWSForSample = float4(posWS + normalWS * _NormalBias
         + viewDirWS * _ViewBias, 1.0);
 
-    uint3 poolDim = (uint3)_PoolDim;
+    uint3 poolDim = uint3(2048, 512, 4);
 
     // resolve the index
-    float3 posRS = posWSForSample.xyz / _MinBrickSize;
+    float3 posRS = posWSForSample.xyz / 1.5;
     uint packed_pool_idx = GetIndexData(apvRes, posWSForSample.xyz);
 
     // no valid brick loaded for this index, fallback to ambient probe
@@ -230,6 +252,7 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, float3 
 
 APVSample SampleAPV(APVResources apvRes, float3 uvw)
 {
+    uvw = float3(0.017822, 0.012695, 0.125);
     APVSample apvSample;
     float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgba;
     float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba;
@@ -357,11 +380,15 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         bakeDiffuseLighting += apvSample.L0;
         backBakeDiffuseLighting += apvSample.L0;
         lightingInReflDir += apvSample.L0;
+
+        bakeDiffuseLighting = apvSample.L0 * 3;// float3(0, 100000, 0);
+
     }
     else
     {
         bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
         backBakeDiffuseLighting = EvaluateAmbientProbe(backNormalWS);
+        bakeDiffuseLighting = float3(10000, 0, 0);
         lightingInReflDir = -1;
     }
 }
