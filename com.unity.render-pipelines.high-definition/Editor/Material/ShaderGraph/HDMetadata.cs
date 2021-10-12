@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
-using UnityEditor.Rendering.HighDefinition;
+
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -8,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     sealed class HDMetadata : ScriptableObject
     {
         [SerializeField]
-        HDShaderUtils.ShaderID m_ShaderID;
+        ShaderID m_ShaderID;
 
         [SerializeField]
         string m_SubTargetGuidString;
@@ -22,7 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         int m_SubTargetSpecificVersion; // eg subtarget-private versioning, used by plugin subtargets
 
-        public HDShaderUtils.ShaderID shaderID
+        public ShaderID shaderID
         {
             get => m_ShaderID;
             set => m_ShaderID = value;

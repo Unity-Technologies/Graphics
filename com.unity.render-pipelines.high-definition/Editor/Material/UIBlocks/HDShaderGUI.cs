@@ -56,25 +56,5 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="materialEditor">The current material editor.</param>
         /// <param name="props">The list of properties in the inspected material(s).</param>
         protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
-
-        readonly static string[] floatPropertiesToSynchronize =
-        {
-            kUseSplitLighting,
-        };
-
-        /// <summary>
-        /// Synchronize a set of properties that Unity requires for Shader Graph materials to work correctly. This function is for Shader Graph only.
-        /// </summary>
-        /// <param name="material">The target material.</param>
-        protected static void SynchronizeShaderGraphProperties(Material material)
-        {
-            var defaultProperties = new Material(material.shader);
-            foreach (var floatToSync in floatPropertiesToSynchronize)
-                if (material.HasProperty(floatToSync) && defaultProperties.HasProperty(floatToSync))
-                    material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
-
-            CoreUtils.Destroy(defaultProperties);
-            defaultProperties = null;
-        }
     }
 }
