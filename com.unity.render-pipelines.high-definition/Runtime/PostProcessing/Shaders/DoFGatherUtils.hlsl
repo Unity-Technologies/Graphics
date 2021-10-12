@@ -19,11 +19,10 @@ TEXTURE2D_X(_TileList);
 #define PER_TILE_BG_FG_CLASSIFICATION
 #define PHYSICAL_WEIGHTS
 #define FORCE_POINT_SAMPLING
-#define USE_BLUE_NOISE
+//#define USE_BLUE_NOISE
 
-// =========================================== //
+// ============== RNG Utils ==================== //
 
-#define BLUE_NOISE  0
 #define WANG_HASH   1
 #define XOR_SHIFT   2
 #define PCG_4D      3
@@ -97,9 +96,8 @@ uint WangHash(inout uint seed)
 RngStateType InitRNG(uint2 launchIndex, uint frameIndex, uint sampleIndex, uint sampleCount)
 {
     frameIndex = frameIndex * sampleCount + sampleIndex;
-#if (RNG_METHOD == BLUE_NOISE)
-    return RngStateType(launchIndex, frameIndex % 256, sampleIndex);
-#elif (RNG_METHOD == WANG_HASH)
+
+#if (RNG_METHOD == WANG_HASH)
     // Initial random number generator seed for this pixel. The rngState will change every time we draw a random number.
     return uint(uint(launchIndex.x) * uint(1973) + uint(launchIndex.y) * uint(9277) + uint(frameIndex) * uint(26699)) | uint(1);
 #elif (RNG_METHOD == XOR_SHIFT)
@@ -113,9 +111,7 @@ RngStateType InitRNG(uint2 launchIndex, uint frameIndex, uint sampleIndex, uint 
 
 float RandomFloat01(inout RngStateType state, uint dimension)
 {
-#if (RNG_METHOD == BLUE_NOISE)
-    return GetBNDSequenceSample(state.xy, state.z, dimension);
-#elif (RNG_METHOD == WANG_HASH)
+#if (RNG_METHOD == WANG_HASH)
     return float(WangHash(state)) / float(0xFFFFFFFF);
 #elif (RNG_METHOD == XOR_SHIFT)
     return uintToFloat(xorshift(state));
@@ -125,8 +121,7 @@ float RandomFloat01(inout RngStateType state, uint dimension)
 #endif
 }
 
-
-// =========================================== //
+// ================ DoF Sampling Utils =================== //
 
 
 struct AccumData
@@ -368,8 +363,6 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
             float r1 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * tileData.numSamples + i + blueNoiseOffset, 0);
             float r2 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * tileData.numSamples + i + blueNoiseOffset, 1);
 #else
-            //float r1 = InterleavedGradientNoise(posInputs.positionSS.xy, 2 * i + blueNoiseOffset);
-            //float r2 = InterleavedGradientNoise(posInputs.positionSS.xy, 2 * i + blueNoiseOffset + 1);
             float r1 = RandomFloat01(rngState, ring * tileData.numSamples * 2 + 2 * i);
             float r2 = RandomFloat01(rngState, ring * tileData.numSamples * 2 + 2 * i + 1);
 #endif
@@ -453,6 +446,5 @@ void DebugTiles(float2 sampleTC, float CoC, inout float3 output)
         break;
     }
 }
-
 
 #endif //DOF_GATHER_UTILS

@@ -43,7 +43,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     centerSample.CoC = GetCoCRadius(posInputs.positionSS);
 
     int tileClass = GetTileClass(posInputs.positionSS, centerSample.CoC);
-    if (tileClass == FAST_INFOCUS_TILE)
+    if (ResScale != 1.0 && tileClass != FAST_DEFOCUS_TILE)
+        // Early exit: these tiles will be computed at full res in the combine pass
         return;
 
     DoFTile tileData;
