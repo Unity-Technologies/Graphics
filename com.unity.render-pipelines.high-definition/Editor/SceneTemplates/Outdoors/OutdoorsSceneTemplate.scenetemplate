@@ -21,6 +21,8 @@ MonoBehaviour:
     basic settings, a camera, a sun (directional light) and a physically based sky.'
   preview: {fileID: 3630880752955835263}
   dependencies:
+  - dependency: {fileID: 11400000, guid: 902eabda182d3f24f8feba509c47cebe, type: 2}
+    instantiationMode: 0
   - dependency: {fileID: 11400000, guid: 274ed3d2d52027d4a96b38fff65dd32e, type: 2}
     instantiationMode: 0
   - dependency: {fileID: 2800000, guid: f20112bdeec2e8d4d9f80e8390e37263, type: 3}

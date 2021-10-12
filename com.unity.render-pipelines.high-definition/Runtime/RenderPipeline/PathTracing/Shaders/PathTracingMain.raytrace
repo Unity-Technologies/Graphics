@@ -46,7 +46,7 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
 
     if (_EnableVolumetricFog && _RaytracingMinRecursion <= 1)
     {
-        float3 envValue = pathIntersection.value;
+        float3 lightPosition, envValue = pathIntersection.value;
 
         // Generate a 4D unit-square sample for this depth, from our QMC sequence
         float4 inputSample = GetSample4D(pathIntersection.pixelCoord, _RaytracingSampleIndex, 0);
@@ -56,15 +56,15 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
         pathIntersection.t = FLT_MAX;
         float pdf = 1.0;
         bool sampleLocalLights;
-        if (SampleVolumeScatteringPosition(inputSample.w, pathIntersection.t, pdf, sampleLocalLights))
+        if (SampleVolumeScatteringPosition(pathIntersection.pixelCoord, inputSample.w, pathIntersection.t, pdf, sampleLocalLights, lightPosition))
         {
-            ComputeVolumeScattering(pathIntersection, inputSample.xyz, sampleLocalLights);
+            ComputeVolumeScattering(pathIntersection, inputSample.xyz, sampleLocalLights, lightPosition);
 
             // Apply the pdf
             pathIntersection.value /= pdf;
 
             // Apply volumetric attenuation
-            ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value);
+            ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, false);
         }
 
         // Reinject the environment value

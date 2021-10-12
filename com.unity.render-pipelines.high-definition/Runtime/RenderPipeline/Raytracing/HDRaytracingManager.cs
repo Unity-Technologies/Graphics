@@ -441,7 +441,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AmbientOcclusion aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
             bool rtAOEnabled = aoSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSAO);
             ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
-            bool rtREnabled = reflSettings.enabled.value && ScreenSpaceReflection.RayTracingActive(reflSettings) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR);
+            bool rtREnabled = (reflSettings.enabled.value || reflSettings.enabledTransparent.value) && ScreenSpaceReflection.RayTracingActive(reflSettings) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR);
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
             bool rtGIEnabled = giSettings.enable.value && GlobalIllumination.RayTracingActive(giSettings) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSGI);
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
@@ -709,13 +709,13 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal bool PipelineSupportsRayTracing(RenderPipelineSettings rpSetting)
             => rpSetting.supportRayTracing && currentSystemSupportsRayTracing;
 
-        static internal bool currentSystemSupportsRayTracing
-            => SystemInfo.supportsRayTracing;
-
+        static internal bool currentSystemSupportsRayTracing => SystemInfo.supportsRayTracing
 #if UNITY_EDITOR
-        static internal bool buildTargetSupportsRayTracing
-            => (UnityEditor.PlayerSettings.GetGraphicsAPIs(UnityEditor.EditorUserBuildSettings.activeBuildTarget)[0] == GraphicsDeviceType.Direct3D12)
-            || (UnityEditor.PlayerSettings.GetGraphicsAPIs(UnityEditor.EditorUserBuildSettings.activeBuildTarget)[0] == GraphicsDeviceType.PlayStation5);
+            && ((UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
+                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows)
+            || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.PS5);
+#else
+            ;
 #endif
 
         internal BlueNoise GetBlueNoiseManager()
