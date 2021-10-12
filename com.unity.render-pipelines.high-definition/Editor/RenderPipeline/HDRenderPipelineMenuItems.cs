@@ -206,7 +206,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void MenuCreateCSharpPostProcessVolume()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingVolume.template";
-            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Volume.cs");
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "NewPostProcessVolume.cs");
         }
 
         [MenuItem("Assets/Create/Shader/HDRP Post Process", priority = CoreUtils.Sections.section1)]
