@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix API warnings in Matcap mode on Metal.
 - Fix D3D validation layer errors w.r.t shadow textures when an atlas is not used.
 - Fixed screen space reflection PBR Accumulation
+- Fixed and optimize distance shadowmask fade.
+
 ## [10.7.0] - 2021-07-02
 
 ### Fixed
