@@ -672,6 +672,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8109_IsFrontFace.unity
     guid: efcb56a48bd79f6478c01c072f236149
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8110_ScreenPosition.unity
+    guid: 972ffe992d210ca40bdbb370ab5ea3d3
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8201_VertexAnimation.unity
     guid: 328570ab5ddac484bbf26d8504f7f417
   - enabled: 1
