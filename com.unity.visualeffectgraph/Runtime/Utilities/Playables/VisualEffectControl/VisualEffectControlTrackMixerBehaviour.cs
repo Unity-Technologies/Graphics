@@ -44,14 +44,12 @@ namespace UnityEngine.VFX
 
             private void OnEnterChunk(VisualEffect vfx)
             {
-                vfx.Reinit();
-                vfx.Stop(); //Workaround
+                vfx.Reinit(false);
             }
 
             private void OnLeaveChunk(VisualEffect vfx)
             {
-                vfx.Reinit();
-                vfx.Stop(); //Workaround
+                vfx.Reinit(false);
             }
 
             //Debug only, will be removed int the end
