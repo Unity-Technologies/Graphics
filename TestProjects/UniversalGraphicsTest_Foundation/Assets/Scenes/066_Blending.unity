@@ -1644,8 +1644,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 960
-    TargetHeight: 540
+    TargetWidth: 1920
+    TargetHeight: 1080
     PerPixelCorrectnessThreshold: 0.004
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
@@ -1653,11 +1653,11 @@ MonoBehaviour:
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 1
     UseBackBuffer: 1
-    ImageResolution: 3
+    ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 0
-  XRCompatible: 1
+  XRCompatible: 0
   CheckMemoryAllocation: 1
 --- !u!1 &634923454
 GameObject:
