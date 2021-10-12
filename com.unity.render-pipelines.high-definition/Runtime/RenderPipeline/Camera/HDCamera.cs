@@ -730,7 +730,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!transparent)
                 return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value && frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects);
             else
-                return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabled.value;
+                return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabledTransparent.value;
         }
 
         internal bool IsSSGIEnabled()
