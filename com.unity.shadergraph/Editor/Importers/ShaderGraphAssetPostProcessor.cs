@@ -91,8 +91,8 @@ namespace UnityEditor.ShaderGraph
                 .Where(x =>
                 x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase)
                     || CustomFunctionNode.s_ValidExtensions.Contains(Path.GetExtension(x))
-                    || (AssetDatabase.GetMainAssetTypeAtPath(x)!= null && AssetDatabase.GetMainAssetTypeAtPath(x).IsSubclassOf(typeof(Texture)))
-                    || (AssetDatabase.GetMainAssetTypeAtPath(x) is null)
+                    || (AssetDatabase.GetMainAssetTypeAtPath(x)?.IsSubclassOf(typeof(Texture)) ?? false)
+                    || (AssetDatabase.GetMainAssetTypeAtPath(x)?.IsSubclassOf(typeof(Texture)) ?? true)
                     )
                 .Select(AssetDatabase.AssetPathToGUID)
                 .Distinct()

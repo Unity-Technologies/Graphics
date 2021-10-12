@@ -309,7 +309,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     bool reloadedSomething = false;
                     foreach (var guid in m_ChangedFileDependencyGUIDs)
                     {
-                        //if texture(s) got deleted
                         if (AssetDatabase.GUIDToAssetPath(guid) != null)
                         {
                             // update preview for changed textures
