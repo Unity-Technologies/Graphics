@@ -227,9 +227,10 @@ namespace UnityEngine.Experimental.Rendering
         /// The shader used to visualize the probes in the debug view.
         /// </summary>
         public Shader probeDebugShader;
-
         public ProbeVolumeSceneData sceneData;
         public ProbeVolumeSHBands shBands;
+        /// <summary>True if APV should support streaming of cell data.</summary>
+        public bool supportStreaming;
     }
 
     public struct ProbeVolumeShadingParameters
@@ -482,6 +483,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         bool m_IsInitialized = false;
+        bool m_SupportStreaming = false;
         RefVolTransform m_Transform;
         int m_MaxSubdivision;
         ProbeBrickPool m_Pool;
@@ -593,6 +595,7 @@ namespace UnityEngine.Experimental.Rendering
             m_IsInitialized = true;
             m_NeedsIndexRebuild = true;
             sceneData = parameters.sceneData;
+            m_SupportStreaming = parameters.supportStreaming;
 
 #if UNITY_EDITOR
             if (sceneData != null)

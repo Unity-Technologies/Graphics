@@ -168,7 +168,6 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
-            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Enable", getter = () => m_EnableStreaming, setter = value => m_EnableStreaming = value });
             streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", getter = () => debugDisplay.freezeStreaming, setter = value => debugDisplay.freezeStreaming = value });
 
             widgetList.Add(subdivContainer);

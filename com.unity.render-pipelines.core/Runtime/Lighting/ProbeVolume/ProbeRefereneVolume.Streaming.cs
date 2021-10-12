@@ -11,7 +11,6 @@ namespace UnityEngine.Experimental.Rendering
         DynamicArray<CellInfo> m_TempCellToUnloadList = new DynamicArray<CellInfo>();
 
         Vector3 m_FrozenCameraPosition;
-        bool m_EnableStreaming;
 
         /// <summary>
         /// Set the number of cells that are loaded per frame when needed.
@@ -73,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering
             int indexChunkBudget = m_Index.GetRemainingChunkCount();
             int shChunkBudget = m_Pool.GetRemainingChunkCount();
 
-            if (m_EnableStreaming)
+            if (m_SupportStreaming)
             {
                 bool budgetReached = false;
 
