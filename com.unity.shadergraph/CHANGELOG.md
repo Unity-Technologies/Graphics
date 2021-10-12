@@ -17,9 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fixed a bug that Parallax Mapping and Parallax Occlusion Mapping nodes don't use the same channel to sample heightmap by adding drop-downs for channel selecting to both of the nodes. [1347270] (https://fogbugz.unity3d.com/f/cases/1347270/)
 
 ## [13.0.0] - 2021-09-01
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+- Remove use of deprecated UNITY_USE_NATIVE_HDR keyword in shaders.
 
 ### Added
  - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
