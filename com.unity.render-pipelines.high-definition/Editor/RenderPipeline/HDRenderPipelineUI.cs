@@ -233,7 +233,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 HDEditorUtils.GlobalSettingsHelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Global Settings.",
-                    MessageType.Warning, "supportProbeVolumes");
+                    MessageType.Info, "supportProbeVolumes");
             }
         }
 
@@ -265,7 +265,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionReflection(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSR, Styles.supportSSRContent);
-            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportSSR.boolValue))
+            // Both support SSR and support transparent depth prepass are required for ssr transparent to be supported.
+            using (new EditorGUI.DisabledScope(!(serialized.renderPipelineSettings.supportSSR.boolValue && serialized.renderPipelineSettings.supportTransparentDepthPrepass.boolValue)))
             {
                 ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSRTransparent, Styles.supportSSRTransparentContent);

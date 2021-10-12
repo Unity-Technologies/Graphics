@@ -21,6 +21,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed misleading text and improving the eye scene material samples. (case 1368665)
 - Fixed missing DisallowMultipleComponent annotations in HDAdditionalReflectionData and HDAdditionalLightData (case 1365879).
 - Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
+- Fixed decal position when created from context menu. (case 1368987)
+- Fixed the clouds not taking properly into account the fog when in distant mode and with a close far plane (case 1367993).
+- Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
+- Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
+- Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
+- Fixed the volumetric clouds debug view not taking into account the exposure and leading to Nans (case 1365054).
+- Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
 
 ## [13.0.0] - 2021-09-01
 

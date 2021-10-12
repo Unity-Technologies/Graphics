@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // Shared data
         SerializedDataParameter m_Enable;
+        SerializedDataParameter m_EnableTransparent;
         SerializedDataParameter m_Tracing;
         SerializedDataParameter m_MinSmoothness;
         SerializedDataParameter m_SmoothnessFadeStart;
@@ -50,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Shared data
             m_Enable = Unpack(o.Find(x => x.enabled));
+            m_EnableTransparent = Unpack(o.Find(x => x.enabledTransparent));
             m_Tracing = Unpack(o.Find(x => x.tracing));
             m_MinSmoothness = Unpack(o.Find(x => x.minSmoothness));
             m_SmoothnessFadeStart = Unpack(o.Find(x => x.smoothnessFadeStart));
@@ -87,6 +89,8 @@ namespace UnityEditor.Rendering.HighDefinition
             base.OnEnable();
         }
 
+        static public readonly GUIContent k_EnabledOpaque = EditorGUIUtility.TrTextContent("Enabled (Opaque)", "Enable Screen Space Reflections.");
+        static public readonly GUIContent k_EnabledTransparent = EditorGUIUtility.TrTextContent("Enabled (Transparent)", "Enable Transparent Screen Space Reflections");
         static public readonly GUIContent k_Algo = EditorGUIUtility.TrTextContent("Algorithm", "The screen space reflection algorithm used.");
         static public readonly GUIContent k_TracingText = EditorGUIUtility.TrTextContent("Tracing", "Controls the technique used to compute the reflection.Controls the technique used to compute the reflections. Ray marching uses a ray-marched screen-space solution, Ray tracing uses a hardware accelerated world-space solution. Mixed uses first Ray marching, then Ray tracing if it fails to intersect on-screen geometry.");
         static public readonly GUIContent k_ReflectSkyText = EditorGUIUtility.TrTextContent("Reflect Sky", "When enabled, SSR handles sky reflection.");
@@ -215,7 +219,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            PropertyField(m_Enable);
+            PropertyField(m_Enable, k_EnabledOpaque);
+
+            bool transparentSSRSupported = currentAsset.currentPlatformRenderPipelineSettings.supportSSR
+                                            && currentAsset.currentPlatformRenderPipelineSettings.supportSSRTransparent
+                                            && currentAsset.currentPlatformRenderPipelineSettings.supportTransparentDepthPrepass;
+            if (transparentSSRSupported)
+            {
+                PropertyField(m_EnableTransparent, k_EnabledTransparent);
+            }
+            else
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox("The current HDRP Asset does not support Transparent Screen Space Reflection.", MessageType.Info, wide: true);
+            }
 
             // If ray tracing is supported display the tracing choice
             if (HDRenderPipeline.assetSupportsRayTracing)
