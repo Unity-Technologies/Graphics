@@ -254,21 +254,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The Sprite that's used by the Sprite Light type to control the shape light
         /// </summary>
-        public Sprite lightCookieSprite
-        {
-            get
-            {
-                return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite;
-            }
-
-            set
-            {
-                if (m_LightType != LightType.Point)
-                    m_LightCookieSprite = value;
-                else
-                    m_DeprecatedPointLightCookieSprite = value;
-            }
-        }
+        public Sprite lightCookieSprite { get => m_LightCookieSprite; set => m_LightCookieSprite = value; }
         /// <summary>
         /// Controls the brightness and distance of the fall off (edge) of the light
         /// </summary>
