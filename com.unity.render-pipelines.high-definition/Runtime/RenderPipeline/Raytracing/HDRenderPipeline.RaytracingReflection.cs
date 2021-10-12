@@ -343,7 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.rayBinSizeResult = m_RayBinSizeResult;
             deferredParameters.accelerationStructure = RequestAccelerationStructure();
             deferredParameters.lightCluster = RequestLightCluster();
-            deferredParameters.mipChainBuffer = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+            deferredParameters.mipChainBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
             // Shaders
             deferredParameters.rayMarchingCS = m_GlobalSettings.renderPipelineRayTracingResources.rayMarchingCS;

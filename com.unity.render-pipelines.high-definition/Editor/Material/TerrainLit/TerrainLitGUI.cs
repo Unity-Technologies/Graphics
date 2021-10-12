@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
-using System;
+using UnityEngine.Rendering.HighDefinition;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -80,15 +81,8 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         MaterialProperty enableHeightBlend;
-        const string kEnableHeightBlend = "_EnableHeightBlend";
-        const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
-
-        // Height blend
         MaterialProperty heightTransition = null;
-        const string kHeightTransition = "_HeightTransition";
-
         MaterialProperty enableInstancedPerPixelNormal = null;
-        const string kEnableInstancedPerPixelNormal = "_EnableInstancedPerPixelNormal";
 
         // Custom fields
         List<MaterialProperty> customProperties = new List<MaterialProperty>();
@@ -126,26 +120,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupTerrainLitKeywordsAndPass(Material material)
-        {
-            BaseLitGUI.SetupBaseLitKeywords(material);
-            BaseLitGUI.SetupBaseLitMaterialPass(material);
-            bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
-                : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
-            BaseLitGUI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
-
-            // TODO: planar/triplannar support
-            //SetupLayersMappingKeywords(material);
-
-            bool enableHeightBlend = material.HasProperty(kEnableHeightBlend) && material.GetFloat(kEnableHeightBlend) > 0;
-            CoreUtils.SetKeyword(material, "_TERRAIN_BLEND_HEIGHT", enableHeightBlend);
-
-            bool enableInstancedPerPixelNormal = material.HasProperty(kEnableInstancedPerPixelNormal) && material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
-            CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);
-
-            int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
-            CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", specOcclusionMode == 0);
-        }
 
         static public bool TextureHasAlpha(Texture2D inTex)
         {
@@ -371,6 +345,6 @@ namespace UnityEditor.Rendering.HighDefinition
             return true;
         }
 
-        public override void ValidateMaterial(Material material) => SetupTerrainLitKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => TerrainLitAPI.ValidateMaterial(material);
     }
 } // namespace UnityEditor
