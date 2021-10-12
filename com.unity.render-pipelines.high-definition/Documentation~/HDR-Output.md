@@ -24,6 +24,8 @@ Specifically, detected Paper white values are often going to produce dimmer resu
 
 ![HDR-Output-Neutral](C:\Users\franc\Documents\Github\SRP\com.unity.render-pipelines.high-definition\Documentation~\Images\HDR-Output-Neutral.png)
 
+##
+
 | **Property**                         | **Description**                                              |
 | ------------------------------------ | ------------------------------------------------------------ |
 | **Neutral HDR Range Reduction Mode** | The tonemapping curve used for the Neutral tonemapper. The options are:<br />- BT2390: Uses a curve defined by the BT2390 broadcasting recommendations. (Default)<br />- Reinhard: A very simple tonemapping operator.<br /><br />This option is available only when Additional Properties are displayed. |
@@ -67,25 +69,4 @@ Not supported. Mostly because every different HDR screen used to display the con
 
 ## HDR Debug Views
 
-HDRP offers three debug views for HDR rendering. These can be found in **Window > Analysis > Render Pipeline Debugger > Lighting > HDR**
-
-#### Gamut View
-
-Will display on the bottom left of the screen two triangles representing the Rec709 and Rec2020 color gamuts and display what parts of the gamut are covered by the scene.
-![HDR-Output-GamutView](C:\Users\franc\Documents\Github\SRP\com.unity.render-pipelines.high-definition\Documentation~\Images\HDR-Output-GamutView.png)
-
-This can be very useful to verify that you are taking advantage of the wider color gamut and is a way to see how color plot changes as you perform color grading.
-
-#### Gamut Clip
-
-Very similar to the above, except it shows red for areas of the screen that are outside the sRGB/Rec709 color gamut and green for anything that is in both the Rec709 and Rec2020 color gamut.
-
-![HDR-Output-GamutClip](C:\Users\franc\Documents\Github\SRP\com.unity.render-pipelines.high-definition\Documentation~\Images\HDR-Output-GamutClip.png)
-
-
-
-#### Values over Paperwhite value
-
-This debug view shows the scene as luminance values except for parts of the scene that are over the paper white value that are displayed as a gradient from yellow (paperwhite +1) value to red (max brightness nits)
-
-![HDR-Output-OverPaperWhite](C:\Users\franc\Documents\Github\SRP\com.unity.render-pipelines.high-definition\Documentation~\Images\HDR-Output-OverPaperWhite.png)
+HDRP offers three debug views for HDR rendering.
