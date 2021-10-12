@@ -76,8 +76,9 @@ namespace UnityEditor.VFX.UI
             var newAnchors = new List<VFXDataAnchorController>();
 
             m_SyncingSlots = true;
+            m_HasActivationAnchor = slotContainer.activationSlot != null;
             bool changed = false;
-            if (slotContainer.activationSlot != null)
+            if (m_HasActivationAnchor)
                 changed = UpdateSlots(newAnchors, new[] { slotContainer.activationSlot }, true, true);
             changed |= UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
             NewInputSet(newAnchors);
@@ -146,6 +147,9 @@ namespace UnityEditor.VFX.UI
         {
             get { return 0; }
         }
+
+        private bool m_HasActivationAnchor = false;
+        public bool HasActivationAnchor => m_HasActivationAnchor;
 
         bool m_SyncingSlots;
         public void DataEdgesMightHaveChanged()
