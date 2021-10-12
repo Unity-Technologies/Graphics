@@ -533,7 +533,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!hdCamera.colorPyramidHistoryIsValid)
                 {
                     hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
+                    hdCamera.colorPyramidHistoryValidFrames = 0;
                     result = renderGraph.defaultResources.blackTextureXR;
+                }
+                else
+                {
+                    hdCamera.colorPyramidHistoryValidFrames++;
                 }
             }
 
