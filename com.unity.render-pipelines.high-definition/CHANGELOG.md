@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
 - Fixed the volumetric clouds debug view not taking into account the exposure and leading to Nans (case 1365054).
 - Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
+- Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
 
 ## [12.0.0] - 2021-01-11
 
