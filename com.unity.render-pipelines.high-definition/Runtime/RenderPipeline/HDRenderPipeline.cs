@@ -448,6 +448,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (rg != null)
             {
                 m_brg = rg;
+                RenderBRG brgComponent = m_brg.GetComponent<RenderBRG>();
+                brgComponent.Start();
             }
             else
             {
