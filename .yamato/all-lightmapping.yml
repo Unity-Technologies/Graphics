@@ -7,79 +7,79 @@
 
 ---
 
-PR_LightMapper_trunk:
-    name: PR LightMapper on trunk
+PR_Lightmapping_trunk:
+    name: PR Lightmapping on trunk
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/lightmapper-win-dx11.yml#LightMapper_Win_DX11_editmode_mono_Linear_trunk
+      -  path: .yamato/lightmapping-win-dx11.yml#Lightmapping_Win_DX11_editmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/lightmapper-win-dx11.yml#LightMapper_Win_DX11_Standalone_mono_Linear_trunk
+      -  path: .yamato/lightmapping-win-dx11.yml#Lightmapping_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/lightmapper-linux-vulkan.yml#LightMapper_Linux_Vulkan_editmode_mono_Linear_trunk
+      -  path: .yamato/lightmapping-linux-vulkan.yml#Lightmapping_Linux_Vulkan_editmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/lightmapper-linux-vulkan.yml#LightMapper_Linux_Vulkan_Standalone_mono_Linear_trunk
+      -  path: .yamato/lightmapping-linux-vulkan.yml#Lightmapping_Linux_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/lightmapper-linux-openglcore.yml#LightMapper_Linux_OpenGlCore_editmode_mono_Linear_trunk
+      -  path: .yamato/lightmapping-linux-openglcore.yml#Lightmapping_Linux_OpenGlCore_editmode_mono_Linear_trunk
          rerun: on_new_revision
-Extra_LightMapper_trunk:
-    name: Extra LightMapper on trunk
+Extra_Lightmapping_trunk:
+    name: Extra Lightmapping on trunk
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
-LightMapper_trunk:
-    name: LightMapper on trunk
+Lightmapping_trunk:
+    name: Lightmapping on trunk
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/all-lightmapper.yml#PR_LightMapper_trunk
+      -  path: .yamato/all-lightmapping.yml#PR_Lightmapping_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-lightmapper.yml#Extra_LightMapper_trunk
+      -  path: .yamato/all-lightmapping.yml#Extra_Lightmapping_trunk
          rerun: on_new_revision
-PR_LightMapper_CUSTOM-REVISION:
-    name: PR LightMapper on CUSTOM-REVISION
+PR_Lightmapping_CUSTOM-REVISION:
+    name: PR Lightmapping on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/lightmapper-win-dx11.yml#LightMapper_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/lightmapping-win-dx11.yml#Lightmapping_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/lightmapper-win-dx11.yml#LightMapper_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/lightmapping-win-dx11.yml#Lightmapping_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/lightmapper-linux-vulkan.yml#LightMapper_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/lightmapping-linux-vulkan.yml#Lightmapping_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/lightmapper-linux-vulkan.yml#LightMapper_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/lightmapping-linux-vulkan.yml#Lightmapping_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/lightmapper-linux-openglcore.yml#LightMapper_Linux_OpenGlCore_editmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/lightmapping-linux-openglcore.yml#Lightmapping_Linux_OpenGlCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-Extra_LightMapper_CUSTOM-REVISION:
-    name: Extra LightMapper on CUSTOM-REVISION
+Extra_Lightmapping_CUSTOM-REVISION:
+    name: Extra Lightmapping on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
-LightMapper_CUSTOM-REVISION:
-    name: LightMapper on CUSTOM-REVISION
+Lightmapping_CUSTOM-REVISION:
+    name: Lightmapping on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/all-lightmapper.yml#PR_LightMapper_CUSTOM-REVISION
+      -  path: .yamato/all-lightmapping.yml#PR_Lightmapping_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-lightmapper.yml#Extra_LightMapper_CUSTOM-REVISION
+      -  path: .yamato/all-lightmapping.yml#Extra_Lightmapping_CUSTOM-REVISION
          rerun: on_new_revision
