@@ -2,7 +2,7 @@ using NUnit.Framework;
 
 namespace UnityEngine.Rendering.Tests
 {
-    [SupportedOn(typeof(__A), typeof(__B))]
+    [SupportedOn(typeof(__B))]
     class __A { }
     class __B { }
     class __C { }

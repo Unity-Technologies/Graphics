@@ -22,12 +22,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="subject">Which type will support <paramref name="target" />.</param>
         /// <param name="target">Defines what to support.</param>
-        public SupportedOnAttribute(Type subject, Type target)
+        public SupportedOnAttribute(Type target)
         {
-            // Call directly registration here. This avoids storing properties in the memory footprint
-            IsSupportedOn.RegisterStaticRelation(subject, target);
-            IsSupportedOn.RegisterDynamicRelation(subject, target);
+            this.target = target;
         }
+
+        public Type target { get; }
     }
 
     /// <summary>
@@ -76,12 +76,14 @@ namespace UnityEngine.Rendering
             //   So there must be no situation where the properties are not found.
 
             var hasIsSupportedOn = typeof(HasIsSupportedOn<>).MakeGenericType(subject);
+
             // ReSharper disable once PossibleNullReferenceException
             hasIsSupportedOn
                 .GetProperty(nameof(HasIsSupportedOn<bool>.Value), BindingFlags.Static | BindingFlags.Public)
                 .SetValue(null, true);
 
             var isSupportedOn = typeof(IsSupportedOn<,>).MakeGenericType(subject, target);
+
             // ReSharper disable once PossibleNullReferenceException
             isSupportedOn
                 .GetProperty(nameof(IsSupportedOn<bool, bool>.internalValue), BindingFlags.Static | BindingFlags.NonPublic)
@@ -139,6 +141,7 @@ namespace UnityEngine.Rendering
     ///     Use <see cref="Value" /> to know if <typeparamref name="TSubject" /> explicitly support at least one type.
     /// </summary>
     /// <typeparam name="TSubject">The type to query.</typeparam>
+
     // ReSharper disable once UnusedTypeParameter
     public struct HasIsSupportedOn<TSubject>
     {
@@ -147,8 +150,9 @@ namespace UnityEngine.Rendering
         ///     <typeparam name="TSubject" />
         ///     explicitly support at least one type.
         /// </summary>
+
         // ReSharper disable once StaticMemberInGenericType
-        public static bool Value { get; } = false;
+        public static bool Value { get; set; } = false;
     }
 
     /// <summary>
@@ -157,11 +161,12 @@ namespace UnityEngine.Rendering
     /// </summary>
     /// <typeparam name="TSubject">The subject to query.</typeparam>
     /// <typeparam name="TTarget">The type that defines what to support.</typeparam>
+
     // ReSharper disable once UnusedTypeParameter
     public struct IsSupportedOn<TSubject, TTarget>
     {
         // ReSharper disable once StaticMemberInGenericType
-        internal static bool internalValue { get; } = false;
+        internal static bool internalValue { get; set; } = false;
 
         /// <summary>
         ///     Use it to know if <typeparamref name="TSubject" /> explicitly supports <typeparamref name="TTarget" />.
@@ -191,8 +196,12 @@ namespace UnityEngine.Rendering
             // Note: Querying type with attribute with TypeCache is 4x faster that querying for assembly attribute
             foreach (var type in TypeCache.GetTypesWithAttribute<SupportedOnAttribute>())
             {
-                // Trigger attribute constructor here
-                var _ = type.GetCustomAttributes(typeof(SupportedOnAttribute)).FirstOrDefault() as SupportedOnAttribute;
+                var attribute = type.GetCustomAttributes(typeof(SupportedOnAttribute)).FirstOrDefault() as SupportedOnAttribute;
+                if (attribute?.target == null)
+                    continue;
+
+                IsSupportedOn.RegisterStaticRelation(type, attribute.target);
+                IsSupportedOn.RegisterDynamicRelation(type, attribute.target);
             }
         }
     }
