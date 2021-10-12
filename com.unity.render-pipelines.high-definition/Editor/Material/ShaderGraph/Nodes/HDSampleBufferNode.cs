@@ -67,7 +67,6 @@ namespace UnityEditor.Rendering.HighDefinition
             AddSlot(new ScreenPositionMaterialSlot(k_ScreenPositionSlotId, k_ScreenPositionSlotName, k_ScreenPositionSlotName, ScreenSpaceType.Default));
             AddSlot(new SamplerStateMaterialSlot(k_SamplerInputSlotId, k_SamplerInputSlotName, k_SamplerInputSlotName, SlotType.Input));
 
-            // TODO: change the output type depending on the buffer type
             switch (bufferType)
             {
                 case BufferType.NormalWorldSpace:
