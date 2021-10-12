@@ -45,7 +45,7 @@ all_project_ci_nightly_2021.2:
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_2021.2
          rerun: on_new_revision
-      -  path: .yamato/all-lightmapper.yml#LightMapper_2021.2
+      -  path: .yamato/all-lightmapping.yml#Lightmapping_2021.2
          rerun: on_new_revision
       -  path: .yamato/_templates.yml#all_template_ci_2021.2
          rerun: on_new_revision
@@ -141,7 +141,7 @@ all_project_ci_nightly_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-lightmapper.yml#LightMapper_CUSTOM-REVISION
+      -  path: .yamato/all-lightmapping.yml#Lightmapping_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/_templates.yml#all_template_ci_CUSTOM-REVISION
          rerun: on_new_revision
