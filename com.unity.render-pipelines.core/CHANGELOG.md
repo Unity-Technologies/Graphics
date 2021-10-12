@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.8.0] - 2021-09-20
 
 Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+The version number for this package has increased due to a version update of a related graphics package.  ### Fixed - Fixed potentially conflicting runtime Rendering Debugger UI command by adding an option to disable runtime UI altogether (1345783).
 
 ## [10.7.0] - 2021-07-02
 
