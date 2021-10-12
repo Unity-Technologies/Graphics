@@ -32,7 +32,7 @@ TEXTURE2D_X(_TileList);
 #define BN_RAND_BOUNCE 4
 #define BN_RAND_OFFSET 5
 
-#if (RNG_METHOD == BLUE_NOISE) || (RNG_METHOD == PCG_4D)
+#if (RNG_METHOD == PCG_4D)
 #define RngStateType uint4
 #else
 #define RngStateType uint
