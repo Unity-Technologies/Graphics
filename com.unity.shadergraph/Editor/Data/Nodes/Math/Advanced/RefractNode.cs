@@ -46,9 +46,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_RefractCriticalAngle(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector Incident,
-            [Slot(1, Binding.None, 0, 1, 0, 0)] DynamicDimensionVector Normal,
-            [Slot(2, Binding.None, 0)] Vector1 Eta,
+            [Slot(0, Binding.None, 0, 0, 0, 1)] DynamicDimensionVector Incident,
+            [Slot(1, Binding.None, 0, 1, 0, 1)] DynamicDimensionVector Normal,
+            [Slot(2, Binding.None)] Vector1 Eta,
             [Slot(3, Binding.None)] out DynamicDimensionVector Out)
         {
             return
@@ -62,9 +62,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_RefractSafe(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector Incident,
-            [Slot(1, Binding.None, 0, 1, 0, 0)] DynamicDimensionVector Normal,
-            [Slot(2, Binding.None, 0)] Vector1 Eta,
+            [Slot(0, Binding.None, 0, 0, 0, 1)] DynamicDimensionVector Incident,
+            [Slot(1, Binding.None, 0, 1, 0, 1)] DynamicDimensionVector Normal,
+            [Slot(2, Binding.None)] Vector1 Eta,
             [Slot(3, Binding.None)] out DynamicDimensionVector Out)
         {
             return
