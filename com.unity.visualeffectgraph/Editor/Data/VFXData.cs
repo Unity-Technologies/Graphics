@@ -146,8 +146,9 @@ namespace UnityEditor.VFX
             if (!m_Owners.Contains(context))
                 throw new InvalidOperationException(string.Format("Unexpected OnRegisterContextHasBeenAdded from context {0} to {1}", context, this));
 
-            if (m_Parent != context.GetParent())
-                m_Parent = context.GetParent();
+            var newGraphParent = context.GetGraph();
+            if (newGraphParent != null && m_Parent != newGraphParent)
+                m_Parent = newGraphParent;
         }
 
         // Never call this directly ! Only context must call this through SetData
