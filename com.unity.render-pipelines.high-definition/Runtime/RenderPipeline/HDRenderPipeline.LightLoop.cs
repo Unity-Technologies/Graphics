@@ -1084,7 +1084,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SsrEdgeFadeRcpLength = Mathf.Min(1.0f / settings.screenFadeDistance.value, float.MaxValue);
             cb._ColorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
             cb._SsrColorPyramidMaxMip = hdCamera.colorPyramidHistoryMipCount - 1;
-            cb._SsrDepthPyramidMaxMip = m_DepthBufferMipChainInfo.mipLevelCount - 1;
+            cb._SsrDepthPyramidMaxMip = hdCamera.depthBufferMipChainInfo.mipLevelCount - 1;
             if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 2)
                 cb._SsrAccumulationAmount = 1.0f;
             else
@@ -1123,6 +1123,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: true, ref prepassOutput);
                 }
 
+                RTHandle colorPyramidRT = transparent ? hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain) : hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                if (colorPyramidRT == null)
+                    return renderGraph.defaultResources.blackTextureXR;
+
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {
                     builder.EnableAsyncCompute(hdCamera.frameSettings.SSRRunsAsync());
@@ -1130,7 +1134,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);
 
                     bool usePBRAlgo = !transparent && settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
-                    var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
+                    var colorPyramid = renderGraph.ImportTexture(colorPyramidRT);
                     var volumeSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
                     UpdateSSRConstantBuffer(hdCamera, volumeSettings, ref passData.cb);
@@ -1146,7 +1150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.width = hdCamera.actualWidth;
                     passData.height = hdCamera.actualHeight;
                     passData.viewCount = hdCamera.viewCount;
-                    passData.offsetBufferData = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+                    passData.offsetBufferData = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
                     passData.accumNeedClear = usePBRAlgo;
                     passData.previousAccumNeedClear = usePBRAlgo && (hdCamera.currentSSRAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation || hdCamera.isFirstFrame || hdCamera.resetPostProcessingHistory);
                     hdCamera.currentSSRAlgorithm = volumeSettings.usedAlgorithm.value; // Store for next frame comparison
