@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
@@ -50,6 +51,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Data used for runtime evaluation
         RayTracingAccelerationStructure m_CurrentRAS = null;
+        RayTracingInstanceCullingConfig m_RASCullingConfig = new RayTracingInstanceCullingConfig();
+        List<RayTracingInstanceCullingTest> m_RASInstanceTests = new List<RayTracingInstanceCullingTest>(Enum.GetNames(typeof(RayTracingRendererFlag)).Length);
         HDRaytracingLightCluster m_RayTracingLightCluster;
         HDRayTracingLights m_RayTracingLights = new HDRayTracingLights();
         bool m_ValidRayTracingState = false;
@@ -91,6 +94,34 @@ namespace UnityEngine.Rendering.HighDefinition
             // Build the light cluster
             m_RayTracingLightCluster = new HDRaytracingLightCluster();
             m_RayTracingLightCluster.Initialize(this);
+
+            // Setup acceleration structure culling parameters. Dynamic parameters are set every frame.            
+            m_RASCullingConfig.lodParameters.orthoSize = 0;
+            m_RASCullingConfig.lodParameters.isOrthographic = false;
+
+            m_RASCullingConfig.subMeshFlagsConfig.opaqueMaterials = RayTracingSubMeshFlags.Enabled | RayTracingSubMeshFlags.ClosestHitOnly;
+            m_RASCullingConfig.subMeshFlagsConfig.transparentMaterials = RayTracingSubMeshFlags.Enabled | RayTracingSubMeshFlags.UniqueAnyHitCalls;
+            m_RASCullingConfig.subMeshFlagsConfig.alphaTestedMaterials = RayTracingSubMeshFlags.Enabled;
+
+            m_RASCullingConfig.triangleCullingConfig.checkDoubleSidedGIMaterial = true;
+            m_RASCullingConfig.triangleCullingConfig.frontTriangleCounterClockwise = false;
+            m_RASCullingConfig.triangleCullingConfig.optionalDoubleSidedShaderKeywords = new string[1];
+            m_RASCullingConfig.triangleCullingConfig.optionalDoubleSidedShaderKeywords[0] = "_DOUBLESIDED_ON";
+
+            m_RASCullingConfig.alphaTestedMaterialConfig.renderQueueLowerBound = HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.lowerBound;
+            m_RASCullingConfig.alphaTestedMaterialConfig.renderQueueUpperBound = HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.upperBound;
+            m_RASCullingConfig.alphaTestedMaterialConfig.optionalShaderKeywords = new string[1];
+            m_RASCullingConfig.alphaTestedMaterialConfig.optionalShaderKeywords[0] = "_ALPHATEST_ON";
+
+            m_RASCullingConfig.transparentMaterialConfig.renderQueueLowerBound = HDRenderQueue.k_RenderQueue_Transparent.lowerBound;
+            m_RASCullingConfig.transparentMaterialConfig.renderQueueUpperBound = HDRenderQueue.k_RenderQueue_Transparent.upperBound;
+            m_RASCullingConfig.transparentMaterialConfig.optionalShaderKeywords = new string[1];
+            m_RASCullingConfig.transparentMaterialConfig.optionalShaderKeywords[0] = "_SURFACE_TYPE_TRANSPARENT";
+
+            m_RASCullingConfig.materialTest.requiredShaderTags = new RayTracingInstanceCullingShaderTagConfig[1];
+            m_RASCullingConfig.materialTest.requiredShaderTags[0].tagId = new ShaderTagId("RenderPipeline");
+            m_RASCullingConfig.materialTest.requiredShaderTags[0].tagValueId = new ShaderTagId("HDRenderPipeline");
+            m_RASCullingConfig.materialTest.deniedShaderPasses = DecalSystem.s_MaterialDecalPassNames;
         }
 
         internal void ReleaseRayTracingManager()
@@ -482,62 +513,34 @@ namespace UnityEngine.Rendering.HighDefinition
                     ptEnabled, pathTracingSettings.layerMask.value);
             }
 
-            RayTracingInstanceCullingConfig cullingConfig = new RayTracingInstanceCullingConfig();
+            m_RASInstanceTests.Clear();
 
-            cullingConfig.flags = RayTracingInstanceCullingFlags.EnableLODCulling | RayTracingInstanceCullingFlags.IgnoreReflectionProbes;
+            m_RASCullingConfig.flags = RayTracingInstanceCullingFlags.EnableLODCulling | RayTracingInstanceCullingFlags.IgnoreReflectionProbes;
 
             if (ptEnabled)
             {
-                cullingConfig.flags |= RayTracingInstanceCullingFlags.ComputeMaterialsCRC;
-            }            
+                m_RASCullingConfig.flags |= RayTracingInstanceCullingFlags.ComputeMaterialsCRC;
+            }
 
-            cullingConfig.lodParameters.fieldOfView = hdCamera.camera.fieldOfView;
-            cullingConfig.lodParameters.cameraPosition = hdCamera.camera.transform.position;
-            cullingConfig.lodParameters.cameraPixelHeight = hdCamera.camera.pixelHeight;
-            cullingConfig.lodParameters.orthoSize = 0;
-            cullingConfig.lodParameters.isOrthographic = false;
-
-            cullingConfig.subMeshFlagsConfig.opaqueMaterials = RayTracingSubMeshFlags.Enabled | RayTracingSubMeshFlags.ClosestHitOnly;
-            cullingConfig.subMeshFlagsConfig.transparentMaterials = RayTracingSubMeshFlags.Enabled | RayTracingSubMeshFlags.UniqueAnyHitCalls;
-            cullingConfig.subMeshFlagsConfig.alphaTestedMaterials = RayTracingSubMeshFlags.Enabled;
-
-            cullingConfig.triangleCullingConfig.checkDoubleSidedGIMaterial = true;
-            cullingConfig.triangleCullingConfig.frontTriangleCounterClockwise = false;
-            cullingConfig.triangleCullingConfig.optionalDoubleSidedShaderKeywords = new string[1];
-            cullingConfig.triangleCullingConfig.optionalDoubleSidedShaderKeywords[0] = "_DOUBLESIDED_ON";
-
-            cullingConfig.alphaTestedMaterialConfig.renderQueueLowerBound = HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.lowerBound;
-            cullingConfig.alphaTestedMaterialConfig.renderQueueUpperBound = HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.upperBound;
-            cullingConfig.alphaTestedMaterialConfig.optionalShaderKeywords = new string[1];
-            cullingConfig.alphaTestedMaterialConfig.optionalShaderKeywords[0] = "_ALPHATEST_ON";
-
-            cullingConfig.transparentMaterialConfig.renderQueueLowerBound = HDRenderQueue.k_RenderQueue_Transparent.lowerBound;
-            cullingConfig.transparentMaterialConfig.renderQueueUpperBound = HDRenderQueue.k_RenderQueue_Transparent.upperBound;
-            cullingConfig.transparentMaterialConfig.optionalShaderKeywords = new string[1];
-            cullingConfig.transparentMaterialConfig.optionalShaderKeywords[0] = "_SURFACE_TYPE_TRANSPARENT";
-
-            cullingConfig.materialTest.requiredShaderTags = new RayTracingInstanceCullingShaderTagConfig[1];
-            cullingConfig.materialTest.requiredShaderTags[0].tagId = new ShaderTagId("RenderPipeline");
-            cullingConfig.materialTest.requiredShaderTags[0].tagValueId = new ShaderTagId("HDRenderPipeline");
-            cullingConfig.materialTest.deniedShaderPasses = DecalSystem.s_MaterialDecalPassNames;
-
-            List<RayTracingInstanceCullingTest> instanceTests = new List<RayTracingInstanceCullingTest>();
+            m_RASCullingConfig.lodParameters.fieldOfView = hdCamera.camera.fieldOfView;
+            m_RASCullingConfig.lodParameters.cameraPosition = hdCamera.camera.transform.position;
+            m_RASCullingConfig.lodParameters.cameraPixelHeight = hdCamera.camera.pixelHeight;
 
             RayTracingInstanceCullingTest instanceTest = new RayTracingInstanceCullingTest();
+
             instanceTest.allowOpaqueMaterials = true;
             instanceTest.allowAlphaTestedMaterials = true;
             instanceTest.allowTransparentMaterials = false;
             instanceTest.layerMask = -1;
             instanceTest.shadowCastingModeMask = -1;
             instanceTest.instanceMask = (uint)RayTracingRendererFlag.Opaque;
-
-            instanceTests.Add(instanceTest);
+           
+            m_RASInstanceTests.Add(instanceTest);
 
             rayTracedShadows &= !ptEnabled;
 
             if (rayTracedShadows || ptEnabled)
             {
-                instanceTest = new RayTracingInstanceCullingTest();
                 instanceTest.allowTransparentMaterials = true;
                 instanceTest.allowOpaqueMaterials = true;
                 instanceTest.allowAlphaTestedMaterials = true;
@@ -545,9 +548,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided) | (1 << (int)ShadowCastingMode.ShadowsOnly);
                 instanceTest.instanceMask = (uint)RayTracingRendererFlag.CastShadowTransparent;
 
-                instanceTests.Add(instanceTest);
-
-                instanceTest = new RayTracingInstanceCullingTest();
+                m_RASInstanceTests.Add(instanceTest);
+              
                 instanceTest.allowTransparentMaterials = false;
                 instanceTest.allowOpaqueMaterials = true;
                 instanceTest.allowAlphaTestedMaterials = true;
@@ -555,12 +557,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided) | (1 << (int)ShadowCastingMode.ShadowsOnly);
                 instanceTest.instanceMask = (uint)RayTracingRendererFlag.CastShadowOpaque;
 
-                instanceTests.Add(instanceTest);
+                m_RASInstanceTests.Add(instanceTest);
             }
 
             if (rtAOEnabled)
             {
-                instanceTest = new RayTracingInstanceCullingTest();
                 instanceTest.allowTransparentMaterials = false;
                 instanceTest.allowOpaqueMaterials = true;
                 instanceTest.allowAlphaTestedMaterials = true;
@@ -568,12 +569,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.Off) | (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided);
                 instanceTest.instanceMask = (uint)RayTracingRendererFlag.AmbientOcclusion;
 
-                instanceTests.Add(instanceTest);
+                m_RASInstanceTests.Add(instanceTest);
             }
 
             if (rtREnabled)
             {
-                instanceTest = new RayTracingInstanceCullingTest();
                 instanceTest.allowTransparentMaterials = false;
                 instanceTest.allowOpaqueMaterials = true;
                 instanceTest.allowAlphaTestedMaterials = true;
@@ -581,12 +581,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.Off) | (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided);
                 instanceTest.instanceMask = (uint)RayTracingRendererFlag.Reflection;
 
-                instanceTests.Add(instanceTest);
+                m_RASInstanceTests.Add(instanceTest);
             }
 
             if (rtGIEnabled)
             {
-                instanceTest = new RayTracingInstanceCullingTest();
                 instanceTest.allowTransparentMaterials = false;
                 instanceTest.allowOpaqueMaterials = true;
                 instanceTest.allowAlphaTestedMaterials = true;
@@ -594,12 +593,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.Off) | (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided);
                 instanceTest.instanceMask = (uint)RayTracingRendererFlag.GlobalIllumination;
 
-                instanceTests.Add(instanceTest);
+                m_RASInstanceTests.Add(instanceTest);
             }
 
             if (rrEnabled)
             {
-                instanceTest = new RayTracingInstanceCullingTest();
                 instanceTest.allowTransparentMaterials = true;
                 instanceTest.allowOpaqueMaterials = true;
                 instanceTest.allowAlphaTestedMaterials = true;
@@ -607,12 +605,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.Off) | (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided);
                 instanceTest.instanceMask = (uint)RayTracingRendererFlag.RecursiveRendering;
 
-                instanceTests.Add(instanceTest);
+                m_RASInstanceTests.Add(instanceTest);
             }
 
             if (ptEnabled)
             {
-                instanceTest = new RayTracingInstanceCullingTest();
                 instanceTest.allowTransparentMaterials = true;
                 instanceTest.allowOpaqueMaterials = true;
                 instanceTest.allowAlphaTestedMaterials = true;
@@ -620,12 +617,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 instanceTest.shadowCastingModeMask = (1 << (int)ShadowCastingMode.Off) | (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided);
                 instanceTest.instanceMask = (uint)RayTracingRendererFlag.PathTracing;
 
-                instanceTests.Add(instanceTest);
+                m_RASInstanceTests.Add(instanceTest);
             }
 
-            cullingConfig.instanceTests = instanceTests.ToArray();
+            m_RASCullingConfig.instanceTests = m_RASInstanceTests.ToArray();
 
-            RayTracingInstanceCullingResults cullingResults = m_CurrentRAS.CullInstances(ref cullingConfig);
+            RayTracingInstanceCullingResults cullingResults = m_CurrentRAS.CullInstances(ref m_RASCullingConfig);
 
             if (ptEnabled)
             {
