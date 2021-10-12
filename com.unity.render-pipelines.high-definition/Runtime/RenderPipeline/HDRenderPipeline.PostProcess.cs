@@ -2823,7 +2823,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, 0, 0, (float)dofParameters.resolution));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, isScaled ? 3 : 0, 1.0f / (float)dofParameters.resolution, (float)dofParameters.resolution));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourcePyramid != null ? sourcePyramid : source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, isScaled ? scaledDof : destination);
@@ -2845,9 +2845,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
 
                     float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputNearTexture, scaledDof);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileList, minMaxCoCPing, 0);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
 
                     cmd.DispatchCompute(cs, kernel, (dofParameters.viewportSize.x + 7) / 8, (dofParameters.viewportSize.y + 7) / 8, dofParameters.camera.viewCount);
