@@ -74,6 +74,8 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_PreviousLightsUseColorTemperature;
         bool m_PreviousSRPBatcher;
 
+        GameObject m_brg = null;
+
 #if UNITY_2020_2_OR_NEWER
         uint m_PreviousDefaultRenderingLayerMask;
 #endif
@@ -441,6 +443,19 @@ namespace UnityEngine.Rendering.HighDefinition
             CustomPassUtils.Initialize();
 
             LensFlareCommonSRP.Initialize();
+
+            var rg = GameObject.Find("__BRGGO__");
+            if (rg != null)
+            {
+                m_brg = rg;
+            }
+            else
+            {
+                m_brg = new GameObject("__BRGGO__");
+                RenderBRG brgComponent = m_brg.AddComponent<RenderBRG>();
+                brgComponent.Start();
+            }
+
         }
 
 #if UNITY_EDITOR
@@ -654,6 +669,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="disposing">Is disposing.</param>
         protected override void Dispose(bool disposing)
         {
+            if (m_brg != null)
+            {
+                var brg = m_brg.GetComponent<RenderBRG>();
+                brg.OnDestroy();
+            }
+            m_brg = null;
+
             Graphics.ClearRandomWriteTargets();
             Graphics.SetRenderTarget(null);
             DisposeProbeCameraPool();
