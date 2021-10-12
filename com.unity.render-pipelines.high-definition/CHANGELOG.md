@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
 - Fixed area light cookie field to use the same style as the other cookie fields
 - Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
+- Fixed the cloudlayer not using depth buffer.
 
 ## [13.0.0] - 2021-09-01
 
