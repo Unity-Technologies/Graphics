@@ -1,0 +1,12 @@
+project:
+  name: Test
+
+jobs:
+  - name: Affected jobs
+    dependencies:
+      - .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
+      - .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
+      - .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
+      - .yamato/vfx_hdrp-linux-vulkan.yml#VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
+      - .yamato/vfx_hdrp-linux-vulkan.yml#VFX_HDRP_Linux_Vulkan_Standalone_PerformanceTests_mono_Linear_<TRACK>
+      - .yamato/vfx_urp-linux-vulkan.yml#VFX_URP_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
