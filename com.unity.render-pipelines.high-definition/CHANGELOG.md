@@ -33,6 +33,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.0.0] - 2021-09-01
 
+### Added
+- Added public API to edit materials from script at runtime.
+
 ### Fixed
 - Fixed impossibility to release the cursor in the template.
 - Fixed assert failure when enabling the probe volume system for the first time.
