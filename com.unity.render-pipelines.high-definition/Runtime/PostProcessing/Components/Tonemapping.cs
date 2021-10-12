@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// This parameter is only used when <see cref="TonemappingMode.External"/> is set.
         /// </summary>
         [Tooltip("A custom 3D texture lookup table to apply.")]
-        public TextureParameter lutTexture = new TextureParameter(null);
+        public Texture3DParameter lutTexture = new Texture3DParameter(null);
 
         /// <summary>
         /// How much of the lookup texture will contribute to the color grading effect.
