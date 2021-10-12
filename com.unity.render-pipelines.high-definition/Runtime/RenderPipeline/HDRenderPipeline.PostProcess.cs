@@ -5063,14 +5063,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         bool processHDR = HDROutputIsActive() && HDUtils.PostProcessIsFinalPass(data.hdCamera);
                         if (processHDR)
                         {
-                            if (data.outputColorSpace == 0)
-                            {
-                                finalPassMaterial.EnableKeyword("HDR_OUTPUT_SCRGB");
-                            }
+                            if (data.hdroutParameters.w == 1)
+                                data.finalPassMaterial.EnableKeyword("HDR_OUTPUT_SCRGB");
                             else
-                            {
-                                finalPassMaterial.EnableKeyword("HDR_OUTPUT_REC2020");
-                            }
+                                data.finalPassMaterial.EnableKeyword("HDR_OUTPUT_REC2020");
+
                             finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams, data.hdroutParameters);
                             finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams2, data.hdroutParameters2);
 
