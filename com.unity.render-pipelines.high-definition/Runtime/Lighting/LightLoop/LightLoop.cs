@@ -1252,6 +1252,22 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 lightData.shadowMaskSelector[lightComponent.bakingOutput.occlusionMaskChannel] = 1.0f;
                 lightData.nonLightMappedOnly = lightComponent.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
+                // Get shadow info from the volume stack.
+                var shadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
+                float maxDistanceSq = shadowSettings.maxShadowDistance.value * shadowSettings.maxShadowDistance.value;
+                float outBorderDistance = shadowSettings.cascadeShadowBorders[shadowSettings.cascadeShadowSplitCount.value - 1];
+                if (outBorderDistance < 1e-4f)
+                {
+                    lightData.cascadesBorderFadeScaleBias = new Vector2(1e6f, -maxDistanceSq * 1e6f);
+                }
+                else
+                {
+                    outBorderDistance = 1.0f - outBorderDistance;
+                    outBorderDistance *= outBorderDistance;
+                    float distanceFadeNear = outBorderDistance * maxDistanceSq;
+                    lightData.cascadesBorderFadeScaleBias.x = 1.0f / (maxDistanceSq - distanceFadeNear);
+                    lightData.cascadesBorderFadeScaleBias.y = -distanceFadeNear / (maxDistanceSq - distanceFadeNear);
+                }
             }
             else
             {
