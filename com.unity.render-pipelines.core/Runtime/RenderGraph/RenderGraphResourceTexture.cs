@@ -156,18 +156,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         void InitDefaultValues(bool dynamicResolution, bool xrReady)
         {
             useDynamicScale = dynamicResolution;
+            vrUsage = VRTextureUsage.None;
             // XR Ready
             if (xrReady)
             {
                 slices = TextureXR.slices;
                 dimension = TextureXR.dimension;
-                vrUsage = VRTextureUsage.TwoEyes;
             }
             else
             {
                 slices = 1;
                 dimension = TextureDimension.Tex2D;
-                vrUsage = VRTextureUsage.None;
             }
         }
 
