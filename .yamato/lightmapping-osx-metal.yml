@@ -7,8 +7,8 @@
 
 ---
 
-LightMapper_OSX_Metal_editmode_mono_Linear_trunk:
-    name: LightMapper on OSX_Metal_editmode_mono_Linear on version trunk
+Lightmapping_OSX_Metal_editmode_mono_Linear_trunk:
+    name: Lightmapping on OSX_Metal_editmode_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -32,9 +32,9 @@ LightMapper_OSX_Metal_editmode_mono_Linear_trunk:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
-                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/LightMapper/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/LightMapper --zero-tests-are-ok=1 "
+                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/Lightmapping/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/Lightmapping --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
-                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/LightMapper/test-results/ TestProjects/LightMapper
+                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Lightmapping/test-results/ TestProjects/Lightmapping
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
@@ -43,12 +43,12 @@ LightMapper_OSX_Metal_editmode_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/LightMapper/Logs/*.log"
+              -  "TestProjects/Lightmapping/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
-LightMapper_OSX_Metal_Standalone_mono_Linear_trunk:
-    name: LightMapper on OSX_Metal_Standalone_mono_Linear on version trunk
+Lightmapping_OSX_Metal_Standalone_mono_Linear_trunk:
+    name: Lightmapping on OSX_Metal_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -72,9 +72,9 @@ LightMapper_OSX_Metal_Standalone_mono_Linear_trunk:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
-                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/LightMapper/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/LightMapper --timeout=1200 --zero-tests-are-ok=1 "
+                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/Lightmapping/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/Lightmapping --timeout=1200 --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
-                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/LightMapper/test-results/ TestProjects/LightMapper
+                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Lightmapping/test-results/ TestProjects/Lightmapping
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
@@ -83,12 +83,12 @@ LightMapper_OSX_Metal_Standalone_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/LightMapper/Logs/*.log"
+              -  "TestProjects/Lightmapping/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
-LightMapper_OSX_Metal_editmode_mono_Linear_CUSTOM-REVISION:
-    name: LightMapper on OSX_Metal_editmode_mono_Linear on version CUSTOM-REVISION
+Lightmapping_OSX_Metal_editmode_mono_Linear_CUSTOM-REVISION:
+    name: Lightmapping on OSX_Metal_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -112,9 +112,9 @@ LightMapper_OSX_Metal_editmode_mono_Linear_CUSTOM-REVISION:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
-                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/LightMapper/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/LightMapper --zero-tests-are-ok=1 "
+                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/Lightmapping/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/Lightmapping --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
-                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/LightMapper/test-results/ TestProjects/LightMapper
+                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Lightmapping/test-results/ TestProjects/Lightmapping
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
@@ -123,12 +123,12 @@ LightMapper_OSX_Metal_editmode_mono_Linear_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/LightMapper/Logs/*.log"
+              -  "TestProjects/Lightmapping/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
          rerun: on_new_revision
-LightMapper_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: LightMapper on OSX_Metal_Standalone_mono_Linear on version CUSTOM-REVISION
+Lightmapping_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Lightmapping on OSX_Metal_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -152,9 +152,9 @@ LightMapper_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
-                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/LightMapper/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/LightMapper --timeout=1200 --zero-tests-are-ok=1 "
+                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/Lightmapping/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/Lightmapping --timeout=1200 --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
-                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/LightMapper/test-results/ TestProjects/LightMapper
+                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Lightmapping/test-results/ TestProjects/Lightmapping
                 exit $UTR_RESULT
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
@@ -163,7 +163,7 @@ LightMapper_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/LightMapper/Logs/*.log"
+              -  "TestProjects/Lightmapping/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
          rerun: on_new_revision

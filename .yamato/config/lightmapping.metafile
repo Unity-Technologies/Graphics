@@ -1,6 +1,6 @@
 project:
-  name: LightMapper
-  folder: LightMapper
+  name: Lightmapping
+  folder: Lightmapping
 
 test_platforms:
   - type: editmode
