@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
 - Fixed ShadowCaster now requires varying normalWS to include changed normals from vertex shader in shader graph.
 - Fixed typo in numIterationsEnclosingSphere api name
+- Fixed incorrect shadow fade in deferred rendering mode.
+- Fixed missing stencil buffer in deferred rendering mode on Android Vulkan platform.
+- Fixed an issue where specular color was not matching behaviour in Legacy and HDRP. [case 1326941](https://issuetracker.unity3d.com/issues/urp-specular-color-behavior-does-not-match-legacy-or-hdrp)
 
 ## [13.0.0] - 2021-09-01
 ### Added
@@ -85,7 +88,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Two new URP specific scene templates, Basic which has a camera and directional light, then Standard which has the addition of a global volume with basic post effects setup.
 - Added Render Settings Converter to the Render Pipeline Converter, this tool creates and assigns URP Assets based off rendering settings of a Builtin project.
 - XR: Added Late Latching support to reduce VR latency (Quest).
-- Fixed incorrect shadow fade in deferred rendering mode.
 - Added a help button on material editor to show the shader documentation page
 - Added "Copy Depth Mode" Universal Renderer Data option that allows to specify if URP should copy the depth after the opaques pass or after the transparents pass. This can lead to bandwidth savings on mobile.
 
