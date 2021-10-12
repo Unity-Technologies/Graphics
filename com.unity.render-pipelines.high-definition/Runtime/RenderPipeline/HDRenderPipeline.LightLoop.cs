@@ -1084,7 +1084,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SsrEdgeFadeRcpLength = Mathf.Min(1.0f / settings.screenFadeDistance.value, float.MaxValue);
             cb._ColorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
             cb._SsrColorPyramidMaxMip = hdCamera.colorPyramidHistoryMipCount - 1;
-            cb._SsrDepthPyramidMaxMip = m_DepthBufferMipChainInfo.mipLevelCount - 1;
+            cb._SsrDepthPyramidMaxMip = hdCamera.depthBufferMipChainInfo.mipLevelCount - 1;
             if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 2)
                 cb._SsrAccumulationAmount = 1.0f;
             else
@@ -1150,7 +1150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.width = hdCamera.actualWidth;
                     passData.height = hdCamera.actualHeight;
                     passData.viewCount = hdCamera.viewCount;
-                    passData.offsetBufferData = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+                    passData.offsetBufferData = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
                     passData.accumNeedClear = usePBRAlgo;
                     passData.previousAccumNeedClear = usePBRAlgo && (hdCamera.currentSSRAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation || hdCamera.isFirstFrame || hdCamera.resetPostProcessingHistory);
                     hdCamera.currentSSRAlgorithm = volumeSettings.usedAlgorithm.value; // Store for next frame comparison
