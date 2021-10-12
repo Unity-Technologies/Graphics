@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [Serializable, ReloadGroup, ExcludeFromPreset]
+    [URPHelpURLAttribute("urp-universal-renderer")]
     public class UniversalRendererData : ScriptableRendererData, ISerializationCallbackReceiver
     {
 #if UNITY_EDITOR
