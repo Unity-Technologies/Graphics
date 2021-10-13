@@ -188,14 +188,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Shared resources for sky rendering.
         IBLFilterBSDF[] m_IBLFilterArray;
-        //RTHandle m_SkyboxBSDFCubemapIntermediate;
         Vector4 m_CubemapScreenSize;
         Matrix4x4[] m_facePixelCoordToViewDirMatrices = new Matrix4x4[6];
         Matrix4x4[] m_CameraRelativeViewMatrices = new Matrix4x4[6];
         BuiltinSkyParameters m_BuiltinParameters = new BuiltinSkyParameters();
         ComputeShader m_ComputeAmbientProbeCS;
-        readonly int m_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
-        readonly int m_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
+        static readonly int m_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
+        static readonly int m_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
         int m_ComputeAmbientProbeKernel;
         CubemapArray m_BlackCubemapArray;
 
@@ -382,9 +381,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightingOverrideVolumeStack = VolumeManager.instance.CreateStack();
             lightingOverrideLayerMask = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask;
 
-            int resolution = (int)hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
-            m_SkyboxBSDFCubemapIntermediate = RTHandles.Alloc(resolution, resolution, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureDimension.Cube, useMipMap: true, autoGenerateMips: false, filterMode: FilterMode.Trilinear, name: "SkyboxBSDFIntermediate");
-            m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);
+            m_CubemapScreenSize = new Vector4((float)m_Resolution, (float)m_Resolution, 1.0f / (float)m_Resolution, 1.0f / (float)m_Resolution);
 
             for (int i = 0; i < 6; ++i)
             {
@@ -434,7 +431,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_BlitCubemapMaterial);
             CoreUtils.Destroy(m_OpaqueAtmScatteringMaterial);
 
-            RTHandles.Release(m_SkyboxBSDFCubemapIntermediate);
             CoreUtils.Destroy(m_BlackCubemapArray);
 
             for (int i = 0; i < m_CachedSkyContexts.size; ++i)
@@ -663,17 +659,21 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader computeAmbientProbeCS;
             public int computeAmbientProbeKernel;
             public TextureHandle skyCubemap;
-            public ComputeBufferHandle ambientProbeResult;
+            public ComputeBuffer ambientProbeResult;
+            public bool waitAllAsyncReadbacks;
+            public Action<AsyncGPUReadbackRequest> callback;
         }
 
-        internal void UpdateAmbientProbe(RenderGraph renderGraph, TextureHandle skyCubemap, ComputeBufferHandle ambientProbeResult, waitAllAsyncReadbacks)
+        internal void UpdateAmbientProbe(RenderGraph renderGraph, TextureHandle skyCubemap, ComputeBuffer ambientProbeResult, Action<AsyncGPUReadbackRequest> callback, bool waitAllAsyncReadbacks)
         {
             using (var builder = renderGraph.AddRenderPass<UpdateAmbientProbePassData>("UpdateAmbientProbe", out var passData, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
             {
                 passData.computeAmbientProbeCS = m_ComputeAmbientProbeCS;
                 passData.computeAmbientProbeKernel = m_ComputeAmbientProbeKernel;
                 passData.skyCubemap = builder.ReadTexture(skyCubemap);
-                passData.ambientProbeResult = builder.WriteComputeBuffer(ambientProbeResult);
+                passData.ambientProbeResult = ambientProbeResult;
+                passData.waitAllAsyncReadbacks = waitAllAsyncReadbacks;
+                passData.callback = callback;
 
                 builder.SetRenderFunc(
                 (UpdateAmbientProbePassData data, RenderGraphContext ctx) =>
@@ -681,31 +681,29 @@ namespace UnityEngine.Rendering.HighDefinition
                     ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, data.ambientProbeResult);
                     ctx.cmd.SetComputeTextureParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, m_AmbientProbeInputCubemap, data.skyCubemap);
                     ctx.cmd.DispatchCompute(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, 1, 1, 1);
-                    ctx.cmd.RequestAsyncReadback(data.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
+                    ctx.cmd.RequestAsyncReadback(data.ambientProbeResult, data.callback);
 
                     // When the profiler is enabled, we don't want to submit the render context because
                     // it will break all the profiling sample Begin() calls issued previously, which leads
                     // to profiling sample mismatch errors in the console.
-                    if (!UnityEngine.Profiling.Profiler.enabled)
+                    if (!Profiling.Profiler.enabled)
                     {
                         // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
                         // otherwise ambient probe isn't correct for one frame.
-                        if (m_RequireWaitForAsyncReadBackRequest)
+                        if (data.waitAllAsyncReadbacks)
                         {
                             ctx.cmd.WaitAllAsyncReadbackRequests();
                             ctx.renderContext.ExecuteCommandBuffer(ctx.cmd);
                             CommandBufferPool.Release(ctx.cmd);
                             ctx.renderContext.Submit();
                             ctx.cmd = CommandBufferPool.Get();
-                            m_RequireWaitForAsyncReadBackRequest = false;
                         }
                     }
-
                 });
             }
         }
 
-        void GenerateSkyCubemap(RenderGraph renderGraph, SkyUpdateContext skyContext)
+        TextureHandle GenerateSkyCubemap(RenderGraph renderGraph, SkyUpdateContext skyContext)
         {
             var renderingContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId].renderingContext;
             var volumetricClouds = skyContext.volumetricClouds;
@@ -726,26 +724,42 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Generate mipmap for our cubemap
             HDRenderPipeline.GenerateMipmaps(renderGraph, outputCubemap);
+
+            return outputCubemap;
         }
 
-
-        void RenderCubemapGGXConvolution(SkyUpdateContext skyContext)
+        class SkyEnvironmentConvolutionPassData
         {
-            using (new ProfilingScope(m_BuiltinParameters.commandBuffer, ProfilingSampler.Get(HDProfileId.UpdateSkyEnvironmentConvolution)))
-            {
-                var renderingContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId].renderingContext;
-                var renderer = skyContext.skyRenderer;
+            public TextureHandle input;
+            public TextureHandle intermediateTexture;
+            public CubemapArray output; // Only instance of cubemap array in HDRP and RTHandles don't support them. Don't want to make a special API just for this case.
+            public IBLFilterBSDF[] bsdfs;
+        }
 
-                for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
+        void RenderCubemapGGXConvolution(RenderGraph renderGraph, TextureHandle input, CubemapArray output)
+        {
+            using (var builder = renderGraph.AddRenderPass<SkyEnvironmentConvolutionPassData>("UpdateSkyEnvironmentConvolution", out var passData, ProfilingSampler.Get(HDProfileId.UpdateSkyEnvironmentConvolution)))
+            {
+                passData.bsdfs = m_IBLFilterArray;
+                passData.input = builder.ReadTexture(input);
+                passData.output = output;
+                passData.intermediateTexture = builder.CreateTransientTexture(new TextureDesc(m_Resolution, m_Resolution)
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Cube, useMipMap = true, autoGenerateMips = false, filterMode = FilterMode.Trilinear, name = "SkyboxBSDFIntermediate" });
+
+                builder.SetRenderFunc(
+                (SkyEnvironmentConvolutionPassData data, RenderGraphContext ctx) =>
                 {
-                    // First of all filter this cubemap using the target filter
-                    m_IBLFilterArray[bsdfIdx].FilterCubemap(m_BuiltinParameters.commandBuffer, renderingContext.skyboxCubemapRT, m_SkyboxBSDFCubemapIntermediate);
-                    // Then copy it to the cubemap array slice
-                    for (int i = 0; i < 6; ++i)
+                    for (int bsdfIdx = 0; bsdfIdx < data.bsdfs.Length; ++bsdfIdx)
                     {
-                        m_BuiltinParameters.commandBuffer.CopyTexture(m_SkyboxBSDFCubemapIntermediate, i, renderingContext.skyboxBSDFCubemapArray, 6 * bsdfIdx + i);
+                        // First of all filter this cubemap using the target filter
+                        data.bsdfs[bsdfIdx].FilterCubemap(ctx.cmd, data.input, data.intermediateTexture);
+                        // Then copy it to the cubemap array slice
+                        for (int i = 0; i < 6; ++i)
+                        {
+                            ctx.cmd.CopyTexture(data.intermediateTexture, i, data.output, 6 * bsdfIdx + i);
+                        }
                     }
-                }
+                });
             }
         }
 
@@ -994,41 +1008,20 @@ namespace UnityEngine.Rendering.HighDefinition
                         (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
                         (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
                     {
-                        GenerateSkyCubemap(renderGraph, skyContext);
+                        var skyCubemap = GenerateSkyCubemap(renderGraph, skyContext);
 
                         if (updateAmbientProbe)
                         {
-                            UpdateAmbientProbe(renderGraph);
-                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
-                            {
-                                cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
-                                cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
-                                cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
-                                cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
+                            UpdateAmbientProbe(renderGraph, skyCubemap, renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone, m_RequireWaitForAsyncReadBackRequest);
 
-                                // When the profiler is enabled, we don't want to submit the render context because
-                                // it will break all the profiling sample Begin() calls issued previously, which leads
-                                // to profiling sample mismatch errors in the console.
-                                if (!UnityEngine.Profiling.Profiler.enabled)
-                                {
-                                    // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
-                                    // otherwise ambient probe isn't correct for one frame.
-                                    if (m_RequireWaitForAsyncReadBackRequest)
-                                    {
-                                        cmd.WaitAllAsyncReadbackRequests();
-                                        renderContext.ExecuteCommandBuffer(cmd);
-                                        CommandBufferPool.Release(cmd);
-                                        renderContext.Submit();
-                                        cmd = CommandBufferPool.Get();
-                                        m_RequireWaitForAsyncReadBackRequest = false;
-                                    }
-                                }
-                            }
+                            // Match logic inside UpdateAbmbientProbe
+                            if (!Profiling.Profiler.enabled)
+                                m_RequireWaitForAsyncReadBackRequest = false;
                         }
 
                         if (renderingContext.supportsConvolution)
                         {
-                            RenderCubemapGGXConvolution(skyContext);
+                            RenderCubemapGGXConvolution(renderGraph, skyCubemap, renderingContext.skyboxBSDFCubemapArray);
                         }
 
                         skyContext.skyParametersHash = skyHash;

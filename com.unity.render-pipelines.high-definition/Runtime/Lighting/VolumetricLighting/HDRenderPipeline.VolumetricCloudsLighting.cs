@@ -117,56 +117,22 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class VolumetricCloudsAmbientProbeData
-        {
-            public ComputeShader computeProbeCS;
-            public int kernel;
-            public SkyManager skyManager;
-            public SkyRenderer skyRenderer;
-            public TextureHandle skyCubemap;
-            public ComputeBufferHandle skyBuffer;
-            public ComputeBufferHandle ambientProbeBuffer;
-        }
-
         internal void PreRenderVolumetricClouds_AmbientProbe(RenderGraph renderGraph, HDCamera hdCamera)
         {
-            TextureHandle outputCubemap = renderGraph.CreateTexture(new TextureDesc(16, 16)
-            { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true });
-
-            outputCubemap = m_SkyManager.RenderSkyToCubemap(renderGraph, hdCamera.lightingSky, includeSunInBaking: false, renderCloudLayers: false, outputCubemap);
-
-            using (var builder = renderGraph.AddRenderPass<VolumetricCloudsAmbientProbeData>("Volumetric Clouds Ambient Probe", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsAmbientProbe)))
+            if (hdCamera.lightingSky.skyRenderer != null)
             {
-                builder.EnableAsyncCompute(false);
+                using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.VolumetricCloudsAmbientProbe)))
+                {
+                    TextureHandle outputCubemap = renderGraph.CreateTexture(new TextureDesc(16, 16)
+                    { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true });
 
-                passData.computeProbeCS = m_ComputeAmbientProbeCS;
-                passData.skyManager = m_SkyManager;
-                passData.skyRenderer = hdCamera.lightingSky.skyRenderer;
-                passData.skyCubemap = builder.ReadWriteTexture(renderGraph.ImportTexture(m_CloudsAmbientProbeSky));
-                passData.kernel = m_AmbientProbeConvolutionNoMipKernel;
-                passData.ambientProbeBuffer = builder.ReadComputeBuffer(builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_CloudsAmbientProbeBuffer)));
-
-                builder.SetRenderFunc(
-                    (VolumetricCloudsAmbientProbeData data, RenderGraphContext ctx) =>
-                    {
-                        if (data.skyRenderer != null)
-                        {
-                            // Render the sky into a low resolution cubemap
-                            data.skyManager.RenderSkyOnlyToCubemap(ctx.cmd, data.skyCubemap, false, data.skyRenderer);
-
-                            // Evaluate the probe
-                            ctx.cmd.SetComputeTextureParam(data.computeProbeCS, data.kernel, m_AmbientProbeInputCubemap, data.skyCubemap);
-                            ctx.cmd.SetComputeBufferParam(data.computeProbeCS, data.kernel, m_AmbientProbeOutputBufferParam, data.ambientProbeBuffer);
-                            ctx.cmd.DispatchCompute(data.computeProbeCS, data.kernel, 1, 1, 1);
-
-                            // Enqueue the read back
-                            ctx.cmd.RequestAsyncReadback(data.ambientProbeBuffer, OnComputeAmbientProbeDone);
-                        }
-                        else
-                        {
-                            m_CloudsAmbientProbeIsReady = false;
-                        }
-                    });
+                    outputCubemap = m_SkyManager.RenderSkyToCubemap(renderGraph, hdCamera.lightingSky, includeSunInBaking: false, renderCloudLayers: false, outputCubemap);
+                    m_SkyManager.UpdateAmbientProbe(renderGraph, outputCubemap, m_CloudsAmbientProbeBuffer, OnComputeAmbientProbeDone, false);
+                }
+            }
+            else
+            {
+                m_CloudsAmbientProbeIsReady = false;
             }
         }
     }
