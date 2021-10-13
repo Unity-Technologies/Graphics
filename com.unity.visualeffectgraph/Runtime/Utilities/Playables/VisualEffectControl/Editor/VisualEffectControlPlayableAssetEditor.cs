@@ -15,43 +15,62 @@ namespace UnityEditor.VFX
             var behavior = clip.asset as VisualEffectControlPlayableAsset;
             if (behavior != null)
             {
-                clip.displayName = "VFX (Play/Stop)"; //Can be customized with event name
+                clip.displayName = "VFX"; //Can be customized with event name
             }
         }
+
+        public static void ShadowLabel(Rect rect, GUIContent content, GUIStyle style, Color textColor, Color shadowColor)
+        {
+            var shadowRect = rect;
+            shadowRect.xMin += 2.0f;
+            shadowRect.yMin += 2.0f;
+            style.normal.textColor = shadowColor;
+            style.hover.textColor = shadowColor;
+            GUI.Label(shadowRect, content, style);
+
+            style.normal.textColor = textColor;
+            style.hover.textColor = textColor;
+            GUI.Label(rect, content, style);
+        }
+
+        public override ClipDrawOptions GetClipOptions(TimelineClip clip)
+        {
+            return base.GetClipOptions(clip);
+        }
+
+
+        private GUIStyle fontStyle = GUIStyle.none;
 
         public override void DrawBackground(TimelineClip clip, ClipBackgroundRegion region)
         {
             base.DrawBackground(clip, region);
 
-            var iconSize = new Vector2(18, 18);
-            var startRegion = new Rect(
-            region.position.position.x - iconSize.x / 2,
-            region.position.position.y,
-            iconSize.x,
-            iconSize.y);
-            var endRegion = new Rect(
-                region.position.position.x + region.position.width - iconSize.x / 2,
-                region.position.position.y,
-                iconSize.x,
-                iconSize.y);
-            var backgroundRegion = new Rect(
-                region.position.position.x,
-                region.position.position.y + iconSize.y / 4,
-                region.position.width,
-                iconSize.y / 2);
+            var iconSize = new Vector2(16, 16); //Should be relative ?
+            var playable = clip.asset as VisualEffectControlPlayableAsset;
 
-            for (int i = 0; i < 4; ++i)
+            if (playable.events == null)
+                return;
+
+            foreach (var itEvent in playable.GetVirtualEvents())
             {
-                if (i != 5)
+                var dt = Mathf.InverseLerp((float)region.startTime, (float)region.endTime, (float)itEvent.time);
+                if (dt != Mathf.Clamp01(dt))
                     continue;
 
-                float dt = (float)i / 4.0f;
-                var current = new Rect(
-                    Mathf.Lerp(startRegion.x, endRegion.x, dt),
-                    Mathf.Lerp(startRegion.y, endRegion.y, dt),
-                    Mathf.Lerp(startRegion.width, endRegion.width, dt),
-                    Mathf.Lerp(startRegion.height, endRegion.height, dt));
-                EditorGUI.DrawRect(current, Color.HSVToRGB(dt, 1.0f, 1.0f));
+                var center = new Vector2(region.position.position.x + region.position.width * dt,
+                    region.position.position.y + region.position.height * 0.5f);
+
+                float color = 0.3f;
+                var eventRect = new Rect(center - iconSize * new Vector2(1.0f, 0.0f), iconSize);
+                EditorGUI.DrawRect(eventRect, Color.HSVToRGB(color, 1.0f, 1.0f));
+
+                var textRect = new Rect(center + new Vector2(2, 0), iconSize);
+
+                ShadowLabel(textRect,
+                    new GUIContent(itEvent.name),
+                    fontStyle,
+                    Color.HSVToRGB(color, 1.0f, 1.0f),
+                    Color.HSVToRGB(color, 1.0f, 0.1f));
             }
         }
     }

@@ -1,5 +1,6 @@
 #if VFX_HAS_TIMELINE
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
@@ -24,6 +25,34 @@ namespace UnityEngine.VFX
         public double clipEnd { get; set; }
         public double easeIn { get; set; }
         public double easeOut { get; set; }
+
+        [Serializable]
+        public struct Event
+        {
+            public double time;
+            public string name;
+        }
+
+        [NotKeyable]
+        public Event[] events;
+
+        public IEnumerable<Event> GetVirtualEvents()
+        {
+            yield return new Event()
+            {
+                name = "Play",
+                time = easeIn - clipStart
+            };
+
+            yield return new Event()
+            {
+                name = "Stop",
+                time = easeOut - clipStart
+            };
+
+            foreach (var it in events)
+                yield return it;
+        }
 
         // Creates the playable that represents the instance of this clip.
         public override Playable CreatePlayable(PlayableGraph graph, GameObject owner)
