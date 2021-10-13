@@ -87,6 +87,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Renderer is using swapbuffer system
         bool m_UseSwapBuffer;
 
+        // RTHandle alias for _TempTarget
+        RTHandle m_TempTarget = RTHandles.Alloc(ShaderConstants._TempTarget);
+
+        // RTHandle alias for _TempTarget2
+        RTHandle m_TempTarget2 = RTHandles.Alloc(ShaderConstants._TempTarget2);
+
         Material m_BlitMaterial;
 
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
@@ -333,28 +339,28 @@ namespace UnityEngine.Rendering.Universal.Internal
             // GetDestination() instead
             bool tempTargetUsed = false;
             bool tempTarget2Used = false;
-            RenderTargetIdentifier source = m_UseSwapBuffer ? renderer.cameraColorTargetHandle : m_Source;
-            RenderTargetIdentifier destination = m_UseSwapBuffer ? renderer.GetCameraColorFrontBuffer(cmd) : -1;
+            RTHandle source = m_UseSwapBuffer ? renderer.cameraColorTargetHandle : m_Source;
+            RTHandle destination = m_UseSwapBuffer ? renderer.GetCameraColorFrontBuffer(cmd) : k_CameraTarget;
 
-            RenderTargetIdentifier GetSource() => source;
+            RTHandle GetSource() => source;
 
-            RenderTargetIdentifier GetDestination()
+            RTHandle GetDestination()
             {
                 if (m_UseSwapBuffer)
                     return destination;
                 else
                 {
-                    if (destination == -1)
+                    if (destination.nameID == BuiltinRenderTextureType.CameraTarget)
                     {
                         cmd.GetTemporaryRT(ShaderConstants._TempTarget, GetCompatibleDescriptor(), FilterMode.Bilinear);
-                        destination = ShaderConstants._TempTarget;
+                        destination = m_TempTarget;
                         tempTargetUsed = true;
                     }
                     else if (destination == m_Source && m_Descriptor.msaaSamples > 1)
                     {
                         // Avoid using m_Source.id as new destination, it may come with a depth buffer that we don't want, may have MSAA that we don't want etc
                         cmd.GetTemporaryRT(ShaderConstants._TempTarget2, GetCompatibleDescriptor(), FilterMode.Bilinear);
-                        destination = ShaderConstants._TempTarget2;
+                        destination = m_TempTarget2;
                         tempTarget2Used = true;
                     }
                     return destination;
@@ -373,7 +379,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
 
                     r.SwapColorBuffer(cmd);
-                    source = r.cameraColorTargetHandle.nameID;
+                    source = r.cameraColorTargetHandle;
                     destination = r.GetCameraColorFrontBuffer(cmd);
                 }
                 else
