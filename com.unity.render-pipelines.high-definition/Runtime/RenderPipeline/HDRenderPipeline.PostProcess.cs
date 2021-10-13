@@ -2051,7 +2051,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.resolution = m_DepthOfField.resolution;
 
-            float scale = m_DepthOfField.physicallyBased ? 1f : 1f / (float)parameters.resolution; // Note: physical dof always runs at full resolution
+            float scale = m_DepthOfField.physicallyBased ? 1f : 1f / (float)parameters.resolution;
             float resolutionScale = (postProcessViewportSize.y / 1080f) * (scale * 2f);
 
             int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
@@ -2125,6 +2125,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.dofCombineCS.EnableKeyword("ENABLE_ALPHA");
                 parameters.dofPrecombineFarCS.EnableKeyword("ENABLE_ALPHA");
                 parameters.pbDoFGatherCS.EnableKeyword("ENABLE_ALPHA");
+                parameters.pbDoFCombineCS.EnableKeyword("ENABLE_ALPHA");
             }
 
             if (parameters.resolution == DepthOfFieldResolution.Full)

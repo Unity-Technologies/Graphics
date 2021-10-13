@@ -57,6 +57,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float outAlpha;
         DoFGatherRings(posInputs, tileData, centerSample, outColor, outAlpha);
         output.xyz = outColor.xyz;
+#ifdef ENABLE_ALPHA
+        output.w = outAlpha;
+#endif
         break;
     case FAST_DEFOCUS_TILE:
         // This tile has only out-of-focus pixels, the output was computed at a lower resolution in a previous pass.
