@@ -425,7 +425,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             if (previewProperty.cubemapValue != null)
                                 if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(previewProperty.cubemapValue, out string guid, out long localID))
                                 {
-                                    //    // Note, this never gets cleared, so we accumulate texture GUIDs over time, if the user keeps changing textures
+                                    // Note, this never gets cleared, so we accumulate texture GUIDs over time, if the user keeps changing textures
                                     m_PreviewTextureGUIDs.Add(guid);
                                 }
                         }
