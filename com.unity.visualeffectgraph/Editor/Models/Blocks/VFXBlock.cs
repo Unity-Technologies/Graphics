@@ -28,17 +28,21 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         private VFXSlot m_ActivationSlot;
-        public override VFXSlot activationSlot => m_ActivationSlot; 
+        public override VFXSlot activationSlot => m_ActivationSlot;
 
+        private bool m_CachedEnableState = true;
+        private bool m_EnableStateUpToDate = false;
         public bool enabled
         {
-            get { return (bool)(m_ActivationSlot.value); }
-            set
+            get
             {
-                if (value != enabled)
-                    m_ActivationSlot.value = value;
+                if (!m_EnableStateUpToDate)
+                    UpdateEnableState();
+
+                return m_CachedEnableState;
             }
         }
+
         public virtual bool isValid
         {
             get
@@ -87,15 +91,43 @@ namespace UnityEditor.VFX
             }
         }
 
+        private void UpdateEnableState()
+        {
+            // fast path for not connected activation slots
+            if (!activationSlot.HasLink())
+                m_CachedEnableState = (bool)activationSlot.value;
+            else
+            {
+                var enableExp = activationSlot.GetExpression();
+
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+                context.Compile();
+
+                enableExp = context.GetReduced(enableExp);
+                if (enableExp.Is(VFXExpression.Flags.Value))
+                    m_CachedEnableState = enableExp.Get<bool>();
+                else
+                    m_CachedEnableState = true;
+            }
+
+            Debug.Log("RECOMPUTE ENABLE STATE: " + m_CachedEnableState + " " + activationSlot.HasLink());
+            m_EnableStateUpToDate = true;
+        }
+
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             base.OnInvalidate(model, cause);
             if (model == activationSlot &&
                (cause == InvalidationCause.kParamChanged || // This does not account for param/connection changed upstream
-                cause == InvalidationCause.kConnectionChanged))
+                cause == InvalidationCause.kConnectionChanged ||
+                cause == InvalidationCause.kExpressionInvalidated ||
+                cause == InvalidationCause.kExpressionValueInvalidated))
             {
                 Debug.Log("ENABLE SLOT CHANGED " + cause);
                 Invalidate(InvalidationCause.kEnableChanged);
+
+                var enableExpr = activationSlot.GetExpression();
+                m_EnableStateUpToDate = false;
             }
         }
 

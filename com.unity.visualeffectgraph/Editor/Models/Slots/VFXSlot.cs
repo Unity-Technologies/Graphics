@@ -1087,7 +1087,7 @@ namespace UnityEditor.VFX
             }
 
             if (owner != null && direction == Direction.kInput)
-                owner.Invalidate(InvalidationCause.kExpressionInvalidated);
+                owner.Invalidate(this, InvalidationCause.kExpressionInvalidated);
         }
 
         public void UnlinkAll(bool recursive = false, bool notify = true)
@@ -1134,6 +1134,18 @@ namespace UnityEditor.VFX
                     });
                 }
             }
+
+            if (direction == Direction.kOutput &&
+                (cause == InvalidationCause.kParamChanged ||
+                 cause == InvalidationCause.kExpressionValueInvalidated))
+            {
+                PropagateToTree(s =>
+                {
+                    foreach (var slot in s.m_LinkedSlots)
+                        slot.Invalidate(InvalidationCause.kExpressionValueInvalidated);
+                });
+            }
+
             base.OnInvalidate(model, cause);
         }
 

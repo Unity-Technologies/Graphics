@@ -314,8 +314,6 @@ namespace UnityEditor.VFX.UI
 
                 VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(null, ref blk);
 
-                newBlock.enabled = (blk.flags & Node.Flags.Enabled) == Node.Flags.Enabled;
-
                 blocks.Add(newBlock);
 
                 if (newBlock != null)
