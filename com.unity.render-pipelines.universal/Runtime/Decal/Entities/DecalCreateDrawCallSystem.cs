@@ -62,24 +62,36 @@ namespace UnityEngine.Rendering.Universal
         private DecalEntityManager m_EntityManager;
         private ProfilingSampler m_Sampler;
         private float m_MaxDrawDistance;
+#if ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER
+        private UniversalRenderPipelineAsset m_pipelineAsset;
+#endif
 
         public DecalCreateDrawCallSystem(DecalEntityManager entityManager, float maxDrawDistance)
         {
             m_EntityManager = entityManager;
             m_Sampler = new ProfilingSampler("DecalCreateDrawCallSystem.Execute");
             m_MaxDrawDistance = maxDrawDistance;
+#if ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER
+            m_pipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+#endif
         }
 
         public void Execute()
         {
+            float maximumDrawDistance = m_MaxDrawDistance;
+#if ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER
+            if (m_pipelineAsset.useAdaptivePerformance)
+                maximumDrawDistance = AdaptivePerformance.AdaptivePerformanceRenderSettings.DecalsDrawDistance;
+#endif
+
             using (new ProfilingScope(null, m_Sampler))
             {
                 for (int i = 0; i < m_EntityManager.chunkCount; ++i)
-                    Execute(m_EntityManager.cachedChunks[i], m_EntityManager.culledChunks[i], m_EntityManager.drawCallChunks[i], m_EntityManager.cachedChunks[i].count);
+                    Execute(m_EntityManager.cachedChunks[i], m_EntityManager.culledChunks[i], m_EntityManager.drawCallChunks[i], m_EntityManager.cachedChunks[i].count, maximumDrawDistance);
             }
         }
 
-        private void Execute(DecalCachedChunk cachedChunk, DecalCulledChunk culledChunk, DecalDrawCallChunk drawCallChunk, int count)
+        private void Execute(DecalCachedChunk cachedChunk, DecalCulledChunk culledChunk, DecalDrawCallChunk drawCallChunk, int count, float maximumDrawDistance)
         {
             if (count == 0)
                 return;
@@ -102,7 +114,7 @@ namespace UnityEngine.Rendering.Universal
                 cullingMask = culledChunk.cullingMask,
                 visibleDecalIndices = culledChunk.visibleDecalIndices,
                 visibleDecalCount = culledChunk.visibleDecalCount,
-                maxDrawDistance = m_MaxDrawDistance,
+                maxDrawDistance = maximumDrawDistance,
 
                 decalToWorldsDraw = drawCallChunk.decalToWorlds,
                 normalToDecalsDraw = drawCallChunk.normalToDecals,
