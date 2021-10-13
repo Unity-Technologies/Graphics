@@ -411,7 +411,9 @@ namespace UnityEngine.Rendering.HighDefinition
                    m_Curves.GetHashCode() * 23 +
                    HDROutputIsActive().GetHashCode()
 #if UNITY_EDITOR
-                   * 23 + UnityEditor.PlayerSettings.D3DHDRBitDepth.GetHashCode()
+                   * 23
+                   + m_GlobalSettings.colorGradingSpace.GetHashCode() * 23 +
+                   + UnityEditor.PlayerSettings.D3DHDRBitDepth.GetHashCode()
 
 #endif
                    ;

@@ -437,16 +437,17 @@ float3 DesaturateReducedICtCp(float3 ICtCp, float lumaPre, float maxNits)
 
 float LumaRangeReduction(float input, float minNits, float maxNits, int mode)
 {
+    float3 output = input;
     if (mode == HDRRANGEREDUCTION_REINHARD)
     {
-        return ReinhardTonemap(input, maxNits);
+        output = ReinhardTonemap(input, maxNits);
     }
     else if (mode == HDRRANGEREDUCTION_BT2390)
     {
-        return BT2390EETF(input, minNits, maxNits);
+        output = BT2390EETF(input, minNits, maxNits);
     }
 
-    return input;
+    return output;
 }
 
 float3 HuePreservingRangeReduction(float3 input, float minNits, float maxNits, int mode)
