@@ -116,44 +116,7 @@ bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize
 
 uint GetIndexData(APVResources apvRes, float3 posWS)
 {
-    int3 cellPos = floor(posWS / _CellInMeters);
-    float3 topLeftCellWS = cellPos * _CellInMeters;
-
-    // Make sure we start from 0
-    cellPos -= (int3)_MinCellPosition;
-
-    int flatIdx = cellPos.z * (_CellIndicesDim.x * _CellIndicesDim.y) + cellPos.y * _CellIndicesDim.x + cellPos.x;
-
-    int stepSize = 0;
-    int3 minRelativeIdx, maxRelativeIdx;
-    int chunkIdx = -1;
-    bool isValidBrick = true;
-    int locationInPhysicalBuffer = 0;
-    if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
-    {
-        float3 residualPosWS = posWS - topLeftCellWS;
-        int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
-
-        // Out of bounds.
-        if (any(localBrickIndex < minRelativeIdx || localBrickIndex >= maxRelativeIdx))
-        {
-            isValidBrick = false;
-        }
-
-        int3 sizeOfValid = maxRelativeIdx - minRelativeIdx;
-        // Relative to valid region
-        int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
-        int flattenedLocationInCell = localRelativeIndexLoc.z * (sizeOfValid.x * sizeOfValid.y) + localRelativeIndexLoc.x * sizeOfValid.y + localRelativeIndexLoc.y;
-
-        locationInPhysicalBuffer = chunkIdx * _IndexChunkSize + flattenedLocationInCell;
-
-    }
-    else
-    {
-        isValidBrick = false;
-    }
-
-    return isValidBrick ? apvRes.index[locationInPhysicalBuffer] : 0xffffffff;
+    return 0;
 }
 
 // -------------------------------------------------------------
@@ -182,43 +145,8 @@ APVResources FillAPVResources()
 bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv)
 {
     uvw = 0;
-    // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
-    bool hasValidUVW = true;
-
-    float4 posWSForSample = float4(posWS + normalWS * _NormalBias
-        + viewDirWS * _ViewBias, 1.0);
-
-    uint3 poolDim = (uint3)_PoolDim;
-
-    // resolve the index
-    float3 posRS = posWSForSample.xyz / _MinBrickSize;
-    uint packed_pool_idx = GetIndexData(apvRes, posWSForSample.xyz);
-
-    // no valid brick loaded for this index, fallback to ambient probe
-    if (packed_pool_idx == 0xffffffff)
-    {
-        hasValidUVW = false;
-    }
-
-    // unpack pool idx
-    // size is encoded in the upper 4 bits
-    subdiv = (packed_pool_idx >> 28) & 15;
-    float  cellSize = pow(3.0, subdiv);
-    uint   flattened_pool_idx = packed_pool_idx & ((1 << 28) - 1);
-    uint3  pool_idx;
-    pool_idx.z = flattened_pool_idx / (poolDim.x * poolDim.y);
-    flattened_pool_idx -= pool_idx.z * (poolDim.x * poolDim.y);
-    pool_idx.y = flattened_pool_idx / poolDim.x;
-    pool_idx.x = flattened_pool_idx - (pool_idx.y * poolDim.x);
-    uvw = ((float3) pool_idx + 0.5) / _PoolDim;
-
-    // calculate uv offset and scale
-    float3 offset = frac(posRS / (float)cellSize);  // [0;1] in brick space
-    //offset    = clamp( offset, 0.25, 0.75 );      // [0.25;0.75] in brick space (is this actually necessary?)
-    offset *= 3.0 / _PoolDim;                       // convert brick footprint to texels footprint in pool texel space
-    uvw += offset;                                  // add the final offset
-
-    return hasValidUVW;
+    subdiv = 0;
+    return true;
 }
 
 bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDir, out float3 uvw)
@@ -330,40 +258,9 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 ba
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 reflDir, in float3 viewDir,
     in float2 positionSS, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting, out float3 lightingInReflDir)
 {
-    APVResources apvRes = FillAPVResources();
-
-    if (_PVSamplingNoise > 0)
-    {
-        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
-        posWS += noise1D_0;
-    }
-
-    APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
-
-    if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
-    {
-        apvSample.Decode();
-
-#ifdef PROBE_VOLUMES_L1
-        EvaluateAPVL1(apvSample, normalWS, bakeDiffuseLighting);
-        EvaluateAPVL1(apvSample, backNormalWS, backBakeDiffuseLighting);
-        EvaluateAPVL1(apvSample, reflDir, lightingInReflDir);
-#elif PROBE_VOLUMES_L2
-        EvaluateAPVL1L2(apvSample, normalWS, bakeDiffuseLighting);
-        EvaluateAPVL1L2(apvSample, backNormalWS, backBakeDiffuseLighting);
-        EvaluateAPVL1L2(apvSample, reflDir, lightingInReflDir);
-#endif
-
-        bakeDiffuseLighting += apvSample.L0;
-        backBakeDiffuseLighting += apvSample.L0;
-        lightingInReflDir += apvSample.L0;
-    }
-    else
-    {
-        bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
-        backBakeDiffuseLighting = EvaluateAmbientProbe(backNormalWS);
-        lightingInReflDir = -1;
-    }
+    bakeDiffuseLighting = 0;
+    backBakeDiffuseLighting = 0;
+    lightingInReflDir = 0;
 }
 
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 viewDir,
@@ -371,12 +268,6 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 {
     bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
     backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
-
-    if (_PVSamplingNoise > 0)
-    {
-        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
-        posWS += noise1D_0;
-    }
 
     APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
     EvaluateAdaptiveProbeVolume(apvSample, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
@@ -386,11 +277,6 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out floa
 {
     APVResources apvRes = FillAPVResources();
 
-    if (_PVSamplingNoise > 0)
-    {
-        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
-        posWS += noise1D_0;
-    }
 
     float3 uvw;
     if (TryToGetPoolUVW(apvRes, posWS, 0, 0, uvw))
