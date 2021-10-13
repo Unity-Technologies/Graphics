@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph
             {
                 case (int)TerrainShaders.Main:
                     pd.keywords.Add(Keywords.MainKeywords);
+                    pd.defines.Add(Defines.TerrainShader);
                     AddRPKeywords(ref pd, rpTerrainKeywords, rpTerrainDefines);
                     pd.pragmas.Add(InstancingOptions);
                     break;
@@ -93,6 +94,20 @@ namespace UnityEditor.ShaderGraph
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.Predefined,
                 scope = KeywordScope.Local,
+            };
+
+            public static KeywordDescriptor TerrainDesc = new KeywordDescriptor()
+            {
+                displayName = "Terrain Shader",
+                referenceName = "TERRAIN_ENABLED",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                scope = KeywordScope.Local,
+            };
+
+            public static DefineCollection TerrainShader = new DefineCollection
+            {
+                { TerrainDesc, 1 }
             };
 
             public static DefineCollection BasemapGen = new DefineCollection
