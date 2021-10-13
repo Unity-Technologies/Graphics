@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [DisallowMultipleRendererFeature]
-    [Tooltip("The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other.")]
+    [Tooltip("Draw a fullscreen effect on screen using the material in parameter.")]
     internal class DrawFullscreenPass : ScriptableRendererFeature
     {
         // Serialized Fields
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            bool shouldAdd = m_FullscreenPass.Setup(m_Settings, renderer);
+            bool shouldAdd = m_FullscreenPass.Setup(m_Settings, renderer, name);
             if (shouldAdd)
             {
                 renderer.EnqueuePass(m_FullscreenPass);
@@ -63,48 +63,17 @@ namespace UnityEngine.Rendering.Universal
             RenderTargetIdentifier m_Source;
             RenderTargetIdentifier m_Destination;
             RenderTargetIdentifier m_Temp;
-            // private RenderTargetIdentifier m_SSAOTexture1Target = new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1);
-            // private RenderTextureDescriptor m_AOPassDescriptor;
+            string m_ProfilerTagName;
 
-            // Statics
-            // private static readonly int s_BaseMapID = Shader.PropertyToID("TODO");
-
-            internal bool Setup(DrawFullscreenSettings featureSettings, ScriptableRenderer renderer)
+            internal bool Setup(DrawFullscreenSettings featureSettings, ScriptableRenderer renderer, string profilerTagName)
             {
                 m_Renderer = renderer;
                 m_Settings = featureSettings;
-
-                // DrawFullscreenSettings.DepthSource source;
-                // if (isRendererDeferred)
-                // {
-                //     renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
-                //     source = DrawFullscreenSettings.DepthSource.DepthNormals;
-                // }
-                // else
-                // {
-                //     // Rendering after PrePasses is usually correct except when depth priming is in play:
-                //     // then we rely on a depth resolve taking place after the PrePasses in order to have it ready for SSAO.
-                //     // Hence we set the event to RenderPassEvent.AfterRenderingPrePasses + 1 at the earliest.
-                //     renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses + 1;
-                //     source = m_CurrentSettings.Source;
-                // }
+                m_ProfilerTagName = profilerTagName;
 
                 ConfigureInput(ScriptableRenderPassInput.Depth);
-
                 // TODO: add an option to request normals
                 ConfigureInput(ScriptableRenderPassInput.Normal);
-
-                // switch (source)
-                // {
-                //     case DrawFullscreenSettings.DepthSource.Depth:
-                //         ConfigureInput(ScriptableRenderPassInput.Depth);
-                //         break;
-                //     case DrawFullscreenSettings.DepthSource.DepthNormals:
-                //         ConfigureInput(ScriptableRenderPassInput.Normal);// need depthNormal prepass for forward-only geometry
-                //         break;
-                //     default:
-                //         throw new ArgumentOutOfRangeException();
-                // }
 
                 return m_Settings.blitMaterial != null
                     && m_Settings.blitMaterial.passCount > m_Settings.blitMaterialPassIndex
@@ -142,17 +111,6 @@ namespace UnityEngine.Rendering.Universal
                     cmd.GetTemporaryRT(k_TemporaryRTId, blitTargetDescriptor, FilterMode.Bilinear);
                     m_Temp = new RenderTargetIdentifier(k_TemporaryRTId);
                 }
-                // else if (m_Settings.destinationType == BufferType.CameraColor)
-                // {
-                //     destinationId = -1;
-                //     destination = renderer.cameraColorTarget;
-                // }
-                // else
-                // {
-                //     destinationId = Shader.PropertyToID(m_Settings.destinationTextureId);
-                //     cmd.GetTemporaryRT(destinationId, blitTargetDescriptor, filterMode);
-                //     destination = new RenderTargetIdentifier(destinationId);
-                // }
 
                 // Configure targets and clear color
                 // TODO: we can also write to custom?
@@ -167,20 +125,17 @@ namespace UnityEngine.Rendering.Universal
             /// <inheritdoc/>
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
-                CommandBuffer cmd = CommandBufferPool.Get();
+                CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTagName);
 
-                using (new ProfilingScope(cmd, m_ProfilingSampler))
+                // Can't read and write to same color target, create a temp render target to blit.
+                if (m_IsSourceAndDestinationSameTarget)
                 {
-                    // Can't read and write to same color target, create a temp render target to blit.
-                    if (m_IsSourceAndDestinationSameTarget)
-                    {
-                        Blit(cmd, m_Source, m_Temp, m_Settings.blitMaterial, m_Settings.blitMaterialPassIndex);
-                        Blit(cmd, m_Temp, m_Destination);
-                    }
-                    else
-                    {
-                        Blit(cmd, m_Source, m_Destination, m_Settings.blitMaterial, m_Settings.blitMaterialPassIndex);
-                    }
+                    Blit(cmd, m_Source, m_Temp, m_Settings.blitMaterial, m_Settings.blitMaterialPassIndex);
+                    Blit(cmd, m_Temp, m_Destination);
+                }
+                else
+                {
+                    Blit(cmd, m_Source, m_Destination, m_Settings.blitMaterial, m_Settings.blitMaterialPassIndex);
                 }
 
                 context.ExecuteCommandBuffer(cmd);

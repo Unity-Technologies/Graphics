@@ -380,6 +380,10 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             var interfaces = nodeType.GetInterfaces();
             bool allowed = true;
 
+            // Subgraph nodes inherits all the interfaces including vertex ones.
+            if (nodeType == typeof(SubGraphNode))
+                return true;
+
             // There is no input in the vertex block for now
             if (interfaces.Contains(typeof(IMayRequireVertexID)))
                 allowed = false;
