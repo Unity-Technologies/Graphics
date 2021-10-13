@@ -419,14 +419,14 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
 int GetTileClass(float2 sampleTC, float centerCoC)
 {
     float4 cocRanges = LOAD_TEXTURE2D_X(_TileList, ResScale * sampleTC / TILE_RES);
-    float minRadius = min(cocRanges.x, -cocRanges.z);
+    float minRadius = min(abs(cocRanges.x), -cocRanges.z);
     float maxRadius = max(abs(cocRanges.y), -cocRanges.w);
 
     if (minRadius < 1 && maxRadius < 1)
         return FAST_INFOCUS_TILE;
-    if (minRadius < 1 && maxRadius > 1)
-        return SLOW_INFOCUS_TILE;
-    return FAST_DEFOCUS_TILE;
+    if (minRadius > 2.5 || maxRadius > 2.5)
+        return FAST_DEFOCUS_TILE;
+    return SLOW_INFOCUS_TILE;
 }
 
 void DebugTiles(float2 sampleTC, float CoC, inout float3 output)
