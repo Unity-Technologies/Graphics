@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added a SG node to get the main directional light direction.
+- Added support for orthographic camera in path tracing.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
@@ -24,8 +25,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decal position when created from context menu. (case 1368987)
 - Fixed the clouds not taking properly into account the fog when in distant mode and with a close far plane (case 1367993).
 - Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
+- Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
+- Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
+- Fixed the volumetric clouds debug view not taking into account the exposure and leading to Nans (case 1365054).
+- Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
+- Fixed area light cookie field to use the same style as the other cookie fields
+- Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
+- Fixed the cloudlayer not using depth buffer.
 
 ## [13.0.0] - 2021-09-01
+
+### Added
+- Added public API to edit materials from script at runtime.
 
 ### Fixed
 - Fixed impossibility to release the cursor in the template.
