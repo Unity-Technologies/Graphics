@@ -250,25 +250,29 @@ namespace UnityEditor.VFX.UI
         void SyncAnchors()
         {
             Profiler.BeginSample("VFXNodeUI.SyncAnchors");
-            SyncAnchors(controller.inputPorts, inputContainer, controller.HasActivationAnchor);
-            SyncAnchors(controller.outputPorts, outputContainer, false);
+            SyncAnchors(controller.inputPorts, inputContainer, true, controller.HasActivationAnchor);
+            SyncAnchors(controller.outputPorts, outputContainer, false, false);
             Profiler.EndSample();
         }
 
-        void SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container, bool hasActivationPort)
+        void SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container, bool checkActivationPort, bool hasActivationPort)
         {
-            var existingActivationAnchor = titleContainer.childCount > 0 && titleContainer[0] is VFXDataAnchor ? titleContainer[0] as VFXDataAnchor : null;
+            var existingActivationAnchor = checkActivationPort && titleContainer.childCount > 0 && titleContainer[0] is VFXDataAnchor ? titleContainer[0] as VFXDataAnchor : null;
             int containerOffset = hasActivationPort ? 1 : 0;
 
             // Check whether resync is needed
             bool needsResync = false;
-            if (ports.Count != container.childCount + containerOffset)
+            if (ports.Count != container.childCount + (existingActivationAnchor != null ? 1 : 0)) // first check expected number match
                 needsResync = true;
             else
             {
-                for (int i = 0; i < ports.Count; ++i)
+                for (int i = 0; i < ports.Count; ++i) // Then compare expected anchor one by one
                 {
                     VFXDataAnchor anchor = (i == 0 && hasActivationPort) ? existingActivationAnchor : container[i - containerOffset] as VFXDataAnchor;
+
+                    if (ports[i] == null)
+                        throw new NullReferenceException("VFXDataAnchorController should not be null at index " + i);
+
                     if (anchor?.controller != ports[i])
                     {
                         needsResync = true;
@@ -310,7 +314,7 @@ namespace UnityEditor.VFX.UI
                 // delete no longer used anchors
                 foreach (var anchor in existingAnchors.Values)
                 {
-                    GetFirstAncestorOfType<VFXView>().RemoveAnchorEdges(anchor);
+                    GetFirstAncestorOfType<VFXView>()?.RemoveAnchorEdges(anchor);
                     anchor.parent?.Remove(anchor);
                 }
             }       
