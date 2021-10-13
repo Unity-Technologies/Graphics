@@ -7,7 +7,7 @@ Shader "Hidden/Universal Render Pipeline/CopyDepth"
         Pass
         {
             Name "CopyDepth"
-            ZTest Always ZWrite On ColorMask R
+            ZTest Always ZWrite On
             Cull Off
 
             HLSLPROGRAM
