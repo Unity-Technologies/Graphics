@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (m_DeferredLights.UseRenderPass)
+            if (m_DeferredLights != null && m_DeferredLights.UseRenderPass)
             {
                 if (m_GbufferAttachments == null)
                     m_GbufferAttachments = new RenderTargetIdentifier[]
