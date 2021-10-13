@@ -189,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 BlueNoise blueNoise = GetBlueNoiseManager();
                 passData.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
-                passData.offsetBuffer = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+                passData.offsetBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
                 passData.lightList = builder.ReadComputeBuffer(lightList);
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
@@ -451,7 +451,7 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (GetIndirectDiffuseMode(hdCamera))
             {
                 case IndirectDiffuseMode.ScreenSpace:
-                    result = RenderSSGI(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, m_ShaderVariablesRayTracingCB, GetDepthBufferMipChainInfo(), lightList);
+                    result = RenderSSGI(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, m_ShaderVariablesRayTracingCB, hdCamera.depthBufferMipChainInfo, lightList);
                     break;
 
                 case IndirectDiffuseMode.Raytrace:
