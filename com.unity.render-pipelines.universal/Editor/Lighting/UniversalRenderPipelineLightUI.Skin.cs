@@ -7,8 +7,6 @@ namespace UnityEditor.Rendering.Universal
     {
         static class Styles
         {
-            public static readonly GUIContent lightCookieHeader = new GUIContent("Light Cookie");
-
             public static readonly GUIContent Type = EditorGUIUtility.TrTextContent("Type", "Specifies the current type of light. Possible types are Directional, Spot, Point, and Area lights.");
 
             public static readonly GUIContent AreaLightShapeContent = EditorGUIUtility.TrTextContent("Shape", "Specifies the shape of the Area light. Possible types are Rectangle and Disc.");
