@@ -20,11 +20,6 @@ VFX_URP_Linux_Vulkan_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/Linux/2560x1440.bin --output 2560x1440.bin
-         retries: 2
-      -  command: sudo rm /etc/edid.txt
-      -  command: sudo mv 2560x1440.bin /etc/edid.txt
-      -  command: sudo pkill Xorg && sudo systemctl restart gdm3
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -94,11 +89,6 @@ VFX_URP_Linux_Vulkan_Standalone_PerformanceTests_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/Linux/2560x1440.bin --output 2560x1440.bin
-         retries: 2
-      -  command: sudo rm /etc/edid.txt
-      -  command: sudo mv 2560x1440.bin /etc/edid.txt
-      -  command: sudo pkill Xorg && sudo systemctl restart gdm3
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -312,11 +302,6 @@ VFX_URP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/Linux/2560x1440.bin --output 2560x1440.bin
-         retries: 2
-      -  command: sudo rm /etc/edid.txt
-      -  command: sudo mv 2560x1440.bin /etc/edid.txt
-      -  command: sudo pkill Xorg && sudo systemctl restart gdm3
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -386,11 +371,6 @@ VFX_URP_Linux_Vulkan_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/Linux/2560x1440.bin --output 2560x1440.bin
-         retries: 2
-      -  command: sudo rm /etc/edid.txt
-      -  command: sudo mv 2560x1440.bin /etc/edid.txt
-      -  command: sudo pkill Xorg && sudo systemctl restart gdm3
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr

@@ -4,9 +4,8 @@ project:
 jobs:
   - name: Affected jobs
     dependencies:
-      - .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
-      - .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
-      - .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
-      - .yamato/vfx_hdrp-linux-vulkan.yml#VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
-      - .yamato/vfx_hdrp-linux-vulkan.yml#VFX_HDRP_Linux_Vulkan_Standalone_PerformanceTests_mono_Linear_<TRACK>
-      - .yamato/vfx_urp-linux-vulkan.yml#VFX_URP_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
+      - .yamato/urp_lighting-linux-vulkan.yml#URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
+      - .yamato/urp_postpro-linux-vulkan.yml#URP_PostPro_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
+      - .yamato/urp_2d-linux-vulkan.yml#URP_2D_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
+      - .yamato/urp_terrain-linux-vulkan.yml#URP_Terrain_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
+      - .yamato/urp_foundation-linux-vulkan.yml#URP_Foundation_Linux_Vulkan_Standalone_mono_Linear_<TRACK>
