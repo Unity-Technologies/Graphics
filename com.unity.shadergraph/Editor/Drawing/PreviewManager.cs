@@ -410,24 +410,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // record guids for any texture properties
                     if ((previewProperty.propType >= PropertyType.Texture2D) && (previewProperty.propType <= PropertyType.Cubemap))
                     {
-   
-                        if (previewProperty.propType!= PropertyType.Cubemap )
+
+                        if (previewProperty.propType != PropertyType.Cubemap)
                         {
-                            if(previewProperty.textureValue != null)
-                            if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(previewProperty.textureValue, out string guid, out long localID))
-                            {
-                                // Note, this never gets cleared, so we accumulate texture GUIDs over time, if the user keeps changing textures
-                                m_PreviewTextureGUIDs.Add(guid);
-                            }
+                            if (previewProperty.textureValue != null)
+                                if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(previewProperty.textureValue, out string guid, out long localID))
+                                {
+                                    // Note, this never gets cleared, so we accumulate texture GUIDs over time, if the user keeps changing textures
+                                    m_PreviewTextureGUIDs.Add(guid);
+                                }
                         }
                         else
                         {
                             if (previewProperty.cubemapValue != null)
                                 if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(previewProperty.cubemapValue, out string guid, out long localID))
-                            {
-                               //    // Note, this never gets cleared, so we accumulate texture GUIDs over time, if the user keeps changing textures
-                                m_PreviewTextureGUIDs.Add(guid);
-                            }
+                                {
+                                    //    // Note, this never gets cleared, so we accumulate texture GUIDs over time, if the user keeps changing textures
+                                    m_PreviewTextureGUIDs.Add(guid);
+                                }
                         }
 
                     }
