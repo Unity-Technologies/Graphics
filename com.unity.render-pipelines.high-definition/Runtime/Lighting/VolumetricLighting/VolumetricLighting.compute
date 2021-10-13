@@ -480,6 +480,9 @@ float3 EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0
     // for L0 term it'd just cancel out as both are just constant factors.
     EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS), posInput.positionSS, apvDiffuseGI);
 
+    const float cornetteShanksZonalHarmonicL0 = sqrt(4.0f * PI);
+    weight *= PI * cornetteShanksZonalHarmonicL0;
+
     // It is possible that some invalid probes are sampled due to how APV is laying the probes
     // For now the safest way is to ignore the NaN data when sampled.
     if (AnyIsNaN(apvDiffuseGI))
