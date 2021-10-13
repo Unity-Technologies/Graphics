@@ -51,7 +51,7 @@ namespace UnityEditor.VFX
             get { return Enumerable.Empty<string>(); }
         }
 
-        public static VFXData CreateDataType(VFXGraph graph, VFXDataType type)
+        public static VFXData CreateDataType(VFXDataType type)
         {
             VFXData newVFXData;
             switch (type)
@@ -71,7 +71,6 @@ namespace UnityEditor.VFX
                     break;
                 default: return null;
             }
-            newVFXData.m_Parent = graph;
             return newVFXData;
         }
 
@@ -108,15 +107,17 @@ namespace UnityEditor.VFX
                     owner.Invalidate(owner, cause);
         }
 
+        public override VFXGraph GetGraph()
+        {
+            if (m_Owners.Count > 0)
+                return m_Owners[0].GetGraph();
+            return null;
+        }
+
         public override void Sanitize(int version)
         {
             base.Sanitize(version);
-
-            if (m_Parent == null)
-            {
-                string assetPath = AssetDatabase.GetAssetPath(this);
-                m_Parent = VisualEffectResource.GetResourceAtPath(assetPath).GetOrCreateGraph();
-            }
+            m_Parent = null;
         }
 
         public abstract void CopySettings<T>(T dst) where T : VFXData;
@@ -139,16 +140,6 @@ namespace UnityEditor.VFX
             VFXSystemNames systemNames = null)
         {
             // Empty implementation by default
-        }
-
-        public void OnRegisteredContextHasBeenAdded(VFXContext context)
-        {
-            if (!m_Owners.Contains(context))
-                throw new InvalidOperationException(string.Format("Unexpected OnRegisterContextHasBeenAdded from context {0} to {1}", context, this));
-
-            var newGraphParent = context.GetGraph();
-            if (newGraphParent != null && m_Parent != newGraphParent)
-                m_Parent = newGraphParent;
         }
 
         // Never call this directly ! Only context must call this through SetData

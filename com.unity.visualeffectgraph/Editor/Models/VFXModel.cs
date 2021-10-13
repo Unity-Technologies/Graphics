@@ -490,7 +490,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        public VFXGraph GetGraph()
+        public virtual VFXGraph GetGraph()
         {
             var graph = this as VFXGraph;
             if (graph != null)

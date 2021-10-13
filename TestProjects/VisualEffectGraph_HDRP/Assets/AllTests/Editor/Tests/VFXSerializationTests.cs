@@ -885,19 +885,21 @@ namespace UnityEditor.VFX.Test
             InnerSaveAndReloadTest("AttributeParameter", write, read);
         }
 
-        //Cover unexpected missing parent : 1370626
+        //Cover unexpected inconsistent parent : 1370626
         [Test]
-        public void Verify_Context_And_Data_Parent_Are_Correctly_Referring_To_Graph()
+        public void Verify_Context_And_Data_Parent_Are_Correctly_Referring_To_Null()
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             graph.AddChild(spawnerContext);
 
             Assert.AreEqual(spawnerContext.GetParent(), graph);
+            Assert.AreEqual(spawnerContext.GetGraph(), graph);
 
             var data = spawnerContext.GetData();
             Assert.AreNotEqual(data, null);
-            Assert.AreEqual(data.GetParent(), graph);
+            Assert.AreEqual(data.GetParent(), null);
+            Assert.AreEqual(data.GetGraph(), graph);
         }
 
         //Cover unexpected behavior : 1307562

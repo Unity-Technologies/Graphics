@@ -234,10 +234,6 @@ namespace UnityEditor.VFX
         {
             base.OnAdded();
 
-            var data = GetData();
-            if (data != null)
-                data.OnRegisteredContextHasBeenAdded(this);
-
             if (hasBeenCompiled || CanBeCompiled())
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
@@ -410,7 +406,7 @@ namespace UnityEditor.VFX
 
         public void SetDefaultData(bool notify)
         {
-            InnerSetData(VFXData.CreateDataType(GetGraph(), ownedType), notify);
+            InnerSetData(VFXData.CreateDataType(ownedType), notify);
         }
 
         public virtual void OnDataChanges(VFXData oldData, VFXData newData)
