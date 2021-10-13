@@ -1,0 +1,21 @@
+#pragma kernel CopyRawBuffer
+
+ByteAddressBuffer _InputBuffer;
+RWByteAddressBuffer _OutputBuffer;
+
+int _InputOffset;
+int _OutputOffset;
+int _ItemCounts; 
+
+[numthreads(64,1,1)]
+void CopyRawBuffer(int3 dispatchThreadID : SV_DispatchThreadID)
+{
+    int bufferItemIndex = dispatchThreadID.x;
+    if (bufferItemIndex > _ItemCounts)
+        return;
+
+    int byteInputAddress = (_InputOffset + bufferItemIndex) << 2;
+    int byteOutputIndex = (_OutputOffset + bufferItemIndex) << 2;
+    _OutputBuffer.Store(byteInputAddress, _InputBuffer.Load(byteOutputIndex));
+}
+

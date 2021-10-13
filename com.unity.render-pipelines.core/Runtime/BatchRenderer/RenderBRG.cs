@@ -138,6 +138,8 @@ public unsafe class RenderBRG : MonoBehaviour
     private NativeArray<int> m_drawIndices;
     private NativeArray<DrawRenderer> m_renderers;
 
+    private GpuGeometryPool m_GPUGeometryPool;
+
     public static T* Malloc<T>(int count) where T : unmanaged
     {
         return (T*)UnsafeUtility.Malloc(
@@ -360,6 +362,8 @@ public unsafe class RenderBRG : MonoBehaviour
             return;
 
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
+        m_GPUGeometryPool = new GpuGeometryPool();
+        m_GPUGeometryPool.Initialize();
 
         // Create a batch...
         var renderers = FindObjectsOfType<MeshRenderer>();
@@ -466,7 +470,7 @@ public unsafe class RenderBRG : MonoBehaviour
             // Renderer bounds
             var transformedBounds = AABB.Transform(m, meshFilter.sharedMesh.bounds.ToAABB());
             m_renderers[i] = new DrawRenderer { bounds = transformedBounds };
-
+            m_GPUGeometryPool.RegisterMesh(meshFilter.sharedMesh);
             var mesh = m_BatchRendererGroup.RegisterMesh(meshFilter.sharedMesh);
 
             // Different renderer settings? -> new draw range
