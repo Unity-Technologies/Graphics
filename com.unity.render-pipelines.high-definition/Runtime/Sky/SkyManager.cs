@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -75,6 +76,29 @@ namespace UnityEngine.Rendering.HighDefinition
         public static RenderTargetIdentifier nullRT = -1;
         /// <summary>Index of the current cubemap face to render (Unknown for texture2D).</summary>
         public CubemapFace cubemapFace = CubemapFace.Unknown;
+
+        /// <summary>
+        /// Copy content of this BuiltinSkyParameters to another instance.
+        /// </summary>
+        /// <param name="other">Other instance to copy to.</param>
+        public void CopyTo(BuiltinSkyParameters other)
+        {
+            other.hdCamera = hdCamera;
+            other.pixelCoordToViewDirMatrix = pixelCoordToViewDirMatrix;
+            other.worldSpaceCameraPos = worldSpaceCameraPos;
+            other.viewMatrix = viewMatrix;
+            other.screenSize = screenSize;
+            other.commandBuffer = commandBuffer;
+            other.sunLight = sunLight;
+            other.colorBuffer = colorBuffer;
+            other.depthBuffer = depthBuffer;
+            other.frameIndex = frameIndex;
+            other.skySettings = skySettings;
+            other.cloudSettings = cloudSettings;
+            other.volumetricClouds = volumetricClouds;
+            other.debugSettings = debugSettings;
+            other.cubemapFace = cubemapFace;
+        }
     }
 
     /// <summary>
@@ -297,17 +321,31 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.UpdateCurrentSky(this);
         }
 
-        void SetGlobalSkyData(CommandBuffer cmd, HDCamera hdCamera)
+        class SetGlobalSkyDataPassData
         {
-            if (IsCachedContextValid(hdCamera.lightingSky))
+            public BuiltinSkyParameters builtinParameters = new BuiltinSkyParameters();
+            public SkyRenderer skyRenderer;
+        }
+
+        void SetGlobalSkyData(RenderGraph renderGraph, SkyUpdateContext skyContext)
+        {
+            if (IsCachedContextValid(skyContext) && skyContext.skyRenderer != null)
             {
-                var renderer = hdCamera.lightingSky.skyRenderer;
-                if (renderer != null)
+                using (var builder = renderGraph.AddRenderPass<SetGlobalSkyDataPassData>("SetGlobalSkyData", out var passData))
                 {
-                    m_BuiltinParameters.skySettings = hdCamera.lightingSky.skySettings;
-                    m_BuiltinParameters.cloudSettings = hdCamera.lightingSky.cloudSettings;
-                    m_BuiltinParameters.volumetricClouds = hdCamera.lightingSky.volumetricClouds;
-                    renderer.SetGlobalSkyData(cmd, m_BuiltinParameters);
+                    builder.AllowPassCulling(false);
+
+                    m_BuiltinParameters.CopyTo(passData.builtinParameters);
+                    passData.skyRenderer = skyContext.skyRenderer;
+                    passData.builtinParameters.skySettings = skyContext.skySettings;
+                    passData.builtinParameters.cloudSettings = skyContext.cloudSettings;
+                    passData.builtinParameters.volumetricClouds = skyContext.volumetricClouds;
+
+                    builder.SetRenderFunc(
+                    (SetGlobalSkyDataPassData data, RenderGraphContext ctx) =>
+                    {
+                        data.skyRenderer.SetGlobalSkyData(ctx.cmd, data.builtinParameters);
+                    });
                 }
             }
         }
@@ -573,43 +611,69 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderSkyToCubemap(SkyUpdateContext skyContext)
+        class RenderSkyToCubemapPassData
         {
-            using (new ProfilingScope(m_BuiltinParameters.commandBuffer, ProfilingSampler.Get(HDProfileId.RenderSkyToCubemap)))
+            public BuiltinSkyParameters builtinParameters = new BuiltinSkyParameters();
+            public SkyRenderer skyRenderer;
+            public CloudRenderer cloudRenderer;
+            public Matrix4x4[] cameraViewMatrices;
+            public Matrix4x4[] facePixelCoordToViewDirMatrices;
+            public bool includeSunInBaking;
+            public TextureHandle output;
+        }
+
+        void RenderSkyToCubemap(RenderGraph renderGraph, SkyUpdateContext skyContext)
+        {
+            var renderingContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId].renderingContext;
+            var volumetricClouds = skyContext.volumetricClouds;
+
+            // TODO: Currently imported and not temporary only because of enlighten and the baking back-end requiring this texture instead of a more direct API.
+            var outputCubemap = renderGraph.ImportTexture(renderingContext.skyboxCubemapRT);
+
+            using (var builder = renderGraph.AddRenderPass<RenderSkyToCubemapPassData>("Render Sky To Cubemap", out var passData, ProfilingSampler.Get(HDProfileId.RenderSkyToCubemap)))
             {
-                var renderingContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId].renderingContext;
-                var skyRenderer = skyContext.skyRenderer;
-                var cloudRenderer = skyContext.cloudRenderer;
-                var volumetricClouds = skyContext.volumetricClouds;
+                m_BuiltinParameters.CopyTo(passData.builtinParameters);
+                passData.skyRenderer = skyContext.skyRenderer;
+                passData.cloudRenderer = skyContext.cloudRenderer;
+                passData.cameraViewMatrices = m_CameraRelativeViewMatrices;
+                passData.facePixelCoordToViewDirMatrices = m_facePixelCoordToViewDirMatrices;
+                passData.includeSunInBaking = skyContext.skySettings.includeSunInBaking.value;
+                passData.output = builder.WriteTexture(outputCubemap);
 
-                for (int i = 0; i < 6; ++i)
+                builder.SetRenderFunc(
+                (RenderSkyToCubemapPassData data, RenderGraphContext ctx) =>
                 {
-                    m_BuiltinParameters.pixelCoordToViewDirMatrix = m_facePixelCoordToViewDirMatrices[i];
-                    m_BuiltinParameters.viewMatrix = m_CameraRelativeViewMatrices[i];
-                    m_BuiltinParameters.colorBuffer = renderingContext.skyboxCubemapRT;
-                    m_BuiltinParameters.depthBuffer = null;
-                    m_BuiltinParameters.cubemapFace = (CubemapFace)i;
+                    data.builtinParameters.commandBuffer = ctx.cmd;
 
-                    CoreUtils.SetRenderTarget(m_BuiltinParameters.commandBuffer, renderingContext.skyboxCubemapRT, ClearFlag.None, 0, (CubemapFace)i);
-                    skyRenderer.RenderSky(m_BuiltinParameters, true, skyContext.skySettings.includeSunInBaking.value);
-                    if (cloudRenderer != null)
-                        cloudRenderer.RenderClouds(m_BuiltinParameters, true);
-                }
+                    for (int i = 0; i < 6; ++i)
+                    {
+                        data.builtinParameters.pixelCoordToViewDirMatrix = data.facePixelCoordToViewDirMatrices[i];
+                        data.builtinParameters.viewMatrix = data.cameraViewMatrices[i];
+                        data.builtinParameters.colorBuffer = data.output;
+                        data.builtinParameters.depthBuffer = null;
+                        data.builtinParameters.cubemapFace = (CubemapFace)i;
 
-                // Render the volumetric clouds into the cubemap
-                if (volumetricClouds != null)
-                {
-                    // The volumetric clouds explicitly rely on the physically based sky. We need to make sure that the sun textures are properly bound.
-                    // Unfortunately, the global binding happens too late, so we need to bind it here.
-                    skyRenderer.SetGlobalSkyData(m_BuiltinParameters.commandBuffer, m_BuiltinParameters);
-                    HDRenderPipeline.currentPipeline.RenderVolumetricClouds_Sky(m_BuiltinParameters.commandBuffer, m_BuiltinParameters.hdCamera, m_facePixelCoordToViewDirMatrices,
-                        m_BuiltinParameters.volumetricClouds, (int)m_BuiltinParameters.screenSize.x, (int)m_BuiltinParameters.screenSize.y, renderingContext.skyboxCubemapRT);
-                }
-
-                // Generate mipmap for our cubemap
-                Debug.Assert(renderingContext.skyboxCubemapRT.rt.autoGenerateMips == false);
-                m_BuiltinParameters.commandBuffer.GenerateMips(renderingContext.skyboxCubemapRT);
+                        CoreUtils.SetRenderTarget(ctx.cmd, data.output, ClearFlag.None, 0, (CubemapFace)i);
+                        data.skyRenderer.RenderSky(data.builtinParameters, true, data.includeSunInBaking);
+                        if (data.cloudRenderer != null)
+                            data.cloudRenderer.RenderClouds(data.builtinParameters, true);
+                    }
+                });
             }
+
+            // Render the volumetric clouds into the cubemap
+            if (skyContext.volumetricClouds != null)
+            {
+                // The volumetric clouds explicitly rely on the physically based sky. We need to make sure that the sun textures are properly bound.
+                // Unfortunately, the global binding happens too late, so we need to bind it here.
+                SetGlobalSkyData(renderGraph, skyContext);
+                HDRenderPipeline.currentPipeline.RenderVolumetricClouds_Sky(m_BuiltinParameters.commandBuffer, m_BuiltinParameters.hdCamera, m_facePixelCoordToViewDirMatrices,
+                    m_BuiltinParameters.volumetricClouds, (int)m_BuiltinParameters.screenSize.x, (int)m_BuiltinParameters.screenSize.y, renderingContext.skyboxCubemapRT);
+            }
+
+            // Generate mipmap for our cubemap
+            Debug.Assert(renderingContext.skyboxCubemapRT.rt.autoGenerateMips == false);
+            m_BuiltinParameters.commandBuffer.GenerateMips(renderingContext.skyboxCubemapRT);
         }
 
         void RenderCubemapGGXConvolution(SkyUpdateContext skyContext)
@@ -807,24 +871,24 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RequireWaitForAsyncReadBackRequest = true;
         }
 
-        public void UpdateEnvironment(HDCamera hdCamera,
-            ScriptableRenderContext renderContext,
+        public void UpdateEnvironment(
+            RenderGraph renderGraph,
+            HDCamera hdCamera,
             SkyUpdateContext skyContext,
             Light sunLight,
             bool updateRequired,
             bool updateAmbientProbe,
             bool staticSky,
-            SkyAmbientMode ambientMode,
-            CommandBuffer cmd)
+            SkyAmbientMode ambientMode)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateEnvironment)))
+            if (skyContext.IsValid())
             {
-                if (skyContext.IsValid())
+                using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.UpdateEnvironment)))
                 {
                     skyContext.currentUpdateTime += hdCamera.deltaTime;
 
+                    m_BuiltinParameters.commandBuffer = null;
                     m_BuiltinParameters.hdCamera = hdCamera;
-                    m_BuiltinParameters.commandBuffer = cmd;
                     m_BuiltinParameters.sunLight = sunLight;
                     m_BuiltinParameters.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
                     Vector3 worldSpaceCameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
@@ -877,72 +941,68 @@ namespace UnityEngine.Rendering.HighDefinition
                         (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
                         (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
                     {
-                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyEnvironment)))
+                        RenderSkyToCubemap(renderGraph, skyContext);
+
+                        if (updateAmbientProbe)
                         {
-                            // Debug.Log("Update Sky Lighting");
-                            RenderSkyToCubemap(skyContext);
-
-                            if (updateAmbientProbe)
+                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
                             {
-                                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
-                                {
-                                    cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
-                                    cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
-                                    cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
-                                    cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
+                                cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
+                                cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
+                                cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
+                                cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
 
-                                    // When the profiler is enabled, we don't want to submit the render context because
-                                    // it will break all the profiling sample Begin() calls issued previously, which leads
-                                    // to profiling sample mismatch errors in the console.
-                                    if (!UnityEngine.Profiling.Profiler.enabled)
+                                // When the profiler is enabled, we don't want to submit the render context because
+                                // it will break all the profiling sample Begin() calls issued previously, which leads
+                                // to profiling sample mismatch errors in the console.
+                                if (!UnityEngine.Profiling.Profiler.enabled)
+                                {
+                                    // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
+                                    // otherwise ambient probe isn't correct for one frame.
+                                    if (m_RequireWaitForAsyncReadBackRequest)
                                     {
-                                        // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
-                                        // otherwise ambient probe isn't correct for one frame.
-                                        if (m_RequireWaitForAsyncReadBackRequest)
-                                        {
-                                            cmd.WaitAllAsyncReadbackRequests();
-                                            renderContext.ExecuteCommandBuffer(cmd);
-                                            CommandBufferPool.Release(cmd);
-                                            renderContext.Submit();
-                                            cmd = CommandBufferPool.Get();
-                                            m_RequireWaitForAsyncReadBackRequest = false;
-                                        }
+                                        cmd.WaitAllAsyncReadbackRequests();
+                                        renderContext.ExecuteCommandBuffer(cmd);
+                                        CommandBufferPool.Release(cmd);
+                                        renderContext.Submit();
+                                        cmd = CommandBufferPool.Get();
+                                        m_RequireWaitForAsyncReadBackRequest = false;
                                     }
                                 }
                             }
+                        }
 
-                            if (renderingContext.supportsConvolution)
-                            {
-                                RenderCubemapGGXConvolution(skyContext);
-                            }
+                        if (renderingContext.supportsConvolution)
+                        {
+                            RenderCubemapGGXConvolution(skyContext);
+                        }
 
-                            skyContext.skyParametersHash = skyHash;
-                            skyContext.currentUpdateTime = 0.0f;
+                        skyContext.skyParametersHash = skyHash;
+                        skyContext.currentUpdateTime = 0.0f;
 
 #if UNITY_EDITOR
-                            // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
-                            // Changing the hash of the rendertarget allow to say that GI is dirty
-                            renderingContext.skyboxCubemapRT.rt.imageContentsHash = new Hash128((uint)skyHash, 0, 0, 0);
+                        // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
+                        // Changing the hash of the rendertarget allow to say that GI is dirty
+                        renderingContext.skyboxCubemapRT.rt.imageContentsHash = new Hash128((uint)skyHash, 0, 0, 0);
 #endif
-                        }
                     }
                 }
-                else
+            }
+            else
+            {
+                if (skyContext.cachedSkyRenderingContextId != -1)
                 {
-                    if (skyContext.cachedSkyRenderingContextId != -1)
-                    {
-                        ReleaseCachedContext(skyContext.cachedSkyRenderingContextId);
-                        skyContext.cachedSkyRenderingContextId = -1;
-                    }
+                    ReleaseCachedContext(skyContext.cachedSkyRenderingContextId);
+                    skyContext.cachedSkyRenderingContextId = -1;
                 }
             }
         }
 
-        public void UpdateEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, Light sunLight, CommandBuffer cmd)
+        public void UpdateEnvironment(RenderGraph renderGraph, HDCamera hdCamera, Light sunLight)
         {
             SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
-            UpdateEnvironment(hdCamera, renderContext, hdCamera.lightingSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, false, ambientMode, cmd);
+            UpdateEnvironment(renderGraph, hdCamera, hdCamera.lightingSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, false, ambientMode);
 
             // Preview camera will have a different sun, therefore the hash for the static lighting sky will change and force a recomputation
             // because we only maintain one static sky. Since we don't care that the static lighting may be a bit different in the preview we never recompute
@@ -961,13 +1021,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_StaticLightingSky.skySettings = staticLightingSky != null ? staticLightingSky.skySettings : null;
                 m_StaticLightingSky.cloudSettings = staticLightingSky != null ? staticLightingSky.cloudSettings : null;
                 m_StaticLightingSky.volumetricClouds = staticLightingSky != null ? staticLightingSky.volumetricClouds : null;
-                UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired || m_UpdateRequired, true, true, SkyAmbientMode.Static, cmd);
+                UpdateEnvironment(renderGraph, hdCamera, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired || m_UpdateRequired, true, true, SkyAmbientMode.Static);
                 m_StaticSkyUpdateRequired = false;
             }
 
             m_UpdateRequired = false;
 
-            SetGlobalSkyData(cmd, hdCamera);
+            SetGlobalSkyData(renderGraph, hdCamera.lightingSky);
 
             var reflectionTexture = GetReflectionTexture(hdCamera.lightingSky);
             cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, reflectionTexture);

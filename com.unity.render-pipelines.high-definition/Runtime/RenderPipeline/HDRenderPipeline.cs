@@ -2037,13 +2037,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Configure all the keywords
                 ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
 
-                // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
-                // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-                if (!m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
-                    UpdateSkyEnvironment(hdCamera, renderContext, cmd);
-                else
-                    cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTextureArray);
-
                 VFXCameraXRSettings cameraXRSettings;
                 cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
                 cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
@@ -2530,11 +2523,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PreImageEffects);
                 renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PostImageEffects);
             }
-        }
-
-        void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetMainLight(), cmd);
         }
 
         /// <summary>
