@@ -447,4 +447,15 @@ void DebugTiles(float2 sampleTC, float CoC, inout float3 output)
     }
 }
 
+void ComposeAlpha(inout CTYPE outColor, float3 inputColor, float alpha)
+{
+#ifdef ENABLE_ALPHA
+    // Preserve the original value of the pixels with zero alpha.
+    // The second line with the lerp+smoothstep combination avoids a hard transition in edge cases
+    //outColor.xyz = outAlpha > 0 ? outColor.xyz : originalColor.xyz;
+    outColor.xyz = lerp(inputColor, outColor.xyz, smoothstep(0, 0.01, alpha));
+    outColor.w = alpha;
+#endif
+}
+
 #endif //DOF_GATHER_UTILS

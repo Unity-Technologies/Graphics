@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+- Optimizations for the physically based depth of field.
 
 ### Fixed
 - Fixed the volume not being assigned on some scene templates.

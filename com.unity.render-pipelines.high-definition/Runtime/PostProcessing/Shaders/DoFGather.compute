@@ -55,11 +55,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     DoFGatherRings(posInputs, tileData, centerSample, outColor, outAlpha);
 
 #ifdef ENABLE_ALPHA
-    // Preserve the original value of the pixels with zero alpha.
-    // The second line with the lerp+smoothstep combination avoids a hard transition in edge cases
-    //outColor.xyz = outAlpha > 0 ? outColor.xyz : originalColor.xyz;
-    outColor.xyz = lerp(centerSample.color.xyz, outColor.xyz, smoothstep(0, 0.01, outAlpha));
-    outColor.w = outAlpha;
+    ComposeAlpha(outColor, centerSample.color.xyz, outAlpha);
 #endif
 
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = (CTYPE) outColor;

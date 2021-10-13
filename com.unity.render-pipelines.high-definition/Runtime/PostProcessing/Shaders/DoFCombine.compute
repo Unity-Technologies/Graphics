@@ -58,7 +58,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         DoFGatherRings(posInputs, tileData, centerSample, outColor, outAlpha);
         output.xyz = outColor.xyz;
 #ifdef ENABLE_ALPHA
-        output.w = outAlpha;
+        ComposeAlpha(output, centerSample.color.xyz, outAlpha);
 #endif
         break;
     case FAST_DEFOCUS_TILE:
