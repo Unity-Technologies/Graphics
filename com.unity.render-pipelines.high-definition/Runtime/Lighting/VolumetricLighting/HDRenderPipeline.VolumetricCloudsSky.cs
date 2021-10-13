@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
             return new TextureDesc(skyResolution, skyResolution, false, false)
-            { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false };
+            { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = false, autoGenerateMips = false };
         }
 
         class VolumetricCloudsSkyLowPassData
@@ -286,11 +286,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4[] pixelCoordToViewDir;
         }
 
-        internal void RenderVolumetricClouds_Sky(RenderGraph renderGraph, HDCamera hdCamera, Matrix4x4[] pixelCoordToViewDir, VolumetricClouds settings, int width, int height, TextureHandle skyboxCubemap)
+        internal TextureHandle RenderVolumetricClouds_Sky(RenderGraph renderGraph, HDCamera hdCamera, Matrix4x4[] pixelCoordToViewDir, VolumetricClouds settings, int width, int height, TextureHandle skyboxCubemap)
         {
             // If the current volume does not enable the feature, quit right away.
             if (!HasVolumetricClouds(hdCamera, in settings))
-                return;
+                return TextureHandle.nullHandle;
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.FullResolutionCloudsForSky))
             {
@@ -312,6 +312,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             RenderVolumetricClouds_Sky_High(ctx.cmd, data, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
                         }
                     });
+
+                    return passData.output;
                 }
             }
             else
@@ -415,6 +417,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         }
                     });
+
+                    return passData.output;
                 }
             }
         }

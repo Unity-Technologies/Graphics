@@ -13,7 +13,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Buffers required to evaluate the probe
         internal ComputeBuffer m_CloudsAmbientProbeBuffer = null;
-        internal RTHandle m_CloudsAmbientProbeSky = null;
 
         // Structures to read back the probe from the GPU
         static SphericalHarmonicsL2 m_CloudsAmbientProbe = new SphericalHarmonicsL2();
@@ -24,13 +23,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ComputeAmbientProbeCS = m_Asset.renderPipelineResources.shaders.ambientProbeConvolutionCS;
             m_AmbientProbeConvolutionNoMipKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionNoMip");
             m_CloudsAmbientProbeBuffer = new ComputeBuffer(9 * 3, sizeof(float));
-            m_CloudsAmbientProbeSky = RTHandles.Alloc(16, 16, TextureXR.slices, dimension: TextureDimension.Cube, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true);
         }
 
         void ReleaseVolumetricCloudsAmbientProbe()
         {
             CoreUtils.SafeRelease(m_CloudsAmbientProbeBuffer);
-            RTHandles.Release(m_CloudsAmbientProbeSky);
         }
 
         // Ref: "Efficient Evaluation of Irradiance Environment Maps" from ShaderX 2
@@ -133,6 +130,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void PreRenderVolumetricClouds_AmbientProbe(RenderGraph renderGraph, HDCamera hdCamera)
         {
+            TextureHandle outputCubemap = renderGraph.CreateTexture(new TextureDesc(16, 16)
+            { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true });
+
+            outputCubemap = m_SkyManager.RenderSkyToCubemap(renderGraph, hdCamera.lightingSky, includeSunInBaking: false, renderCloudLayers: false, outputCubemap);
+
             using (var builder = renderGraph.AddRenderPass<VolumetricCloudsAmbientProbeData>("Volumetric Clouds Ambient Probe", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsAmbientProbe)))
             {
                 builder.EnableAsyncCompute(false);

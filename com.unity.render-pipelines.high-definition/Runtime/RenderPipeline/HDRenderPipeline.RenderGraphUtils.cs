@@ -10,6 +10,27 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        class GenerateMipmapsPassData
+        {
+            public TextureHandle texture;
+        }
+
+        internal static void GenerateMipmaps(RenderGraph renderGraph, TextureHandle texture)
+        {
+            using (var builder = renderGraph.AddRenderPass<GenerateMipmapsPassData>("Generate Mipmaps", out var passData))
+            {
+                passData.texture = builder.ReadWriteTexture(texture);
+
+                builder.SetRenderFunc(
+                    (GenerateMipmapsPassData data, RenderGraphContext context) =>
+                    {
+                        RTHandle tex = data.texture;
+                        Debug.Assert(tex.rt.autoGenerateMips == false);
+                        context.cmd.GenerateMips(tex);
+                    });
+            }
+        }
+
         static void DrawOpaqueRendererList(in RenderGraphContext context, in FrameSettings frameSettings, in RendererList rendererList)
         {
             DrawOpaqueRendererList(context.renderContext, context.cmd, frameSettings, rendererList);
