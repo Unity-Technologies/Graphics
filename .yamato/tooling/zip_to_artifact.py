@@ -13,10 +13,11 @@ if __name__ == "__main__":
 
     print("Working directory of zip_to_artifact: " + getcwd())
 
-    update_tests_file_path = path.join(args.root, "Assets/Resources/UpdateTests.txt")
+    # Should live at the execution root
+    update_tests_file_path = "UpdateTests.txt"
     if not path.exists(update_tests_file_path):
         print("No update file found, exiting zip script")
-        exit(1)
+        exit(0)
 
     if extra_logs:
         with open(update_tests_file_path) as f:
@@ -31,6 +32,10 @@ if __name__ == "__main__":
                     if extra_logs:
                         print("Hit end of UpdateTests.txt")
                     break
+
+                # Strip curly braces for serialized write from player
+                line.replace('{', '')
+                line.replace('}', '')
                 test_name, asset_path, should_update_image = line.split(",")
                 _, _, colorspace, editor, test_platform, vr, _, test_asset = asset_path.split("/")
 
