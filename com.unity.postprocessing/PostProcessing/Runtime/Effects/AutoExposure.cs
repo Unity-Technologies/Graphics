@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.PostProcessing
         public override void Render(PostProcessRenderContext context)
         {
             // multi pass and singlepass only has a single eye
-            int eye = (context.numberOfEyes>1) ? context.xrActiveEye : 0;
+            int eye = context.currentEye;
             var cmd = context.command;
             cmd.BeginSample("AutoExposureLookup");
 
