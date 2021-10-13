@@ -18,13 +18,14 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_GatherSingleKernel;
         int m_GatherColorKernel;
         ComputeBuffer m_PointDistribution;
-        static internal float[] pointDistribution = new float[] { -0.401568f, 0.736908f, 0.545169f, 0.70374f,
-                                                                  -0.0926581f, -0.0512353f, -0.205184f, 0.658996f,
-                                                                    0.395172f, 0.536924f, 0.104143f, -0.0627172f,
-                                                                    -0.340927f, 0.706336f, -0.535366f, 0.29603f,
-                                                                    0.210554f, 0.961527f, 0.0183195f, -0.155787f,
-                                                                    -0.0305415f, 0.99169f, 0.340054f, -0.0944995f,
-                                                                    -0.382088f, -0.142626f, -0.031496f, 0.567757f };
+        static internal float[] pointDistribution = new float[] { 0.647285104f, -0.534139216f, 0.201738372f, 0.260410696f,
+                                                                  -0.443308681f, 0.259598345f, 0.0f, 0.0f,
+                                                                    0.851900041f, 0.214261428f, 0.0376310274f, -0.406103343f,
+                                                                    -0.357411921f, -0.525219262f, -0.00147355383f, 0.239211172f,
+                                                                    -0.463947058f, 0.646911025f, -0.0379408896f, -0.291660219f,
+                                                                    0.405679494f, -0.473511368f, 0.0473965593f, 0.0411158539f,
+                                                                    -0.963973522f, -0.155723229f, -0.444706231f, 0.141471207f,
+                                                                    0.0980135575f, 0.687162697f, 0.156328082f, -0.0518609099f};
 
         public void Init(HDRenderPipelineRuntimeResources rpResources, HDRenderPipeline renderPipeline)
         {
