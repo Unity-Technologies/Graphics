@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Profiling;
@@ -250,25 +251,22 @@ namespace UnityEditor.VFX.UI
         void SyncAnchors()
         {
             Profiler.BeginSample("VFXNodeUI.SyncAnchors");
-            SyncAnchors(controller.inputPorts, inputContainer, true, controller.HasActivationAnchor);
-            SyncAnchors(controller.outputPorts, outputContainer, false, false);
+            SyncAnchors(controller.inputPorts, inputContainer, controller.HasActivationAnchor);
+            SyncAnchors(controller.outputPorts, outputContainer, false);
             Profiler.EndSample();
         }
 
-        void SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container, bool checkActivationPort, bool hasActivationPort)
+        void SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container, bool hasActivationPort)
         {
-            var existingActivationAnchor = checkActivationPort && titleContainer.childCount > 0 && titleContainer[0] is VFXDataAnchor ? titleContainer[0] as VFXDataAnchor : null;
-            int containerOffset = hasActivationPort ? 1 : 0;
-
             // Check whether resync is needed
             bool needsResync = false;
-            if (ports.Count != container.childCount + (existingActivationAnchor != null ? 1 : 0)) // first check expected number match
+            if (ports.Count != container.childCount) // first check expected number match
                 needsResync = true;
             else
             {
                 for (int i = 0; i < ports.Count; ++i) // Then compare expected anchor one by one
                 {
-                    VFXDataAnchor anchor = (i == 0 && hasActivationPort) ? existingActivationAnchor : container[i - containerOffset] as VFXDataAnchor;
+                    VFXDataAnchor anchor = container[i] as VFXDataAnchor;
 
                     if (ports[i] == null)
                         throw new NullReferenceException("VFXDataAnchorController should not be null at index " + i);
@@ -285,30 +283,35 @@ namespace UnityEditor.VFX.UI
             if (needsResync)
             {
                 var existingAnchors = container.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
-                if (existingActivationAnchor != null)
-                    existingAnchors[existingActivationAnchor.controller] = existingActivationAnchor;
-
                 container.Clear();
                 for (int i = 0; i < ports.Count; ++i)
                 {
                     VFXDataAnchor anchor = null;
-                    VFXDataAnchorController controller = ports[i];
+                    VFXDataAnchorController portController = ports[i];
 
-                    if (existingAnchors.TryGetValue(controller, out anchor))
-                        existingAnchors.Remove(controller);
+                    if (existingAnchors.TryGetValue(portController, out anchor))
+                        existingAnchors.Remove(portController);
                     else
-                        anchor = InstantiateDataAnchor(controller, this); // new anchor
+                        anchor = InstantiateDataAnchor(portController, this); // new anchor
 
                     if (hasActivationPort && i == 0) // activation anchor
-                        titleContainer.Insert(0, anchor);
+                    {
+                        var settingsCount = settingsContainer.childCount;
+                        anchor.style.top = -27 - settingsCount * 18 - (settingsCount > 0 ? 18 : 0);
+                        titleContainer.AddToClassList("activationslot");
+                        anchor.AddToClassList("activationslot");
+                    }
+
+                    if (hasActivationPort && i == 1 || !hasActivationPort && i == 0)
+                    {
+                        anchor.AddToClassList("first");
+                    }
                     else
                     {
-                        container.Add(anchor);
-                        if (i == containerOffset)
-                            anchor.AddToClassList("first");
-                        else
-                            anchor.RemoveFromClassList("first");
+                        anchor.RemoveFromClassList("first");
                     }
+
+                    container.Add(anchor);
                 }
 
                 // delete no longer used anchors
@@ -317,7 +320,7 @@ namespace UnityEditor.VFX.UI
                     GetFirstAncestorOfType<VFXView>()?.RemoveAnchorEdges(anchor);
                     anchor.parent?.Remove(anchor);
                 }
-            }       
+            }
         }
 
         public void ForceUpdate()

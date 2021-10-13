@@ -192,3 +192,8 @@ VFXContextUI #output .VFXDataAnchor.port #connector
     {
         opacity: 0.5;
     }
+
+VFXEditableDataAnchor.activationslot
+{
+    position: absolute;
+}

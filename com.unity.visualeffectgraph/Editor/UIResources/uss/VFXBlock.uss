@@ -100,3 +100,18 @@ VFXBlockUI.node > #node-border
     margin-top:0;
     margin-bottom:0;
 }
+
+#title.activationslot > #title-label
+{
+    display: none;
+}
+
+#title.activationslot > #collapse-button
+{
+    flex-grow: 1;
+}
+
+#title.activationslot > #collapse-button > #icon
+{
+    align-self: flex-end;
+}
