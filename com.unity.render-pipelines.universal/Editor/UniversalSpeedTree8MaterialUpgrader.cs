@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.Universal
         {
             context.DependsOnCustomDependency("srp/default-pipeline");
 
-            if (GraphicsSettings.renderPipelineAsset is UniversalRenderPipelineAsset)
+            if (RenderPipelineManager.currentPipeline is UniversalRenderPipeline)
             {
                 SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
                 SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, stImporter, UniversalSpeedTree8Upgrader.UniversalSpeedTree8MaterialFinalizer);
