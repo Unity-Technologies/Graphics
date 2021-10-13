@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
             else
                 m_GbufferAttachments = m_DeferredLights.GbufferAttachmentIdentifiers;
 
-            ConfigureTarget(m_GbufferAttachments, m_DeferredLights.DepthAttachmentIdentifier,  m_DeferredLights.GbufferFormats);
+            ConfigureTarget(m_GbufferAttachments, m_DeferredLights.DepthAttachmentIdentifier);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
