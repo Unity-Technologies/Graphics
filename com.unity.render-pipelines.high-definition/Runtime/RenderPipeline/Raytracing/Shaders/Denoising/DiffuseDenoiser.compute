@@ -30,7 +30,8 @@
 
 // Noisy Input Buffer
 TEXTURE2D_X(_DenoiseInputTexture);
-
+// Buffer used for point sampling
+StructuredBuffer<float2> _PointDistribution;
 // Filtered Output buffer (depends on the singel or color variant of the denoiser)
 #if SINGLE_CHANNEL
 RW_TEXTURE2D_X(float, _DenoiseOutputTextureRW);
@@ -117,15 +118,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     for (uint sampleIndex = 0; sampleIndex < (uint)numSamples; ++sampleIndex)
     {
         // Fetch the noise value for the current sample
-        float2 newSample;
-        newSample.x = GetLDSequenceSampleFloat(sampleIndex + sampleOffset, 0);
-        newSample.y = GetLDSequenceSampleFloat(sampleIndex + sampleOffset, 1);
-
-        // Convert the sample to a local unit disk
-        newSample = SampleDiskCubic(newSample.x, newSample.y);
-
-        // Distribute them according a square profile
-        newSample *= denoisingRadius;
+        float2 newSample = _PointDistribution[sampleIndex] * denoisingRadius;
 
         // Convert the point to hemogenous clip space
         float3 wsPos = center.position + localToWorld[0] * newSample.x + localToWorld[1] * newSample.y;
