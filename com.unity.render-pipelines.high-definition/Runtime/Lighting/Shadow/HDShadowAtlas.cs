@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
             { colorFormat = GraphicsFormat.R32G32B32A32_SFloat, name = m_MomentName, enableRandomWrite = true, clearColor = Color.black };
         }
 
-        TextureDesc GetAtlasDesc()
+        internal TextureDesc GetAtlasDesc()
         {
             switch (m_BlurAlgorithm)
             {
@@ -281,9 +281,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         foreach (var shadowRequest in data.shadowRequests)
                         {
-                            bool shouldSkipRequest = !shadowRequest.shouldRenderCachedComponent && data.isRenderingOnACache;
-                            //shadowRequest.shadowMapType != ShadowMapType.CascadedDirectional ? !shadowRequest.shouldRenderCachedComponent && data.isRenderingOnACache :
-                            //    !shadowRequest.shouldRenderCachedComponent && shadowRequest.shouldUseCachedShadowData;
+                            bool shouldSkipRequest =
+                            shadowRequest.shadowMapType != ShadowMapType.CascadedDirectional ? !shadowRequest.shouldRenderCachedComponent && data.isRenderingOnACache :
+                                !shadowRequest.shouldRenderCachedComponent && shadowRequest.shouldUseCachedShadowData;
+
+                            if (shadowRequest.shadowMapType == ShadowMapType.CascadedDirectional && shadowRequest.isMixedCached)
+                            {
+                                shouldSkipRequest = !shadowRequest.shouldRenderCachedComponent && data.isRenderingOnACache;
+                            }
 
                             if (shouldSkipRequest)
                                 continue;

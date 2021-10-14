@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // This is only used for mixed cached shadows and directional, don't really need any capabilities of either the dynamic and cached versions of the atlas, but instead just a render shadows capabilities and
         // a physical atlas to write to. This is updated with the same frequency as the normal cached shadows and only when we decide that we want mixed cached shadow.
         internal HDShadowAtlas directionalLightAtlas;
+        private int m_DirectionalLightCacheSize = 1;
 
         // Cache here to be able to compute resolutions.
         private HDShadowInitParameters m_InitParams;
@@ -247,10 +248,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void InitDirectionalState(HDShadowAtlas.HDShadowAtlasInitParameters atlasInitParams, bool allowMixedCachedShadows)
         {
+
+            // ----- TODO : THIS INIT PARAMS SHOWS 1x1, this assumes that the resolution is set via other means.
+
             m_AllowDirectionalMixedCached = allowMixedCachedShadows;
             // If we allow mixed cached shadows for Directional Lights we need an auxiliary texture, but no need to allocate it if we don't do mixed cached shadows.
             if (m_AllowDirectionalMixedCached)
             {
+                m_DirectionalLightCacheSize = atlasInitParams.width;
                 atlasInitParams.isShadowCache = true;
                 atlasInitParams.useSharedTexture = true;
                 directionalLightAtlas.InitAtlas(atlasInitParams);
@@ -276,6 +281,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_AllowDirectionalMixedCached;
         }
 
+        internal void UpdateDirectionalCacheTexture(RenderGraph renderGraph)
+        {
+            TextureHandle cacheHandle = directionalLightAtlas.GetOutputTexture(renderGraph);
+            var desiredDesc = directionalLightAtlas.GetAtlasDesc();
+            if (m_DirectionalLightCacheSize != desiredDesc.width)
+            {
+                renderGraph.RefreshSharedTextureDesc(cacheHandle, desiredDesc);
+                m_DirectionalLightCacheSize = desiredDesc.width;
+            }
+        }
         internal void RegisterLight(HDAdditionalLightData lightData)
         {
             HDLightType lightType = lightData.type;
