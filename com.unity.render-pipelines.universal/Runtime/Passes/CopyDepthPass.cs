@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
             ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples, false);
-            ConfigureClear(ClearFlag.Color, Color.black);
+            ConfigureClear(ClearFlag.None, Color.black);
         }
 
         /// <inheritdoc/>
