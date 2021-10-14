@@ -26,7 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
 - Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
 - Fixed the cloudlayer not using depth buffer.
-- Fxied support for orthographic camera in path tracing.
+- Fixed support for orthographic camera in path tracing.
+- Fixed crossfade not working on the HD ST8 ShaderGraph [case 1369586](https://fogbugz.unity3d.com/f/cases/1369586/)
 
 ## [12.0.0] - 2021-01-11
 
