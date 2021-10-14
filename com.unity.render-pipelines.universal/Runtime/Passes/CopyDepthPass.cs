@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;
             descriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
-            descriptor.depthBufferBits = 0;
+            descriptor.depthBufferBits = 32;
             descriptor.msaaSamples = 1;
             if (this.AllocateRT)
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
