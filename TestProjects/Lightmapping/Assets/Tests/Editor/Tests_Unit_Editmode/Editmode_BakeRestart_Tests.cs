@@ -278,4 +278,47 @@ public class Editmode_BakeRestart_Tests
 
         clearAll();
     }
+
+    [UnityTest]//Case 1232653
+    public IEnumerator TogglingBakedGI_DuringABake_DoesNotFallback()
+    {
+        EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/BakeRestartScene.unity", OpenSceneMode.Single);
+        yield return null;
+
+        LightingSettings lightingSettings = null;
+        Lightmapping.TryGetLightingSettings(out lightingSettings);
+
+        Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
+
+        lightingSettings.lightmapper = LightingSettings.Lightmapper.ProgressiveGPU;
+        lightingSettings.autoGenerate = true;
+
+        Lightmapping.Clear();
+        //Lightmapping.BakeAsync();
+
+        foreach (bool b in RunABake(0.2f))
+        {
+            yield return null;
+        }
+
+        // Make sure it is still baking before we
+        // switch the light mode and restart the bake
+        Assert.IsTrue(Lightmapping.isBaking);
+
+        lightingSettings.bakedGI = false;
+
+        // Wait one frame
+        yield return null;
+
+        lightingSettings.bakedGI = true;
+
+        // Check that baking is still running
+        Assert.IsTrue(Lightmapping.isBaking);
+        // Check that we did not fallback to CPULM
+        Assert.AreEqual(lightingSettings.lightmapper, LightingSettings.Lightmapper.ProgressiveGPU);
+
+        lightingSettings.autoGenerate = false;
+        Lightmapping.Clear();
+        Lightmapping.ClearLightingDataAsset();
+    }
 }
