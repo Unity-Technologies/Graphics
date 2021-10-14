@@ -15,10 +15,21 @@ namespace UnityEngine.VFX
         [NotKeyable] // NotKeyable used to prevent Timeline from making fields available for animation.
         public VisualEffectControlPlayableBehaviour template = new VisualEffectControlPlayableBehaviour();
 
-        // Implementation of ITimelineClipAsset. This specifies the capabilities of this timeline clip inside the editor.
+        public static bool useBlending_WIP
+        {
+            get
+            {
+#if UNITY_EDITOR
+                return UnityEditor.EditorPrefs.GetBool("VFX.MixerUseBlending_TEMP_TO_BE_REMOVED", true);
+#else
+                return true;
+#endif
+            }
+        }
+
         public ClipCaps clipCaps
         {
-            get { return ClipCaps.Blending; }
+            get { return useBlending_WIP ? ClipCaps.Blending : ClipCaps.None; }
         }
 
         public double clipStart { get; set; }
@@ -26,42 +37,33 @@ namespace UnityEngine.VFX
         public double easeIn { get; set; }
         public double easeOut { get; set; }
 
-        [Serializable]
-        public struct Event
-        {
-            public double time;
-            public string name;
-        }
-
         [NotKeyable]
-        public Event[] events;
+        VisualEffectPlayableSerializedEvent[] events;
 
-        public IEnumerable<Event> GetVirtualEvents()
-        {
-            yield return new Event()
-            {
-                name = "Play",
-                time = easeIn - clipStart
-            };
-
-            yield return new Event()
-            {
-                name = "Stop",
-                time = easeOut - clipStart
-            };
-
-            foreach (var it in events)
-                yield return it;
-        }
-
-        // Creates the playable that represents the instance of this clip.
         public override Playable CreatePlayable(PlayableGraph graph, GameObject owner)
         {
             var playable = ScriptPlayable<VisualEffectControlPlayableBehaviour>.Create(graph, template);
-            playable.GetBehaviour().clipStart = clipStart;
-            playable.GetBehaviour().clipEnd = clipEnd;
-            playable.GetBehaviour().easeIn = easeIn;
-            playable.GetBehaviour().easeOut = easeOut;
+            var behaviour = playable.GetBehaviour();
+
+            behaviour.clipStart = clipStart;
+            behaviour.clipEnd = clipEnd;
+
+            //Transmission here, will be move TODOPAUL
+            behaviour.events = new VisualEffectPlayableSerializedEvent[]
+            {
+                new VisualEffectPlayableSerializedEvent
+                {
+                    name = VisualEffectAsset.PlayEventName,
+                    time = easeIn,
+                    timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart
+                },
+                new VisualEffectPlayableSerializedEvent
+                {
+                    name = VisualEffectAsset.StopEventName,
+                    time = easeOut,
+                    timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd
+                }
+            };
             return playable;
         }
     }

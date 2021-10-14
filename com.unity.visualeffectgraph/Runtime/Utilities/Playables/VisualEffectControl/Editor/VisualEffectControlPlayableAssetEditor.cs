@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
             var behavior = clip.asset as VisualEffectControlPlayableAsset;
             if (behavior != null)
             {
-                clip.displayName = "VFX"; //Can be customized with event name
+                clip.displayName = "VFX";
             }
         }
 
@@ -45,6 +45,7 @@ namespace UnityEditor.VFX
         {
             base.DrawBackground(clip, region);
 
+#if TODOPAUL
             var iconSize = new Vector2(16, 16); //Should be relative ?
             var playable = clip.asset as VisualEffectControlPlayableAsset;
 
@@ -72,6 +73,7 @@ namespace UnityEditor.VFX
                     Color.HSVToRGB(color, 1.0f, 1.0f),
                     Color.HSVToRGB(color, 1.0f, 0.1f));
             }
+#endif
         }
     }
 }

@@ -19,8 +19,8 @@ namespace UnityEngine.VFX
                 {
                     customClip.clipStart = clip.start;
                     customClip.clipEnd = clip.end;
-                    customClip.easeIn = clip.start + (clip.hasBlendIn ? clip.blendInDuration : clip.easeInDuration);
-                    customClip.easeOut = clip.end - (clip.hasBlendOut ? clip.blendOutDuration : clip.easeOutDuration);
+                    customClip.easeIn = /*clip.start +*/ (clip.hasBlendIn ? clip.blendInDuration : clip.easeInDuration);
+                    customClip.easeOut = /* clip.end -*/ (clip.hasBlendOut ? clip.blendOutDuration : clip.easeOutDuration);
                 }
             }
 

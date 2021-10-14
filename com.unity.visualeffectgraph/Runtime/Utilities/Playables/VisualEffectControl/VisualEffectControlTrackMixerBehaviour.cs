@@ -12,14 +12,9 @@ namespace UnityEngine.VFX
         {
             struct Event
             {
-                public enum Type
-                {
-                    Play,
-                    Stop
-                }
-                public Type type;
+                public int nameId;
+                public VFXEventAttribute attribute;
                 public double time;
-                public VisualEffectControlPlayableBehaviour playable;
             }
 
             struct Chunk
@@ -183,7 +178,6 @@ namespace UnityEngine.VFX
                                 actualCurrentTime += fixedStep * currentStepCount;
                             }
                             ProcessEvent(currentEvent, vfx);
-                            HandleHackyPrewarmVariant(currentEvent, vfx, chunk);
                         }
                     }
 
@@ -193,7 +187,6 @@ namespace UnityEngine.VFX
                         foreach (var itEvent in eventList)
                         {
                             ProcessEvent(chunk.events[itEvent], vfx);
-                            HandleHackyPrewarmVariant(chunk.events[itEvent], vfx, chunk);
                         }
                     }
                 }
@@ -202,37 +195,12 @@ namespace UnityEngine.VFX
                 m_LastPlayableTime = playableTime;
             }
 
-
-            void HandleHackyPrewarmVariant(Event lastEventPlayed, VisualEffect vfx, Chunk chunk)
-            {
-#if UNITY_EDITOR
-                if (lastEventPlayed.playable == null)
-                    return;
-
-                //Hacky test which only works in editor
-                //See https://unity.slack.com/archives/G1BTWN88Z/p1633009015259800?thread_ts=1631626170.114700&cid=G1BTWN88Z
-                bool useVariantInterpretation = UnityEditor.EditorPrefs.GetBool("VFX.PrewarmInterpretationWIP_TEMP_TO_BE_REMOVED", true);
-                if (useVariantInterpretation
-                    && lastEventPlayed.type == Event.Type.Play
-                    && lastEventPlayed.time == chunk.events.FirstOrDefault().time)
-                {
-                    var prewarmDuration = Abs(lastEventPlayed.time - chunk.begin);
-                    var prewarmStepCount = (uint)(prewarmDuration / VFXManager.maxDeltaTime);
-                    vfx.Reinit();
-                    vfx.Simulate(VFXManager.maxDeltaTime, prewarmStepCount);
-                }
-#endif
-            }
-
             void ProcessEvent(Event currentEvent, VisualEffect vfx)
             {
-                if (currentEvent.playable == null)
+                if (currentEvent.nameId == 0u)
                     return;
 
-                if (currentEvent.type == Event.Type.Play)
-                    vfx.Play();
-                else
-                    vfx.Stop();
+                vfx.SendEvent(currentEvent.nameId);
             }
 
             IEnumerable<int> GetEventsIndex(Chunk chunk, double minTime, double maxTime)
@@ -249,7 +217,39 @@ namespace UnityEngine.VFX
                 }
             }
 
-            public void Init(Playable playable)
+            private static IEnumerable<Event> ComputeRuntimeEvent(VisualEffectControlPlayableBehaviour behavior, VisualEffect vfx)
+            {
+                foreach (var itEvent in behavior.events)
+                {
+                    double absoluteTime = 0.0;
+                    switch (itEvent.timeSpace)
+                    {
+                        case VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart:
+                            absoluteTime = behavior.clipStart + itEvent.time;
+                            break;
+                        case VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd:
+                            absoluteTime = behavior.clipEnd - itEvent.time;
+                            break;
+                        default:
+                            throw new System.Exception("TODOPAUL");
+                    }
+
+                    //TODOPAUL: Should not be there but in UX
+                    if (absoluteTime > behavior.clipEnd)
+                        absoluteTime = behavior.clipEnd;
+                    if (absoluteTime < behavior.clipStart)
+                        absoluteTime = behavior.clipStart;
+
+                    yield return new Event()
+                    {
+                        attribute = null,
+                        nameId = Shader.PropertyToID(itEvent.name),
+                        time = absoluteTime
+                    };
+                }
+            }
+
+            public void Init(Playable playable, VisualEffect vfx)
             {
                 var chunks = new Stack<Chunk>();
                 int inputCount = playable.GetInputCount();
@@ -278,13 +278,8 @@ namespace UnityEngine.VFX
 
                     var currentChunk = chunks.Peek();
                     currentChunk.end = inputBehavior.clipEnd;
-
-                    currentChunk.events = currentChunk.events.Concat(
-                    new Event[]
-                    {
-                        new Event { playable = inputBehavior, type = Event.Type.Play, time = inputBehavior.easeIn },
-                        new Event { playable = inputBehavior, type = Event.Type.Stop, time = inputBehavior.easeOut }
-                    }).ToArray();
+                    var currentsEvents = ComputeRuntimeEvent(inputBehavior, vfx).ToArray();
+                    currentChunk.events = currentChunk.events.Concat(currentsEvents).ToArray();
 
                     chunks.Pop();
                     chunks.Push(currentChunk);
@@ -314,11 +309,13 @@ namespace UnityEngine.VFX
         public override void ProcessFrame(Playable playable, FrameData data, object playerData)
         {
             SetDefaults(playerData as VisualEffect);
+            if (m_Target == null)
+                return;
 
             if (m_ScrubbingCacheHelper == null)
             {
                 m_ScrubbingCacheHelper = new ScrubbingCacheHelper();
-                m_ScrubbingCacheHelper.Init(playable);
+                m_ScrubbingCacheHelper.Init(playable, m_Target);
             }
 
             var globalTime = playable.GetTime();
@@ -345,6 +342,7 @@ namespace UnityEngine.VFX
             if (m_Target == vfx)
                 return;
             m_Target = vfx;
+            m_ScrubbingCacheHelper = null;
         }
     }
 }
