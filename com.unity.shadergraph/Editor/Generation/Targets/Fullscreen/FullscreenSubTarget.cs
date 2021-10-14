@@ -171,7 +171,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 if (fullscreenData.depthTestMode == CompareFunction.Disabled)
                     result.Add(RenderState.ZTest("Off"));
                 else
-                    result.Add(RenderState.ZTest(fullscreenData.depthTestMode.ToString()));
+                    result.Add(RenderState.ZTest(CompareFunctionToZTest(fullscreenData.depthTestMode).ToString()));
                 result.Add(RenderState.ZWrite(fullscreenData.depthWrite ? ZWrite.On.ToString() : ZWrite.Off.ToString()));
 
                 // Blend mode
@@ -225,6 +225,19 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             _ => Blend.Zero
         };
 
+        public static ZTest CompareFunctionToZTest(CompareFunction mode) => mode switch
+        {
+            CompareFunction.Equal => ZTest.Equal,
+            CompareFunction.NotEqual => ZTest.NotEqual,
+            CompareFunction.Greater => ZTest.Greater,
+            CompareFunction.Less => ZTest.Less,
+            CompareFunction.GreaterEqual => ZTest.GEqual,
+            CompareFunction.LessEqual => ZTest.LEqual,
+            CompareFunction.Always => ZTest.Always,
+            CompareFunction.Disabled => ZTest.Always,
+            _ => ZTest.Always
+        };
+
         public virtual SubShaderDescriptor GenerateSubShader()
         {
             var result = new SubShaderDescriptor()
@@ -234,8 +247,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 pipelineTag = pipelineTag,
             };
 
-            result.passes.Add(GenerateFullscreenPass(FullscreenCompatibility.Blit));
             result.passes.Add(GenerateFullscreenPass(FullscreenCompatibility.DrawProcedural));
+            result.passes.Add(GenerateFullscreenPass(FullscreenCompatibility.Blit));
 
             return result;
         }
@@ -398,14 +411,14 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         public override void GetFields(ref TargetFieldContext context)
         {
             context.AddField(UnityEditor.ShaderGraph.Fields.GraphPixel);
-            context.AddField(FullscreenFields.depth, fullscreenData.depthWrite);
+            context.AddField(FullscreenFields.depth, fullscreenData.depthWrite || fullscreenData.depthTestMode != CompareFunction.Disabled);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
-            context.AddBlock(FullscreenBlocks.depth, fullscreenData.depthWrite);
+            context.AddBlock(FullscreenBlocks.depth, fullscreenData.depthWrite || fullscreenData.depthTestMode != CompareFunction.Disabled);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)

@@ -171,7 +171,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         }
 
         [SerializeField]
-        CompareFunction m_DepthTestMode = CompareFunction.Always;
+        CompareFunction m_DepthTestMode = CompareFunction.Disabled;
         public CompareFunction depthTestMode
         {
             get => m_DepthTestMode;
