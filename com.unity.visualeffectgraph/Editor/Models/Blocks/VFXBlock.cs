@@ -101,6 +101,7 @@ namespace UnityEditor.VFX
                 var enableExp = activationSlot.GetExpression();
 
                 var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+                context.RegisterExpression(enableExp);
                 context.Compile();
 
                 enableExp = context.GetReduced(enableExp);
@@ -108,9 +109,10 @@ namespace UnityEditor.VFX
                     m_CachedEnableState = enableExp.Get<bool>();
                 else
                     m_CachedEnableState = true;
-            }
 
-            Debug.Log("RECOMPUTE ENABLE STATE: " + m_CachedEnableState + " " + activationSlot.HasLink());
+                Debug.Log("RECOMPUTE ENABLE STATE FROM GRAPH: " + m_CachedEnableState + " " + enableExp);
+            }
+       
             m_EnableStateUpToDate = true;
         }
 
@@ -124,10 +126,13 @@ namespace UnityEditor.VFX
                 cause == InvalidationCause.kExpressionValueInvalidated))
             {
                 Debug.Log("ENABLE SLOT CHANGED " + cause);
-                Invalidate(InvalidationCause.kEnableChanged);
 
-                var enableExpr = activationSlot.GetExpression();
-                m_EnableStateUpToDate = false;
+                bool oldEnabledStateValid = m_EnableStateUpToDate;
+                bool oldEnableState = m_CachedEnableState;
+                UpdateEnableState();
+
+                if (!oldEnabledStateValid || (m_CachedEnableState != oldEnableState))
+                    Invalidate(InvalidationCause.kEnableChanged);
             }
         }
 

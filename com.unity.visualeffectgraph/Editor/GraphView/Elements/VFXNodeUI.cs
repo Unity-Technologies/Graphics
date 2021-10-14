@@ -279,7 +279,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            Debug.Log("NEEDS RESYNC " + this + " " + needsResync);
             if (needsResync)
             {
                 var existingAnchors = container.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);

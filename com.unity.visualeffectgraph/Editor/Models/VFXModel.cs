@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
             kSpaceChanged,                  // Space has been changed
             kConnectionChanged,             // Connection have changed
             kExpressionInvalidated,         // No direct change to the model but a change in connection was propagated from the parents
-            kExpressionValueInvalidated,
+            kExpressionValueInvalidated,    // No direct change but a kParamChanged upstream was propagated meaning the expression in itself has not changed but it's evaluated value may have
             kExpressionGraphChanged,        // Expression graph must be recomputed
             kUIChanged,                     // UI stuff has changed
             kUIChangedTransient,            // UI stuff has been changed be does not require serialization
