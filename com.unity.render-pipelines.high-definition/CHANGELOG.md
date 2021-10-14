@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed and optimize distance shadowmask fade.
 - Fix API warnings in Matcap mode on Metal.
 - Fix D3D validation layer errors w.r.t shadow textures when an atlas is not used.
+- Fix missing renderer in LOD when building RTAS issue (case 1372965).
 
 ## [13.0.0] - 2021-09-01
 
