@@ -1948,8 +1948,17 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (ShadowIsUpdatedEveryFrame()) return ShadowMapUpdateType.Dynamic;
 #if UNITY_2021_1_OR_NEWER
-            // Note: For now directional are not supported as it will require extra memory budget. This will change in a near future.
-            if (m_AlwaysDrawDynamicShadows && lightType != HDLightType.Directional) return ShadowMapUpdateType.Mixed;
+            if (m_AlwaysDrawDynamicShadows)
+            {
+                if (lightType == HDLightType.Directional)
+                {
+                    if (HDCachedShadowManager.instance.DirectionalHasCachedAtlas()) return ShadowMapUpdateType.Mixed;
+                }
+                else
+                {
+                    return ShadowMapUpdateType.Mixed;
+                }
+            }
 #endif
             return ShadowMapUpdateType.Cached;
         }

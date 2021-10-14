@@ -5,7 +5,7 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    abstract class HDShadowAtlas
+    class HDShadowAtlas
     {
         internal struct HDShadowAtlasInitParameters
         {
@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int atlasShaderID;
             internal int maxShadowRequests;
             internal string name;
+            internal bool isShadowCache;
 
             internal Material clearMaterial;
             internal HDShadowInitParameters initParams;
@@ -43,6 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 this.depthBufferBits = DepthBits.Depth16;
                 this.format = RenderTextureFormat.Shadowmap;
                 this.name = "";
+                this.isShadowCache = false;
 
                 this.cb = cb;
             }
@@ -56,6 +58,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         protected List<HDShadowRequest> m_ShadowRequests = new List<HDShadowRequest>();
+        internal IList<HDShadowRequest> GetShadowRequestList()
+        {
+            return m_ShadowRequests.AsReadOnly();
+        }
 
         public int width { get; private set; }
         public int height { get; private set; }
@@ -113,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ClearMaterial = initParams.clearMaterial;
             m_BlurAlgorithm = initParams.blurAlgorithm;
             m_RenderPipelineResources = initParams.renderPipelineResources;
-            m_IsACacheForShadows = false;
+            m_IsACacheForShadows = initParams.isShadowCache;
 
             m_GlobalConstantBuffer = initParams.cb;
 
@@ -275,8 +281,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         foreach (var shadowRequest in data.shadowRequests)
                         {
-                            bool shouldSkipRequest = shadowRequest.shadowMapType != ShadowMapType.CascadedDirectional ? !shadowRequest.shouldRenderCachedComponent && data.isRenderingOnACache :
-                                shadowRequest.shouldUseCachedShadowData;
+                            bool shouldSkipRequest = !shadowRequest.shouldRenderCachedComponent && data.isRenderingOnACache;
+                            //shadowRequest.shadowMapType != ShadowMapType.CascadedDirectional ? !shadowRequest.shouldRenderCachedComponent && data.isRenderingOnACache :
+                            //    !shadowRequest.shouldRenderCachedComponent && shadowRequest.shouldUseCachedShadowData;
 
                             if (shouldSkipRequest)
                                 continue;
@@ -379,7 +386,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         foreach (var shadowRequest in data.shadowRequests)
                         {
                             bool shouldSkipRequest = shadowRequest.shadowMapType != ShadowMapType.CascadedDirectional ? !shadowRequest.shouldRenderCachedComponent && data.isRenderingOnACache :
-                                shadowRequest.shouldUseCachedShadowData;
+                                                                                                                        !shadowRequest.shouldRenderCachedComponent && shadowRequest.shouldUseCachedShadowData;
 
                             if (shouldSkipRequest)
                                 continue;

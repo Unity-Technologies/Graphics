@@ -1103,17 +1103,17 @@ namespace UnityEditor.Rendering.HighDefinition
                             }
                         }
                     }
-
+                }
 #if UNITY_2021_1_OR_NEWER
-                    EditorGUILayout.PropertyField(serialized.shadowAlwaysDrawDynamic, s_Styles.shadowAlwaysDrawDynamic);
-#endif
-                }
 
-
-                if (serialized.shadowUpdateMode.intValue > 0)
+                if (serialized.shadowUpdateMode.intValue > 0 && serialized.type == HDLightType.Directional)
                 {
-                    EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);
+                    HDShadowInitParameters hdShadowInitParameters = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+                    if (hdShadowInitParameters.allowDirectionalMixedCachedShadows)
+                        EditorGUILayout.PropertyField(serialized.shadowAlwaysDrawDynamic, s_Styles.shadowAlwaysDrawDynamic);
                 }
+
+#endif
 
                 EditorGUI.indentLevel--;
 

@@ -112,6 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+
         // ------------------------------------------------------------------------------------------
         //          Functions to access and deal with the C# representation of the atlas
         // ------------------------------------------------------------------------------------------

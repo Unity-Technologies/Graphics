@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool[] m_DirectionalShadowHasRendered = new bool[m_MaxShadowCascades];
         private Vector3 m_CachedDirectionalForward;
         private Vector3 m_CachedDirectionalAngles;
+        private bool m_AllowDirectionalMixedCached = false;
 
         internal const int k_MinSlotSize = 64;
 
@@ -31,6 +32,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Cached atlas
         internal HDCachedShadowAtlas punctualShadowAtlas;
         internal HDCachedShadowAtlas areaShadowAtlas;
+        // This is only used for mixed cached shadows and directional, don't really need any capabilities of either the dynamic and cached versions of the atlas, but instead just a render shadows capabilities and
+        // a physical atlas to write to. This is updated with the same frequency as the normal cached shadows and only when we decide that we want mixed cached shadow.
+        internal HDShadowAtlas directionalLightAtlas;
+
         // Cache here to be able to compute resolutions.
         private HDShadowInitParameters m_InitParams;
 
@@ -237,18 +242,38 @@ namespace UnityEngine.Rendering.HighDefinition
             punctualShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.PunctualAtlas);
             if (ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.AreaLightAtlas);
+            directionalLightAtlas = new HDShadowAtlas();
+        }
+
+        internal void InitDirectionalState(HDShadowAtlas.HDShadowAtlasInitParameters atlasInitParams, bool allowMixedCachedShadows)
+        {
+            m_AllowDirectionalMixedCached = allowMixedCachedShadows;
+            // If we allow mixed cached shadows for Directional Lights we need an auxiliary texture, but no need to allocate it if we don't do mixed cached shadows.
+            if (m_AllowDirectionalMixedCached)
+            {
+                atlasInitParams.isShadowCache = true;
+                atlasInitParams.useSharedTexture = true;
+                directionalLightAtlas.InitAtlas(atlasInitParams);
+            }
         }
 
         internal void InitPunctualShadowAtlas(HDShadowAtlas.HDShadowAtlasInitParameters atlasInitParams)
         {
             m_InitParams = atlasInitParams.initParams;
+            atlasInitParams.isShadowCache = true; // Should be already correctly set by this point, but enforcing it doesn't hurt
             punctualShadowAtlas.InitAtlas(atlasInitParams);
         }
 
         internal void InitAreaLightShadowAtlas(HDShadowAtlas.HDShadowAtlasInitParameters atlasInitParams)
         {
             m_InitParams = atlasInitParams.initParams;
+            atlasInitParams.isShadowCache = true; // Should be already correctly set by this point, but enforcing it doesn't hurt
             areaShadowAtlas.InitAtlas(atlasInitParams);
+        }
+
+        internal bool DirectionalHasCachedAtlas()
+        {
+            return m_AllowDirectionalMixedCached;
         }
 
         internal void RegisterLight(HDAdditionalLightData lightData)
@@ -390,6 +415,8 @@ namespace UnityEngine.Rendering.HighDefinition
             punctualShadowAtlas.UpdateDebugSettings(lightingDebugSettings);
             if (ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas.UpdateDebugSettings(lightingDebugSettings);
+            if (m_AllowDirectionalMixedCached)
+                directionalLightAtlas.UpdateDebugSettings(lightingDebugSettings);
         }
 
         internal void ScheduleShadowUpdate(HDAdditionalLightData light)
@@ -439,10 +466,16 @@ namespace UnityEngine.Rendering.HighDefinition
             punctualShadowAtlas.Clear();
             if (ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas.Clear();
+            if (m_AllowDirectionalMixedCached)
+                directionalLightAtlas.Clear();
         }
 
         internal void Cleanup(RenderGraph renderGraph)
         {
+            if (m_AllowDirectionalMixedCached)
+            {
+                directionalLightAtlas.Release(renderGraph);
+            }
             punctualShadowAtlas.Release(renderGraph);
             if (ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas.Release(renderGraph);
