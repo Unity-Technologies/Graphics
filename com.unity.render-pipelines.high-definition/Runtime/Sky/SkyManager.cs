@@ -176,9 +176,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Only show the procedural sky upgrade message once
         static bool logOnce = true;
 
-        // This boolean here is only to track the first frame after a domain reload or creation.
-        bool m_RequireWaitForAsyncReadBackRequest = true;
-
         MaterialPropertyBlock m_OpaqueAtmScatteringBlock;
 
 #if UNITY_EDITOR
@@ -661,11 +658,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public int computeAmbientProbeKernel;
             public TextureHandle skyCubemap;
             public ComputeBuffer ambientProbeResult;
-            public bool waitAllAsyncReadbacks;
             public Action<AsyncGPUReadbackRequest> callback;
         }
 
-        internal void UpdateAmbientProbe(RenderGraph renderGraph, TextureHandle skyCubemap, ComputeBuffer ambientProbeResult, Action<AsyncGPUReadbackRequest> callback, bool waitAllAsyncReadbacks)
+        internal void UpdateAmbientProbe(RenderGraph renderGraph, TextureHandle skyCubemap, ComputeBuffer ambientProbeResult, Action<AsyncGPUReadbackRequest> callback)
         {
             using (var builder = renderGraph.AddRenderPass<UpdateAmbientProbePassData>("UpdateAmbientProbe", out var passData, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
             {
@@ -673,7 +669,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.computeAmbientProbeKernel = m_ComputeAmbientProbeKernel;
                 passData.skyCubemap = builder.ReadTexture(skyCubemap);
                 passData.ambientProbeResult = ambientProbeResult;
-                passData.waitAllAsyncReadbacks = waitAllAsyncReadbacks;
                 passData.callback = callback;
 
                 builder.SetRenderFunc(
@@ -683,23 +678,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     ctx.cmd.SetComputeTextureParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, m_AmbientProbeInputCubemap, data.skyCubemap);
                     ctx.cmd.DispatchCompute(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, 1, 1, 1);
                     ctx.cmd.RequestAsyncReadback(data.ambientProbeResult, data.callback);
-
-                    // When the profiler is enabled, we don't want to submit the render context because
-                    // it will break all the profiling sample Begin() calls issued previously, which leads
-                    // to profiling sample mismatch errors in the console.
-                    if (!Profiling.Profiler.enabled)
-                    {
-                        // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
-                        // otherwise ambient probe isn't correct for one frame.
-                        if (data.waitAllAsyncReadbacks)
-                        {
-                            ctx.cmd.WaitAllAsyncReadbackRequests();
-                            ctx.renderContext.ExecuteCommandBuffer(ctx.cmd);
-                            CommandBufferPool.Release(ctx.cmd);
-                            ctx.renderContext.Submit();
-                            ctx.cmd = CommandBufferPool.Get();
-                        }
-                    }
                 });
             }
         }
@@ -936,7 +914,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void RequestStaticEnvironmentUpdate()
         {
             m_StaticSkyUpdateRequired = true;
-            m_RequireWaitForAsyncReadBackRequest = true;
         }
 
         public void UpdateEnvironment(
@@ -1012,18 +989,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         var skyCubemap = GenerateSkyCubemap(renderGraph, skyContext);
 
                         if (updateAmbientProbe)
-                        {
-                            UpdateAmbientProbe(renderGraph, skyCubemap, renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone, m_RequireWaitForAsyncReadBackRequest);
-
-                            // Match logic inside UpdateAbmbientProbe
-                            if (!Profiling.Profiler.enabled)
-                                m_RequireWaitForAsyncReadBackRequest = false;
-                        }
+                            UpdateAmbientProbe(renderGraph, skyCubemap, renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
 
                         if (renderingContext.supportsConvolution)
-                        {
                             RenderCubemapGGXConvolution(renderGraph, skyCubemap, renderingContext.skyboxBSDFCubemapArray);
-                        }
 
                         skyContext.skyParametersHash = skyHash;
                         skyContext.currentUpdateTime = 0.0f;

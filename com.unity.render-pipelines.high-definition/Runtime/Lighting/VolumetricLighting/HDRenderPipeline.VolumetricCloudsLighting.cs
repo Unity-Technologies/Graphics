@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true });
 
                     outputCubemap = m_SkyManager.RenderSkyToCubemap(renderGraph, hdCamera.lightingSky, includeSunInBaking: false, renderCloudLayers: false, outputCubemap);
-                    m_SkyManager.UpdateAmbientProbe(renderGraph, outputCubemap, m_CloudsAmbientProbeBuffer, OnComputeAmbientProbeDone, false);
+                    m_SkyManager.UpdateAmbientProbe(renderGraph, outputCubemap, m_CloudsAmbientProbeBuffer, OnComputeAmbientProbeDone);
                 }
             }
             else
