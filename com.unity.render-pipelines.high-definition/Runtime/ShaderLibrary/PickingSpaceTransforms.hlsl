@@ -1,7 +1,7 @@
 #ifndef UNITY_PICKING_SPACE_TRANSFORMS_INCLUDED
 #define UNITY_PICKING_SPACE_TRANSFORMS_INCLUDED
 
-#if defined(SCENEPICKINGPASS) || defined(SCENESELECTIONPASS)
+#if !defined(DOTS_INSTANCING_ON) && (defined(SCENEPICKINGPASS) || defined(SCENESELECTIONPASS))
 
 // The picking pass uses custom matrices defined directly from the c++
 // So we have to redefine the space transform functions to overwrite the used matrices
