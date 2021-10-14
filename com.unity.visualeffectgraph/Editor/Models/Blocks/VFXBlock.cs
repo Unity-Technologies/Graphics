@@ -6,7 +6,7 @@ using Type = System.Type;
 
 namespace UnityEditor.VFX
 {
-    abstract class VFXBlock : VFXSlotContainerModel<VFXContext, VFXModel>
+    abstract class VFXBlock : VFXSlotContainerModel<VFXContext, VFXModel>, IVFXDataGetter
     {
         public VFXBlock()
         {

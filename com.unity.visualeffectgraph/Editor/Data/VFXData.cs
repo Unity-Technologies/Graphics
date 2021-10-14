@@ -22,6 +22,11 @@ namespace UnityEditor.VFX
         VFXCoordinateSpace space { get; set; }
     }
 
+    interface IVFXDataGetter
+    {
+        VFXData GetData();
+    }
+
     abstract class VFXData : VFXModel
     {
         public abstract VFXDataType type { get; }
