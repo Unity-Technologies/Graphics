@@ -52,6 +52,7 @@ namespace UnityEditor.VFX
             return (value - a) / (b - a);
         }
 
+        //TODOPAUL have  better generalization for these
         private static double RelativeRegionTime(VisualEffectPlayableSerializedEvent currentEvent, VisualEffectControlPlayableAsset playable, ClipBackgroundRegion region)
         {
             var absoluteTime = VisualEffectPlayableSerializedEvent.GetAbsoluteTime(currentEvent, playable);
@@ -110,7 +111,7 @@ namespace UnityEditor.VFX
                 var eventRect = new Rect(center - iconSize * new Vector2(1.0f, -0.5f), iconSize);
                 EditorGUI.DrawRect(eventRect, Color.HSVToRGB(color, 1.0f, 1.0f));
 
-                var textRect = new Rect(center + new Vector2(2, 0), iconSize);
+                var textRect = new Rect(center + new Vector2(2.0f, 0), iconSize);
                 ShadowLabel(textRect,
                     new GUIContent(itEvent.name),
                     fontStyle,

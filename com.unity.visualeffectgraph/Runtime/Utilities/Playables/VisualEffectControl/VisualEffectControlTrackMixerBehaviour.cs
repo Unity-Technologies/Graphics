@@ -267,7 +267,7 @@ namespace UnityEngine.VFX
 
                     var currentChunk = chunks.Peek();
                     currentChunk.end = inputBehavior.clipEnd;
-                    var currentsEvents = ComputeRuntimeEvent(inputBehavior, vfx).ToArray();
+                    var currentsEvents = ComputeRuntimeEvent(inputBehavior, vfx).OrderBy(o => o.time).ToArray();
                     currentChunk.events = currentChunk.events.Concat(currentsEvents).ToArray();
 
                     chunks.Pop();

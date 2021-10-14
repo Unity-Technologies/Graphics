@@ -38,30 +38,74 @@ namespace UnityEngine.VFX
 
         public void SetDefaultEvent(double playAfterClipStart, double stopBeforeClipEnd)
         {
-            //if (events == null) //TEMP TODPAUL
-                events = new List<VisualEffectPlayableSerializedEvent>();
+            var previousEvent = events == null ? new List<VisualEffectPlayableSerializedEvent>() : events.ToList();
+            events = new List<VisualEffectPlayableSerializedEvent>();
 
-            if (!events.Any(o => o.type == VisualEffectPlayableSerializedEvent.Type.Play))
+            int indexOfStart = -1;
+            int indexOfStop = -1;
+
+            for (int i = 0; i < previousEvent.Count; ++i)
             {
+                if (indexOfStart == -1 && previousEvent[i].type == VisualEffectPlayableSerializedEvent.Type.Play)
+                    indexOfStart = i;
+                if (indexOfStop == -1 && previousEvent[i].type == VisualEffectPlayableSerializedEvent.Type.Stop)
+                    indexOfStop = i;
+                if (indexOfStop != -1 && indexOfStart != -1)
+                    break;
+            }
+
+            //Copy Play
+            {
+                var startName = indexOfStart == -1 ? VisualEffectAsset.PlayEventName : previousEvent[indexOfStart].name;
+                var startTime = playAfterClipStart;
+
+                if (!useBlending_WIP && indexOfStart != -1)
+                    startTime = previousEvent[indexOfStart].time;
+
                 events.Add(new VisualEffectPlayableSerializedEvent()
                 {
-                    name = VisualEffectAsset.PlayEventName,
-                    time = playAfterClipStart,
+                    name = startName,
+                    time = startTime,
                     timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart,
                     type = VisualEffectPlayableSerializedEvent.Type.Play
                 });
             }
 
-            if (!events.Any(o => o.type == VisualEffectPlayableSerializedEvent.Type.Stop))
+            //Copy Stop
             {
+                var stopName = indexOfStop == -1 ? VisualEffectAsset.StopEventName : previousEvent[indexOfStop].name;
+                var stopTime = stopBeforeClipEnd;
+
+                if (!useBlending_WIP && indexOfStop != -1)
+                    stopTime = previousEvent[indexOfStop].time;
+
                 events.Add(new VisualEffectPlayableSerializedEvent()
                 {
-                    name = VisualEffectAsset.StopEventName,
-                    time = stopBeforeClipEnd,
+                    name = stopName,
+                    time = stopTime,
                     timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd,
                     type = VisualEffectPlayableSerializedEvent.Type.Stop
                 });
             }
+
+            if (indexOfStop != -1)
+                previousEvent.RemoveAt(indexOfStop);
+
+            if (indexOfStart != -1)
+                previousEvent.RemoveAt(indexOfStart);
+
+            //Take the rest
+            var other = previousEvent.Select(o =>
+            {
+                return new VisualEffectPlayableSerializedEvent()
+                {
+                    name = o.name,
+                    time = o.time,
+                    timeSpace = o.timeSpace,
+                    type = VisualEffectPlayableSerializedEvent.Type.Custom
+                };
+            }).ToArray();
+            events.AddRange(other);
         }
 
         [NotKeyable]

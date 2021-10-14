@@ -33,9 +33,9 @@ namespace UnityEngine.VFX
 
         public enum Type
         {
+            Custom,
             Play,
             Stop,
-            Custom
         }
 
         public enum TimeSpace
