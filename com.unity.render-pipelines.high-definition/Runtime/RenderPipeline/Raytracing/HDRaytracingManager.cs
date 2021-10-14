@@ -506,6 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // Fetch the renderer that we are interested in
                             Renderer currentRenderer = currentLOD.renderers[rendererIdx];
+                            if (currentRenderer == null) continue;
 
                             // This objects should but included into the RAS
                             AddInstanceToRAS(currentRenderer,
