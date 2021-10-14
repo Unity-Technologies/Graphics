@@ -343,6 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (SetGlobalSkyDataPassData data, RenderGraphContext ctx) =>
                     {
+                        data.builtinParameters.commandBuffer = ctx.cmd;
                         data.skyRenderer.SetGlobalSkyData(ctx.cmd, data.builtinParameters);
                     });
                 }
