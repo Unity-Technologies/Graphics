@@ -121,6 +121,12 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
+        string GetHelpURL(Type type)
+        {
+            var attribute = type.GetCustomAttribute<HelpURLAttribute>();
+            return attribute?.URL;
+        }
+
         private void DrawRendererFeature(int index, ref SerializedProperty renderFeatureProperty)
         {
             Object rendererFeatureObjRef = renderFeatureProperty.objectReferenceValue;
@@ -139,16 +145,17 @@ namespace UnityEditor.Rendering.Universal
                 string tooltip;
                 GetTooltip(rendererFeatureObjRef.GetType(), out tooltip);
 
+                var helpURL = GetHelpURL(rendererFeatureObjRef.GetType());
+
                 // Get the serialized object for the editor script & update it
                 Editor rendererFeatureEditor = m_Editors[index];
                 SerializedObject serializedRendererFeaturesEditor = rendererFeatureEditor.serializedObject;
                 serializedRendererFeaturesEditor.Update();
 
-
                 // Foldout header
                 EditorGUI.BeginChangeCheck();
                 SerializedProperty activeProperty = serializedRendererFeaturesEditor.FindProperty("m_Active");
-                bool displayContent = CoreEditorUtils.DrawHeaderToggle(EditorGUIUtility.TrTextContent(title, tooltip), renderFeatureProperty, activeProperty, pos => OnContextClick(pos, index));
+                bool displayContent = CoreEditorUtils.DrawHeaderToggle(EditorGUIUtility.TrTextContent(title, tooltip), renderFeatureProperty, activeProperty, pos => OnContextClick(pos, index), null, null, helpURL);
                 hasChangedProperties |= EditorGUI.EndChangeCheck();
 
                 // ObjectEditor
