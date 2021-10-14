@@ -13,13 +13,15 @@ namespace UnityEngine.Rendering.Universal
     {
         // Parameters
         [SerializeField] internal RenderPassEvent injectionPoint = RenderPassEvent.AfterRenderingOpaques;
+        [SerializeField] internal bool requiresNormalTexture = false;
+        [SerializeField] internal bool requiresMotionVectorTexture = false;
         [SerializeField] internal Material blitMaterial;
         [SerializeField] internal int blitMaterialPassIndex;
         [SerializeField] internal DrawFullscreenBufferType source = DrawFullscreenBufferType.CameraColor;
         [SerializeField] internal DrawFullscreenBufferType destination = DrawFullscreenBufferType.CameraColor;
     }
 
-    [DisallowMultipleRendererFeature]
+    [ExcludeFromPreset]
     [Tooltip("Draw a fullscreen effect on screen using the material in parameter.")]
     internal class DrawFullscreenPass : ScriptableRendererFeature
     {
@@ -52,11 +54,6 @@ namespace UnityEngine.Rendering.Universal
             static readonly int k_TemporaryRTId = Shader.PropertyToID("_TempFullscreenRT");
             static readonly int k_CustomRTId = Shader.PropertyToID("_CustomColorRT");
 
-            // Properties
-            // private bool isRendererDeferred => m_Renderer != null && m_Renderer is UniversalRenderer && ((UniversalRenderer)m_Renderer).renderingMode == RenderingMode.Deferred;
-
-            // Private Variables
-            ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.DrawFullscreen);
             ScriptableRenderer m_Renderer = null;
             DrawFullscreenSettings m_Settings;
             bool m_IsSourceAndDestinationSameTarget;
@@ -73,7 +70,10 @@ namespace UnityEngine.Rendering.Universal
 
                 ConfigureInput(ScriptableRenderPassInput.Depth);
                 // TODO: add an option to request normals
-                ConfigureInput(ScriptableRenderPassInput.Normal);
+                if (featureSettings.requiresNormalTexture)
+                    ConfigureInput(ScriptableRenderPassInput.Normal);
+                if (featureSettings.requiresMotionVectorTexture)
+                    ConfigureInput(ScriptableRenderPassInput.Motion);
 
                 return m_Settings.blitMaterial != null
                     && m_Settings.blitMaterial.passCount > m_Settings.blitMaterialPassIndex
@@ -115,10 +115,10 @@ namespace UnityEngine.Rendering.Universal
                 // Configure targets and clear color
                 // TODO: we can also write to custom?
                 // TODO: do we need that?
-                if (m_Settings.destination == DrawFullscreenBufferType.CameraColor)
-                    ConfigureTarget(m_Renderer.cameraColorTarget);
-                else
-                    ConfigureTarget(new RenderTargetIdentifier(k_CustomRTId));
+                // if (m_Settings.destination == DrawFullscreenBufferType.CameraColor)
+                //     ConfigureTarget(m_Renderer.cameraColorTarget);
+                // else
+                //     ConfigureTarget(new RenderTargetIdentifier(k_CustomRTId));
                 //ConfigureClear(ClearFlag.None, Color.white);
             }
 
