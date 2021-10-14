@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
   - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
   - Fixed unhandled exception when loading a subgraph with duplicate slots [1369039].
+  - Fixed a bug that caused the Scene Depth Node in Eye space to not work correctly when using an orthographic camera [1311272].
 
 ## [12.0.0] - 2021-01-11
 
