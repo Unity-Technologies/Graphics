@@ -1,5 +1,7 @@
 #if VFX_HAS_TIMELINE
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
 
@@ -10,15 +12,27 @@ namespace UnityEngine.VFX
     {
         public static double GetAbsoluteTime(VisualEffectPlayableSerializedEvent current, VisualEffectControlPlayableBehaviour parent)
         {
-            return GetAbsoluteTime(current, parent.clipStart, parent.clipEnd);
+            return GetAbsoluteTime(current, parent.clipStart, parent.clipEnd, GetPlayTime(parent.events));
         }
 
         public static double GetAbsoluteTime(VisualEffectPlayableSerializedEvent current, VisualEffectControlPlayableAsset parent)
         {
-            return GetAbsoluteTime(current, parent.clipStart, parent.clipEnd);
+            return GetAbsoluteTime(current, parent.clipStart, parent.clipEnd, GetPlayTime(parent.events));
         }
 
-        private static double GetAbsoluteTime(VisualEffectPlayableSerializedEvent current, double clipStart, double clipEnd)
+        private static double GetPlayTime(IEnumerable<VisualEffectPlayableSerializedEvent> events)
+        {
+            if (events != null)
+            {
+                var itEvent = events.FirstOrDefault(o => o.type == VisualEffectPlayableSerializedEvent.Type.Play);
+                if (itEvent.timeSpace != TimeSpace.AfterClipStart)
+                    throw new NotImplementedException();
+                return itEvent.time;
+            }
+            return 0.0;
+        }
+
+        private static double GetAbsoluteTime(VisualEffectPlayableSerializedEvent current, double clipStart, double clipEnd, double clipPlay)
         {
             switch (current.timeSpace)
             {
@@ -26,9 +40,10 @@ namespace UnityEngine.VFX
                     return clipStart + current.time;
                 case VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd:
                     return clipEnd - current.time;
-                default:
-                    throw new System.Exception("TODOPAUL");
+                case VisualEffectPlayableSerializedEvent.TimeSpace.AfterPlay:
+                    return clipStart + clipPlay + current.time;
             }
+            throw new NotImplementedException();
         }
 
         public enum Type

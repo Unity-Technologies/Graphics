@@ -16,13 +16,7 @@ namespace UnityEditor.VFX
         {
             var behavior = clip.asset as VisualEffectControlPlayableAsset;
             if (behavior != null)
-            {
-                //TODOPAUL, only relevant is blending is enabled (and not correct place)
-                if (clip.easeInDuration != 0.0)
-                    clip.easeInDuration = 0.0;
-
                 clip.displayName = "VFX";
-            }
         }
 
         public static void ShadowLabel(Rect rect, GUIContent content, GUIStyle style, Color textColor, Color shadowColor)

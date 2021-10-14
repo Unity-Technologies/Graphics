@@ -17,13 +17,24 @@ namespace UnityEngine.VFX
                 var customClip = clip.asset as VisualEffectControlPlayableAsset;
                 if (customClip != null)
                 {
+                    if (VisualEffectControlPlayableAsset.useBlending_WIP)
+                    {
+                        if (clip.easeInDuration != 0.0)
+                        {
+#if UNITY_EDITOR
+                            //TODOPAUL : Doesn't update the timeline view
+                            UnityEditor.EditorUtility.SetDirty(clip.GetParentTrack());
+#endif
+                            clip.easeInDuration = 0.0;
+                        }
+                    }
+
                     customClip.clipStart = clip.start;
                     customClip.clipEnd = clip.end;
-                    var easeIn = /*clip.start +*/ (clip.hasBlendIn ? clip.blendInDuration : clip.easeInDuration);
-                    var easeOut = /* clip.end -*/ (clip.hasBlendOut ? clip.blendOutDuration : clip.easeOutDuration);
+                    var easeIn = clip.hasBlendIn ? clip.blendInDuration : clip.easeInDuration;
+                    var easeOut = clip.hasBlendOut ? clip.blendOutDuration : clip.easeOutDuration;
 
                     customClip.SetDefaultEvent(easeIn, easeOut);
-
                 }
             }
 
