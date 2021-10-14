@@ -45,6 +45,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.source = source;
             this.destination = destination;
             this.AllocateRT = !destination.HasInternalRenderTargetId();
+#if UNITY_EDITOR
+            this.useNativeRenderPass = false;
+#endif
             this.MssaSamples = -1;
         }
 
