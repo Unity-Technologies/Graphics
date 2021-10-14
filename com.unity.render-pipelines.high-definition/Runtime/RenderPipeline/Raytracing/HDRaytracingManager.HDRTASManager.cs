@@ -158,6 +158,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public RayTracingInstanceCullingResults Cull(HDCamera hdCamera, in HDEffectsParameters parameters)
         {
+            instanceTestArray.Clear();
+
             // Set up the culling flags
             cullingConfig.flags = RayTracingInstanceCullingFlags.EnableLODCulling | RayTracingInstanceCullingFlags.IgnoreReflectionProbes;
             if (parameters.pathTracing)
