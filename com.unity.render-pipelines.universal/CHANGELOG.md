@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - MaterialReimporter.ReimportAllMaterials now batches the asset database changes to improve performance.
 
 ### Fixed
+- Fixed post processing with Pixel Perfect camera [case 1363763](https://issuetracker.unity3d.com/product/unity/issues/guid/1363763/)
 - Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
 - Fixed an issue where Unlit and ParticlesUnlit shaders did not have HDR color selection for albedo [case 1283767](https://issuetracker.unity3d.com/issues/built-in-unlit-particle-shader-has-hdr-color-selection-for-albedo-urp-unlit-particles-do-not)
 - Fixed a regression where ShaderGraph screen position was not correct in game view and when using XR [1369450]
