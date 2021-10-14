@@ -157,27 +157,6 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXSRPBinder
-    {
-        abstract public string templatePath { get; }
-        virtual public string runtimePath { get { return templatePath; } } //optional different path for .hlsl included in runtime
-        abstract public string SRPAssetTypeStr { get; }
-        abstract public Type SRPOutputDataType { get; }
-
-        public virtual void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null) { }
-
-        public virtual VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(VFXMaterialSerializedSettings materialSettings)
-        {
-            return VFXAbstractRenderedOutput.BlendMode.Opaque;
-        }
-
-        public virtual bool TransparentMotionVectorEnabled(Material mat) => true;
-
-        public virtual string GetShaderName(ShaderGraphVfxAsset shaderGraph) => string.Empty;
-
-        public virtual bool IsGraphDataValid(GraphData graph) => false;
-    }
-
     static class VFXLibrary
     {
         public static IEnumerable<VFXModelDescriptor<VFXContext>> GetContexts() { LoadIfNeeded(); return VFXViewPreference.displayExperimentalOperator ? m_ContextDescs : m_ContextDescs.Where(o => !o.info.experimental); }

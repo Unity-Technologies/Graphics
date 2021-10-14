@@ -165,9 +165,10 @@ float _RayTracing;
 // TODO: Fix the code in legacy unity so we can customize the behavior for GI
 float3 _EmissionColor;
 
+CBUFFER_END
+
 // Following three variables are feeded by the C++ Editor for Scene selection
+// It need to be outside the UnityPerMaterial buffer to have Material compatible with SRP Batcher
 int _ObjectId;
 int _PassValue;
 float4 _SelectionID;
-
-CBUFFER_END

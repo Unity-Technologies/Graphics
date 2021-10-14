@@ -4,7 +4,39 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.0] - 2021-09-24
+
+### Added
+- Added a SG node to get the main directional light direction.
+- Added support for orthographic camera in path tracing.
+
+### Changed
+- MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+
+### Fixed
+- Fixed the volume not being assigned on some scene templates.
+- Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
+- Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
+- Fixed Probe volume debug exposure compensation to match the Lighting debug one.
+- Fixed lens flare occlusion issues with TAA. (1365098)
+- Fixed misleading text and improving the eye scene material samples. (case 1368665)
+- Fixed missing DisallowMultipleComponent annotations in HDAdditionalReflectionData and HDAdditionalLightData (case 1365879).
+- Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
+- Fixed decal position when created from context menu. (case 1368987)
+- Fixed the clouds not taking properly into account the fog when in distant mode and with a close far plane (case 1367993).
+- Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
+- Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
+- Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
+- Fixed the volumetric clouds debug view not taking into account the exposure and leading to Nans (case 1365054).
+- Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
+- Fixed area light cookie field to use the same style as the other cookie fields
+- Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
+- Fixed the cloudlayer not using depth buffer.
+
 ## [13.0.0] - 2021-09-01
+
+### Added
+- Added public API to edit materials from script at runtime.
 
 ### Fixed
 - Fixed impossibility to release the cursor in the template.
@@ -36,10 +68,33 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error when disabling opaque objects on a camera with MSAA.
 - Fixed double camera preview.
 - Fixed the volumetric clouds cloud map not being centered over the world origin (case 1364465).
+- Fixed the emissive being overriden by ray traced sub-surface scattering (case 1364456).
+- Fixed support of directional light coloring from physical sky in path tracing.
+- Fixed disabled menu item for volume additional properties.
+- Fixed Shader advanced options for lit shaders.
+- Fixed Dof, would sometimes get corrupted when DLSS was on caused by TAA logic accidentally being on for DOF (1357722)
+- Fixed shadowmask editable when not supported.
+- Fixed sorting for mesh decals.
+- Fixed a warning when enabling tile/cluster debug.
+- Fix recursive rendering transmittance over the sky (case 1323945).
+- Fixed specular anti aliasing for layeredlit shader.
+- Fixed lens flare occlusion issues with transparent depth. It had the wrong depth bound (1365098)
+- Fixed double contribution from the clear coat when having SSR or RTR on the Lit and StackLit shaders (case 1352424).
+- Fixed texture fields for volume parameters accepting textures with wrong dimensions.
+- Fixed Realtime lightmap not working correctly in player with various lit shader (case 1360021)
+- Fixed unexpectedly strong contribution from directional lights in path-traced volumetric scattering (case 1304688).
+- Fixed memory leak with XR combined occlusion meshes (case 1366173).
+- Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
+- Fixed support for light/shadow dimmers (volumetric or not) in path tracing.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
 - Surface ReflectionTypeLoadExceptions in HDUtils.GetRenderPipelineMaterialList(). Without surfacing these exceptions, developers cannot act on any underlying reflection errors in the HDRP assembly.
+- Improved the DynamicArray class by adding several utility APIs.
+- Moved AMD FidelityFX shaders to core
+- Improved sampling of overlapping point/area lights in path-traced volumetric scattering (case 1358777).
+- Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1346105, 1358783).
+- Fixed minor readability issues in the ray tracing code.
 
 ## [12.0.0] - 2021-01-11
 
@@ -417,6 +472,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
 - Fixed ThreadMapDetail to saturate AO & smoothness strength inputs to prevent out-of-bounds values set by users (1357740)
 - Allow negative wind speed parameter.
+- Fixed custom pass custom buffer not bound after being created inside a custom pass.
+- Fixed silhouette issue with emissive decals
+- Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -522,6 +580,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make some volumetric clouds properties additional to reduce the number default parameters (case 1357926).
 - Renamed the Cloud Offset to Cloud Map Offset in the volumetric clouds volume component (case 1358528).
 - Made debug panel mip bias functions internal, not public.
+- Mitigate ghosting / overbluring artifacts when TAA and physically-based DoF are enabled by adjusting the internal range of blend factor values (case 1340541).
 
 ## [11.0.0] - 2020-10-21
 
