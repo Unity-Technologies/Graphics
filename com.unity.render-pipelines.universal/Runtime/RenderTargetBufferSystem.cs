@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
-    //NOTE: This class is meant to be removed when RTHandles get implemented in urp
     internal sealed class RenderTargetBufferSystem
     {
         struct SwapBuffer
         {
-            public RTHandle rt;
+            public RTHandle rtMSAA;
+            public RTHandle rtResolve;
             public string name;
             public int msaa;
         }
@@ -22,7 +22,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         static RenderTextureDescriptor m_Desc;
         FilterMode m_FilterMode;
         bool m_AllowMSAA = true;
-        bool m_RTisAllocated = false;
 
         ref SwapBuffer backBuffer { get { return ref m_AisBackBuffer ? ref m_A : ref m_B; } }
         ref SwapBuffer frontBuffer { get { return ref m_AisBackBuffer ? ref m_B : ref m_A; } }
@@ -35,33 +34,31 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Dispose()
         {
-            m_A.rt?.Release();
-            m_B.rt?.Release();
+            m_A.rtMSAA?.Release();
+            m_B.rtMSAA?.Release();
+            m_A.rtResolve?.Release();
+            m_B.rtResolve?.Release();
         }
 
         public RTHandle PeekBackBuffer()
         {
-            return backBuffer.rt;
+            return (m_AllowMSAA && backBuffer.msaa > 1) ? backBuffer.rtMSAA : backBuffer.rtResolve;
         }
 
         public RTHandle GetBackBuffer(CommandBuffer cmd)
         {
-            if (!m_RTisAllocated)
-                ReAllocate(cmd);
-            return backBuffer.rt;
+            ReAllocate(cmd);
+            return PeekBackBuffer();
         }
 
         public RTHandle GetFrontBuffer(CommandBuffer cmd)
         {
-            int bufferMSAA = frontBuffer.msaa;
-
             if (!m_AllowMSAA && frontBuffer.msaa > 1)
                 frontBuffer.msaa = 1;
 
-            if (!m_RTisAllocated)
-                ReAllocate(cmd);
+            ReAllocate(cmd);
 
-            return frontBuffer.rt;
+            return (m_AllowMSAA && frontBuffer.msaa > 1) ? frontBuffer.rtMSAA : frontBuffer.rtResolve;
         }
 
         public void Swap()
@@ -72,19 +69,26 @@ namespace UnityEngine.Rendering.Universal.Internal
         void ReAllocate(CommandBuffer cmd)
         {
             var desc = m_Desc;
+
             desc.msaaSamples = m_A.msaa;
-            RenderingUtils.ReAllocateIfNeeded(ref m_A.rt, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_A.name);
+            if (desc.msaaSamples > 1)
+                RenderingUtils.ReAllocateIfNeeded(ref m_A.rtMSAA, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_A.name);
+
             desc.msaaSamples = m_B.msaa;
-            RenderingUtils.ReAllocateIfNeeded(ref m_B.rt, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_B.name);
-            cmd.SetGlobalTexture(m_A.rt.name, m_A.rt);
-            cmd.SetGlobalTexture(m_B.rt.name, m_B.rt);
-            m_RTisAllocated = true;
+            if (desc.msaaSamples > 1)
+                RenderingUtils.ReAllocateIfNeeded(ref m_B.rtMSAA, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_B.name);
+
+            desc.msaaSamples = 1;
+            RenderingUtils.ReAllocateIfNeeded(ref m_A.rtResolve, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_A.name);
+            RenderingUtils.ReAllocateIfNeeded(ref m_B.rtResolve, desc, m_FilterMode, TextureWrapMode.Clamp, name: m_B.name);
+            cmd.SetGlobalTexture(m_A.name, m_A.rtResolve);
+            cmd.SetGlobalTexture(m_B.name, m_B.rtResolve);
         }
 
         public void Clear(CommandBuffer cmd)
         {
             m_AisBackBuffer = true;
-            m_AllowMSAA = true;
+            m_AllowMSAA = m_A.msaa > 1 || m_B.msaa > 1;
         }
 
         public void SetCameraSettings(CommandBuffer cmd, RenderTextureDescriptor desc, FilterMode filterMode)
@@ -98,17 +102,25 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_A.msaa = m_Desc.msaaSamples;
             m_B.msaa = m_Desc.msaaSamples;
 
+            if (m_Desc.msaaSamples > 1)
+                EnableMSAA(true);
+
             ReAllocate(cmd);
         }
 
         public RTHandle GetBufferA()
         {
-            return m_A.rt;
+            return m_A.rtMSAA;
         }
 
         public void EnableMSAA(bool enable)
         {
             m_AllowMSAA = enable;
+            if (enable)
+            {
+                m_A.msaa = m_Desc.msaaSamples;
+                m_B.msaa = m_Desc.msaaSamples;
+            }
         }
     }
 }

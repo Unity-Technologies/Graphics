@@ -372,14 +372,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 --amountOfPassesRemaining;
                 if (m_UseSwapBuffer)
                 {
-                    //we want the last blit to be to MSAA
-                    if (amountOfPassesRemaining == 0 && !m_HasFinalPass)
-                    {
-                        r.EnableSwapBufferMSAA(true);
-                    }
-
                     r.SwapColorBuffer(cmd);
                     source = r.cameraColorTargetHandle;
+                    //we want the last blit to be to MSAA
+                    if (amountOfPassesRemaining == 0 && !m_HasFinalPass)
+                        r.EnableSwapBufferMSAA(true);
                     destination = r.GetCameraColorFrontBuffer(cmd);
                 }
                 else
@@ -1375,14 +1372,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass);
 
-            if (!m_UseSwapBuffer)
-            {
-                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
-            }
-            else if (m_Source.nameID == cameraData.renderer.GetCameraColorFrontBuffer(cmd))
-            {
-                m_Source = cameraData.renderer.cameraColorTargetHandle;
-            }
+            if (m_UseSwapBuffer)
+                m_Source = cameraData.renderer.GetCameraColorBackBuffer(cmd);
 
             cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
 

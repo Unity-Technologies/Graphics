@@ -377,6 +377,18 @@ namespace UnityEngine.Rendering.Universal
             return null;
         }
 
+
+        /// <summary>
+        /// Returns the backbuffer color target. Returns null if not implemented by the renderer.
+        /// It's only valid to call GetCameraColorBackBuffer in the scope of <c>ScriptableRenderPass</c>.
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <returns></returns>
+        virtual internal RTHandle GetCameraColorBackBuffer(CommandBuffer cmd)
+        {
+            return null;
+        }
+
         /// <summary>
         /// Returns the camera depth target for this renderer.
         /// It's only valid to call cameraDepthTarget in the scope of <c>ScriptableRenderPass</c>.

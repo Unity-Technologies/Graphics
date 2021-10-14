@@ -545,6 +545,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ColorBufferSystem = baseRenderer.m_ColorBufferSystem;
                 m_ActiveCameraColorAttachment = m_ColorBufferSystem.PeekBackBuffer();
                 m_ActiveCameraDepthAttachment = baseRenderer.m_ActiveCameraDepthAttachment;
+                m_XRTargetHandleAlias = baseRenderer.m_XRTargetHandleAlias;
             }
 
             if (rendererFeatures.Count != 0 && !isPreviewCamera)
@@ -1191,6 +1192,11 @@ namespace UnityEngine.Rendering.Universal
         internal override RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
         {
             return m_ColorBufferSystem.GetFrontBuffer(cmd);
+        }
+
+        internal override RTHandle GetCameraColorBackBuffer(CommandBuffer cmd)
+        {
+            return m_ColorBufferSystem.GetBackBuffer(cmd);
         }
 
         internal override void EnableSwapBufferMSAA(bool enable)
