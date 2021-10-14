@@ -15,6 +15,10 @@ namespace UnityEditor.VFX
             var behavior = clip.asset as VisualEffectControlPlayableAsset;
             if (behavior != null)
             {
+                //TODOPAUL, only relevant is blending is enabled
+                if (clip.easeInDuration != 0.0)
+                    clip.easeInDuration = 0.0;
+
                 clip.displayName = "VFX";
             }
         }
