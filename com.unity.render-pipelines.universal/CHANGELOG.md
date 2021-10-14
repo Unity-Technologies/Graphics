@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a Universal Targets in ShaderGraph not rendering correctly in game view [1352225]
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
 - Fix for rendering thumbnails. [case 1348209](https://issuetracker.unity3d.com/issues/preview-of-assets-do-not-show-in-the-project-window)
+- Fixed an issue in where the Convert Renderering Settings would cause a freeze. [case 1353885](https://issuetracker.unity3d.com/issues/urp-builtin-to-urp-render-pipeline-converter-freezes-the-editor-when-converting-rendering-settings)
 
 ## [12.0.0] - 2021-01-11
 ### Added
