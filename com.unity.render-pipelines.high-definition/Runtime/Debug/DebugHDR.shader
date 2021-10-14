@@ -107,7 +107,7 @@ Shader "Hidden/HDRP/DebugHDR"
         {
             XYZ = RotateRec2020ToXYZ(rgb);
         }
-        return XYZtoxyY(XYZ);
+        return XYZtoxy(XYZ);
     }
 
     float3 uvToGamut(float2 uv)

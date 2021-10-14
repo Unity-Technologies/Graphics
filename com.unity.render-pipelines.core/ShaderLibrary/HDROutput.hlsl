@@ -437,7 +437,7 @@ float3 DesaturateReducedICtCp(float3 ICtCp, float lumaPre, float maxNits)
 
 float LumaRangeReduction(float input, float minNits, float maxNits, int mode)
 {
-    float3 output = input;
+    float output = input;
     if (mode == HDRRANGEREDUCTION_REINHARD)
     {
         output = ReinhardTonemap(input, maxNits);
