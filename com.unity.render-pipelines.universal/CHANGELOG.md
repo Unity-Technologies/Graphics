@@ -6,8 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.0] - 2021-09-23
 
+### Added
+- URP global setting for stripping post processing shader variants.
+- URP global setting for stripping off shader variants.
+
 ### Changed
 - URP will no longer render via an intermediate texture unless actively required by a Renderer Feature. See the upgrade guide for compatibility options and how assets are upgraded.
+- Main light shadow, additional light shadow and additional light keywords are now enabled based on urp setting instead of existence in scene. This allows better variant stripping.
+
 
 ### Fixed
 - Fixed a Universal Targets in ShaderGraph not rendering correctly in game view [1352225]
