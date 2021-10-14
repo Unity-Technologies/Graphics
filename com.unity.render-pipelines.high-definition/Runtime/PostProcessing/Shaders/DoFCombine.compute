@@ -63,7 +63,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         break;
     case FAST_DEFOCUS_TILE:
         // This tile has only out-of-focus pixels, the output was computed at a lower resolution in a previous pass.
-        output = SAMPLE_TEXTURE2D_X_LOD(_InputNearTexture, s_point_clamp_sampler, uv, 0.0).CTYPE_SWIZZLE;
+        output = SAMPLE_TEXTURE2D_X_LOD(_InputNearTexture, s_linear_clamp_sampler, uv, 0.0).CTYPE_SWIZZLE;
         break;
     default :
         // FAST_INFOCUS_TILE
