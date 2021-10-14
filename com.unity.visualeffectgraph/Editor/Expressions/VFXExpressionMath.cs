@@ -848,6 +848,26 @@ namespace UnityEditor.VFX
         {
             return string.Format("{0} && {1}", left, right);
         }
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var trueExp = VFXValue.Constant(true);
+            var falseExp = VFXValue.Constant(false);
+
+            // a && false == false && b == false
+            if (reducedParents[0].Equals(falseExp) || reducedParents[1].Equals(falseExp))
+                return falseExp;
+
+            // a && true == a
+            if (reducedParents[1].Equals(trueExp))
+                return reducedParents[0];
+
+            // true && b == b
+            if (reducedParents[0].Equals(trueExp))
+                return reducedParents[1];
+
+            return base.Reduce(reducedParents);
+        }
     }
 
     class VFXExpressionLogicalOr : VFXExpressionBinaryBoolOperation
@@ -868,6 +888,26 @@ namespace UnityEditor.VFX
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {
             return string.Format("{0} || {1}", left, right);
+        }
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var trueExp = VFXValue.Constant(true);
+            var falseExp = VFXValue.Constant(false);
+
+            // a || true == b || true == true
+            if (reducedParents[0].Equals(trueExp) || reducedParents[1].Equals(trueExp))
+                return trueExp;
+
+            // a || false == a
+            if (reducedParents[1].Equals(falseExp))
+                return reducedParents[0];
+
+            // false || b == b
+            if (reducedParents[0].Equals(falseExp))
+                return reducedParents[1];
+
+            return base.Reduce(reducedParents);
         }
     }
 

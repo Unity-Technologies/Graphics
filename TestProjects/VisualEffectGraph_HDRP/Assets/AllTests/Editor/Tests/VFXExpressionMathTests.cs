@@ -200,6 +200,46 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void ProcessReducedExpressionLogical()
+        {
+            VFXExpression trueExp = VFXValue.Constant(true);
+            VFXExpression falseExp = VFXValue.Constant(false); 
+            VFXExpression unknownExp = new VFXValue<bool>(UnityEngine.Random.value > 0.5f);
+
+            var expression_A_And_0 = new VFXExpressionLogicalAnd(unknownExp, falseExp);
+            var expression_0_And_A = new VFXExpressionLogicalAnd(falseExp, unknownExp);
+            var expression_A_And_1 = new VFXExpressionLogicalAnd(unknownExp, trueExp);
+            var expression_1_And_A = new VFXExpressionLogicalAnd(trueExp, unknownExp);
+
+            var expression_A_Or_0 = new VFXExpressionLogicalOr(unknownExp, falseExp);
+            var expression_0_Or_A = new VFXExpressionLogicalOr(falseExp, unknownExp);
+            var expression_A_Or_1 = new VFXExpressionLogicalOr(unknownExp, trueExp);
+            var expression_1_Or_A = new VFXExpressionLogicalOr(trueExp, unknownExp);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.Reduction);
+
+            var resultExpression_A_And_0 = context.Compile(expression_A_And_0);
+            var resultExpression_0_And_A = context.Compile(expression_0_And_A);
+            var resultExpression_A_And_1 = context.Compile(expression_A_And_1);
+            var resultExpression_1_And_A = context.Compile(expression_1_And_A);
+
+            var resultExpression_A_Or_0 = context.Compile(expression_A_Or_0);
+            var resultExpression_0_Or_A = context.Compile(expression_0_Or_A);
+            var resultExpression_A_Or_1 = context.Compile(expression_A_Or_1);
+            var resultExpression_1_Or_A = context.Compile(expression_1_Or_A);
+
+            Assert.AreEqual(false,      resultExpression_A_And_0.Get<bool>());
+            Assert.AreEqual(false,      resultExpression_0_And_A.Get<bool>());
+            Assert.AreEqual(unknownExp, resultExpression_A_And_1);
+            Assert.AreEqual(unknownExp, resultExpression_1_And_A);
+
+            Assert.AreEqual(unknownExp, resultExpression_A_Or_0);
+            Assert.AreEqual(unknownExp, resultExpression_0_Or_A);
+            Assert.AreEqual(true,       resultExpression_A_Or_1.Get<bool>());
+            Assert.AreEqual(true,       resultExpression_1_Or_A.Get<bool>());
+        }
+
+        [Test]
         public void ProcessExpressionMinMax()
         {
             var a = -1.5f;
