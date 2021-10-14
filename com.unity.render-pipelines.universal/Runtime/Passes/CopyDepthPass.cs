@@ -52,13 +52,24 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;
             descriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
+#if UNITY_EDITOR
+            descriptor.depthBufferBits = 16;
+
+#else
             descriptor.depthBufferBits = 0;
+
+#endif
             descriptor.msaaSamples = 1;
             if (this.AllocateRT)
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
+            var target = new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1);
+#if UNITY_EDITOR
+            ConfigureTarget(target, target, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples);
+#else
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples, false);
+            ConfigureTarget(target, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples, false);
+#endif
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
