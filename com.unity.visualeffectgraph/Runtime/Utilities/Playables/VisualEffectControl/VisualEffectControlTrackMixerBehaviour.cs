@@ -221,18 +221,7 @@ namespace UnityEngine.VFX
             {
                 foreach (var itEvent in behavior.events)
                 {
-                    double absoluteTime = 0.0;
-                    switch (itEvent.timeSpace)
-                    {
-                        case VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart:
-                            absoluteTime = behavior.clipStart + itEvent.time;
-                            break;
-                        case VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd:
-                            absoluteTime = behavior.clipEnd - itEvent.time;
-                            break;
-                        default:
-                            throw new System.Exception("TODOPAUL");
-                    }
+                    double absoluteTime = VisualEffectPlayableSerializedEvent.GetAbsoluteTime(itEvent, behavior);
 
                     //TODOPAUL: Should not be there but in UX
                     if (absoluteTime > behavior.clipEnd)

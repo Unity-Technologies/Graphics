@@ -1,5 +1,6 @@
 #if VFX_HAS_TIMELINE
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -34,36 +35,45 @@ namespace UnityEngine.VFX
 
         public double clipStart { get; set; }
         public double clipEnd { get; set; }
-        public double easeIn { get; set; }
-        public double easeOut { get; set; }
+
+        public void SetDefaultEvent(double playAfterClipStart, double stopBeforeClipEnd)
+        {
+            //if (events == null) //TEMP TODPAUL
+                events = new List<VisualEffectPlayableSerializedEvent>();
+
+            if (!events.Any(o => o.type == VisualEffectPlayableSerializedEvent.Type.Play))
+            {
+                events.Add(new VisualEffectPlayableSerializedEvent()
+                {
+                    name = VisualEffectAsset.PlayEventName,
+                    time = playAfterClipStart,
+                    timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart,
+                    type = VisualEffectPlayableSerializedEvent.Type.Play
+                });
+            }
+
+            if (!events.Any(o => o.type == VisualEffectPlayableSerializedEvent.Type.Stop))
+            {
+                events.Add(new VisualEffectPlayableSerializedEvent()
+                {
+                    name = VisualEffectAsset.StopEventName,
+                    time = stopBeforeClipEnd,
+                    timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd,
+                    type = VisualEffectPlayableSerializedEvent.Type.Stop
+                });
+            }
+        }
 
         [NotKeyable]
-        VisualEffectPlayableSerializedEvent[] events;
+        public List<VisualEffectPlayableSerializedEvent> events;
 
         public override Playable CreatePlayable(PlayableGraph graph, GameObject owner)
         {
             var playable = ScriptPlayable<VisualEffectControlPlayableBehaviour>.Create(graph, template);
             var behaviour = playable.GetBehaviour();
-
             behaviour.clipStart = clipStart;
             behaviour.clipEnd = clipEnd;
-
-            //Transmission here, will be move TODOPAUL
-            behaviour.events = new VisualEffectPlayableSerializedEvent[]
-            {
-                new VisualEffectPlayableSerializedEvent
-                {
-                    name = VisualEffectAsset.PlayEventName,
-                    time = easeIn,
-                    timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart
-                },
-                new VisualEffectPlayableSerializedEvent
-                {
-                    name = VisualEffectAsset.StopEventName,
-                    time = easeOut,
-                    timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd
-                }
-            };
+            behaviour.events = events.ToArray();
             return playable;
         }
     }

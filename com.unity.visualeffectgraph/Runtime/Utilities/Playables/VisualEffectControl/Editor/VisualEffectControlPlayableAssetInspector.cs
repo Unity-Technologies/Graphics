@@ -4,7 +4,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    [CustomEditor(typeof(VisualEffectControlPlayableAsset))]
+    //[CustomEditor(typeof(VisualEffectControlPlayableAsset))]
     class VisualEffectControlPlayableAssetInspector : Editor
     {
         public override void OnInspectorGUI()

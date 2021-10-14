@@ -8,6 +8,29 @@ namespace UnityEngine.VFX
     [Serializable]
     public struct VisualEffectPlayableSerializedEvent
     {
+        public static double GetAbsoluteTime(VisualEffectPlayableSerializedEvent current, VisualEffectControlPlayableBehaviour parent)
+        {
+            return GetAbsoluteTime(current, parent.clipStart, parent.clipEnd);
+        }
+
+        public static double GetAbsoluteTime(VisualEffectPlayableSerializedEvent current, VisualEffectControlPlayableAsset parent)
+        {
+            return GetAbsoluteTime(current, parent.clipStart, parent.clipEnd);
+        }
+
+        private static double GetAbsoluteTime(VisualEffectPlayableSerializedEvent current, double clipStart, double clipEnd)
+        {
+            switch (current.timeSpace)
+            {
+                case VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart:
+                    return clipStart + current.time;
+                case VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd:
+                    return clipEnd - current.time;
+                default:
+                    throw new System.Exception("TODOPAUL");
+            }
+        }
+
         public enum Type
         {
             Play,
