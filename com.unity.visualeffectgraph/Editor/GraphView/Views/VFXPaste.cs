@@ -369,6 +369,10 @@ namespace UnityEditor.VFX.UI
             model.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
 
             var slotContainer = model as IVFXSlotContainer;
+
+            if (slotContainer.activationSlot)
+                slotContainer.activationSlot.value = node.activationSlotValue;
+
             var inputSlots = slotContainer.inputSlots;
             for (int i = 0; i < node.inputSlots.Length && i < inputSlots.Count; ++i)
             {
@@ -815,7 +819,11 @@ namespace UnityEditor.VFX.UI
             int containerSlotIndex = slotPath[slotPath.Length - 1];
 
             VFXSlot slot = null;
-            if (input)
+            if (containerSlotIndex == -2) // activation slot
+            {
+                slot = container.activationSlot;
+            }
+            else if (input)
             {
                 if (container.GetNbInputSlots() > containerSlotIndex)
                     slot = container.GetInputSlot(slotPath[slotPath.Length - 1]);

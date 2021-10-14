@@ -85,11 +85,12 @@ namespace UnityEditor.VFX.UI
             public Flags flags;
 
             public SerializableType type;
-            public Property[] settings;
+            public Property[] settings;       
             public Property[] inputSlots;
             public string[] expandedInputs;
             public string[] expandedOutputs;
             public int indexInClipboard;
+            public bool activationSlotValue;
         }
 
 
