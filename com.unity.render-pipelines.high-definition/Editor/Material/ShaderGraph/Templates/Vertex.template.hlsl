@@ -21,7 +21,11 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     $VertexDescriptionInputs.ObjectSpaceNormal:                         output.ObjectSpaceNormal =                          _TerrainNormalmapTexture.Load(int3(sampleCoords, 0)).rgb * 2 - 1;
     $VertexDescriptionInputs.ObjectSpacePosition:                       output.ObjectSpacePosition =                        terrainPositionOS;
     $VertexDescriptionInputs.ObjectSpacePositionPredisplacement:        output.ObjectSpacePositionPredisplacement =         terrainPositionOS;
-    $VertexDescriptionInputs.uv0:                                       output.uv0 =                                        float4(sampleCoords * _TerrainHeightmapRecipSize.zw, input.uv0.zw); // TODO HD assigns UV to sampleCoords without modification if perPixelNormal is not enabled. See if this works
+#ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
+    $VertexDescriptionInputs.uv0:                                       output.uv0 =                                        float4(sampleCoords, input.uv0.zw); // TODO HD assigns UV to sampleCoords without modification if perPixelNormal is not enabled. See if this works
+#else
+    $VertexDescriptionInputs.uv0:                                       output.uv0 =                                        float4(sampleCoords * _TerrainHeightmapRecipSize.zw, input.uv0.zw);
+#endif
 #else
     $VertexDescriptionInputs.ObjectSpaceNormal:                         output.ObjectSpaceNormal =                          input.normalOS;
     $VertexDescriptionInputs.ObjectSpacePosition:                       output.ObjectSpacePosition =                        input.positionOS;

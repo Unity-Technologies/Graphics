@@ -278,7 +278,7 @@ Pass
     float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     {
         FragInputs input = UnpackVaryingsToFragInputs(packedInput);
-        input.customInterpolators.uv = input.positionSS.xy = input.texCoord0.xy;
+        input.positionSS.xy = input.texCoord0.xy;
         
         // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
         input.positionSS.xy = _OffScreenRendering > 0 ? (uint2)round(input.positionSS.xy * _OffScreenDownsampleFactor) : input.positionSS.xy;
@@ -303,7 +303,7 @@ Pass
     float2 Frag(PackedVaryingsToPS packedInput) : SV_Target
     {    
         FragInputs input = UnpackVaryingsToFragInputs(packedInput);
-        input.customInterpolators.uv = input.positionSS.xy = input.texCoord0.xy;
+        input.positionSS.xy = input.texCoord0.xy;
 
         // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
         input.positionSS.xy = _OffScreenRendering > 0 ? (uint2)round(input.positionSS.xy * _OffScreenDownsampleFactor) : input.positionSS.xy;

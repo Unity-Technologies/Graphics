@@ -147,8 +147,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static IncludeCollection TerrainIncludes = new IncludeCollection()
             {
                 { kTerrainSurfaceData, IncludeLocation.Pregraph },
-                { kTerrainSplatmap, IncludeLocation.Pregraph },
                 { kTerrainProps, IncludeLocation.Pregraph },
+                { kTerrainSplatmap, IncludeLocation.Pregraph },
             };
 
             public static FieldCollection BasemapGen = new FieldCollection()

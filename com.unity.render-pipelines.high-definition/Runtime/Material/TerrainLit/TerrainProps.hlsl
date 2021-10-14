@@ -4,34 +4,6 @@
 #if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
     #define ENABLE_TERRAIN_PERPIXEL_NORMAL
 #endif
-//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl"
-TEXTURE2D(_Control0);
-SAMPLER(sampler_Control0);
-float4 _Control0_ST;
-
-#ifndef TERRAIN_SPLAT_BASEPASS
-// Include splat properties for all non-basepass terrain shaders
-#define DECLARE_TERRAIN_LAYER_TEXS(n)   \
-    TEXTURE2D(_Splat##n);               \
-    TEXTURE2D(_Normal##n);              \
-    TEXTURE2D(_Mask##n)
-
-DECLARE_TERRAIN_LAYER_TEXS(0);
-DECLARE_TERRAIN_LAYER_TEXS(1);
-DECLARE_TERRAIN_LAYER_TEXS(2);
-DECLARE_TERRAIN_LAYER_TEXS(3);
-#ifdef _TERRAIN_8_LAYERS
-DECLARE_TERRAIN_LAYER_TEXS(4);
-DECLARE_TERRAIN_LAYER_TEXS(5);
-DECLARE_TERRAIN_LAYER_TEXS(6);
-DECLARE_TERRAIN_LAYER_TEXS(7);
-TEXTURE2D(_Control1);
-#endif
-
-#undef DECLARE_TERRAIN_LAYER_TEXS
-
-SAMPLER(sampler_Splat0);
-#endif
 
 // Even though terrain only uses these during base pass, we want to enable custom terrain implementations to sample from basemap
 // even in non-basemap shaders.
@@ -48,26 +20,6 @@ SAMPLER(sampler_MainTex);
     #endif
 #endif
 
-CBUFFER_START(UnityTerrain)
-    UNITY_TERRAIN_CB_VARS
-#ifdef UNITY_INSTANCING_ENABLED
-    float4 _TerrainHeightmapRecipSize;  // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
-    float4 _TerrainHeightmapScale;      // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
-#endif
-#ifdef DEBUG_DISPLAY
-    UNITY_TERRAIN_CB_DEBUG_VARS
-#endif
-// ShaderGraph already defines these
-//#ifdef SCENESELECTIONPASS
-//    int _ObjectId;
-//    int _PassValue;
-//#endif
-CBUFFER_END
-
-#ifdef _ALPHATEST_ON
-TEXTURE2D(_TerrainHolesTexture);
-SAMPLER(sampler_TerrainHolesTexture);
-#endif
 
 UNITY_INSTANCING_BUFFER_START(Terrain)
 UNITY_DEFINE_INSTANCED_PROP(float4, _TerrainPatchInstanceData)  // float4(xBase, yBase, skipScale, ~)
@@ -84,5 +36,18 @@ float _DistortionVectorBias;
 float _DistortionBlurScale;
 float _DistortionBlurRemapMin;
 float _DistortionBlurRemapMax;
+
+
+float4 ConstructTerrainTangent(float3 normal, float3 positiveZ)
+{
+    // Consider a flat terrain. It should have tangent be (1, 0, 0) and bitangent be (0, 0, 1) as the UV of the terrain grid mesh is a scale of the world XZ position.
+    // In CreateTangentToWorld function (in SpaceTransform.hlsl), it is cross(normal, tangent) * sgn for the bitangent vector.
+    // It is not true in a left-handed coordinate system for the terrain bitangent, if we provide 1 as the tangent.w. It would produce (0, 0, -1) instead of (0, 0, 1).
+    // Also terrain's tangent calculation was wrong in a left handed system because cross((0,0,1), terrainNormalOS) points to the wrong direction as negative X.
+    // Therefore all the 4 xyzw components of the tangent needs to be flipped to correct the tangent frame.
+    // (See TerrainLitData.hlsl - GetSurfaceAndBuiltinData)
+    float3 tangent = cross(normal, positiveZ);
+    return float4(tangent, -1);
+}
 
 #endif
