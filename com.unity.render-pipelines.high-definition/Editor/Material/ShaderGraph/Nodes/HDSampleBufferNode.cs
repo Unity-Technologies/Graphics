@@ -143,31 +143,31 @@ namespace UnityEditor.Rendering.HighDefinition
                         switch (bufferType)
                         {
                             case BufferType.NormalWorldSpace:
-                                s.Append("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
-                                s.Append("NormalData normalData;");
-                                s.Append("DecodeFromNormalBuffer(pixelCoords, normalData);");
-                                s.Append("float depth = LoadCameraDepth(pixelCoords);");
-                                s.Append("return depth > 0 ? normalData.normalWS : 0;");
+                                s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
+                                s.AppendLine("NormalData normalData;");
+                                s.AppendLine("DecodeFromNormalBuffer(pixelCoords, normalData);");
+                                s.AppendLine("float depth = LoadCameraDepth(pixelCoords);");
+                                s.AppendLine("return depth > 0 ? normalData.normalWS : 0;");
                                 break;
                             case BufferType.Roughness:
-                                s.Append("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
-                                s.Append("NormalData normalData;");
-                                s.Append("DecodeFromNormalBuffer(pixelCoords, normalData);");
-                                s.Append("float depth = LoadCameraDepth(pixelCoords);");
-                                s.Append("return depth > 0 ? PerceptualRoughnessToRoughness(normalData.perceptualRoughness) : 0;");
+                                s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
+                                s.AppendLine("NormalData normalData;");
+                                s.AppendLine("DecodeFromNormalBuffer(pixelCoords, normalData);");
+                                s.AppendLine("float depth = LoadCameraDepth(pixelCoords);");
+                                s.AppendLine("return depth > 0 ? PerceptualRoughnessToRoughness(normalData.perceptualRoughness) : 0;");
                                 break;
                             case BufferType.MotionVectors:
                                 // if we have a value > 1.0f, it means we have selected the "no motion option", hence we force motionVec 0.
-                                s.Append($"float4 motionVecBufferSample = SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, samplerState, uv * _RTHandleScale.xy, 0);");
-                                s.Append("float2 motionVec;");
-                                s.Append("DecodeMotionVector(motionVecBufferSample, motionVec);");
-                                s.Append("return motionVec;");
+                                s.AppendLine($"float4 motionVecBufferSample = SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, samplerState, uv * _RTHandleScale.xy, 0);");
+                                s.AppendLine("float2 motionVec;");
+                                s.AppendLine("DecodeMotionVector(motionVecBufferSample, motionVec);");
+                                s.AppendLine("return motionVec;");
                                 break;
                             case BufferType.PostProcessInput:
-                                s.Append("return SAMPLE_TEXTURE2D_X_LOD(_CustomPostProcessInput, samplerState, uv * _RTHandlePostProcessScale.xy, 0);");
+                                s.AppendLine("return SAMPLE_TEXTURE2D_X_LOD(_CustomPostProcessInput, samplerState, uv * _RTHandlePostProcessScale.xy, 0);");
                                 break;
                             case BufferType.BlitSource:
-                                s.Append($"return SAMPLE_TEXTURE2D_X_LOD(_MainTex, samplerState, uv, 0); ");
+                                s.AppendLine($"return SAMPLE_TEXTURE2D_X_LOD(_MainTex, samplerState, uv, 0); ");
                                 break;
                             default:
                                 s.AppendLine("return 0.0;");

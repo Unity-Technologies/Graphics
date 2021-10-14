@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        public override string documentationURL => Documentation.GetPageLink("SGNode-HD-Sample-Buffer");
+        public override string documentationURL => Documentation.GetPageLink("SGNode-Universal-Sample-Buffer");
 
         public UniversalSampleBufferNode()
         {
@@ -57,7 +57,8 @@ namespace UnityEditor.Rendering.Universal
             UpdateNodeAfterDeserialization();
         }
 
-        public override bool hasPreview { get { return false; } }
+        public override bool hasPreview { get { return true; } }
+        public override PreviewMode previewMode => PreviewMode.Preview2D;
 
         int channelCount;
 
@@ -120,17 +121,21 @@ namespace UnityEditor.Rendering.Universal
             // }
         }
 
-        string GetFunctionName() => "Unity_HDRP_SampleBuffer_$precision";
+        string GetFunctionName() => "Unity_Universal_SampleBuffer_$precision";
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            // Preview SG doesn't have access to HDRP depth buffer
+            // Preview SG doesn't have access to render pipeline buffer
             if (!generationMode.IsPreview())
             {
                 registry.ProvideFunction(GetFunctionName(), s =>
                 {
-                    s.AppendLine("#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl\"");
-                    s.AppendLine("#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl\"");
+                    // Default sampler when the sampler slot is not connected.
+                    s.AppendLine("SAMPLER(s_linear_clamp_sampler);");
+
+                    s.AppendLine("#include \"Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl\"");
+
+                    // s.AppendLine("#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl\"");
 
                     s.AppendLine("$precision{1} {0}($precision2 uv, SamplerState samplerState)", GetFunctionName(), channelCount);
                     using (s.BlockScope())
@@ -138,24 +143,20 @@ namespace UnityEditor.Rendering.Universal
                         switch (bufferType)
                         {
                             case BufferType.NormalWorldSpace:
-                                s.Append("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
-                                s.Append("NormalData normalData;");
-                                s.Append("DecodeFromNormalBuffer(pixelCoords, normalData);");
-                                s.Append("float depth = LoadCameraDepth(pixelCoords);");
-                                s.Append("return depth > 0 ? normalData.normalWS : 0;");
+                                s.AppendLine("return SampleSceneNormals(uv);");
                                 break;
                             case BufferType.MotionVectors:
                                 // if we have a value > 1.0f, it means we have selected the "no motion option", hence we force motionVec 0.
-                                s.Append($"float4 motionVecBufferSample = SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, samplerState, uv * _RTHandleScale.xy, 0);");
-                                s.Append("float2 motionVec;");
-                                s.Append("DecodeMotionVector(motionVecBufferSample, motionVec);");
-                                s.Append("return motionVec;");
+                                s.AppendLine($"float4 motionVecBufferSample = SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, samplerState, uv * _RTHandleScale.xy, 0);");
+                                s.AppendLine("float2 motionVec;");
+                                s.AppendLine("DecodeMotionVector(motionVecBufferSample, motionVec);");
+                                s.AppendLine("return motionVec;");
                                 break;
                             // case BufferType.PostProcessInput:
-                            //     s.Append("return SAMPLE_TEXTURE2D_X_LOD(_CustomPostProcessInput, samplerState, uv * _RTHandlePostProcessScale.xy, 0);");
+                            //     s.AppendLine("return SAMPLE_TEXTURE2D_X_LOD(_CustomPostProcessInput, samplerState, uv * _RTHandlePostProcessScale.xy, 0);");
                             //     break;
                             case BufferType.BlitSource:
-                                s.Append($"return SAMPLE_TEXTURE2D_X_LOD(_MainTex, samplerState, uv, 0); ");
+                                s.AppendLine($"return SAMPLE_TEXTURE2D_X_LOD(_MainTex, samplerState, uv, 0); ");
                                 break;
                             default:
                                 s.AppendLine("return 0.0;");
