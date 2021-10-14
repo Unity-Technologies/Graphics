@@ -163,7 +163,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 int hdrTonemapMode = m_Mode.value.intValue;
                 if (m_Mode.value.intValue == (int)TonemappingMode.Custom || hdrTonemapMode == (int)TonemappingMode.External)
                 {
-                    EditorGUILayout.HelpBox("The selected tonmapping mode is not supported in HDR Output mode. Select a fallback mode.", MessageType.Warning);
+                    EditorGUILayout.HelpBox("The selected tonemapping mode is not supported in HDR Output mode. Select a fallback mode.", MessageType.Warning);
                     PropertyField(m_HDRFallbackMode);
                     hdrTonemapMode = (m_HDRFallbackMode.value.intValue == (int)FallbackHDRTonemap.ACES) ? (int)TonemappingMode.ACES :
                                      (m_HDRFallbackMode.value.intValue == (int)FallbackHDRTonemap.Neutral) ? (int)TonemappingMode.Neutral :

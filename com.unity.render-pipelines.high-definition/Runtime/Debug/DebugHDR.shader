@@ -95,17 +95,6 @@ Shader "Hidden/HDRP/DebugHDR"
         return float4(color * lineAlpha, lineAlpha);
     }
 
-    float3 xyYtoXYZ(float3 xyY)
-    {
-        float x = xyY[0];
-        float y = xyY[1];
-        float Y = xyY[2];
-
-        float X = (Y / y) * x;
-        float Z = (Y / y) * (1.0 - x - y);
-
-        return float3(X, Y, Z);
-    }
 
     float2 RGBtoxy(float3 rgb)
     {
@@ -118,7 +107,7 @@ Shader "Hidden/HDRP/DebugHDR"
         {
             XYZ = RotateRec2020ToXYZ(rgb);
         }
-        return XYZ.xy / (dot(XYZ, 1));
+        return XYZtoxyY(XYZ);
     }
 
     float3 uvToGamut(float2 uv)

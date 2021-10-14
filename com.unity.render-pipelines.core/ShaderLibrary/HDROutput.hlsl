@@ -481,7 +481,7 @@ float3 HueShiftingRangeReduction(float3 input, float minNits, float maxNits, int
     return hueShiftedResult;
 }
 
-// Ref "High Dynamic Rangecolor grading and displayin Frostbite" [Fry 2017]
+// Ref "High Dynamic Range color grading and display in Frostbite" [Fry 2017]
 float3 FryHuePreserving(float3 input, float minNits, float maxNits, float hueShift, int mode)
 {
     float3 ictcp = RotateOutputSpaceToICtCp(input);

@@ -324,6 +324,25 @@ real RotateHue(real value, real low, real hi)
                 : value;
 }
 
+// CIE xyY to CIE 1931 XYZ
+float3 xyYtoXYZ(float3 xyY)
+{
+    float x = xyY.x;
+    float y = xyY.y;
+    float Y = xyY.z;
+
+    float X = (Y / y) * x;
+    float Z = (Y / y) * (1.0 - x - y);
+
+    return float3(X, Y, Z);
+}
+
+// CIE 1931 XYZ to CIE xy (Y component not returned)
+float2 XYZtoxy(float3 XYZ)
+{
+    return XYZ.xy / (dot(XYZ, 1));
+}
+
 // Soft-light blending mode use for split-toning. Works in HDR as long as `blend` is [0;1] which is
 // fine for our use case.
 float3 SoftLight(float3 base, float3 blend)
