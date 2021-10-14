@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.destination = destination;
             this.AllocateRT = !destination.HasInternalRenderTargetId();
 #if UNITY_EDITOR
-            this.useNativeRenderPass = false;
+            //this.useNativeRenderPass = false;
 #endif
             this.MssaSamples = -1;
         }
@@ -59,9 +59,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.msaaSamples = 1;
             if (this.AllocateRT)
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
-
+#if UNITY_EDITOR
+            // On some platforms in some cases the depth buffer doesn't get reset while 
+            var identifier = new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1);
+            ConfigureTarget(identifier, identifier, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples);
+#else
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples, false);
+            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples);
+#endif
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
