@@ -106,6 +106,7 @@ namespace UnityEngine.VFX
                         OnLeaveChunk(vfx);
 
                     m_LastChunk = currentChunkIndex;
+                    m_LastEvent = kErrorIndex;
                 }
 
                 vfx.pause = paused;
