@@ -1076,8 +1076,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SetGlobalSkyData(renderGraph, hdCamera.lightingSky);
 
-            var reflectionTexture = GetReflectionTexture(hdCamera.lightingSky);
-            cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, reflectionTexture);
+            // Keep global setter for now. We should probably remove it and set it explicitly where needed like any other resource. As is it breaks resource lifetime contract with render graph.
+            HDRenderPipeline.SetGlobalTexture(renderGraph, HDShaderIDs._SkyTexture, GetReflectionTexture(hdCamera.lightingSky));
         }
 
         internal void UpdateBuiltinParameters(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)

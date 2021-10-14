@@ -31,6 +31,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class SetGlobalTexturePassData
+        {
+            public int shaderID;
+            public Texture texture;
+        }
+
+        internal static void SetGlobalTexture(RenderGraph renderGraph, int shaderID, Texture texture)
+        {
+            using (var builder = renderGraph.AddRenderPass<SetGlobalTexturePassData>("SetGlobalTexture", out var passData))
+            {
+                builder.AllowPassCulling(false);
+
+                passData.shaderID = shaderID;
+                passData.texture = texture;
+
+                builder.SetRenderFunc(
+                    (SetGlobalTexturePassData data, RenderGraphContext context) =>
+                    {
+                        context.cmd.SetGlobalTexture(data.shaderID, data.texture);
+                    });
+            }
+        }
+
         static void DrawOpaqueRendererList(in RenderGraphContext context, in FrameSettings frameSettings, in RendererList rendererList)
         {
             DrawOpaqueRendererList(context.renderContext, context.cmd, frameSettings, rendererList);

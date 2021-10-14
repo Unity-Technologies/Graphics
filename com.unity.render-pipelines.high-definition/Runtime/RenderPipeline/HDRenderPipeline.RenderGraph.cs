@@ -49,8 +49,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
                 if (!m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
                     m_SkyManager.UpdateEnvironment(m_RenderGraph, hdCamera, GetMainLight());
-                else
-                    cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTextureArray);
 
                 // We need to initialize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.

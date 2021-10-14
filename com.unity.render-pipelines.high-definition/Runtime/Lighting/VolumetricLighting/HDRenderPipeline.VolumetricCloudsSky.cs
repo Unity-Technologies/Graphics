@@ -290,7 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // If the current volume does not enable the feature, quit right away.
             if (!HasVolumetricClouds(hdCamera, in settings))
-                return TextureHandle.nullHandle;
+                return skyboxCubemap;
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.FullResolutionCloudsForSky))
             {
