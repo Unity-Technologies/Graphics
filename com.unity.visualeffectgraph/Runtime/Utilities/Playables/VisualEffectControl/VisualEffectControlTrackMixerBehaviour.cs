@@ -33,8 +33,9 @@ namespace UnityEngine.VFX
                 }
             }
 
-            const int kChunkError = int.MinValue;
-            private int m_LastChunk = kChunkError;
+            const int kErrorIndex = int.MinValue;
+            private int m_LastChunk = kErrorIndex;
+            private int m_LastEvent = kErrorIndex;
             private double m_LastPlayableTime = double.MinValue;
 
             private void OnEnterChunk(VisualEffect vfx)
@@ -86,7 +87,7 @@ namespace UnityEngine.VFX
                 var dbg = dbg_state.OutChunk;
 
                 //Find current chunk (TODOPAUL cache previous state to speed up)
-                var currentChunkIndex = kChunkError;
+                var currentChunkIndex = kErrorIndex;
                 for (int i = 0; i < m_Chunks.Length; ++i)
                 {
                     var chunk = m_Chunks[i];
@@ -99,7 +100,7 @@ namespace UnityEngine.VFX
 
                 if (m_LastChunk != currentChunkIndex)
                 {
-                    if (m_LastChunk == kChunkError)
+                    if (m_LastChunk == kErrorIndex)
                         OnEnterChunk(vfx);
                     else
                         OnLeaveChunk(vfx);
@@ -108,14 +109,12 @@ namespace UnityEngine.VFX
                 }
 
                 vfx.pause = paused;
-                if (currentChunkIndex != kChunkError)
+                if (currentChunkIndex != kErrorIndex)
                 {
                     dbg = dbg_state.Playing;
 
                     var chunk = m_Chunks[currentChunkIndex];
-
                     var actualCurrentTime = chunk.begin + vfx.time;
-
                     if (!playingBackward)
                     {
                         if (Abs(m_LastPlayableTime - actualCurrentTime) < VFXManager.maxDeltaTime)
@@ -125,8 +124,9 @@ namespace UnityEngine.VFX
                         }
                         else
                         {
-                            //VFX is too late on timeline
-                            //TODOPAUL: In that case, we could have already consume event, it can be problematic
+                            //VFX is too late on timeline, we will have to launch simulate
+                            //Warning, in that case, event could have been already sent
+                            //m_LastEvent status prevents sending twice the same event
                         }
                     }
                     else
@@ -134,6 +134,7 @@ namespace UnityEngine.VFX
                         dbg = dbg_state.ScrubbingBackward;
                         actualCurrentTime = chunk.begin;
                         m_LastPlayableTime = actualCurrentTime;
+                        m_LastEvent = kErrorIndex;
                         OnEnterChunk(vfx);
                     }
 
@@ -145,18 +146,19 @@ namespace UnityEngine.VFX
 
                     {
                         //1. Process adjustment if actualCurrentTime < expectedCurrentTime
-                        var eventList = GetEventsIndex(chunk, actualCurrentTime, expectedCurrentTime);
+                        var eventList = GetEventsIndex(chunk, actualCurrentTime, expectedCurrentTime, m_LastEvent);
                         var eventCount = eventList.Count();
                         var nextEvent = 0;
 
                         var fixedStep = VFXManager.maxDeltaTime; //TODOPAUL, reduce the interval in case of paused ?
                         while (actualCurrentTime < expectedCurrentTime)
                         {
-                            var currentEvent = default(Event);
+                            var currentEventIndex = kErrorIndex;
                             uint currentStepCount;
                             if (nextEvent < eventCount)
                             {
-                                currentEvent = chunk.events[eventList.ElementAt(nextEvent++)];
+                                currentEventIndex = eventList.ElementAt(nextEvent++);
+                                var currentEvent = chunk.events[currentEventIndex];
                                 currentStepCount = (uint)((currentEvent.time - actualCurrentTime) / fixedStep);
                             }
                             else
@@ -177,17 +179,15 @@ namespace UnityEngine.VFX
                                 vfx.Simulate((float)fixedStep, currentStepCount);
                                 actualCurrentTime += fixedStep * currentStepCount;
                             }
-                            ProcessEvent(currentEvent, vfx);
+                            ProcessEvent(currentEventIndex, chunk, vfx);
                         }
                     }
 
                     //Sending incoming event
                     {
-                        var eventList = GetEventsIndex(chunk, actualCurrentTime, playableTime);
+                        var eventList = GetEventsIndex(chunk, actualCurrentTime, playableTime, m_LastEvent);
                         foreach (var itEvent in eventList)
-                        {
-                            ProcessEvent(chunk.events[itEvent], vfx);
-                        }
+                            ProcessEvent(itEvent, chunk, vfx);
                     }
                 }
 
@@ -195,20 +195,22 @@ namespace UnityEngine.VFX
                 m_LastPlayableTime = playableTime;
             }
 
-            void ProcessEvent(Event currentEvent, VisualEffect vfx)
+            void ProcessEvent(int eventIndex, Chunk currentChunk, VisualEffect vfx)
             {
-                if (currentEvent.nameId == 0u)
+                if (eventIndex == kErrorIndex)
                     return;
 
+                m_LastEvent = eventIndex;
+                var currentEvent = currentChunk.events[eventIndex];
                 vfx.SendEvent(currentEvent.nameId);
             }
 
-            IEnumerable<int> GetEventsIndex(Chunk chunk, double minTime, double maxTime)
+            static IEnumerable<int> GetEventsIndex(Chunk chunk, double minTime, double maxTime, int lastIndex)
             {
-                for (int i = 0; i < chunk.events.Length; ++i)
+                var startIndex = lastIndex == kErrorIndex ? 0 : lastIndex + 1;
+                for (int i = startIndex; i < chunk.events.Length; ++i)
                 {
                     var currentEvent = chunk.events[i];
-
                     if (currentEvent.time > maxTime)
                         break;
 
@@ -217,7 +219,7 @@ namespace UnityEngine.VFX
                 }
             }
 
-            private static IEnumerable<Event> ComputeRuntimeEvent(VisualEffectControlPlayableBehaviour behavior, VisualEffect vfx)
+            static IEnumerable<Event> ComputeRuntimeEvent(VisualEffectControlPlayableBehaviour behavior, VisualEffect vfx)
             {
                 foreach (var itEvent in behavior.events)
                 {
@@ -273,7 +275,7 @@ namespace UnityEngine.VFX
                     chunks.Pop();
                     chunks.Push(currentChunk);
                 }
-                m_Chunks = chunks.Reverse().ToArray();
+                 m_Chunks = chunks.Reverse().ToArray();
             }
         }
 
@@ -294,7 +296,6 @@ namespace UnityEngine.VFX
                 m_Target.pause = false;
         }
 
-        // Called every frame that the timeline is evaluated. ProcessFrame is invoked after its' inputs.
         public override void ProcessFrame(Playable playable, FrameData data, object playerData)
         {
             SetDefaults(playerData as VisualEffect);
