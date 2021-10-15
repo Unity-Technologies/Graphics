@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -64,17 +65,17 @@ namespace UnityEditor.VFX
                 var shaderGraphParticleOutput = (VFXShaderGraphParticleOutput)target;
                 var shaderGraph = shaderGraphParticleOutput.GetOrRefreshShaderGraphObject();
                 var materialShadowOverride = VFXLibrary.currentSRPBinder.TryGetCastShadowFromMaterial(shaderGraph, shaderGraphParticleOutput.materialSettings, out var castShadow);
-                var materialQueueOffsetOverride = VFXLibrary.currentSRPBinder.TryGetQueueOffset(shaderGraph, shaderGraphParticleOutput.materialSettings, out var queueOffset) && shaderGraphParticleOutput.subOutput.supportsMaterialOffset;
+                var materialSortingPriorityOverride = VFXLibrary.currentSRPBinder.TryGetQueueOffset(shaderGraph, shaderGraphParticleOutput.materialSettings, out var queueOffset) && shaderGraphParticleOutput.subOutput.supportsSortingPriority;
 
                 // Indicate material override from shaderGraph which is hiding output properties.
-                if (materialShadowOverride || materialQueueOffsetOverride)
+                if (materialShadowOverride || materialSortingPriorityOverride)
                 {
-                    var msg = "The ShaderGraph material is overriding some settings:";
+                    var msg = new StringBuilder("The ShaderGraph material is overriding some settings:");
                     if (materialShadowOverride)
-                        msg += string.Format("\n - castShadow = {0}", castShadow ? "true" : "false");
-                    if (materialQueueOffsetOverride)
-                        msg += string.Format("\n - materialOffset = {0}", queueOffset);
-                    EditorGUILayout.HelpBox(msg, MessageType.Info);
+                        msg.AppendFormat("\n - Cast Shadow = {0}", castShadow ? "true" : "false");
+                    if (materialSortingPriorityOverride)
+                        msg.AppendFormat("\n - Sorting Priority = {0}", queueOffset);
+                    EditorGUILayout.HelpBox(msg.ToString(), MessageType.Info);
                 }
 
                 // Indicate caution to the user if transparent motion vectors are disabled and motion vectors are enabled.
@@ -201,7 +202,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override int GetMaterialOffset()
+        public override int GetMaterialSortingPriority()
         {
             var shaderGraph = GetOrRefreshShaderGraphObject();
             if (shaderGraph != null && shaderGraph.generatesWithShaderGraph && VFXLibrary.currentSRPBinder != null)
@@ -211,7 +212,7 @@ namespace UnityEditor.VFX
                     return queueOffset;
                 }
             }
-            return base.materialOffset;
+            return sortingPriority;
         }
 
         public BlendMode GetMaterialBlendMode()
@@ -399,7 +400,7 @@ namespace UnityEditor.VFX
                                 yield return nameof(castShadows);
 
                             if (VFXLibrary.currentSRPBinder.TryGetQueueOffset(shaderGraph, materialSettings, out var queueOffset))
-                                yield return nameof(materialOffset);
+                                yield return nameof(sortingPriority);
                         }
                     }
                 }
