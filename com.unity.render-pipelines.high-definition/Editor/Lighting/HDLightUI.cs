@@ -766,7 +766,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     AreaLightShape.Disc => LightType.Disc,
                     _ => throw new Exception("Unexpected area light type: " + serialized.areaLightShape),
                 };
-                //serialized.settings.DrawCookieProperty(serialized.areaLightCookie, s_Styles.areaLightCookie, inspectorAreaLightType);
+                serialized.settings.DrawCookieProperty(serialized.areaLightCookie, s_Styles.areaLightCookie, inspectorAreaLightType);
                 ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
             }
             if (serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot || (serialized.type == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
