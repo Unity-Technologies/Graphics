@@ -93,6 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // In case of using shared persistent render graph textures.
         bool m_UseSharedTexture;
         protected TextureHandle m_Output;
+        protected TextureHandle m_ShadowMapOutput;
 
         public TextureDesc GetShadowMapTextureDesc()
         {
@@ -200,6 +201,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public TextureHandle GetShadowMapDepthTexture(RenderGraph renderGraph)
+        {
+            if (m_BlurAlgorithm == BlurAlgorithm.None)
+                return GetOutputTexture(renderGraph);
+
+            // We use the actual shadow map as intermediate target
+            renderGraph.CreateTextureIfInvalid(GetShadowMapTextureDesc(), ref m_ShadowMapOutput);
+            return m_ShadowMapOutput;
+        }
+
         protected void InitializeRenderGraphOutput(RenderGraph renderGraph, bool useSharedTexture)
         {
             // First release if not needed anymore.
@@ -251,7 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool isRenderingOnACache;
         }
 
-        TextureHandle RenderShadowMaps(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCBData, FrameSettings frameSettings, string shadowPassName)
+        internal TextureHandle RenderShadowMaps(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCBData, FrameSettings frameSettings, string shadowPassName)
         {
             using (var builder = renderGraph.AddRenderPass<RenderShadowMapsPassData>("Render Shadow Maps", out var passData, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
             {
@@ -266,7 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Only in case of regular shadow map do we render directly in the output texture of the atlas.
                 if (m_BlurAlgorithm == BlurAlgorithm.EVSM || m_BlurAlgorithm == BlurAlgorithm.IM)
-                    passData.atlasTexture = builder.WriteTexture(renderGraph.CreateTexture(GetShadowMapTextureDesc()));
+                    passData.atlasTexture = builder.WriteTexture(GetShadowMapDepthTexture(renderGraph));
                 else
                     passData.atlasTexture = builder.WriteTexture(GetOutputTexture(renderGraph));
 
@@ -348,6 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetGlobalDepthBias(0.0f, 0.0f);             // Reset depth bias.
                     });
 
+                m_ShadowMapOutput = passData.atlasTexture;
                 return passData.atlasTexture;
             }
         }
@@ -552,6 +564,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal TextureHandle BlurShadows(RenderGraph renderGraph)
+        {
+            if (m_BlurAlgorithm == BlurAlgorithm.EVSM)
+            {
+                return EVSMBlurMoments(renderGraph, m_ShadowMapOutput);
+            }
+            else if (m_BlurAlgorithm == BlurAlgorithm.IM)
+            {
+                return IMBlurMoment(renderGraph, m_ShadowMapOutput);
+            }
+            else // Regular shadow maps.
+            {
+                return m_ShadowMapOutput;
+            }
+        }
         internal TextureHandle RenderShadows(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)
         {
             if (m_ShadowRequests.Count == 0)
@@ -559,19 +586,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 return renderGraph.defaultResources.blackTexture;
             }
 
-            TextureHandle atlas = RenderShadowMaps(renderGraph, cullResults, globalCB, frameSettings, shadowPassName);
+            RenderShadowMaps(renderGraph, cullResults, globalCB, frameSettings, shadowPassName);
 
             if (m_BlurAlgorithm == BlurAlgorithm.EVSM)
             {
-                return EVSMBlurMoments(renderGraph, atlas);
+                return EVSMBlurMoments(renderGraph, m_ShadowMapOutput);
             }
             else if (m_BlurAlgorithm == BlurAlgorithm.IM)
             {
-                return IMBlurMoment(renderGraph, atlas);
+                return IMBlurMoment(renderGraph, m_ShadowMapOutput);
             }
             else // Regular shadow maps.
             {
-                return atlas;
+                return m_ShadowMapOutput;
             }
         }
 

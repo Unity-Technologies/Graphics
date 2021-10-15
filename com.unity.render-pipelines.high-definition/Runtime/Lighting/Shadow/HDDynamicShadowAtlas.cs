@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.blitMaterial = blitMaterial;
                     passData.cachedShadowAtlasSize = new Vector2Int(cachedAtlasSize, cachedAtlasSize);
                     passData.sourceCachedAtlas = builder.ReadTexture(cachedAtlasTexture);
-                    passData.atlasTexture = builder.WriteTexture(GetOutputTexture(renderGraph));
+                    passData.atlasTexture = builder.WriteTexture(GetShadowMapDepthTexture(renderGraph));
 
                     builder.SetRenderFunc(
                         (BlitCachedShadowPassData data, RenderGraphContext ctx) =>
