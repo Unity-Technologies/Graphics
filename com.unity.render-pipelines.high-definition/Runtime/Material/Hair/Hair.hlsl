@@ -1171,6 +1171,13 @@ float3 RectangleClosestPoint(float3 positionWS, float3 planeOrigin, float3 right
     return planeOrigin + dist2D.x * right + dist2D.y * up;
 }
 
+// Returns the dominant direction of the multiple marschner lobes.
+float3 ComputeDominantMarschnerLobeDirection()
+{
+    // TODO
+    return float3(0, 1, 0);
+}
+
 DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float3 V, PositionInputs posInput,
     PreLightData preLightData, LightData lightData,
@@ -1201,15 +1208,13 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
             RectangularLightApplyBarnDoor(lightData, positionWS);
         #endif
 
-            if (dot(normalize(positionWS - lightData.positionRWS), lightData.forward) > 0)
+            if (dot(positionWS - lightData.positionRWS, lightData.forward) > 0)
             {
                 const float  halfWidth  = lightData.size.x * 0.5;
                 const float  halfHeight = lightData.size.y * 0.5;
 
-                // Compute the dominant specular direction(s?) for Marschner BSDF.
-                // TODO: Need a heuristic for choosing this dominant direction. How to efficiently sample the multiple lobes?
-                // Can we generalize the dominant backward and forward scattering lobes?
-                float3 dh = -lightData.forward;
+                // Compute the dominant specular direction for Marschner BSDF (instead of the reflection vector, which is only really useful for Phong distribution).
+                float3 dh = ComputeDominantMarschnerLobeDirection();
 
                 // Intersect the dominant specular direction with the light plane.
                 float3 ph = RayPlaneIntersect(positionWS, dh, lightData.positionRWS, lightData.forward);
@@ -1217,7 +1222,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
                 // Compute the closest position on the rectangle.
                 ph = RectangleClosestPoint(ph, lightData.positionRWS, -lightData.right, lightData.up, halfWidth, halfHeight);
 
-                // Construct the rectangle vertices and compute the solid angle.
+                // Solid angle computation (brute force or approximate routine).
             #if 1
                 float4x3 lightVerts;
                 lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
@@ -1233,8 +1238,8 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
                 // Construct the most representative direction.
                 float3 L = normalize(ph - positionWS);
 
-                // Shade the surface with a theoretical point light.
-                float3 lightColor = lightData.color * solidAngle; // TODO: NdotL?
+                // Shade the surface with a theoretically placed point light at the most important position.
+                float3 lightColor = lightData.color * solidAngle;
 
                 // TODO: Area Shadow Sample
 
