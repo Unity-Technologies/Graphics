@@ -16,6 +16,25 @@ void ModifyDistancesForFillLighting(inout float4 distances, float lightSqRadius)
     distances.z = rsqrt(sqDist + lightSqRadius); // Recompute 1/d
 }
 
+// Returns the normalized light vector L
+float3 GetPunctualLightVector(float3 positionWS, LightData light)
+{
+    float3 L;
+    if (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        L = -light.forward;
+    }
+    else
+    {
+        float3 lightToSample = positionWS - light.positionRWS;
+        float3 unL     = -lightToSample;
+        float  distSq  = dot(unL, unL);
+        float  distRcp = rsqrt(distSq);
+        L = unL * distRcp;
+    }
+    return L;
+}
+
 // Returns the normalized light vector L and the distances = {d, d^2, 1/d, d_proj}.
 void GetPunctualLightVectors(float3 positionWS, LightData light, out float3 L, out float4 distances)
 {

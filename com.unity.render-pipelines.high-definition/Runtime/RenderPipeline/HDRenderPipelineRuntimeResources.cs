@@ -167,6 +167,11 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricCloudsCombine.shader")]
             public Shader volumetricCloudsCombinePS;
 
+            // Water
+            [Reload("Runtime/Water/WaterSimulation.compute")]
+            public ComputeShader waterSimulationCS;
+            [Reload("Runtime/Water/FourierTransform.compute")]
+            public ComputeShader fourierTransformCS;
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
@@ -377,6 +382,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable, ReloadGroup]
         public sealed class MaterialResources
         {
+            // Water
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultWaterMaterial.mat")]
+            public Material defaultWaterMaterial;
         }
 
         [Serializable, ReloadGroup]
@@ -427,6 +435,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture3D worleyNoise32RGB;
             [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/PerlinNoise32RGB.png")]
             public Texture3D perlinNoise32RGB;
+
+            // Water textures
+            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamSurface.png")]
+            public Texture2D foamSurface;
+            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamNormals.tga")]
+            public Texture2D foamNormals;
 
             // Post-processing
             [Reload(new[]

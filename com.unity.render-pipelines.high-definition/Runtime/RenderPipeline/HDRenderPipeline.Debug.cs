@@ -1148,6 +1148,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             DrawTransparentRendererList(context, data.frameSettings, data.transparentRendererList);
                         });
                 }
+
+                // Render the debug water
+                RenderWaterSurfaces(renderGraph, hdCamera, output, depthBuffer, renderGraph.defaultResources.blackTexture);
             }
 
             return output;

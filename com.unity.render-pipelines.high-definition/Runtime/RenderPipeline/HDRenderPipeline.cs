@@ -390,6 +390,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeVolumetricLighting();
             InitializeVolumetricClouds();
             InitializeSubsurfaceScattering();
+            InitializeWaterSystem();
 
             m_DebugDisplaySettings.RegisterDebug();
 #if UNITY_EDITOR
@@ -684,6 +685,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ReleaseVolumetricClouds();
             CleanupSubsurfaceScattering();
+            ReleaseWaterSystem();
 
             // For debugging
             MousePositionDebug.instance.Cleanup();
@@ -1119,6 +1121,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_FrameCount = newCount;
                 HDCamera.CleanUnused();
             }
+
+            // Update the water surfaces
+            var commandBuffer = CommandBufferPool.Get("");
+            UpdateWaterSurfaces(commandBuffer);
+            renderContext.ExecuteCommandBuffer(commandBuffer);
+            renderContext.Submit();
+            commandBuffer.Clear();
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Update();
