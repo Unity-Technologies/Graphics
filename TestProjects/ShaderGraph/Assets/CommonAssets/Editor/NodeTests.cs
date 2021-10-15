@@ -316,5 +316,18 @@ namespace UnityEditor.ShaderGraph.UnitTests
             ReportTests();
             yield break;
         }
+
+        [UnityTest]
+        public IEnumerator ScreenPositionDefault()
+        {
+            // Test that default screen space acts as expected relative to raw screen space
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/ScreenPositionDefault.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+            RunNodeTest(graph, "ScreenPositionDefault");
+            ReportTests();
+            yield break;
+        }
+
     }
 }
