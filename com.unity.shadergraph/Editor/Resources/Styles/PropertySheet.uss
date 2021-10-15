@@ -28,6 +28,7 @@ PropertySheet > #content > #header
 }
 
 PropertySheet > #content > #header > Label{
+    left: 2px;
     margin-top: 4px;
     font-size: 15px;
     color: #a4a4a4;

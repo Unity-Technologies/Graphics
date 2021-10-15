@@ -23,50 +23,14 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public abstract class HDShaderGUI : ShaderGUI
     {
-        internal protected bool m_FirstFrame = true;
-
-        // The following set of functions are call by the ShaderGraph
-        // It will allow to display our common parameters + setup keyword correctly for them
-
         /// <summary>
         /// Sets up the keywords and passes for the material you pass in as a parameter.
         /// </summary>
         /// <param name="material">Target material.</param>
-        protected abstract void SetupMaterialKeywordsAndPass(Material material);
-
-        /// <summary>
-        /// Unity calls this function when you assign a new shader to the material.
-        /// </summary>
-        /// <param name="material">The current material.</param>
-        /// <param name="oldShader">The shader the material currently uses.</param>
-        /// <param name="newShader">The new shader to assign to the material.</param>
-        public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
+        [Obsolete("SetupMaterialKeywordsAndPass has been renamed ValidateMaterial", false)]
+        protected virtual void SetupMaterialKeywordsAndPass(Material material)
         {
-            base.AssignNewShaderToMaterial(material, oldShader, newShader);
-
-            SetupMaterialKeywordsAndPass(material);
-        }
-
-        /// <summary>
-        /// Sets up the keywords and passes for the material. You must call this function after you change a property on a material to ensure it's validity.
-        /// </summary>
-        /// <param name="changed">GUI.changed is the usual value for this parameter. If this value is false, the function just exits.</param>
-        /// <param name="materials">The materials to perform the setup on.</param>
-        protected void ApplyKeywordsAndPassesIfNeeded(bool changed, Material[] materials)
-        {
-            // !!! HACK !!!
-            // When a user creates a new Material from the contextual menu, the material is created from the editor code and the appropriate shader is applied to it.
-            // This means that we never setup keywords and passes for a newly created material. The material is then in an invalid state.
-            // To work around this, as the material is automatically selected when created, we force an update of the keyword at the first "frame" of the editor.
-
-            // Apply material keywords and pass:
-            if (changed || m_FirstFrame)
-            {
-                m_FirstFrame = false;
-
-                foreach (var material in materials)
-                    SetupMaterialKeywordsAndPass(material);
-            }
+            ValidateMaterial(material);
         }
 
         /// <summary>
@@ -78,7 +42,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline))
             {
-                EditorGUILayout.HelpBox("Editing HDRP materials is only supported when an HDRP asset assigned in the graphic settings", MessageType.Warning);
+                CoreEditorUtils.DrawFixMeBox("Editing HDRP materials is only supported when an HDRP asset is assigned in the Graphics Settings", MessageType.Warning, "Open",
+                    () => SettingsService.OpenProjectSettings("Project/Graphics"));
             }
             else
             {
@@ -92,25 +57,5 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="materialEditor">The current material editor.</param>
         /// <param name="props">The list of properties in the inspected material(s).</param>
         protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
-
-        readonly static string[] floatPropertiesToSynchronize =
-        {
-            kUseSplitLighting,
-        };
-
-        /// <summary>
-        /// Synchronize a set of properties that Unity requires for Shader Graph materials to work correctly. This function is for Shader Graph only.
-        /// </summary>
-        /// <param name="material">The target material.</param>
-        protected static void SynchronizeShaderGraphProperties(Material material)
-        {
-            var defaultProperties = new Material(material.shader);
-            foreach (var floatToSync in floatPropertiesToSynchronize)
-                if (material.HasProperty(floatToSync))
-                    material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
-
-            CoreUtils.Destroy(defaultProperties);
-            defaultProperties = null;
-        }
     }
 }

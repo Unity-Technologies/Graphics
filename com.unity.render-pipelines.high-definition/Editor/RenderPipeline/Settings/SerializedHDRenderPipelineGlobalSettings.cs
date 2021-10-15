@@ -16,12 +16,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty renderPipelineResources;
         public SerializedProperty renderPipelineRayTracingResources;
 
-        public SerializedFrameSettings defaultFrameSettings;
+        public SerializedFrameSettings defaultCameraFrameSettings;
         public SerializedFrameSettings defaultBakedOrCustomReflectionFrameSettings;
         public SerializedFrameSettings defaultRealtimeReflectionFrameSettings;
 
-        public SerializedProperty volumeProfileDefault;
-        public SerializedProperty volumeProfileLookDev;
+        public SerializedProperty defaultVolumeProfile;
+        public SerializedProperty lookDevVolumeProfile;
 
         public SerializedProperty lightLayerName0;
         public SerializedProperty lightLayerName1;
@@ -44,10 +44,20 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty shaderVariantLogLevel;
         public SerializedProperty lensAttenuation;
         public SerializedProperty diffusionProfileSettingsList;
+        public SerializedProperty supportProbeVolumes;
+        public SerializedProperty supportRuntimeDebugDisplay;
+
+        public SerializedProperty rendererListCulling;
+
+        public SerializedProperty DLSSProjectId;
+        public SerializedProperty useDLSSCustomProjectId;
+
+        public SerializedProperty apvScenesData;
 
         internal ReorderableList uiBeforeTransparentCustomPostProcesses;
         internal ReorderableList uiBeforeTAACustomPostProcesses;
         internal ReorderableList uiBeforePostProcessCustomPostProcesses;
+        internal ReorderableList uiAfterPostProcessBlursCustomPostProcesses;
         internal ReorderableList uiAfterPostProcessCustomPostProcesses;
 
         //RenderPipelineResources not always exist and thus cannot be serialized normally.
@@ -92,14 +102,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             renderPipelineResources = serializedObject.FindProperty("m_RenderPipelineResources");
             renderPipelineRayTracingResources = serializedObject.FindProperty("m_RenderPipelineRayTracingResources");
-            defaultFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultCameraFrameSettings"), null); //no overrides in HDRPAsset
+            defaultCameraFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultCameraFrameSettings"), null); //no overrides in HDRPAsset
             defaultBakedOrCustomReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), null); //no overrides in HDRPAsset
             defaultRealtimeReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), null); //no overrides in HDRPAsset
 
             InitializeCustomPostProcessesLists();
 
-            volumeProfileDefault  = serializedObject.FindProperty("m_VolumeProfileDefault");
-            volumeProfileLookDev  = serializedObject.FindProperty("m_VolumeProfileLookDev");
+            defaultVolumeProfile = serializedObject.FindProperty("m_DefaultVolumeProfile");
+            lookDevVolumeProfile = serializedObject.FindProperty("m_LookDevVolumeProfile");
 
             lightLayerName0 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName0);
             lightLayerName1 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName1);
@@ -127,6 +137,15 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 drawElement = DrawDiffusionProfileElement
             };
+            supportProbeVolumes = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.supportProbeVolumes);
+            rendererListCulling = serializedObject.FindProperty("rendererListCulling");
+
+            supportRuntimeDebugDisplay = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.supportRuntimeDebugDisplay);
+
+            DLSSProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.DLSSProjectId);
+            useDLSSCustomProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.useDLSSCustomProjectId);
+
+            apvScenesData = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.apvScenesData);
         }
 
         void InitializeCustomPostProcessesLists()
@@ -144,6 +163,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var globalSettings = serializedObject.targetObject as HDRenderPipelineGlobalSettings;
             InitList(ref uiBeforeTransparentCustomPostProcesses, globalSettings.beforeTransparentCustomPostProcesses, "After Opaque And Sky", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
             InitList(ref uiBeforePostProcessCustomPostProcesses, globalSettings.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
+            InitList(ref uiAfterPostProcessBlursCustomPostProcesses, globalSettings.afterPostProcessBlursCustomPostProcesses, "After Post Process Blurs", CustomPostProcessInjectionPoint.AfterPostProcessBlurs);
             InitList(ref uiAfterPostProcessCustomPostProcesses, globalSettings.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
             InitList(ref uiBeforeTAACustomPostProcesses, globalSettings.beforeTAACustomPostProcesses, "Before TAA", CustomPostProcessInjectionPoint.BeforeTAA);
 

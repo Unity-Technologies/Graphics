@@ -3,9 +3,11 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Overlays;
 using UnityEditor.Experimental;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
@@ -26,6 +28,8 @@ class VFXSlotContainerEditor : Editor
     protected void OnDisable()
     {
         SceneView.duringSceneGui -= OnSceneGUI;
+        if (s_EffectUi == this)
+            s_EffectUi = null;
     }
 
     protected virtual SerializedProperty FindProperty(VFXSetting setting)
@@ -62,10 +66,11 @@ class VFXSlotContainerEditor : Editor
         {
             var fieldInfo = prop.Key.field;
             EditorGUI.BeginChangeCheck();
-            var attrs = fieldInfo.GetCustomAttributes(typeof(StringProviderAttribute), true);
-            if (attrs.Length > 0)
+            var stringAttribute = fieldInfo.GetCustomAttributes<StringProviderAttribute>(true);
+            var rangeAttribute = fieldInfo.GetCustomAttributes<RangeAttribute>(false).FirstOrDefault();
+            if (stringAttribute.Any())
             {
-                var strings = StringPropertyRM.FindStringProvider(attrs)();
+                var strings = StringPropertyRM.FindStringProvider(stringAttribute.ToArray())();
 
                 int selected = prop.Value.hasMultipleDifferentValues ? -1 : System.Array.IndexOf(strings, prop.Value.stringValue);
                 int result = EditorGUILayout.Popup(ObjectNames.NicifyVariableName(prop.Value.name), selected, strings);
@@ -105,6 +110,19 @@ class VFXSlotContainerEditor : Editor
 
                 EditorGUILayout.IntPopup(prop.Value, enumNames, enumValues);
             }
+            else if (fieldInfo.FieldType == typeof(int)
+                        && rangeAttribute != null
+                        && fieldInfo.GetCustomAttributes<DelayedAttribute>().Any())
+            {
+                //Workaround: Range & Delayed attribute are incompatible, avoid the slider usage to keep the delayed behavior
+                var newValue = EditorGUILayout.DelayedIntField(ObjectNames.NicifyVariableName(prop.Value.name), prop.Value.intValue);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    newValue = Mathf.Clamp(newValue, (int)rangeAttribute.min, (int)rangeAttribute.max);
+                    prop.Value.intValue = newValue;
+                    modifiedSetting = prop.Value;
+                }
+            }
             else
             {
                 bool visibleChildren = EditorGUILayout.PropertyField(prop.Value);
@@ -127,6 +145,24 @@ class VFXSlotContainerEditor : Editor
     }
 
     IGizmoController m_CurrentController;
+
+    static VFXSlotContainerEditor s_EffectUi;
+
+    [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
+    class SceneViewVFXSlotContainerOverlay : IMGUIOverlay, ITransientOverlay
+    {
+        const string k_OverlayId = "Scene View/Visual Effect Model";
+        const string k_DisplayName = "Visual Effect Model";
+
+        public bool visible => s_EffectUi != null;
+
+        public override void OnGUI()
+        {
+            if (s_EffectUi == null)
+                return;
+            s_EffectUi.SceneViewGUICallback();
+        }
+    }
 
     void OnSceneGUI(SceneView sv)
     {
@@ -156,7 +192,11 @@ class VFXSlotContainerEditor : Editor
 
                         if (m_CurrentController.gizmoables.Count > 0)
                         {
-                            SceneViewOverlay.Window(new GUIContent("Choose Gizmo"), SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
+                            s_EffectUi = this;
+                        }
+                        else
+                        {
+                            s_EffectUi = null;
                         }
                     }
                 }
@@ -175,7 +215,7 @@ class VFXSlotContainerEditor : Editor
         }
     }
 
-    protected virtual void SceneViewGUICallback(UnityObject target, SceneView sceneView)
+    internal virtual void SceneViewGUICallback()
     {
         if (m_CurrentController == null)
             return;
@@ -207,7 +247,7 @@ class VFXSlotContainerEditor : Editor
             }
             else
             {
-                if (GUILayout.Button(Contents.gizmoFrame, Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18)))
+                if (GUILayout.Button(Contents.gizmoFrame, Styles.frameButtonStyle, GUILayout.Width(16), GUILayout.Height(16)))
                 {
                     if (m_CurrentController != null && VFXViewWindow.currentWindow != null)
                     {
@@ -215,7 +255,8 @@ class VFXSlotContainerEditor : Editor
                         if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
                         {
                             Bounds b = m_CurrentController.GetGizmoBounds(view.attachedComponent);
-                            if (b.size.sqrMagnitude > Mathf.Epsilon)
+                            var sceneView = SceneView.lastActiveSceneView;
+                            if (b.size.sqrMagnitude > Mathf.Epsilon && sceneView)
                                 sceneView.Frame(b, false);
                         }
                     }
@@ -229,7 +270,9 @@ class VFXSlotContainerEditor : Editor
     {
         serializedObject.Update();
         var referenceModel = serializedObject.targetObject as VFXModel;
-        GUI.enabled = referenceModel.GetResource().IsAssetEditable();
+
+        var resource = referenceModel.GetResource();
+        GUI.enabled = resource != null ? resource.IsAssetEditable() : true;
 
         SerializedProperty modifiedProperty = DoInspectorGUI();
 
@@ -250,8 +293,8 @@ class VFXSlotContainerEditor : Editor
         public static GUIContent name = EditorGUIUtility.TrTextContent("Name");
         public static GUIContent type = EditorGUIUtility.TrTextContent("Type");
         public static GUIContent mode = EditorGUIUtility.TrTextContent("Mode");
-        public static GUIContent gizmoLocalWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(EditorResources.iconsPath + "console.warnicon.sml.png") as Texture2D, "Local values require a target GameObject to display");
-        public static GUIContent gizmoIndeterminateWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(EditorResources.iconsPath + "console.warnicon.sml.png") as Texture2D, "The gizmo value is indeterminate.");
+        public static GUIContent gizmoLocalWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.LoadIcon(EditorResources.iconsPath + "console.warnicon.sml.png"), "Local values require a target GameObject to display");
+        public static GUIContent gizmoIndeterminateWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.LoadIcon(EditorResources.iconsPath + "console.warnicon.sml.png"), "The gizmo value is indeterminate.");
         public static GUIContent gizmoFrame = EditorGUIUtility.TrTextContent("", "Frame Gizmo in scene");
     }
 
@@ -272,8 +315,10 @@ class VFXSlotContainerEditor : Editor
             warningStyle.margin.right = 1;
 
             frameButtonStyle = new GUIStyle();
-            frameButtonStyle.normal.background = EditorGUIUtility.Load(EditorResources.iconsPath + "d_ViewToolZoom.png") as Texture2D;
-            frameButtonStyle.active.background = EditorGUIUtility.Load(EditorResources.iconsPath + "d_ViewToolZoom On.png") as Texture2D;
+            frameButtonStyle.normal.background = EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "ViewToolZoom.png", EditorGUIUtility.skinIndex);
+            frameButtonStyle.active.background = EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "ViewToolZoom On.png", EditorGUIUtility.skinIndex);
+            frameButtonStyle.normal.background.filterMode = FilterMode.Trilinear;
+            frameButtonStyle.active.background.filterMode = FilterMode.Trilinear;
 
             header = new GUIStyle(EditorStyles.toolbarButton);
             header.fontStyle = FontStyle.Bold;
@@ -323,7 +368,7 @@ class VFXSlotContainerEditor : Editor
             { VFXValueType.Uint32, new Color32(125, 110, 191, 255) },
         };
 
-        internal static  void DataTypeLabel(Rect r , string Label, VFXValueType type, GUIStyle style)
+        internal static void DataTypeLabel(Rect r, string Label, VFXValueType type, GUIStyle style)
         {
             Color backup = GUI.color;
             GUI.color = valueTypeColors[type];

@@ -23,43 +23,43 @@ namespace UnityEditor.Rendering.HighDefinition
         public enum Features
         {
             /// <summary>Displays the minimum surface option fields.</summary>
-            None                        = 0,
+            None = 0,
             /// <summary>Displays the surface field.</summary>
-            Surface                     = 1 << 0,
+            Surface = 1 << 0,
             /// <summary>Displays the blend mode field.</summary>
-            BlendMode                   = 1 << 1,
+            BlendMode = 1 << 1,
             /// <summary>Displays the double sided field.</summary>
-            DoubleSided                 = 1 << 2,
+            DoubleSided = 1 << 2,
             /// <summary>Displays the alpha cutoff field.</summary>
-            AlphaCutoff                 = 1 << 3,
+            AlphaCutoff = 1 << 3,
             /// <summary>Displays the alpha cutoff threshold field.</summary>
-            AlphaCutoffThreshold        = 1 << 4,
+            AlphaCutoffThreshold = 1 << 4,
             /// <summary>Displays the alpha cutoff shadow treshold field.</summary>
-            AlphaCutoffShadowThreshold  = 1 << 5,
+            AlphaCutoffShadowThreshold = 1 << 5,
             /// <summary>Displays the double sided normal mode field.</summary>
-            DoubleSidedNormalMode       = 1 << 6,
+            DoubleSidedNormalMode = 1 << 6,
             /// <summary>Displays the back then front rendering field.</summary>
-            BackThenFrontRendering      = 1 << 7,
+            BackThenFrontRendering = 1 << 7,
             /// <summary>Displays the receive ssr field.</summary>
-            ReceiveSSR                  = 1 << 8,
+            ReceiveSSR = 1 << 8,
             /// <summary>Displays the receive decal field.</summary>
-            ReceiveDecal                = 1 << 9,
+            ReceiveDecal = 1 << 9,
             /// <summary>Displays the show after post process field.</summary>
-            ShowAfterPostProcessPass    = 1 << 10,
+            ShowAfterPostProcessPass = 1 << 10,
             /// <summary>Displays the alpha to mask field.</summary>
-            AlphaToMask                 = 1 << 11,
+            AlphaToMask = 1 << 11,
             /// <summary>Displays the show pre pass and post pass fields.</summary>
-            ShowPrePassAndPostPass      = 1 << 12,
+            ShowPrePassAndPostPass = 1 << 12,
             /// <summary>Displays the depth offset field.</summary>
-            ShowDepthOffsetOnly         = 1 << 13,
+            ShowDepthOffsetOnly = 1 << 13,
             /// <summary>Displays the preserve specular lighting field.</summary>
-            PreserveSpecularLighting    = 1 << 14,
+            PreserveSpecularLighting = 1 << 14,
             /// <summary>Displays all the Unlit Surface Option fields.</summary>
-            Unlit                       = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
+            Unlit = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
             /// <summary>Displays all the Lit Surface Option fields field.</summary>
-            Lit                         = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
+            Lit = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
             /// <summary>Displays all the fields.</summary>
-            All                         = ~0,
+            All = ~0,
         }
 
         internal static class Styles
@@ -68,6 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string renderingPassText = "Rendering Pass";
             public const string blendModeText = "Blending Mode";
             public const string notSupportedInMultiEdition = "Multiple Different Values";
+            public const string lowResTransparencyNotSupportedText = "Low resolution transparency is not enabled in the current HDRP Asset. The selected Pass will be Default.";
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
@@ -77,6 +78,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent transparentPrepassText = new GUIContent("Appear in Refraction", "When enabled, HDRP handles objects with this Material before the refraction pass.");
 
             public static GUIContent doubleSidedEnableText = new GUIContent("Double-Sided", "When enabled, HDRP renders both faces of the polygons that make up meshes using this Material. Disables backface culling.");
+
+            public static GUIContent customVelocityText = new GUIContent("Add Custom Velocity", "When enabled, the provided custom object space velocity is added to the motion vector calculation.");
 
             public static GUIContent useShadowThresholdText = new GUIContent("Use Shadow Threshold", "Enable separate threshold for shadow pass");
             public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Clipping", "When enabled, HDRP processes Alpha Clipping for this Material.");
@@ -98,11 +101,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent transparentSortPriorityText = new GUIContent("Sorting Priority", "Sets the sort priority (from -100 to 100) of transparent meshes using this Material. HDRP uses this value to calculate the sorting order of all transparent meshes on screen.");
             public static GUIContent enableTransparentFogText = new GUIContent("Receive fog", "When enabled, this Material can receive fog.");
             public static GUIContent transparentCullModeText = new GUIContent("Cull Mode", "For transparent objects, change the cull mode of the object.");
-            public static GUIContent enableBlendModePreserveSpecularLightingText = new GUIContent("Preserve specular lighting", "When enabled, blending only affects diffuse lighting, allowing for correct specular lighting on transparent meshes that use this Material.");
+            public static GUIContent enableBlendModePreserveSpecularLightingText = new GUIContent("Preserve specular lighting", "When enabled, blending only affects diffuse lighting, allowing for correct specular lighting on transparent meshes that use this Material. This parameter is only supported when the material's refraction model is set to None.");
 
             // Lit properties
             public static GUIContent doubleSidedNormalModeText = new GUIContent("Normal Mode", "Specifies the method HDRP uses to modify the normal base.\nMirror: Mirrors the normals with the vertex normal plane.\nFlip: Flips the normal.");
             public static GUIContent depthOffsetEnableText = new GUIContent("Depth Offset", "When enabled, HDRP uses the Height Map to calculate the depth offset for this Material.");
+
             public static GUIContent doubleSidedGIText = new GUIContent("Double-Sided GI", "When selecting Auto, Double-Sided GI is enabled if the material is Double-Sided, otherwise On enables it and Off disables it.\n" +
                 "When enabled, the lightmapper accounts for both sides of the geometry when calculating Global Illumination. Backfaces are not rendered or added to lightmaps, but get treated as valid when seen from other objects. When using the Progressive Lightmapper backfaces bounce light using the same emission and albedo as frontfaces. (Currently this setting is only available when baking with the Progressive Lightmapper backend.).");
             public static GUIContent conservativeDepthOffsetEnableText = new GUIContent("Conservative", "When enabled, only positive depth offsets will be applied in order to take advantage of the early depth test mechanic.");
@@ -110,7 +114,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Displacement mapping (POM, tessellation, per vertex)
             //public static GUIContent enablePerPixelDisplacementText = new GUIContent("Per Pixel Displacement", "");
 
-            public static GUIContent displacementModeText = new GUIContent("Displacement Mode", "Specifies the method HDRP uses to apply height map displacement to the selected element: Vertex, pixel, or tessellated vertex.\n You must use flat surfaces for Pixel displacement.");
+            public static GUIContent displacementModeText = new GUIContent("Displacement Mode", "Specifies the method HDRP uses to apply height map displacement to the selected element: Vertex, pixel, or tessellated vertex.\nYou must use flat surfaces for Pixel displacement.");
             public static GUIContent lockWithObjectScaleText = new GUIContent("Lock With Object Scale", "When enabled, displacement mapping takes the absolute value of the scale of the object into account.");
             public static GUIContent lockWithTilingRateText = new GUIContent("Lock With Height Map Tiling Rate", "When enabled, displacement mapping takes the absolute value of the tiling rate of the height map into account.");
 
@@ -133,64 +137,54 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Controls the effect of Specular AA reduction. A values of 0 does not apply reduction, higher values allow higher reduction.");
 
             // SSR
-            public static GUIContent receivesSSRText = new GUIContent("Receive SSR/SSGI", "When enabled, this Material can receive screen space reflections and screen space global illumination.");
-            public static GUIContent receivesSSRTransparentText = new GUIContent("Receive SSR Transparent", "When enabled, this Material can receive screen space reflections.");
+            public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
+            public static GUIContent receivesSSRTransparentText = new GUIContent("Receive SSR Transparent", "When enabled, this Material can receive screen space reflections. This will force a transparent depth prepass on the object if HDRP supports it.");
 
             public static GUIContent opaqueCullModeText = new GUIContent("Cull Mode", "For opaque objects, change the cull mode of the object.");
 
             public static string afterPostProcessZTestInfoBox = "After post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
+
+            public static readonly GUIContent[] displacementModeLitNames = new GUIContent[] { new GUIContent("None"), new GUIContent("Vertex displacement"), new GUIContent("Pixel displacement") };
+            public static readonly int[] displacementModeLitValues = new int[] { (int)DisplacementMode.None, (int)DisplacementMode.Vertex, (int)DisplacementMode.Pixel };
+
+            enum DisplacementModeLitTessellation { None = DisplacementMode.None, Tessellation = DisplacementMode.Tessellation };
+            public static readonly GUIContent[] displacementModeLitTessellationNames = new GUIContent[] { new GUIContent("None"), new GUIContent("Tessellation displacement") };
+            public static readonly int[] displacementModeLitTessellationValues = new int[] { (int)DisplacementMode.None, (int)DisplacementMode.Tessellation };
         }
 
         // Properties common to Unlit and Lit
         MaterialProperty surfaceType = null;
 
         MaterialProperty alphaCutoffEnable = null;
-        const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
         MaterialProperty useShadowThreshold = null;
-        const string kUseShadowThreshold = "_UseShadowThreshold";
         MaterialProperty alphaCutoff = null;
-        const string kAlphaCutoff = "_AlphaCutoff";
         MaterialProperty alphaCutoffShadow = null;
-        const string kAlphaCutoffShadow = "_AlphaCutoffShadow";
         MaterialProperty alphaCutoffPrepass = null;
-        const string kAlphaCutoffPrepass = "_AlphaCutoffPrepass";
         MaterialProperty alphaCutoffPostpass = null;
-        const string kAlphaCutoffPostpass = "_AlphaCutoffPostpass";
         MaterialProperty alphaToMask = null;
         const string kAlphaToMask = kAlphaToMaskInspector;
         MaterialProperty transparentDepthPrepassEnable = null;
-        const string kTransparentDepthPrepassEnable = "_TransparentDepthPrepassEnable";
         MaterialProperty transparentDepthPostpassEnable = null;
-        const string kTransparentDepthPostpassEnable = "_TransparentDepthPostpassEnable";
         MaterialProperty transparentBackfaceEnable = null;
-        const string kTransparentBackfaceEnable = "_TransparentBackfaceEnable";
         MaterialProperty transparentSortPriority = null;
         const string kTransparentSortPriority = HDMaterialProperties.kTransparentSortPriority;
         MaterialProperty transparentWritingMotionVec = null;
         MaterialProperty doubleSidedEnable = null;
-        const string kDoubleSidedEnable = "_DoubleSidedEnable";
         MaterialProperty blendMode = null;
-        const string kBlendMode = "_BlendMode";
         MaterialProperty enableBlendModePreserveSpecularLighting = null;
         MaterialProperty enableFogOnTransparent = null;
-        const string kEnableFogOnTransparent = "_EnableFogOnTransparent";
 
         // Lit properties
         MaterialProperty doubleSidedNormalMode = null;
-        const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
         MaterialProperty doubleSidedGIMode = null;
-        const string kDoubleSidedGIMode = "_DoubleSidedGIMode";
-        MaterialProperty materialID  = null;
+        MaterialProperty materialID = null;
         MaterialProperty supportDecals = null;
-        const string kSupportDecals = "_SupportDecals";
         MaterialProperty enableGeometricSpecularAA = null;
-        const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
         MaterialProperty specularAAScreenSpaceVariance = null;
         const string kSpecularAAScreenSpaceVariance = "_SpecularAAScreenSpaceVariance";
         MaterialProperty specularAAThreshold = null;
         const string kSpecularAAThreshold = "_SpecularAAThreshold";
         MaterialProperty transmissionEnable = null;
-        const string kTransmissionEnable = "_TransmissionEnable";
 
         // Per pixel displacement params
         MaterialProperty ppdMinSamples = null;
@@ -208,43 +202,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // SSR
         MaterialProperty receivesSSR = null;
-        const string kReceivesSSR = "_ReceivesSSR";
         MaterialProperty receivesSSRTransparent = null;
-        const string kReceivesSSRTransparent = "_ReceivesSSRTransparent";
 
         MaterialProperty displacementMode = null;
-        const string kDisplacementMode = "_DisplacementMode";
         MaterialProperty displacementLockObjectScale = null;
-        const string kDisplacementLockObjectScale = "_DisplacementLockObjectScale";
         MaterialProperty displacementLockTilingScale = null;
-        const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
 
         MaterialProperty depthOffsetEnable = null;
         MaterialProperty conservativeDepthOffsetEnable = null;
-
-        MaterialProperty tessellationMode = null;
-        const string kTessellationMode = "_TessellationMode";
-
-        MaterialProperty[] heightMap = new MaterialProperty[kMaxLayerCount];
-        const string kHeightMap = "_HeightMap";
-        MaterialProperty[] heightAmplitude = new MaterialProperty[kMaxLayerCount];
-        const string kHeightAmplitude = "_HeightAmplitude";
-        MaterialProperty[] heightCenter = new MaterialProperty[kMaxLayerCount];
-        const string kHeightCenter = "_HeightCenter";
-        MaterialProperty[] heightPoMAmplitude = new MaterialProperty[kMaxLayerCount];
-        const string kHeightPoMAmplitude = "_HeightPoMAmplitude";
-        MaterialProperty[] heightTessCenter = new MaterialProperty[kMaxLayerCount];
-        const string kHeightTessCenter = "_HeightTessCenter";
-        MaterialProperty[] heightTessAmplitude = new MaterialProperty[kMaxLayerCount];
-        const string kHeightTessAmplitude = "_HeightTessAmplitude";
-        MaterialProperty[] heightMin = new MaterialProperty[kMaxLayerCount];
-        const string kHeightMin = "_HeightMin";
-        MaterialProperty[] heightMax = new MaterialProperty[kMaxLayerCount];
-        const string kHeightMax = "_HeightMax";
-        MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount];
-        const string kHeightOffset = "_HeightOffset";
-        MaterialProperty[] heightParametrization = new MaterialProperty[kMaxLayerCount];
-        const string kHeightParametrization = "_HeightMapParametrization";
 
         // Refraction (for show pre-refraction pass enum)
         MaterialProperty refractionModel = null;
@@ -297,8 +262,8 @@ namespace UnityEditor.Rendering.HighDefinition
         List<string> m_RenderingPassNames = new List<string>();
         List<int> m_RenderingPassValues = new List<int>();
 
-        Features    m_Features;
-        int         m_LayerCount;
+        Features m_Features;
+        int m_LayerCount;
 
         /// <summary>
         /// Constructs a SurfaceOptionUIBlock based on the parameters.
@@ -345,18 +310,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((m_Features & Features.DoubleSided) != 0)
                 doubleSidedEnable = FindProperty(kDoubleSidedEnable);
 
-            // Height
-            heightMap = FindPropertyLayered(kHeightMap, m_LayerCount);
-            heightAmplitude = FindPropertyLayered(kHeightAmplitude, m_LayerCount);
-            heightCenter = FindPropertyLayered(kHeightCenter, m_LayerCount);
-            heightPoMAmplitude = FindPropertyLayered(kHeightPoMAmplitude, m_LayerCount);
-            heightMin = FindPropertyLayered(kHeightMin, m_LayerCount);
-            heightMax = FindPropertyLayered(kHeightMax, m_LayerCount);
-            heightTessCenter = FindPropertyLayered(kHeightTessCenter, m_LayerCount);
-            heightTessAmplitude = FindPropertyLayered(kHeightTessAmplitude, m_LayerCount);
-            heightOffset = FindPropertyLayered(kHeightOffset, m_LayerCount);
-            heightParametrization = FindPropertyLayered(kHeightParametrization, m_LayerCount);
-
             blendMode = FindProperty(kBlendMode);
 
             transmissionEnable = FindProperty(kTransmissionEnable);
@@ -382,11 +335,8 @@ namespace UnityEditor.Rendering.HighDefinition
             ppdMaxSamples = FindProperty(kPpdMaxSamples);
             ppdLodThreshold = FindProperty(kPpdLodThreshold);
             ppdPrimitiveLength = FindProperty(kPpdPrimitiveLength);
-            ppdPrimitiveWidth  = FindProperty(kPpdPrimitiveWidth);
+            ppdPrimitiveWidth = FindProperty(kPpdPrimitiveWidth);
             invPrimScale = FindProperty(kInvPrimScale);
-
-            // tessellation specific, silent if not found
-            tessellationMode = FindProperty(kTessellationMode);
 
             // Decal
             if ((m_Features & Features.ReceiveDecal) != 0)
@@ -433,7 +383,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawLitSurfaceOptions();
         }
 
-        bool AreMaterialsShaderGraphs() => materials.All(m => m.shader.IsShaderGraph());
+        bool AreMaterialsShaderGraphs() => materials.All(m => m.IsShaderGraph());
 
         /// <summary>Returns false if there are multiple materials selected and they have different default values for propName</summary>
         float GetShaderDefaultFloatValue(string propName)
@@ -570,7 +520,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if ((m_Features & Features.PreserveSpecularLighting) != 0)
                 {
-                    EditorGUI.indentLevel++; if (renderQueueHasMultipleDifferentValue)
+                    EditorGUI.indentLevel++;
+                    if (renderQueueHasMultipleDifferentValue)
                     {
                         using (new EditorGUI.DisabledScope(true))
                             EditorGUILayout.LabelField(Styles.enableBlendModePreserveSpecularLightingText, Styles.notSupportedInMultiEdition);
@@ -581,7 +532,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 if (transparentSortPriority != null)
-                    materialEditor.IntShaderProperty(transparentSortPriority, Styles.transparentSortPriorityText, HDRenderQueue.ClampsTransparentRangePriority);
+                    materialEditor.IntSliderShaderProperty(transparentSortPriority, -HDRenderQueue.sortingPriorityRange, HDRenderQueue.sortingPriorityRange, Styles.transparentSortPriorityText);
 
                 if (enableFogOnTransparent != null)
                     materialEditor.ShaderProperty(enableFogOnTransparent, Styles.enableTransparentFogText);
@@ -623,6 +574,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel++;
                 if (doubleSidedEnable != null && doubleSidedEnable.floatValue == 0 && opaqueCullMode != null)
                     materialEditor.ShaderProperty(opaqueCullMode, Styles.opaqueCullModeText);
+                else
+                {
+                    EditorGUI.BeginDisabledGroup(true);
+                    EditorGUILayout.Popup(Styles.opaqueCullModeText, 0, new string[] { "Off" });
+                    EditorGUI.EndDisabledGroup();
+                }
                 EditorGUI.indentLevel--;
                 if (HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque.Contains(renderQueue))
                 {
@@ -697,6 +654,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         materialEditor.RegisterPropertyChangeUndo("Rendering Pass");
                         renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(newRenderQueueTransparentType);
                         renderQueue = HDRenderQueue.ChangeType(renderQueueType, offset: (int)transparentSortPriority.floatValue);
+                    }
+                    if (renderQueueTransparentType == HDRenderQueue.TransparentRenderQueue.LowResolution)
+                    {
+                        if (HDRenderPipeline.currentPipeline != null
+                            && !HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
+                        {
+                            EditorGUILayout.HelpBox(Styles.lowResTransparencyNotSupportedText, MessageType.Info);
+                        }
                     }
                     break;
                 default:
@@ -827,16 +792,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (displacementMode != null)
             {
-                EditorGUI.BeginChangeCheck();
-                FilterDisplacementMode();
-                materialEditor.ShaderProperty(displacementMode, Styles.displacementModeText);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    for (int i = 0; i < m_LayerCount; i++)
-                        UpdateDisplacement(i);
-                }
+                var displaceMode = DisplacementModePopup(Styles.displacementModeText, displacementMode);
 
-                if ((DisplacementMode)displacementMode.floatValue != DisplacementMode.None)
+                if (displaceMode != DisplacementMode.None)
                 {
                     EditorGUI.indentLevel++;
                     materialEditor.ShaderProperty(displacementLockObjectScale, Styles.lockWithObjectScaleText);
@@ -844,7 +802,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.indentLevel--;
                 }
 
-                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel)
+                if (displaceMode == DisplacementMode.Pixel)
                 {
                     EditorGUILayout.Space();
                     EditorGUI.indentLevel++;
@@ -866,46 +824,50 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        internal void UpdateDisplacement(int layerIndex)
+        DisplacementMode DisplacementModePopup(GUIContent label, MaterialProperty prop)
         {
-            DisplacementMode displaceMode = (DisplacementMode)displacementMode.floatValue;
-            if (displaceMode == DisplacementMode.Pixel)
+            var displayedOptions = Styles.displacementModeLitNames;
+            var optionValues = Styles.displacementModeLitValues;
+            if (materials[0].HasProperty(kTessellationMode))
             {
-                heightAmplitude[layerIndex].floatValue = heightPoMAmplitude[layerIndex].floatValue * 0.01f; // Conversion centimeters to meters.
-                heightCenter[layerIndex].floatValue = 1.0f; // PoM is always inward so base (0 height) is mapped to 1 in the texture
+                displayedOptions = Styles.displacementModeLitTessellationNames;
+                optionValues = Styles.displacementModeLitTessellationValues;
             }
-            else
-            {
-                HeightmapParametrization parametrization = (HeightmapParametrization)heightParametrization[layerIndex].floatValue;
-                if (parametrization == HeightmapParametrization.MinMax)
-                {
-                    float offset = heightOffset[layerIndex].floatValue;
-                    float amplitude = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue);
 
-                    heightAmplitude[layerIndex].floatValue = amplitude * 0.01f; // Conversion centimeters to meters.
-                    heightCenter[layerIndex].floatValue = -(heightMin[layerIndex].floatValue + offset) / Mathf.Max(1e-6f, amplitude);
-                }
-                else
-                {
-                    float amplitude = heightTessAmplitude[layerIndex].floatValue;
-                    heightAmplitude[layerIndex].floatValue = amplitude * 0.01f;
-                    heightCenter[layerIndex].floatValue = -heightOffset[layerIndex].floatValue / Mathf.Max(1e-6f, amplitude) + heightTessCenter[layerIndex].floatValue;
-                }
+            int mode = (int)GetFilteredDisplacementMode(prop);
+            bool mixed = HasMixedDisplacementMode(prop);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = mixed;
+            int newMode = EditorGUILayout.IntPopup(label, mode, displayedOptions, optionValues);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck() && (newMode != mode || mixed))
+            {
+                materialEditor.RegisterPropertyChangeUndo(label.text);
+                prop.floatValue = newMode;
             }
+
+            return (DisplacementMode)newMode;
         }
 
-        void FilterDisplacementMode()
+        static internal DisplacementMode GetFilteredDisplacementMode(MaterialProperty displacementMode)
         {
-            if (tessellationMode == null)
+            var material = displacementMode.targets[0] as Material;
+            return material.GetFilteredDisplacementMode((DisplacementMode)displacementMode.floatValue);
+        }
+
+        static internal bool HasMixedDisplacementMode(MaterialProperty displacementMode)
+        {
+            Material mat0 = displacementMode.targets[0] as Material;
+            var mode = mat0.GetFilteredDisplacementMode((DisplacementMode)displacementMode.floatValue);
+            for (int i = 1; i < displacementMode.targets.Length; i++)
             {
-                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Tessellation)
-                    displacementMode.floatValue = (float)DisplacementMode.None;
+                Material mat = displacementMode.targets[i] as Material;
+                var currentMode = (DisplacementMode)mat.GetFloat(displacementMode.name);
+                if (mat.GetFilteredDisplacementMode(currentMode) != mode)
+                    return true;
             }
-            else
-            {
-                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel || (DisplacementMode)displacementMode.floatValue == DisplacementMode.Vertex)
-                    displacementMode.floatValue = (float)DisplacementMode.None;
-            }
+            return false;
         }
     }
 }

@@ -172,14 +172,14 @@ namespace UnityEditor.VFX.UI
                 var worldClipProp = typeof(VisualElement).GetMethod("get_worldClip", BindingFlags.NonPublic | BindingFlags.Instance);
                 if (worldClipProp != null)
                 {
-                    return delegate(VisualElement elt)
+                    return delegate (VisualElement elt)
                     {
                         return (Rect)worldClipProp.Invoke(elt, null);
                     };
                 }
 
                 Debug.LogError("could not retrieve get_worldClip");
-                return delegate(VisualElement elt)
+                return delegate (VisualElement elt)
                 {
                     return new Rect();
                 };
@@ -838,7 +838,7 @@ namespace UnityEditor.VFX.UI
                 var maxAliveButton = new Button();
                 maxAliveButton.name = "debug-system-stat-entry";
                 maxAliveButton.text = "0";
-                maxAliveButton.SetEnabled(m_Graph.visualEffectResource.IsAssetEditable());
+                maxAliveButton.SetEnabled(m_Graph.visualEffectResource != null && m_Graph.visualEffectResource.IsAssetEditable());
                 maxAliveButton.clickable.clickedWithEventInfo += setCapacity;
                 maxAlive = maxAliveButton;
             }
@@ -923,7 +923,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            return () => {};
+            return () => { };
         }
 
         Action<EventBase> CapacitySetter(string systemName, out bool isSystemInSubGraph)
@@ -937,7 +937,7 @@ namespace UnityEditor.VFX.UI
                     isSystemInSubGraph = true;
                     return (e) =>
                     {
-                        if (!m_Graph.visualEffectResource.IsAssetEditable())
+                        if (m_Graph.visualEffectResource != null && !m_Graph.visualEffectResource.IsAssetEditable())
                             return; //The button should be disabled but state update can have a delay
 
                         var button = e.currentTarget as Button;
@@ -947,7 +947,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
             isSystemInSubGraph = false;
-            return (e) => {};
+            return (e) => { };
         }
 
         void UpdateSystemInfoEntry(int systemId, VFXParticleSystemInfo stat)
@@ -957,7 +957,7 @@ namespace UnityEditor.VFX.UI
                 alive.text = stat.aliveCount.ToString();
             if (statUI[4] is TextElement maxAliveText)
             {
-                maxAliveText.SetEnabled(m_Graph.visualEffectResource.IsAssetEditable());
+                maxAliveText.SetEnabled(m_Graph.visualEffectResource != null && m_Graph.visualEffectResource.IsAssetEditable());
                 maxAliveText.text = Mathf.Max(int.Parse(maxAliveText.text), stat.aliveCount).ToString();
             }
             if (statUI[5] is TextElement efficiency)

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,12 +11,12 @@ public class GridMesh : MonoBehaviour
     [SerializeField] private float m_Thickness = 0.1f;
 
     [System.NonSerialized]
-    Mesh            mesh;
+    Mesh mesh;
 
     private void OnEnable()
     {
         mesh = new Mesh();
-        GetComponent< MeshFilter >().sharedMesh = mesh;
+        GetComponent<MeshFilter>().sharedMesh = mesh;
         GenerateMesh(mesh, m_Rows, m_Cols, m_CellSize, m_Thickness);
     }
 
@@ -46,9 +46,9 @@ public class GridMesh : MonoBehaviour
 
         var verticeCount = verticePerCell * ((rows + 1) * (cols + 1));
         var triangleCount = trianglesPerInnerCell * (rows * cols)
-                            + trianglesPerRightOuterCell * rows
-                            + trianglesPerBottomOuterCell * cols
-                            + trianglesPerBottomRightOuterCell;
+            + trianglesPerRightOuterCell * rows
+            + trianglesPerBottomOuterCell * cols
+            + trianglesPerBottomRightOuterCell;
 
         destination.Clear();
         var vertices = new Vector3[verticeCount];

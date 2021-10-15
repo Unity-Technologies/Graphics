@@ -48,8 +48,8 @@ namespace UnityEditor.VFX
             this.attributes = attributes;
         }
 
-        public VFXProperty(Type type, string name, params object[] attributes) : this(type, name, new VFXPropertyAttributes(attributes)) {}
-        public VFXProperty(FieldInfo info) : this(info.FieldType, info.Name, new VFXPropertyAttributes(info.GetCustomAttributes(true))) {}
+        public VFXProperty(Type type, string name, params object[] attributes) : this(type, name, new VFXPropertyAttributes(attributes)) { }
+        public VFXProperty(FieldInfo info) : this(info.FieldType, info.Name, new VFXPropertyAttributes(info.GetCustomAttributes(true))) { }
 
         public override int GetHashCode()
         {

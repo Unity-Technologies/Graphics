@@ -17,6 +17,7 @@ namespace UnityEditor.ShaderGraph
         public RectangleNode()
         {
             name = "Rectangle";
+            synonyms = new string[] { "square" };
         }
 
         [SerializeField]

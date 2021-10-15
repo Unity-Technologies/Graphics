@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         settings.volumeProfile = profile;
                         break;
                     case Kind.LookDev:
-                        settings.volumeProfileLookDev = profile;
+                        settings.lookDevVolumeProfile = profile;
                         break;
                 }
                 EditorUtility.SetDirty(settings);

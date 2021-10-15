@@ -41,6 +41,15 @@ Shader "Hidden/HDRP/CustomPassUtils"
         return LOAD_TEXTURE2D_X_LOD(_Source, uv * _SourceSize.xy, _SourceMip);
     }
 
+    void CopyDepth(Varyings varyings, out float depth : SV_Depth)
+    {
+        float2 uv01 = (varyings.positionCS.xy * _ViewPortSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
+        // Apply scale and bias
+        float2 uv = uv01 * _SourceScaleBias.xy + _SourceScaleBias.zw;
+
+        depth = LOAD_TEXTURE2D_X_LOD(_Source, uv * _SourceSize.xy, _SourceMip).x;
+    }
+
     // We need to clamp the UVs to avoid bleeding from bigger render tragets (when we have multiple cameras)
     float2 ClampUVs(float2 uv)
     {
@@ -92,6 +101,8 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
+
         Pass
         {
             Name "Copy"
@@ -103,6 +114,21 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
             HLSLPROGRAM
                 #pragma fragment Copy
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "CopyDepth"
+
+            ZWrite On
+            ZTest Always
+            Blend Off
+            Cull Off
+            ColorMask 0
+
+            HLSLPROGRAM
+                #pragma fragment CopyDepth
             ENDHLSL
         }
 

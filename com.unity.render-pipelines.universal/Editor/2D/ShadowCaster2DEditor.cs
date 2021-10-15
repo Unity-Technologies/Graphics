@@ -1,13 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
-
-using UnityEditor;
 using UnityEditor.EditorTools;
-using UnityEditor.Experimental.Rendering.Universal.Path2D;
+using UnityEditor.Rendering.Universal.Path2D;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Universal
+namespace UnityEditor.Rendering.Universal
 {
     internal class ShadowCasterPath : ScriptablePath
     {
@@ -49,7 +45,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
     internal class ShadowCaster2DEditor : PathComponentEditor<ShadowCasterPath>
     {
         [EditorTool("Edit Shadow Caster Shape", typeof(ShadowCaster2D))]
-        class ShadowCaster2DShadowCasterShapeTool : ShadowCaster2DShapeTool {};
+        class ShadowCaster2DShadowCasterShapeTool : ShadowCaster2DShapeTool { };
 
         private static class Styles
         {

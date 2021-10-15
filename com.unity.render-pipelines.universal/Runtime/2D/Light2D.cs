@@ -1,56 +1,96 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Serialization;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.U2D;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Class <c>Light2D</c> is a 2D light which can be used with the 2D Renderer.
     /// </summary>
     ///
     [ExecuteAlways, DisallowMultipleComponent]
+    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     [AddComponentMenu("Rendering/2D/Light 2D")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
-    public sealed partial class Light2D : MonoBehaviour, ISerializationCallbackReceiver
+    public sealed partial class Light2D : Light2DBase, ISerializationCallbackReceiver
     {
+        /// <summary>
+        /// Deprecated Light types that are no supported. Please migrate to either Freeform or Point lights.
+        /// </summary>
         public enum DeprecatedLightType
         {
+            /// <summary>
+            /// N-gon shaped lights.
+            /// </summary>
             Parametric = 0,
         }
 
         /// <summary>
-        /// an enumeration of the types of light
+        /// An enumeration of the types of light
         /// </summary>
         public enum LightType
         {
+            /// <summary>
+            /// N-gon shaped lights. Deprecated.
+            /// </summary>
             Parametric = 0,
+            /// <summary>
+            /// The shape of the light is based on a user defined closed shape with multiple points.
+            /// </summary>
             Freeform = 1,
+            /// <summary>
+            /// The shape of the light is based on a Sprite.
+            /// </summary>
             Sprite = 2,
+            /// <summary>
+            /// The shape of light is circular and can also be configured into a pizza shape.
+            /// </summary>
             Point = 3,
+            /// <summary>
+            /// Shapeless light that affects the entire screen.
+            /// </summary>
             Global = 4
         }
 
+        /// <summary>
+        /// The accuracy of how the normal map calculation.
+        /// </summary>
         public enum NormalMapQuality
         {
+            /// <summary>
+            /// Normal map not used.
+            /// </summary>
             Disabled = 2,
+            /// <summary>
+            /// Faster calculation with less accuracy suited for small shapes on screen.
+            /// </summary>
             Fast = 0,
+            /// <summary>
+            /// Accurate calculation useful for better output on bigger shapes on screen.
+            /// </summary>
             Accurate = 1
         }
 
+        /// <summary>
+        /// Determines how the final color is calculated when multiple lights overlap each other
+        /// </summary>
         public enum OverlapOperation
         {
+            /// <summary>
+            /// Colors are added together
+            /// </summary>
             Additive,
+            /// <summary>
+            /// Colors are blended using standard blending (alpha, 1-alpha)
+            /// </summary>
             AlphaBlend
         }
 
-
-        public enum ComponentVersions
+        private enum ComponentVersions
         {
             Version_Unserialized = 0,
             Version_1 = 1
@@ -107,6 +147,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [Range(0, 1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.75f;
 
+
         Mesh m_Mesh;
 
         [SerializeField]
@@ -121,6 +162,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         // Transients
         int m_PreviousLightCookieSprite;
+        internal Vector3 m_CachedPosition;
+
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
@@ -141,8 +184,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal bool hasCachedMesh => (vertices.Length > 1 && indices.Length > 1);
 
+
         /// <summary>
-        /// The lights current type
+        /// The light's current type
         /// </summary>
         public LightType lightType
         {
@@ -198,21 +242,57 @@ namespace UnityEngine.Experimental.Rendering.Universal
         ///
         [Obsolete]
         public float volumeOpacity => m_LightVolumeIntensity;
-        public float volumeIntensity => m_LightVolumeIntensity;
 
+        /// <summary>
+        /// Controls the visibility of the light's volume
+        /// </summary>
+        public float volumeIntensity => m_LightVolumeIntensity;
+        /// <summary>
+        /// Enables or disables the light's volume
+        /// </summary>
         public bool volumeIntensityEnabled { get => m_LightVolumeIntensityEnabled; set => m_LightVolumeIntensityEnabled = value; }
+        /// <summary>
+        /// The Sprite that's used by the Sprite Light type to control the shape light
+        /// </summary>
         public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } }
-        public float falloffIntensity => m_FalloffIntensity;
+        /// <summary>
+        /// Controls the brightness and distance of the fall off (edge) of the light
+        /// </summary>
+        public float falloffIntensity { get => m_FalloffIntensity; set => m_FalloffIntensity = Mathf.Clamp(value, 0, 1); }
 
         [Obsolete]
-        public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; }}
+        public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; } }
+
+        /// <summary>
+        /// Returns the overlap operation mode.
+        /// </summary>
         public OverlapOperation overlapOperation => m_OverlapOperation;
 
+        /// <summary>
+        /// Gets or sets the light order. The lightOrder determines the order in which the lights are rendered onto the light textures.
+        /// </summary>
         public int lightOrder { get => m_LightOrder; set => m_LightOrder = value; }
 
+        /// <summary>
+        /// The simulated z distance of the light from the surface used in normal map calculation.
+        /// </summary>
         public float normalMapDistance => m_NormalMapDistance;
+
+        /// <summary>
+        /// Returns the calculation quality for the normal map rendering. Please refer to NormalMapQuality.
+        /// </summary>
         public NormalMapQuality normalMapQuality => m_NormalMapQuality;
 
+        /// <summary>
+        /// Returns if volumetric shadows should be rendered.
+        /// </summary>
+        public bool renderVolumetricShadows => volumetricShadowsEnabled && shadowVolumeIntensity > 0;
+
+
+        internal void CacheValues()
+        {
+            m_CachedPosition = transform.position;
+        }
 
         internal int GetTopMostLitLayer()
         {
@@ -233,6 +313,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             return largestIndex;
+        }
+
+        internal Bounds UpdateSpriteMesh()
+        {
+            if (m_LightCookieSprite == null && (m_Vertices.Length != 1 || m_Triangles.Length != 1))
+            {
+                m_Vertices = new LightUtility.LightMeshVertex[1];
+                m_Triangles = new ushort[1];
+            }
+            return LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite);
         }
 
         internal void UpdateMesh(bool forceUpdate)
@@ -259,7 +349,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         m_LocalBounds = LightUtility.GenerateParametricMesh(this, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                         break;
                     case LightType.Sprite:
-                        m_LocalBounds = LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite);
+                        m_LocalBounds = UpdateSpriteMesh();
                         break;
                     case LightType.Point:
                         m_LocalBounds = LightUtility.GenerateParametricMesh(this, 1.412135f, 0, 0, 4);
@@ -298,16 +388,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void Awake()
         {
-            if (!m_UseNormalMap && m_NormalMapQuality != NormalMapQuality.Disabled)
-                m_NormalMapQuality = NormalMapQuality.Disabled;
-
-            bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
-            UpdateMesh(updateMesh);
-            if (hasCachedMesh)
+            if (m_LightCookieSprite != null)
             {
-                lightMesh.SetVertexBufferParams(vertices.Length, LightUtility.LightMeshVertex.VertexLayout);
-                lightMesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
-                lightMesh.SetIndices(indices, MeshTopology.Triangles, 0, false);
+                bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
+                UpdateMesh(updateMesh);
+                if (hasCachedMesh)
+                {
+                    lightMesh.SetVertexBufferParams(vertices.Length, LightUtility.LightMeshVertex.VertexLayout);
+                    lightMesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
+                    lightMesh.SetIndices(indices, MeshTopology.Triangles, 0, false);
+                }
             }
         }
 
@@ -331,11 +421,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
             UpdateBoundingSphere();
         }
 
+        /// <summary>
+        /// OnBeforeSerialize implementation.
+        /// </summary>
         public void OnBeforeSerialize()
         {
             m_ComponentVersion = k_CurrentComponentVersion;
         }
 
+        /// <summary>
+        /// OnAfterSerialize implementation.
+        /// </summary>
         public void OnAfterDeserialize()
         {
             // Upgrade from no serialized version
@@ -344,7 +440,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_ShadowVolumeIntensityEnabled = m_ShadowVolumeIntensity > 0;
                 m_ShadowIntensityEnabled = m_ShadowIntensity > 0;
                 m_LightVolumeIntensityEnabled = m_LightVolumeIntensity > 0;
-
+                m_NormalMapQuality = !m_UseNormalMap ? NormalMapQuality.Disabled : m_NormalMapQuality;
                 m_ComponentVersion = ComponentVersions.Version_1;
             }
         }

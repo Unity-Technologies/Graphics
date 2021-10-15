@@ -6,7 +6,7 @@ The **Integration : Update Rotation** Block updates particle orientation based o
 
 ![](Images/Block-UpdateRotationInspector.png)
 
-The block adds the corresponding angular velocity, multiplied by deltaTime, to the current particle angle:
+The Block adds the corresponding angular velocity, multiplied by deltaTime, to the current particle angle:
 
 ```
 angleX += angularVelocityX * deltaTime;

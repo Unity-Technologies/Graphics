@@ -27,6 +27,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _TexelSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
-    float2 uv =ClampAndScaleUVForBilinear(posInputs.positionNDC);
+    float2 uv = ClampAndScaleUVForBilinearPostProcessTexture(posInputs.positionNDC);
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, uv, 0.0).CTYPE_SWIZZLE;
 }

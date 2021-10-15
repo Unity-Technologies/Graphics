@@ -225,7 +225,7 @@ namespace UnityEditor.Rendering
                 Debug.LogWarning("Cannot properly generate IES texture:\n" + string.Join("\n", output.importWarnings));
             }
 
-            return (output.importInspectorWarnings, output.texture);
+            return (output.importInspectorWarnings, output.output);
         }
 
         NativeArray<Color32> BuildTypeACylindricalTexture(int width, int height)

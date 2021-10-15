@@ -32,7 +32,10 @@ namespace UnityEngine.Rendering.HighDefinition
         AreaLights = 1,
 
         /// <summary>Support for barn doors.</summary>
-        BarnDoor = 0
+        BarnDoor = 0,
+
+        /// <summary>Support to apply a global mip bias on all texture samplers of HDRP.</summary>
+        GlobalMipBias = 1,
     };
 
     // Note: #define can't be use in include file in C# so we chose this way to configure both C# and hlsl
@@ -67,5 +70,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Indicates whether to support barn doors.</summary>
         ///<seealso cref="ShaderOptions.BarnDoor"/>
         public static int s_BarnDoor = (int)ShaderOptions.BarnDoor;
+        /// <summary>Indicates whether to support application of global mip bias on all texture samplers of hdrp.</summary>
+        ///<seealso cref="ShaderOptions.GlobalMipBias"/>
+        public static bool s_GlobalMipBias = (int)ShaderOptions.GlobalMipBias != 0;
     }
 }

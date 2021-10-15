@@ -15,6 +15,8 @@ At this point, the Scene contains global fog. However, the effect might not suit
 
 The High Definition Render Pipeline evaluates volumetric lighting on a 3D grid mapped to the volumetric section of the frustum. The resolution of the grid is quite low (it is 240x135x64 using the default quality setting at 1080p), so it's important to keep the dimensions of the frustum as small as possible to maintain high quality. Adjust the **Depth Extent** parameter to define the maximum range for the volumetric fog relative to the Camera’s frustum.
 
+The Fog may not work when using a custom camera projection matrix, like an off-axis projection.
+
 [!include[](snippets/volume-override-api.md)]
 
 <a name="CustomizingGlobalFog"></a>

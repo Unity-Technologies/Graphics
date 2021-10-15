@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph
         public PolygonNode()
         {
             name = "Polygon";
+            synonyms = new string[] { "shape" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

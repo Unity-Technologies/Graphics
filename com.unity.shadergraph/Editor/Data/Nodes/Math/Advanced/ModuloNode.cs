@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
         public ModuloNode()
         {
             name = "Modulo";
+            synonyms = new string[] { "fmod" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

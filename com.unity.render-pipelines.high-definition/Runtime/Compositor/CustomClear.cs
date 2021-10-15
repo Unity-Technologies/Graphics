@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     // - Always clears the stencil buffer
     // - Clears the alpha channel if desired
     // - Clears the RGB channel to the color of a texture using a specified stretching mode
+    [HideInInspector]
     internal class CustomClear : CustomPass
     {
         internal class ShaderIDs
@@ -32,12 +33,13 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         // The render pipeline will ensure target setup and clearing happens in an performance manner.
         protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
+            if (!HDRenderPipeline.isReady)
+                return;
+
             // Setup code here
             if (string.IsNullOrEmpty(name)) name = "CustomClear";
 
-            var hdrpAsset = HDRenderPipeline.defaultAsset;
-            if (hdrpAsset != null)
-                m_FullscreenPassMaterial = CoreUtils.CreateEngineMaterial(hdrpAsset.renderPipelineResources.shaders.customClearPS);
+            m_FullscreenPassMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.customClearPS);
         }
 
         protected override void Execute(CustomPassContext ctx)

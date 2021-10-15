@@ -59,12 +59,9 @@ The component's Inspector window
 | --- | --- |
 |__Asset Pixels Per Unit__|This is the amount of pixels that make up one unit of the Scene. Match this value to the __Pixels Per Unit__ values of all Sprites in the Scene.|
 |__Reference Resolution__|This is the original resolution your Assets are designed for.|
-|__Upscale Render Texture__|Enable this property to create a temporary rendered texture of the Scene close-to or at the Reference Resolution, which is then upscaled.|
-|__Pixel Snapping (only available when ‘Upscale Render Texture’ is disabled)__|Enable this feature to snap __Sprite Renderers__ to a grid in world space at render-time. The grid size is based on the Assets’ __Pixels Per Unit__ value.|
-|__Crop Frame__|Crops the viewport with black bars to match the Reference Resolution along the checked axis. Check X to add horizontal black bars, and Y to add vertical black bars. For more information and a visual example, refer to the Property Details below.|
-|__Stretch Fill (available when both X and Y are checked)__|Enable to expand the viewport to fit the screen resolution while maintaining the viewport's aspect ratio.|
-|__Run In Edit Mode__| Enable this checkbox to preview Camera setting changes in Edit Mode. This causes constant changes to the Scene while active. |
-|__Current Pixel Ratio (available when ‘Run In Edit Mode’ is enabled)__|Shows the size ratio of the rendered Sprites compared to their original size.|
+|__Crop Frame__| Describes what to do when there is a difference in aspect ratio.
+|__Grid Snapping__| Describes how to handle snapping.
+|__Current Pixel Ratio__|Shows the size ratio of the rendered Sprites compared to their original size.|
 
 ## Additional Property Details
 
@@ -72,7 +69,9 @@ The component's Inspector window
 
 This is the original resolution your Assets are designed for. Scaling up Scenes and Assets from this resolution preserves your pixel art cleanly at higher resolutions.
 
-### Upscale Render Texture
+
+### Grid Snapping
+#### Upscale Render Texture
 
 By default, the Scene is rendered at the pixel perfect resolution closest to the full screen resolution.
 
@@ -82,7 +81,7 @@ Enable this option to have the Scene rendered to a temporary texture set as clos
 
 The result is unaliased and unrotated pixels, which may be a desirable visual style for certain game projects.
 
-### Pixel Snapping
+#### Pixel Snapping
 
 Enable this feature to snap Sprite Renderers to a grid in world space at render-time. The grid size is based on the __Assets Pixels Per Unit__ value.
 
@@ -90,7 +89,7 @@ __Pixel Snapping__ prevents subpixel movement and make Sprites appear to move in
 
 ### Crop Frame
 
-Crops the viewport along the checked axis with black bars to match the __Reference Resolution__. Black bars are added to make the Game view fit the full screen resolution.
+Crops the viewport based on the option selected, adding black bars to match the __Reference Resolution__. Black bars are added to make the Game view fit the full screen resolution.
 
 | ![Uncropped cat](Images/2D/2D_Pix_image_8.png) | ![Cropped cat](Images/2D/2D_Pix_image_9.png) |
 | :--------------------------------------------: | :------------------------------------------: |

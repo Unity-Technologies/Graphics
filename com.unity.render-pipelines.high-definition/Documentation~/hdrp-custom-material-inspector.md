@@ -16,7 +16,7 @@ For information about how to create UI Blocks for a custom Material Inspector, s
 
 ## HDShaderGUI
 
-Every Material Inspector in HDRP is built on top of the `HDShaderGUI` class. This class ensures that Material Inspectors are always compatible with HDRP. To do this, it calls `SetupMaterialKeywordsAndPass` when any changes occur, which patches the Material's keywords, stencil properties, pass configuration, and other important elements.
+Every Material Inspector in HDRP overrides the `ValidateMaterial` method from the `ShaderGUI` class to ensure that Materials are always compatible with HDRP. To do this, it patches the Material's keywords, stencil properties, pass configuration, and other important elements when any changes occur.
 
 HDRP provides three helper classes to help create a Material Inspector:
 
@@ -238,24 +238,11 @@ public class ScratchInspectorExample : HDShaderGUI
     }
 
     // This function will ensure that our material is always using the correct keyword setup.
-    protected override void SetupMaterialKeywordsAndPass(Material material) => HDShaderUtils.ResetMaterialKeywords(material);
+    public override void ValidateMaterial(Material material) => HDShaderUtils.ResetMaterialKeywords(material);
 }
 ```
 
 
 Note that `HDShaderGUI` directly inherits from `ShaderGUI`, which means you can override `ShaderGUI` functions such as `OnMaterialPreviewGUI`. The only function you cannot override is `OnGUI` because `HDShaderGUI` seals it. Instead, override the `OnMaterialGUI` function.
 
-The `SetupMaterialKeywordsAndPass` function is very important because it ensures that the Material uses the correct keyword setup. HDRP stores the Material state in the properties themselves, this function reads these properties and then sets up the shader keywords these properties require. For example, if you enable the `doubleSidedEnable` property on a Material, HDRP requires the `_DOUBLESIDED_ON` shader keyword otherwise the material does not work. `SetupMaterialKeywordsAndPass` enables/disables this shader keyword based on the value of the `doubleSidedEnable` property.
-
-This is why it is important to call `ApplyKeywordsAndPassesIfNeeded` when there is a change in the material UI. For example, `LightingShaderGraphGUI` does this just after it displays the UI block UI list like so:
-
-```CSharp
-protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
-{
-    using (var changed = new EditorGUI.ChangeCheckScope())
-    {
-        m_UIBlocks.OnGUI(materialEditor, props);
-        ApplyKeywordsAndPassesIfNeeded(changed.changed, m_UIBlocks.materials);
-    }
-}
-```
+The `ValidateMaterial` function is very important because it ensures that the Material uses the correct keyword setup. HDRP stores the Material state in the properties themselves, this function reads these properties and then sets up the shader keywords these properties require. For example, if you enable the `doubleSidedEnable` property on a Material, HDRP requires the `_DOUBLESIDED_ON` shader keyword otherwise the material does not work. `HDShaderUtils.ResetMaterialKeywords` enables/disables this shader keyword based on the value of the `doubleSidedEnable` property.

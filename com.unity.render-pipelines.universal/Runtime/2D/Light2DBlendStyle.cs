@@ -1,12 +1,14 @@
 using System;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
-using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Controls how the light texture is used when rendering Sprites and other 2D renderers.
+    /// </summary>
     [Serializable]
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public struct Light2DBlendStyle
+    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
+    public struct Light2DBlendStyle
     {
         internal enum TextureChannel
         {
@@ -47,6 +49,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             public float additive;
         }
 
+        /// <summary>
+        /// Returns the name of the blend style
+        /// </summary>
         public string name;
 
         [SerializeField]

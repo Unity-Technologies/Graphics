@@ -26,5 +26,5 @@ This Block is compatible with the following Contexts:
 
 ## Remark
 
-- If you use this block inside an output context, particles temporarily disappear, but don't stay killed.
+- If you use this Block inside an output Context, particles temporarily disappear, but don't stay killed.
 - Make sure to enable the **Reap Particles** option in update, otherwise killed particles don't disappear.

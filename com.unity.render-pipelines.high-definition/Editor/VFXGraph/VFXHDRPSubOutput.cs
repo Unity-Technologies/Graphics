@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine.VFX;
 using static UnityEditor.VFX.VFXAbstractRenderedOutput;
 using static UnityEngine.Rendering.HighDefinition.HDRenderQueue;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     class VFXHDRPSubOutput : VFXSRPSubOutput
     {
@@ -31,11 +32,28 @@ namespace UnityEditor.VFX
         }
         public override bool supportsExcludeFromTAA { get { return !owner.isBlendModeOpaque; } }
 
+        bool GeneratesWithShaderGraph()
+        {
+            return owner is VFXShaderGraphParticleOutput shaderGraphOutput &&
+                shaderGraphOutput.GetOrRefreshShaderGraphObject() != null &&
+                shaderGraphOutput.GetOrRefreshShaderGraphObject().generatesWithShaderGraph;
+        }
+
+        public override bool supportsSortingPriority
+        {
+            get
+            {
+                if (owner.isBlendModeOpaque && !(owner is VFXDecalHDRPOutput))
+                    return false;
+                return true;
+            }
+        }
+
         protected override IEnumerable<string> filteredOutSettings
         {
             get
             {
-                if (!supportsQueueSelection)
+                if (!supportsQueueSelection || GeneratesWithShaderGraph())
                 {
                     yield return "transparentRenderQueue";
                     yield return "opaqueRenderQueue";
@@ -64,7 +82,7 @@ namespace UnityEditor.VFX
         }
 
         protected bool isLit => owner is VFXAbstractParticleHDRPLitOutput;
-        protected bool supportsQueueSelection => !(owner is VFXAbstractDistortionOutput); // TODO Should be made in a more abstract way
+        protected bool supportsQueueSelection => !((owner is VFXAbstractDistortionOutput) || (owner is VFXDecalHDRPOutput)); // TODO Should be made in a more abstract way
 
         public override IEnumerable<int> GetFilteredOutEnumerators(string name)
         {
@@ -100,23 +118,49 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override string GetRenderQueueStr()
+        private RenderQueueType GetRenderQueueType()
         {
             RenderQueueType renderQueueType;
+            if (owner.isBlendModeOpaque)
+                renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue(opaqueRenderQueue);
+            else
+                renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(transparentRenderQueue);
+            return renderQueueType;
+        }
+
+        public override string GetRenderQueueStr()
+        {
             string prefix = string.Empty;
             if (owner.isBlendModeOpaque)
             {
                 prefix = "Geometry";
-                renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue(opaqueRenderQueue);
             }
             else
             {
                 prefix = "Transparent";
-                renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(transparentRenderQueue);
             }
 
-            int renderQueue = HDRenderQueue.ChangeType(renderQueueType, 0, owner.hasAlphaClipping) - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
+            int renderQueue = GetRenderQueueOffset() - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
             return prefix + renderQueue.ToString("+#;-#;+0");
+        }
+
+        private int GetRenderQueueOffset()
+        {
+            var renderQueueType = GetRenderQueueType();
+            var materialSortingPriority = GetMaterialSortingPriority();
+            return owner is VFXDecalHDRPOutput ?
+                HDRenderQueue.Clamps(k_RenderQueue_AllOpaque, ChangeType(renderQueueType, 0, owner.hasAlphaClipping) + materialSortingPriority) :
+                ChangeType(renderQueueType, materialSortingPriority, owner.hasAlphaClipping);
+        }
+
+        private int GetMaterialSortingPriority()
+        {
+            if (supportsSortingPriority)
+            {
+                int rawMaterialSortingPriority = owner.GetMaterialSortingPriority();
+                return ClampsTransparentRangePriority(rawMaterialSortingPriority);
+            }
+            return 0;
         }
 
         private void GetStencilStateCommon(out int stencilWriteMask, out int stencilRef)

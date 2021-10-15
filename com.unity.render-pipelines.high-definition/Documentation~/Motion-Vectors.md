@@ -34,7 +34,7 @@ The options are:
 
 ## Motion vectors for transparent objects
 
-By default, HDRP does not render motion vectors for transparent Materials. This is because motion vectors from transparent GameObjects overwrite motion vectors for GameObjects behind them. For example, a window would overwrite the motion vectors for a bird flying behind it.
+By default, HDRP does not render motion vectors for transparent Materials. This is because motion vectors from transparent GameObjects overwrite motion vectors for GameObjects behind them. For example, a window would overwrite the motion vectors for a bird flying behind it. In this example, since the bird's motion vectors are now invalid, if you used [temporal anti-aliasing](Anti-Aliasing.md#temporal-anti-aliasing-taa), the bird would produce ghosting.
 
 To make HDRP render motion vectors for transparent Materials, see the steps in [Using motion vectors](#using-motion-vectors) and enable **Transparent Object Motion**.
 

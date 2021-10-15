@@ -81,6 +81,9 @@ namespace UnityEngine.Rendering.Universal
         static   RenderTargetIdentifier  invalidRT = -1;
         internal bool                    renderTargetValid { get => renderTarget != invalidRT; }
         internal bool                    renderTargetIsRenderTexture { get; private set; }
+        internal bool isLateLatchEnabled { get; set; }
+        internal bool canMarkLateLatch { get; set; }
+        internal bool hasMarkedLateLatch { get; set; }
 
         // Access to view information
         internal Matrix4x4 GetProjMatrix(int viewIndex = 0)  { return views[viewIndex].projMatrix; }
@@ -403,10 +406,10 @@ namespace UnityEngine.Rendering.Universal
 
         internal void RenderOcclusionMesh(CommandBuffer cmd)
         {
-        #if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running)
                 return;
-        #endif
+#endif
 
             if (isOcclusionMeshSupported)
             {
@@ -452,7 +455,33 @@ namespace UnityEngine.Rendering.Universal
                     stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(stereoCameraProjectionMatrix[i], isRenderToTexture);
                 }
                 RenderingUtils.SetStereoViewAndProjectionMatrices(cmd, stereoViewMatrix, stereoProjectionMatrix, stereoCameraProjectionMatrix, true);
+                if (cameraData.xr.canMarkLateLatch)
+                    MarkLateLatchShaderProperties(cmd, ref cameraData);
             }
+        }
+
+        internal static readonly int UNITY_STEREO_MATRIX_V = Shader.PropertyToID("unity_StereoMatrixV");
+        internal static readonly int UNITY_STEREO_MATRIX_IV = Shader.PropertyToID("unity_StereoMatrixInvV");
+        internal static readonly int UNITY_STEREO_MATRIX_VP = Shader.PropertyToID("unity_StereoMatrixVP");
+        internal static readonly int UNITY_STEREO_MATRIX_IVP = Shader.PropertyToID("unity_StereoMatrixIVP");
+
+        internal void MarkLateLatchShaderProperties(CommandBuffer cmd, ref CameraData cameraData)
+        {
+            cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.View, UNITY_STEREO_MATRIX_V);
+            cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.InverseView, UNITY_STEREO_MATRIX_IV);
+            cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.ViewProjection, UNITY_STEREO_MATRIX_VP);
+            cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.InverseViewProjection, UNITY_STEREO_MATRIX_IVP);
+            cmd.SetLateLatchProjectionMatrices(stereoProjectionMatrix);
+            cameraData.xr.hasMarkedLateLatch = true;
+        }
+
+        internal void UnmarkLateLatchShaderProperties(CommandBuffer cmd, ref CameraData cameraData)
+        {
+            cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.View);
+            cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.InverseView);
+            cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.ViewProjection);
+            cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.InverseViewProjection);
+            cameraData.xr.hasMarkedLateLatch = false;
         }
     }
 }
@@ -465,10 +494,10 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly XRPass emptyPass = new XRPass();
 
         internal bool enabled { get => false; }
-        internal void StartSinglePass(CommandBuffer cmd) {}
-        internal void StopSinglePass(CommandBuffer cmd) {}
-        internal void EndCamera(CommandBuffer cmd, CameraData camera) {}
-        internal void RenderOcclusionMesh(CommandBuffer cmd) {}
+        internal void StartSinglePass(CommandBuffer cmd) { }
+        internal void StopSinglePass(CommandBuffer cmd) { }
+        internal void EndCamera(CommandBuffer cmd, CameraData camera) { }
+        internal void RenderOcclusionMesh(CommandBuffer cmd) { }
     }
 }
 #endif

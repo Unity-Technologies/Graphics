@@ -1,0 +1,89 @@
+#pragma kernel KMain
+#pragma kernel KInitialize
+
+#pragma multi_compile _ ENABLE_ALPHA
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#define A_GPU 1
+#define A_HLSL 1
+#define FSR_EASU_F 1
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/ffx/ffx_a.hlsl"
+
+// 4 elements:
+// [0] = const0
+// [1] = const1
+// [0] = const2
+// [1] = const3
+// ComputeBuffer is allocated with stride sizeof(int)*4, 4 elements
+RWStructuredBuffer<uint4> _EASUParameters;
+
+float4 _EASUViewportSize;
+float4 _EASUInputImageSize;
+float4 _EASUOutputSize;
+
+TEXTURE2D_X(_InputTexture);
+RW_TEXTURE2D_X(float4, _OutputTexture);
+
+AF4 FsrEasuRF(AF2 p){ return GATHER_RED_TEXTURE2D_X  (_InputTexture, s_linear_clamp_sampler, p); }
+AF4 FsrEasuGF(AF2 p){ return GATHER_GREEN_TEXTURE2D_X(_InputTexture, s_linear_clamp_sampler, p); }
+AF4 FsrEasuBF(AF2 p){ return GATHER_BLUE_TEXTURE2D_X (_InputTexture, s_linear_clamp_sampler, p); }
+
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/ffx/ffx_fsr1.hlsl"
+
+[numthreads(64, 1, 1)]
+void KMain(uint3 LocalThreadId : SV_GroupThreadID, uint3 WorkGroupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Do remapping of local xy in workgroup for a more PS-like swizzle pattern.
+    AU2 gxy = ARmp8x8(LocalThreadId.x) + AU2(WorkGroupId.x<<3u, WorkGroupId.y<<3u);
+
+#ifdef ENABLE_ALPHA
+    float2 uv = ((float2)gxy.xy + 0.5) * _EASUOutputSize.zw;
+    float alpha = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv), 0.0).a;
+#else
+    float alpha = 1.0;
+#endif
+
+    AU4 con0 = _EASUParameters[0];
+    AU4 con1 = _EASUParameters[1];
+    AU4 con2 = _EASUParameters[2];
+    AU4 con3 = _EASUParameters[3];
+    AF4 c;
+
+    FsrEasuF(c.rgb, gxy, con0, con1, con2, con3);
+
+    //Input always as sqrt of color.
+    c.rgb *= c.rgb;
+    c.a = alpha;
+    _OutputTexture[COORD_TEXTURE2D_X(gxy)] = c;
+}
+
+
+/*
+Doing this to avoid having to deal with any CPU side compilation of the headers.
+The FsrRcasCon is doing some extra parameter packing (log space / pows etc) so its better
+to keep this all in the GPU for simplicity sake, and avoid paying this cost for every wave.
+The headers also dont compile for c#, they are meant for c and c++.
+*/
+[numthreads(1,1,1)]
+void KInitialize()
+{
+    AU4 con0 = (AU4)0;
+    AU4 con1 = (AU4)0;
+    AU4 con2 = (AU4)0;
+    AU4 con3 = (AU4)0;
+    FsrEasuCon(con0,con1,con2,con3,
+        _EASUViewportSize.x,  _EASUViewportSize.y,
+        _EASUInputImageSize.x,_EASUInputImageSize.y,
+        _EASUOutputSize.x,    _EASUOutputSize.y);
+
+    _EASUParameters[0] = con0;
+    _EASUParameters[1] = con1;
+    _EASUParameters[2] = con2;
+    _EASUParameters[3] = con3;
+}

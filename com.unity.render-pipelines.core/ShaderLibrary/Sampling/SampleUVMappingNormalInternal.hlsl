@@ -18,8 +18,8 @@ real3 ADD_FUNC_SUFFIX(ADD_NORMAL_FUNC_SUFFIX(SampleUVMappingNormal))(TEXTURE2D_P
         if (triplanarWeights.z > 0.0)
             derivZPlane = triplanarWeights.z * UNPACK_DERIVATIVE_FUNC(SAMPLE_TEXTURE_FUNC(textureName, samplerName, uvMapping.uvXY, param), scale);
 
-        // Assume derivXplane, derivYPlane and derivZPlane sampled using (z,y), (z,x) and (x,y) respectively.
-        // TODO: Check with morten convention! Do it follow ours ?
+        // Assume derivXplane, derivYPlane and derivZPlane sampled using (z,y), (x,z) and (x,y) respectively
+        // ie using Morten's convention http://jcgt.org/published/0009/03/04/ p80-81
         real3 volumeGrad = real3(derivZPlane.x + derivYPlane.x, derivZPlane.y + derivXplane.y, derivXplane.x + derivYPlane.y);
         return SurfaceGradientFromVolumeGradient(uvMapping.normalWS, volumeGrad);
 #else

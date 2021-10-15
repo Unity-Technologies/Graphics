@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int[] m_SrcOffset;
         int[] m_DstOffset;
 
-        public MipGenerator(RenderPipelineResources defaultResources)
+        public MipGenerator(HDRenderPipelineRuntimeResources defaultResources)
         {
             m_TempColorTargets = new RTHandle[tmpTargetCount];
             m_TempDownsamplePyramid = new RTHandle[tmpTargetCount];
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             HDUtils.CheckRTCreated(texture);
 
-            var cs     = m_DepthPyramidCS;
+            var cs = m_DepthPyramidCS;
             int kernel = m_DepthDownsampleKernel;
 
             // TODO: Do it 1x MIP at a time for now. In the future, do 4x MIPs per pass, or even use a single pass.
@@ -70,11 +70,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (mip1AlreadyComputed && i == 1) continue;
 
-                Vector2Int dstSize   = info.mipLevelSizes[i];
+                Vector2Int dstSize = info.mipLevelSizes[i];
                 Vector2Int dstOffset = info.mipLevelOffsets[i];
-                Vector2Int srcSize   = info.mipLevelSizes[i - 1];
+                Vector2Int srcSize = info.mipLevelSizes[i - 1];
                 Vector2Int srcOffset = info.mipLevelOffsets[i - 1];
-                Vector2Int srcLimit  = srcOffset + srcSize - Vector2Int.one;
+                Vector2Int srcLimit = srcOffset + srcSize - Vector2Int.one;
 
                 m_SrcOffset[0] = srcOffset.x;
                 m_SrcOffset[1] = srcOffset.y;
@@ -86,9 +86,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DstOffset[2] = 0;
                 m_DstOffset[3] = 0;
 
-                cmd.SetComputeIntParams(cs,         HDShaderIDs._SrcOffsetAndLimit, m_SrcOffset);
-                cmd.SetComputeIntParams(cs,         HDShaderIDs._DstOffset,         m_DstOffset);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMipChain,     texture);
+                cmd.SetComputeIntParams(cs, HDShaderIDs._SrcOffsetAndLimit, m_SrcOffset);
+                cmd.SetComputeIntParams(cs, HDShaderIDs._DstOffset, m_DstOffset);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMipChain, texture);
 
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(dstSize.x, 8), HDUtils.DivRoundUp(dstSize.y, 8), texture.volumeDepth);
             }
@@ -127,14 +127,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorFormat: destination.graphicsFormat,
                     enableRandomWrite: true,
                     useMipMap: false,
-                    enableMSAA: false,
                     useDynamicScale: true,
                     name: "Temp Gaussian Pyramid Target"
                 );
             }
 
-            int srcMipLevel  = 0;
-            int srcMipWidth  = size.x;
+            int srcMipLevel = 0;
+            int srcMipWidth = size.x;
             int srcMipHeight = size.y;
             int slices = destination.volumeDepth;
 
@@ -158,7 +157,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorFormat: destination.graphicsFormat,
                     enableRandomWrite: false,
                     useMipMap: false,
-                    enableMSAA: false,
                     useDynamicScale: true,
                     name: "Temporary Downsampled Pyramid"
                 );
@@ -167,8 +165,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.ClearRenderTarget(false, true, Color.black);
             }
 
-            float sourceScaleX = (float)size.x / source.width;
-            float sourceScaleY = (float)size.y / source.height;
+            bool isHardwareDrsOn = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
+            var hardwareTextureSize = new Vector2Int(source.width, source.height);
+            if (isHardwareDrsOn)
+                hardwareTextureSize = DynamicResolutionHandler.instance.ApplyScalesOnSize(hardwareTextureSize);
+
+            float sourceScaleX = (float)size.x / (float)hardwareTextureSize.x;
+            float sourceScaleY = (float)size.y / (float)hardwareTextureSize.y;
 
             // Copies src mip0 to dst mip0
             m_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
@@ -185,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // on 8x8 blocks
             while (srcMipWidth >= 8 || srcMipHeight >= 8)
             {
-                int dstMipWidth  = Mathf.Max(1, srcMipWidth  >> 1);
+                int dstMipWidth = Mathf.Max(1, srcMipWidth >> 1);
                 int dstMipHeight = Mathf.Max(1, srcMipHeight >> 1);
 
                 // Scale for downsample
@@ -233,7 +236,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DrawProcedural(Matrix4x4.identity, m_ColorPyramidPSMat, rtIndex, MeshTopology.Triangles, 3, 1, m_PropertyBlock);
 
                 srcMipLevel++;
-                srcMipWidth  = srcMipWidth  >> 1;
+                srcMipWidth = srcMipWidth >> 1;
                 srcMipHeight = srcMipHeight >> 1;
 
                 finalTargetMipWidth = finalTargetMipWidth >> 1;

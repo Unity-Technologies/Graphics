@@ -22,6 +22,8 @@
   * [6.x to 7.x](Upgrading-from-2019.2-to-2019.3.md)
   * [7.x to 8.x](Upgrading-from-2019.3-to-2020.1.md)
   * [8.x to 9.x-preview/10.x](Upgrading-from-2020.1-to-2020.2.md)
+  * [10.x-preview to 11.x](Upgrading-from-2020.2-to-2021.1.md)
+  * [11.x to 12.x](Upgrading-from-2021.1-to-2021.2.md)
 * Volume Framework
   * [Volumes](Volumes.md)
   * [Volume Profiles](Volume-Profile.md)
@@ -66,11 +68,10 @@
       * [Procedural Sky](Override-Procedural-Sky.md)
       * [Volumetric Clouds](Override-Volumetric-Clouds.md)
     * [Visual Environment](Override-Visual-Environment.md)
-  * [Volumes API](Volumes-API.md)
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset.md)
   * [Frame Settings](Frame-Settings.md)
-  * [Default Settings](Default-Settings-Window.md)
+  * [HDRP Global Settings](Default-Settings-Window.md)
   * [HDRP Config Package](HDRP-Config-Package.md)
   * [Scalability](Scalability-Manual.md)
 * Materials
@@ -81,9 +82,10 @@
   * [Geometric Specular Anti-aliasing](Geometric-Specular-Anti-Aliasing.md)
   * [Mask Map and Detail Map](Mask-Map-and-Detail-Map.md)
   * [Material Type](Material-Type.md)
+  * [Tessellation](Tessellation.md)
+  * [Surface Type](Surface-Type.md)
   * [Renderer and Material Priority](Renderer-And-Material-Priority.md)
   * [Decal](Decal.md)
-  * [Surface Type](Surface-Type.md)
   * Subsurface Scattering
     * [Subsurface Scattering Materials](Subsurface-Scattering.md)
     * [Diffusion Profile](Diffusion-Profile.md)
@@ -151,6 +153,7 @@
   * [Alpha Output](Alpha-Output.md)
   * [Arbitrary Output Variables](AOVs.md)
   * [Multiframe Rendering and Accumulation](Accumulation.md)
+  * [Deep learning super sampling](deep-learning-super-sampling-in-hdrp.md)
 * [Post-processing](Post-Processing-Main.md)
   * [Effect Execution Order](Post-Processing-Execution-Order.md)
   * [Effect List](post-processing-effect-list.md)
@@ -169,7 +172,8 @@
     * [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.md)
     * [Ray-Traced Reflections](Ray-Traced-Reflections.md)
     * [Ray-Traced Shadows](Ray-Traced-Shadows.md)
-    * [Ray-Traced-Subsurface-Scattering](Ray-Traced-Subsurface-Scattering.md)
+    * [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md)
+    * [Ray Tracing Settings](Ray-Tracing-Settings.md)
     * [Light Cluster](Ray-Tracing-Light-Cluster.md)
     * [Path Tracing](Ray-Tracing-Path-Tracing.md)
     * [Recursive Rendering](Ray-Tracing-Recursive-Rendering.md)
@@ -180,6 +184,8 @@
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug.md)
 * Components
   * [Decal Projector](Decal-Projector.md)
+  * [Lens Flare](shared/lens-flare/lens-flare-component.md)
+    * [Lens Flare asset](shared/lens-flare/lens-flare-asset.md)
 * Tools
   * [Look Dev](Look-Dev.md)
   * [Compositor](Compositor-Main.md)
@@ -187,7 +193,7 @@
     * [User Options](Compositor-User-Options.md)
 * Debugging
   * [MatCap](MatCap.md)
-  * [Render Pipeline Debugger Window](Render-Pipeline-Debug-Window.md)
+  * [Rendering Debugger](Render-Pipeline-Debug-Window.md)
 * Virtual Reality
   * [VR Overview](VR-Overview.md)
 * Consoles
@@ -205,7 +211,11 @@
     * [Scripting your own Custom Pass in C#](Custom-Pass-Scripting.md)
     * [Troubleshooting](Custom-Pass-Troubleshooting.md)
   * [Custom Material Inspector](hdrp-custom-material-inspector.md)
+  * [Creating and Editing Lights at Runtime](creating-and-editing-lights-at-runtime.md)
+  * [Creating a Decal Projector at Runtime](creating-a-decal-projector-at-runtime.md)
+  * [Editing materials at Runtime](Material-API.md)
   * [Editing Frame Settings at Runtime](Frame-Settings-API.md)
+  * [Editing Volumes at Runtime](Volumes-API.md)
   * [Render Graph](render-graph.md)
 * [HDRP Glossary](Glossary.md)
 * [Known Issues and How To Fix Them](Known-Issues.md)

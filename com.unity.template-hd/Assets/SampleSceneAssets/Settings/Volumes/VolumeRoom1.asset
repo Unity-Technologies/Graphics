@@ -48,7 +48,7 @@ MonoBehaviour:
     m_Value: 8
   limitMax:
     m_OverrideState: 1
-    m_Value: 12.5
+    m_Value: 13.5
   curveMap:
     m_OverrideState: 0
     m_Value:
@@ -133,19 +133,15 @@ MonoBehaviour:
   adaptationSpeedDarkToLight:
     m_OverrideState: 0
     m_Value: 3
-    min: 0.001
   adaptationSpeedLightToDark:
     m_OverrideState: 0
     m_Value: 1
-    min: 0.001
   weightTextureMask:
     m_OverrideState: 0
     m_Value: {fileID: 0}
   histogramPercentages:
     m_OverrideState: 0
     m_Value: {x: 40, y: 90}
-    min: 0
-    max: 100
   histogramUseCurveRemapping:
     m_OverrideState: 0
     m_Value: 0
@@ -170,7 +166,6 @@ MonoBehaviour:
   proceduralSoftness:
     m_OverrideState: 0
     m_Value: 0.5
-    min: 0
 --- !u!114 &8896021737368581315
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -187,10 +182,6 @@ MonoBehaviour:
   temperature:
     m_OverrideState: 1
     m_Value: 5
-    min: -100
-    max: 100
   tint:
     m_OverrideState: 0
     m_Value: 0
-    min: -100
-    max: 100

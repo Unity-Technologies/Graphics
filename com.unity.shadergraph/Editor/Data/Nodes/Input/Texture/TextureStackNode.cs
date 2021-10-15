@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         if (feedbackVariables.Count == 0)
                         {
-                            string feedBackCode = "surface.VTPackedFeedback = float4(1.0f,1.0f,1.0f,.0f);";
+                            string feedBackCode = "surface.VTPackedFeedback = float4(1.0f,1.0f,1.0f,1.0f);";
                             surfaceDescriptionFunction.AppendLine(feedBackCode);
                         }
                         else if (feedbackVariables.Count == 1)
@@ -121,6 +121,7 @@ namespace UnityEditor.ShaderGraph
                                 arrayIndex++;
                             }
 
+                            // TODO: should read from NDCPosition instead...
                             surfaceDescriptionFunction.AppendLine("uint pixelColumn = (IN.ScreenPosition.x / IN.ScreenPosition.w) * _ScreenParams.x;");
                             surfaceDescriptionFunction.AppendLine(
                                 "surface.VTPackedFeedback = GetPackedVTFeedback(VTFeedback_array[(pixelColumn + _FrameCount) % (uint)" + feedbackVariables.Count + "]);");

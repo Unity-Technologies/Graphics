@@ -17,6 +17,7 @@ namespace UnityEditor.ShaderGraph
         GameCoreXboxSeries,
         Playstation,
         Switch,
+        PS5,
     }
 
     [GenerationAPI]
@@ -50,6 +51,8 @@ namespace UnityEditor.ShaderGraph
                     return "playstation";
                 case Platform.Switch:
                     return "switch";
+                case Platform.PS5:
+                    return "ps5";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -62,6 +65,12 @@ namespace UnityEditor.ShaderGraph
         internal static Platform[] GetHighEndPlatformArray()
         {
             return new Platform[] { Platform.D3D11, Platform.Playstation, Platform.XboxOne, Platform.GameCoreXboxSeries, Platform.Vulkan, Platform.Metal, Platform.Switch };
+        }
+
+        // Return platform list not compatible with DXC (The list use by HDRP)
+        internal static Platform[] GetNeverUseDXCPlatformArray()
+        {
+            return new Platform[] { Platform.Metal };
         }
     }
 }

@@ -1,4 +1,4 @@
-#pragma only_renderers d3d11
+#pragma only_renderers d3d11 ps5
 
 // Temporal Filtering kernels
 #pragma kernel BilateralFilterHSingle       BILATERAL_FILTER=BilateralFilterHSingle     SINGLE_CHANNEL
@@ -7,7 +7,7 @@
 #pragma kernel BilateralFilterHColor        BILATERAL_FILTER=BilateralFilterHColor
 #pragma kernel BilateralFilterVColor        BILATERAL_FILTER=BilateralFilterVColor     FINAL_PASS
 
-#pragma only_renderers d3d11
+#pragma only_renderers d3d11 ps5
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"

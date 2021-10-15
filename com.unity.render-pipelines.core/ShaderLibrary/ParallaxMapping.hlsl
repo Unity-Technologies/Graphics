@@ -26,6 +26,7 @@ half3 GetViewDirectionTangentSpace(half4 tangentWS, half3 normalWS, half3 viewDi
     return viewDirTS;
 }
 
+#ifndef BUILTIN_TARGET_API
 half2 ParallaxOffset1Step(half height, half amplitude, half3 viewDirTS)
 {
     height = height * amplitude - amplitude / 2.0;
@@ -33,6 +34,7 @@ half2 ParallaxOffset1Step(half height, half amplitude, half3 viewDirTS)
     v.z += 0.42;
     return height * (v.xy / v.z);
 }
+#endif
 
 float2 ParallaxMapping(TEXTURE2D_PARAM(heightMap, sampler_heightMap), half3 viewDirTS, half scale, float2 uv)
 {
@@ -41,4 +43,10 @@ float2 ParallaxMapping(TEXTURE2D_PARAM(heightMap, sampler_heightMap), half3 view
     return offset;
 }
 
+float2 ParallaxMappingChannel(TEXTURE2D_PARAM(heightMap, sampler_heightMap), half3 viewDirTS, half scale, float2 uv, int channel)
+{
+    half h = SAMPLE_TEXTURE2D(heightMap, sampler_heightMap, uv)[channel];
+    float2 offset = ParallaxOffset1Step(h, scale, viewDirTS);
+    return offset;
+}
 #endif // UNIVERSAL_PARALLAX_MAPPING_INCLUDED

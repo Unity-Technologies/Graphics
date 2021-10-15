@@ -65,14 +65,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
 
             string path = AssetDatabase.GUIDToAssetPath(node.functionSource);
-            m_FunctionSource = new ObjectField() { value = AssetDatabase.LoadAssetAtPath<TextAsset>(path), objectType = typeof(TextAsset)};
+            m_FunctionSource = new ObjectField() { value = AssetDatabase.LoadAssetAtPath<ShaderInclude>(path), objectType = typeof(ShaderInclude) };
             m_FunctionSource.RegisterValueChangedCallback(s =>
             {
                 long localId;
                 string guidString = string.Empty;
                 if (s.newValue != null)
                 {
-                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier((TextAsset)s.newValue, out guidString, out localId);
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier((ShaderInclude)s.newValue, out guidString, out localId);
                 }
 
                 if (guidString != node.functionSource)
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
             m_FunctionBody.RegisterCallback<FocusOutEvent>(s =>
             {
-                if (m_FunctionBody.value  == "")
+                if (m_FunctionBody.value == "")
                     m_FunctionBody.value = CustomFunctionNode.defaultFunctionBody;
 
                 if (m_FunctionBody.value != node.functionBody)

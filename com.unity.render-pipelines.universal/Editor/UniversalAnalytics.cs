@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.Universal
             if (!EnableAnalytics())
                 return;
 
-            // Needd to check if this isn't null
+            // Need to check if this isn't null
             UniversalRenderPipelineAsset rendererAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
 
             if (rendererAsset != null)

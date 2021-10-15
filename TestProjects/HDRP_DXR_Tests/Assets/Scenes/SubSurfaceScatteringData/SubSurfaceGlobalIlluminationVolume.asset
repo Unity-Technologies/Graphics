@@ -13,52 +13,55 @@ MonoBehaviour:
   m_Name: GlobalIllumination
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   quality:
     m_OverrideState: 1
     m_Value: 2
   enable:
     m_OverrideState: 1
     m_Value: 1
+  tracing:
+    m_OverrideState: 1
+    m_Value: 2
   depthBufferThickness:
     m_OverrideState: 0
     m_Value: 0.01
     min: 0
     max: 1
   m_RaySteps:
-    m_OverrideState: 0
-    m_Value: 24
+    m_OverrideState: 1
+    m_Value: 128
     min: 16
     max: 128
-  m_MaximalRadius:
-    m_OverrideState: 0
-    m_Value: 2
-    min: 0.01
-    max: 50
-  m_FullResolutionSS:
-    m_OverrideState: 0
-    m_Value: 1
-  m_ClampValueSS:
-    m_OverrideState: 0
-    m_Value: 2
-    min: 0.01
-    max: 10
   m_FilterRadius:
-    m_OverrideState: 0
-    m_Value: 2
+    m_OverrideState: 1
+    m_Value: 8
     min: 2
     max: 8
-  rayTracing:
-    m_OverrideState: 1
-    m_Value: 1
   layerMask:
     m_OverrideState: 0
     m_Value:
       serializedVersion: 2
       m_Bits: 4294967295
+  m_RayLength:
+    m_OverrideState: 1
+    m_Value: 50
+    min: 0
+  m_ClampValue:
+    m_OverrideState: 1
+    m_Value: 1.5
+    min: 0.001
+    max: 10
   mode:
     m_OverrideState: 1
     m_Value: 1
+  m_FullResolution:
+    m_OverrideState: 1
+    m_Value: 1
+  m_UpscaleRadius:
+    m_OverrideState: 1
+    m_Value: 4
+    min: 2
+    max: 4
   sampleCount:
     m_OverrideState: 0
     m_Value: 2
@@ -69,43 +72,25 @@ MonoBehaviour:
     m_Value: 1
     min: 1
     max: 31
-  m_RayLength:
-    m_OverrideState: 0
-    m_Value: 50
-    min: 0
-    max: 50
-  m_ClampValue:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 0.001
-    max: 10
-  m_FullResolution:
-    m_OverrideState: 0
-    m_Value: 0
-  m_UpscaleRadius:
-    m_OverrideState: 0
-    m_Value: 2
-    min: 2
-    max: 4
   m_Denoise:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   m_HalfResolutionDenoiser:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   m_DenoiserRadius:
-    m_OverrideState: 0
-    m_Value: 0.6
+    m_OverrideState: 1
+    m_Value: 1
     min: 0.001
     max: 1
   m_SecondDenoiserPass:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
-  m_SecondDenoiserRadius:
-    m_OverrideState: 0
-    m_Value: 0.3
-    min: 0.001
-    max: 0.5
+  m_RayStepsRT:
+    m_OverrideState: 1
+    m_Value: 64
+    min: 16
+    max: 128
 --- !u!114 &-5687114487469186887
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -119,7 +104,6 @@ MonoBehaviour:
   m_Name: SubSurfaceScattering
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   rayTracing:
     m_OverrideState: 1
     m_Value: 1
@@ -141,7 +125,6 @@ MonoBehaviour:
   m_Name: HDRISky
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   rotation:
     m_OverrideState: 0
     m_Value: 0
@@ -280,7 +263,6 @@ MonoBehaviour:
   m_Name: Exposure
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   mode:
     m_OverrideState: 1
     m_Value: 0
@@ -319,6 +301,58 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 20
         value: 20
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  limitMinCurveMap:
+    m_OverrideState: 0
+    m_Value:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: -10
+        value: -12
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 20
+        value: 18
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  limitMaxCurveMap:
+    m_OverrideState: 0
+    m_Value:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: -10
+        value: -8
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 20
+        value: 22
         inSlope: 1
         outSlope: 0
         tangentMode: 0

@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Lens Distortion effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Lens Distortion")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Lens Distortion", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Post-Processing-Lens-Distortion")]
     public sealed class LensDistortion : VolumeComponent, IPostProcessComponent
     {
@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the center point for the distortion.
         /// </summary>
-        [Tooltip("Sets the center point for the distortion.")]
+        [Tooltip("Distortion center point. 0.5,0.5 is center of the screen.")]
         public Vector2Parameter center = new Vector2Parameter(new Vector2(0.5f, 0.5f));
 
         /// <summary>

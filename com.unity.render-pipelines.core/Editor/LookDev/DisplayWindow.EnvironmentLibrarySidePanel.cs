@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.LookDev
         }
 
         static int FirstVisibleIndex(ListView listView)
-            => (int)(listView.Q<ScrollView>().scrollOffset.y / listView.itemHeight);
+            => (int)(listView.Q<ScrollView>().scrollOffset.y / (int)listView.fixedItemHeight);
 
         void CreateEnvironment()
         {
@@ -75,7 +75,7 @@ namespace UnityEditor.Rendering.LookDev
             m_EnvironmentList = new ListView();
             m_EnvironmentList.AddToClassList("list-environment");
             m_EnvironmentList.selectionType = SelectionType.Single;
-            m_EnvironmentList.itemHeight = EnvironmentElement.k_SkyThumbnailHeight;
+            m_EnvironmentList.fixedItemHeight = EnvironmentElement.k_SkyThumbnailHeight;
             m_EnvironmentList.makeItem = () =>
             {
                 var preview = new Image();
@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.LookDev
             };
 #else
             m_EnvironmentList.onItemChosen += obj =>
-                EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary ? [(int)obj]);
+                EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary?[(int)obj]);
 #endif
             m_NoEnvironmentList = new Label(Style.k_DragAndDropLibrary);
             m_NoEnvironmentList.style.flexGrow = 1;
@@ -217,10 +217,10 @@ namespace UnityEditor.Rendering.LookDev
             environmentListCreationToolbar.Add(m_LibraryField);
             environmentListCreationToolbar.Add(new ToolbarButton(()
                 => EnvironmentLibraryCreator.CreateAndAssignTo(m_LibraryField))
-                {
-                    text = "New",
-                    tooltip = "Create a new EnvironmentLibrary"
-                });
+            {
+                text = "New",
+                tooltip = "Create a new EnvironmentLibrary"
+            });
 
             m_EnvironmentContainer.Add(listContainer);
             m_EnvironmentContainer.Add(m_NoEnvironmentList);
@@ -229,7 +229,7 @@ namespace UnityEditor.Rendering.LookDev
             //add ability to unselect
             m_EnvironmentList.RegisterCallback<MouseDownEvent>(evt =>
             {
-                var clickedIndex = (int)(evt.localMousePosition.y / m_EnvironmentList.itemHeight);
+                var clickedIndex = (int)(evt.localMousePosition.y / (int)m_EnvironmentList.fixedItemHeight);
                 if (clickedIndex >= m_EnvironmentList.itemsSource.Count)
                 {
                     m_EnvironmentList.selectedIndex = -1;
@@ -291,6 +291,7 @@ namespace UnityEditor.Rendering.LookDev
                     m_EnvironmentListToolbar.style.visibility = Visibility.Visible;
                     m_NoEnvironmentList.style.display = DisplayStyle.None;
                 }
+                m_EnvironmentList.RefreshItems();
             }
         }
 
@@ -300,12 +301,12 @@ namespace UnityEditor.Rendering.LookDev
                 item as Image,
                 //note: this even can come before the selection event of the
                 //ListView. Reconstruct index by looking at target of the event.
-                (int)item.layout.y / m_EnvironmentList.itemHeight,
+                (int)item.layout.y / (int)m_EnvironmentList.fixedItemHeight,
                 worldPosition);
 
         void EndDragging(DraggingContext context, Vector2 mouseWorldPosition)
         {
-            Environment environment = LookDev.currentContext.environmentLibrary ? [context.draggedIndex];
+            Environment environment = LookDev.currentContext.environmentLibrary?[context.draggedIndex];
             if (environment == null)
                 return;
 

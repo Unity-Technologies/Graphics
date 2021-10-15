@@ -58,7 +58,7 @@ internal class OutputColorsToMRTsRenderPass : ScriptableRenderPass
         CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
 
         cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-      //  cmd.SetGlobalTexture(shaderPropertyId_srcTex, source);
+        //  cmd.SetGlobalTexture(shaderPropertyId_srcTex, source);
         cmd.DrawMesh(RenderingUtils.fullscreenMesh, scaleMatrix, colorToMrtMaterial);
 
         context.ExecuteCommandBuffer(cmd);
@@ -71,4 +71,3 @@ internal class OutputColorsToMRTsRenderPass : ScriptableRenderPass
         cmd.ReleaseTemporaryRT(destination[0].id);
     }
 }
-

@@ -1,0 +1,140 @@
+${VFXBegin:VFXPassForward}"UniversalForwardOnly"${VFXEnd}
+${VFXBegin:VFXPassForward2D}"Universal2D"${VFXEnd}
+${VFXBegin:VFXPassShadow}"ShadowCaster"${VFXEnd}
+${VFXBegin:VFXPassVelocity}"MotionVectors"${VFXEnd}
+${VFXBegin:VFXPassDepth}"DepthOnly"${VFXEnd}
+
+${VFXBegin:VFXPassDepthDefine}
+#if defined(WRITE_NORMAL_BUFFER)
+#define SHADERPASS SHADERPASS_DEPTHNORMALSONLY
+#else
+#define SHADERPASS SHADERPASS_DEPTHONLY
+#endif
+${VFXEnd}
+${VFXBegin:VFXPassShadowDefine}#define SHADERPASS SHADERPASS_SHADOWS${VFXEnd}
+${VFXBegin:VFXPassVelocityDefine}#define SHADERPASS SHADERPASS_MOTION_VECTORS${VFXEnd}
+
+${VFXBegin:VFXPassForwardAdditionalPragma}
+#pragma multi_compile_fog
+${VFXEnd}
+
+${VFXBegin:VFXPassForwardLitAdditionalPragma}
+#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+#pragma multi_compile _ _ADDITIONAL_LIGHTS
+#pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+#pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
+#pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
+#pragma multi_compile_fragment _ _SHADOWS_SOFT
+#pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+#pragma multi_compile_fragment _ _LIGHT_LAYERS
+#pragma multi_compile_fragment _ _LIGHT_COOKIES
+#pragma multi_compile _ _CLUSTERED_RENDERING
+#pragma multi_compile_fog
+#pragma multi_compile _ DEBUG_DISPLAY
+${VFXEnd}
+${VFXBegin:VFXPassDepthAdditionalPragma}
+#pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+${VFXEnd}
+${VFXBegin:VFXPassGBufferAdditionalPragma}
+#pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
+#pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
+#pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+//See Lit.shader, these multi_compile aren't used in GBuffer
+//#pragma multi_compile _ _ADDITIONAL_LIGHTS
+//#pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+#pragma multi_compile_fragment _ _SHADOWS_SOFT
+#pragma multi_compile_fragment _ _LIGHT_LAYERS
+${VFXEnd}
+
+${VFXBegin:VFXShaderGraphFunctionsInclude}
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
+${VFXEnd}
+
+
+${VFXBegin:VFXPassDepthCommonFragmentURPLit}
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
+${VFXPassVelocityDefine}
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
+${VFXPassShadowDefine}
+#else
+${VFXPassDepthDefine}
+#endif
+${VFXIncludeRP("VFXLit.template")}
+
+#if defined(WRITE_NORMAL_BUFFER)
+${SHADERGRAPH_PIXEL_CODE_DEPTHNORMALS}
+#else
+${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+#endif
+
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+int _ObjectId;
+int _PassValue;
+#endif
+
+#pragma fragment frag
+void frag(ps_input i
+#if USE_DOUBLE_SIDED
+    , bool frontFace : SV_IsFrontFace
+#endif
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
+    #if defined(WRITE_NORMAL_BUFFER)
+    , out float4 outNormalBuffer : SV_Target0
+    #endif
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+    , out float4 outColor : SV_Target0
+#endif
+)
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+    VFXTransformPSInputs(i);
+    ${VFXComputeNormalWS}
+    
+    #ifdef VFX_SHADERGRAPH
+        ${VFXAdditionalInterpolantsPreparation}
+
+        #if defined(WRITE_NORMAL_BUFFER)
+        ${SHADERGRAPH_PIXEL_CALL_DEPTHNORMALS}
+        #else
+        ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
+        #endif
+
+        float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+        #else
+        
+        float alpha = VFXGetFragmentColor(i).a;
+        #if URP_USE_BASE_COLOR_MAP_ALPHA
+            alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;
+        #endif
+    #endif
+    
+    VFXClipFragmentColor(alpha,i);
+    
+    #if defined(WRITE_NORMAL_BUFFER)
+        #ifdef VFX_SHADERGRAPH
+            #if HAS_SHADERGRAPH_PARAM_NORMALTS
+                float3 n =  OUTSG.${SHADERGRAPH_PARAM_NORMALTS};
+                normalWS = mul(n,tbn);
+            #endif
+        #endif
+        VFXComputePixelOutputToNormalBuffer(normalWS,  outNormalBuffer);
+    #endif
+
+    #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+        // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
+        outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
+    #elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
+        //void
+    #elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
+        //void
+    #else
+        #error VFX_PASSDEPTH undefined
+    #endif
+}
+${VFXEnd}

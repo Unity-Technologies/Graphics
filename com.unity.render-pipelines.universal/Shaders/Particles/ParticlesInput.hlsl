@@ -5,7 +5,7 @@
 
 struct AttributesParticle
 {
-    float4 vertex                   : POSITION;
+    float4 positionOS               : POSITION;
     half4 color                     : COLOR;
 
     #if defined(_FLIPBOOKBLENDING_ON) && !defined(UNITY_PARTICLE_INSTANCING_ENABLED)
@@ -16,8 +16,8 @@ struct AttributesParticle
     #endif
 
     #if !defined(PARTICLES_EDITOR_META_PASS)
-        half3 normal : NORMAL;
-        half4 tangent : TANGENT;
+        float3 normalOS             : NORMAL;
+        float4 tangentOS            : TANGENT;
     #endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };

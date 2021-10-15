@@ -15,7 +15,7 @@ namespace UnityEngine.VFX.Utility
 
         public Activation activation = Activation.OnBecameVisible;
 
-        protected override void SetEventAttribute(object[] parameters) {}
+        protected override void SetEventAttribute(object[] parameters) { }
 
         private void OnBecameVisible()
         {
