@@ -61,6 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool computeLightVariants;
             public bool skyEnabled;
             public LightList lightList;
+            public bool canClearLightList;
+            public int directionalLightCount;
 
             // Clear Light lists
             public ComputeShader clearLightListCS;
@@ -167,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Also, we clear all the lists and to be resilient to changes in pipeline.
                 if (data.runBigTilePrepass)
                     ClearLightList(data, cmd, data.output.bigTileLightList);
-                if (data.lightList != null) // This can happen for probe volume light list build where we only generate clusters.
+                if (data.canClearLightList) // This can happen when we dont have a GPULight list builder and a light list instantiated.
                     ClearLightList(data, cmd, data.output.lightList);
                 ClearLightList(data, cmd, data.output.perVoxelOffset);
             }
@@ -231,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (data.enableFeatureVariants)
                 {
                     uint baseFeatureFlags = 0;
-                    if (data.lightList.directionalLights.Count > 0)
+                    if (data.directionalLightCount > 0)
                     {
                         baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
                     }
@@ -312,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // If we haven't run the light list building, we are missing some basic lighting flags.
                     if (!tileFlagsWritten)
                     {
-                        if (data.lightList.directionalLights.Count > 0)
+                        if (data.directionalLightCount > 0)
                         {
                             baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
                         }
@@ -451,9 +453,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb.g_isOrthographic = camera.orthographic ? 1u : 0u;
             cb.g_BaseFeatureFlags = 0; // Filled for each individual pass.
             cb.g_iNumSamplesMSAA = (int)hdCamera.msaaSamples;
-            cb._EnvLightIndexShift = (uint)m_lightList.lights.Count;
-            cb._DecalIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count);
-            cb._LocalVolumetricFogIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
+            cb._EnvLightIndexShift = (uint)m_GpuLightsBuilder.lightsCount;
+            cb._DecalIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count);
+            cb._LocalVolumetricFogIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount);
 
             // Copy the constant buffer into the parameter struct.
             passData.lightListCB = cb;
@@ -487,7 +489,8 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && tileAndClusterData.hasTileBuffers;
             passData.computeMaterialVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants);
             passData.computeLightVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants);
-            passData.lightList = m_lightList;
+            passData.directionalLightCount = m_GpuLightsBuilder.directionalLightCount;
+            passData.canClearLightList = m_GpuLightsBuilder != null && m_lightList != null;
             passData.skyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera);
             passData.useComputeAsPixel = DeferredUseComputeAsPixel(hdCamera.frameSettings);
 
@@ -1132,7 +1135,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: true, ref prepassOutput);
                 }
 
-                RTHandle colorPyramidRT = transparent ? hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain) : hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                // The first color pyramid of the frame is generated after the SSR transparent, so we have no choice but to use the previous
+                // frame color pyramid (that includes transparents from the previous frame).
+                RTHandle colorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
                 if (colorPyramidRT == null)
                     return renderGraph.defaultResources.blackTextureXR;
 

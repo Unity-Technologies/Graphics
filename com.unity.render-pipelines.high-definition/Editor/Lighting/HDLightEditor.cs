@@ -63,7 +63,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_SerializedHDLight.serializedObject.Update();
                 foreach (var hdLightData in m_AdditionalLightDatas)
                     if (hdLightData != null)
+                    {
                         hdLightData.UpdateAreaLightEmissiveMesh();
+                        hdLightData.UpdateRenderEntity();
+                    }
             }
 
             // if Type or ShowEmissive Mesh undone, we must fetxh again the emissive meshes
@@ -94,7 +97,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_SerializedHDLight.Apply();
 
                 foreach (var hdLightData in m_AdditionalLightDatas)
+                {
                     hdLightData.UpdateAllLightValues();
+                    hdLightData.UpdateRenderEntity();
+                }
             }
 
             if (m_SerializedHDLight.needUpdateAreaLightEmissiveMeshComponents)
