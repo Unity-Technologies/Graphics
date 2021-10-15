@@ -736,6 +736,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_VisibleComputeLocalVolumes.Clear();
 
+                // Compute the smallest frustum between the camera's frustum and the V-Buffer's frustum
+                // It's typically much shorter (along the Z axis) than the camera's frustum.
+                var frustum = hdCamera.frustum;
+                var volumeDetph = hdCamera.volumeStack.GetComponent<Fog>().depthExtent.value;
+                var planes = frustum.planes;
+                planes[5].distance = Mathf.Min( planes[4].distance + volumeDetph, planes[5].distance);
+                frustum.planes = planes;
+
                 // Collect all visible finite volume data, and upload it to the GPU.
                 var volumes = LocalVolumetricFogManager.manager.PrepareLocalVolumetricFogData(cmd, hdCamera);
 
@@ -750,9 +758,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     obb.center -= camOffset;
 
                     // Frustum cull on the CPU for now. TODO: do it on the GPU.
-                    // TODO: account for custom near and far planes of the V-Buffer's frustum.
-                    // It's typically much shorter (along the Z axis) than the camera's frustum.
-                    if (GeometryUtils.Overlap(obb, hdCamera.frustum, 6, 8))
+                    if (GeometryUtils.Overlap(obb, frustum, 6, 8))
                     {
                         if (volume.localVolumetricFogType == LocalVolumetricFogType.Texture)
                         {
