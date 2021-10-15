@@ -33,6 +33,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
 - Fixed the cloudlayer not using depth buffer.
 - Fixed crossfade not working on the HD ST8 ShaderGraph [case 1369586](https://fogbugz.unity3d.com/f/cases/1369586/)
+- Fixed range compression factor being clamped. (case 1365707)
+- Fixed tooltip not showing on labels in ShaderGraphs (1358483).
+- Fix API warnings in Matcap mode on Metal.
+- Fix D3D validation layer errors w.r.t shadow textures when an atlas is not used.
 
 ## [13.0.0] - 2021-09-01
 
