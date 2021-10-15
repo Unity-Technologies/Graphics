@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
 - Fix for rendering thumbnails. [case 1348209](https://issuetracker.unity3d.com/issues/preview-of-assets-do-not-show-in-the-project-window)
 - Fixed ShaderGraph needing updated normals for ShadowCaster in URP.
-
+- Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]
 
 ## [12.0.0] - 2021-01-11
 ### Added
