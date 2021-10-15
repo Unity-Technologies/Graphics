@@ -171,7 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pd.includes.Add(HDTerrainSubTarget.TerrainIncludes);
                 TerrainSubTarget.PostProcessPass(ref pd, shaderIdx, HDTerrainSubTarget.kTerrainBasemapGenTemplate,
                     new KeywordCollection { CoreKeywordDescriptors.Terrain8Layers },
-                    new DefineCollection { { CoreKeywordDescriptors.SurfaceGradient, 1 } },
+                    new DefineCollection { },
                     HDTerrainSubTarget.BasemapGen);
             }
         }
