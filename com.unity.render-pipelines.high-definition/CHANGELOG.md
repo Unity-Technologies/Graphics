@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix API warnings in Matcap mode on Metal.
 - Fix D3D validation layer errors w.r.t shadow textures when an atlas is not used.
 - Fixed anchor position offset property for the Light Anchor component. (case 1362809)
+- Fixed minor performance issues in SSGI (case 1367144).
 
 ## [13.0.0] - 2021-09-01
 
