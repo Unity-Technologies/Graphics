@@ -280,7 +280,7 @@ public class Editmode_BakeRestart_Tests
     }
 
     [UnityTest] // Case 1364204
-    public IEnumerator DisablingRadeonProDenoiser_DuringABake_DoesNotFallbackToCPU()
+    public IEnumerator RadeonProDenoiser_DisablingRadeonProDenoiserDuringABake_DoesNotFallbackToCPU()
     {
         // Open the initial scene
         EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/BakeRestartScene.unity", OpenSceneMode.Single);
