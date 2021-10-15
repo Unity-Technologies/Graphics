@@ -92,9 +92,7 @@ namespace UnityEngine.Rendering.Universal
                 var renderer = renderingData.cameraData.renderer;
 
                 if (m_Settings.source == DrawFullscreenBufferType.Custom || m_Settings.destination == DrawFullscreenBufferType.Custom)
-                {
                     cmd.GetTemporaryRT(k_CustomRTId, blitTargetDescriptor, FilterMode.Bilinear);
-                }
 
                 if (m_Settings.source == DrawFullscreenBufferType.CameraColor)
                     m_Source = renderer.cameraColorTarget;

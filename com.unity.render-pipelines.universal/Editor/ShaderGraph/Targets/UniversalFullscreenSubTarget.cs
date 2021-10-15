@@ -32,5 +32,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = "Fullscreen";
         }
+
+        protected override KeywordCollection GetPassKeywords(FullscreenCompatibility compatibility)
+        {
+            return new KeywordCollection
+            {
+                useDrawProcedural
+            };
+        }
+
+        // For GLES 2 support
+        static KeywordDescriptor useDrawProcedural = new KeywordDescriptor
+        {
+            displayName = "Use Draw Procedural",
+            referenceName = "_USE_DRAW_PROCEDURAL",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Vertex,
+        };
     }
 }

@@ -1,7 +1,11 @@
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
+#if SHADER_API_GLES
+    output.positionCS = float4(input.positionOS.xyz, 1);
+#else
     output.positionCS = GetDrawProceduralVertexPosition(input.vertexID);
+#endif
     BuildVaryings(input, output);
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;

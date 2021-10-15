@@ -27,8 +27,8 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent RequiresMotionVectorTexture = EditorGUIUtility.TrTextContent("Requires Motion Texture", "Specifies whether the shader needs the motion texture. Keeping this option disabled will avoid the motion texture to be computed.");
             public static GUIContent BlitMaterial = new GUIContent("Material", "The material used to perform the fullscreen draw.");
             public static GUIContent BlitMaterialPassIndex = EditorGUIUtility.TrTextContent("Pass Name", "Name of the material pass to use for the fullscreen draw.");
-            public static GUIContent Source = EditorGUIUtility.TrTextContent("Source", "Specifies the source texture for the blit. You can sample it from");
-            public static GUIContent Destination = EditorGUIUtility.TrTextContent("Destination", ".");
+            public static GUIContent Source = EditorGUIUtility.TrTextContent("Source", "Specifies the source texture for the fullscreen pass. You can sample it from");
+            public static GUIContent Destination = EditorGUIUtility.TrTextContent("Destination", "Specifies the destination texture for the fullscreen pass.");
         }
 
         private void Init()

@@ -80,9 +80,10 @@ void BuildVaryings(Attributes input, inout Varyings output)
     output.texCoord0 = output.positionCS * 0.5 + 0.5;
     output.texCoord0.y = 1 - output.texCoord0.y;
 
+    float3 p = ComputeWorldSpacePosition(output.positionCS, UNITY_MATRIX_I_VP);
+
     // Encode view direction in texCoord1
-    float3 worldPos = mul(UNITY_MATRIX_I_VP, float4(output.positionCS.xyz, 1)).xyz;
-    output.texCoord1.xyz = worldPos;
+    output.texCoord1.xyz = GetWorldSpaceViewDir(p);// - float3(0, 2, 0);
 }
 
 float4 GetDrawProceduralVertexPosition(uint vertexID)

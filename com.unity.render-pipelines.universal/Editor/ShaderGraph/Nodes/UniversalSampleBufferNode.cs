@@ -101,8 +101,9 @@ namespace UnityEditor.Rendering.Universal
             {
                 properties.AddShaderProperty(new Texture2DArrayShaderProperty
                 {
-                    overrideReferenceName = "_MainTex",
-                    displayName = "_MainTex",
+                    // Make it compatible with Blitter.cs calls
+                    overrideReferenceName = "_BlitTexture",
+                    displayName = "_BlitTexture",
                     hidden = true,
                     generatePropertyBlock = true,
                     isMainTexture = true,
