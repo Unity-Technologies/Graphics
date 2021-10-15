@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed area light cookie field to use the same style as the other cookie fields
 - Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
 - Fixed the cloudlayer not using depth buffer.
+- Fixed crossfade not working on the HD ST8 ShaderGraph [case 1369586](https://fogbugz.unity3d.com/f/cases/1369586/)
 - Fixed minor performance issues in SSGI (case 1367144).
 
 ## [13.0.0] - 2021-09-01
@@ -96,6 +97,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved sampling of overlapping point/area lights in path-traced volumetric scattering (case 1358777).
 - Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1346105, 1358783).
 - Fixed minor readability issues in the ray tracing code.
+- PrepareLightsForGPU CPU Light loop performance improvement (40% to 70% faster), utilizing burst and optimized. Utilizing better sorting, distributing work in jobs and improving cache access of light data.
 
 ## [12.0.0] - 2021-01-11
 
