@@ -1196,6 +1196,11 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
             // This is a stop-gap solution until further research is given to LTC support for anisotropic BSDFs.
             const float3 positionWS = posInput.positionWS;
 
+        #if SHADEROPTIONS_BARN_DOOR
+            // Apply the barn door modification to the light data
+            RectangularLightApplyBarnDoor(lightData, positionWS);
+        #endif
+
             if (dot(normalize(positionWS - lightData.positionRWS), lightData.forward) > 0)
             {
                 const float  halfWidth  = lightData.size.x * 0.5;
@@ -1215,10 +1220,10 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
                 // Construct the rectangle vertices and compute the solid angle.
             #if 1
                 float4x3 lightVerts;
-                lightVerts[0] = lightData.positionRWS + -lightData.right * -halfWidth + lightData.up *  halfHeight; // LL
-                lightVerts[1] = lightData.positionRWS + -lightData.right * -halfWidth + lightData.up * -halfHeight; // UL
-                lightVerts[2] = lightData.positionRWS + -lightData.right *  halfWidth + lightData.up * -halfHeight; // UR
-                lightVerts[3] = lightData.positionRWS + -lightData.right *  halfWidth + lightData.up *  halfHeight; // LR
+                lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
+                lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
+                lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
+                lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
 
                 float solidAngle = RectangleSolidAngle(positionWS, lightVerts);
             #else
