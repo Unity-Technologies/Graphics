@@ -318,9 +318,16 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.shadowDrawSettings.splitData = shadowRequest.splitData;
 
                             // Setup matrices for shadow rendering:
-                            Matrix4x4 viewProjection = shadowRequest.deviceProjectionYFlip * shadowRequest.view;
-                            data.globalCBData._ViewMatrix = shadowRequest.view;
-                            data.globalCBData._InvViewMatrix = shadowRequest.view.inverse;
+                            Matrix4x4 view = shadowRequest.view;
+                            // For dynamic objects to be read in the same "space" as the cached ones we need to take cache translation delta in consideration.
+                            // otherwise the dynamic objects won't stay attached to casters as camera moves.
+                            if (mixedInDynamicAtlas && shadowRequest.shadowMapType == ShadowMapType.CascadedDirectional)
+                            {
+                                view *= Matrix4x4.Translate(shadowRequest.cachedShadowData.cacheTranslationDelta);
+                            }
+                            Matrix4x4 viewProjection = shadowRequest.deviceProjectionYFlip * view;
+                            data.globalCBData._ViewMatrix = view;
+                            data.globalCBData._InvViewMatrix = view.inverse;
                             data.globalCBData._ProjMatrix = shadowRequest.deviceProjectionYFlip;
                             data.globalCBData._InvProjMatrix = shadowRequest.deviceProjectionYFlip.inverse;
                             data.globalCBData._ViewProjMatrix = viewProjection;

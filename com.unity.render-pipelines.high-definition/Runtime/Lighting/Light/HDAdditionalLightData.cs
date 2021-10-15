@@ -2290,11 +2290,25 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadowRequest.shouldUseCachedShadowData = true;
                     shadowRequest.shouldRenderCachedComponent = false;
                     // If directional we still need to calculate the split data.
+
+
+
                     if (lightType == HDLightType.Directional)
+                    {
+                        //Matrix4x4 viewProjection = shadowRequest.deviceProjectionYFlip * shadowRequest.view;
+                        var _ViewMatrix = shadowRequest.view;
+                        var _ProjMatrix = shadowRequest.deviceProjectionYFlip;
+                        var _SlopeScaleDepthBias = -shadowRequest.slopeBias;
+
                         UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
+
+                        shadowRequest.view = _ViewMatrix;
+                        shadowRequest.deviceProjectionYFlip = _ProjMatrix;
+                    }
                 }
 
-                if (needToUpdateDynamicContent && !hasUpdatedRequestData)
+                bool isDirectionalCached = lightType == HDLightType.Directional && hasCachedComponent;
+                if (!isDirectionalCached && needToUpdateDynamicContent && !hasUpdatedRequestData)
                 {
                     shadowRequest.shouldUseCachedShadowData = false;
 
