@@ -194,12 +194,13 @@ namespace UnityEditor.ShaderGraph
                 var validVectors = new List<SlotValueType>()
                 {
                     SlotValueType.Dynamic, SlotValueType.DynamicVector,
-                    SlotValueType.Vector1, SlotValueType.Vector2, SlotValueType.Vector3, SlotValueType.Vector4
+                    SlotValueType.Vector1, SlotValueType.Vector2, SlotValueType.Vector3, SlotValueType.Vector4,
+                    SlotValueType.Boolean
                 };
 
                 s_ValidConversions = new Dictionary<ConcreteSlotValueType, List<SlotValueType>>()
                 {
-                    {ConcreteSlotValueType.Boolean, new List<SlotValueType>() {SlotValueType.Boolean}},
+                    {ConcreteSlotValueType.Boolean, new List<SlotValueType>() {SlotValueType.Boolean, SlotValueType.Dynamic, SlotValueType.DynamicVector, SlotValueType.Vector1, SlotValueType.Vector2, SlotValueType.Vector3, SlotValueType.Vector4}},
                     {ConcreteSlotValueType.Vector1, validVectors},
                     {ConcreteSlotValueType.Vector2, validVectors},
                     {ConcreteSlotValueType.Vector3, validVectors},

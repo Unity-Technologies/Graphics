@@ -131,13 +131,13 @@ namespace UnityEngine.Experimental.Rendering
         internal float GetMinSubdivMultiplier()
         {
             float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-            return overridesSubdivLevels ? Mathf.Max(0.0f, lowestSubdivLevelOverride / maxSubdiv) : 0.0f;
+            return overridesSubdivLevels ? Mathf.Clamp(lowestSubdivLevelOverride / maxSubdiv, 0.0f, 1.0f) : 0.0f;
         }
 
         internal float GetMaxSubdivMultiplier()
         {
             float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-            return overridesSubdivLevels ? Mathf.Max(0.0f, highestSubdivLevelOverride / maxSubdiv) : 1.0f;
+            return overridesSubdivLevels ? Mathf.Clamp(highestSubdivLevelOverride / maxSubdiv, 0.0f, 1.0f) : 1.0f;
         }
 
         // Momentarily moving the gizmo rendering for bricks and cells to Probe Volume itself,
