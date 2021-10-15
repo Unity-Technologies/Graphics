@@ -51,7 +51,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="builtinParams">Engine parameters that you can use to render the sky.</param>
         /// <returns>True if the PreRenderSky step is required.</returns>
+        [System.Obsolete("Please implement RequiresPreRender instead")]
         public virtual bool RequiresPreRenderSky(BuiltinSkyParameters builtinParams) { return false; }
+
+        /// <summary>
+        /// Whether the PreRenderSky step is required or not.
+        /// </summary>
+        /// <param name="skySettings">Sky setting for the current sky.</param>
+        /// <returns>True if the sky needs a pre-render pass.</returns>
+        public virtual bool RequiresPreRender(SkySettings skySettings) { return false; }
 
 
         /// <summary>

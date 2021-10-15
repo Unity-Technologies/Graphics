@@ -1079,7 +1079,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool RequiresPreRenderSky(HDCamera hdCamera)
         {
             var skyContext = hdCamera.visualSky;
-            return skyContext.IsValid() && (skyContext.skyRenderer.RequiresPreRenderSky(m_BuiltinParameters) ||
+            return skyContext.IsValid() && (skyContext.skyRenderer.RequiresPreRender(skyContext.skySettings) ||
                 (skyContext.HasClouds() && skyContext.cloudRenderer.RequiresPreRenderClouds(m_BuiltinParameters)));
         }
 
@@ -1096,7 +1096,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     debugSettings,
                     cmd);
 
-                bool preRenderSky = skyContext.skyRenderer.RequiresPreRenderSky(m_BuiltinParameters);
+                bool preRenderSky = skyContext.skyRenderer.RequiresPreRender(skyContext.skySettings);
                 if (preRenderSky)
                 {
                     SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
