@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added a SG node to get the main directional light direction.
+- Added support for orthographic camera in path tracing.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
@@ -28,8 +29,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
 - Fixed the volumetric clouds debug view not taking into account the exposure and leading to Nans (case 1365054).
 - Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
+- Fixed area light cookie field to use the same style as the other cookie fields
+- Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
+- Fixed the cloudlayer not using depth buffer.
+- Fixed crossfade not working on the HD ST8 ShaderGraph [case 1369586](https://fogbugz.unity3d.com/f/cases/1369586/)
 
 ## [13.0.0] - 2021-09-01
+
+### Added
+- Added public API to edit materials from script at runtime.
 
 ### Fixed
 - Fixed impossibility to release the cursor in the template.
@@ -88,6 +96,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved sampling of overlapping point/area lights in path-traced volumetric scattering (case 1358777).
 - Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1346105, 1358783).
 - Fixed minor readability issues in the ray tracing code.
+- PrepareLightsForGPU CPU Light loop performance improvement (40% to 70% faster), utilizing burst and optimized. Utilizing better sorting, distributing work in jobs and improving cache access of light data.
 
 ## [12.0.0] - 2021-01-11
 
