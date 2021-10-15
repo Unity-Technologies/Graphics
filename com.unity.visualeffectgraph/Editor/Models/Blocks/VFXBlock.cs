@@ -100,12 +100,12 @@ namespace UnityEditor.VFX
             {
                 var enableExp = activationSlot.GetExpression();
 
-                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+                var context = new VFXExpression.Context(VFXExpressionContextOption.ConstantFolding);
                 context.RegisterExpression(enableExp);
                 context.Compile();
 
                 enableExp = context.GetReduced(enableExp);
-                if (enableExp.Is(VFXExpression.Flags.Value))
+                if (enableExp.Is(VFXExpression.Flags.Constant))
                     m_CachedEnableState = enableExp.Get<bool>();
                 else
                     m_CachedEnableState = true;
