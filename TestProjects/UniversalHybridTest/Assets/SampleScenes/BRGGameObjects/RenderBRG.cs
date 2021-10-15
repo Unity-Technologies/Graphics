@@ -12,11 +12,12 @@ using FrustumPlanes = Unity.Rendering.FrustumPlanes;
 public struct RangeKey : IEquatable<RangeKey>
 {
     public ShadowCastingMode shadows;
+    public int pickableObjectInstanceID;
 
     public bool Equals(RangeKey other)
     {
-        return
-            shadows == other.shadows;
+        return shadows == other.shadows && pickableObjectInstanceID == other.pickableObjectInstanceID;
+
     }
 }
 
@@ -33,6 +34,7 @@ public struct DrawKey : IEquatable<DrawKey>
     public uint submeshIndex;
     public BatchMaterialID material;
     public ShadowCastingMode shadows;
+    public int pickableObjectInstanceID;
 
     public bool Equals(DrawKey other)
     {
@@ -40,7 +42,8 @@ public struct DrawKey : IEquatable<DrawKey>
             meshID == other.meshID &&
             submeshIndex == other.submeshIndex &&
             material == other.material &&
-            shadows == other.shadows;
+            shadows == other.shadows &&
+            pickableObjectInstanceID == other.pickableObjectInstanceID;
     }
 }
 
@@ -262,8 +265,9 @@ public unsafe class RenderBRG : MonoBehaviour
                                     shadowCastingMode = drawRanges[activeRange].key.shadows,
                                     receiveShadows = true,
                                     staticShadowCaster = false,
-                                    allDepthSorted = false
-                                }
+                                    allDepthSorted = false,
+                                },
+                                pickableObjectID = drawRanges[activeRange].key.pickableObjectInstanceID
                             };
                             outRange++;
                         }
@@ -333,11 +337,27 @@ public unsafe class RenderBRG : MonoBehaviour
         return jobHandleOutput;
     }
 
+    public static Material LoadPickingFallbackMaterial()
+    {
+        Shader shader = Shader.Find("Hidden/Universal Render Pipeline/Picking");
+        Material material = new Material(shader);
+
+        // Prevent Material unloading when switching scene
+        material.hideFlags = HideFlags.HideAndDontSave;
+
+        return material;
+    }
+
+    Material m_pickingFallbackMaterial;
+
 
     // Start is called before the first frame update
     void Start()
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
+
+        m_pickingFallbackMaterial = LoadPickingFallbackMaterial();
+        m_BatchRendererGroup.SetPickingFallbackMaterial(m_pickingFallbackMaterial);
 
         // Create a batch...
         var renderers = FindObjectsOfType<MeshRenderer>();
@@ -385,6 +405,7 @@ public unsafe class RenderBRG : MonoBehaviour
 
         m_instances = new NativeList<DrawInstance>(1024, Allocator.Persistent);
 
+
         for (int i = 0; i < renderers.Length; i++)
         {
             var renderer = renderers[i];
@@ -427,12 +448,13 @@ public unsafe class RenderBRG : MonoBehaviour
             renderer.GetSharedMaterials(sharedMaterials);
 
             var shadows = renderer.shadowCastingMode;
+            int instanceID = renderer.gameObject.GetInstanceID();
 
             for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
             {
                 var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
 
-                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows };
+                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
                 var drawBatch = new DrawBatch
                 {
                     key = key,
@@ -454,7 +476,7 @@ public unsafe class RenderBRG : MonoBehaviour
                     m_batchHash[key] = drawBatchIndex;
 
                     // Different renderer settings? -> new range
-                    var rangeKey = new RangeKey { shadows = shadows };
+                    var rangeKey = new RangeKey { shadows = shadows, pickableObjectInstanceID = instanceID };
                     var drawRange = new DrawRange
                     {
                         key = rangeKey,
@@ -506,7 +528,7 @@ public unsafe class RenderBRG : MonoBehaviour
         for (int i = 0; i < m_drawBatches.Length; i++)
         {
             var draw = m_drawBatches[i];
-            if (m_rangeHash.TryGetValue(new RangeKey { shadows = draw.key.shadows }, out int drawRangeIndex))
+            if (m_rangeHash.TryGetValue(new RangeKey { shadows = draw.key.shadows, pickableObjectInstanceID = draw.key.pickableObjectInstanceID }, out int drawRangeIndex))
             {
                 var drawRange = m_drawRanges[drawRangeIndex];
                 m_drawIndices[drawRange.drawOffset + m_internalRangeIndex[drawRangeIndex]] = i;
