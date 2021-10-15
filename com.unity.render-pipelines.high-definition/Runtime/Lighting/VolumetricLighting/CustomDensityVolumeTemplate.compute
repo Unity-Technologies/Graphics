@@ -1,10 +1,10 @@
 #pragma kernel VoxelizeComputeLocalFog
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/CustomDensityVolumeBase.hlsl"
 
-float4 VolumetricFogFunction(float3 voxelCenterWS)
+float4 VolumetricFogFunction(float3 voxelCenterWS, float3 voxelCenterBS)
 {
     // transform world to "object" space coordinate
-    float3 voxelCenterVolSpace = mul(InvVolumeMatrix, float4(voxelCenterWS, 1)).xyz;
+    float3 voxelCenterVolSpace = voxelCenterBS;
 
     float3 v = abs(voxelCenterVolSpace);
     v = saturate(v * 2.0);

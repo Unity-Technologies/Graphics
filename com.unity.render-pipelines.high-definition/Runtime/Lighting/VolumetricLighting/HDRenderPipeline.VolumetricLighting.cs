@@ -223,6 +223,7 @@ namespace UnityEngine.Rendering.HighDefinition
         List<LocalVolumetricFogEngineData> m_VisibleVolumeData = null;
         internal const int k_MaxVisibleLocalVolumetricFogCount = 512;
 
+        List<OrientedBBox> m_VisibleComputeLocalVolumeBounds = null;
         List<LocalVolumetricFog> m_VisibleComputeLocalVolumes = null;
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
@@ -630,6 +631,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleLocalVolumetricFogCount, Marshal.SizeOf(typeof(LocalVolumetricFogEngineData)));
 
             m_VisibleComputeLocalVolumes = new List<LocalVolumetricFog>();
+            m_VisibleComputeLocalVolumeBounds = new List<OrientedBBox>();
         }
 
         internal void DestroyVolumetricLightingBuffers()
@@ -639,7 +641,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_VisibleVolumeData = null; // free()
             m_VisibleVolumeBounds = null; // free()
-            m_VisibleComputeLocalVolumes = null;
+
+            m_VisibleComputeLocalVolumes = null; // free()
+            m_VisibleComputeLocalVolumeBounds = null; // free()
         }
 
         void InitializeVolumetricLighting()
@@ -735,6 +739,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleVolumeData.Clear();
 
                 m_VisibleComputeLocalVolumes.Clear();
+                m_VisibleComputeLocalVolumeBounds.Clear();
 
                 // Compute the smallest frustum between the camera's frustum and the V-Buffer's frustum
                 // It's typically much shorter (along the Z axis) than the camera's frustum.
@@ -771,6 +776,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         else if (volume.localVolumetricFogType == LocalVolumetricFogType.Compute && volume.localVolumetricFogCompute != null)
                         {
                             m_VisibleComputeLocalVolumes.Add(volume);
+                            m_VisibleComputeLocalVolumeBounds.Add(obb);
                         }
                     }
                 }
@@ -962,6 +968,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 resolution;
             public int viewCount;
             public List<LocalVolumetricFog> computeLocalVolumes;
+            public List<OrientedBBox> computeLocalVolumesBounds;
             public TextureHandle vBuffer;
             public int kernel;
         }
@@ -974,6 +981,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<SingleComputeLocalVolumeData>("Voxelize single compute volume", out var passData))
             {
                 passData.computeLocalVolumes = m_VisibleComputeLocalVolumes;
+                passData.computeLocalVolumesBounds = m_VisibleComputeLocalVolumeBounds;
                 int frameIndex = (int)VolumetricFrameIndex(hdCamera);
                 var currIdx = (frameIndex + 0) & 1;
                 var prevIdx = (frameIndex + 1) & 1;
@@ -1010,11 +1018,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             ConstantBuffer.Push(ctx.cmd, data.volumetricCB, compute, HDShaderIDs._ShaderVariablesVolumetric);
                             ConstantBuffer.Set<ShaderVariablesLightList>(ctx.cmd, compute, HDShaderIDs._ShaderVariablesLightList);
-                            ctx.cmd.SetComputeMatrixParam(compute, "VolumeMatrix", m);
-                            ctx.cmd.SetComputeMatrixParam(compute, "InvVolumeMatrix", m.inverse);
 
                             ctx.cmd.SetComputeVectorParam(compute, "FogAlbedo", v.parameters.albedo);
                             ctx.cmd.SetComputeFloatParam(compute, "FogMeanFreePath", v.parameters.meanFreePath);
+
+                            var buff = new ComputeBuffer(1, Marshal.SizeOf(typeof(OrientedBBox)));
+                            buff.SetData( new [] { data.computeLocalVolumesBounds[i] } );
+
+                            ctx.cmd.SetComputeBufferParam(compute, data.kernel, HDShaderIDs._VolumeBounds, buff);
 
                             if (v.setup != null)
                                 v.setup.Invoke(ctx.cmd, v.localVolumetricFogCompute, passData.kernel);

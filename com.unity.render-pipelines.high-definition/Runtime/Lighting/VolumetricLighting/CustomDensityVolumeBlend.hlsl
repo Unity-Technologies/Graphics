@@ -24,9 +24,18 @@ void VoxelizeComputeLocalFog(
         uint3 voxelCoord;
         float3 voxelCenterWS = ComputeVoxelCenterWS(posInput, ray, _VBufferSliceCount, slice, t0, de, voxelCoord, t1, dt, t);
 
+        const OrientedBBox obb = _VolumeBounds[0];
+
+        const float3x3 obbFrame = float3x3(obb.right, obb.up, cross(obb.right, obb.up));
+        const float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
+
+        // Express the voxel center in the local coordinate system of the box.
+        const float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
+        const float3 voxelCenterCS = (voxelCenterBS * rcp(obbExtents));
+
         float3 voxelCenterVolSpace = mul(InvVolumeMatrix, float4(voxelCenterWS, 1)).xyz;
 
-        float4 volumeDensity = VolumetricFogFunction(voxelCenterWS);
+        float4 volumeDensity = VolumetricFogFunction(voxelCenterWS, voxelCenterCS);
 
         float3 mask = abs(voxelCenterVolSpace) * 2.0;
         mask = saturate(mask);
