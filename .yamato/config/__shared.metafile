@@ -292,6 +292,22 @@ platforms:
     editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
     commands:
       [Metal]:
+        setup_remote_ssh_keys_for_github_cds:
+          - command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
+          - command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
+          - command: |
+                     cat << EOF > ssh_config
+                     host github.cds.internal.unity3d.com
+                       HostName github.cds.internal.unity3d.com
+                       IdentityFile /Users/bokken/.ssh/id_rsa_cds_github
+                       StrictHostKeyChecking no
+                       User git
+                     EOF
+          - command: scp ssh_config bokken@$BOKKEN_DEVICE_IP:~/.ssh/config_cds_github && rm ssh_config
+          - command: ssh bokken@$BOKKEN_DEVICE_IP "cat ~/.ssh/config_cds_github >> ~/.ssh/config && rm ~/.ssh/config_cds_github && cat ~/.ssh/config"
+          - command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
+          - command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
+          - command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
         setup_utr:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
