@@ -198,7 +198,13 @@ namespace UnityEditor.ShaderFoundry
             return builder.Build();
         }
 
-        Block BuildMainBlock(string blockName, Block preBlock, Block postBlock, List<BlockVariableNameOverride> nameMappings, Dictionary<string, string> defaultVariableValues)
+        class NameOverride
+        {
+            public string Source;
+            public string Destination;
+        }
+
+        Block BuildMainBlock(string blockName, Block preBlock, Block postBlock, List<NameOverride> nameMappings, Dictionary<string, string> defaultVariableValues)
         {
             var mainBlockBuilder = new Block.Builder(Container, blockName);
 
@@ -228,8 +234,8 @@ namespace UnityEditor.ShaderFoundry
                 {
                     BlockOutput inputProp;
                     BlockInput outputProp;
-                    availableInputs.TryGetValue(mapping.SourceName, out inputProp);
-                    availableOutputs.TryGetValue(mapping.DestinationName, out outputProp);
+                    availableInputs.TryGetValue(mapping.Source, out inputProp);
+                    availableOutputs.TryGetValue(mapping.Destination, out outputProp);
                     if (inputProp.IsValid && outputProp.IsValid)
                     {
                         inputBuilder.AddField(inputProp.Type, inputProp.ReferenceName);
@@ -266,12 +272,12 @@ namespace UnityEditor.ShaderFoundry
                 {
                     BlockOutput inputProp;
                     BlockInput outputProp;
-                    availableInputs.TryGetValue(mapping.SourceName, out inputProp);
-                    availableOutputs.TryGetValue(mapping.DestinationName, out outputProp);
+                    availableInputs.TryGetValue(mapping.Source, out inputProp);
+                    availableOutputs.TryGetValue(mapping.Destination, out outputProp);
                     // Write a copy line for all matching input/outputs
                     if(inputProp.IsValid && outputProp.IsValid)
                     {
-                        fnBuilder.AddLine($"output.{mapping.DestinationName} = input.{mapping.SourceName};");
+                        fnBuilder.AddLine($"output.{mapping.Destination} = input.{mapping.Source};");
                     }
                 }
                 foreach(var defaultVariableValue in defaultVariableValues)
@@ -293,20 +299,13 @@ namespace UnityEditor.ShaderFoundry
 
         void ExtractVertex(Template template, TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, List<FieldDescriptor> vertexFields)
         {
-            BlockVariableNameOverride BuildSimpleNameOverride(string sourceName, string destinationName, ShaderContainer container)
-            {
-                var builder = new BlockVariableNameOverride.Builder(container);
-                builder.SourceName = sourceName;
-                builder.DestinationName = destinationName;
-                return builder.Build();
-            }
             var vertexPreBlock = BuildVertexPreBlock();
             var vertexPostBlock = BuildVertexPostBlock(vertexFields);
 
-            var nameMappings = new List<BlockVariableNameOverride>();
-            nameMappings.Add(BuildSimpleNameOverride("ObjectSpacePosition", "Position", Container));
-            nameMappings.Add(BuildSimpleNameOverride("ObjectSpaceNormal", "Normal", Container));
-            nameMappings.Add(BuildSimpleNameOverride("ObjectSpaceTangent", "Tangent", Container));
+            var nameMappings = new List<NameOverride>();
+            nameMappings.Add(new NameOverride { Source = "ObjectSpacePosition", Destination = "Position" });
+            nameMappings.Add(new NameOverride { Source = "ObjectSpaceNormal", Destination = "Normal" });
+            nameMappings.Add(new NameOverride { Source = "ObjectSpaceTangent", Destination = "Tangent" });
             var defaultVariableValues = new Dictionary<string, string>();
             var vertexMainBlock = BuildMainBlock(LegacyCustomizationPoints.VertexDescriptionFunctionName, vertexPreBlock, vertexPostBlock, nameMappings, defaultVariableValues);
         
@@ -321,7 +320,7 @@ namespace UnityEditor.ShaderFoundry
             var fragmentPreBlock = BuildFragmentPreBlock();
             var fragmentPostBlock = BuildFragmentPostBlock(fragmentFields);
 
-            var nameMappings = new List<BlockVariableNameOverride>();
+            var nameMappings = new List<NameOverride>();
             // Need to create the default outputs for the fragment output. This isn't currently part of the field descriptors.
             var defaultVariableValues = new Dictionary<string, string>
             {

@@ -23,6 +23,8 @@ namespace UnityEditor.ShaderFoundry
             internal BlockDescriptor BlockDescriptor;
             internal IEnumerable<BlockVariable> Inputs;
             internal IEnumerable<BlockVariable> Outputs;
+            internal IEnumerable<FieldOverride> InputOverrides;
+            internal IEnumerable<FieldOverride> OutputOverrides;
             internal string FunctionName;
             internal string InputTypeName;
             internal string OutputTypeName;
@@ -116,18 +118,18 @@ namespace UnityEditor.ShaderFoundry
 
             var vertexGroup = vertexGroups[vertexCPIndex];
             var fragmentGroup = fragmentGroups[fragmentCPIndex];
-            BlockDescriptor Build(BlockGroup group, UnityEditor.Rendering.ShaderType stageType)
+            MergeResult Build(BlockGroup group, UnityEditor.Rendering.ShaderType stageType)
             {
                 group.Context = BuilderMergerContext(template, templatePass, group, stageType);
                 merger.Merge(group.Context, out group.LinkingData, out group.BlocksLinkingData);
                 return merger.Build(group.Context, group.LinkingData, group.BlocksLinkingData);
             }
-            var vertexDesc = Build(vertexGroup, UnityEditor.Rendering.ShaderType.Vertex);
-            var fragmentDesc = Build(fragmentGroup, UnityEditor.Rendering.ShaderType.Fragment);
+            var vertexMergeResult = Build(vertexGroup, UnityEditor.Rendering.ShaderType.Vertex);
+            var fragmentMergeResult = Build(fragmentGroup, UnityEditor.Rendering.ShaderType.Fragment);
 
             // Find user custom varyings from the interface between the vertex/fragment stage
             List<VaryingVariable> customVaryings = new List<VaryingVariable>();
-            FindVaryings(vertexDesc, fragmentDesc, vertexGroup.Context.Outputs, fragmentGroup.Context.Inputs, customVaryings);
+            FindVaryings(vertexMergeResult, fragmentMergeResult, vertexGroup.Context.Outputs, fragmentGroup.Context.Inputs, customVaryings);
 
             // Make new block variables for the varyings
             List<BlockVariable> varyingBlockVariables = new List<BlockVariable>();
@@ -151,9 +153,11 @@ namespace UnityEditor.ShaderFoundry
             // Now build the actual legacy descriptor functions. These actually access the globals to feed into the merged blocks
             var vertexLegacyContext = new LegacyBlockBuildingContext
             {
-                BlockDescriptor = vertexDesc,
+                BlockDescriptor = vertexMergeResult.BlockDescriptor,
                 Inputs = vertexGroup.Context.Inputs,
                 Outputs = vertexOutputs,
+                InputOverrides = vertexMergeResult.InputOverrides,
+                OutputOverrides = vertexMergeResult.OutputOverrides,
                 FunctionName = LegacyCustomizationPoints.VertexDescriptionFunctionName,
                 InputTypeName = LegacyCustomizationPoints.VertexEntryPointInputName,
                 OutputTypeName = LegacyCustomizationPoints.VertexEntryPointOutputName,
@@ -163,9 +167,11 @@ namespace UnityEditor.ShaderFoundry
             var vertexBlock = BuildLegacyBlock(vertexLegacyContext);
             var fragmentLegacyContext = new LegacyBlockBuildingContext
             {
-                BlockDescriptor = fragmentDesc,
+                BlockDescriptor = fragmentMergeResult.BlockDescriptor,
                 Inputs = fragmentInputs,
                 Outputs = fragmentGroup.Context.Outputs,
+                InputOverrides = fragmentMergeResult.InputOverrides,
+                OutputOverrides = fragmentMergeResult.OutputOverrides,
                 FunctionName = LegacyCustomizationPoints.SurfaceDescriptionFunctionName,
                 InputTypeName = LegacyCustomizationPoints.SurfaceEntryPointInputName,
                 OutputTypeName = LegacyCustomizationPoints.SurfaceEntryPointOutputName,
@@ -198,8 +204,11 @@ namespace UnityEditor.ShaderFoundry
             };
         }
 
-        void FindVaryings(BlockDescriptor block0Desc, BlockDescriptor block1Desc, IEnumerable<BlockVariable> existingOutputs,  IEnumerable<BlockVariable> existingInputs, List<VaryingVariable> customInterpolants)
+        void FindVaryings(MergeResult block0Data, MergeResult block1Data, IEnumerable<BlockVariable> existingOutputs,  IEnumerable<BlockVariable> existingInputs, List<VaryingVariable> customInterpolants)
         {
+            var block0Desc = block0Data.BlockDescriptor;
+            var block1Desc = block1Data.BlockDescriptor;
+
             var existingOutputNames = new HashSet<string>();
             foreach (var output in existingOutputs)
                 existingOutputNames.Add(output.ReferenceName);
@@ -207,30 +216,34 @@ namespace UnityEditor.ShaderFoundry
             foreach (var input in existingInputs)
                 existingInputNames.Add(input.ReferenceName);
 
-            var outputOverrides = new VariableOverrideSet();
-            outputOverrides.BuildOutputOverrides(block0Desc.OutputOverrides);
-            var inputOverrides = new VariableOverrideSet();
-            inputOverrides.BuildInputOverrides(block1Desc.InputOverrides);
+            var outputOverrides = new Dictionary<string, string>();
+            foreach (var fieldOverride in block0Data.OutputOverrides)
+                outputOverrides.Add(fieldOverride.Name, fieldOverride.Alias);
+
+            var inputOverrides = new Dictionary<string, string>();
+            foreach (var fieldOverride in block1Data.InputOverrides)
+                inputOverrides.Add(fieldOverride.Name, fieldOverride.Alias);
 
             var availableOutputs = new Dictionary<string, BlockVariable>();
             // Find if any input/output have matching names. If so then create a varying
             foreach (var output in block0Desc.Block.Outputs)
             {
-                // Make sure to check all name output overrides
-                var overrides = outputOverrides.FindVariableOverrides(output.ReferenceName);
-                foreach (var varOverride in overrides)
-                {
-                    // If this is already an available output ignore this as a custom interpolant (already part of the api)
-                    if(!existingOutputNames.Contains(varOverride.Name))
-                        availableOutputs[varOverride.Name] = output;
-                }
+                var fieldName = output.ReferenceName;
+                if (outputOverrides.TryGetValue(fieldName, out var alias))
+                    fieldName = alias;
+
+                // If this is already an available output ignore this as a custom interpolant (already part of the api)
+                if (!existingOutputNames.Contains(fieldName))
+                    availableOutputs[fieldName] = output;
             }
             foreach (var input in block1Desc.Block.Inputs)
             {
-                var varOverride = inputOverrides.FindLastVariableOverride(input.ReferenceName);
-                string name = varOverride.Name;
-                if (!existingInputNames.Contains(name) && availableOutputs.TryGetValue(name, out var matchingOutput))
-                    customInterpolants.Add(new VaryingVariable { Type = input.Type, Name = name });
+                string fieldName = input.ReferenceName;
+                if (inputOverrides.TryGetValue(fieldName, out var alias))
+                    fieldName = alias;
+
+                if (!existingInputNames.Contains(fieldName) && availableOutputs.TryGetValue(fieldName, out var matchingOutput))
+                    customInterpolants.Add(new VaryingVariable { Type = input.Type, Name = fieldName });
             }
         }
 
@@ -268,12 +281,12 @@ namespace UnityEditor.ShaderFoundry
             foreach (var output in buildingContext.Outputs)
                 allowedOutputInstances.Add(output.ReferenceName, new VariableInstance { Variable = output, Parent = outputsInstance.Instance });
 
-            var inputOverrides = new VariableOverrideSet();
-            foreach (var varOverride in blockDescriptor.InputOverrides)
-                inputOverrides.Add(varOverride.DestinationName, varOverride.SourceNamespace, varOverride.SourceName, varOverride.SourceSwizzle);
-            var outputOverrides = new VariableOverrideSet();
-            foreach (var varOverride in blockDescriptor.OutputOverrides)
-                outputOverrides.Add(varOverride.SourceName, varOverride.DestinationNamespace, varOverride.DestinationName, varOverride.DestinationSwizzle);
+            var inputOverrides = new Dictionary<string, string>();
+            var outputOverrides = new Dictionary<string, string>();
+            foreach (var fieldOverride in buildingContext.InputOverrides)
+                inputOverrides.Add(fieldOverride.Name, fieldOverride.Alias);
+            foreach (var fieldOverride in buildingContext.OutputOverrides)
+                outputOverrides.Add(fieldOverride.Name, fieldOverride.Alias);
 
             var inputBlocks = new Dictionary<string, BlockDescriptor>();
             if (buildingContext.CPIndex != -1 && buildingContext.BlockGroups != null)
@@ -296,8 +309,8 @@ namespace UnityEditor.ShaderFoundry
                 var propName = prop.ReferenceName;
                 // Find the original property name. When block properties are merged, they may get mangled
                 // so each input is unique. These overrides track the original reference name.
-                if (inputOverrides.FindLastVariableOverride(prop.ReferenceName, out var varOverride))
-                    propName = varOverride.Name;
+                if (inputOverrides.TryGetValue(prop.ReferenceName, out var overrideName))
+                    propName = overrideName;
 
                 var source = prop.Clone(Container, propName);
                 // Handle a property being declared multiple times. Only one per referenceName
@@ -317,34 +330,9 @@ namespace UnityEditor.ShaderFoundry
                 VariableInstance sourceInstance = null;
                 string name = input.ReferenceName;
 
-                // Check if there's a name override, if so there's some extra searching to do.
-                // Should this not take the last, but the last matching?
-                if (inputOverrides.FindLastVariableOverride(input.ReferenceName, out var varOverride))
-                {
-                    // Always update the source name based upon an override
-                    name = varOverride.Name;
-
-                    // If the scope name is the stage then check the allowed inputs to see if there's a match
-                    if (varOverride.Namespace == NamespaceScopes.StageScopeName && allowedInputInstances.TryGetValue(name, out var stageMatch))
-                    {
-                        name = input.ReferenceName;
-                        sourceInstance = stageMatch;
-                    }
-                    // Check if this is matching against a template specific block
-                    else if (!string.IsNullOrEmpty(varOverride.Namespace) && inputBlocks.TryGetValue(varOverride.Namespace, out var matchingBlock))
-                    {
-                        foreach (var output in matchingBlock.Block.Outputs)
-                        {
-                            // We found an output match, create a new match (redirect to the inputs instance since these template blocks just define the input interface).
-                            if (output.ReferenceName == varOverride.Name)
-                            {
-                                name = output.ReferenceName;
-                                sourceInstance = new VariableInstance { Variable = output, Parent = inputsInstance.Instance };
-                                break;
-                            }
-                        }
-                    }
-                }
+                // Check if there's a name override, if so then the override name is used instead.
+                if (inputOverrides.TryGetValue(input.ReferenceName, out var overrideName))
+                    name = overrideName;
 
                 // Search for a property by the given source name, if so then connect to a global variable for the property
                 if (sourceInstance == null && propertyVariableMap.TryGetValue(name, out var propMatch))
@@ -380,29 +368,29 @@ namespace UnityEditor.ShaderFoundry
             var outputSourcesByDestinationName = new Dictionary<string, VariableInstance>();
             foreach (var output in block.Outputs)
             {
+                var outputName = output.ReferenceName;
                 // Walk all overrides (a single out can have multiple names that can be matched against)
-                var overrides = outputOverrides.FindVariableOverrides(output.ReferenceName);
-                foreach (var varOverride in overrides)
+                if (outputOverrides.TryGetValue(output.ReferenceName, out var overrideName))
+                    outputName = overrideName;
+
+                string name = outputName;
+
+                // Only write to allowed outputs (which includes stage variables)
+                VariableInstance destinationInstance;
+                if (!allowedOutputInstances.TryGetValue(name, out destinationInstance))
+                    continue;
+
+                // Check if we've already created an output, if so then replace the source's variable to now point at this block's output
+                if (outputSourcesByDestinationName.TryGetValue(name, out var oldInstance))
                 {
-                    string name = varOverride.Name;
-
-                    // Only write to allowed outputs (which includes stage variables)
-                    VariableInstance destinationInstance;
-                    if (!allowedOutputInstances.TryGetValue(name, out destinationInstance))
-                        continue;
-
-                    // Check if we've already created an output, if so then replace the source's variable to now point at this block's output
-                    if(outputSourcesByDestinationName.TryGetValue(name, out var oldInstance))
-                    {
-                        oldInstance.Variable = output;
-                        continue;
-                    }
-
-                    // Otherwise this is a new match. Create a new variable as the destination and then hook up instances for a match
-                    var sourceInstance = new VariableInstance {Variable = output, Parent = blockOutputInstance };
-                    outputsInstance.Fields.Add(new BlockVariableMatch { Source = sourceInstance, Destination = destinationInstance });
-                    outputSourcesByDestinationName[name] = sourceInstance;
+                    oldInstance.Variable = output;
+                    continue;
                 }
+
+                // Otherwise this is a new match. Create a new variable as the destination and then hook up instances for a match
+                var sourceInstance = new VariableInstance {Variable = output, Parent = blockOutputInstance };
+                outputsInstance.Fields.Add(new BlockVariableMatch { Source = sourceInstance, Destination = destinationInstance });
+                outputSourcesByDestinationName[name] = sourceInstance;
             }
         }
 

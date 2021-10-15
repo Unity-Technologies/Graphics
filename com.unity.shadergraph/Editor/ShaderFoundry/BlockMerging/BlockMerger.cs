@@ -3,6 +3,13 @@ using System.Linq;
 
 namespace UnityEditor.ShaderFoundry
 {
+    internal class MergeResult
+    {
+        internal BlockDescriptor BlockDescriptor;
+        internal List<FieldOverride> InputOverrides = new List<FieldOverride>();
+        internal List<FieldOverride> OutputOverrides = new List<FieldOverride>();
+    }
+
     internal class BlockMerger
     {
         ShaderContainer container;
@@ -30,7 +37,6 @@ namespace UnityEditor.ShaderFoundry
         {
             this.container = container;
         }
-
 
         internal static string BuildVariableName(Block block, BlockVariableLinkInstance variable)
         {
@@ -77,28 +83,18 @@ namespace UnityEditor.ShaderFoundry
                 bool hasBackingProperty = propertyVariableMap.TryGetValue(input.ReferenceName, out var backingProperty);
 
                 // Find if there's an override. This also creates a default name override to use if there wasn't one.
-                VariableNameOverride inputNameData;
-                bool hasOverride = blockInputInstance.GetLastVariableOverrideOrDefault(input.ReferenceName, out inputNameData);
+                var inputName = input.ReferenceName;
 
                 // Find if there's a matching field using the override name
-                bool allowNonExactMatch = inputNameData?.Swizzle != 0;
-                var matchingField = scopes.Find(inputNameData.Namespace, input.Type, inputNameData.Name, allowNonExactMatch);
+                var matchingField = scopes.Find(input.Type, inputName, false);
 
                 // By default, always create a new variable if there is no matching field
                 bool createNewVariable = (matchingField == null);
                 
                 // However, if there's a backing property the rules change a bit.
                 // An input with a backing property is always a property unless:
-                // - There is an override to a matching field
                 if (hasBackingProperty)
-                {
                     createNewVariable = true;
-                    if(hasOverride && matchingField != null)
-                    {
-                        createNewVariable = false;
-                        backingProperty.DeclareAsProperty = false;
-                    }
-                }
 
                 // If we need to create a new variable on the merged block to link to
                 if (createNewVariable)
@@ -119,7 +115,7 @@ namespace UnityEditor.ShaderFoundry
                     // Propagate the override up to the new variable. This override is used to know know how the linking is supposed to work at subsequent merges.
                     // Note: Don't do this if there's a backing property as the override would provide no new information
                     if(!hasBackingProperty)
-                        mergedInputInstance.AddOverride(matchingField.ReferenceName, inputNameData);
+                        mergedInputInstance.AddAlias(matchingField.ReferenceName, inputName);
 
                     // If this was a property, also mark this as a property on the block. (Should this exist or be all on the front-end?)
                     if (matchingField.Attributes.IsProperty())
@@ -131,7 +127,6 @@ namespace UnityEditor.ShaderFoundry
                 {
                     Source = matchingField,
                     Destination = input,
-                    SourceSwizzle = inputNameData.Swizzle
                 };
                 blockInputInstance.AddResolvedField(input.ReferenceName, matchLink);
                 // Mark this resolution on the matching field's owner (the owner has a match for the field)
@@ -173,12 +168,9 @@ namespace UnityEditor.ShaderFoundry
 
                 // Make all override names available for matching and also propagate those overrides onto the new variable.
                 // This includes the original name if there are no overrides.
-                var outputNameDatas = blockOutputInstance.FindVariableOverrides(output.ReferenceName);
-                foreach (var outputNameData in outputNameDatas)
-                {
-                    mergedOutputInstance.AddOverride(name, outputNameData);
-                    scopes.SetInCurrentScopeStack(output, outputNameData.Name);
-                }
+                var outputName = output.ReferenceName;
+                mergedOutputInstance.AddAlias(name, outputName);
+                scopes.SetInCurrentScopeStack(output, outputName);
             }
 
             scopes.PopScope();
@@ -307,7 +299,7 @@ namespace UnityEditor.ShaderFoundry
             return fnBuilder.Build();
         }
 
-        internal BlockDescriptor Build(Context context, BlockLinkInstance mergedBlockLinkInstance, List<BlockLinkInstance> blockLinkInstances)
+        internal MergeResult Build(Context context, BlockLinkInstance mergedBlockLinkInstance, List<BlockLinkInstance> blockLinkInstances)
         {
             var mergedInputInstance = mergedBlockLinkInstance.InputInstance;
             var mergedOutputInstance = mergedBlockLinkInstance.OutputInstance;
@@ -339,33 +331,21 @@ namespace UnityEditor.ShaderFoundry
 
             var mergedBlock = blockBuilder.Build();
 
+            var result = new MergeResult();
+
             var blockDescBuilder = new BlockDescriptor.Builder(Container, mergedBlock);
+            result.BlockDescriptor = blockDescBuilder.Build();
+
             // Create the input/output name overrides. These are used later to know how the sub-items were mapped originally
-            foreach(var varOverride in mergedInputInstance.NameOverrides.Overrides)
-            {
-                var overrideBuilder = new BlockVariableNameOverride.Builder(Container);
-                overrideBuilder.SourceNamespace = varOverride.Override.Namespace;
-                overrideBuilder.SourceName = varOverride.Override.Name;
-                overrideBuilder.SourceSwizzle = varOverride.Override.Swizzle;
-                overrideBuilder.DestinationName = varOverride.Name;
-                blockDescBuilder.AddInputOverride(overrideBuilder.Build());
-            }
-            foreach (var varOverride in mergedOutputInstance.NameOverrides.Overrides)
-            {
-                var overrideBuilder = new BlockVariableNameOverride.Builder(Container);
+            foreach (var fieldOverride in mergedInputInstance.FieldOverrides)
+                result.InputOverrides.Add(fieldOverride);
+            foreach (var fieldOverride in mergedOutputInstance.FieldOverrides)
+                result.OutputOverrides.Add(fieldOverride);
 
-                overrideBuilder.DestinationNamespace = varOverride.Override.Namespace;
-                overrideBuilder.DestinationName = varOverride.Override.Name;
-                overrideBuilder.DestinationSwizzle = varOverride.Override.Swizzle;
-                overrideBuilder.SourceName = varOverride.Name;
-                
-                blockDescBuilder.AddOutputOverride(overrideBuilder.Build());
-            }
-
-            return blockDescBuilder.Build();
+            return result;
         }
 
-        internal BlockDescriptor Merge(Context context)
+        internal MergeResult Merge(Context context)
         {
             List<BlockLinkInstance> blockLinkInstances;
             BlockLinkInstance mergedBlockLinkInstance;
