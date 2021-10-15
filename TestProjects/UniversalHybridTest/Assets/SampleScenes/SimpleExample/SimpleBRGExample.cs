@@ -105,7 +105,7 @@ public class SimpleBRGExample : MonoBehaviour
         {
             new PackedMatrix(matrices[0].inverse),
             new PackedMatrix(matrices[1].inverse),
-            new PackedMatrix(matrices[1].inverse),
+            new PackedMatrix(matrices[2].inverse),
         };
 
         // Make all instances have unique colors
