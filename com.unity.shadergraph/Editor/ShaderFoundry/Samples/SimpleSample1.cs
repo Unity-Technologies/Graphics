@@ -39,26 +39,11 @@ namespace UnityEditor.ShaderFoundry
             var albedoColorBlock = BuildAlbedoColorBlock(container);
 
             // Now build the descriptors for each block. Blocks can be re-used multiple times within a shader.
-            // The block descriptors add any unique data about the call, such as name overrides
-
-            // GlobalsProvider is not doing anything special
+            // The block descriptors add any unique data about the call. Currently there is no unique data,
+            // but plans for manually re-mapping data between blocks is under way.
             var globalsProviderBlockDesc = SimpleSampleBuilder.BuildSimpleBlockDescriptor(container, globalsProviderBlock);
-
-            // The input variable is uv0. Remap this variable to the block's 'uv' variable
-            var uvScrollBlockDescBuilder = new BlockDescriptor.Builder(container, uvScrollBlock);
-            var uvNameOverrideBuilder = new BlockVariableNameOverride.Builder(container);
-            uvNameOverrideBuilder.SourceName = "uv0";
-            uvNameOverrideBuilder.DestinationName = "uv";
-            uvScrollBlockDescBuilder.AddInputOverride(uvNameOverrideBuilder.Build());
-            var uvScrollBlockDesc = uvScrollBlockDescBuilder.Build();
-
-            // AlbedoColor output's "Color" but we want it to map to the available output "BaseColor"
-            var albedoColorBlockDescBuilder = new BlockDescriptor.Builder(container, albedoColorBlock);
-            var colorNameOverrideBuilder = new BlockVariableNameOverride.Builder(container);
-            colorNameOverrideBuilder.SourceName = "Color";
-            colorNameOverrideBuilder.DestinationName = "BaseColor";
-            albedoColorBlockDescBuilder.AddOutputOverride(colorNameOverrideBuilder.Build());
-            var albedoColorBlockDesc = albedoColorBlockDescBuilder.Build();
+            var uvScrollBlockDesc = SimpleSampleBuilder.BuildSimpleBlockDescriptor(container, uvScrollBlock);
+            var albedoColorBlockDesc = SimpleSampleBuilder.BuildSimpleBlockDescriptor(container, albedoColorBlock);
 
             // The order of these block is what determines how the inputs/outputs are resolved
             var cpDescBuilder = new CustomizationPointDescriptor.Builder(container, surfaceCP);
@@ -115,13 +100,13 @@ namespace UnityEditor.ShaderFoundry
             var inputVariables = new List<BlockVariable>();
             var outputVariables = new List<BlockVariable>();
 
-            // Make the uv variable. We can use the same variable as the input and output.
+            // Make the uv0 variable. We can use the same variable as the input and output.
             var uvBuilder = new BlockVariable.Builder(container);
             uvBuilder.Type = container._float4;
-            uvBuilder.ReferenceName = "uv";
-            var uv = uvBuilder.Build();
-            inputVariables.Add(uv);
-            outputVariables.Add(uv);
+            uvBuilder.ReferenceName = "uv0";
+            var uv0 = uvBuilder.Build();
+            inputVariables.Add(uv0);
+            outputVariables.Add(uv0);
 
             // Take in 'TimeParameters' as a variable
             var timeParametersBuilder = new BlockVariable.Builder(container);
@@ -145,13 +130,13 @@ namespace UnityEditor.ShaderFoundry
             var inputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Input", inputVariables);
             var outputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Output", outputVariables);
 
-            // Build a function that takes in uv, scales it by time and a speed, and then outputs it.
+            // Build a function that takes in uv0, scales it by time and a speed, and then outputs it.
             var entryPointFnBuilder = new ShaderFunction.Builder(container, $"{BlockName}Main", outputType);
             entryPointFnBuilder.AddInput(inputType, "inputs");
             entryPointFnBuilder.AddLine($"{outputType.Name} outputs;");
-            entryPointFnBuilder.AddLine($"float4 uv = inputs.{uv.ReferenceName};");
-            entryPointFnBuilder.AddLine($"uv.xy += inputs.{scrollSpeed.ReferenceName} * inputs.{timeParameters.ReferenceName}[0];");
-            entryPointFnBuilder.AddLine($"outputs.{uv.ReferenceName} = uv;");
+            entryPointFnBuilder.AddLine($"float4 uv0 = inputs.{uv0.ReferenceName};");
+            entryPointFnBuilder.AddLine($"uv0.xy += inputs.{scrollSpeed.ReferenceName} * inputs.{timeParameters.ReferenceName}[0];");
+            entryPointFnBuilder.AddLine($"outputs.{uv0.ReferenceName} = uv0;");
             entryPointFnBuilder.AddLine($"return outputs;");
             var entryPointFn = entryPointFnBuilder.Build();
 
@@ -176,11 +161,11 @@ namespace UnityEditor.ShaderFoundry
             var propertyVariables = new List<BlockVariable>();
 
             // Take in uv as an input
-            var uvInputBuilder = new BlockVariable.Builder(container);
-            uvInputBuilder.ReferenceName = "uv";
-            uvInputBuilder.Type = container._float4;
-            var uvInput = uvInputBuilder.Build();
-            inputVariables.Add(uvInput);
+            var uv0InputBuilder = new BlockVariable.Builder(container);
+            uv0InputBuilder.ReferenceName = "uv0";
+            uv0InputBuilder.Type = container._float4;
+            var uv0Input = uv0InputBuilder.Build();
+            inputVariables.Add(uv0Input);
 
             // Make an input for Color. This input will also be a property.
             // For convenience, an input can be tagged with the [Property] attribute which will automatically add it as a property.
@@ -198,9 +183,9 @@ namespace UnityEditor.ShaderFoundry
             string albedoTexRefName = "_AlbedoTex";
             SimpleSampleBuilder.BuildTexture2D(container, albedoTexRefName, "AlbedoTex", inputVariables, propertyVariables);
 
-            // Create an output for a float3 color.
+            // Create an output for a float3 BaseColor.
             var colorOutBuilder = new BlockVariable.Builder(container);
-            colorOutBuilder.ReferenceName = "Color";
+            colorOutBuilder.ReferenceName = "BaseColor";
             colorOutBuilder.Type = container._float3;
             var colorOut = colorOutBuilder.Build();
             outputVariables.Add(colorOut);
@@ -213,7 +198,7 @@ namespace UnityEditor.ShaderFoundry
             entryPointFnBuilder.AddInput(inputType, "inputs");
             entryPointFnBuilder.AddLine($"{outputType.Name} outputs;");
             entryPointFnBuilder.AddLine($"UnityTexture2D {albedoTexRefName}Tex = UnityBuildTexture2DStruct({albedoTexRefName});");
-            entryPointFnBuilder.AddLine($"float4 {albedoTexRefName}Sample = SAMPLE_TEXTURE2D({albedoTexRefName}Tex.tex, {albedoTexRefName}Tex.samplerstate, {albedoTexRefName}Tex.GetTransformedUV(inputs.{uvInput.ReferenceName}));");
+            entryPointFnBuilder.AddLine($"float4 {albedoTexRefName}Sample = SAMPLE_TEXTURE2D({albedoTexRefName}Tex.tex, {albedoTexRefName}Tex.samplerstate, {albedoTexRefName}Tex.GetTransformedUV(inputs.{uv0Input.ReferenceName}));");
             entryPointFnBuilder.AddLine($"outputs.{colorOut.ReferenceName} = inputs.{colorInput.ReferenceName} * {albedoTexRefName}Sample.xyz;");
             entryPointFnBuilder.AddLine($"return outputs;");
             var entryPointFn = entryPointFnBuilder.Build();

@@ -41,7 +41,6 @@ namespace UnityEditor.ShaderFoundry
 
             InputInstance = CreateVariableInstance(inType, block.Inputs);
             OutputInstance = CreateVariableInstance(outType, block.Outputs);
-            BuildNameOverrides(blockDescriptor);
         }
 
         BlockVariableLinkInstance CreateVariableInstance(ShaderType type, IEnumerable<BlockVariable> variables)
@@ -55,16 +54,6 @@ namespace UnityEditor.ShaderFoundry
                 instance.AddField(subInstance);
             }
             return instance;
-        }
-
-        internal void BuildNameOverrides(BlockDescriptor blockDescriptor)
-        {
-            if (!blockDescriptor.IsValid)
-                return;
-            foreach (var inputOverride in blockDescriptor.InputOverrides)
-                InputInstance.AddOverride(inputOverride.DestinationName, inputOverride.SourceNamespace, inputOverride.SourceName, inputOverride.SourceSwizzle);
-            foreach (var outputOverride in blockDescriptor.OutputOverrides)
-                OutputInstance.AddOverride(outputOverride.SourceName, outputOverride.DestinationNamespace, outputOverride.DestinationName, outputOverride.DestinationSwizzle);
         }
 
         internal void AddProperty(BlockVariableLinkInstance prop)

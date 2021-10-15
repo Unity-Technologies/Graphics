@@ -3,6 +3,12 @@ using System.Diagnostics;
 
 namespace UnityEditor.ShaderFoundry
 {
+    internal class FieldOverride
+    {
+        internal string Name;
+        internal string Alias;
+    }
+
     /// Represents a block variable instance. A variable might have an owner (a variable in a sub-class instance).
     /// The resolved fields are also tracked so each instance knows what other variables it's connected to.
     [DebuggerDisplay("{Type.Name} {ReferenceName}")]
@@ -15,13 +21,13 @@ namespace UnityEditor.ShaderFoundry
         internal string DisplayName;
         internal string DefaultExpression;
         internal List<ShaderAttribute> Attributes = new List<ShaderAttribute>();
+        internal List<FieldOverride> FieldOverrides = new List<FieldOverride>();
 
         // If this is a non primitive type, this is the field instances for this variable instance.
-        // Note: These are not currently populated for all variables, currently only for the block's input/ouptput types.
+        // Note: These are not currently populated for all variables, currently only for the block's input/output types.
         List<BlockVariableLinkInstance> fields = new List<BlockVariableLinkInstance>();
         // Reference name of available field to a match.
         Dictionary<string, ResolvedFieldMatch> resolvedFieldMatches = new Dictionary<string, ResolvedFieldMatch>();
-        VariableOverrideSet nameOverrides = new VariableOverrideSet();
 
         internal static BlockVariableLinkInstance Construct(BlockVariable variable, BlockVariableLinkInstance owner, IEnumerable<ShaderAttribute> attributes = null)
         {
@@ -57,7 +63,6 @@ namespace UnityEditor.ShaderFoundry
         }
 
         internal IEnumerable<BlockVariableLinkInstance> Fields => fields;
-        internal VariableOverrideSet NameOverrides => nameOverrides;
         internal IEnumerable<ResolvedFieldMatch> ResolvedFieldMatches => resolvedFieldMatches.Values;
         internal IEnumerable<BlockVariableLinkInstance> ResolvedFields
         {
@@ -93,31 +98,6 @@ namespace UnityEditor.ShaderFoundry
             return result;
         }
 
-        internal void AddOverride(string key, VariableNameOverride varOverride)
-        {
-            AddOverride(key, varOverride.Namespace, varOverride.Name, varOverride.Swizzle);
-        }
-
-        internal void AddOverride(string key, string namespaceName, string name, int swizzle)
-        {
-            nameOverrides.Add(key, namespaceName, name, swizzle);
-        }
-
-        internal bool GetLastVariableOverrideOrDefault(string referenceName, out VariableNameOverride varOverride)
-        {
-            return nameOverrides.GetLastVariableOverrideOrDefault(referenceName, out varOverride);
-        }
-
-        internal VariableNameOverride FindLastVariableOverride(string referenceName)
-        {
-            return nameOverrides.FindLastVariableOverride(referenceName);
-        }
-
-        internal IEnumerable<VariableNameOverride> FindVariableOverrides(string referenceName)
-        {
-            return nameOverrides.FindVariableOverrides(referenceName);
-        }
-
         internal BlockVariable Build(ShaderContainer container)
         {
             var blockVariableBuilder = new BlockVariable.Builder(container);
@@ -128,6 +108,11 @@ namespace UnityEditor.ShaderFoundry
             foreach (var attribute in Attributes)
                 blockVariableBuilder.AddAttribute(attribute);
             return blockVariableBuilder.Build();
+        }
+
+        internal void AddAlias(string name, string alias)
+        {
+            FieldOverrides.Add(new FieldOverride{ Name = name, Alias = alias });
         }
     }
 }

@@ -292,13 +292,14 @@ namespace UnityEditor.ShaderFoundry
     {
         internal static void MergeTypesAndFunctions(this Block.Builder builder, Block block)
         {
-            foreach (var item in block.Types)
-                builder.AddReferencedType(item);
+            // Make sure to visit referenced items before owned. Owned items may depend on referenced ones.
             foreach (var item in block.ReferencedTypes)
                 builder.AddReferencedType(item);
-            foreach (var item in block.Functions)
-                builder.AddReferencedFunction(item);
+            foreach (var item in block.Types)
+                builder.AddReferencedType(item);
             foreach (var item in block.ReferencedFunctions)
+                builder.AddReferencedFunction(item);
+            foreach (var item in block.Functions)
                 builder.AddReferencedFunction(item);
         }
 
