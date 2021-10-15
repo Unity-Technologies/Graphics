@@ -1,6 +1,7 @@
 #if VFX_HAS_TIMELINE
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEditor.Timeline;
 using UnityEngine;
 using UnityEngine.Timeline;
@@ -46,13 +47,7 @@ namespace UnityEditor.VFX
             return (value - a) / (b - a);
         }
 
-        //TODOPAUL have  better generalization for these
-        private static double RelativeRegionTime(VisualEffectPlayableSerializedEvent currentEvent, VisualEffectControlPlayableAsset playable, ClipBackgroundRegion region)
-        {
-            var absoluteTime = VisualEffectPlayableSerializedEvent.GetAbsoluteTime(currentEvent, playable);
-            var clipSpaceTime = absoluteTime - playable.clipStart;
-            return InverseLerp(region.startTime, region.endTime, clipSpaceTime);
-        }
+        private List<VisualEffectPlayableSerializedEvent> m_CacheEventList;
 
         public override void DrawBackground(TimelineClip clip, ClipBackgroundRegion region)
         {
@@ -62,21 +57,22 @@ namespace UnityEditor.VFX
             if (playable.events == null)
                 return;
 
+            if (m_CacheEventList == null)
+                m_CacheEventList = new List<VisualEffectPlayableSerializedEvent>();
+
+            m_CacheEventList.Clear();
+            var eventInRelative = VisualEffectPlayableSerializedEvent.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable);
+            m_CacheEventList.AddRange(eventInRelative);
+
             var iconSize = new Vector2(8, 8);
-            var startEvent = playable.events.FirstOrDefault(o => o.type == VisualEffectPlayableSerializedEvent.Type.Play);
-            var stopEvent = playable.events.FirstOrDefault(o => o.type == VisualEffectPlayableSerializedEvent.Type.Stop);
+            var startEvent = m_CacheEventList.FirstOrDefault(o => o.type == VisualEffectPlayableSerializedEvent.Type.Play);
+            var stopEvent = m_CacheEventList.FirstOrDefault(o => o.type == VisualEffectPlayableSerializedEvent.Type.Stop);
 
             //TODOPAUL: this condition is only a security
             if (startEvent.name != null && stopEvent.name != null)
             {
-                var absoluteStart = VisualEffectPlayableSerializedEvent.GetAbsoluteTime(startEvent, playable);
-                var absoluteStop = VisualEffectPlayableSerializedEvent.GetAbsoluteTime(stopEvent, playable);
-
-                var clipSpaceStart = absoluteStart - playable.clipStart;
-                var clipSpaceStop = absoluteStop - playable.clipStart;
-
-                var relativeStart = RelativeRegionTime(startEvent, playable, region);
-                var relativeStop = RelativeRegionTime(stopEvent, playable, region);
+                var relativeStart = InverseLerp(region.startTime, region.endTime, startEvent.time);
+                var relativeStop = InverseLerp(region.startTime, region.endTime, stopEvent.time);
 
                 var startRange = region.position.width * Mathf.Clamp01((float)relativeStart);
                 var endRange = region.position.width * Mathf.Clamp01((float)relativeStop);
@@ -85,16 +81,15 @@ namespace UnityEditor.VFX
                     region.position.x + startRange,
                     region.position.y + 0.14f * region.position.height,
                     endRange - startRange,
-                    region.position.y + 0.19f * region.position.height
-                    );
+                    region.position.y + 0.19f * region.position.height);
 
                 float color = 0.5f;
                 EditorGUI.DrawRect(rect, Color.HSVToRGB(color, 1.0f, 1.0f));
             }
 
-            foreach (var itEvent in playable.events)
+            foreach (var itEvent in m_CacheEventList)
             {
-                var relativeTime = RelativeRegionTime(itEvent, playable, region);
+                var relativeTime = InverseLerp(region.startTime, region.endTime, itEvent.time);
                 var center = new Vector2(region.position.position.x + region.position.width * (float)relativeTime,
                     region.position.position.y + region.position.height * 0.5f);
 

@@ -38,6 +38,9 @@ namespace UnityEngine.VFX
 
         public void SetDefaultEvent(double playAfterClipStart, double stopBeforeClipEnd)
         {
+            if (!useBlending_WIP)
+                return;
+
             var previousEvent = events == null ? new List<VisualEffectPlayableSerializedEvent>() : events.ToList();
             events = new List<VisualEffectPlayableSerializedEvent>();
 
@@ -58,10 +61,6 @@ namespace UnityEngine.VFX
             {
                 var startName = indexOfStart == -1 ? VisualEffectAsset.PlayEventName : previousEvent[indexOfStart].name;
                 var startTime = playAfterClipStart;
-
-                if (!useBlending_WIP && indexOfStart != -1)
-                    startTime = previousEvent[indexOfStart].time;
-
                 events.Add(new VisualEffectPlayableSerializedEvent()
                 {
                     name = startName,
@@ -75,10 +74,6 @@ namespace UnityEngine.VFX
             {
                 var stopName = indexOfStop == -1 ? VisualEffectAsset.StopEventName : previousEvent[indexOfStop].name;
                 var stopTime = stopBeforeClipEnd;
-
-                if (!useBlending_WIP && indexOfStop != -1)
-                    stopTime = previousEvent[indexOfStop].time;
-
                 events.Add(new VisualEffectPlayableSerializedEvent()
                 {
                     name = stopName,

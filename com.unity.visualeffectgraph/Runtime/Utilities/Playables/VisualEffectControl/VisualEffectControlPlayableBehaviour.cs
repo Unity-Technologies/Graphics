@@ -10,14 +10,66 @@ namespace UnityEngine.VFX
     [Serializable]
     public struct VisualEffectPlayableSerializedEvent
     {
-        public static double GetAbsoluteTime(VisualEffectPlayableSerializedEvent current, VisualEffectControlPlayableBehaviour parent)
+
+        public static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(TimeSpace space, VisualEffectControlPlayableBehaviour source)
         {
-            return GetAbsoluteTime(current, parent.clipStart, parent.clipEnd, GetPlayTime(parent.events));
+            return GetEventNormalizedSpace(space, source.events, source.clipStart, source.clipEnd);
         }
 
-        public static double GetAbsoluteTime(VisualEffectPlayableSerializedEvent current, VisualEffectControlPlayableAsset parent)
+        public static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(TimeSpace space, VisualEffectControlPlayableAsset source)
         {
-            return GetAbsoluteTime(current, parent.clipStart, parent.clipEnd, GetPlayTime(parent.events));
+            return GetEventNormalizedSpace(space, source.events, source.clipStart, source.clipEnd);
+        }
+
+        private static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(TimeSpace space, IEnumerable<VisualEffectPlayableSerializedEvent> events, double clipStart, double clipEnd)
+        {
+            var playTimeRef = GetPlayTime(events);
+            return GetEventNormalizedSpace(space, events, clipStart, clipEnd, playTimeRef);
+        }
+
+        private static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(TimeSpace space, IEnumerable<VisualEffectPlayableSerializedEvent> events, double clipStart, double clipEnd, double playTimeRef)
+        {
+            foreach (var itEvent in events)
+            {
+                var copy = itEvent;
+                copy.timeSpace = space;
+                copy.time = GetTimeInSpace(space, itEvent, clipStart, clipEnd, playTimeRef);
+                yield return copy;
+            }
+        }
+
+        private static double GetTimeInSpace(TimeSpace space, VisualEffectPlayableSerializedEvent source, double clipStart, double clipEnd, double clipPlay)
+        {
+            if (source.timeSpace == space)
+                return source.time;
+
+            if (space == TimeSpace.Absolute)
+            {
+                switch (source.timeSpace)
+                {
+                    case TimeSpace.AfterClipStart:
+                        return clipStart + source.time;
+                    case TimeSpace.BeforeClipEnd:
+                        return clipEnd - source.time;
+                    case TimeSpace.AfterPlay:
+                        return clipStart + clipPlay + source.time;
+                }
+            }
+            else if (space == TimeSpace.AfterClipStart)
+            {
+                switch (source.timeSpace)
+                {
+                    case TimeSpace.BeforeClipEnd:
+                        return clipEnd - source.time - clipStart;
+                    case TimeSpace.AfterPlay:
+                        return clipPlay + source.time;
+                    case TimeSpace.Absolute:
+                        return source.time - clipStart;
+                }
+            }
+
+            //Other conversion
+            throw new NotImplementedException();
         }
 
         private static double GetPlayTime(IEnumerable<VisualEffectPlayableSerializedEvent> events)
@@ -32,20 +84,6 @@ namespace UnityEngine.VFX
             return 0.0;
         }
 
-        private static double GetAbsoluteTime(VisualEffectPlayableSerializedEvent current, double clipStart, double clipEnd, double clipPlay)
-        {
-            switch (current.timeSpace)
-            {
-                case VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart:
-                    return clipStart + current.time;
-                case VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd:
-                    return clipEnd - current.time;
-                case VisualEffectPlayableSerializedEvent.TimeSpace.AfterPlay:
-                    return clipStart + clipPlay + current.time;
-            }
-            throw new NotImplementedException();
-        }
-
         public enum Type
         {
             Custom,
@@ -58,6 +96,7 @@ namespace UnityEngine.VFX
             AfterClipStart,
             BeforeClipEnd,
             AfterPlay,
+            Absolute
             //...
         }
 

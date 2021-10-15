@@ -222,9 +222,10 @@ namespace UnityEngine.VFX
 
             static IEnumerable<Event> ComputeRuntimeEvent(VisualEffectControlPlayableBehaviour behavior, VisualEffect vfx)
             {
-                foreach (var itEvent in behavior.events)
+                var events = VisualEffectPlayableSerializedEvent.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.Absolute, behavior);
+                foreach (var itEvent in events)
                 {
-                    double absoluteTime = VisualEffectPlayableSerializedEvent.GetAbsoluteTime(itEvent, behavior);
+                    double absoluteTime = itEvent.time;
 
                     //TODOPAUL: Should not be there but in UX
                     if (absoluteTime > behavior.clipEnd)
