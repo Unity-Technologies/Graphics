@@ -997,7 +997,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             passData.kernel = v.kernelIndex;
                             var compute = v.localVolumetricFogCompute;
 
-                            var m = Matrix4x4.TRS(v.transform.position, v.transform.rotation, v.parameters.size);
+                            var p = v.transform.position;
+                            if (ShaderConfig.s_CameraRelativeRendering != 0)
+                            {
+                                p -= hdCamera.camera.transform.position; // Camera-relative
+                            }
+
+                            var m = Matrix4x4.TRS(p, v.transform.rotation, v.parameters.size);
 
                             ctx.cmd.SetGlobalVector("VolumeTime", Vector4.one * Time.realtimeSinceStartup);
                             ctx.cmd.SetComputeTextureParam(compute, data.kernel, HDShaderIDs._VBufferDensity, data.vBuffer);

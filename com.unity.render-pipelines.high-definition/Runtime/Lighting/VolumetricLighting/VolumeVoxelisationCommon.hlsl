@@ -97,12 +97,3 @@ float3 ComputeVoxelCenterWS(
 
     return ray.originWS + t * ray.centerDirWS;
 }
-
-float3 ComputeVoxelCenterWS(
-    PositionInputs posInput, JitteredRay ray, uint _VBufferSliceCount, uint slice, float t0, float de,
-    out uint3 voxelCoord
-)
-{
-    float t1, dt, t;
-    return ComputeVoxelCenterWS(posInput, ray, _VBufferSliceCount, slice, t0, de, voxelCoord, t1, dt, t );
-}

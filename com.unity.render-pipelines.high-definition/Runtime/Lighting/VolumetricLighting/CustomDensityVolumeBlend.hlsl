@@ -15,17 +15,14 @@ void VoxelizeComputeLocalFog(
 
     PrepareVoxelization(dispatchThreadId, groupId, groupThreadId, posInput, tileIndex, ray);
 
-    //TODO: this should not be needed
-    ray.originWS = _WorldSpaceCameraPos; // fixes the camera position ?
-    ray.centerDirWS *= 2; // fixes the voxel depth ?
-
     float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
     float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
 
     for (uint slice = 0; slice < _VBufferSliceCount; slice++)
     {
+        float t1, dt, t;
         uint3 voxelCoord;
-        float3 voxelCenterWS = ComputeVoxelCenterWS(posInput, ray, _VBufferSliceCount, slice, t0, de, voxelCoord);
+        float3 voxelCenterWS = ComputeVoxelCenterWS(posInput, ray, _VBufferSliceCount, slice, t0, de, voxelCoord, t1, dt, t);
 
         float3 voxelCenterVolSpace = mul(InvVolumeMatrix, float4(voxelCenterWS, 1)).xyz;
 
@@ -38,5 +35,7 @@ void VoxelizeComputeLocalFog(
         l = 1.0-saturate( l - 1.5 );
 
         _VBufferDensity[voxelCoord] = lerp(_VBufferDensity[voxelCoord], volumeDensity, min(volumeDensity.a, l));
+
+        t0 = t1;
     }
 }
