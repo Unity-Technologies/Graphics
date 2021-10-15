@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
             return new TextureDesc(skyResolution, skyResolution, false, false)
-            { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = false, autoGenerateMips = false };
+            { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false };
         }
 
         class VolumetricCloudsSkyLowPassData
