@@ -626,7 +626,7 @@ public unsafe class RenderBRG : MonoBehaviour
             m_instanceIndices.Dispose();
             m_drawIndices.Dispose();
 
-            Destroy(m_pickingFallbackMaterial);
+            DestroyImmediate(m_pickingFallbackMaterial);
         }
     }
 }
