@@ -12,29 +12,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
 
-#ifndef UNITY_TERRAIN_CB_VARS
-    #define UNITY_TERRAIN_CB_VARS
-#endif
-
-#ifndef UNITY_TERRAIN_CB_DEBUG_VARS
-    #define UNITY_TERRAIN_CB_DEBUG_VARS
-#endif
-
-CBUFFER_START(UnityTerrain)
-    UNITY_TERRAIN_CB_VARS
-#ifdef UNITY_INSTANCING_ENABLED
-    float4 _TerrainHeightmapRecipSize;  // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
-    float4 _TerrainHeightmapScale;      // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
-#endif
-#ifdef DEBUG_DISPLAY
-    UNITY_TERRAIN_CB_DEBUG_VARS
-#endif
-#ifdef SCENESELECTIONPASS
-    int _ObjectId;
-    int _PassValue;
-#endif
-CBUFFER_END
-
 #ifdef UNITY_INSTANCING_ENABLED
     TEXTURE2D(_TerrainHeightmapTexture);
     TEXTURE2D(_TerrainNormalmapTexture);

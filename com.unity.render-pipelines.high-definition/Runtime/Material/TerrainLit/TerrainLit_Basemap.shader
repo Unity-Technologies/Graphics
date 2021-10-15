@@ -56,8 +56,9 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
     #pragma vertex Vert
     #pragma fragment Frag
 
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Basemap_Includes.hlsl"
+    //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Basemap_Includes.hlsl"
 
+#define TERRAIN_SPLAT_BASEPASS 1
     ENDHLSL
 
     SubShader

@@ -1,55 +1,11 @@
 
-#undef DECLARE_TERRAIN_LAYER_TEXS
-
-float GetSumHeight(float4 heights0, float4 heights1)
-{
-    float sumHeight = heights0.x;
-    sumHeight += heights0.y;
-    sumHeight += heights0.z;
-    sumHeight += heights0.w;
-    #ifdef _TERRAIN_8_LAYERS
-        sumHeight += heights1.x;
-        sumHeight += heights1.y;
-        sumHeight += heights1.z;
-        sumHeight += heights1.w;
-    #endif
-    return sumHeight;
-}
-
-float3 SampleNormalGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float scale)
-{
-    float4 nrm = SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uv, dxuv, dyuv);
-#ifdef SURFACE_GRADIENT
-    #ifdef UNITY_NO_DXT5nm
-        return float3(UnpackDerivativeNormalRGB(nrm, scale), 0);
-    #else
-        return float3(UnpackDerivativeNormalRGorAG(nrm, scale), 0);
-    #endif
-#else
-    #ifdef UNITY_NO_DXT5nm
-        return UnpackNormalRGB(nrm, scale);
-    #else
-        return UnpackNormalmapRGorAG(nrm, scale);
-    #endif
-#endif
-}
-
-float4 RemapMasks(float4 masks, float blendMask, float4 remapOffset, float4 remapScale)
-{
-    float4 ret = masks;
-    ret.b *= blendMask; // height needs to be weighted before remapping
-    ret = ret * remapScale + remapOffset;
-    return ret;
-}
-
-
 void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, inout TerrainLitSurfaceData surfaceData)
 {
     // TODO: triplanar
     // TODO: POM
     float alpha;
     float4 outControl;
-    GetSplatData(splatBaseUV, 0, true, surfaceData.albedo, surfaceData.normal, surfaceData.metallic, surfaceData.ao, alpha, outControl);
+    GetSplatData(splatBaseUV, 0, true, surfaceData.albedo, surfaceData.normalData, surfaceData.metallic, surfaceData.smoothness, surfaceData.ao, alpha, outControl);
 
 //    float2 dxuv = ddx(splatBaseUV);
 //    float2 dyuv = ddy(splatBaseUV);

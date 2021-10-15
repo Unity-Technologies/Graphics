@@ -41,6 +41,11 @@
         float _HeightTransition;
 #endif
 
+#ifdef TERRAIN_SPLAT_BASEPASS
+#define UNITY_TERRAIN_CB_DEBUG_VARS \
+    float4 _MainTex_TexelSize;      \
+    float4 _MainTex_MipInfo;
+#else
 #define UNITY_TERRAIN_CB_DEBUG_VARS \
     float4 _Control0_MipInfo;       \
     float4 _Splat0_TexelSize;       \
@@ -59,9 +64,13 @@
     float4 _Splat6_MipInfo;         \
     float4 _Splat7_TexelSize;       \
     float4 _Splat7_MipInfo;
+#endif
 
 CBUFFER_START(UnityTerrain)
 UNITY_TERRAIN_CB_VARS
+#ifdef _TERRAIN_BASEMAP_GEN
+float4 _Control0_ST;
+#else
 #ifdef UNITY_INSTANCING_ENABLED
 float4 _TerrainHeightmapRecipSize;  // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
 float4 _TerrainHeightmapScale;      // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
@@ -70,16 +79,19 @@ float4 _TerrainHeightmapScale;      // float4(hmScale.x, hmScale.y / (float)(kMa
 UNITY_TERRAIN_CB_DEBUG_VARS
 #endif
 // ShaderGraph already defines these
-//#ifdef SCENESELECTIONPASS
-//    int _ObjectId;
-//    int _PassValue;
-//#endif
+#if defined(SCENESELECTIONPASS) && !defined(TERRAIN_ENABLED)
+    int _ObjectId;
+    int _PassValue;
+#endif
+#endif
 CBUFFER_END
 
 // Splat texture declarations
 TEXTURE2D(_Control0);
 SAMPLER(sampler_Control0);
-float4 _Control0_ST;
+//#ifndef _TERRAIN_BASEMAP_GEN
+//float4 _Control0_ST;
+//#endif
 
 #ifdef _ALPHATEST_ON
 TEXTURE2D(_TerrainHolesTexture);
@@ -157,6 +169,8 @@ float4 masks[_LAYER_COUNT];
 #define NullMask(i)               float4(0, 1, 0, 0)
 #endif
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+
 // This is really silly but I don't know how to else to get around SampleResults treating a variable name as a string for the sake of accessing the splat properties.
 //#define ToConstInt(i) ((i == 0) ? 0 : ((i == 1) ? 1 : ((i == 2) ? 2 : ((i == 3) ? 3 : ((i == 4) ? 4 : ((i == 5) ? 5 : ((i == 6) ? 6 : 7)))))));
 
@@ -165,6 +179,48 @@ float4 masks[_LAYER_COUNT];
 #else
 #define SampleControl(i) SAMPLE_TEXTURE2D(_Control0, sampler_Control0, ((uv.xy * (_Control0_TexelSize.zw - 1.0f) + 0.5f) * _Control0_TexelSize.xy));
 #endif
+
+float3 SampleNormalGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float scale)
+{
+    float4 nrm = SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uv, dxuv, dyuv);
+#ifdef SURFACE_GRADIENT
+#ifdef UNITY_NO_DXT5nm
+    return float3(UnpackDerivativeNormalRGB(nrm, scale), 0);
+#else
+    return float3(UnpackDerivativeNormalRGorAG(nrm, scale), 0);
+#endif
+#else
+#ifdef UNITY_NO_DXT5nm
+    return UnpackNormalRGB(nrm, scale);
+#else
+    return UnpackNormalmapRGorAG(nrm, scale);
+#endif
+#endif
+}
+
+float GetSumHeight(float4 heights0, float4 heights1)
+{
+    float sumHeight = heights0.x;
+    sumHeight += heights0.y;
+    sumHeight += heights0.z;
+    sumHeight += heights0.w;
+#ifdef _TERRAIN_8_LAYERS
+    sumHeight += heights1.x;
+    sumHeight += heights1.y;
+    sumHeight += heights1.z;
+    sumHeight += heights1.w;
+#endif
+    return sumHeight;
+}
+
+float4 RemapMasks(float4 masks, float blendMask, float4 remapOffset, float4 remapScale)
+{
+    float4 ret = masks;
+    ret.b *= blendMask; // height needs to be weighted before remapping
+    ret = ret * remapScale + remapOffset;
+    return ret;
+}
+
 
 void GetSplatData(float2 uv, float layer, bool doBlend, out float3 outAlbedo, out float3 outNormal, out float outMetallic, out float outSmoothness, out float outOcclusion, out float outAlpha, out float4 outControl)
 {

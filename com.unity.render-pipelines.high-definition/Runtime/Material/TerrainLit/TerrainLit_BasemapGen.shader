@@ -31,11 +31,6 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
 
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl"
 
-        CBUFFER_START(UnityTerrain)
-            UNITY_TERRAIN_CB_VARS
-            float4 _Control0_ST;
-        CBUFFER_END
-
         struct Varyings
         {
             float4 positionCS : SV_POSITION;
