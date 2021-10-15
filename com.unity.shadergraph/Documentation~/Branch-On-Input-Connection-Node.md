@@ -1,9 +1,10 @@
 # Branch On Input Connection Node
 
-## Description
-The Branch On Input Connection node allows you to change the behavior of a Subgraph based on the connected state of an input property in the parent Shader Graph. It has two states: connected and not connected.
+The Branch On Input Connection node allows you to change the behavior of a Subgraph based on the connected state of an input property in the parent Shader Graph. Shader Graph determines whether the property in the parent Shader Graph is connected, or not connected, and chooses a value to use as an output based on that connection state.
 
-Shader Graph uses two ports to determine the node's connection state:
+![](images/sg-branch-on-input-connection-node.png)
+
+Shader Graph uses two ports when it determines the node's connection state:
 
 - The Branch On Input Connection node's **Input** port.
 
@@ -14,7 +15,9 @@ The Branch On Input Connection node's functionality is based on the [Branch Node
 > [!NOTE]
 > You can't use the Branch On Input Connection node with a Streaming Virtual Texture Property. For more information on Streaming Virtual Texturing, see [Using Streaming Virtual Texturing in Shader Graph](https://docs.unity3d.com/Documentation/Manual/svt-use-in-shader-graph.html).
 
-### Use the Branch On Input Connection node in a Subgraph
+## Use the Branch On Input Connection node in a Subgraph
+
+To use the Branch On Input Connection node in a Subgraph:
 
 1. Open the Subgraph where you want to add a Branch On Input Connection node.
 
@@ -33,11 +36,12 @@ The Branch On Input Connection node's functionality is based on the [Branch Node
 
 5. Press Spacebar or right-click and select **Create Node**. Search for or locate the **Branch On Input Connection** node in the Create Node Menu, select the node, then click again or press Enter to add it to your Subgraph.
 
-6. Select the output port on your Property node to start a connection, and drag the connection to the Branch On Connection node's **Input** port.
+6. Select the output port on your Property node, and drag its new connection to the Branch On Connection node's **Input** port.
 
 7. Connect a node to the **Connected** port to specify the value Shader Graph should use when the **Input** port is connected on the Subgraph node in the parent graph. Connect another node to the **NotConnected** port to specify the value that Shader Graph should use when the **Input** port isn't connected.
 
-8. Connect any valid node to the **Output** port to tell Shader Graph what to do with the output value.
+8. Connect any valid node to the **Output** port to specify how Shader Graph should use the **Connected** or **NotConnected** value in your shader.
+
 
 ## Ports
 
@@ -47,3 +51,10 @@ The Branch On Input Connection node's functionality is based on the [Branch Node
 | Connected    | Input         | Dynamic Vector    | The value that to send to the **Out** port when **Input** is connected in the parent Shader Graph.       |
 | NotConnected | Input         | Dynamic Vector    | The value that to send to the **Out** port when **Input** isn't connected in the parent Shader Graph.  |
 | Out          | Output        | Dynamic Vector    | Outputs either the value of either **Connected** or **NotConnected**, depending on whether the property specified in **Input** is connected in the parent Shader Graph.        |
+
+
+## Example Subgraph
+
+This Branch On Input Connection node uses the connection status of a Vector2 property to change the UV channel used to generate a checkerboard pattern:
+
+![](images/sg-branch-on-input-connection-node-example.png)
