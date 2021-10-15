@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed tooltip not showing on labels in ShaderGraphs (1358483).
 - Fix API warnings in Matcap mode on Metal.
 - Fix D3D validation layer errors w.r.t shadow textures when an atlas is not used.
-
+- Fixed screen space reflection PBR Accumulation
 ## [10.7.0] - 2021-07-02
 
 ### Fixed
@@ -154,7 +154,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed undo of some properties on light editor.
 - Fixed material Emission properties not begin animated when recording an animation (case 1328108).
 - Fixed issue with velocity rejection when using physically-based DoF
-- Fixed SSR PBR Accumulation algorithm, which was constantly cleared
 
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
