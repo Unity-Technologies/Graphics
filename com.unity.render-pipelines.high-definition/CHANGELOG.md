@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the cloudlayer not using depth buffer.
 - Fixed support for orthographic camera in path tracing.
 - Fixed crossfade not working on the HD ST8 ShaderGraph [case 1369586](https://fogbugz.unity3d.com/f/cases/1369586/)
+- Fixed minor performance issues in SSGI (case 1367144).
 
 ### Changed
 - Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
