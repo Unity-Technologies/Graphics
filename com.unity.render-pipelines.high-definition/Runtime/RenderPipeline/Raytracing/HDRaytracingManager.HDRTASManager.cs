@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public RayTracingInstanceCullingResults Cull(HDCamera hdCamera, in HDEffectsParameters parameters)
         {
-			// The list of instanceTestArray needs to be cleared every frame as the list depends on the active effects and their parameters. 
+            // The list of instanceTestArray needs to be cleared every frame as the list depends on the active effects and their parameters. 
             instanceTestArray.Clear();
 
             // Set up the culling flags
