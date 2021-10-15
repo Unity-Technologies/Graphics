@@ -10,7 +10,6 @@ namespace UnityEngine.VFX
     [Serializable]
     public struct VisualEffectPlayableSerializedEvent
     {
-
         public static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(TimeSpace space, VisualEffectControlPlayableBehaviour source)
         {
             return GetEventNormalizedSpace(space, source.events, source.clipStart, source.clipEnd);

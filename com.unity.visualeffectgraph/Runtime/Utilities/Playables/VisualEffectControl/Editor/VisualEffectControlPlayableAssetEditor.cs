@@ -68,23 +68,34 @@ namespace UnityEditor.VFX
             var startEvent = m_CacheEventList.FirstOrDefault(o => o.type == VisualEffectPlayableSerializedEvent.Type.Play);
             var stopEvent = m_CacheEventList.FirstOrDefault(o => o.type == VisualEffectPlayableSerializedEvent.Type.Stop);
 
-            //TODOPAUL: this condition is only a security
-            if (startEvent.name != null && stopEvent.name != null)
+            //TODOPAUL, avoid garbage here
+            var eventStartStop = m_CacheEventList
+                .Where(o => o.type != VisualEffectPlayableSerializedEvent.Type.Custom)
+                .OrderBy(o => o.time)
+                .ToArray();
+
+            for (int i = 0; i < eventStartStop.Length - 1; ++i)
             {
-                var relativeStart = InverseLerp(region.startTime, region.endTime, startEvent.time);
-                var relativeStop = InverseLerp(region.startTime, region.endTime, stopEvent.time);
+                var currentEvent = eventStartStop[i];
+                var nextEvent = eventStartStop[i+1];
+                if (currentEvent.type == VisualEffectPlayableSerializedEvent.Type.Play
+                    && nextEvent.type == VisualEffectPlayableSerializedEvent.Type.Stop)
+                {
+                    var relativeStart = InverseLerp(region.startTime, region.endTime, currentEvent.time);
+                    var relativeStop = InverseLerp(region.startTime, region.endTime, nextEvent.time);
 
-                var startRange = region.position.width * Mathf.Clamp01((float)relativeStart);
-                var endRange = region.position.width * Mathf.Clamp01((float)relativeStop);
+                    var startRange = region.position.width * Mathf.Clamp01((float)relativeStart);
+                    var endRange = region.position.width * Mathf.Clamp01((float)relativeStop);
 
-                var rect = new Rect(
-                    region.position.x + startRange,
-                    region.position.y + 0.14f * region.position.height,
-                    endRange - startRange,
-                    region.position.y + 0.19f * region.position.height);
+                    var rect = new Rect(
+                        region.position.x + startRange,
+                        region.position.y + 0.14f * region.position.height,
+                        endRange - startRange,
+                        region.position.y + 0.19f * region.position.height);
 
-                float color = 0.5f;
-                EditorGUI.DrawRect(rect, Color.HSVToRGB(color, 1.0f, 1.0f));
+                    float color = 0.5f;
+                    EditorGUI.DrawRect(rect, Color.HSVToRGB(color, 1.0f, 1.0f));
+                }
             }
 
             foreach (var itEvent in m_CacheEventList)
