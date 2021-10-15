@@ -277,7 +277,7 @@ namespace UnityEngine.VFX
                     chunks.Pop();
                     chunks.Push(currentChunk);
                 }
-                 m_Chunks = chunks.Reverse().ToArray();
+                m_Chunks = chunks.Reverse().ToArray();
             }
         }
 
@@ -298,10 +298,9 @@ namespace UnityEngine.VFX
                 m_Target.pause = false;
         }
 
-        public override void ProcessFrame(Playable playable, FrameData data, object playerData)
+        public override void PrepareFrame(Playable playable, FrameData data)
         {
-            SetDefaults(playerData as VisualEffect);
-            if (m_Target == null)
+            if (m_Target == null || m_Target.visualEffectAsset == null)
                 return;
 
             if (m_ScrubbingCacheHelper == null)
@@ -313,6 +312,11 @@ namespace UnityEngine.VFX
             var globalTime = playable.GetTime();
             var deltaTime = data.deltaTime;
             m_ScrubbingCacheHelper.Update(globalTime, deltaTime, m_Target);
+        }
+
+        public override void ProcessFrame(Playable playable, FrameData data, object playerData)
+        {
+            SetDefaults(playerData as VisualEffect);
         }
 
         public override void OnPlayableCreate(Playable playable)
