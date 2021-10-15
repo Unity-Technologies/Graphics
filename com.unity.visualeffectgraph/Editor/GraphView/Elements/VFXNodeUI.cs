@@ -296,10 +296,8 @@ namespace UnityEditor.VFX.UI
 
                     if (hasActivationPort && i == 0) // activation anchor
                     {
-                        var settingsCount = settingsContainer.childCount;
-                        anchor.style.top = -30 - settingsCount * 17 - (settingsCount > 0 ? 17 : 0);
-                        titleContainer.AddToClassList("activationslot");
-                        anchor.AddToClassList("activationslot");
+                        anchor.alwaysVisible = true;
+                        this.UpdateActivationPortPosition(anchor);
                     }
 
                     if (hasActivationPort && i == 1 || !hasActivationPort && i == 0)
@@ -321,6 +319,14 @@ namespace UnityEditor.VFX.UI
                     anchor.parent?.Remove(anchor);
                 }
             }
+        }
+
+        private void UpdateActivationPortPosition(VFXDataAnchor anchor)
+        {
+            var settingsCount = expanded ? settingsContainer.childCount : 0;
+            anchor.style.top = -30 - settingsCount * 17 - (settingsCount > 0 ? 17 : 0);
+            titleContainer.AddToClassList("activationslot");
+            anchor.AddToClassList("activationslot");
         }
 
         public void ForceUpdate()
@@ -399,9 +405,19 @@ namespace UnityEditor.VFX.UI
 
                 base.expanded = value;
                 controller.expanded = value;
+                if (controller.HasActivationAnchor)
+                {
+                    var anchorController = controller.inputPorts[0];
+                    var anchor = inputContainer.Children()
+                        .Cast<VFXDataAnchor>()
+                        .SingleOrDefault(x => x.controller == anchorController);
+                    if (anchor != null)
+                    {
+                        this.UpdateActivationPortPosition(anchor);
+                    }
+                }
             }
         }
-
 
         public virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
         {
