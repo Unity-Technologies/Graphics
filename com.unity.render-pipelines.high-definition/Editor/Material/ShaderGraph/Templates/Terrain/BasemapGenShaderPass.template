@@ -283,10 +283,14 @@ Pass
         // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
         input.positionSS.xy = _OffScreenRendering > 0 ? (uint2)round(input.positionSS.xy * _OffScreenDownsampleFactor) : input.positionSS.xy;
 
+        #ifdef SHADER_UNLIT        
+        PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
+        #else
         uint2 tileIndex = uint2(input.positionSS.xy) / GetTileSize();
 
         // input.positionSS is SV_Position
         PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, tileIndex);
+        #endif
 
         #ifdef VARYINGS_NEED_POSITION_WS
             float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
@@ -297,7 +301,12 @@ Pass
 
         SurfaceData surfaceData;
         GetSurfaceData(input, V, posInput, surfaceData);
+        
+        #ifdef SHADER_UNLIT
+        return float4(surfaceData.color, 0.5); // TODO rewrite GetSurfaceData as GetSurfaceANdBuiltinData to get emissive for unlit.
+        #else
         return float4(surfaceData.baseColor, surfaceData.perceptualSmoothness);
+        #endif
     }
     #else
     float2 Frag(PackedVaryingsToPS packedInput) : SV_Target
@@ -307,11 +316,15 @@ Pass
 
         // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
         input.positionSS.xy = _OffScreenRendering > 0 ? (uint2)round(input.positionSS.xy * _OffScreenDownsampleFactor) : input.positionSS.xy;
-
+        
+        #ifdef SHADER_UNLIT        
+        PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
+        #else
         uint2 tileIndex = uint2(input.positionSS.xy) / GetTileSize();
 
         // input.positionSS is SV_Position
         PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, tileIndex);
+        #endif
 
         #ifdef VARYINGS_NEED_POSITION_WS
             float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
@@ -322,7 +335,11 @@ Pass
         
         SurfaceData surfaceData;
         GetSurfaceData(input, V, posInput, surfaceData);
+        #ifdef SHADER_UNLIT
+        return 0;
+        #else
         return float2(surfaceData.metallic, surfaceData.ambientOcclusion);
+        #endif
     }
     #endif
 
