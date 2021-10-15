@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(OutputOcclusionId, kOutputOcclusionSlotName, kOutputOcclusionSlotName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputAlphaId, kOutputAlphaSlotName, kOutputAlphaSlotName, SlotType.Output, 0));
             AddSlot(new Vector4MaterialSlot(OutputControlId, kOutputControlSlotName, kOutputControlSlotName, SlotType.Output, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { InputUVId, InputLayerId, OutputAlbedoId, OutputNormalId, OutputMetallicId, OutputSmoothnessId, OutputOcclusionId, OutputAlphaId, OutputControlId });
+            RemoveSlotsNameNotMatching(new[] { InputUVId, InputLayerId, InputDoBlendId, OutputAlbedoId, OutputNormalId, OutputMetallicId, OutputSmoothnessId, OutputOcclusionId, OutputAlphaId, OutputControlId });
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
@@ -79,25 +79,48 @@ namespace UnityEditor.ShaderGraph
             //var alphaVal = GetSlotValue(OutputAlphaId, generationMode);
             //var controlVal = GetSlotValue(OutputControlId, generationMode);
 
-            sb.AppendLine("#if (defined(TERRAIN_ENABLED) || defined(_TERRAIN_BASEMAP_GEN))");
-            string uvVar = GetVariableNameForSlot(InputUVId);
-            sb.AppendLine("float2 splatBaseUV = {0};", uvVar);
-            sb.AppendLine("float2 dxuv = ddx(splatBaseUV);");
-            sb.AppendLine("float2 dyuv = ddy(splatBaseUV);");
-            sb.AppendLine("int i = (int)({0} % 5);", GetVariableNameForSlot(InputLayerId));
-            sb.AppendLine("#ifdef _TERRAIN_8_LAYERS");
-            sb.AppendLine("i += 4;");
+            // Handle define ifdefing here to avoid calling an undefined function
+            sb.AppendLine("#if (defined(TERRAIN_ENABLED) || defined(_TERRAIN_BASEMAP_GEN) || defined(TERRAIN_SPLAT_ADDPASS) || defined(TERRAIN_SPLAT_BASEPASS))");
+            // Declare outputs
+            var albedoVal = GetVariableNameForSlot(OutputAlbedoId);
+            var normalVal = GetVariableNameForSlot(OutputNormalId);
+            var metallicVal = GetVariableNameForSlot(OutputMetallicId);
+            var smoothnessVal = GetVariableNameForSlot(OutputSmoothnessId);
+            var occlusionVal = GetVariableNameForSlot(OutputOcclusionId);
+            var alphaVal = GetVariableNameForSlot(OutputAlphaId);
+            var controlVal = GetVariableNameForSlot(OutputControlId);
+
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputAlbedoId).concreteValueType.ToShaderString(), albedoVal);
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputNormalId).concreteValueType.ToShaderString(), normalVal);
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputMetallicId).concreteValueType.ToShaderString(), metallicVal);
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSmoothnessId).concreteValueType.ToShaderString(), smoothnessVal);
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputOcclusionId).concreteValueType.ToShaderString(), occlusionVal);
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputAlphaId).concreteValueType.ToShaderString(), alphaVal);
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputControlId).concreteValueType.ToShaderString(), controlVal);
+            sb.AppendLine("GetSplatData({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9});", GetSlotValue(InputUVId, generationMode), GetSlotValue(InputLayerId, generationMode), GetSlotValue(InputDoBlendId, generationMode),
+                albedoVal, normalVal, metallicVal, smoothnessVal,
+                occlusionVal, alphaVal, controlVal);
             sb.AppendLine("#endif");
-            string controlVar = GetVariableNameForSlot(OutputControlId);
-            sb.AppendLine("{0} = SampleControl(i)[i % 5];", controlVar);
-            sb.AppendLine("SampleResults(i, {0});", controlVar);
-            sb.AppendLine("{0} = albedo[i].xyz;", GetVariableNameForSlot(OutputAlbedoId));
-            sb.AppendLine("{0} = normal[i].xyz;", GetVariableNameForSlot(OutputNormalId));
-            sb.AppendLine("{0} = masks[i].x;", GetVariableNameForSlot(OutputMetallicId));
-            sb.AppendLine("{0} = masks[i].w;", GetVariableNameForSlot(OutputSmoothnessId));
-            sb.AppendLine("{0} = masks[i].y;", GetVariableNameForSlot(OutputOcclusionId));
-            sb.AppendLine("{0} = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, {1}).r == 0.0f ? 0.0f : 1.0f;", GetVariableNameForSlot(OutputAlphaId), uvVar);
-            sb.AppendLine("#endif // TERRAIN_ENABLED, _TERRAIN_BASEMAP_GEN");
+
+            //sb.AppendLine("#if (defined(TERRAIN_ENABLED) || defined(_TERRAIN_BASEMAP_GEN))");
+            //string uvVar = GetVariableNameForSlot(InputUVId);
+            //sb.AppendLine("float2 splatBaseUV = {0};", uvVar);
+            //sb.AppendLine("float2 dxuv = ddx(splatBaseUV);");
+            //sb.AppendLine("float2 dyuv = ddy(splatBaseUV);");
+            //sb.AppendLine("int i = (int)({0} % 5);", GetVariableNameForSlot(InputLayerId));
+            //sb.AppendLine("#ifdef _TERRAIN_8_LAYERS");
+            //sb.AppendLine("i += 4;");
+            //sb.AppendLine("#endif");
+            //string controlVar = GetVariableNameForSlot(OutputControlId);
+            //sb.AppendLine("{0} = SampleControl(i)[i % 5];", controlVar);
+            //sb.AppendLine("SampleResults(i, {0});", controlVar);
+            //sb.AppendLine("{0} = albedo[i].xyz;", GetVariableNameForSlot(OutputAlbedoId));
+            //sb.AppendLine("{0} = normal[i].xyz;", GetVariableNameForSlot(OutputNormalId));
+            //sb.AppendLine("{0} = masks[i].x;", GetVariableNameForSlot(OutputMetallicId));
+            //sb.AppendLine("{0} = masks[i].w;", GetVariableNameForSlot(OutputSmoothnessId));
+            //sb.AppendLine("{0} = masks[i].y;", GetVariableNameForSlot(OutputOcclusionId));
+            //sb.AppendLine("{0} = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, {1}).r == 0.0f ? 0.0f : 1.0f;", GetVariableNameForSlot(OutputAlphaId), uvVar);
+            //sb.AppendLine("#endif // TERRAIN_ENABLED, _TERRAIN_BASEMAP_GEN");
             //sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputAlbedoId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutputAlbedoId));
             //sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputNormalId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutputNormalId));
             //sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputMetallicId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutputMetallicId));

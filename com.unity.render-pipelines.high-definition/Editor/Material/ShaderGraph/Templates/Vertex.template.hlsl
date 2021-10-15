@@ -6,6 +6,8 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
 #ifdef TERRAIN_ENABLED
     // Affects normal, position, tangent, bitangent, uv
     // TODO: Move terrain prop declaratoins, functions/math/etc. into include file once I find out where to add stuff to the include files.
+
+    float3 terrainNormal;
 #ifdef UNITY_INSTANCING_ENABLED
     // Affects normal, position, uv
 
@@ -18,7 +20,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     float3 terrainPositionOS;
     terrainPositionOS.xz = sampleCoords * _TerrainHeightmapScale.xz;
     terrainPositionOS.y = height * _TerrainHeightmapScale.y;
-    $VertexDescriptionInputs.ObjectSpaceNormal:                         output.ObjectSpaceNormal =                          _TerrainNormalmapTexture.Load(int3(sampleCoords, 0)).rgb * 2 - 1;
+    terrainNormal = _TerrainNormalmapTexture.Load(int3(sampleCoords, 0)).rgb * 2 - 1;
     $VertexDescriptionInputs.ObjectSpacePosition:                       output.ObjectSpacePosition =                        terrainPositionOS;
     $VertexDescriptionInputs.ObjectSpacePositionPredisplacement:        output.ObjectSpacePositionPredisplacement =         terrainPositionOS;
 #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
@@ -27,12 +29,13 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     $VertexDescriptionInputs.uv0:                                       output.uv0 =                                        float4(sampleCoords * _TerrainHeightmapRecipSize.zw, input.uv0.zw);
 #endif
 #else
-    $VertexDescriptionInputs.ObjectSpaceNormal:                         output.ObjectSpaceNormal =                          input.normalOS;
+    terrainNormal = input.normalOS;
     $VertexDescriptionInputs.ObjectSpacePosition:                       output.ObjectSpacePosition =                        input.positionOS;
     $VertexDescriptionInputs.ObjectSpacePositionPredisplacement:        output.ObjectSpacePositionPredisplacement =         input.positionOS;
     $VertexDescriptionInputs.uv0:                                       output.uv0 =                                        input.uv0;
 #endif
-    float4 terrainTangentOS = float4(cross(output.ObjectSpaceNormal, float3(0, 0, 1)), -1);
+    $VertexDescriptionInputs.ObjectSpaceNormal:                         output.ObjectSpaceNormal =                          terrainNormal;
+    float4 terrainTangentOS = float4(cross(terrainNormal, float3(0, 0, 1)), -1);
     $VertexDescriptionInputs.ObjectSpaceTangent:                        output.ObjectSpaceTangent =                         terrainTangentOS.xyz;
     $VertexDescriptionInputs.WorldSpaceTangent:                         output.WorldSpaceTangent =                          TransformObjectToWorldDir(output.ObjectSpaceTangent.xyz);
     $VertexDescriptionInputs.WorldSpaceNormal:                          output.WorldSpaceNormal =                           TransformObjectToWorldNormal(output.ObjectSpaceNormal);

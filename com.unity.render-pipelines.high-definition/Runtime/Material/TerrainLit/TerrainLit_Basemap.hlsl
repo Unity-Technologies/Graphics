@@ -1,7 +1,3 @@
-TEXTURE2D(_MainTex);
-TEXTURE2D(_MetallicTex);
-SAMPLER(sampler_MainTex);
-
 void TerrainLitShade(float2 uv, inout TerrainLitSurfaceData surfaceData)
 {
     float4 mainTex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);

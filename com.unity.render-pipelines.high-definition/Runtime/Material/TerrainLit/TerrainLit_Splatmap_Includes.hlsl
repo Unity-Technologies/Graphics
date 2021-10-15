@@ -118,13 +118,13 @@ TEXTURE2D(_Control1);
 #endif
 
 #undef DECLARE_TERRAIN_LAYER_TEXS
+#endif
 
 SAMPLER(sampler_Splat0);
 
 #ifdef OVERRIDE_SPLAT_SAMPLER_NAME
 #define sampler_Splat0 OVERRIDE_SPLAT_SAMPLER_NAME
 SAMPLER(OVERRIDE_SPLAT_SAMPLER_NAME);
-#endif
 #endif
 
 // Defines for sampling splats
@@ -169,7 +169,7 @@ float4 masks[_LAYER_COUNT];
 #define NullMask(i)               float4(0, 1, 0, 0)
 #endif
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+//#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
 // This is really silly but I don't know how to else to get around SampleResults treating a variable name as a string for the sake of accessing the splat properties.
 //#define ToConstInt(i) ((i == 0) ? 0 : ((i == 1) ? 1 : ((i == 2) ? 2 : ((i == 3) ? 3 : ((i == 4) ? 4 : ((i == 5) ? 5 : ((i == 6) ? 6 : 7)))))));
@@ -220,10 +220,22 @@ float4 RemapMasks(float4 masks, float blendMask, float4 remapOffset, float4 rema
     ret = ret * remapScale + remapOffset;
     return ret;
 }
+#endif
 
 
 void GetSplatData(float2 uv, float layer, bool doBlend, out float3 outAlbedo, out float3 outNormal, out float outMetallic, out float outSmoothness, out float outOcclusion, out float outAlpha, out float4 outControl)
 {
+#ifdef TERRAIN_SPLAT_BASEPASS
+    float4 mainTex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+    float4 metallicTex = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MainTex, uv);
+    outAlbedo = mainTex.rgb;
+    outNormal = 0;
+    outSmoothness = mainTex.a;
+    outMetallic = metallicTex.r;
+    outOcclusion = metallicTex.g;
+    outAlpha = 1;
+    outControl = float4(1, 1, 1, 1);
+#else
     layer = layer % _LAYER_COUNT; // Prevent out of bounds access
     float2 splatBaseUV = uv;
     float2 dxuv = ddx(splatBaseUV);
@@ -373,5 +385,5 @@ void GetSplatData(float2 uv, float layer, bool doBlend, out float3 outAlbedo, ou
         outSmoothness = masks[layer].w;
         outOcclusion = masks[layer].y;
     }
-}
 #endif
+}
