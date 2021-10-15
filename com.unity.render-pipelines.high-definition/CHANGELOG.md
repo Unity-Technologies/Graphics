@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+- Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
 
 ### Fixed
 - Fixed the volume not being assigned on some scene templates.
@@ -37,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed tooltip not showing on labels in ShaderGraphs (1358483).
 - Fix API warnings in Matcap mode on Metal.
 - Fix D3D validation layer errors w.r.t shadow textures when an atlas is not used.
+- Fixed anchor position offset property for the Light Anchor component. (case 1362809)
 
 ## [13.0.0] - 2021-09-01
 
