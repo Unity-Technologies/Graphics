@@ -297,7 +297,7 @@ namespace UnityEditor.VFX.UI
                     if (hasActivationPort && i == 0) // activation anchor
                     {
                         var settingsCount = settingsContainer.childCount;
-                        anchor.style.top = -27 - settingsCount * 18 - (settingsCount > 0 ? 18 : 0);
+                        anchor.style.top = -30 - settingsCount * 17 - (settingsCount > 0 ? 17 : 0);
                         titleContainer.AddToClassList("activationslot");
                         anchor.AddToClassList("activationslot");
                     }

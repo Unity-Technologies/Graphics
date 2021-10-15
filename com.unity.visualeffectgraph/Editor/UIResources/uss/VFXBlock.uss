@@ -101,9 +101,25 @@ VFXBlockUI.node > #node-border
     margin-bottom:0;
 }
 
-#title.activationslot > #title-label
+VFXEditableDataAnchor.activationslot
+{
+    flex-grow: 1;
+    margin-right: 24px;
+}
+
+/*VFXEditableDataAnchor.activationslot > BoolPropertyRM
+{
+    justify-content: center;
+}*/
+
+VFXEditableDataAnchor.activationslot > BoolPropertyRM > Label
 {
     display: none;
+}
+
+VFXContextUI VFXBlockUI.node #node-border #title.activationslot > #title-label
+{
+    margin-left: 44px;
 }
 
 #title.activationslot > #collapse-button
