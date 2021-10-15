@@ -875,6 +875,69 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 // EvaluateBSDF_Rect
 //-----------------------------------------------------------------------------
 
+void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
+                           PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                           out float3 diffuseLighting, out float3 specularLighting,
+                           uint sampleCount = 512)
+{
+    diffuseLighting = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
+
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        float3 P = float3(0.0, 0.0, 0.0);   // Sample light point. Random point on the light shape in local space.
+        float3 Ns = float3(0.0, 0.0, 0.0);  // Unit surface normal at P
+        float lightPdf = 0.0;               // Pdf of the light sample
+
+        float2 u = Hammersley2d(i, sampleCount);
+
+        // Lights in Unity point backward.
+        float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(-lightData.forward, 0.0), float4(lightData.positionRWS, 1.0));
+
+        switch (lightData.lightType)
+        {
+            //case GPULIGHTTYPE_SPHERE:
+            //    SampleSphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+            //    break;
+            //case GPULIGHTTYPE_HEMISPHERE:
+            //    SampleHemisphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+            //    break;
+            //case GPULIGHTTYPE_CYLINDER:
+            //    SampleCylinder(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
+            //    break;
+            case GPULIGHTTYPE_RECTANGLE:
+                SampleRectangle(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
+                break;
+            //case GPULIGHTTYPE_DISK:
+            //    SampleDisk(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+            //   break;
+            // case GPULIGHTTYPE_TUBE: handled by a separate function.
+        }
+
+        // Get distance
+        float3 unL = P - positionWS;
+        float sqrDist = dot(unL, unL);
+        float3 L = normalize(unL);
+
+        // Cosine of the angle between the light direction and the normal of the light's surface.
+        float cosLNs = saturate(dot(-L, Ns));
+
+        // We calculate area reference light with the area integral rather than the solid angle one.
+        float NdotL = saturate(dot(bsdfData.normalWS, L));
+        float illuminance = cosLNs / (sqrDist * lightPdf);
+
+        if (illuminance > 0.0)
+        {
+            CBSDF cbsdf = EvaluateBSDF(V, L, preLightData, bsdfData);
+            diffuseLighting += cbsdf.diffR * lightData.color * illuminance * lightData.diffuseDimmer;
+            specularLighting += cbsdf.specR * lightData.color * illuminance * lightData.specularDimmer;
+        }
+    }
+
+    diffuseLighting /= float(sampleCount);
+    specularLighting /= float(sampleCount);
+}
+
 DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
@@ -1052,6 +1115,62 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     return lighting;
 }
 
+// NOTE: Already exists in ShaderGraphLibrary/GeometricUtils.
+float3 RayPlaneIntersect(in float3 rayOrigin, in float3 rayDirection, in float3 planeOrigin, in float3 planeNormal)
+{
+    float dist = dot(planeNormal, planeOrigin - rayOrigin) / dot(planeNormal, rayDirection);
+    return rayOrigin + rayDirection * dist;
+}
+
+// Ref: Moving Frostbite to PBR (Listing 11).
+// Returns the solid angle of a rectangle at the point.
+float RectangleSolidAngle(float3 positionWS, float4x3 lightVerts)
+{
+    float3 v0 = lightVerts[0] - positionWS;
+    float3 v1 = lightVerts[1] - positionWS;
+    float3 v2 = lightVerts[2] - positionWS;
+    float3 v3 = lightVerts[3] - positionWS;
+
+    float3 n0 = normalize(cross(v0, v1));
+    float3 n1 = normalize(cross(v1, v2));
+    float3 n2 = normalize(cross(v2, v3));
+    float3 n3 = normalize(cross(v3, v0));
+
+    float g0 = FastACos(dot(-n0, n1));
+    float g1 = FastACos(dot(-n1, n2));
+    float g2 = FastACos(dot(-n2, n3));
+    float g3 = FastACos(dot(-n3, n0));
+
+    return g0 + g1 + g2 + g3 - TWO_PI;
+}
+
+// Optimized (and approximate) solid angle routine. Doesn't handle the horizon.
+float RightPyramidSolidAngle(float positionWS, float lightPositionWS, float halfWidth, float halfHeight)
+{
+    const float a = halfWidth;
+    const float b = halfHeight;
+    const float h = length(positionWS - lightPositionWS);
+
+    return 4.0 * FastASin(a * b / sqrt (( a * a + h * h) * (b * b + h * h) ));
+}
+
+// Ref: Moving Frostbite to PBR (Appendix E, Listing E.2)
+// Returns the closest point to a rectangular shape defined by right and up (and the rect extents).
+float3 RectangleClosestPoint(float3 positionWS, float3 planeOrigin, float3 right, float3 up, float halfWidth, float halfHeight)
+{
+    float3 dir = positionWS - planeOrigin;
+
+    // Project into the 2D light plane.
+    float2 dist2D = float2(dot(dir, right), dot(dir, up));
+
+    // Clamp within the rectangle.
+    const float2 halfSize = float2(halfWidth, halfHeight);
+    dist2D = clamp(dist2D, -halfWidth, halfHeight);
+
+    // Compute the new world position.
+    return planeOrigin + dist2D.x * right + dist2D.y * up;
+}
+
 DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float3 V, PositionInputs posInput,
     PreLightData preLightData, LightData lightData,
@@ -1063,7 +1182,76 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     }
     else
     {
+    #if 0
+        // Falls back to the GGX LTC.
         return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+    #else
+        DirectLighting lighting;
+        ZERO_INITIALIZE(DirectLighting, lighting);
+
+        #if 1
+        {
+            // Ref: Moving Frostbite to PBR (Appendix E)
+            // Solve the area lighting using the Most Representative Point detection method.
+            // This is a stop-gap solution until further research is given to LTC support for anisotropic BSDFs.
+            const float3 positionWS = posInput.positionWS;
+
+            if (dot(normalize(positionWS - lightData.positionRWS), lightData.forward) > 0)
+            {
+                const float  halfWidth  = lightData.size.x * 0.5;
+                const float  halfHeight = lightData.size.y * 0.5;
+
+                // Compute the dominant specular direction(s?) for Marschner BSDF.
+                // TODO: Need a heuristic for choosing this dominant direction. How to efficiently sample the multiple lobes?
+                // Can we generalize the dominant backward and forward scattering lobes?
+                float3 dh = -lightData.forward;
+
+                // Intersect the dominant specular direction with the light plane.
+                float3 ph = RayPlaneIntersect(positionWS, dh, lightData.positionRWS, lightData.forward);
+
+                // Compute the closest position on the rectangle.
+                ph = RectangleClosestPoint(ph, lightData.positionRWS, -lightData.right, lightData.up, halfWidth, halfHeight);
+
+                // Construct the rectangle vertices and compute the solid angle.
+            #if 1
+                float4x3 lightVerts;
+                lightVerts[0] = lightData.positionRWS + -lightData.right * -halfWidth + lightData.up *  halfHeight; // LL
+                lightVerts[1] = lightData.positionRWS + -lightData.right * -halfWidth + lightData.up * -halfHeight; // UL
+                lightVerts[2] = lightData.positionRWS + -lightData.right *  halfWidth + lightData.up * -halfHeight; // UR
+                lightVerts[3] = lightData.positionRWS + -lightData.right *  halfWidth + lightData.up *  halfHeight; // LR
+
+                float solidAngle = RectangleSolidAngle(positionWS, lightVerts);
+            #else
+                float solidAngle = RightPyramidSolidAngle(positionWS, lightData.positionRWS, halfWidth, halfHeight);
+            #endif
+
+                // Construct the most representative direction.
+                float3 L = normalize(ph - positionWS);
+
+                // Shade the surface with a theoretical point light.
+                float3 lightColor = lightData.color * solidAngle; // TODO: NdotL?
+
+                // TODO: Area Shadow Sample
+
+                // Simulate a sphere/disk light with this hack.
+                // Note that it is not correct with our precomputation of PartLambdaV
+                // (means if we disable the optimization it will not have the
+                // same result) but we don't care as it is a hack anyway.
+                ClampRoughness(preLightData, bsdfData, lightData.minRoughness);
+
+                lighting = ShadeSurface_Infinitesimal(preLightData, bsdfData, V, L, lightColor.rgb,
+                                                      lightData.diffuseDimmer, lightData.specularDimmer);
+            }
+        }
+        #else
+        {
+            IntegrateBSDF_AreaRef(V, posInput.positionWS, preLightData, lightData, bsdfData,
+                                  lighting.diffuse, lighting.specular);
+        }
+        #endif
+
+        return lighting;
+    #endif
     }
 }
 
