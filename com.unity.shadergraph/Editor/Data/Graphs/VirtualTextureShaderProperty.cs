@@ -213,6 +213,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnAfterDeserialize(string json)
         {
+            // VT shader properties must be exposed so they can be picked up by the native-side VT system
             generatePropertyBlock = true;
         }
     }

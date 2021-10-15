@@ -21,9 +21,7 @@ namespace UnityEditor.ShaderGraph
 
             vtProperty.displayName = "ProceduralVirtualTexture";
             vtProperty.overrideReferenceName = "MyPVT";
-            vtProperty.generatePropertyBlock = true;
             vtProperty.value.procedural = true;
-            vtProperty.hidden = true;
 
             UpdateName();
         }
@@ -38,6 +36,8 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new VirtualTextureMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
             SetLayerCount(layers);
+            vtProperty.generatePropertyBlock = true;
+            vtProperty.hidden = true;
         }
 
         [SerializeField]
