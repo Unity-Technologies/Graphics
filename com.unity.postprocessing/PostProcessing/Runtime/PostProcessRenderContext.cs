@@ -142,14 +142,7 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <summary>
         /// The current active rendering eye (for XR).
         /// </summary>
-        public int xrActiveEye { get; private set; }
-
-        /// <summary>
-        /// The xrActiveEye is not necessarily the right eye id depending which mode we're running on.
-        /// The renderbuiltin function receives an eye id. This eye id gets stored here during the current
-        /// eye.
-        /// </summary>
-        internal int currentEye = 0;
+        public int xrActiveEye { get; set; }
 
         /// <summary>
         /// The number of eyes for XR outputs.

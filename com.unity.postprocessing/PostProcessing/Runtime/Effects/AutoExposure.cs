@@ -121,14 +121,12 @@ namespace UnityEngine.Rendering.PostProcessing
 
         public override void Render(PostProcessRenderContext context)
         {
-            // multi pass and singlepass only has a single eye
-            int eye = context.currentEye;
             var cmd = context.command;
             cmd.BeginSample("AutoExposureLookup");
 
             // Prepare autoExpo texture pool
-            CheckTexture(eye, 0);
-            CheckTexture(eye, 1);
+            CheckTexture(context.xrActiveEye, 0);
+            CheckTexture(context.xrActiveEye, 1);
 
             // Make sure filtering values are correct to avoid apocalyptic consequences
             float lowPercent = settings.filtering.value.x;
@@ -163,25 +161,25 @@ namespace UnityEngine.Rendering.PostProcessing
             {
                 // We don't want eye adaptation when not in play mode because the GameView isn't
                 // animated, thus making it harder to tweak. Just use the final audo exposure value.
-                m_CurrentAutoExposure = m_AutoExposurePool[eye][0];
+                m_CurrentAutoExposure = m_AutoExposurePool[context.xrActiveEye][0];
                 cmd.SetComputeTextureParam(compute, kernel, "_Destination", m_CurrentAutoExposure);
                 cmd.DispatchCompute(compute, kernel, 1, 1, 1);
 
                 // Copy current exposure to the other pingpong target to avoid adapting from black
-                RuntimeUtilities.CopyTexture(cmd, m_AutoExposurePool[eye][0], m_AutoExposurePool[eye][1]);
+                RuntimeUtilities.CopyTexture(cmd, m_AutoExposurePool[context.xrActiveEye][0], m_AutoExposurePool[context.xrActiveEye][1]);
                 m_ResetHistory = false;
             }
             else
             {
-                int pp = m_AutoExposurePingPong[eye];
-                var src = m_AutoExposurePool[eye][++pp % 2];
-                var dst = m_AutoExposurePool[eye][++pp % 2];
+                int pp = m_AutoExposurePingPong[context.xrActiveEye];
+                var src = m_AutoExposurePool[context.xrActiveEye][++pp % 2];
+                var dst = m_AutoExposurePool[context.xrActiveEye][++pp % 2];
 
                 cmd.SetComputeTextureParam(compute, kernel, "_Source", src);
                 cmd.SetComputeTextureParam(compute, kernel, "_Destination", dst);
                 cmd.DispatchCompute(compute, kernel, 1, 1, 1);
 
-                m_AutoExposurePingPong[eye] = ++pp % 2;
+                m_AutoExposurePingPong[context.xrActiveEye] = ++pp % 2;
                 m_CurrentAutoExposure = dst;
             }
 

@@ -1182,7 +1182,9 @@ namespace UnityEngine.Rendering.PostProcessing
             context.uberSheet = uberSheet;
             context.autoExposureTexture = RuntimeUtilities.whiteTexture;
             context.bloomBufferNameID = -1;
-            context.currentEye = eye;
+            int xrActiveEyeBackup = context.xrActiveEye;
+            if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.MultiPass)
+                context.xrActiveEye = eye;
 
             if (isFinalPass && context.stereoActive && context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced)
                 uberSheet.EnableKeyword("STEREO_INSTANCING_ENABLED");
@@ -1267,7 +1269,7 @@ namespace UnityEngine.Rendering.PostProcessing
             if (context.bloomBufferNameID > -1) cmd.ReleaseTemporaryRT(context.bloomBufferNameID);
 
             cmd.EndSample("BuiltinStack");
-
+            context.xrActiveEye = xrActiveEyeBackup;
             return tempTarget;
         }
 
