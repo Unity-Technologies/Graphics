@@ -335,27 +335,27 @@ namespace UnityEditor.VFX
                 || contextType == VFXContextType.Init;
         }
 
-        private static bool CanMixingFrom(VFXContextType from, VFXContextType to, VFXContextType primaryType)
+        private static bool CanMixingFrom(VFXContextType from, VFXContextType to, VFXContextType lastFavoriteTo)
         {
             if (from == VFXContextType.Init || from == VFXContextType.Update)
             {
-                if (primaryType == VFXContextType.Update)
+                if (lastFavoriteTo == VFXContextType.Update)
                     return to == VFXContextType.Update;
-                if (primaryType == VFXContextType.Output)
+                if (lastFavoriteTo == VFXContextType.Output)
                     return to == VFXContextType.Output;
             }
             //No special case outside init output which can't be mixed with output & update
             return true;
         }
 
-        private static bool CanMixingTo(VFXContextType from, VFXContextType to, VFXContextType primaryType)
+        private static bool CanMixingTo(VFXContextType from, VFXContextType to, VFXContextType lastFavoriteFrom)
         {
             if (to == VFXContextType.Init)
             {
                 //Init is exclusive either {event, spawner} xor {spawnerGPU}, not both
-                if (primaryType == VFXContextType.Event || primaryType == VFXContextType.Spawner)
+                if (lastFavoriteFrom == VFXContextType.Event || lastFavoriteFrom == VFXContextType.Spawner)
                     return from == VFXContextType.Event || from == VFXContextType.Spawner;
-                if (primaryType == VFXContextType.SpawnerGPU)
+                if (lastFavoriteFrom == VFXContextType.SpawnerGPU)
                     return from == VFXContextType.SpawnerGPU;
             }
             else if (to == VFXContextType.Spawner || to == VFXContextType.OutputEvent)
@@ -365,7 +365,7 @@ namespace UnityEditor.VFX
             }
 
             //Default case, type transfer aren't expected
-            return from == to && to == primaryType;
+            return from == to && to == lastFavoriteFrom;
         }
 
         protected static void InnerLink(VFXContext from, VFXContext to, int fromIndex, int toIndex, bool notify = true)
