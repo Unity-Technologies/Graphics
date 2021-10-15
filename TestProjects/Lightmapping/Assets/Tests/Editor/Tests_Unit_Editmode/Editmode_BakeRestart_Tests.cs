@@ -282,7 +282,7 @@ public class Editmode_BakeRestart_Tests
     [UnityTest]//Case 1232653
     public IEnumerator TogglingBakedGI_DuringABake_DoesNotFallback()
     {
-        EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/BakeRestartScene.unity", OpenSceneMode.Single);
+        EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/TogglingBakedGITest.unity", OpenSceneMode.Single);
         yield return null;
 
         LightingSettings lightingSettings = null;
@@ -312,8 +312,11 @@ public class Editmode_BakeRestart_Tests
 
         lightingSettings.bakedGI = true;
 
-        // Check that baking is still running
-        Assert.IsTrue(Lightmapping.isBaking);
+        foreach (bool b in RunABake(0.2f))
+        {
+            yield return null;
+        }
+        
         // Check that we did not fallback to CPULM
         Assert.AreEqual(lightingSettings.lightmapper, LightingSettings.Lightmapper.ProgressiveGPU);
 
