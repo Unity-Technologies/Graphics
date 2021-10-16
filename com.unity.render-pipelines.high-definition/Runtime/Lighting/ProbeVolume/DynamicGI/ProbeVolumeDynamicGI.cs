@@ -180,20 +180,24 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public int numSimulatedProbeVolumes;
             public int numSimulatedProbes;
+            public int totalDynamicGIProbes;
 
             public void Reset()
             {
                 numSimulatedProbeVolumes = 0;
                 numSimulatedProbes = 0;
+                totalDynamicGIProbes = 0;
+            }
+
+            internal void SimulationRequested(ProbeVolumeHandle probeVolume)
+            {
+                ++totalDynamicGIProbes;
             }
 
             internal void Simulated(ProbeVolumeHandle probeVolume)
             {
-                if (probeVolume.AbleToSimulateDynamicGI())
-                {
-                    ++numSimulatedProbeVolumes;
-                    numSimulatedProbes += probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
-                }
+                ++numSimulatedProbeVolumes;
+                numSimulatedProbes += probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
             }
         }
 
@@ -738,6 +742,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var probeVolume = volumes[probeVolumeIndex];
             if (probeVolume.AbleToSimulateDynamicGI() && _probeVolumeSimulationRequestCount < _probeVolumeSimulationRequests.Length)
             {
+                _stats.SimulationRequested(probeVolume);
                 var lastSimulatedFrame = probeVolume.GetLastSimulatedFrame();
                 _probeVolumeSimulationRequests[_probeVolumeSimulationRequestCount] = new ProbeVolumeSimulationRequest
                 {
