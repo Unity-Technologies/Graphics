@@ -176,6 +176,32 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public struct ProbeVolumeDynamicGIStats
+        {
+            public int numSimulatedProbeVolumes;
+            public int numSimulatedProbes;
+
+            public void Reset()
+            {
+                numSimulatedProbeVolumes = 0;
+                numSimulatedProbes = 0;
+            }
+
+            internal void Simulated(ProbeVolumeHandle probeVolume)
+            {
+                if (probeVolume.AbleToSimulateDynamicGI())
+                {
+                    ++numSimulatedProbeVolumes;
+                    numSimulatedProbes += probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
+                }
+            }
+        }
+
+        private ProbeVolumeDynamicGIStats _stats;
+        public ProbeVolumeDynamicGIStats GetStats()
+        {
+            return _stats;
+        }
 
         internal static void AllocateNeighbors(ref ProbeVolumePayload payload, int numMissedAxis, int numHitAxis, int numAxis)
         {
@@ -380,6 +406,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DispatchPropagationAxes(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
             DispatchPropagationCombine(cmd, probeVolume, in giSettings, in shaderGlobals, probeVolumeAtlasSHRTHandle);
 
+            _stats.Simulated(probeVolume);
             probeVolume.propagationBuffers.SwapRadianceCaches();
             probeVolume.SetLastSimulatedFrame(_probeVolumeSimulationFrameTick);
         }
@@ -701,6 +728,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ResetSimulationRequests()
         {
+            _stats.Reset();
             _probeVolumeSimulationRequestCount = 0;
             ++_probeVolumeSimulationFrameTick;
         }
