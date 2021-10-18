@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.8.0] - 2021-09-20
 
 ### Fixed
+- Fixed ShaderGraph needing updated normals for ShadowCaster in URP.
 - Fixed memory leak with XR combined occlusion meshes. [case 1366173]
 
 ## [10.7.0] - 2021-07-02
