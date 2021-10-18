@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.Universal.Internal;
 
@@ -406,6 +407,8 @@ namespace UnityEngine.Rendering.Universal
 
             RecreateSystemsIfNeeded(renderer, cameraData);
 
+            ChangeAdaptivePerformanceDrawDistances();
+
             m_DecalEntityManager.Update();
 
 
@@ -442,6 +445,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             RecreateSystemsIfNeeded(renderer, renderingData.cameraData);
+
+            ChangeAdaptivePerformanceDrawDistances();
 
             if (intermediateRendering)
             {
@@ -492,6 +497,16 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_DecalEntityManager = null;
                 sharedDecalEntityManager.Release(m_DecalEntityManager);
+            }
+        }
+
+        [Conditional("ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER")]
+        private void ChangeAdaptivePerformanceDrawDistances()
+        {
+            if (UniversalRenderPipeline.asset.useAdaptivePerformance)
+            {
+                m_DecalCreateDrawCallSystem.maxDrawDistance = AdaptivePerformance.AdaptivePerformanceRenderSettings.DecalsDrawDistance;
+                m_DecalUpdateCullingGroupSystem.boundingDistance[0] = AdaptivePerformance.AdaptivePerformanceRenderSettings.DecalsDrawDistance;
             }
         }
     }

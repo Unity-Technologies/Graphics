@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     internal class DecalUpdateCullingGroupSystem
     {
-        private float[] m_BoundingDistance = new float[1];
+        public float[] boundingDistance = new float[1];
         private Camera m_Camera;
         private DecalEntityManager m_EntityManager;
         private ProfilingSampler m_Sampler;
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
         public DecalUpdateCullingGroupSystem(DecalEntityManager entityManager, float drawDistance)
         {
             m_EntityManager = entityManager;
-            m_BoundingDistance[0] = drawDistance;
+            boundingDistance[0] = drawDistance;
             m_Sampler = new ProfilingSampler("DecalUpdateCullingGroupsSystem.Execute");
         }
 
@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.Universal
             CullingGroup cullingGroup = culledChunk.cullingGroups;
             cullingGroup.targetCamera = m_Camera;
             cullingGroup.SetDistanceReferencePoint(m_Camera.transform.position);
-            cullingGroup.SetBoundingDistances(m_BoundingDistance);
+            cullingGroup.SetBoundingDistances(boundingDistance);
             cachedChunk.boundingSpheres.CopyTo(cachedChunk.boundingSphereArray);
             cullingGroup.SetBoundingSpheres(cachedChunk.boundingSphereArray);
             cullingGroup.SetBoundingSphereCount(count);
