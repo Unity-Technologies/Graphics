@@ -137,6 +137,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderTexture convolutionSourceTexture = null;
             if (cubeTexture != null)
             {
+                // if the size if different from the cache probe size or if the input texture format is compressed, we need to convert it
+                // 1) to a format for which we can generate mip maps
+                // 2) to the proper reflection probe cache size
                 bool sizeMismatch = cubeTexture.width != m_ProbeSize || cubeTexture.height != m_ProbeSize;
                 bool formatMismatch = (GraphicsFormatUtility.GetGraphicsFormat(cubeTexture.format, false) != m_TempRenderTexture.graphicsFormat);
 
