@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -68,3 +69,4 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 }
+#endif

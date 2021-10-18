@@ -348,9 +348,7 @@ all_package_ci_project_trunk:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_Win_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_Win_min_editor
       -  .yamato/_projectcontext.yml#test_all_project_OSX_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_OSX_min_editor
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
     commands:
@@ -365,9 +363,7 @@ all_package_ci_project_CUSTOM-REVISION:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_Win_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_Win_min_editor
       -  .yamato/_projectcontext.yml#test_all_project_OSX_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_OSX_min_editor
     variables:
         CUSTOM_REVISION: custom_revision_not_set
     commands:

@@ -5,3 +5,6 @@ In the High Definition Render Pipeline (HDRP), some features work differently be
 ## Color Grading
 
 Starting from HDRP 13.x, HDRP will use ACEScg as a default color space to perform color grading even when using a non-ACES  if  unlike the previously used sRGB color space.  It is possible to go back to sRGB in the Global Settings Asset.
+
+## Shader code
+
