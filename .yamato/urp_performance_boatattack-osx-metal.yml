@@ -25,15 +25,12 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
-             cat << EOF > ssh_config
+             ssh bokken@$BOKKEN_DEVICE_IP "echo \"
              host github.cds.internal.unity3d.com
                HostName github.cds.internal.unity3d.com
                IdentityFile /Users/bokken/.ssh/id_rsa_cds_github
                StrictHostKeyChecking no
-               User git
-             EOF
-      -  command: scp ssh_config bokken@$BOKKEN_DEVICE_IP:~/.ssh/config_cds_github && rm ssh_config
-      -  command: ssh bokken@$BOKKEN_DEVICE_IP "cat ~/.ssh/config_cds_github >> ~/.ssh/config && rm ~/.ssh/config_cds_github && cat ~/.ssh/config"
+               User git\" >> ~/.ssh/config"
       -  command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
       -  command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
@@ -116,15 +113,12 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_tru
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
-             cat << EOF > ssh_config
+             ssh bokken@$BOKKEN_DEVICE_IP "echo \"
              host github.cds.internal.unity3d.com
                HostName github.cds.internal.unity3d.com
                IdentityFile /Users/bokken/.ssh/id_rsa_cds_github
                StrictHostKeyChecking no
-               User git
-             EOF
-      -  command: scp ssh_config bokken@$BOKKEN_DEVICE_IP:~/.ssh/config_cds_github && rm ssh_config
-      -  command: ssh bokken@$BOKKEN_DEVICE_IP "cat ~/.ssh/config_cds_github >> ~/.ssh/config && rm ~/.ssh/config_cds_github && cat ~/.ssh/config"
+               User git\" >> ~/.ssh/config"
       -  command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
       -  command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
@@ -202,15 +196,12 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_trun
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
-             cat << EOF > ssh_config
+             ssh bokken@$BOKKEN_DEVICE_IP "echo \"
              host github.cds.internal.unity3d.com
                HostName github.cds.internal.unity3d.com
                IdentityFile /Users/bokken/.ssh/id_rsa_cds_github
                StrictHostKeyChecking no
-               User git
-             EOF
-      -  command: scp ssh_config bokken@$BOKKEN_DEVICE_IP:~/.ssh/config_cds_github && rm ssh_config
-      -  command: ssh bokken@$BOKKEN_DEVICE_IP "cat ~/.ssh/config_cds_github >> ~/.ssh/config && rm ~/.ssh/config_cds_github && cat ~/.ssh/config"
+               User git\" >> ~/.ssh/config"
       -  command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
       -  command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
@@ -288,15 +279,12 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_CU
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
-             cat << EOF > ssh_config
+             ssh bokken@$BOKKEN_DEVICE_IP "echo \"
              host github.cds.internal.unity3d.com
                HostName github.cds.internal.unity3d.com
                IdentityFile /Users/bokken/.ssh/id_rsa_cds_github
                StrictHostKeyChecking no
-               User git
-             EOF
-      -  command: scp ssh_config bokken@$BOKKEN_DEVICE_IP:~/.ssh/config_cds_github && rm ssh_config
-      -  command: ssh bokken@$BOKKEN_DEVICE_IP "cat ~/.ssh/config_cds_github >> ~/.ssh/config && rm ~/.ssh/config_cds_github && cat ~/.ssh/config"
+               User git\" >> ~/.ssh/config"
       -  command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
       -  command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
@@ -379,15 +367,12 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_CUS
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
-             cat << EOF > ssh_config
+             ssh bokken@$BOKKEN_DEVICE_IP "echo \"
              host github.cds.internal.unity3d.com
                HostName github.cds.internal.unity3d.com
                IdentityFile /Users/bokken/.ssh/id_rsa_cds_github
                StrictHostKeyChecking no
-               User git
-             EOF
-      -  command: scp ssh_config bokken@$BOKKEN_DEVICE_IP:~/.ssh/config_cds_github && rm ssh_config
-      -  command: ssh bokken@$BOKKEN_DEVICE_IP "cat ~/.ssh/config_cds_github >> ~/.ssh/config && rm ~/.ssh/config_cds_github && cat ~/.ssh/config"
+               User git\" >> ~/.ssh/config"
       -  command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
       -  command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
@@ -465,15 +450,12 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_CUST
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
-             cat << EOF > ssh_config
+             ssh bokken@$BOKKEN_DEVICE_IP "echo \"
              host github.cds.internal.unity3d.com
                HostName github.cds.internal.unity3d.com
                IdentityFile /Users/bokken/.ssh/id_rsa_cds_github
                StrictHostKeyChecking no
-               User git
-             EOF
-      -  command: scp ssh_config bokken@$BOKKEN_DEVICE_IP:~/.ssh/config_cds_github && rm ssh_config
-      -  command: ssh bokken@$BOKKEN_DEVICE_IP "cat ~/.ssh/config_cds_github >> ~/.ssh/config && rm ~/.ssh/config_cds_github && cat ~/.ssh/config"
+               User git\" >> ~/.ssh/config"
       -  command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
       -  command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
