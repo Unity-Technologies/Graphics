@@ -4,14 +4,30 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [13.1.0] - 2021-09-24
+## [13.1.1] - 2021-10-04
 
 ### Added
-- Added public api and updated docs for Light2D shape properties.
 - Added Depth Texture setting for Overlay Camera.
 - Added Depth Priming support for Vulkan with MSAA.
 - Added Shadows and Additional Lights off variants stripping.
 - Added Adaptive Performance Decals scaler.
+
+### Changed
+- Main light shadow, additional light shadow and additional light keywords are now enabled based on urp setting instead of existence in scene. This allows better variant stripping.
+
+### Fixed
+- Fixed a regression where ShaderGraph screen position was not correct in game view and when using XR [1369450]
+- Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
+- Fixed ShadowCaster now requires varying normalWS to include changed normals from vertex shader in shader graph.
+- Fixed typo in numIterationsEnclosingSphere api name
+- Fix for rendering thumbnails. [case 1348209](https://issuetracker.unity3d.com/issues/preview-of-assets-do-not-show-in-the-project-window)
+- Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]
+- Fixed an issue in where installing the Adaptive Performance package caused errors to the inspector UI [1368161](https://issuetracker.unity3d.com/issues/urp-package-throws-compilation-error-cs1525-when-imported-together-with-adaptive-performance-package)
+
+## [13.1.0] - 2021-09-24
+
+### Added
+- Added public api and updated docs for Light2D shape properties.
 
 ### Changed
 
@@ -21,10 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
 - Fixed an issue where Unlit and ParticlesUnlit shaders did not have HDR color selection for albedo [case 1283767](https://issuetracker.unity3d.com/issues/built-in-unlit-particle-shader-has-hdr-color-selection-for-albedo-urp-unlit-particles-do-not)
-- Fixed a regression where ShaderGraph screen position was not correct in game view and when using XR [1369450]
-- Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
-- Fixed ShadowCaster now requires varying normalWS to include changed normals from vertex shader in shader graph.
-- Fixed typo in numIterationsEnclosingSphere api name
+
 
 ## [13.0.0] - 2021-09-01
 ### Added
@@ -35,7 +48,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed experimental tile deferred code.
 - VFX: New shadergraph support directly on Universal target.
-- Main light shadow, additional light shadow and additional light keywords are now enabled based on urp setting instead of existence in scene. This allows better variant stripping.
 
 ### Fixed
 - Added warning for lit shader detailed abledo, if texture is not linear. [1342011](https://issuetracker.unity3d.com/issues/detail-maps-packed-differently-in-built-in-vs-urp)
@@ -45,9 +57,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added "Conservative Enclosing Sphere" setting to fix shadow frustum culling issue where shadows are erroneously culled in corners of cascades [case 1153151](https://issuetracker.unity3d.com/issues/lwrp-shadows-are-being-culled-incorrectly-in-the-corner-of-the-camera-viewport-when-the-far-clip-plane-is-small)
 - Fixed memory leak with XR combined occlusion meshes. [case 1366173]
 - Fixed a bug with Sprite Targets in ShaderGraph not rendering correctly in game view [1352225]
-- Fix for rendering thumbnails. [case 1348209](https://issuetracker.unity3d.com/issues/preview-of-assets-do-not-show-in-the-project-window)
-- Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]
-- Fixed an issue in where installing the Adaptive Performance package caused errors to the inspector UI [1368161](https://issuetracker.unity3d.com/issues/urp-package-throws-compilation-error-cs1525-when-imported-together-with-adaptive-performance-package)
 
 ## [12.0.0] - 2021-01-11
 ### Added

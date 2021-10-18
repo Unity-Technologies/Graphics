@@ -195,17 +195,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Check materials dirtiness
-            if (m_MaterialsDirty)
+            if (GetMaterialDirtiness())
             {
-                m_MaterialsDirty = false;
+                ResetMaterialDirtiness();
                 ResetPathTracing();
                 return camData;
             }
 
             // Check light or geometry transforms dirtiness
-            if (m_TransformDirty)
+            if (GetTransformDirtiness())
             {
-                m_TransformDirty = false;
+                ResetTransformDirtiness();
                 ResetPathTracing();
                 return camData;
             }
@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Check geometry dirtiness
-            ulong accelSize = m_CurrentRAS.GetSize();
+            ulong accelSize = RequestAccelerationStructure().GetSize();
             if (accelSize != m_CacheAccelSize)
             {
                 m_CacheAccelSize = accelSize;
