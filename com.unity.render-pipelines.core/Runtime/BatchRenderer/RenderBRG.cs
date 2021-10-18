@@ -1,3 +1,7 @@
+#define DEBUG_LOG_SCENE
+//#define DEBUG_LOG_CULLING
+//#define DEBUG_LOG_CULLING_RESULTS_SLOW
+
 using System;
 using System.Collections.Generic;
 using Unity.Burst;
@@ -190,6 +194,8 @@ unsafe class SceneBRG
     private struct DrawCommandOutputJob : IJob
     {
         public BatchID batchID;
+        public int viewID;
+        public int sliceID;
 
         [DeallocateOnJobCompletion]
         [ReadOnly]
@@ -299,6 +305,15 @@ unsafe class SceneBRG
             draws.visibleInstanceCount = outIndex;
             draws.drawRangeCount = outRange;
             drawCommands[0] = draws;
+
+#if DEBUG_LOG_CULLING_RESULTS_SLOW
+            Debug.Log(
+                "[DrawCommandOutputJob] viewID=" + viewID +
+                " sliceID=" + sliceID +
+                " ranges=" + draws.drawRangeCount +
+                " draws=" + draws.drawCommandCount +
+                " instances=" + draws.visibleInstanceCount);
+#endif
         }
     }
 
@@ -309,7 +324,8 @@ unsafe class SceneBRG
             return new JobHandle();
         }
 
-        var planes = FrustumPlanes.BuildSOAPlanePackets(cullingContext.cullingPlanes, Allocator.TempJob);
+        var cc = cullingContext;
+        var planes = FrustumPlanes.BuildSOAPlanePackets(cc.cullingPlanes, Allocator.TempJob);
 
         BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
         drawCommands.drawRanges = Malloc<BatchDrawRange>(m_drawRanges.Length);
@@ -338,6 +354,8 @@ unsafe class SceneBRG
 
         var drawOutputJob = new DrawCommandOutputJob
         {
+            viewID = cc.viewID.GetInstanceID(),
+            sliceID = cc.viewID.GetInstanceID(),
             batchID = m_batchID,
             rendererVisibility = rendererVisibility,
             instanceIndices = m_instanceIndices,
@@ -347,6 +365,20 @@ unsafe class SceneBRG
             drawCommands = cullingOutput.drawCommands
         };
 
+#if DEBUG_LOG_CULLING
+        Debug.Log(
+            "[OnPerformCulling] viewType=" + cc.viewType +
+            " viewID=" + cc.viewID.GetInstanceID() +
+            " viewID.slice=" + cc.viewID.GetSliceIndex() +
+            " LOD.position=" + cc.lodParameters.cameraPosition +
+            " LOD.ortho=" + cc.lodParameters.isOrthographic +
+            " LOD.fov=" + cc.lodParameters.fieldOfView +
+            " layerMask=" + cc.cullingLayerMask +
+            " sceneMask=" + cc.sceneCullingMask +
+            " nearPlane=" + cc.nearPlane +
+            " cullingPlanes=" + cc.cullingPlanes.Length);
+#endif
+
         var jobHandleCulling = cullingJob.Schedule(visibilityLength, 2);
         var jobHandleOutput = drawOutputJob.Schedule(jobHandleCulling);
 
@@ -354,12 +386,14 @@ unsafe class SceneBRG
     }
 
     // Start is called before the first frame update
-    public void Initialize(List<Renderer> renderers)
+    public void Initialize(List<MeshRenderer> renderers)
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
         // Create a batch...
+#if DEBUG_LOG_SCENE
         Debug.Log("Converting " + renderers.Count + " renderers...");
+#endif
 
         m_renderers = new NativeArray<DrawRenderer>(renderers.Count, Allocator.Persistent);
         m_batchHash = new NativeHashMap<DrawKey, int>(1024, Allocator.Persistent);
@@ -495,6 +529,7 @@ unsafe class SceneBRG
             // Sub-meshes...
             var sharedMaterials = new List<Material>();
             renderer.GetSharedMaterials(sharedMaterials);
+            var startSubMesh = renderer.subMeshStartIndex;
             for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
             {
                 Material matToUse;
@@ -510,7 +545,7 @@ unsafe class SceneBRG
                 if (flipWinding)
                     flags |= BatchDrawCommandFlags.FlipWinding;
 
-                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, flags = flags, range = rangeKey };
+                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)(matIndex + startSubMesh), flags = flags, range = rangeKey };
 
                 var drawBatch = new DrawBatch
                 {
@@ -546,7 +581,9 @@ unsafe class SceneBRG
 
         m_GPUPersistanceBufferId = m_BatchRendererGroup.RegisterBuffer(m_GPUPersistentInstanceData);
 
+#if DEBUG_LOG_SCENE
         Debug.Log("DrawRanges: " + m_drawRanges.Length + ", DrawBatches: " + m_drawBatches.Length + ", Instances: " + m_instances.Length);
+#endif
 
         // Prefix sum to calculate draw offsets for each DrawRange
         int prefixSum = 0;
@@ -692,7 +729,7 @@ public class RenderBRG : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        List<Renderer> renderers = new List<Renderer>();
+        var renderers = new List<MeshRenderer>();
         foreach (var go in scene.GetRootGameObjects())
             renderers.AddRange(go.GetComponentsInChildren<MeshRenderer>());
 

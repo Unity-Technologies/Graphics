@@ -73,7 +73,7 @@ namespace Unity.Rendering
             };
             return result;
         }
-        
+
         [Flags]
         enum LightMappingFlags
         {
@@ -82,14 +82,14 @@ namespace Unity.Rendering
             Directional = 2,
             ShadowMask = 4
         }
-        
+
         struct MaterialLookupKey
         {
             public Material BaseMaterial;
             public LightMaps LightMaps;
             public LightMappingFlags Flags;
         }
-        
+
         public static LightMaps GetLightmapsStruct()
         {
             var lightmapsbaked = LightmapSettings.lightmaps;
@@ -107,7 +107,7 @@ namespace Unity.Rendering
             }
             return ConstructLightMaps(colors, directions, shadowMasks);
         }
-        
+
         private static Material GetLightMappedMaterial(Material baseMaterial, LightMaps lightMaps, Dictionary<MaterialLookupKey, Material> lightMappedMaterialCache)
         {
             var flags = LightMappingFlags.Lightmapped;
@@ -134,7 +134,7 @@ namespace Unity.Rendering
                 return lightMappedMaterial;
             }
         }
-        
+
         private static Material CreateLightMappedMaterial(Material material, LightMaps lightMaps)
         {
             var lightMappedMaterial = new Material(material);
@@ -159,25 +159,25 @@ namespace Unity.Rendering
 
             return lightMappedMaterial;
         }
-        
+
         // build a map of renderer / submesh -> Material.
         // create a new material if lightmappingis needed
-        public static Dictionary<Tuple<Renderer, int>, Material> GenerateRenderersToMaterials(List<Renderer> renderers, LightMaps maps)
+        public static Dictionary<Tuple<Renderer, int>, Material> GenerateRenderersToMaterials(List<MeshRenderer> renderers, LightMaps maps)
         {
             var returnMap = new Dictionary<Tuple<Renderer, int>, Material>();
-            
+
             Dictionary<MaterialLookupKey, Material> lightMappedMaterialCache = new();
 
             // renderer
             foreach (var renderer in renderers)
-            { 
+            {
                 if(renderer == null)
                     continue;
-                
+
                 var lightmapIndex = renderer.lightmapIndex;
                 var sharedMaterials = new List<Material>();
                 renderer.GetSharedMaterials(sharedMaterials);
-                
+
                 // submesh
                 for (var i = 0; i < sharedMaterials.Count; i++)
                 {
