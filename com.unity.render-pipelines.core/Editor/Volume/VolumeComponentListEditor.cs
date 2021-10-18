@@ -316,7 +316,7 @@ namespace UnityEditor.Rendering
                 menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), targetEditor.showAdditionalProperties, () => targetEditor.showAdditionalProperties ^= true);
             else
                 menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Show Additional Properties"));
-            menu.AddItem(EditorGUIUtility.TrTextContent("Show Only Overrided Parameters"), targetEditor.showOnlyOverridedParameters, () => targetEditor.showOnlyOverridedParameters = !targetEditor.showOnlyOverridedParameters);
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show Only Overriden Parameters"), targetEditor.showOnlyOverridenParameters, () => targetEditor.showOnlyOverridenParameters = !targetEditor.showOnlyOverridenParameters);
             menu.AddItem(EditorGUIUtility.TrTextContent("Open Core Render Pipeline Preferences..."), false, () => CoreRenderPipelinePreferences.Open());
 
             menu.AddSeparator(string.Empty);

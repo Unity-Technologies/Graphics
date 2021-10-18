@@ -151,24 +151,24 @@ namespace UnityEditor.Rendering
             }
         }
 
-        EditorPrefBool m_ShowOnlyOverridedParameters;
+        EditorPrefBool m_ShowOnlyOverridenParameters;
         internal void SetShowOnlyOverridedParameters(bool value)
         {
-            m_ShowOnlyOverridedParameters.value = value;
+            m_ShowOnlyOverridenParameters.value = value;
         }
 
         internal void InitShowOnlyOverridedParametersPreference()
         {
             string key = $"UI_Show_Only_Overrided_Parameters_{GetType()}";
-            m_ShowOnlyOverridedParameters = new EditorPrefBool(key);
+            m_ShowOnlyOverridenParameters = new EditorPrefBool(key);
         }
 
         /// <summary>
         /// Set to true to show only the parameters that are overrided
         /// </summary>
-        public bool showOnlyOverridedParameters
+        public bool showOnlyOverridenParameters
         {
-            get => m_ShowOnlyOverridedParameters.value;
+            get => m_ShowOnlyOverridenParameters.value;
             set => SetShowOnlyOverridedParameters(value);
         }
 
@@ -590,7 +590,7 @@ namespace UnityEditor.Rendering
         /// <param name="title">A custom label and/or tooltip.</param>
         private bool DrawPropertyField(SerializedDataParameter property, GUIContent title)
         {
-            if (!property.overrideState.boolValue && showOnlyOverridedParameters)
+            if (!property.overrideState.boolValue && showOnlyOverridenParameters)
                 return false;
 
             using (var scope = new OverridablePropertyScope(property, title, this))
