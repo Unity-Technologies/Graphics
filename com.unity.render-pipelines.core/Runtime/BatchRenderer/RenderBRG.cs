@@ -29,7 +29,7 @@ public struct RangeKey : IEquatable<RangeKey>
     public bool Equals(RangeKey other)
     {
         return
-            layer == other.layer && 
+            layer == other.layer &&
             renderingLayerMask == other.renderingLayerMask &&
             shadowCastingMode == other.shadowCastingMode &&
             shadowFlags == other.shadowFlags;
@@ -352,7 +352,7 @@ unsafe class SceneBRG
 
         return jobHandleOutput;
     }
-    
+
     // Start is called before the first frame update
     public void Initialize(List<Renderer> renderers)
     {
@@ -368,13 +368,13 @@ unsafe class SceneBRG
         m_drawRanges = new NativeList<DrawRange>(Allocator.Persistent);
 
         // Fill the GPU-persistent scene data ComputeBuffer
-        int bigDataBufferVector4Count = 
-            4 /*zero*/ 
-            + 1 /*probes*/ 
-            + 1 /*speccube*/ 
-            + 7 * m_renderers.Length /*per renderer SH*/ 
+        int bigDataBufferVector4Count =
+            4 /*zero*/
+            + 1 /*probes*/
+            + 1 /*speccube*/
+            + 7 * m_renderers.Length /*per renderer SH*/
             + 1 * m_renderers.Length /*per renderer probe occlusion*/
-            + 2 * m_renderers.Length /* per renderer lightmapindex + scale/offset*/ 
+            + 2 * m_renderers.Length /* per renderer lightmapindex + scale/offset*/
             + m_renderers.Length * 3 * 2 /*per renderer 4x3 matrix+inverse*/;
         var vectorBuffer = new NativeArray<Vector4>(bigDataBufferVector4Count, Allocator.Temp);
 
@@ -388,7 +388,7 @@ unsafe class SceneBRG
         var specCubeOffset = startOffset;
         vectorBuffer[specCubeOffset] = ReflectionProbe.defaultTextureHDRDecodeValues;
         startOffset++;
-        
+
         var SHArOffset = startOffset;
         var SHAgOffset = SHArOffset + m_renderers.Length;
         var SHAbOffset = SHAgOffset + m_renderers.Length;
@@ -396,21 +396,21 @@ unsafe class SceneBRG
         var SHBgOffset = SHBrOffset + m_renderers.Length;
         var SHBbOffset = SHBgOffset + m_renderers.Length;
         var SHCOffset = SHBbOffset + m_renderers.Length;
-        
+
         var probeOcclusionOffset = SHCOffset + m_renderers.Length;
         var lightMapIndexOffset = probeOcclusionOffset + m_renderers.Length;
         var lightMapScaleOffset = lightMapIndexOffset + m_renderers.Length;
         var localToWorldOffset = lightMapScaleOffset + m_renderers.Length;
         var worldToLocalOffset = localToWorldOffset + m_renderers.Length * 3;
-        
+
         m_instances = new NativeList<DrawInstance>(1024, Allocator.Persistent);
-        
+
         var lightmaps = LightMaps.GetLightmapsStruct();
         var materialMap = LightMaps.GenerateRenderersToMaterials(renderers, lightmaps);
-        
+
         LightProbesQuery lpq = new LightProbesQuery(Allocator.Temp);
-        
-        for (int i = 0; i < renderers.Count; i++) 
+
+        for (int i = 0; i < renderers.Count; i++)
         {
             var renderer = renderers[i];
 
@@ -447,7 +447,7 @@ unsafe class SceneBRG
             vectorBuffer[i * 3 + 2 + worldToLocalOffset] = new Vector4(mi.m22, mi.m03, mi.m13, mi.m23);
 
             lpq.CalculateInterpolatedLightAndOcclusionProbe(rendererTransform.position, -1, out var lp, out var probeOcclusion);
-            
+
             var sh = new SHProperties(lp);
             vectorBuffer[SHArOffset + i] = sh.SHAr;
             vectorBuffer[SHAgOffset + i] = sh.SHAg;
@@ -466,8 +466,8 @@ unsafe class SceneBRG
             var mesh = m_BatchRendererGroup.RegisterMesh(meshFilter.sharedMesh);
 
             // Different renderer settings? -> new draw range
-            var rangeKey = new RangeKey { 
-                layer = (byte) renderer.gameObject.layer, 
+            var rangeKey = new RangeKey {
+                layer = (byte) renderer.gameObject.layer,
                 renderingLayerMask = renderer.renderingLayerMask,
                 shadowCastingMode = renderer.shadowCastingMode,
                 shadowFlags = (renderer.receiveShadows ? RangeShadowFlags.ReceiveShadows : 0) | (renderer.staticShadowCaster ? RangeShadowFlags.StaticShadowCaster : 0)
@@ -675,32 +675,32 @@ unsafe class SceneBRG
 public class RenderBRG : MonoBehaviour
 {
     private Dictionary<Scene, SceneBRG> m_Scenes = new();
-    
+
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
         SceneManager.sceneUnloaded += OnSceneUnloaded;
     }
-    
+
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
         SceneManager.sceneUnloaded -= OnSceneUnloaded;
-        
+
         CleanUp();
     }
-    
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         List<Renderer> renderers = new List<Renderer>();
-        foreach (var go in scene.GetRootGameObjects()) 
-            renderers.AddRange(go.GetComponentsInChildren<Renderer>());
+        foreach (var go in scene.GetRootGameObjects())
+            renderers.AddRange(go.GetComponentsInChildren<MeshRenderer>());
 
         SceneBRG brg = new SceneBRG();
         brg.Initialize(renderers);
         m_Scenes.Add(scene, brg);
     }
-    
+
     private void OnSceneUnloaded(Scene scene)
     {
         m_Scenes.TryGetValue(scene, out var brg);
@@ -715,7 +715,7 @@ public class RenderBRG : MonoBehaviour
     {
         foreach (var scene in m_Scenes)
             scene.Value?.Destroy();
-        
+
         m_Scenes.Clear();
     }
 
