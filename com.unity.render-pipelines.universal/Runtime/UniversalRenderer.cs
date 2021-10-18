@@ -538,8 +538,8 @@ namespace UnityEngine.Rendering.Universal
                 if (intermediateRenderTexture)
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, useDepthPriming);
 
-                m_ActiveCameraColorAttachment = createColorTexture ? m_ColorBufferSystem.PeekBackBuffer() : m_XRTargetHandleAlias;
-                m_ActiveCameraDepthAttachment = createDepthTexture ? m_CameraDepthAttachment : m_XRTargetHandleAlias;
+                m_ActiveCameraColorAttachment = createColorTexture && !sceneViewFilterEnabled ? m_ColorBufferSystem.PeekBackBuffer() : m_XRTargetHandleAlias;
+                m_ActiveCameraDepthAttachment = createDepthTexture && !sceneViewFilterEnabled ? m_CameraDepthAttachment : m_XRTargetHandleAlias;
             }
             else
             {
