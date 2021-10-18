@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.0.0] - 2021-09-01
 
+### Changed
+- Search window now lists more nodes variants and they are organized by attribute first instead of operation
+
 ### Fixed
 - Prevent vector truncation error in HDRP Decal template
 - Fix potential infinite compilation when using subgraphs [Case 1346576](https://issuetracker.unity3d.com/product/unity/issues/guid/1346576/)
