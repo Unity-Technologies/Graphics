@@ -742,11 +742,16 @@ namespace UnityEngine.Rendering
 
         private static void GetValidChildRenderers(GameObject root, List<MeshRenderer> toAppend)
         {
-            if (root == null || root.activeInHierarchy == false || root.GetComponent<BRGNoConvert>() != null)
+            if (root == null
+                || root.activeInHierarchy == false
+                || root.GetComponent<BRGNoConvert>() != null
+                || root.GetComponent<Animator>() != null
+                || root.GetComponent<Rigidbody>() != null)
                 return;
 
             var mr = root.GetComponent<MeshRenderer>();
-            if (mr != null)
+            if (mr != null
+                && !mr.HasPropertyBlock()) //no support for MPB
                 toAppend.Add(mr);
 
             for (var i = 0; i < root.transform.childCount; ++i)
