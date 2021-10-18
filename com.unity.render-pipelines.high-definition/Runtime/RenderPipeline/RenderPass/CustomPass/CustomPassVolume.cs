@@ -389,9 +389,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return customPass;
         }
 
-#if UNITY_EDITOR
+//SensorSDK - Begin - Fix vfx collider not taken into account when created at runtime.
+//#if UNITY_EDITOR
+//SensorSDK - Begin - Fix vfx collider not taken into account when created at runtime.
         // In the editor, we refresh the list of colliders at every frame because it's frequent to add/remove them
         void Update() => GetComponents(m_Colliders);
-#endif
+//SensorSDK - Begin - Fix vfx collider not taken into account when created at runtime.        
+//#endif
+//SensorSDK - Begin - Fix vfx collider not taken into account when created at runtime.
     }
 }

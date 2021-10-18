@@ -188,6 +188,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ResetPathTracing(camID, camData);
             }
 
+//SensorSDK - Begin
+            hdCamera.isLastIteration = camData.currentIteration == m_SubFrameManager.subFrameCount;
+
+            if (Application.isPlaying && hdCamera.isLastIteration && hdCamera.isContinousCaptureEnabled)
+            {
+                camData.ResetIteration();
+                m_SubFrameManager.SetCameraData(camID, camData);
+                return ResetPathTracing(camID, camData);
+            }
+//SensorSDK - End
+
             // Check camera matrix dirtiness
             if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
             {
@@ -259,13 +270,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle output;
             public TextureHandle sky;
+
+//SensorSDK - Begin
+            public HDCamera hdCamera;
+//SensorSDK - End            
         }
 
         TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, in CameraData cameraData, TextureHandle pathTracingBuffer, TextureHandle skyBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render PathTracing", out var passData))
             {
-                passData.pathTracingShader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
+//SensorSDK - Begin 
+                passData.pathTracingShader = hdCamera.pathTracingShaderOverride == null ? m_GlobalSettings.renderPipelineRayTracingResources.pathTracing : hdCamera.pathTracingShaderOverride;
+                passData.hdCamera = hdCamera;
+//SensorSDK - End
+
                 passData.cameraData = cameraData;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
                 passData.backgroundColor = hdCamera.backgroundColorHDR;
@@ -321,6 +340,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingMatrixParam(data.pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDirWS);
                         ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracedDoFConstants, data.dofParameters);
 
+//SensorSDK - Begin
+                        data.hdCamera.PrepareDispatchRays?.Invoke(ctx.cmd);
+//SensorSDK - End
                         // Run the computation
                         ctx.cmd.DispatchRays(data.pathTracingShader, "RayGen", (uint)data.width, (uint)data.height, 1);
                     });

@@ -10,6 +10,16 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 #endif
 
+#ifdef SENSORSDK_OVERRIDE_REFLECTANCE
+
+TEXTURE2D(_SensorCustomReflectance);
+float Wavelength;
+#endif
+
+#if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
+int _SensorLightCount;
+#endif
+
 float PowerHeuristic(float f, float b)
 {
     return Sq(f) / (Sq(f) + Sq(b));
@@ -117,6 +127,18 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
 
 #ifndef SHADER_UNLIT
+    //We override the diffuce color when we are using standard lit shader.  Don't need to when using shader graph.
+#ifdef SENSORSDK_OVERRIDE_REFLECTANCE
+    //bsdfData.diffuseColor = float3(_SensorCustomReflectance, _SensorCustomReflectance, _SensorCustomReflectance); //Override diffuse with material reflectance
+    const float _minWaveLengthValue = 0.35f; // 350 nm
+    const float _maxWaveLengthValue = 2.5f; // 2500 nm
+
+    float wlIdx = clamp(Wavelength * 0.001f, _minWaveLengthValue, _maxWaveLengthValue);
+    float wavelengthSpan = _maxWaveLengthValue - _minWaveLengthValue + 1;
+    float2 coordCurve = float2(wlIdx / wavelengthSpan, 0);
+
+    bsdfData.diffuseColor = SAMPLE_TEXTURE2D(_SensorCustomReflectance, s_linear_clamp_sampler, coordCurve);
+#endif
 
     // Override the geometric normal (otherwise, it is merely the non-mapped smooth normal)
     // Also make sure that it is in the same hemisphere as the shading normal (which may have been flipped)
@@ -141,7 +163,10 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     #else
         float3 lightNormal = GetLightNormal(mtlData);
     #endif
+    
+    #if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)
         LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
+    #endif
 
         // Bunch of variables common to material and light sampling
         float pdf;
@@ -154,6 +179,23 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
         PathIntersection nextPathIntersection;
 
+    #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
+            pathIntersection.value = float3(0., 0., 0.);
+            for (uint i = 0; i < _SensorLightCount; i++)
+            {
+                if (SampleBeam(_LightDatasRT[i], rayDescriptor.Origin, bsdfData.normalWS,
+                               rayDescriptor.Direction, value, pdf, rayDescriptor.TMax,
+                               pathIntersection))
+                {
+                    EvaluateMaterial(mtlData, rayDescriptor.Direction, mtlResult);
+
+                    // value is in radian (w/sr) not in lumen (cd/sr) and only the r channel is used
+                    value *= (mtlResult.diffValue + mtlResult.specValue) / pdf;
+
+                    pathIntersection.value += value;
+                }
+            }
+    #else
         // Light sampling
         if (computeDirect)
         {
@@ -235,6 +277,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 pathIntersection.value += value * rrFactor * nextPathIntersection.value;
             }
         }
+    #endif
     }
 
 #else // SHADER_UNLIT

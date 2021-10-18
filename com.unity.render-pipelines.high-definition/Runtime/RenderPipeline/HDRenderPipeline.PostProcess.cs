@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Vignette m_Vignette;
         Tonemapping m_Tonemapping;
         WhiteBalance m_WhiteBalance;
-        ColorAdjustments m_ColorAdjustments;
+        internal ColorAdjustments m_ColorAdjustments;
         ChannelMixer m_ChannelMixer;
         SplitToning m_SplitToning;
         LiftGammaGain m_LiftGammaGain;
@@ -3885,7 +3885,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Color Grading
-        class ColorGradingPassData
+        internal class ColorGradingPassData
         {
             public ComputeShader builderCS;
             public int builderKernel;
@@ -3921,7 +3921,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle logLut;
         }
 
-        void PrepareColorGradingParameters(ColorGradingPassData passData)
+        internal void PrepareColorGradingParameters(ColorGradingPassData passData)
         {
             passData.tonemappingMode = m_TonemappingFS ? m_Tonemapping.mode.value : TonemappingMode.None;
 
