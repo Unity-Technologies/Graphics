@@ -48,9 +48,9 @@ To use the Branch On Input Connection node in a Subgraph:
 | **Name**     | **Direction** | **Type**          | **Description** |
 | :---         | :---          | :------           | :----------     |
 | Input        | Input         | Property          | The property that determines the branching logic based on its connection in the parent Shader Graph.         |
-| Connected    | Input         | Dynamic Vector    | The value that to send to the **Out** port when **Input** is connected in the parent Shader Graph.       |
-| NotConnected | Input         | Dynamic Vector    | The value that to send to the **Out** port when **Input** isn't connected in the parent Shader Graph.  |
-| Out          | Output        | Dynamic Vector    | Outputs either the value of either **Connected** or **NotConnected**, depending on whether the property specified in **Input** is connected in the parent Shader Graph.        |
+| Connected    | Input         | Dynamic Vector    | The value to send to the **Out** port when **Input** is connected in the parent Shader Graph.       |
+| NotConnected | Input         | Dynamic Vector    | The value to send to the **Out** port when **Input** isn't connected in the parent Shader Graph.  |
+| Out          | Output        | Dynamic Vector    | Outputs the value of either **Connected** or **NotConnected**, depending on whether the property specified in **Input** is connected in the parent Shader Graph.        |
 
 
 ## Example Subgraph

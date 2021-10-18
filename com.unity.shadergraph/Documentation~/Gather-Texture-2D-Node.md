@@ -2,10 +2,12 @@
 
 The Gather Texture 2D node helps when creating custom blending between pixels. Normal texture sampling reads all four channels (RGBA) of a texture to blend the result across neighboring pixels. The Gather Texture 2D node takes four samples, using only the red channel, of each neighboring pixel for bilinear interpolation. It returns a value of `RRRR`, with each `R` value coming from a different neighbor.
 
-This node uses the [Gather](https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-gather) HLSL intrinsic function. For platforms where this intrinsic function doesn't exist, Shader Graph uses an appropriate approximation to use, instead.
+![](images/sg-gather-texture-2d-node.png)
+
+This node uses the [Gather](https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-gather) HLSL intrinsic function. For platforms where this intrinsic function doesn't exist, Shader Graph uses an appropriate approximation, instead.
 
 > [!NOTE]
-> When developing for platforms using the Metal graphics API, such as iOS or macOS, the `sample`, `sample_compare`, `gather`, and `gather_compare` instrinsics use an integer (int2) `offset` argument when sampling or gathering from a 2D texture. This value is applied to texture coordinates before looking up each pixel, and must be in the range of `-8` to `+7`. Otherwise, the Metal API clamps the `offset` value.
+> When developing for platforms using the Metal graphics API, the `sample`, `sample_compare`, `gather`, and `gather_compare` intrinsics use an integer (int2) `offset` argument when sampling or gathering from a 2D texture. This value is applied to texture coordinates before looking up each pixel, and must be in the range of `-8` to `+7`. Otherwise, the Metal API clamps the `offset` value.
 
 
 ## Ports
