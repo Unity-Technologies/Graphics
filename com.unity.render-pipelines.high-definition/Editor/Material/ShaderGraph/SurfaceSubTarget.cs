@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             if (TargetsTerrain())
             {
-                TerrainSubTarget.Setup(ref context);
+                TerrainSubTarget.Setup(ref context, false);
             }
             var inspector = TargetsTerrain() ? HDTerrainSubTarget.kTerrainGUI : customInspector;
             if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))

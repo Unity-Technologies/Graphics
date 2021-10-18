@@ -23,13 +23,24 @@ namespace UnityEditor.ShaderGraph
             if (rpTerrainDefines != null)
                 pd.defines.Add(rpTerrainDefines);
         }
-
-        public static void Setup(ref TargetSetupContext context)
+        /// <summary>
+        /// Links shader dependencies for Terrain add pass in the target setup context.
+        /// </summary>
+        /// <param name="context">Context used to store shader dependencies.</param>
+        public static void Setup(ref TargetSetupContext context, bool usesAddPass = true)
         {
-            context.AddShaderDependency(GetDependencyName(TerrainSubTarget.TerrainShaders.BasemapGen), "");
-            context.AddShaderDependency(GetDependencyName(TerrainSubTarget.TerrainShaders.Basemap), "");
+            context.AddShaderDependency(GetDependencyName(TerrainShaders.BasemapGen), "");
+            context.AddShaderDependency(GetDependencyName(TerrainShaders.Basemap), "");
+            if (usesAddPass)
+                context.AddShaderDependency(GetDependencyName(TerrainShaders.Add), "");
         }
 
+        /// <summary>
+        /// Returns subshaders for each terrain dependency shader.
+        /// </summary>
+        /// <param name="rpForwardPd">PassDescriptor used to generate the basemap generation pass. Use the forward pass for the current SubTarget.</param>
+        /// <param name="rpSsd">Basic SubShaderDescriptor for the current SubTarget. Used to set up the terrain base and add dependency shaders.</param>
+        /// <returns></returns>
         public static IEnumerable<SubShaderDescriptor> EnumerateSubShaders(PassDescriptor rpForwardPd, SubShaderDescriptor rpSsd)
         {
             yield return GetBaseMapGenSubShader(rpForwardPd);
@@ -37,6 +48,15 @@ namespace UnityEditor.ShaderGraph
             yield return GetAddPassSubShader(rpSsd);
         }
 
+        /// <summary>
+        /// Depending on the target shaderIdx, set up pass descriptors correctly for Terrain main and dependency shaders.
+        /// </summary>
+        /// <param name="pd">Pass to postprocess.</param>
+        /// <param name="shaderIdx">Shader index for the current pass: 0 is main terrain shader, 1 is basemap gen, 2 is base pass, and 3 is add pass.</param>
+        /// <param name="basemapGenTemplate">Path to the template file that should be used for the basemap generation pass.</param>
+        /// <param name="rpTerrainKeywords">Render pipeline-specific keywords that should be enabled up for terrain shaders.</param>
+        /// <param name="rpTerrainDefines">Render pipeline-specific defines that should be set for terrain shaders.</param>
+        /// <param name="rpBasemapGenFields">Fields that must be enabled for a basic blit shader in the current render pipeline.</param>
         public static void PostProcessPass(ref PassDescriptor pd, int shaderIdx, string basemapGenTemplate = "", KeywordCollection rpTerrainKeywords = null, DefineCollection rpTerrainDefines = null, FieldCollection rpBasemapGenFields = null)
         {
             pd.includes.Add(Includes.TerrainIncludes);
@@ -72,6 +92,16 @@ namespace UnityEditor.ShaderGraph
                     break;
             }
         }
+
+        /// <summary>
+        /// Sets up terrain tag and postprocesses all passes in a given subshader descriptor.
+        /// </summary>
+        /// <param name="ssd">Subshader to postprocess.</param>
+        /// <param name="shaderIdx">Shader index for the current pass: 0 is main terrain shader, 1 is basemap gen, 2 is base pass, and 3 is add pass.</param>
+        /// <param name="basemapGenTemplate">Path to the template file that should be used for the basemap generation pass.</param>
+        /// <param name="rpTerrainKeywords">Render pipeline-specific keywords that should be enabled up for terrain shaders.</param>
+        /// <param name="rpTerrainDefines">Render pipeline-specific defines that should be set for terrain shaders.</param>
+        /// <param name="rpBasemapGenFields">Fields that must be enabled for a basic blit shader in the current render pipeline.</param>
         public static void PostProcessSubShader(ref SubShaderDescriptor ssd, int shaderIdx, string basemapGenTemplate = "", KeywordCollection rpTerrainKeywords = null, DefineCollection rpTerrainDefines = null, FieldCollection rpBasemapGenFields = null)
         {
             ssd.customTags.Insert(ssd.customTags.Length, kTerrainTag);
@@ -89,7 +119,7 @@ namespace UnityEditor.ShaderGraph
             public static KeywordDescriptor BasemapGenDesc = new KeywordDescriptor()
             {
                 displayName = "Generate Basemap",
-                referenceName = "_TERRAIN_BASEMAP_GEN",
+                referenceName = "_TERRAIN_BASEMAP_GEN", // Enabled on all passes in the basemap generation shader
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.Predefined,
                 scope = KeywordScope.Local,
@@ -98,7 +128,7 @@ namespace UnityEditor.ShaderGraph
             public static KeywordDescriptor BasemapGenMainDesc = new KeywordDescriptor()
             {
                 displayName = "Generate Main Basemap Texture",
-                referenceName = "BASEMAPGEN_MAIN",
+                referenceName = "BASEMAPGEN_MAIN", // Enabled only on the pass generating _MainTex in the basemap generation shader
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.Predefined,
                 scope = KeywordScope.Local,
@@ -107,7 +137,7 @@ namespace UnityEditor.ShaderGraph
             public static KeywordDescriptor BasePassDesc = new KeywordDescriptor()
             {
                 displayName = "Base Pass",
-                referenceName = "TERRAIN_SPLAT_BASEPASS",
+                referenceName = "TERRAIN_SPLAT_BASEPASS", // Enabled in the base pass shader
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.Predefined,
                 scope = KeywordScope.Local,
@@ -116,7 +146,7 @@ namespace UnityEditor.ShaderGraph
             public static KeywordDescriptor AddPassDesc = new KeywordDescriptor()
             {
                 displayName = "Add Pass",
-                referenceName = "TERRAIN_SPLAT_ADDPASS",
+                referenceName = "TERRAIN_SPLAT_ADDPASS", // Enabled in the add pass shader
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.Predefined,
                 scope = KeywordScope.Local,
@@ -125,7 +155,7 @@ namespace UnityEditor.ShaderGraph
             public static KeywordDescriptor TerrainDesc = new KeywordDescriptor()
             {
                 displayName = "Terrain Shader",
-                referenceName = "TERRAIN_ENABLED",
+                referenceName = "TERRAIN_ENABLED", // Enabled when a shadergraph is being compiled for Terrain
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.Predefined,
                 scope = KeywordScope.Local,
