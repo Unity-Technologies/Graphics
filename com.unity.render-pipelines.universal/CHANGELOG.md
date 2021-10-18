@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.1] - 2021-10-04
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]
+- Fix for rendering thumbnails. [case 1348209](https://issuetracker.unity3d.com/issues/preview-of-assets-do-not-show-in-the-project-window)
 
 ## [12.1.0] - 2021-09-23
 
@@ -17,8 +18,7 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 - Fixed a Universal Targets in ShaderGraph not rendering correctly in game view [1352225]
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
-- Fix for rendering thumbnails. [case 1348209](https://issuetracker.unity3d.com/issues/preview-of-assets-do-not-show-in-the-project-window)
-- Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]
+
 
 ## [12.0.0] - 2021-01-11
 ### Added

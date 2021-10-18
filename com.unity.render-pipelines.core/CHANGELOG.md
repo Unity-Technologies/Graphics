@@ -6,14 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.1] - 2021-10-04
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
-## [12.1.0] - 2021-09-23
-
 ### Fixed
 - Fixed black pixel issue in AMD FidelityFX RCAS implementation
 - Fixed a critical issue on android devices & lens flares. Accidentally creating a 16 bit texture was causing gpus not supporting them to fail.
+
+## [12.1.0] - 2021-09-23
 
 ## [12.0.0] - 2021-01-11
 
