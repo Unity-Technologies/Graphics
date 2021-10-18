@@ -25,9 +25,9 @@ namespace UnityEngine.Experimental.Rendering
         public ClampedFloatParameter viewBias = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
 
         /// <summary>
-        /// Whether the scale the bias for Probe Volumes by the minimum distance between probes.
+        /// Whether to scale the bias for Probe Volumes by the minimum distance between probes.
         /// </summary>
-        [AdditionalProperty, Tooltip("Whether the scale the bias for Probe Volumes by the minimum distance between probes.")]
+        [AdditionalProperty, Tooltip("Whether to scale the bias for Probe Volumes by the minimum distance between probes.")]
         public BoolParameter scaleBiasWithMinProbeDistance = new BoolParameter(false);
 
         /// <summary>
