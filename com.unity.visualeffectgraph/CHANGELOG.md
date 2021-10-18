@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Compilation error while using not exposed texture in ShaderGraph [Case 1367167](https://issuetracker.unity3d.com/product/unity/issues/guid/1367167/)
+- Texture picker lists only textures with expected dimensions (2D, 3D, Cubemap)
 
 ## [13.1.0] - 2021-09-24
 
