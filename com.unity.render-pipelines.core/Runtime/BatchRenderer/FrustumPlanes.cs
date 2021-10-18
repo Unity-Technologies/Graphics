@@ -3,7 +3,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Unity.Rendering
+namespace UnityEngine.Rendering
 {
     public struct FrustumPlanes
     {
