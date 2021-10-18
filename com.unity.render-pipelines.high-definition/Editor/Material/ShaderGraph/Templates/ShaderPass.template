@@ -275,9 +275,18 @@ Pass
         ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
         #endif
 
-        #ifndef SHADER_UNLIT
+        #ifndef SHADER_UNLIT        
+
+        // TODO CORRECT TERRAIN NORMALS
+        //#ifdef TERRAIN_ENABLED
+        //#if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
+        //$SurfaceDescription.NormalTS: float3 normalTS = ConvertToNormalTS(surfaceDescription.NormalTS, surfaceDescriptionInputs.tangentToWorld[0], surfaceDescriptionInputs.tangentToWorld[1]);
+        //$SurfaceDescription.NormalTS: GetNormalWS(surfaceDescriptionInputs.isFrontFace, surfaceDescriptionInputs.tangentToWorld, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
+        //#endif
+        //#endif
+
         float3 bentNormalWS;
-        BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
+        BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);        
 
         // Builtin Data
         // For back lighting we use the oposite vertex normal
