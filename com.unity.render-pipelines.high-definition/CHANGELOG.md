@@ -6,8 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.1] - 2021-10-04
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+- Fixed decal position when created from context menu. (case 1368987)
+- Fixed the clouds not taking properly into account the fog when in distant mode and with a close far plane (case 1367993).
+- Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
+- Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
+- Fixed the volumetric clouds debug view not taking into account the exposure and leading to Nans (case 1365054).
+- Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
+- Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
+- Fixed the cloudlayer not using depth buffer.
+- Fixed support for orthographic camera in path tracing.
+- Fixed crossfade not working on the HD ST8 ShaderGraph [case 1369586](https://fogbugz.unity3d.com/f/cases/1369586/)
+- Fixed minor performance issues in SSGI (case 1367144).
+
+### Changed
+- Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
 
 ## [12.1.0] - 2021-09-23
 
@@ -23,20 +35,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed missing DisallowMultipleComponent annotations in HDAdditionalReflectionData and HDAdditionalLightData (case 1365879).
 - Fixed support for light/shadow dimmers (volumetric or not) in path tracing.
 - Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
-- Fixed decal position when created from context menu. (case 1368987)
-- Fixed the clouds not taking properly into account the fog when in distant mode and with a close far plane (case 1367993).
-- Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
-- Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
-- Fixed the volumetric clouds debug view not taking into account the exposure and leading to Nans (case 1365054).
-- Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
-- Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
-- Fixed the cloudlayer not using depth buffer.
-- Fixed support for orthographic camera in path tracing.
-- Fixed crossfade not working on the HD ST8 ShaderGraph [case 1369586](https://fogbugz.unity3d.com/f/cases/1369586/)
-- Fixed minor performance issues in SSGI (case 1367144).
-
-### Changed
-- Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
 
 ## [12.0.0] - 2021-01-11
 
