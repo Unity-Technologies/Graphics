@@ -121,6 +121,14 @@ Shader "Hidden/HDRP/Picking"
             #endif
             }
 
+            float4 ComputePositionCS(float3 positionWS)
+            {
+                float4x4 viewMatrix = _DOTSPickingViewMatrix;
+                // HDRP expects no translation in the matrix because of camera relative rendering
+                viewMatrix._m03_m13_m23_m33 = float4(0,0,0,1);
+                return mul(_DOTSPickingProjMatrix, mul(viewMatrix, float4(positionWS, 1)));
+            }
+
             PickingVertexOutput Vert(PickingAttributesMesh input)
             {
                 PickingVertexOutput output;
@@ -139,7 +147,7 @@ Shader "Hidden/HDRP/Picking"
                 output.positionRWS = positionWS;
                 output.normalWS = normalWS;
             #else
-                output.positionCS = mul(_DOTSPickingProjMatrix, mul(_DOTSPickingViewMatrix, positionWS));
+                output.positionCS = ComputePositionCS(positionWS.xyz);
             #endif
 
                 return output;
@@ -214,7 +222,7 @@ Shader "Hidden/HDRP/Picking"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-                output.positionCS = mul(_DOTSPickingProjMatrix, mul(_DOTSPickingViewMatrix, float4(input.positionRWS, 1)));
+                output.positionCS = ComputePositionCS(input.positionRWS);
 
                 return output;
             }

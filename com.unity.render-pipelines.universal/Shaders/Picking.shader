@@ -30,6 +30,9 @@ Shader "Hidden/Universal Render Pipeline/Picking"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
+            float4x4 _DOTSPickingViewMatrix;
+            float4x4 _DOTSPickingProjMatrix;
+            float4 _DOTSPickingCameraWorldPos;
             float4 _SelectionID;
 
             struct Attributes
@@ -53,8 +56,17 @@ Shader "Hidden/Universal Render Pipeline/Picking"
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
+                #ifdef DOTS_INSTANCING_ON
+
+                float3 positionWS = mul(UNITY_MATRIX_M, input.positionOS).xyz;
+                output.positionCS = mul(_DOTSPickingProjMatrix, mul(_DOTSPickingViewMatrix, float4(positionWS, 1)));
+
+                #else
+
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.positionCS = vertexInput.positionCS;
+
+                #endif
 
                 return output;
             }
