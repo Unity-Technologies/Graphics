@@ -47,22 +47,12 @@ float3 CustomPassLoadCameraColor(uint2 pixelCoords, float lod)
 
 float4 CustomPassSampleCustomColor(float2 uv)
 {
-    switch ((int)_CustomPassInjectionPoint)
-    {
-        case CUSTOMPASSINJECTIONPOINT_AFTER_POST_PROCESS: return SAMPLE_TEXTURE2D_X_LOD(_CustomColorTexture, s_trilinear_clamp_sampler, uv * _RTHandleScale.zw, 0);
-        default: return SampleCustomColor(uv);
-    }
+    return SampleCustomColor(uv);
 }
 
 float4 CustomPassLoadCustomColor(uint2 pixelCoords)
 {
-    switch ((int)_CustomPassInjectionPoint)
-    {
-        case CUSTOMPASSINJECTIONPOINT_BEFORE_PRE_REFRACTION:
-        case CUSTOMPASSINJECTIONPOINT_BEFORE_POST_PROCESS:
-        case CUSTOMPASSINJECTIONPOINT_AFTER_POST_PROCESS: return LoadCustomColor(pixelCoords);
-        default: return LoadCustomColor(pixelCoords);
-    }
+    return LoadCustomColor(pixelCoords);
 }
 
 struct Attributes
