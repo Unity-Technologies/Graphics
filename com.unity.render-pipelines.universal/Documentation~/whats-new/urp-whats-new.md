@@ -52,13 +52,15 @@ To enable the depth prepass, set the **Depth Priming Mode** to Auto or Forced (U
 
 The **URP Light Cookies** feature enables a technique for masking or filtering outgoing light’s intensity to produce patterned illumination. This feature can be used to change the appearance, shape, and intensity of cast light for artistic effects or to simulate complex lighting scenarios with minimal runtime performance impact.
 
-### Converter framework: Built-in Render Pipeline to URP
+### Render Pipeline Converter
 
 A new converter framework for migrating from the Built-in Render Pipeline to URP makes the migration process more robust and supports converting elements other than Materials.
 
 To open the Render Pipeline Converter window, select **Window** > **Rendering** > **Render Pipeline Converter**
 
 ![Render Pipeline Converter](../Images/whats-new/urp-12/render-pipeline-converter-ui.png)
+
+For more information, see the page [Render Pipeline Converter](../features/rp-converter.md).
 
 ### Motion Vectors
 
