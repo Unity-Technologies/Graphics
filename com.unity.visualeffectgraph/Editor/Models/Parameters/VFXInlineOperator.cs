@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
     {
         protected sealed override Dictionary<string, object[]> variants { get; } = new()
         {
-            {"m_Type", GetValidTypes().Select(o => new SerializableType(o)).ToArray()}
+            { "m_Type", GetValidTypes().Select(o => new SerializableType(o)).ToArray() }
         };
 
         private static IEnumerable<Type> GetValidTypes()

@@ -38,7 +38,7 @@ namespace UnityEditor.VFX.Block
                                 new KeyValuePair<string, object>("Composition", composition),
                                 new KeyValuePair<string, object>("SampleMode", sampleMode)
                             },
-                            new [] { attribute, VFXBlockUtility.GetNameString(composition) });
+                            new[] { attribute, VFXBlockUtility.GetNameString(composition) });
                     }
                 }
             }

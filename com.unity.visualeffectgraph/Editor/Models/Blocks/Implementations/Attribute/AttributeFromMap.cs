@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public override VFXContextType compatibleContexts { get; } =  VFXContextType.InitAndUpdateAndOutput;
+        public override VFXContextType compatibleContexts { get; } = VFXContextType.InitAndUpdateAndOutput;
         public override VFXDataType compatibleData { get; } = VFXDataType.Particle;
 
         public override IEnumerable<VFXAttributeInfo> attributes

@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Block
                     {
                         new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite),
                         new KeyValuePair<string, object>("shape", x)
-                    }, new [] { "position", VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) }));
+                    }, new[] { "position", VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) }));
         }
     }
 

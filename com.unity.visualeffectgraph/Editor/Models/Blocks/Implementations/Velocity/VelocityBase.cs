@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.Block
         {
             return Enum.GetValues(typeof(AttributeCompositionMode))
                 .OfType<AttributeCompositionMode>()
-                .Select(x => new Variant(new[] { new KeyValuePair<string, object>("composition", x) }, new [] { "velocity", VFXBlockUtility.GetNameString(x) }));
+                .Select(x => new Variant(new[] { new KeyValuePair<string, object>("composition", x) }, new[] { "velocity", VFXBlockUtility.GetNameString(x) }));
         }
     }
 

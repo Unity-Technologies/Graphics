@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Block
         public override IEnumerable<Variant> ComputeVariants()
         {
             return new[] { AttributeCompositionMode.Overwrite }
-                .Select(x => new Variant(new[] { new KeyValuePair<string, object>("compositionPosition", x) }, new [] { VFXBlockUtility.GetNameString(x) }));
+                .Select(x => new Variant(new[] { new KeyValuePair<string, object>("compositionPosition", x) }, new[] { VFXBlockUtility.GetNameString(x) }));
         }
     }
     abstract class PositionBase : VFXBlock

@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
         public KeyValuePair<string, object>[] settings { get; }
         public string[] categories { get; }
 
-        public Variant(KeyValuePair<string, object>[] kvp, string[] cat =  null)
+        public Variant(KeyValuePair<string, object>[] kvp, string[] cat = null)
         {
             settings = kvp;
             categories = cat;
@@ -99,7 +99,7 @@ namespace UnityEditor.VFX
 
             model = template;
             name = model.libraryName;
-            info =  VFXInfoAttribute.Get(model.GetType());
+            info = VFXInfoAttribute.Get(model.GetType());
             modelType = model.GetType();
             category = info?.category;
 
@@ -225,7 +225,7 @@ namespace UnityEditor.VFX
         private static void LoadIfNeeded()
         {
             if (m_Loaded)
-             return;
+                return;
 
             lock (m_Lock)
             {

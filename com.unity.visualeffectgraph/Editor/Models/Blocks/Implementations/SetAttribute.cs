@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.Block
                                     new KeyValuePair<string, object>("Composition", composition)
 
                                 },
-                                new []{ attribute, VFXBlockUtility.GetNameString(composition) });
+                                new[] { attribute, VFXBlockUtility.GetNameString(composition) });
                         }
                     }
                 }
