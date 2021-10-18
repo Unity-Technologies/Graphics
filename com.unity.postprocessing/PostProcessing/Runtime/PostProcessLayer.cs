@@ -1210,10 +1210,6 @@ namespace UnityEngine.Rendering.PostProcessing
             context.uberSheet = uberSheet;
             context.autoExposureTexture = RuntimeUtilities.whiteTexture;
             context.bloomBufferNameID = -1;
-            int xrActiveEyeBackup = context.xrActiveEye;
-            if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.MultiPass)
-                context.xrActiveEye = eye;
-
             if (isFinalPass && context.stereoActive && context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced)
                 uberSheet.EnableKeyword("STEREO_INSTANCING_ENABLED");
 
@@ -1249,7 +1245,13 @@ namespace UnityEngine.Rendering.PostProcessing
                 m_LogHistogram.Generate(context);
 
             // Uber effects
+            // 1336238: override xrActiveEye in multipass with the currently rendered eye to fix flickering issue.
+            int xrActiveEyeBackup = context.xrActiveEye;
+            if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.MultiPass)
+                context.xrActiveEye = eye;
             RenderEffect<AutoExposure>(context);
+            context.xrActiveEye = xrActiveEyeBackup; // restore the eye
+
             uberSheet.properties.SetTexture(ShaderIDs.AutoExposureTex, context.autoExposureTexture);
 
             RenderEffect<LensDistortion>(context);
@@ -1297,7 +1299,6 @@ namespace UnityEngine.Rendering.PostProcessing
             if (context.bloomBufferNameID > -1) cmd.ReleaseTemporaryRT(context.bloomBufferNameID);
 
             cmd.EndSample("BuiltinStack");
-            context.xrActiveEye = xrActiveEyeBackup;
             return tempTarget;
         }
 
