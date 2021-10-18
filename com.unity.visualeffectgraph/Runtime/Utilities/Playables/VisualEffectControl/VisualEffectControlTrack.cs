@@ -23,7 +23,7 @@ namespace UnityEngine.VFX
                         {
 #if UNITY_EDITOR
                             //TODOPAUL : Doesn't update the timeline view
-                            UnityEditor.EditorUtility.SetDirty(clip.GetParentTrack());
+                            //UnityEditor.EditorUtility.SetDirty(clip.GetParentTrack());
 #endif
                             clip.easeInDuration = 0.0;
                         }
