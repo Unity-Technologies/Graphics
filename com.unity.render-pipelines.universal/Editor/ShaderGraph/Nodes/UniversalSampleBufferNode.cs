@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.Universal
 {
     [SRPFilter(typeof(UniversalRenderPipeline))]
     [Title("Input", "Universal", "Universal Sample Buffer")]
-    sealed class UniversalSampleBufferNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireScreenPosition, IMayRequireDepthTexture
+    sealed class UniversalSampleBufferNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireScreenPosition, IMayRequireNDCPosition
     {
         const string k_ScreenPositionSlotName = "UV";
         const string k_OutputSlotName = "Output";
@@ -44,6 +44,7 @@ namespace UnityEditor.Rendering.Universal
                     return;
 
                 m_BufferType = value;
+                UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -133,10 +134,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     // Default sampler when the sampler slot is not connected.
                     s.AppendLine("SAMPLER(s_linear_clamp_sampler);");
-
                     s.AppendLine("#include \"Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl\"");
-
-                    // s.AppendLine("#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl\"");
 
                     s.AppendLine("$precision{1} {0}($precision2 uv, SamplerState samplerState)", GetFunctionName(), channelCount);
                     using (s.BlockScope())
@@ -166,17 +164,64 @@ namespace UnityEditor.Rendering.Universal
                     }
                 });
             }
+            else
+            {
+                registry.ProvideFunction(GetFunctionName(), s =>
+                {
+                    s.AppendLine("$precision{1} {0}($precision2 uv)", GetFunctionName(), channelCount);
+                    using (s.BlockScope())
+                    {
+                        s.AppendLine(@"
+float3 origin = float3(0.0, 0.0, 0.0);
+float3 direction = normalize(float3(uv * 2 - 1, 1.0));
+float3 center = float3(0.0, 0.0, 1.5);
+float radius = 1;
+
+float3 rc = origin - center;
+float c = dot(rc, rc) - (radius*radius);
+float b = dot(direction, rc);
+float d = b*b - c;
+float t = -b - sqrt(abs(d));
+float st = step(0.0, min(t,d));
+float sphereDistance = lerp(-1.0, t, st);
+float3 sphereNormal = 0;
+
+if (sphereDistance > 0)
+{
+    float3 hit = origin+direction*sphereDistance;
+    sphereNormal = normalize(hit - center);
+}
+");
+                        switch (bufferType)
+                        {
+                            case BufferType.NormalWorldSpace:
+                                s.AppendLine("return sphereNormal;");
+                                break;
+                            case BufferType.MotionVectors:
+                                s.AppendLine("return sphereDistance > 0 ? float3(0.5, 0, 0) : 0;");
+                                break;
+                            // case BufferType.PostProcessInput:
+                            //     s.AppendLine("return SAMPLE_TEXTURE2D_X_LOD(_CustomPostProcessInput, samplerState, uv * _RTHandlePostProcessScale.xy, 0);");
+                            //     break;
+                            case BufferType.BlitSource:
+                            default:
+                                s.AppendLine("return 0.0;");
+                                break;
+                        }
+                    }
+                });
+            }
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            string uv = GetSlotValue(k_ScreenPositionSlotId, generationMode);
             if (generationMode.IsPreview())
             {
-                sb.AppendLine($"$precision{channelCount} {GetVariableNameForSlot(k_OutputSlotId)} = 0.0;");
+                sb.AppendLine($"$precision{channelCount} {GetVariableNameForSlot(k_OutputSlotId)} = {GetFunctionName()}({uv}.xy);");
             }
             else
             {
-                string uv = GetSlotValue(k_ScreenPositionSlotId, generationMode);
                 var samplerSlot = FindInputSlot<MaterialSlot>(k_SamplerInputSlotId);
                 var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
                 var sampler = edgesSampler.Any() ? $"{GetSlotValue(k_SamplerInputSlotId, generationMode)}.samplerstate" : "s_linear_clamp_sampler";
@@ -184,8 +229,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        public bool RequiresDepthTexture(ShaderStageCapability stageCapability) => true;
-
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
     }
 }
