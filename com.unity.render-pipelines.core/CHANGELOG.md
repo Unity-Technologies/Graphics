@@ -17,6 +17,7 @@ The version number for this package has increased due to a version update of a r
 ### Added
 - New `IVolumeDebugSettings` interface and `VolumeDebugSettings<T>` class that stores the information for the Volumes Debug Panel.
 - Added AMD FidelityFX shaders which were originally in HDRP
+- Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
 
 ### Fixed
 - Fixed black pixel issue in AMD FidelityFX RCAS implementation

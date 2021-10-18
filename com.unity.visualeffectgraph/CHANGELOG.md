@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Eye dropper in the color fields kept updating after pressing the Esc key
 - Automatically offset contexts when a new node is inserted to avoid overlapping
 - Compilation error while using not exposed texture in ShaderGraph [Case 1367167](https://issuetracker.unity3d.com/product/unity/issues/guid/1367167/)
+- Texture picker lists only textures with expected dimensions (2D, 3D, Cubemap)
 
 ## [12.0.0] - 2021-01-11
 ### Added

@@ -45,16 +45,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             switch (getter())
             {
-                case bool b: elem = new Toggle { value = b, tooltip = displayName.tooltip } as BaseField<Data>; break;
-                case int i: elem = new IntegerField { value = i, tooltip = displayName.tooltip, isDelayed = true } as BaseField<Data>; break;
-                case float f: elem = new FloatField { value = f, tooltip = displayName.tooltip, isDelayed = true } as BaseField<Data>; break;
-                case Enum e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip }; break;
+                case bool b: elem = new Toggle { value = b } as BaseField<Data>; break;
+                case int i: elem = new IntegerField { value = i, isDelayed = true } as BaseField<Data>; break;
+                case float f: elem = new FloatField { value = f, isDelayed = true } as BaseField<Data>; break;
+                case Enum e: elemEnum = new EnumField(e) { value = e }; break;
                 default: throw new Exception($"Can't create UI field for type {getter().GetType()}, please add it if it's relevant. If you can't consider using TargetPropertyGUIContext.AddProperty instead.");
             }
 
             if (elem != null)
             {
-                context.AddProperty<Data>(displayName.text, indentLevel, elem, (evt) =>
+                context.AddProperty<Data>(displayName.text, displayName.tooltip, indentLevel, elem, (evt) =>
                 {
                     if (Equals(getter(), evt.newValue))
                         return;
@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             else
             {
-                context.AddProperty<Enum>(displayName.text, indentLevel, elemEnum, (evt) =>
+                context.AddProperty<Enum>(displayName.text, displayName.tooltip, indentLevel, elemEnum, (evt) =>
                 {
                     if (Equals(getter(), evt.newValue))
                         return;
