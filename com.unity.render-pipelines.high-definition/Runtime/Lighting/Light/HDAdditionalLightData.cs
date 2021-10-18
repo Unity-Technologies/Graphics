@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Assertions;
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEditor.Rendering;
 #endif
 using UnityEngine.Serialization;
 
@@ -636,9 +637,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Texture m_IESSpot;
 
         /// <summary>
-        /// Get/Set IES texture for Point
+        /// IES texture for Point lights.
         /// </summary>
-        internal Texture IESPoint
+        public Texture IESPoint
         {
             get => m_IESPoint;
             set
@@ -657,7 +658,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Get/Set IES texture for Spot or rectangular light.
+        /// IES texture for Spot or Rectangular lights.
         /// </summary>
         internal Texture IESSpot
         {
