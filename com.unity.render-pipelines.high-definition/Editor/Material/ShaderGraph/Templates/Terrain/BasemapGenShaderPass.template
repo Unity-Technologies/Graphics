@@ -45,22 +45,11 @@ Pass
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl" // Required to be include before we include properties as it define DECLARE_STACK_CB
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphHeader.hlsl" // Need to be here for Gradient struct definition
-    // Structs needed for ps
-    //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSurfaceData.hlsl"
-    //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl"
 
     // --------------------------------------------------
     // Defines
 
     // Attribute
-    $AttributesMesh.normalOS:           #define ATTRIBUTES_NEED_NORMAL
-    $AttributesMesh.tangentOS:          #define ATTRIBUTES_NEED_TANGENT
-    $AttributesMesh.uv0:                #define ATTRIBUTES_NEED_TEXCOORD0
-    $AttributesMesh.uv1:                #define ATTRIBUTES_NEED_TEXCOORD1
-    $AttributesMesh.uv2:                #define ATTRIBUTES_NEED_TEXCOORD2
-    $AttributesMesh.uv3:                #define ATTRIBUTES_NEED_TEXCOORD3
-    $AttributesMesh.color:              #define ATTRIBUTES_NEED_COLOR
-    $AttributesMesh.vertexID:           #define ATTRIBUTES_NEED_VERTEXID
     $VaryingsMeshToPS.positionRWS:      #define VARYINGS_NEED_POSITION_WS
     $VaryingsMeshToPS.normalWS:         #define VARYINGS_NEED_TANGENT_TO_WORLD
     $VaryingsMeshToPS.texCoord0:        #define VARYINGS_NEED_TEXCOORD0
@@ -70,8 +59,6 @@ Pass
     $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
     $VaryingsMeshToPS.elementToWorld0:  #define VARYINGS_NEED_ELEMENT_TO_WORLD
     $VaryingsMeshToPS.worldToElement0:  #define VARYINGS_NEED_WORLD_TO_ELEMENT
-
-    $features.graphVertex:              #define HAVE_MESH_MODIFICATION
 
     $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
     $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE

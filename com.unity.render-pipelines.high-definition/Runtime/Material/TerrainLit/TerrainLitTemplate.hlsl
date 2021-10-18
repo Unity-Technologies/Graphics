@@ -79,7 +79,7 @@
     #undef VARYINGS_NEED_TANGENT_TO_WORLD
 #endif
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl" // todo rename- handles basemap includes as well
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Terrain/TerrainLayer_Includes.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitData.hlsl"
 

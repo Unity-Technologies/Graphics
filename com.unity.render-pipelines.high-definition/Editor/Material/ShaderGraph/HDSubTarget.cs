@@ -141,14 +141,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static readonly string kTerrainGUI = "UnityEditor.Rendering.HighDefinition.TerrainGUI";
             public static string kTerrainSurfaceData = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSurfaceData.hlsl";
-            public static string kTerrainProps = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainProps.hlsl";
-            public static string kTerrainSplatmap = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl";
             public static readonly string kTerrainBasemapGenTemplate = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/Terrain/BasemapGenShaderPass.template";
             public static IncludeCollection TerrainIncludes = new IncludeCollection()
             {
-                { kTerrainSurfaceData, IncludeLocation.Pregraph },
-                { kTerrainProps, IncludeLocation.Pregraph },
-                { kTerrainSplatmap, IncludeLocation.Pregraph },
+                { kTerrainSurfaceData, IncludeLocation.Pregraph }
             };
 
             public static FieldCollection BasemapGen = new FieldCollection()

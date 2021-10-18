@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
     //[InitializeOnLoad]
     internal static class TerrainSubTarget
     {
-        public const string kTerrainTag = "\"TerrainCompatible\" = \"True\"";
+        public const string kTerrainTag = " \"TerrainCompatible\" = \"True\" ";
         private static string dstBlendValue = "[_DstBlend]";
 
         public static event Func<AssetImportContext, AssetImportContext> OnImportTerrainShaderGraphAsset;
@@ -39,6 +39,7 @@ namespace UnityEditor.ShaderGraph
 
         public static void PostProcessPass(ref PassDescriptor pd, int shaderIdx, string basemapGenTemplate = "", KeywordCollection rpTerrainKeywords = null, DefineCollection rpTerrainDefines = null, FieldCollection rpBasemapGenFields = null)
         {
+            pd.includes.Add(Includes.TerrainIncludes);
             switch (shaderIdx)
             {
                 case (int)TerrainShaders.Main:
@@ -207,6 +208,18 @@ namespace UnityEditor.ShaderGraph
                 { NormalMap },
                 { MaskMap },
                 { BlendHeight },
+            };
+        }
+
+        public static class Includes
+        {
+            public static string kTerrainProps = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Terrain/TerrainProps.hlsl";
+            public static string kTerrainSplatmap = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Terrain/TerrainLayer_Includes.hlsl";
+
+            public static IncludeCollection TerrainIncludes = new IncludeCollection()
+            {
+                {   kTerrainProps, IncludeLocation.Pregraph },
+                {   kTerrainSplatmap, IncludeLocation.Pregraph },
             };
         }
 
