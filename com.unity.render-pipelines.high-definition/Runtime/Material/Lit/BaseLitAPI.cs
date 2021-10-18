@@ -1,74 +1,20 @@
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.Rendering.HighDefinition;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEngine.Rendering.HighDefinition
 {
-    abstract class BaseLitGUI
+    abstract class BaseLitAPI
     {
-        // Properties for Base Lit material keyword setup
-        protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
-        protected const string kDoubleSidedGIMode = "_DoubleSidedGIMode";
-        protected const string kDisplacementLockObjectScale = "_DisplacementLockObjectScale";
-        protected const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
-
         // Wind
         protected const string kWindEnabled = "_EnableWind";
 
-        // Decal
-        protected const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
-
-        // SSR
-        protected MaterialProperty receivesSSR = null;
-
-        // Emission
-        const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
-        const string kEmissiveIntensity = "_EmissiveIntensity";
-        const string kEmissiveColor = "_EmissiveColor";
-
-        protected virtual void UpdateDisplacement() { }
-
-        static DisplacementMode GetFilteredDisplacementMode(Material material)
+        public static DisplacementMode GetFilteredDisplacementMode(Material material)
         {
-            return GetFilteredDisplacementMode(material, (DisplacementMode)material.GetFloat(kDisplacementMode));
-        }
-
-        public static DisplacementMode GetFilteredDisplacementMode(MaterialProperty displacementMode)
-        {
-            var material = displacementMode.targets[0] as Material;
-            return GetFilteredDisplacementMode(material, (DisplacementMode)displacementMode.floatValue);
-        }
-
-        static DisplacementMode GetFilteredDisplacementMode(Material material, DisplacementMode displacementMode)
-        {
-            if (material.HasProperty(kTessellationMode))
-            {
-                if (displacementMode == DisplacementMode.Pixel || displacementMode == DisplacementMode.Vertex)
-                    return DisplacementMode.None;
-            }
-            else
-            {
-                if (displacementMode == DisplacementMode.Tessellation)
-                    return DisplacementMode.None;
-            }
-            return displacementMode;
-        }
-
-        public static bool HasMixedDisplacementMode(MaterialProperty displacementMode)
-        {
-            Material mat0 = displacementMode.targets[0] as Material;
-            var mode = GetFilteredDisplacementMode(mat0, (DisplacementMode)displacementMode.floatValue);
-            for (int i = 1; i < displacementMode.targets.Length; i++)
-            {
-                Material mat = displacementMode.targets[i] as Material;
-                var currentMode = (DisplacementMode)mat.GetFloat(displacementMode.name);
-                if (GetFilteredDisplacementMode(mat, currentMode) != mode)
-                    return true;
-            }
-            return false;
+            return material.GetFilteredDisplacementMode((DisplacementMode)material.GetFloat(kDisplacementMode));
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
@@ -227,6 +173,54 @@ namespace UnityEditor.Rendering.HighDefinition
         static public void SetupBaseLitMaterialPass(Material material)
         {
             material.SetupBaseUnlitPass();
+        }
+
+        static public void SetupDisplacement(Material material, int layerCount = 1)
+        {
+            DisplacementMode displacementMode = GetFilteredDisplacementMode(material);
+            for (int i = 0; i < layerCount; i++)
+            {
+                var heightAmplitude = layerCount > 1 ? kHeightAmplitude + i : kHeightAmplitude;
+                var heightCenter = layerCount > 1 ? kHeightCenter + i : kHeightCenter;
+                if (material.HasProperty(heightAmplitude) && material.HasProperty(heightCenter))
+                {
+                    var heightPoMAmplitude = layerCount > 1 ? kHeightPoMAmplitude + i : kHeightPoMAmplitude;
+                    var heightParametrization = layerCount > 1 ? kHeightParametrization + i : kHeightParametrization;
+                    var heightTessAmplitude = layerCount > 1 ? kHeightTessAmplitude + i : kHeightTessAmplitude;
+                    var heightTessCenter = layerCount > 1 ? kHeightTessCenter + i : kHeightTessCenter;
+                    var heightOffset = layerCount > 1 ? kHeightOffset + i : kHeightOffset;
+                    var heightMin = layerCount > 1 ? kHeightMin + i : kHeightMin;
+                    var heightMax = layerCount > 1 ? kHeightMax + i : kHeightMax;
+
+                    if (displacementMode == DisplacementMode.Pixel)
+                    {
+                        material.SetFloat(heightAmplitude, material.GetFloat(heightPoMAmplitude) * 0.01f); // Convert centimeters to meters.
+                        material.SetFloat(heightCenter, 1.0f); // PoM is always inward so base (0 height) is mapped to 1 in the texture
+                    }
+                    else
+                    {
+                        var parametrization = (HeightmapParametrization)material.GetFloat(heightParametrization);
+                        if (parametrization == HeightmapParametrization.MinMax)
+                        {
+                            float offset = material.GetFloat(heightOffset);
+                            float minHeight = material.GetFloat(heightMin);
+                            float amplitude = material.GetFloat(heightMax) - minHeight;
+
+                            material.SetFloat(heightAmplitude, amplitude * 0.01f); // Convert centimeters to meters.
+                            material.SetFloat(heightCenter, -(minHeight + offset) / Mathf.Max(1e-6f, amplitude));
+                        }
+                        else
+                        {
+                            float offset = material.GetFloat(heightOffset);
+                            float center = material.GetFloat(heightTessCenter);
+                            float amplitude = material.GetFloat(heightTessAmplitude);
+
+                            material.SetFloat(heightAmplitude, amplitude * 0.01f); // Convert centimeters to meters.
+                            material.SetFloat(heightCenter, -offset / Mathf.Max(1e-6f, amplitude) + center);
+                        }
+                    }
+                }
+            }
         }
     }
 } // namespace UnityEditor
