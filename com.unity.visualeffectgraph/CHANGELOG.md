@@ -4,6 +4,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.1] - 2021-10-04
+
+### Fixed
+- Compilation error while using not exposed texture in ShaderGraph [Case 1367167](https://issuetracker.unity3d.com/product/unity/issues/guid/1367167/)
+- Texture picker lists only textures with expected dimensions (2D, 3D, Cubemap)
+
+## [13.1.0] - 2021-09-24
+
+### Fixed
+- Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
+
 ## [13.0.0] - 2021-09-01
 
 ### Changed
@@ -20,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Prevent VFX Graph compilation each time a property's min/max value is changed
 - Prevent vfx re-compilation in some cases when a value has not changed
 - Eye dropper in the color fields kept updating after pressing the Esc key
+- Automatically offset contexts when a new node is inserted to avoid overlapping
 - Fix SDF Baker fail on PS4 & PS5 [Case 1351595](https://fogbugz.unity3d.com/f/cases/1351595/)
 - Particles were rendered pink with some debug modes [Case 1342276](https://issuetracker.unity3d.com/product/unity/issues/guid/1342276/)
 - Removed bool from the built-in list of blittable types for GraphicsBuffer [Case 1351830](https://issuetracker.unity3d.com/product/unity/issues/guid/1351830/)

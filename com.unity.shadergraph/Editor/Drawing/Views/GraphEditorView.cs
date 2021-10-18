@@ -684,6 +684,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             previewManager.RenderPreviews(m_EditorWindow);
 
+
+            m_GraphView.wasUndoRedoPerformed = wasUndoRedoPerformed;
+
             if (wasUndoRedoPerformed || m_InspectorView.doesInspectorNeedUpdate)
                 m_InspectorView.Update();
 
@@ -911,7 +914,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                 {
                     var foundMessage = messageData.Value.First();
-                    string messageString = foundMessage.message + " at line " + foundMessage.line;
+                    string messageString;
+                    if (foundMessage.line > 0)
+                        messageString = foundMessage.message + " at line " + foundMessage.line;
+                    else
+                        messageString = foundMessage.message;
                     nodeView.AttachMessage(messageString, foundMessage.severity);
                 }
             }

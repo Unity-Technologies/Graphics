@@ -1034,6 +1034,7 @@ Shader "HDRP/LayeredLit"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Name "IndirectDXR"

@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using System.Linq;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+
 
 namespace UnityEditor.ShaderGraph
 {
@@ -47,6 +49,22 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview { get { return false; } }
 
+        [SerializeField]
+        private Channel m_Channel = Channel.Red;
+
+        [EnumControl("Heightmap Sample Channel")]
+        public Channel channel
+        {
+            get { return m_Channel; }
+            set
+            {
+                if (m_Channel == value)
+                    return;
+
+                m_Channel = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Texture2DInputMaterialSlot(kHeightmapSlotId, kHeightmapSlotName, kHeightmapSlotName, ShaderStageCapability.Fragment));
@@ -133,7 +151,7 @@ return objectScale;");
                 s.AppendLine($"$precision ComputePerPixelHeightDisplacement_{GetVariableNameForNode()}($precision2 texOffsetCurrent, $precision lod, PerPixelHeightDisplacementParam param, TEXTURE2D_PARAM(heightTexture, heightSampler))");
                 using (s.BlockScope())
                 {
-                    s.AppendLine("return SAMPLE_TEXTURE2D_LOD(heightTexture, heightSampler, param.uv + texOffsetCurrent, lod).r;");
+                    s.AppendLine("return SAMPLE_TEXTURE2D_LOD(heightTexture, heightSampler, param.uv + texOffsetCurrent, lod)[{0}];", (int)channel);
                 }
                 // heightmap,
                 // edgesSampler.Any() ? GetSlotValue(kHeightmapSamplerSlotId, generationMode) : "sampler" + heightmap);
