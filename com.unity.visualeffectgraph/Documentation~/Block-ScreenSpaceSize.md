@@ -4,6 +4,8 @@ Menu Path : **Output > Screen Space Size**
 
 The **Screen Space Size** Block calculates the scaleXYZ property of each particle to reach a size relative to the pixel size or screen size.
 
+If the scaleXY isn't uniform, the particle ratio will be conserved and the maximum axis will be used as reference to fit within the specified relative size. For example, assuming a face camera plane, if ScaleX is 2 and ScaleY is 1 and the block is setup **Pixel Absolute** with a value of 32 pixels, then, because ScaleX is greater than ScaleY, the displayed width of this particle will be 32 and the displayed height will be 16 (32 * ScaleY/ScaleX).
+
 ## Block compatibility
 
 This Block is compatible with the following Contexts:
