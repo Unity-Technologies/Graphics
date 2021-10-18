@@ -9,11 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added support for orthographic camera in path tracing.
 - Added public API to edit materials from script at runtime.
-
-### Changed
-- Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
-- Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
-- PrepareLightsForGPU CPU Light loop performance improvement (40% to 70% faster), utilizing burst and optimized. Utilizing better sorting, distributing work in jobs and improving cache access of light data.
+- Added new functions that sample the custom buffer in custom passes (CustomPassSampleCustomColor and CustomPassLoadCustomColor) to handle the RTHandleScale automatically.
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
@@ -35,11 +31,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed minor performance issues in SSGI (case 1367144).
 - Fixed scaling issues with dynamic resolution and the CustomPassSampleCameraColor function.
 
+### Changed
+- Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
+- Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
+- PrepareLightsForGPU CPU Light loop performance improvement (40% to 70% faster), utilizing burst and optimized. Utilizing better sorting, distributing work in jobs and improving cache access of light data.
+
 ## [13.1.0] - 2021-09-24
 
 ### Added
 - Added a SG node to get the main directional light direction.
-- Added new functions that sample the custom buffer in custom passes (CustomPassSampleCustomColor and CustomPassLoadCustomColor) to handle the RTHandleScale automatically.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
