@@ -26,7 +26,7 @@ public class LookWithMouse : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        bool unlockPressed, lockPressed;
+        bool unlockPressed = false, lockPressed = false;
 
 #if ENABLE_INPUT_SYSTEM
         float mouseX = 0, mouseY = 0;
