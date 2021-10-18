@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.1] - 2021-10-04
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Compilation error while using not exposed texture in ShaderGraph [Case 1367167](https://issuetracker.unity3d.com/product/unity/issues/guid/1367167/)
 
 ## [13.1.0] - 2021-09-24
 
@@ -28,7 +28,6 @@ The version number for this package has increased due to a version update of a r
 - Prevent vfx re-compilation in some cases when a value has not changed
 - Eye dropper in the color fields kept updating after pressing the Esc key
 - Automatically offset contexts when a new node is inserted to avoid overlapping
-- Compilation error while using not exposed texture in ShaderGraph [Case 1367167](https://issuetracker.unity3d.com/product/unity/issues/guid/1367167/)
 
 ## [12.0.0] - 2021-01-11
 ### Added
