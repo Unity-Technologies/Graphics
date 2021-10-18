@@ -118,6 +118,13 @@ namespace UnityEditor.Rendering
 
         public override void OnInspectorGUI()
         {
+            var currentPipeline = RenderPipelineManager.currentPipeline;
+            if (currentPipeline == null)
+            {
+                EditorGUILayout.HelpBox("No SRP in use", MessageType.Warning, true);
+                return;
+            }
+
             serializedObject.Update();
 
             Rect lineRect = EditorGUILayout.GetControlRect();
