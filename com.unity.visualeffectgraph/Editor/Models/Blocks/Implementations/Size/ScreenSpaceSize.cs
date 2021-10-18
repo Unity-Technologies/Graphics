@@ -93,8 +93,8 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
 
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.Write);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.ReadWrite);
 
                 // if ScaleZ is used, we need to scale it too, in an uniform way.
                 if (sizeZMode != SizeZMode.Ignore)
@@ -119,9 +119,23 @@ namespace UnityEditor.VFX.Block
 
                 string Source = string.Format(@"
 float clipPosW = TransformPositionVFXToClip(position).w;
-float2 newScale = ({0} * clipPosW) / (size * 0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y));
-scaleX = newScale.x;
-scaleY = newScale.y;
+float2 newScale = ({0} * clipPosW) / (size * 0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x, UNITY_MATRIX_P[1][1] * _ScreenParams.y));
+newScale = abs(newScale);
+
+float2 ratio;
+if (abs(scaleX) > abs(scaleY))
+{{
+    ratio.x = sign(scaleX);
+    ratio.y = abs(scaleY / scaleX) * sign(scaleY);
+}}
+else
+{{
+    ratio.x = abs(scaleX / scaleY) * sign(scaleX);
+    ratio.y = sign(scaleY);
+}}
+ratio *= sign(size);
+scaleX = newScale.x * ratio.x;
+scaleY = newScale.y * ratio.y;
 ",
                     sizeString);
 
