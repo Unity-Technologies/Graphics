@@ -143,6 +143,8 @@ namespace UnityEngine.Rendering
         private NativeArray<int> m_drawIndices;
         private NativeArray<DrawRenderer> m_renderers;
 
+        private List<MeshRenderer> m_AddedRenderers;
+
         public static T* Malloc<T>(int count) where T : unmanaged
         {
             return (T*)UnsafeUtility.Malloc(
@@ -399,6 +401,7 @@ namespace UnityEngine.Rendering
             m_rangeHash = new NativeHashMap<RangeKey, int>(1024, Allocator.Persistent);
             m_drawBatches = new NativeList<DrawBatch>(Allocator.Persistent);
             m_drawRanges = new NativeList<DrawRange>(Allocator.Persistent);
+            m_AddedRenderers = new List<MeshRenderer>(renderers.Count);
 
             // Fill the GPU-persistent scene data ComputeBuffer
             int bigDataBufferVector4Count =
@@ -458,8 +461,10 @@ namespace UnityEngine.Rendering
                     continue;
                 }
 
+                m_AddedRenderers.Add(renderer);
+
                 // Disable the existing Unity MeshRenderer to avoid double rendering!
-                renderer.enabled = false;
+                renderer.forceRenderingOff = true;
 
                 /*  mat4x3 packed like this:
                       p1.x, p1.w, p2.z, p3.y,
@@ -670,16 +675,11 @@ namespace UnityEngine.Rendering
             int SHCID = Shader.PropertyToID("unity_SHC");
 
             var batchMetadata = new NativeArray<MetadataValue>(13, Allocator.Temp);
-            batchMetadata[0] = CreateMetadataValue(objectToWorldID,
-                localToWorldOffset * UnsafeUtility.SizeOf<Vector4>(), true);
-            batchMetadata[1] = CreateMetadataValue(worldToObjectID,
-                worldToLocalOffset * UnsafeUtility.SizeOf<Vector4>(), true);
-            batchMetadata[2] =
-                CreateMetadataValue(lightmapSTID, lightMapScaleOffset * UnsafeUtility.SizeOf<Vector4>(), true);
-            batchMetadata[3] = CreateMetadataValue(lightmapIndexID,
-                lightMapIndexOffset * UnsafeUtility.SizeOf<Vector4>(), true);
-            batchMetadata[4] = CreateMetadataValue(probesOcclusionID,
-                probeOcclusionOffset * UnsafeUtility.SizeOf<Vector4>(), true);
+            batchMetadata[0] = CreateMetadataValue(objectToWorldID, localToWorldOffset * UnsafeUtility.SizeOf<Vector4>(), true);
+            batchMetadata[1] = CreateMetadataValue(worldToObjectID, worldToLocalOffset * UnsafeUtility.SizeOf<Vector4>(), true);
+            batchMetadata[2] = CreateMetadataValue(lightmapSTID, lightMapScaleOffset * UnsafeUtility.SizeOf<Vector4>(), true);
+            batchMetadata[3] = CreateMetadataValue(lightmapIndexID, lightMapIndexOffset * UnsafeUtility.SizeOf<Vector4>(), true);
+            batchMetadata[4] = CreateMetadataValue(probesOcclusionID, probeOcclusionOffset * UnsafeUtility.SizeOf<Vector4>(), true);
             batchMetadata[5] = CreateMetadataValue(specCubeID, specCubeOffset * UnsafeUtility.SizeOf<Vector4>(), false);
             batchMetadata[6] = CreateMetadataValue(SHArID, SHArOffset * UnsafeUtility.SizeOf<Vector4>(), true);
             batchMetadata[7] = CreateMetadataValue(SHAgID, SHAgOffset * UnsafeUtility.SizeOf<Vector4>(), true);
@@ -718,6 +718,9 @@ namespace UnityEngine.Rendering
                 m_instances.Dispose();
                 m_instanceIndices.Dispose();
                 m_drawIndices.Dispose();
+
+                foreach (var added in m_AddedRenderers)
+                    added.forceRenderingOff = false;
             }
         }
     }
@@ -730,6 +733,16 @@ namespace UnityEngine.Rendering
         {
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.sceneUnloaded += OnSceneUnloaded;
+
+            List<Scene> toAdd = new List<Scene>();
+            foreach (var sceneBrg in m_Scenes)
+            {
+                if (sceneBrg.Value == null)
+                    toAdd.Add(sceneBrg.Key);
+            }
+
+            foreach (var scene in toAdd)
+                OnSceneLoaded(scene, LoadSceneMode.Additive);
         }
 
         private void OnDisable()
@@ -737,7 +750,15 @@ namespace UnityEngine.Rendering
             SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.sceneUnloaded -= OnSceneUnloaded;
 
-            CleanUp();
+            List<Scene> toNull = new List<Scene>();
+            foreach (var scene in m_Scenes)
+            {
+                scene.Value?.Destroy();
+                toNull.Add(scene.Key);
+            }
+
+            foreach (var scene in toNull)
+                m_Scenes[scene] = null;
         }
 
         private static void GetValidChildRenderers(GameObject root, List<MeshRenderer> toAppend)
@@ -766,7 +787,7 @@ namespace UnityEngine.Rendering
 
             SceneBRG brg = new SceneBRG();
             brg.Initialize(renderers);
-            m_Scenes.Add(scene, brg);
+            m_Scenes[scene] = brg;
         }
 
         private void OnSceneUnloaded(Scene scene)
@@ -779,17 +800,12 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private void CleanUp()
+        private void OnDestroy()
         {
             foreach (var scene in m_Scenes)
                 scene.Value?.Destroy();
 
             m_Scenes.Clear();
-        }
-
-        private void OnDestroy()
-        {
-            CleanUp();
         }
     }
 }

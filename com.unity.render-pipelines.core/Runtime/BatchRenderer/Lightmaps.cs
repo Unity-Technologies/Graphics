@@ -47,11 +47,11 @@ namespace UnityEngine.Rendering
             if (data == null)
                 return null;
 
-            bool isSRGB = GraphicsFormatUtility.IsSRGBFormat(data.graphicsFormat);
-            var result = new Texture2DArray(data.width, data.height, source.Count, source[0].format, true, !isSRGB);
-            result.filterMode = FilterMode.Trilinear;
-            result.wrapMode = TextureWrapMode.Clamp;
-            result.anisoLevel = 3;
+            var result = new Texture2DArray(data.width, data.height, source.Count, source[0].graphicsFormat, TextureCreationFlags.MipChain);
+            result.filterMode = data.filterMode;
+            result.wrapMode = data.wrapMode;
+            result.anisoLevel = data.anisoLevel;
+            result.mipMapBias = data.mipMapBias;
 
             for (var sliceIndex = 0; sliceIndex < source.Count; sliceIndex++)
             {
