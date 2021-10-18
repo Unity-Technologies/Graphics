@@ -9,11 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added support for orthographic camera in path tracing.
 - Added public API to edit materials from script at runtime.
-
-### Changed
-- Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
-- Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
-- PrepareLightsForGPU CPU Light loop performance improvement (40% to 70% faster), utilizing burst and optimized. Utilizing better sorting, distributing work in jobs and improving cache access of light data.
+- Added new functions that sample the custom buffer in custom passes (CustomPassSampleCustomColor and CustomPassLoadCustomColor) to handle the RTHandleScale automatically.
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
@@ -27,13 +23,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
 - Fixed the cloudlayer not using depth buffer.
 - Fixed crossfade not working on the HD ST8 ShaderGraph [case 1369586](https://fogbugz.unity3d.com/f/cases/1369586/)
-
 - Fixed range compression factor being clamped. (case 1365707)
 - Fixed tooltip not showing on labels in ShaderGraphs (1358483).
 - Fix API warnings in Matcap mode on Metal.
 - Fix D3D validation layer errors w.r.t shadow textures when an atlas is not used.
 - Fixed anchor position offset property for the Light Anchor component. (case 1362809)
 - Fixed minor performance issues in SSGI (case 1367144).
+- Fixed scaling issues with dynamic resolution and the CustomPassSampleCameraColor function.
+
+### Changed
+- Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
+- Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
+- PrepareLightsForGPU CPU Light loop performance improvement (40% to 70% faster), utilizing burst and optimized. Utilizing better sorting, distributing work in jobs and improving cache access of light data.
 
 ## [13.1.0] - 2021-09-24
 
