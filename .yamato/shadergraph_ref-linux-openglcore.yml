@@ -21,6 +21,7 @@ ShaderGraph_ref_Linux_OpenGLCore_Standalone_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -86,6 +87,7 @@ ShaderGraph_ref_Linux_OpenGLCore_playmode_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -111,6 +113,7 @@ ShaderGraph_ref_Linux_OpenGLCore_Standalone_cache_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -175,6 +178,7 @@ ShaderGraph_ref_Linux_OpenGLCore_Standalone_ref_images_mono_Linear_CUSTOM-REVISI
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -240,6 +244,7 @@ ShaderGraph_ref_Linux_OpenGLCore_playmode_ref_images_mono_Linear_CUSTOM-REVISION
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -265,6 +270,7 @@ ShaderGraph_ref_Linux_OpenGLCore_Standalone_cache_ref_images_mono_Linear_CUSTOM-
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr

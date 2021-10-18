@@ -25,6 +25,7 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_trunk:
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
+      -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  choco install python3 && refreshenv
@@ -108,6 +109,7 @@ ShaderGraph_ref_Android_OpenGLES3_playmode_ref_images_il2cpp_Linear_trunk:
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
+      -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  choco install python3 && refreshenv
@@ -149,6 +151,7 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linear_trun
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
+      -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  choco install python3 && refreshenv
@@ -228,6 +231,7 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_CUSTOM-REV
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
+      -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  choco install python3 && refreshenv
@@ -311,6 +315,7 @@ ShaderGraph_ref_Android_OpenGLES3_playmode_ref_images_il2cpp_Linear_CUSTOM-REVIS
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
+      -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  choco install python3 && refreshenv
@@ -352,6 +357,7 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linear_CUST
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
+      -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  choco install python3 && refreshenv

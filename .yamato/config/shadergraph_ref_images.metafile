@@ -7,6 +7,8 @@ test_platforms:
     commands:
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: set UTR_VERSION=0.14.1-rc1
+    - [OSX_OpenGLCore, OSX_Metal, Linux_OpenGLCore]: UTR_VERSION=0.14.1-rc1
     - [all]: <shared.platform.commands.setup_utr>
     - [OSX_Metal, OSX_OpenGLCore]: <shared.platform.commands.unity_downloader_cli>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 && refreshenv
@@ -35,6 +37,8 @@ test_platforms:
     commands:
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: set UTR_VERSION=0.14.1-rc1
+    - [OSX_OpenGLCore, OSX_Metal, Linux_OpenGLCore]: UTR_VERSION=0.14.1-rc1
     - [all]: <shared.platform.commands.setup_utr>
     - [OSX_Metal, OSX_OpenGLCore]: <shared.platform.commands.unity_downloader_cli>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 && refreshenv
@@ -61,6 +65,8 @@ test_platforms:
     commands:
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: set UTR_VERSION=0.14.1-rc1
+    - [OSX_OpenGLCore, OSX_Metal, Linux_OpenGLCore]: UTR_VERSION=0.14.1-rc1
     - [all]: <shared.platform.commands.setup_utr>
     - [OSX_Metal, OSX_OpenGLCore]: <shared.platform.commands.unity_downloader_cli>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 && refreshenv
