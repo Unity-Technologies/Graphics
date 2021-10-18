@@ -464,6 +464,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed double camera preview.
 - Fixed memory leak with XR combined occlusion meshes.
 - Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
+- Fixed performance on PrepareLightsForGPU by burstifying light loop.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
