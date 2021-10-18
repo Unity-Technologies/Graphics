@@ -595,14 +595,6 @@ namespace UnityEngine.Rendering.Universal
 
                 LightmapperUtils.Extract(light, out Cookie cookie);
 
-                if (light.type != LightType.Area
-                    && light.type != LightType.Disc
-                    && light.type != LightType.Rectangle)
-                {
-                    lightData.color.intensity /= Mathf.PI;
-                    lightData.indirectColor.intensity /= Mathf.PI;
-                }
-
                 switch (light.type)
                 {
                     case LightType.Directional:
@@ -653,6 +645,14 @@ namespace UnityEngine.Rendering.Universal
                     default:
                         lightData.InitNoBake(light.GetInstanceID());
                         break;
+                }
+
+                if (light.type != LightType.Area
+                    && light.type != LightType.Disc
+                    && light.type != LightType.Rectangle)
+                {
+                    lightData.color.intensity /= Mathf.PI;
+                    lightData.indirectColor.intensity /= Mathf.PI;
                 }
 
                 lightData.falloff = FalloffType.InverseSquared;

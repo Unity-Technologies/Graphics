@@ -146,7 +146,7 @@ Light GetMainLight()
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
-    light.color.rgb *= GetCurrentExposureMultiplier();
+    light.color.rgb *= GetCurrentExposureMultiplier() * INV_PI;
 
 #ifdef _LIGHT_LAYERS
     light.layerMask = _MainLightLayerMask;
@@ -227,7 +227,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
     half attenuation = half(DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy) * AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw));
 
-    color.rgb *= GetCurrentExposureMultiplier();
+    color.rgb *= GetCurrentExposureMultiplier() * INV_PI;
 
     Light light;
     light.direction = lightDirection;

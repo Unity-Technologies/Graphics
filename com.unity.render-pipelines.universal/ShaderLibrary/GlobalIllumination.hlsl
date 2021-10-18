@@ -129,7 +129,7 @@ half3 SampleLightmap(float2 staticLightmapUV, float2 dynamicLightmapUV, half3 no
 half3 SampleLightmap(float2 staticLightmapUV, half3 normalWS)
 {
     float2 dummyDynamicLightmapUV = float2(0,0);
-    half3 result = SampleLightmap(staticLightmapUV, dummyDynamicLightmapUV, normalWS) * GetCurrentExposureMultiplier();
+    half3 result = SampleLightmap(staticLightmapUV, dummyDynamicLightmapUV, normalWS);
     return result;
 }
 
@@ -218,7 +218,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
         reflectVector = BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
 #endif // _REFLECTION_PROBE_BOX_PROJECTION
 
-        half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
+        half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip)) * GetCurrentExposureMultiplier();
 
 #if defined(UNITY_USE_NATIVE_HDR)
         irradiance += weightProbe0 * encodedIrradiance.rbg;
@@ -233,7 +233,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
 #ifdef _REFLECTION_PROBE_BOX_PROJECTION
         reflectVector = BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
 #endif // _REFLECTION_PROBE_BOX_PROJECTION
-        half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip));
+        half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip)) * GetCurrentExposureMultiplier();
 
 #if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
         irradiance += weightProbe1 * encodedIrradiance.rbg;
@@ -269,7 +269,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half p
     reflectVector = BoxProjectedCubemapDirection(reflectVector, positionWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
 #endif // _REFLECTION_PROBE_BOX_PROJECTION
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-    half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
+    half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip)) * GetCurrentExposureMultiplier();
 
 #if defined(UNITY_USE_NATIVE_HDR)
     irradiance = encodedIrradiance.rgb;
@@ -288,7 +288,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
     half3 irradiance;
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-    half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
+    half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip)) * GetCurrentExposureMultiplier();
 
 #if defined(UNITY_USE_NATIVE_HDR)
     irradiance = encodedIrradiance.rgb;

@@ -68,7 +68,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
     }
 #endif // _SPECULARHIGHLIGHTS_OFF
 
-    return INV_PI * brdf * radiance;
+    return brdf * radiance;
 }
 
 half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, Light light, half3 normalWS, half3 viewDirectionWS, half clearCoatMask, bool specularHighlightsOff)
@@ -155,17 +155,17 @@ half3 CalculateLightingColor(LightingData lightingData, half3 albedo)
 
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_MAIN_LIGHT))
     {
-        lightingColor += lightingData.mainLightColor * INV_PI;
+        lightingColor += lightingData.mainLightColor;
     }
 
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_ADDITIONAL_LIGHTS))
     {
-        lightingColor += lightingData.additionalLightsColor * INV_PI;
+        lightingColor += lightingData.additionalLightsColor;
     }
 
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_VERTEX_LIGHTING))
     {
-        lightingColor += lightingData.vertexLightingColor * INV_PI;
+        lightingColor += lightingData.vertexLightingColor;
     }
 
     lightingColor *= albedo;

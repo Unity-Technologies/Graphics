@@ -9,7 +9,6 @@ using UnityEngine.Scripting.APIUpdating;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
-using XDiffGui;
 
 namespace UnityEngine.Rendering.Universal
 {
