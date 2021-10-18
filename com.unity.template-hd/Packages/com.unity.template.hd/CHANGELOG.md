@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Update manifest to include required packages
 
+### Fixed
+- Fixed new input system codepath not working if you had a controller but no keyboard or mouse.
+
 ## [13.0.0] - 2021-09-01
 
 ### Changed
