@@ -1,6 +1,6 @@
 # Sub Graph Dropdown Node
 
-The Subgraph Dropdown node is a node representation of a Dropdown property. It allows you to create a custom dropdown menu. You can specify how many options appear in the dropdown menu, and their names.
+The Subgraph Dropdown node is a node representation of a Dropdown property. It allows you to create a custom dropdown menu. You can specify the number of options that appear in the dropdown menu, and their names.
 
 After you create a Dropdown property and add its Dropdown node to a Subgraph, the Subgraph's node in any parent Shader Graph displays with a dropdown control:
 
@@ -27,7 +27,7 @@ The Subgraph Dropdown node is similar to the [Keyword node](Keyword-Node.md), an
 
 8. (Optional) In the **Default** list, select the default Entry that you want Shader Graph to select on your property.
 
-9. (Optional Enable **Use Custom Binding** to
+9. (Optional) Enable **Use Custom Binding** to
 
 
 ## Ports
@@ -35,7 +35,7 @@ The Subgraph Dropdown node is similar to the [Keyword node](Keyword-Node.md), an
 > [!NOTE]
 > The node's number of input ports and their names directly correspond to the settings you specify in the Graph Inspector's **Node Settings** tab. The node always has one output port.
 
-You can change the type of input any input port receives by making a connection from a node that outputs a specific data type. For more information, see [Dynamic Data Types](Data-Types.md#dynamic-data-types).
+You can change the input data type any input port receives by making a connection from a node that outputs a specific data type. For more information, see [Dynamic Data Types](Data-Types.md#dynamic-data-types).
 
 | **Name**     | **Direction** | **Type** | **Description**  |
 | :---         | :---          | :------  |   :----------    |

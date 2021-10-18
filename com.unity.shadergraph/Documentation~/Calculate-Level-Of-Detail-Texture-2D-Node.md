@@ -21,7 +21,7 @@ The Calculate Level of Detail Texture 2D node also has a clamped and unclamped m
 | :---         | :---          | :------       |  :------    |   :----------    |
 | Texture      | Input         | Texture 2D    |    None     | The texture to use when calculating the Level of Detail (LOD). |
 | UV           | Input         | Vector 2      |    UV       | The UV coordinate to use for calculating the LOD.        |
-| Sampler      | Input         | SamplerState  |    None     | The Sampler State and its corresponding settings that should be used for calculating the LOD.    |
+| Sampler      | Input         | SamplerState  |    None     | The Sampler State and its corresponding settings that Shader Graph should use to calculate the LOD.    |
 | LOD          | Output        | Float         |    None     | The final calculated mip level or LOD of the texture sample.         |
 
 
