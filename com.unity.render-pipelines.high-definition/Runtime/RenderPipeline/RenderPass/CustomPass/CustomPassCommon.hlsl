@@ -47,7 +47,11 @@ float3 CustomPassLoadCameraColor(uint2 pixelCoords, float lod)
 
 float4 CustomPassSampleCustomColor(float2 uv)
 {
-    return SampleCustomColor(uv);
+    switch ((int)_CustomPassInjectionPoint)
+    {
+        case CUSTOMPASSINJECTIONPOINT_AFTER_POST_PROCESS: return LOAD_TEXTURE2D_X_LOD(_CustomColorTexture, uv * _ScreenSize.xy, 0);
+        default: return SampleCustomColor(uv);
+    }
 }
 
 float4 CustomPassLoadCustomColor(uint2 pixelCoords)
