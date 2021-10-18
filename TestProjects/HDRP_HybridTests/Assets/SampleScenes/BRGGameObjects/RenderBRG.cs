@@ -105,8 +105,7 @@ struct SHProperties
 public unsafe class RenderBRG : MonoBehaviour
 {
     private BatchRendererGroup m_BatchRendererGroup;
-    private ComputeBuffer m_GPUPersistentInstanceData;
-    private BatchBufferID m_GPUPersistanceBufferId;
+    private GraphicsBuffer m_GPUPersistentInstanceData;
 
     private BatchID m_batchID;
     private bool m_initialized;
@@ -502,10 +501,8 @@ public unsafe class RenderBRG : MonoBehaviour
             }
         }
 
-        m_GPUPersistentInstanceData = new ComputeBuffer((int)bigDataBufferVector4Count * 16 / 4, 4, ComputeBufferType.Raw);
+        m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Raw, (int)bigDataBufferVector4Count * 16 / 4, 4);
         m_GPUPersistentInstanceData.SetData(vectorBuffer);
-
-        m_GPUPersistanceBufferId = m_BatchRendererGroup.RegisterBuffer(m_GPUPersistentInstanceData);
 
         Debug.Log("DrawRanges: " + m_drawRanges.Length + ", DrawBatches: " + m_drawBatches.Length + ", Instances: " + m_instances.Length);
 
@@ -597,7 +594,7 @@ public unsafe class RenderBRG : MonoBehaviour
         batchMetadata[10] = CreateMetadataValue(SHCID, (SHOffset + 6) * UnsafeUtility.SizeOf<Vector4>(), false);
 
         // Register batch
-        m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistanceBufferId);
+        m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistentInstanceData.bufferHandle);
 
         m_initialized = true;
     }

@@ -18,9 +18,7 @@ public class SimpleBRGExample : MonoBehaviour
 
     private BatchRendererGroup m_BRG;
 
-    // TODO: Replace with GraphicsBuffer and GraphicsBufferHandle
-    private ComputeBuffer m_InstanceData;
-    private BatchBufferID m_InstanceDataHandle;
+    private GraphicsBuffer m_InstanceData;
     private BatchID m_BatchID;
     private BatchMeshID m_MeshID;
     private BatchMaterialID m_MaterialID;
@@ -79,10 +77,9 @@ public class SimpleBRGExample : MonoBehaviour
         m_MaterialID = m_BRG.RegisterMaterial(material);
 
         // Create the buffer that holds our instance data
-        // TODO: Replace with GraphicsBuffer and GraphicsBufferHandle
-        m_InstanceData = new ComputeBuffer((kExtraBytes + kBytesPerInstance * kNumInstances) / sizeof(int), sizeof(int),
-            ComputeBufferType.Raw);
-        m_InstanceDataHandle = m_BRG.RegisterBuffer(m_InstanceData);
+        m_InstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Raw,
+            (kExtraBytes + kBytesPerInstance * kNumInstances) / sizeof(int),
+            sizeof(int));
 
         // Place one zero matrix at the start of the instance data buffer, so loads from address 0 will return zero
         var zero = new Matrix4x4[1] { Matrix4x4.zero };
@@ -108,7 +105,7 @@ public class SimpleBRGExample : MonoBehaviour
         {
             new PackedMatrix(matrices[0].inverse),
             new PackedMatrix(matrices[1].inverse),
-            new PackedMatrix(matrices[1].inverse),
+            new PackedMatrix(matrices[2].inverse),
         };
 
         // Make all instances have unique colors
@@ -155,7 +152,7 @@ public class SimpleBRGExample : MonoBehaviour
         // Finally, create a batch for our instances, and make the batch use the GraphicsBuffer with our
         // instance data, and the metadata values that specify where the properties are. Note that
         // we do not need to pass any batch size here.
-        m_BatchID = m_BRG.AddBatch(metadata, m_InstanceDataHandle);
+        m_BatchID = m_BRG.AddBatch(metadata, m_InstanceData.bufferHandle);
     }
 
     // We need to dispose our GraphicsBuffer and BatchRendererGroup when our script is no longer used,

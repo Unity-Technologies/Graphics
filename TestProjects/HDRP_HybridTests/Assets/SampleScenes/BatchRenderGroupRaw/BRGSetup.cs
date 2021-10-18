@@ -21,8 +21,7 @@ public unsafe class BRGSetup : MonoBehaviour
     public int itemGridSize = 30;
 
     private BatchRendererGroup m_BatchRendererGroup;
-    private ComputeBuffer m_GPUPersistentInstanceData;
-    private BatchBufferID m_GPUPersistanceBufferId;
+    private GraphicsBuffer m_GPUPersistentInstanceData;
 
     private BatchID m_batchID;
     private BatchMaterialID m_materialID;
@@ -150,8 +149,7 @@ public unsafe class BRGSetup : MonoBehaviour
         // Generate a grid of objects...
         int bigDataBufferVector4Count = itemCount * 3 * 2 + itemCount;      // mat4x3, colors
         m_sysmemBuffer = new NativeArray<Vector4>(bigDataBufferVector4Count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-        m_GPUPersistentInstanceData = new ComputeBuffer((int)bigDataBufferVector4Count * 16 / 4, 4, ComputeBufferType.Raw);
-        m_GPUPersistanceBufferId = m_BatchRendererGroup.RegisterBuffer(m_GPUPersistentInstanceData);
+        m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Raw, (int)bigDataBufferVector4Count * 16 / 4, 4);
 
         // Matrices
         /*
@@ -183,7 +181,7 @@ public unsafe class BRGSetup : MonoBehaviour
         batchMetadata[2] = CreateMetadataValue(colorID, itemCount * UnsafeUtility.SizeOf<Vector4>() * 3 * 2, true);     // colors
 
         // Register batch
-        m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistanceBufferId);
+        m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistentInstanceData.bufferHandle);
 
 
         m_initialized = true;
@@ -237,8 +235,6 @@ public unsafe class BRGSetup : MonoBehaviour
             m_BatchRendererGroup.RemoveBatch(m_batchID);
             if (m_material) m_BatchRendererGroup.UnregisterMaterial(m_materialID);
             if (m_mesh) m_BatchRendererGroup.UnregisterMesh(m_meshID);
-
-            m_BatchRendererGroup.UnregisterBuffer(m_GPUPersistanceBufferId);
 
             m_BatchRendererGroup.Dispose();
             m_GPUPersistentInstanceData.Dispose();
