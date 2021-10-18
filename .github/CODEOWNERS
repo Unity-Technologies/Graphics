@@ -2,7 +2,7 @@
 
 # Universal RP Team and URP Guardian
 /com.unity.render-pipelines.universal/ @Unity-Technologies/universal-rp-team @Unity-Technologies/urp-trunk-guardian
-/com.unity.testing.urp-upgrade/ @Unity-Technologies/universal-rp-team @Unity-Technologies/url-trunk-guardian
+/com.unity.testing.urp-upgrade/ @Unity-Technologies/universal-rp-team @Unity-Technologies/urp-trunk-guardian
 /com.unity.testing.urp/ @Unity-Technologies/universal-rp-team @Unity-Technologies/urp-trunk-guardian
 /TestProjects/UniversalGraphicsTest_Foundation/ @Unity-Technologies/universal-rp-team @Unity-Technologies/urp-trunk-guardian
 /TestProjects/UniversalGraphicsTest_Lighting/ @Unity-Technologies/universal-rp-team @Unity-Technologies/urp-trunk-guardian
