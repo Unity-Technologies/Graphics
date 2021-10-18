@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ForwardDepthPrepass,
         DeferredDepthPrepass,
         TransparentDepthPrepass,
+        VBuffer,
         GBuffer,
         DBufferRender,
         DBufferPrepareDrawData,

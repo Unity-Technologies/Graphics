@@ -14,6 +14,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_DepthForwardOnlyStr = "DepthForwardOnly";
         /// <summary>Forward Only pass name.</summary>
         public static readonly string s_ForwardOnlyStr = "ForwardOnly";
+        /// <summary>VBuffer pass name.</summary>
+        public static readonly string s_VBufferStr = "VBuffer";
         /// <summary>GBuffer pass name.</summary>
         public static readonly string s_GBufferStr = "GBuffer";
         /// <summary>GBuffer With Prepass pass name.</summary>
@@ -65,6 +67,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_DepthForwardOnlyName = new ShaderTagId(s_DepthForwardOnlyStr);
         /// <summary>Forward Only shader tag id.</summary>
         public static readonly ShaderTagId s_ForwardOnlyName = new ShaderTagId(s_ForwardOnlyStr);
+        /// <summary>VBuffer shader tag id.</summary>
+        public static readonly ShaderTagId s_VBufferName = new ShaderTagId(s_VBufferStr);
         /// <summary>GBuffer shader tag id.</summary>
         public static readonly ShaderTagId s_GBufferName = new ShaderTagId(s_GBufferStr);
         /// <summary>GBufferWithPrepass shader tag id.</summary>
@@ -697,6 +701,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InputBufferDimension = Shader.PropertyToID("_InputBufferDimension");
         public static readonly int _OutputBufferDimension = Shader.PropertyToID("_OutputBufferDimension");
 
+        // Visibility Buffer
+        public static readonly int _VisibilityTexture = Shader.PropertyToID("_VisibilityTexture");
+
         // Primary Visibility
         public static readonly int _RaytracingFlagMask = Shader.PropertyToID("_RaytracingFlagMask");
         public static readonly int _RaytracingPrimaryDebug = Shader.PropertyToID("_RaytracingPrimaryDebug");
@@ -1017,6 +1024,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SrcMip = Shader.PropertyToID("_SrcMip");
         public static readonly int _SrcScale = Shader.PropertyToID("_SrcScale");
         public static readonly int _SrcOffset = Shader.PropertyToID("_SrcOffset");
+
+        //Visibility material
+        public static readonly int _VisBufferInstanceData = Shader.PropertyToID("_VisBufferInstanceData");
     }
 
     /// <summary>

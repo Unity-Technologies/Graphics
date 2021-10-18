@@ -1,0 +1,169 @@
+#pragma kernel VBCompactionKernel
+#pragma kernel IBCompactionKernelUINT32
+#pragma kernel IBCompactionKernelUINT16
+//#pragma enable_d3d11_debug_symbols
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include <VisibilityBufferCommon.hlsl>
+
+
+float4 _UVCompactionParams;
+float4 _UV1CompactionParams;
+float4 _NormalCompactionParams;
+float4 _PosCompactionParams;
+float4 _TangentCompactionParams;
+
+
+#define _UVVBBias (uint)_UVCompactionParams.x
+#define _UV1VBBias (uint)_UV1CompactionParams.x
+#define _NormalVBBias (uint)_NormalCompactionParams.x
+#define _PosVBBias (uint)_PosCompactionParams.x
+#define _TangentVBBias (uint)_TangentCompactionParams.x
+
+#define _VBCount (uint)_UVCompactionParams.y
+
+#define _UVVBStride (uint)_UVCompactionParams.z
+#define _UV1VBStride (uint)_UV1CompactionParams.z
+#define _NormalVBStride (uint)_NormalCompactionParams.z
+#define _PosVBStride (uint)_PosCompactionParams.z
+#define _TangentVBStride (uint)_TangentCompactionParams.z
+
+#define _VBOutputBias (uint)_UVCompactionParams.w
+
+#define _HasUV1 !all(_UV1CompactionParams == 0)
+#define _HasTangent !all(_TangentCompactionParams == 0)
+
+float4 _IBCompactionParams;
+
+
+ByteAddressBuffer _InputUVVB;
+ByteAddressBuffer _InputUV1VB;
+ByteAddressBuffer _InputNormalVB;
+ByteAddressBuffer _InputPosVB;
+ByteAddressBuffer _InputTangentVB;
+
+RWStructuredBuffer<CompactVertex> _OutputVB;
+
+CompactVertex GetCompactVertex(float2 uv, float2 uv1, float3 pos, float3 N, float4 T)
+{
+    CompactVertex vtx;
+    vtx.pos = pos;
+    vtx.uv = uv;
+    vtx.uv1 = uv1;
+
+    vtx.N = N;
+    vtx.T = T;
+
+    return vtx;
+}
+
+[numthreads(64, 1, 1)]
+void VBCompactionKernel(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x < _VBCount)
+    {
+        int vertexIdx = id.x;
+
+        // Sample from inputs
+        float2 uv = asfloat(_InputUVVB.Load2(vertexIdx * _UVVBStride + _UVVBBias));
+        float2 uv1 = 0;
+        if (_HasUV1)
+        {
+            uv1 = asfloat(_InputUV1VB.Load2(vertexIdx * _UV1VBStride + _UV1VBBias));
+        }
+        float3 pos = asfloat(_InputPosVB.Load3(vertexIdx * _PosVBStride + _PosVBBias));
+        float3 N = asfloat(_InputNormalVB.Load3(vertexIdx * _NormalVBStride + _NormalVBBias));
+        float4 T = 0;
+        if (_HasTangent)
+        {
+            T = asfloat(_InputTangentVB.Load4(vertexIdx * _TangentVBStride + _TangentVBBias));
+        }
+
+        CompactVertex vtx = GetCompactVertex(uv, uv1, pos, N, T);
+        _OutputVB[_VBOutputBias + vertexIdx] = vtx;
+    }
+}
+
+RWStructuredBuffer<uint> _OutputIB;
+ByteAddressBuffer _InputIB;
+
+
+#define _IBSubmeshCount (uint)_IBCompactionParams.x
+
+#define _CurrentChunkIndexStart asuint(_IBCompactionParams.y)
+#define _IBValueShift (uint)_IBCompactionParams.z
+#define _InputSubMeshIndexShift (uint)_IBCompactionParams.w
+
+
+void StoreTriangle(uint outputTriangleIndexStartSubMesh, uint groupIndex, uint inputVal, uint inputVal1, uint inputVal2)
+{
+    _OutputIB[_CurrentChunkIndexStart + outputTriangleIndexStartSubMesh + 0] = inputVal;
+    _OutputIB[_CurrentChunkIndexStart + outputTriangleIndexStartSubMesh + 1] = inputVal1;
+    _OutputIB[_CurrentChunkIndexStart + outputTriangleIndexStartSubMesh + 2] = inputVal2;
+}
+
+[numthreads(128, 1, 1)]
+void IBCompactionKernelUINT32(uint3 id : SV_DispatchThreadID, uint groupIndex : SV_GroupID)
+{
+    uint triangleIndexStart = id.x * 3;
+    if (triangleIndexStart < _IBSubmeshCount)
+    {
+        uint idx0 = asuint(_InputIB.Load((triangleIndexStart + 0 + _InputSubMeshIndexShift) * 4)) + _IBValueShift;
+        uint idx1 = asuint(_InputIB.Load((triangleIndexStart + 1 + _InputSubMeshIndexShift) * 4)) + _IBValueShift;
+        uint idx2 = asuint(_InputIB.Load((triangleIndexStart + 2 + _InputSubMeshIndexShift) * 4)) + _IBValueShift;
+
+        StoreTriangle(triangleIndexStart, groupIndex, idx0, idx1, idx2);
+    }
+    else
+    {
+        StoreTriangle(triangleIndexStart, groupIndex, 0xffffffff, 0xffffffff, 0xffffffff);
+    }
+}
+
+
+[numthreads(128, 1, 1)]
+void IBCompactionKernelUINT16(uint3 id : SV_DispatchThreadID, uint groupIndex : SV_GroupID)
+{
+    // This is the first index of the current triangle that this thread is gonna process
+    // the index is relative to the current submesh.
+    uint triangleIndexStartSubMesh = id.x * 3;
+
+    // If this triangle is a valid or just padding in the final buffer
+    if (triangleIndexStartSubMesh < _IBSubmeshCount)
+    {
+        // This is the first index of the current triangle that this thread is gonna process
+        // the index is relative to the current full mesh.
+        uint triangleIndexStartFullMesh = triangleIndexStartSubMesh + _InputSubMeshIndexShift;
+
+        uint idx0, idx1, idx2;
+        uint accessIdx = (triangleIndexStartFullMesh / 2);
+        uint firstCouple = asuint(_InputIB.Load(accessIdx * 4));
+        uint secondCouple = asuint(_InputIB.Load((accessIdx + 1) * 4));
+
+        if ((triangleIndexStartFullMesh & 1) == 0)
+        {
+            // We need first couple of indices
+            // and first element of the next.
+            idx0 = firstCouple & 0xffff;
+            idx1 = firstCouple >> 16;
+            idx2 = secondCouple & 0xffff;
+        }
+        else
+        {
+            // We need second index of the first couple of indices
+            // and the whole next couple.
+            idx0 = firstCouple >> 16;
+            idx1 = secondCouple & 0xffff;
+            idx2 = secondCouple >> 16;
+        }
+
+        StoreTriangle(triangleIndexStartSubMesh, groupIndex, idx0 + _IBValueShift, idx1 + _IBValueShift, idx2 + _IBValueShift);
+    }
+    else
+    {
+        StoreTriangle(triangleIndexStartSubMesh, groupIndex, 0xffffffff, 0xffffffff, 0xffffffff);
+    }
+}

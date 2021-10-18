@@ -152,6 +152,13 @@ namespace UnityEngine.Rendering
 
         private List<MeshRenderer> m_AddedRenderers;
 
+        private IBRGCallbacks m_SRPCallbacks = null;
+
+        public void SetSRPCallbacks(IBRGCallbacks callbacks)
+        {
+            m_SRPCallbacks = callbacks;
+        }
+
         public static T* Malloc<T>(int count) where T : unmanaged
         {
             return (T*)UnsafeUtility.Malloc(
@@ -463,6 +470,52 @@ namespace UnityEngine.Rendering
             return jobHandleOutput;
         }
 
+        private void RegisterBatchDrawInstance(
+            Material matToUse, BatchMeshID mesh, Transform transform,
+            int drawRangeIndex, ref DrawRange drawRange,
+            int instanceIndex, int submeshIndex)
+        {
+            var material = m_BatchRendererGroup.RegisterMaterial(matToUse);
+            
+            var flags = BatchDrawCommandFlags.None;
+            
+            bool flipWinding = math.determinant(transform.localToWorldMatrix) < 0.0;
+            
+            if (flipWinding)
+                flags |= BatchDrawCommandFlags.FlipWinding;
+            
+            var key = new DrawKey
+            {
+                material = material,
+                meshID = mesh,
+                submeshIndex = (uint)submeshIndex,
+                flags = flags,
+                range = drawRange.key
+            };
+            
+            var drawBatch = new DrawBatch {key = key, instanceCount = 0, instanceOffset = 0};
+            
+            m_instances.Add(new DrawInstance {key = key, instanceIndex = instanceIndex});
+            
+            int drawBatchIndex;
+            if (m_batchHash.TryGetValue(key, out drawBatchIndex))
+            {
+                drawBatch = m_drawBatches[drawBatchIndex];
+            }
+            else
+            {
+                drawBatchIndex = m_drawBatches.Length;
+                m_drawBatches.Add(drawBatch);
+                m_batchHash[key] = drawBatchIndex;
+            
+                drawRange.drawCount++;
+                m_drawRanges[drawRangeIndex] = drawRange;
+            }
+            
+            drawBatch.instanceCount++;
+            m_drawBatches[drawBatchIndex] = drawBatch;
+        }
+
         // Start is called before the first frame update
         public void Initialize(List<MeshRenderer> renderers)
         {
@@ -481,6 +534,10 @@ namespace UnityEngine.Rendering
             m_drawRanges = new NativeList<DrawRange>(Allocator.Persistent);
             m_AddedRenderers = new List<MeshRenderer>(renderers.Count);
 
+            BRGInternalSRPConfig srpConfig = m_SRPCallbacks != null ?  m_SRPCallbacks.GetSRPConfig() : BRGInternalSRPConfig.NewDefault();
+
+            BatchMeshID overrideMeshID = srpConfig.overrideMesh == null ? BatchMeshID.Null : m_BatchRendererGroup.RegisterMesh(srpConfig.overrideMesh);
+
             // Fill the GPU-persistent scene data ComputeBuffer
             int bigDataBufferVector4Count =
                 4 /*zero*/
@@ -489,7 +546,15 @@ namespace UnityEngine.Rendering
                 + 7 * m_renderers.Length /*per renderer SH*/
                 + 1 * m_renderers.Length /*per renderer probe occlusion*/
                 + 2 * m_renderers.Length /* per renderer lightmapindex + scale/offset*/
-                + m_renderers.Length * 3 * 2 /*per renderer 4x3 matrix+inverse*/;
+                + m_renderers.Length * 3 * 2; /*per renderer 4x3 matrix+inverse*/
+
+            //add any metadata extra if found
+            if (srpConfig.metadatas.IsCreated)
+            {
+                for (int i = 0; i < srpConfig.metadatas.Length; ++i)
+                    bigDataBufferVector4Count += m_renderers.Length * srpConfig.metadatas[i].sizeInVec4s;
+            }
+
             var vectorBuffer = new NativeArray<Vector4>(bigDataBufferVector4Count, Allocator.Temp);
 
             // First 4xfloat4 of ComputeBuffer needed to be zero filled for default property fall back!
@@ -516,6 +581,7 @@ namespace UnityEngine.Rendering
             var lightMapScaleOffset = lightMapIndexOffset + m_renderers.Length;
             var localToWorldOffset = lightMapScaleOffset + m_renderers.Length;
             var worldToLocalOffset = localToWorldOffset + m_renderers.Length * 3;
+            var SRPOffset = worldToLocalOffset + m_renderers.Length * 3;
 
             m_transformVec4InstanceBufferOffsetL2W = localToWorldOffset; //this will be used by the transform updated later.
             m_transformVec4InstanceBufferOffsetW2L = worldToLocalOffset; //this will be used by the transform updated later.
@@ -529,7 +595,9 @@ namespace UnityEngine.Rendering
 
             LightProbesQuery lpq = new LightProbesQuery(Allocator.Temp);
 
-            for (int i = 0; i < renderers.Count; i++)
+            List<AddedRendererInformation> addedRenderersInfo = new List<AddedRendererInformation>();
+
+            for (int i = 0; i < renderers.Count; ++i)
             {
                 var renderer = renderers[i];
 
@@ -545,6 +613,27 @@ namespace UnityEngine.Rendering
                 }
 
                 m_AddedRenderers.Add(renderer);
+                addedRenderersInfo.Add(new AddedRendererInformation()
+                {
+                    instanceIndex = i,
+                    meshFilter = meshFilter
+                });
+            }
+
+            m_SRPCallbacks?.OnAddRenderers(new AddRendererParameters()
+            {
+                addedRenderers = m_AddedRenderers,
+                addedRenderersInfo = addedRenderersInfo,
+                instanceBuffer = vectorBuffer,
+                instanceBufferOffset = SRPOffset
+            });
+
+            for (int addedIndex = 0; addedIndex < m_AddedRenderers.Count; ++addedIndex)
+            {
+                AddedRendererInformation addedRendererInfo = addedRenderersInfo[addedIndex];
+                var renderer = m_AddedRenderers[addedIndex];
+                int i = addedRendererInfo.instanceIndex;
+                var meshFilter = addedRendererInfo.meshFilter;
 
                 // Disable the existing Unity MeshRenderer to avoid double rendering!
                 renderer.forceRenderingOff = true;
@@ -593,7 +682,7 @@ namespace UnityEngine.Rendering
                 var transformedBounds = AABB.Transform(m, meshFilter.sharedMesh.bounds.ToAABB());
                 m_renderers[i] = new DrawRenderer { bounds = transformedBounds };
 
-                var mesh = m_BatchRendererGroup.RegisterMesh(meshFilter.sharedMesh);
+                var mesh = overrideMeshID == BatchMeshID.Null ? m_BatchRendererGroup.RegisterMesh(meshFilter.sharedMesh) : overrideMeshID;
 
                 // Different renderer settings? -> new draw range
                 var rangeKey = new RangeKey
@@ -623,51 +712,33 @@ namespace UnityEngine.Rendering
                 var sharedMaterials = new List<Material>();
                 renderer.GetSharedMaterials(sharedMaterials);
                 var startSubMesh = renderer.subMeshStartIndex;
-                for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
+                if (srpConfig.overrideMaterial != null && srpConfig.overrideMesh != null)
                 {
-                    Material matToUse;
-                    if (!rendererMaterialInfos.TryGetValue(new Tuple<Renderer, int>(renderer, matIndex), out matToUse))
-                        matToUse = sharedMaterials[matIndex];
-
-                    var material = m_BatchRendererGroup.RegisterMaterial(matToUse);
-
-                    var flags = BatchDrawCommandFlags.None;
-
-                    bool flipWinding = math.determinant(renderer.transform.localToWorldMatrix) < 0.0;
-
-                    if (flipWinding)
-                        flags |= BatchDrawCommandFlags.FlipWinding;
-
-                    var key = new DrawKey
+                    int submeshIndex = m_SRPCallbacks != null ?
+                    m_SRPCallbacks.OnSubmeshIndexForOverrides(new SubmeshIndexForOverridesParams()
                     {
-                        material = material,
-                        meshID = mesh,
-                        submeshIndex = (uint)(matIndex + startSubMesh),
-                        flags = flags,
-                        range = rangeKey
-                    };
+                        instanceBufferOffset = SRPOffset,
+                        instanceBuffer = vectorBuffer,
+                        renderer = renderer,
+                        rendererInfo = addedRendererInfo
+                    }) : 0;
 
-                    var drawBatch = new DrawBatch { key = key, instanceCount = 0, instanceOffset = 0 };
-
-                    m_instances.Add(new DrawInstance { key = key, instanceIndex = i });
-
-                    int drawBatchIndex;
-                    if (m_batchHash.TryGetValue(key, out drawBatchIndex))
+                    RegisterBatchDrawInstance(srpConfig.overrideMaterial, mesh, renderer.transform, 
+                        drawRangeIndex, ref drawRange, i, submeshIndex);
+                }
+                else
+                {
+                    for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
                     {
-                        drawBatch = m_drawBatches[drawBatchIndex];
+                        Material matToUse;
+                        if (!rendererMaterialInfos.TryGetValue(new Tuple<Renderer, int>(renderer, matIndex), out matToUse))
+                            matToUse = sharedMaterials[matIndex];
+
+                        matToUse = srpConfig.overrideMaterial != null ? srpConfig.overrideMaterial : matToUse;
+
+                        RegisterBatchDrawInstance(matToUse, mesh, renderer.transform, 
+                            drawRangeIndex, ref drawRange, i, matIndex + startSubMesh);
                     }
-                    else
-                    {
-                        drawBatchIndex = m_drawBatches.Length;
-                        m_drawBatches.Add(drawBatch);
-                        m_batchHash[key] = drawBatchIndex;
-
-                        drawRange.drawCount++;
-                        m_drawRanges[drawRangeIndex] = drawRange;
-                    }
-
-                    drawBatch.instanceCount++;
-                    m_drawBatches[drawBatchIndex] = drawBatch;
                 }
             }
 
@@ -759,7 +830,7 @@ namespace UnityEngine.Rendering
             int SHBbID = Shader.PropertyToID("unity_SHBb");
             int SHCID = Shader.PropertyToID("unity_SHC");
 
-            var batchMetadata = new NativeArray<MetadataValue>(13, Allocator.Temp);
+            var batchMetadata = new NativeArray<MetadataValue>(13 + (srpConfig.metadatas.IsCreated ? srpConfig.metadatas.Length : 0), Allocator.Temp);
             batchMetadata[0] = CreateMetadataValue(objectToWorldID, localToWorldOffset * UnsafeUtility.SizeOf<Vector4>(), true);
             batchMetadata[1] = CreateMetadataValue(worldToObjectID, worldToLocalOffset * UnsafeUtility.SizeOf<Vector4>(), true);
             batchMetadata[2] = CreateMetadataValue(lightmapSTID, lightMapScaleOffset * UnsafeUtility.SizeOf<Vector4>(), true);
@@ -773,6 +844,17 @@ namespace UnityEngine.Rendering
             batchMetadata[10] = CreateMetadataValue(SHBgID, SHBgOffset * UnsafeUtility.SizeOf<Vector4>(), true);
             batchMetadata[11] = CreateMetadataValue(SHBbID, SHBbOffset * UnsafeUtility.SizeOf<Vector4>(), true);
             batchMetadata[12] = CreateMetadataValue(SHCID, SHCOffset * UnsafeUtility.SizeOf<Vector4>(), true);
+
+            if (srpConfig.metadatas.IsCreated)
+            {
+                int offset = SRPOffset;
+                for (int i = 0; i < srpConfig.metadatas.Length; ++i)
+                {
+                    AddedMetadataDesc metadataDesc = srpConfig.metadatas[i];
+                    batchMetadata[12 + i] = CreateMetadataValue(metadataDesc.name, offset * UnsafeUtility.SizeOf<Vector4>(), true);
+                    offset += m_renderers.Length * metadataDesc.sizeInVec4s;
+                }
+            }
 
             // Register batch
             m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistentInstanceData.bufferHandle);
@@ -821,15 +903,84 @@ namespace UnityEngine.Rendering
                     if (added != null)
                         added.forceRenderingOff = false;
                 }
+
+                m_SRPCallbacks?.OnRemoveRenderers(m_AddedRenderers);
             }
         }
     }
 
     public class RenderBRG : MonoBehaviour
     {
+        public struct SRPInitParams
+        {
+            public IBRGCallbacks SRPCallbacks;
+        }
+
+        internal static IBRGCallbacks s_SRPCallbacks = null;
+        internal static bool s_IsSRPInitialized = false;
+
         private static bool s_QueryLoadedScenes = true;
+
+        public static void NotifyCreateSRP(SRPInitParams initParams)
+        {
+            s_SRPCallbacks = initParams.SRPCallbacks;
+            s_IsSRPInitialized = true;
+
+            //any pending scenes enqueued get flushed here.
+            var allBRGs = Object.FindObjectsOfType<RenderBRG>();
+            if (allBRGs != null)
+            {
+                foreach (var o in allBRGs)
+                    o.FlushRequests();
+            }
+        }
+
+        public static void NotifyDestroySRP()
+        {
+            s_SRPCallbacks = null;
+        }
+
         private Dictionary<Scene, SceneBRG> m_Scenes = new();
         private CommandBuffer m_gpuCmdBuffer;
+
+        private enum RequestType
+        {
+            None,
+            InitializeSceneBRG,
+            DestroySceneBRG
+        }
+
+        private struct Request
+        {
+            public RequestType type;
+            public SceneBRG brg;
+            public List<MeshRenderer> renderers;
+        }
+
+        private Queue<Request> m_BrgRequests = new Queue<Request>();
+
+        private void FlushRequests()
+        {
+            if (!s_IsSRPInitialized || m_BrgRequests.Count == 0)
+                return;
+
+            while (m_BrgRequests.Count > 0)
+            {
+                var req = m_BrgRequests.Dequeue();
+                switch (req.type)
+                {
+                    case RequestType.InitializeSceneBRG:
+                        req.brg.SetSRPCallbacks(s_SRPCallbacks);
+                        req.brg.Initialize(req.renderers);
+                        break;
+                    case RequestType.DestroySceneBRG:
+                    default:
+                        req.brg.Destroy();
+                        break;
+                }
+            }
+            
+        }
 
         private void OnEnable()
         {
@@ -903,7 +1054,17 @@ namespace UnityEngine.Rendering
                 GetValidChildRenderers(go, renderers);
 
             SceneBRG brg = new SceneBRG();
-            brg.Initialize(renderers);
+            m_BrgRequests.Enqueue(
+                new Request()
+                {
+                    type = RequestType.InitializeSceneBRG,
+                    brg = brg,
+                    renderers = renderers
+                }
+            );
+
+            FlushRequests();
+
             m_Scenes[scene] = brg;
         }
 
@@ -912,8 +1073,17 @@ namespace UnityEngine.Rendering
             m_Scenes.TryGetValue(scene, out var brg);
             if (brg != null)
             {
-                brg.Destroy();
                 m_Scenes.Remove(scene);
+                m_BrgRequests.Enqueue(
+                    new Request()
+                    {
+                        type = RequestType.DestroySceneBRG,
+                        brg = brg,
+                        renderers = null
+                    }
+                );
+
+                FlushRequests();
             }
         }
 

@@ -269,6 +269,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ValidAPI = true;
 
+            m_HDBRGCallbacks = new HDBRGCallbacks(this);
+
+            RenderBRG.NotifyCreateSRP(new RenderBRG.SRPInitParams()
+            {
+                SRPCallbacks = m_HDBRGCallbacks
+            });
+
             SetRenderingFeatures();
 
             // Initialize lod settings with the default frame settings. This will pull LoD values from the current quality level HDRP asset if necessary.
@@ -790,6 +797,10 @@ namespace UnityEngine.Rendering.HighDefinition
             ConstantBuffer.ReleaseAll();
 
             CameraCaptureBridge.enabled = false;
+
+            RenderBRG.NotifyDestroySRP();
+            m_HDBRGCallbacks.Dispose();
+            m_HDBRGCallbacks = null;
 
             // Dispose of Render Pipeline can be call either by OnValidate() or by OnDisable().
             // Inside an OnValidate() call we can't call a DestroyImmediate().

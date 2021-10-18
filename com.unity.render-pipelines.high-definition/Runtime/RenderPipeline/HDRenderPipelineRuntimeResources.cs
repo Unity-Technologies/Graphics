@@ -121,6 +121,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/ShaderLibrary/ResolveStencilBuffer.compute")]
             public ComputeShader resolveStencilCS;
 
+            [Reload("Runtime/Material/Visibility/Visibility.shader")]
+            public Shader visibilityPS;
+
             // Sky
             [Reload("Runtime/Sky/BlitCubemap.shader")]
             public Shader blitCubemapPS;

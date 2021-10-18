@@ -182,6 +182,8 @@ namespace UnityEngine.Rendering.Universal
 
             DebugManager.instance.RefreshEditor();
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
+
+            RenderBRG.NotifyCreateSRP(new RenderBRG.SRPInitParams() { SRPCallbacks = null });
         }
 
         protected override void Dispose(bool disposing)
@@ -189,6 +191,8 @@ namespace UnityEngine.Rendering.Universal
             m_DebugDisplaySettingsUI.UnregisterDebug();
 
             base.Dispose(disposing);
+
+            RenderBRG.NotifyDestroySRP();
 
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
