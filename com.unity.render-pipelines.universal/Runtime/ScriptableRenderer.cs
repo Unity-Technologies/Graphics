@@ -952,7 +952,7 @@ namespace UnityEngine.Rendering.Universal
 
             // FR
             if (renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing)
-                cmd.SetFoveatedRendering(FoveatedRenderingMode.EnableAndDistort, renderingData.cameraData.xr.foveatedRenderingInfo);
+                cmd.SetFoveatedRendering(FoveatedRenderingMode.EnableAndDistort);
 
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
@@ -964,7 +964,7 @@ namespace UnityEngine.Rendering.Universal
                 renderPass.Execute(context, ref renderingData);
 
             // FR
-            cmd.SetFoveatedRendering(FoveatedRenderingMode.Off, IntPtr.Zero);
+            cmd.SetFoveatedRendering(FoveatedRenderingMode.Off);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled && cameraData.xr.hasMarkedLateLatch)
@@ -1215,6 +1215,8 @@ namespace UnityEngine.Rendering.Universal
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
+
+                context.ConfigureFoveatedRendering(cameraData.xr.foveatedRenderingInfo);
             }
 #endif
         }
@@ -1228,6 +1230,8 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
+
+                context.ConfigureFoveatedRendering(IntPtr.Zero);
             }
 #endif
         }
