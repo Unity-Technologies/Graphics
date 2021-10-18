@@ -105,6 +105,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingBuildCluster,
         RaytracingCullLights,
         RaytracingDebugCluster,
+        // RT acceleration structure setup
+        RaytracingBuildAccelerationStructure,
         // RTR
         RaytracingReflectionDirectionGeneration,
         RaytracingReflectionEvaluation,
@@ -154,6 +156,10 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepareGPUProbeData,
         ConvertLightsGpuFormat,
         ProcessVisibleLights,
+        ProcessDirectionalAndCookies,
+        SortVisibleLights,
+        BuildVisibleLightEntities,
+        ProcessShadows,
 
         // Profile sampler for shadow
         RenderShadowMaps,
@@ -208,6 +214,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldPreCombine,
         DepthOfFieldCombine,
         LensFlareDataDriven,
+        LensFlareComputeOcclusionDataDriven,
+        LensFlareMergeOcclusionDataDriven,
         MotionBlur,
         MotionBlurMotionVecPrep,
         MotionBlurTileMinMax,

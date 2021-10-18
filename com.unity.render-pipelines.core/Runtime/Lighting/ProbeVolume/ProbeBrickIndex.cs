@@ -66,7 +66,11 @@ namespace UnityEngine.Experimental.Rendering
         Dictionary<Vector3Int, List<VoxelMeta>> m_VoxelToBricks;
         Dictionary<RegId, BrickMeta> m_BricksToVoxels;
 
-        int m_VoxelSubdivLevel = 3;
+        int GetVoxelSubdivLevel()
+        {
+            int defaultVoxelSubdivLevel = 3;
+            return Mathf.Min(defaultVoxelSubdivLevel, ProbeReferenceVolume.instance.GetMaxSubdivision() - 1);
+        }
 
         bool m_NeedUpdateIndexComputeBuffer;
 
@@ -137,11 +141,11 @@ namespace UnityEngine.Experimental.Rendering
         {
             // create a list of all voxels this brick will touch
             int brick_subdiv = brick.subdivisionLevel;
-            int voxels_touched_cnt = (int)Mathf.Pow(3, Mathf.Max(0, brick_subdiv - m_VoxelSubdivLevel));
+            int voxels_touched_cnt = (int)Mathf.Pow(3, Mathf.Max(0, brick_subdiv - GetVoxelSubdivLevel()));
 
             Vector3Int ipos = brick.position;
             int brick_size = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
-            int voxel_size = ProbeReferenceVolume.CellSize(m_VoxelSubdivLevel);
+            int voxel_size = ProbeReferenceVolume.CellSize(GetVoxelSubdivLevel());
 
             if (voxels_touched_cnt <= 1)
             {
@@ -161,7 +165,7 @@ namespace UnityEngine.Experimental.Rendering
         void ClearVoxel(Vector3Int pos, CellIndexUpdateInfo cellInfo)
         {
             Vector3Int vx_min, vx_max;
-            ClipToIndexSpace(pos, m_VoxelSubdivLevel, out vx_min, out vx_max, cellInfo);
+            ClipToIndexSpace(pos, GetVoxelSubdivLevel(), out vx_min, out vx_max, cellInfo);
             UpdatePhysicalIndex(vx_min, vx_max, -1, cellInfo);
         }
 
@@ -441,7 +445,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             // clip voxel to index space
             Vector3Int vx_min, vx_max;
-            ClipToIndexSpace(voxel, m_VoxelSubdivLevel, out vx_min, out vx_max, cellInfo);
+            ClipToIndexSpace(voxel, GetVoxelSubdivLevel(), out vx_min, out vx_max, cellInfo);
 
             foreach (var rbrick in bricks)
             {

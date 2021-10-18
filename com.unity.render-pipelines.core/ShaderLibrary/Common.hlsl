@@ -1342,6 +1342,12 @@ real SafeDiv(real numer, real denom)
     return (numer != denom) ? numer / denom : 1;
 }
 
+// Perform a square root safe of imaginary number.
+real SafeSqrt(real x)
+{
+    return sqrt(max(0, x));
+}
+
 // Assumes that (0 <= x <= Pi).
 real SinFromCos(real cosX)
 {

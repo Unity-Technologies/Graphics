@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
+
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -34,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (shader.TryGetMetadataOfType<HDMetadata>(out var obj))
                 {
-                    isBuiltInLit |= obj.shaderID == HDShaderUtils.ShaderID.SG_Lit;
+                    isBuiltInLit |= obj.shaderID == ShaderID.SG_Lit;
                 }
             }
 

@@ -336,6 +336,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Mark the HDCamera as persistant so it won't be destroyed if the camera is disabled</summary>
         internal bool isPersistent = false;
 
+        internal HDUtils.PackedMipChainInfo m_DepthBufferMipChainInfo = new HDUtils.PackedMipChainInfo();
+
+        internal ref HDUtils.PackedMipChainInfo depthBufferMipChainInfo => ref m_DepthBufferMipChainInfo;
+
+        internal Vector2Int depthMipChainSize => m_DepthBufferMipChainInfo.textureSize;
+
         // VisualSky is the sky used for rendering in the main view.
         // LightingSky is the sky used for lighting the scene (ambient probe and sky reflection)
         // It's usually the visual sky unless a sky lighting override is setup.
@@ -694,6 +700,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             volumeStack = VolumeManager.instance.CreateStack();
 
+            m_DepthBufferMipChainInfo.Allocate();
+
             Reset();
         }
 
@@ -730,7 +738,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!transparent)
                 return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value && frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects);
             else
-                return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabled.value;
+                return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabledTransparent.value;
         }
 
         internal bool IsSSGIEnabled()
@@ -926,6 +934,8 @@ namespace UnityEngine.Rendering.HighDefinition
             DynamicResolutionHandler.instance.finalViewport = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
 
             Vector2Int nonScaledViewport = new Vector2Int(actualWidth, actualHeight);
+
+            m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(nonScaledViewport);
 
             lowResScale = 0.5f;
             if (canDoDynamicResolution)

@@ -5,6 +5,10 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
         Tags { "RenderType"="Opaque" }
         LOD 100
 
+        HLSLINCLUDE
+        #define EPSILON (1e-10)
+        ENDHLSL
+
         Pass
         {
             Name "Voxelize Mesh"
@@ -68,10 +72,10 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
 
             float4 frag(VertexToFragment i) : COLOR
             {
-                if (any(i.cellPos01 < 0) || any(i.cellPos01 >= 1))
+                if (any(i.cellPos01 < -EPSILON) || any(i.cellPos01 >= 1 + EPSILON))
                     return 0;
 
-                uint3 pos = uint3(i.cellPos01 * _OutputSize);
+                uint3 pos = min(uint3(i.cellPos01 * _OutputSize), _OutputSize);
 
                 _Output[pos] = 1;
 
@@ -93,7 +97,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 4.5
-            #pragma enable_d3d11_debug_symbols
+            // #pragma enable_d3d11_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -167,14 +171,14 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
 
             float4 frag(VertexToFragment i) : COLOR
             {
-                if (any(i.cellPos01 < 0) || any(i.cellPos01 >= 1))
+                if (any(i.cellPos01 < -EPSILON) || any(i.cellPos01 >= 1 + EPSILON))
                     return 0;
 
                 // Offset the cellposition with the heightmap
                 float hole = _TerrainHolesTexture.Sample(s_point_clamp_sampler, float3(i.uv, 0));
                 clip(hole == 0.0f ? -1 : 1);
 
-                uint3 pos = uint3(i.cellPos01 * _OutputSize);
+                uint3 pos = min(uint3(i.cellPos01 * _OutputSize), _OutputSize);
                 _Output[pos] = 1;
 
                 return float4(i.cellPos01.xyz, 1);
