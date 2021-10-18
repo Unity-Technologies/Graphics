@@ -500,7 +500,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [Conditional("ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER")]
+        [Conditional("ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER")]
         private void ChangeAdaptivePerformanceDrawDistances()
         {
             if (UniversalRenderPipeline.asset.useAdaptivePerformance)
