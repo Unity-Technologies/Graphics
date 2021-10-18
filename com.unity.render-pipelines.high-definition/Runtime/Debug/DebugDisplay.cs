@@ -123,6 +123,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RequestedVirtualTextureTiles,
         /// <summary>Black background to visualize the Lens Flare</summary>
         LensFlareDataDriven,
+        /// <summary>Display the visibility buffer.</summary>
+        VisibilityBuffer,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
