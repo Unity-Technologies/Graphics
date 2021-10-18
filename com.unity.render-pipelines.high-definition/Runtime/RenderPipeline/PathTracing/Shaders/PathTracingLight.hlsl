@@ -110,7 +110,9 @@ bool IsDistantLightActive(DirectionalLightData lightData, float3 normal)
     return dot(normal, lightData.forward) <= sin(lightData.angularDiameter * 0.5);
 }
 
-LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEFAULT_LIGHT_LAYERS, bool withLocal = true, bool withDistant = true, float3 lightPosition = FLT_MAX)
+LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEFAULT_LIGHT_LAYERS,
+                          bool withPoint = true, bool withArea = true, bool withDistant = true,
+                          float3 lightPosition = FLT_MAX)
 {
     LightList list;
     uint i;
@@ -119,7 +121,7 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEF
     list.localCount = 0;
     list.localPointCount = 0;
 
-    if (withLocal)
+    if (withPoint || withArea)
     {
         uint localPointCount, localCount;
 
@@ -144,35 +146,43 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEF
         bool forceLightPosition = (lightPosition.x != FLT_MAX);
 
         // First point lights (including spot lights)
-        for (i = 0; i < localPointCount && list.localPointCount < MAX_LOCAL_LIGHT_COUNT; i++)
+        if (withPoint)
         {
-#ifdef USE_LIGHT_CLUSTER
-            const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
-#else
-            const LightData lightData = _LightDatasRT[i];
-#endif
+            for (i = 0; i < localPointCount && list.localPointCount < MAX_LOCAL_LIGHT_COUNT; i++)
+            {
+    #ifdef USE_LIGHT_CLUSTER
+                const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
+    #else
+                const LightData lightData = _LightDatasRT[i];
+    #endif
 
-            if (forceLightPosition && any(lightPosition - lightData.positionRWS))
-                continue;
+                if (forceLightPosition && any(lightPosition - lightData.positionRWS))
+                    continue;
 
-            if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsPointLightActive(lightData, position, normal))
-                list.localIndex[list.localPointCount++] = i;
+                if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsPointLightActive(lightData, position, normal))
+                    list.localIndex[list.localPointCount++] = i;
+            }
+
+            list.localCount = list.localPointCount;
         }
 
         // Then rect area lights
-        for (list.localCount = list.localPointCount; i < localCount && list.localCount < MAX_LOCAL_LIGHT_COUNT; i++)
+        if (withArea)
         {
-#ifdef USE_LIGHT_CLUSTER
-            const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
-#else
-            const LightData lightData = _LightDatasRT[i];
-#endif
+            for (i = localPointCount; i < localCount && list.localCount < MAX_LOCAL_LIGHT_COUNT; i++)
+            {
+    #ifdef USE_LIGHT_CLUSTER
+                const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
+    #else
+                const LightData lightData = _LightDatasRT[i];
+    #endif
 
-            if (forceLightPosition && any(lightPosition - lightData.positionRWS))
-                continue;
+                if (forceLightPosition && any(lightPosition - lightData.positionRWS))
+                    continue;
 
-            if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsRectAreaLightActive(lightData, position, normal))
-                list.localIndex[list.localCount++] = i;
+                if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsRectAreaLightActive(lightData, position, normal))
+                    list.localIndex[list.localCount++] = i;
+            }
         }
     }
 
@@ -837,7 +847,7 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
 
 LightList CreateLightList(float3 position, bool sampleLocalLights, float3 lightPosition = FLT_MAX)
 {
-    return CreateLightList(position, 0.0, DEFAULT_LIGHT_LAYERS, sampleLocalLights, !sampleLocalLights, lightPosition);
+    return CreateLightList(position, 0.0, DEFAULT_LIGHT_LAYERS, sampleLocalLights, sampleLocalLights, !sampleLocalLights, lightPosition);
 }
 
 #endif // UNITY_PATH_TRACING_LIGHT_INCLUDED
