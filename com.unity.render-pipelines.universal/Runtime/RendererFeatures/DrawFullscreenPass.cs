@@ -65,6 +65,7 @@ namespace UnityEngine.Rendering.Universal
                 m_Renderer = renderer;
                 m_Settings = featureSettings;
                 m_ProfilerTagName = profilerTagName;
+                renderPassEvent = featureSettings.injectionPoint;
 
                 ConfigureInput(ScriptableRenderPassInput.Depth);
                 if (featureSettings.requiresNormalTexture)
