@@ -80,7 +80,6 @@ namespace UnityEditor.ShaderGraph
             //var controlVal = GetSlotValue(OutputControlId, generationMode);
 
             // Handle define ifdefing here to avoid calling an undefined function
-            sb.AppendLine("#if (defined(TERRAIN_ENABLED) || defined(_TERRAIN_BASEMAP_GEN) || defined(TERRAIN_SPLAT_ADDPASS) || defined(TERRAIN_SPLAT_BASEPASS))");
             // Declare outputs
             var albedoVal = GetVariableNameForSlot(OutputAlbedoId);
             var normalVal = GetVariableNameForSlot(OutputNormalId);
@@ -97,9 +96,18 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputOcclusionId).concreteValueType.ToShaderString(), occlusionVal);
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputAlphaId).concreteValueType.ToShaderString(), alphaVal);
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputControlId).concreteValueType.ToShaderString(), controlVal);
+            sb.AppendLine("#if (defined(TERRAIN_ENABLED) || defined(_TERRAIN_BASEMAP_GEN) || defined(TERRAIN_SPLAT_ADDPASS) || defined(TERRAIN_SPLAT_BASEPASS))");
             sb.AppendLine("GetSplatData({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9});", GetSlotValue(InputUVId, generationMode), GetSlotValue(InputLayerId, generationMode), GetSlotValue(InputDoBlendId, generationMode),
                 albedoVal, normalVal, metallicVal, smoothnessVal,
                 occlusionVal, alphaVal, controlVal);
+            sb.AppendLine("#else");
+            sb.AppendLine("{0} = 0;", albedoVal);
+            sb.AppendLine("{0} = 0;", normalVal);
+            sb.AppendLine("{0} = 0;", metallicVal);
+            sb.AppendLine("{0} = 0;", smoothnessVal);
+            sb.AppendLine("{0} = 0;", occlusionVal);
+            sb.AppendLine("{0} = 0;", alphaVal);
+            sb.AppendLine("{0} = 0;", controlVal);
             sb.AppendLine("#endif");
 
             //sb.AppendLine("#if (defined(TERRAIN_ENABLED) || defined(_TERRAIN_BASEMAP_GEN))");
