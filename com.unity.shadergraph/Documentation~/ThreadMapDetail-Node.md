@@ -1,6 +1,8 @@
-# ThreadMapDetail Node
+# ThreadMapDetail node
 
-The ThreadMapDetail node adds tilable thread map detail information to a fabric material. The node outputs a thread map that you can apply to a fabric material.
+The ThreadMapDetail node adds tileable thread map detail information to a fabric material. The node outputs a thread map that you can apply to a fabric material.
+
+![An image showing the ThreadMapDetail node in the Shader Graph window](images/sg-threadmapdetail-node.png)
 
 A thread map is a Texture with 4 channels. Like a detail map, a thread map contains information about ambient occlusion, the normal x-axis and normal y-axis, and smoothness.
 
@@ -8,6 +10,12 @@ For more information on Detail maps, see [Secondary Maps (Detail Maps) & Detail 
 
 > [!NOTE]
 > The ThreadMapDetail node is a Subgraph node: it represents a Subgraph instead of directly representing shader code. Double-click the node in any Shader Graph to view the Subgraph.
+
+## Compatibility
+
+The ThreadMapDetail node is a High Definition Render Pipeline (HDRP) node. It's designed to work with Unity's HDRP package. You can use the node in your Shader Graphs if you have the HDRP installed in your project.
+
+For more information on the HDRP, see [Unity's HDRP package documentation](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest).
 
 ## Ports
 
@@ -135,3 +143,13 @@ For more information on Detail maps, see [Secondary Maps (Detail Maps) & Detail 
 </tr>
 </tbody>
 </table>
+
+## Example shader usage
+
+For an example of how to use the ThreadMapDetail node, see either of the HDRP's Fabric shaders. To view these Shader Graphs:
+
+1. Create a new material and assign it the **HDRP** &gt; **Fabric** &gt; **Silk** or **HDRP** &gt; **Fabric** &gt; **CottonWool** shader, as described in the Unity User Manual section [Creating a material asset, and assigning a shader to it](https://docs.unity3d.com/Documentation/Manual/materials-introduction.html).
+
+2. Next to the **Shader** dropdown, select **Edit**.
+
+    Your chosen Fabric's Shader Graph opens.

@@ -1,9 +1,17 @@
-# UVCombine Node
+# UVCombine node
 
 The UVCombine node lets you select which UV channel you want to use for mapping your shader to an object in your application. You can also choose to apply tiling and offset to your UV coordinates.
 
+![An image showing the UVCombine node in the Shader Graph window](images/sg-uv-combine-node.png)
+
 > [!NOTE]
 > The UVCombine node is a Subgraph node: it represents a Subgraph instead of directly representing shader code. Double-click the node in any Shader Graph to view the Subgraph.
+
+## Compatibility
+
+The UVCombine node is a High Definition Render Pipeline (HDRP) node. It's designed to work with Unity's HDRP package. You can use the node in your Shader Graphs if you have the HDRP installed in your project.
+
+For more information on the HDRP, see [Unity's HDRP package documentation](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest).
 
 ## Ports
 
@@ -47,3 +55,13 @@ The UVCombine node lets you select which UV channel you want to use for mapping 
 </tr>
 </tbody>
 </table>
+
+## Example shader usage
+
+For an example of how to use the UVCombine node, see either of the HDRP's Fabric shaders. To view these Shader Graphs:
+
+1. Create a new material and assign it the **HDRP** &gt; **Fabric** &gt; **Silk** or **HDRP** &gt; **Fabric** &gt; **CottonWool** shader, as described in the Unity User Manual section [Creating a material asset, and assigning a shader to it](https://docs.unity3d.com/Documentation/Manual/materials-introduction.html).
+
+2. Next to the **Shader** dropdown, select **Edit**.
+
+    Your chosen Fabric's Shader Graph opens.
