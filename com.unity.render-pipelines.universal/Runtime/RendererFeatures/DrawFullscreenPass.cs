@@ -11,7 +11,6 @@ namespace UnityEngine.Rendering.Universal
     [Serializable]
     internal class DrawFullscreenSettings
     {
-        // Parameters
         [SerializeField] internal RenderPassEvent injectionPoint = RenderPassEvent.AfterRenderingOpaques;
         [SerializeField] internal bool requiresNormalTexture = false;
         [SerializeField] internal bool requiresMotionVectorTexture = false;
@@ -33,7 +32,6 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Create()
         {
-            // Create the pass...
             if (m_FullscreenPass == null)
                 m_FullscreenPass = new FullscreenPass();
         }
@@ -69,7 +67,6 @@ namespace UnityEngine.Rendering.Universal
                 m_ProfilerTagName = profilerTagName;
 
                 ConfigureInput(ScriptableRenderPassInput.Depth);
-                // TODO: add an option to request normals
                 if (featureSettings.requiresNormalTexture)
                     ConfigureInput(ScriptableRenderPassInput.Normal);
                 if (featureSettings.requiresMotionVectorTexture)
@@ -109,15 +106,6 @@ namespace UnityEngine.Rendering.Universal
                     cmd.GetTemporaryRT(k_TemporaryRTId, blitTargetDescriptor, FilterMode.Bilinear);
                     m_Temp = new RenderTargetIdentifier(k_TemporaryRTId);
                 }
-
-                // Configure targets and clear color
-                // TODO: we can also write to custom?
-                // TODO: do we need that?
-                // if (m_Settings.destination == DrawFullscreenBufferType.CameraColor)
-                //     ConfigureTarget(m_Renderer.cameraColorTarget);
-                // else
-                //     ConfigureTarget(new RenderTargetIdentifier(k_CustomRTId));
-                //ConfigureClear(ClearFlag.None, Color.white);
             }
 
             /// <inheritdoc/>
@@ -125,15 +113,16 @@ namespace UnityEngine.Rendering.Universal
             {
                 CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTagName);
 
+                cmd.SetGlobalTexture("_CameraOpaqueTexture", renderingData.cameraData.renderer.cameraColorTarget);
                 // Can't read and write to same color target, create a temp render target to blit.
                 if (m_IsSourceAndDestinationSameTarget)
                 {
-                    Blit(cmd, m_Source, m_Temp, m_Settings.blitMaterial, m_Settings.blitMaterialPassIndex);
+                    Blitter.BlitTexture(cmd, m_Source, m_Temp, m_Settings.blitMaterial, m_Settings.blitMaterialPassIndex);
                     Blit(cmd, m_Temp, m_Destination);
                 }
                 else
                 {
-                    Blit(cmd, m_Source, m_Destination, m_Settings.blitMaterial, m_Settings.blitMaterialPassIndex);
+                    Blitter.BlitTexture(cmd, m_Source, m_Destination, m_Settings.blitMaterial, m_Settings.blitMaterialPassIndex);
                 }
 
                 context.ExecuteCommandBuffer(cmd);
