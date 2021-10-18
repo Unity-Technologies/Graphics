@@ -505,10 +505,14 @@ namespace UnityEngine.Rendering.Universal
         {
             if (UniversalRenderPipeline.asset.useAdaptivePerformance)
             {
-                if(m_DecalCreateDrawCallSystem != null)
+                if (m_DecalCreateDrawCallSystem != null)
+                {
                     m_DecalCreateDrawCallSystem.maxDrawDistance = AdaptivePerformance.AdaptivePerformanceRenderSettings.DecalsDrawDistance;
+                }
                 if (m_DecalUpdateCullingGroupSystem != null)
+                {
                     m_DecalUpdateCullingGroupSystem.boundingDistance[0] = AdaptivePerformance.AdaptivePerformanceRenderSettings.DecalsDrawDistance;
+                }
             }
         }
     }
