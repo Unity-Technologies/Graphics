@@ -663,7 +663,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = wireframeColorBehind;
                                 DrawAreaLightWireframe(widthHeight);
-                                if (additionalData.WillRenderShadowMap())
+                                if (light.shadows != LightShadows.None)
                                 {
                                     using (new Handles.DrawingScope(shadowFrustumMatrix))
                                         DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, nearPlane, drawApex: false);
@@ -676,7 +676,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                 Handles.color = wireframeColorAbove;
                                 DrawAreaLightWireframe(widthHeight);
-                                if (additionalData.WillRenderShadowMap())
+                                if (light.shadows != LightShadows.None)
                                 {
                                     using (new Handles.DrawingScope(shadowFrustumMatrix))
                                         DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, nearPlane, drawApex: false);
