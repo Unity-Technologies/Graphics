@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.AssetImporters;
 using UnityEngine;
 
@@ -21,6 +22,19 @@ namespace UnityEditor.ShaderGraph
                 pd.keywords.Add(rpTerrainKeywords);
             if (rpTerrainDefines != null)
                 pd.defines.Add(rpTerrainDefines);
+        }
+
+        public static void Setup(ref TargetSetupContext context)
+        {
+            context.AddShaderDependency(GetDependencyName(TerrainSubTarget.TerrainShaders.BasemapGen), "");
+            context.AddShaderDependency(GetDependencyName(TerrainSubTarget.TerrainShaders.Basemap), "");
+        }
+
+        public static IEnumerable<SubShaderDescriptor> EnumerateSubShaders(PassDescriptor rpForwardPd, SubShaderDescriptor rpSsd)
+        {
+            yield return GetBaseMapGenSubShader(rpForwardPd);
+            yield return GetBasePassSubShader(rpSsd);
+            yield return GetAddPassSubShader(rpSsd);
         }
 
         public static void PostProcessPass(ref PassDescriptor pd, int shaderIdx, string basemapGenTemplate = "", KeywordCollection rpTerrainKeywords = null, DefineCollection rpTerrainDefines = null, FieldCollection rpBasemapGenFields = null)
@@ -55,6 +69,17 @@ namespace UnityEditor.ShaderGraph
                     break;
                 default:
                     break;
+            }
+        }
+        public static void PostProcessSubShader(ref SubShaderDescriptor ssd, int shaderIdx, string basemapGenTemplate = "", KeywordCollection rpTerrainKeywords = null, DefineCollection rpTerrainDefines = null, FieldCollection rpBasemapGenFields = null)
+        {
+            ssd.customTags.Insert(ssd.customTags.Length, kTerrainTag);
+            var passes = ssd.passes.ToArray();
+            PassCollection finalPasses = new PassCollection();
+            for (int i = 0; i < passes.Length; i++)
+            {
+                var passDescriptor = passes[i].descriptor;
+                PostProcessPass(ref passDescriptor, shaderIdx, basemapGenTemplate, rpTerrainKeywords, rpTerrainDefines, rpBasemapGenFields);
             }
         }
 

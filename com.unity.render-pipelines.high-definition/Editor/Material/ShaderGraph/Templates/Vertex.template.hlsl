@@ -35,7 +35,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     $VertexDescriptionInputs.uv0:                                       output.uv0 =                                        input.uv0;
 #endif
     $VertexDescriptionInputs.ObjectSpaceNormal:                         output.ObjectSpaceNormal =                          terrainNormal;
-    float4 terrainTangentOS = float4(cross(terrainNormal, float3(0, 0, 1)), -1);
+    float4 terrainTangentOS = ConstructTerrainTangent(terrainNormal, float3(0, 0, 1)); //float4(cross(terrainNormal, float3(0, 0, 1)), -1);
     $VertexDescriptionInputs.ObjectSpaceTangent:                        output.ObjectSpaceTangent =                         terrainTangentOS.xyz;
     $VertexDescriptionInputs.WorldSpaceTangent:                         output.WorldSpaceTangent =                          TransformObjectToWorldDir(output.ObjectSpaceTangent.xyz);
     $VertexDescriptionInputs.WorldSpaceNormal:                          output.WorldSpaceNormal =                           TransformObjectToWorldNormal(output.ObjectSpaceNormal);

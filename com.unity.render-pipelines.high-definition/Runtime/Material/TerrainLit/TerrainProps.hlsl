@@ -50,4 +50,22 @@ float4 ConstructTerrainTangent(float3 normal, float3 positiveZ)
     return float4(tangent, -1);
 }
 
+
+float3 ConvertToNormalTS(float3 normalData, float3 tangentWS, float3 bitangentWS)
+{
+#ifdef _NORMALMAP
+#ifdef SURFACE_GRADIENT
+    return SurfaceGradientFromTBN(normalData.xy, tangentWS, bitangentWS);
+#else
+    return normalData;
+#endif
+#else
+#ifdef SURFACE_GRADIENT
+    return float3(0.0, 0.0, 0.0); // No gradient
+#else
+    return float3(0.0, 0.0, 1.0);
+#endif
+#endif
+}
+
 #endif

@@ -52,8 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             if (TargetsTerrain())
             {
-                context.AddShaderDependency(TerrainSubTarget.GetDependencyName(TerrainSubTarget.TerrainShaders.BasemapGen), "");
-                context.AddShaderDependency(TerrainSubTarget.GetDependencyName(TerrainSubTarget.TerrainShaders.Basemap), "");
+                TerrainSubTarget.Setup(ref context);
             }
             var inspector = TargetsTerrain() ? HDTerrainSubTarget.kTerrainGUI : customInspector;
             if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))
@@ -67,9 +66,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (TargetsTerrain())
             {
-                yield return PostProcessSubShader(TerrainSubTarget.GetBaseMapGenSubShader(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, false, systemData.tessellation)));
-                yield return PostProcessSubShader(TerrainSubTarget.GetBasePassSubShader(GetSubShaderDescriptor()));
-                yield return PostProcessSubShader(TerrainSubTarget.GetAddPassSubShader(GetSubShaderDescriptor()));
+                foreach (var subShader in TerrainSubTarget.EnumerateSubShaders(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, false, systemData.tessellation),
+                    GetSubShaderDescriptor()))
+                    yield return PostProcessSubShader(subShader);
             }
 
             // Always omit DXR SubShader for VFX until DXR support is added.

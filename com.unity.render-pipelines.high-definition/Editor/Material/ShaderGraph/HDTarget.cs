@@ -222,8 +222,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             else
             {
                 m_SupportTerrainToggle = new Toggle("") { value = m_SupportTerrain };
-                const string k_TerrainToggleTooltip = "When enabled, this shader can be assigned to a Terrain.";
-                context.AddProperty("Support Terrain", k_TerrainToggleTooltip, 0, m_SupportTerrainToggle, (evt) =>
+                const string k_TerrainToggleTooltip = "When enabled, this shader can only be assigned to a Terrain.";
+                context.AddProperty("Is Terrain Shader", k_TerrainToggleTooltip, 0, m_SupportTerrainToggle, (evt) =>
                 {
                     m_SupportTerrain = m_SupportTerrainToggle.value;
                     onChange();
