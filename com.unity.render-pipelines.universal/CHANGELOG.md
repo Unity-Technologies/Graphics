@@ -57,6 +57,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed memory leak with XR combined occlusion meshes. [case 1366173]
 - Fixed a bug with Sprite Targets in ShaderGraph not rendering correctly in game view [1352225]
 
+### Changed
+- Remove use of deprecated UNITY_USE_NATIVE_HDR keyword in shaders.
+
 ## [12.0.0] - 2021-01-11
 ### Added
 - Added support for default sprite mask shaders for the 2D Renderer in URP.
