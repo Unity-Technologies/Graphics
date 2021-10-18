@@ -32,6 +32,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SDF2D.hlsl"
@@ -205,9 +206,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
             // Sample twice
             float3 color1 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir + alpha.x*dd, 0).rgb;
-            color1.rgb = DecodeHDR(color1, _Cubemap_HDR);
+            color1.rgb = DecodeHDREnvironment(color1, _Cubemap_HDR);
             float3 color2 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir + alpha.y*dd, 0).rgb;
-            color2.rgb = DecodeHDR(color2, _Cubemap_HDR);
+            color2.rgb = DecodeHDREnvironment(color2, _Cubemap_HDR);
 
             // Blend color samples
             return lerp(color1, color2, abs(2.0 * alpha.x));
@@ -215,7 +216,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         else
 #endif
 
-        return DecodeHDR(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0), _Cubemap_HDR);
+        return DecodeHDREnvironment(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0), _Cubemap_HDR);
     }
 
     float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)

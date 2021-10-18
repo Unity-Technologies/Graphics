@@ -28,6 +28,7 @@ Shader "Hidden/Debug/ReflectionProbePreview"
             #pragma fragment frag
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
             struct appdata
@@ -68,7 +69,7 @@ Shader "Hidden/Debug/ReflectionProbePreview"
                 float3 V = normalize(i.positionWS - GetPrimaryCameraPosition());
                 float3 R = reflect(V, i.normalWS);
                 float4 color = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, R, _MipLevel).rgba;
-                color.rgb = DecodeHDR(color, _Cubemap_HDR);
+                color.rgb = DecodeHDREnvironment(color, _Cubemap_HDR);
                 color = color * exp2(_Exposure) * GetCurrentExposureMultiplier();
 
                 return float4(color);

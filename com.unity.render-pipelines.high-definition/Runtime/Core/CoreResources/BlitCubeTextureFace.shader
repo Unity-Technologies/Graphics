@@ -15,6 +15,7 @@ Shader "Hidden/SRP/BlitCubeTextureFace"
             #pragma editor_sync_compilation
             #pragma prefer_hlslcc gles
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 
             #pragma vertex vert
             #pragma fragment frag
@@ -61,7 +62,7 @@ Shader "Hidden/SRP/BlitCubeTextureFace"
             float4 frag (Varyings input) : SV_Target
             {
                 float4 color = SAMPLE_TEXTURECUBE_LOD(_InputTex, sampler_InputTex, input.texcoord, _LoD);
-                color.rgb = DecodeHDR(color, _InputTex_HDR);
+                color.rgb = DecodeHDREnvironment(color, _InputTex_HDR);
                 return color;
             }
 
