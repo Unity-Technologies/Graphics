@@ -50,9 +50,35 @@ You can disable the runtime UI using the [enableRuntimeUI](https://docs.unity3d.
 
 The **Rendering Debugger** window contains the following sections:
 
-* TODO
+* [Frequently Used](#frequently-used)
 
-### Navigation at runtime
+* [Material](#material)
+
+* [Lighting](#lighting)
+
+* [Rendering](#rendering)
+
+The following illustration shows the Rendering Debugger window in the Scene view.
+
+![Rendering Debugger window.](../Images/rendering-debugger/rendering-debugger--ui-sections.png)
+
+### Frequently Used
+
+This section contains a selection of properties that users use often. The properties are from the other sections in the Rendering Debugger window.
+
+### Material
+
+The properties in this section let you visualize different Material properties.
+
+### Lighting
+
+The properties in this section let you visualize different settings and elements related to the lighting system, such as shadow cascades, reflections, contributions of the Main and the Additional Lights, and so on.
+
+### Rendering
+
+The properties in this section let you visualize different rendering features.
+
+## Navigation at runtime
 
 This section describes how to navigate the **Rendering Debugger** interface at runtime.
 
