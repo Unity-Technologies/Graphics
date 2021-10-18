@@ -35,13 +35,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
 #endif
+        protected bool TargetsTerrain() => target.TargetsTerrain();
 
-        protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
+        protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor, int shaderIdx = 0)
         {
 #if HAS_VFX_GRAPH
             if (TargetsVFX())
                 return VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_ContextDataVFX);
 #endif
+            if (TargetsTerrain())
+            {
+                TerrainSubTarget.PostProcessSubShader(ref subShaderDescriptor, shaderIdx, "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/UniversalTerrainBasemapGen.template",
+                    new KeywordCollection { },
+                    new DefineCollection { },
+                    new FieldCollection { }
+                    );
+            }
+
             return subShaderDescriptor;
         }
 

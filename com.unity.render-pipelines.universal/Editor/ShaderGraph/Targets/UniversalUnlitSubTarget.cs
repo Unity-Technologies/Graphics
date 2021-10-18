@@ -39,6 +39,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Process SubShaders
             context.AddSubShader(PostProcessSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue)));
             context.AddSubShader(PostProcessSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue)));
+
+            if (TargetsTerrain())
+            {
+                TerrainSubTarget.Setup(ref context);
+                foreach (var terrainSubShader in TerrainSubTarget.EnumerateSubShaders(UnlitPasses.Forward(target), SubShaders.Unlit(target, target.renderType, target.renderQueue)))
+                    context.AddSubShader(PostProcessSubShader(terrainSubShader));
+            }
         }
 
         public override void ProcessPreviewMaterial(Material material)

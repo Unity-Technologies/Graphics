@@ -81,6 +81,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Process SubShaders
             context.AddSubShader(PostProcessSubShader(SubShaders.LitComputeDotsSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit)));
             context.AddSubShader(PostProcessSubShader(SubShaders.LitGLESSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit)));
+
+            if (TargetsTerrain())
+            {
+                TerrainSubTarget.Setup(ref context);
+                foreach (var terrainSubShader in TerrainSubTarget.EnumerateSubShaders(LitPasses.Forward(target, workflowMode), SubShaders.LitGLESSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit)))
+                    context.AddSubShader(PostProcessSubShader(terrainSubShader));
+            }
         }
 
         public override void ProcessPreviewMaterial(Material material)

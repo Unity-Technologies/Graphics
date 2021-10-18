@@ -4,7 +4,27 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
     $splice(CustomInterpolatorCopyToSDI)
+#ifdef TERRAIN_ENABLED
+// impacts uv0-uv2, input.tangentToWorld, output.WorldSpaceNormal, output.WorldSpaceTangent
+#ifdef UNITY_INSTANCING_ENABLED
+#ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
+    float2 terrainNormalMapUV = (input.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy;
+    float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, terrainNormalMapUV).rgb * 2 - 1;
+    float3 normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);
 
+    input.texCoord0.xy *= _TerrainHeightmapRecipSize.zw;
+    float4 tangentWS = ConstructTerrainTangent(normalWS, GetObjectToWorldMatrix()._13_23_33);
+    input.tangentToWorld = BuildTangentToWorld(tangentWS, normalWS);
+#else
+
+#endif // ENABLE_TERRAIN_PERPIXEL_NORMAL
+#endif // UNITY_INSTANCING_ENABLED
+    // terrain lightmap uvs are always taken from uv0
+    input.texCoord1 = input.texCoord2 = input.texCoord0;
+    $SurfaceDescriptionInputs.WorldSpaceNormal:                             output.WorldSpaceNormal =                       input.tangentToWorld[2].xyz;
+    $SurfaceDescriptionInputs.WorldSpaceTangent:                            output.WorldSpaceTangent =                      normalize(input.tangentToWorld[0].xyz);
+    $SurfaceDescriptionInputs.WorldSpaceBiTangent:                          output.WorldSpaceBiTangent =                    input.tangentToWorld[1].xyz;
+#else
     $SurfaceDescriptionInputs.WorldSpaceNormal:                         // must use interpolated tangent, bitangent and normal before they are normalized in the pixel shader.
     $SurfaceDescriptionInputs.WorldSpaceNormal:                         float3 unnormalizedNormalWS =                       input.normalWS;
     $SurfaceDescriptionInputs.WorldSpaceNormal:                         const float renormFactor =                          1.0 / length(unnormalizedNormalWS);
@@ -15,14 +35,16 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.WorldSpaceBiTangent:                      float3 bitang =                                     crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
 
     $SurfaceDescriptionInputs.WorldSpaceNormal:                         output.WorldSpaceNormal =                           renormFactor*input.normalWS.xyz;      // we want a unit length Normal Vector node in shader graph
-    $SurfaceDescriptionInputs.ObjectSpaceNormal:                        output.ObjectSpaceNormal =                          normalize(mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M));           // transposed multiplication by inverse matrix to handle normal scale
-    $SurfaceDescriptionInputs.ViewSpaceNormal:                          output.ViewSpaceNormal =                            mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
-    $SurfaceDescriptionInputs.TangentSpaceNormal:                       output.TangentSpaceNormal =                         float3(0.0f, 0.0f, 1.0f);
 
     $SurfaceDescriptionInputs.WorldSpaceTangent:                        // to preserve mikktspace compliance we use same scale renormFactor as was used on the normal.
     $SurfaceDescriptionInputs.WorldSpaceTangent:                        // This is explained in section 2.2 in "surface gradient based bump mapping framework"
     $SurfaceDescriptionInputs.WorldSpaceTangent:                        output.WorldSpaceTangent =                          renormFactor*input.tangentWS.xyz;
     $SurfaceDescriptionInputs.WorldSpaceBiTangent:                      output.WorldSpaceBiTangent =                        renormFactor*bitang;
+#endif
+
+    $SurfaceDescriptionInputs.ObjectSpaceNormal:                        output.ObjectSpaceNormal = normalize(mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M));           // transposed multiplication by inverse matrix to handle normal scale
+    $SurfaceDescriptionInputs.ViewSpaceNormal:                          output.ViewSpaceNormal = mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
+    $SurfaceDescriptionInputs.TangentSpaceNormal:                       output.TangentSpaceNormal = float3(0.0f, 0.0f, 1.0f);
 
     $SurfaceDescriptionInputs.ObjectSpaceTangent:                       output.ObjectSpaceTangent =                         TransformWorldToObjectDir(output.WorldSpaceTangent);
     $SurfaceDescriptionInputs.ViewSpaceTangent:                         output.ViewSpaceTangent =                           TransformWorldToViewDir(output.WorldSpaceTangent);

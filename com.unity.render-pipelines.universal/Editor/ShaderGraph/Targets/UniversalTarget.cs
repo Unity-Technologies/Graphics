@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Both = 0        // = CullMode.Off -- render both faces
     }
 
-    sealed class UniversalTarget : Target, IHasMetadata, ILegacyTarget
+    sealed class UniversalTarget : Target, IHasMetadata, ILegacyTarget, IMaySupportTerrain
 #if HAS_VFX_GRAPH
         , IMaySupportVFX, IRequireVFXContext
 #endif
@@ -103,6 +103,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #if HAS_VFX_GRAPH
         Toggle m_SupportVFXToggle;
 #endif
+        Toggle m_SupportTerrainToggle;
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
@@ -140,6 +141,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         bool m_SupportVFX;
+        [SerializeField]
+        bool m_SupportTerrain;
 
         internal override bool ignoreCustomInterpolators => false;
         internal override int padCustomInterpolatorLimit => 4;
@@ -402,6 +405,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 }
             }
 #endif
+            // Terrain Support
+            if (!(m_ActiveSubTarget.value is UniversalSubTarget))
+                context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target is not compatible with Terrain.");
+            else
+            {
+                m_SupportTerrainToggle = new Toggle("") { value = m_SupportTerrain };
+                const string k_TerrainToggleTooltip = "When enabled, this shader can only be assigned to a Terrain.";
+                context.AddProperty("Is Terrain Shader", k_TerrainToggleTooltip, 0, m_SupportTerrainToggle, (evt) =>
+                {
+                    m_SupportTerrain = m_SupportTerrainToggle.value;
+                    onChange();
+                });
+            }
         }
 
         // this is a copy of ZTestMode, but hides the "Disabled" option, which is invalid
@@ -638,6 +654,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #else
             return false;
 #endif
+        }
+        public override bool TargetsTerrain()
+        {
+            if (m_ActiveSubTarget.value == null)
+                return false;
+
+            if (!CanSupportVFX())
+                return false;
+
+            return m_SupportTerrain;
         }
 
         [Serializable]
