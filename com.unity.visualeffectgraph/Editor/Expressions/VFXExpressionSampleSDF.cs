@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
 
         public VFXExpressionSampleSDF(VFXExpression texture, VFXExpression uvw, VFXExpression scale, VFXExpression mipLevel)
             : base(Flags.InvalidOnCPU, new VFXExpression[4] { texture, uvw, scale, mipLevel })
-        {}
+        { }
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
         sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
@@ -37,7 +37,7 @@ namespace UnityEditor.VFX
         public VFXExpressionSampleSDFNormal(VFXExpression texture, VFXExpression inverseTRS, VFXExpression uvw, VFXExpression mipLevel)
             : base(Flags.InvalidOnCPU, new VFXExpression[4] { texture, inverseTRS, uvw, mipLevel })
 
-        {}
+        { }
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
         sealed public override VFXValueType valueType { get { return VFXValueType.Float3; } }

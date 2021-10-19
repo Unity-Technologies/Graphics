@@ -2,6 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -62,7 +63,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_SerializedHDLight.serializedObject.Update();
                 foreach (var hdLightData in m_AdditionalLightDatas)
                     if (hdLightData != null)
+                    {
                         hdLightData.UpdateAreaLightEmissiveMesh();
+                        hdLightData.UpdateRenderEntity();
+                    }
             }
 
             // if Type or ShowEmissive Mesh undone, we must fetxh again the emissive meshes
@@ -72,21 +76,31 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
             m_SerializedHDLight.Update();
-
             // Add space before the first collapsible area
             EditorGUILayout.Space();
 
             ApplyAdditionalComponentsVisibility(true);
 
             EditorGUI.BeginChangeCheck();
-            using (new EditorGUILayout.VerticalScope())
-                HDLightUI.Inspector.Draw(m_SerializedHDLight, this);
+
+            if (HDEditorUtils.IsPresetEditor(this))
+            {
+                HDLightUI.PresetInspector.Draw(m_SerializedHDLight, this);
+            }
+            else
+            {
+                using (new EditorGUILayout.VerticalScope())
+                    HDLightUI.Inspector.Draw(m_SerializedHDLight, this);
+            }
             if (EditorGUI.EndChangeCheck())
             {
                 m_SerializedHDLight.Apply();
 
                 foreach (var hdLightData in m_AdditionalLightDatas)
+                {
                     hdLightData.UpdateAllLightValues();
+                    hdLightData.UpdateRenderEntity();
+                }
             }
 
             if (m_SerializedHDLight.needUpdateAreaLightEmissiveMeshComponents)
@@ -115,6 +129,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override void OnSceneGUI()
         {
+            if (targetAdditionalData == null)
+                return;
+
             // Each handles manipulate only one light
             // Thus do not rely on serialized properties
             HDLightType lightType = targetAdditionalData.type;

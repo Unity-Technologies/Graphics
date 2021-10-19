@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering
             m_Width = width;
             m_Height = height;
             powerOfTwoPadding = potPadding;
-            m_NodePool = new ObjectPool<AtlasNode>(_ => {}, _ => {});
+            m_NodePool = new ObjectPool<AtlasNode>(_ => { }, _ => { });
         }
 
         public bool Allocate(ref Vector4 result, int width, int height)
@@ -151,15 +151,15 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Texture is not on the GPU or is not up to date.
         /// </summary>
-        private protected const int kGPUTexInvalid      = 0;
+        private protected const int kGPUTexInvalid = 0;
         /// <summary>
         /// Texture Mip0 is on the GPU and up to date.
         /// </summary>
-        private protected const int kGPUTexValidMip0    = 1;
+        private protected const int kGPUTexValidMip0 = 1;
         /// <summary>
         /// Texture and all mips are on the GPU and up to date.
         /// </summary>
-        private protected const int kGPUTexValidMipAll  = 2;
+        private protected const int kGPUTexValidMipAll = 2;
 
         /// <summary>
         /// The texture for the atlas.
@@ -602,9 +602,9 @@ namespace UnityEngine.Rendering
         /// <returns>True if texture needs update, false otherwise.</returns>
         public virtual bool NeedsUpdate(Texture texture, bool needMips = false)
         {
-            RenderTexture   rt = texture as RenderTexture;
-            int             key = GetTextureID(texture);
-            int             textureHash = CoreUtils.GetTextureHash(texture);
+            RenderTexture rt = texture as RenderTexture;
+            int key = GetTextureID(texture);
+            int textureHash = CoreUtils.GetTextureHash(texture);
 
             // Update the render texture if needed
             if (rt != null)

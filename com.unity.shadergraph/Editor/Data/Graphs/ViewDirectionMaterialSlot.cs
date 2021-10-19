@@ -9,12 +9,12 @@ namespace UnityEditor.ShaderGraph
     class ViewDirectionMaterialSlot : SpaceMaterialSlot, IMayRequireViewDirection
     {
         public ViewDirectionMaterialSlot()
-        {}
+        { }
 
         public ViewDirectionMaterialSlot(int slotId, string displayName, string shaderOutputName, CoordinateSpace space,
                                          ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, space, stageCapability, hidden)
-        {}
+        { }
         public override VisualElement InstantiateControl()
         {
             return new LabelSlotControlView(space + " Space");

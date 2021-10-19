@@ -357,6 +357,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             //This is a work-around, to make edit and continue work when editing source code
             UnityEditor.AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
 #endif
+            RenderPipelineManager.beginContextRendering += ResizeCallback;
         }
 
         public void DeleteLayerRTs()
@@ -499,8 +500,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         static HDRenderPipelineGlobalSettings m_globalSettings;
 
-        // Update is called once per frame
-        void Update()
+        // LateUpdate is called once per frame
+        void LateUpdate()
         {
             // TODO: move all validation calls to onValidate. Before doing it, this needs some extra testing to ensure nothing breaks
             if (enableOutput == false || ValidatePipeline() == false || ValidateAndFixRuntime() == false || RuntimeCheck() == false)
@@ -517,19 +518,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 m_ShaderPropertiesAreDirty = false;
                 SetupCompositorLayers();//< required to allocate RT for the new layers
             }
-
-            // Detect runtime resolution change
-            foreach (var layer in m_InputLayers)
-            {
-                if (!layer.ValidateRTSize(m_OutputCamera.pixelWidth, m_OutputCamera.pixelHeight))
-                {
-                    DeleteLayerRTs();
-                    SetupCompositorLayers();
-                    break;
-                }
-            }
 #endif
-
             if (m_CompositionProfile)
             {
                 foreach (var layer in m_InputLayers)
@@ -564,6 +553,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             // By now the s_CompositorManagedCameras should be empty, but clear it just to be safe
             CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans();
+
+            RenderPipelineManager.beginContextRendering -= ResizeCallback;
         }
 
         public void AddInputFilterAtLayer(CompositionFilter filter, int index)
@@ -752,6 +743,53 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 if (m_InputLayers[indx].camera)
                     m_InputLayers[indx].camera.Render();
+            }
+        }
+
+        void ResizeCallback(ScriptableRenderContext cntx, List<Camera> cameras)
+        {
+            if (m_OutputCamera && enableOutput)
+            {
+                // Detect runtime resolution change
+                foreach (var layer in m_InputLayers)
+                {
+                    if (!layer.ValidateRTSize(m_OutputCamera.pixelWidth, m_OutputCamera.pixelHeight))
+                    {
+                        for (int i = m_InputLayers.Count - 1; i >= 0; --i)
+                        {
+                            if (m_InputLayers[i].camera)
+                                m_InputLayers[i].camera.targetTexture = null;
+
+                            m_InputLayers[i].DestroyRT();
+                        }
+                        SetupCompositorLayers();
+                        // After a resolution change, redraw the internal layer cameras.
+                        InternalRender(cntx);
+                        break;
+                    }
+                }
+            }
+        }
+
+        void InternalRender(ScriptableRenderContext cntx)
+        {
+            HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (enableOutput && renderPipeline != null)
+            {
+                List<Camera> cameras = new List<Camera>(1);
+                foreach (var layer in m_InputLayers)
+                {
+                    if (layer.camera && layer.camera.enabled)
+                    {
+                        cameras.Clear();
+                        // Emit geometry manually for this camera (Unity will not do it for us because we call the internal render)
+                        ScriptableRenderContext.EmitGeometryForCamera(layer.camera);
+                        cameras.Add(layer.camera);
+#if UNITY_2021_1_OR_NEWER
+                        renderPipeline.InternalRender(cntx, cameras);
+#endif
+                    }
+                }
             }
         }
 

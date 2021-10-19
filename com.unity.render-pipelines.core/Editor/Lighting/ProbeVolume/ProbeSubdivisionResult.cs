@@ -11,6 +11,6 @@ namespace UnityEngine.Experimental.Rendering
     {
         public List<Vector3Int> cellPositions = new List<Vector3Int>();
         public Dictionary<Vector3Int, List<Brick>> bricksPerCells = new Dictionary<Vector3Int, List<Brick>>();
-        public SortedDictionary<int, Scene> sortedRefs = new SortedDictionary<int, Scene>();
+        public Dictionary<Vector3Int, HashSet<Scene>> scenesPerCells = new Dictionary<Vector3Int, HashSet<Scene>>();
     }
 }

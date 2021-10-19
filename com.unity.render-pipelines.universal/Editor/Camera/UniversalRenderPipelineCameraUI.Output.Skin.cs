@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.Universal
                 public static GUIContent[] displayedCameraOptions =
                 {
                     EditorGUIUtility.TrTextContent("Off"),
-                    EditorGUIUtility.TrTextContent("Use Pipeline Settings"),
+                    EditorGUIUtility.TrTextContent("Use settings from Render Pipeline Asset"),
                 };
 
                 public static int[] cameraOptions = { 0, 1 };

@@ -276,5 +276,33 @@ namespace UnityEditor.Rendering.HighDefinition
             labelPosition.x += EditorGUI.indentLevel * 15;
             EditorGUI.HandlePrefixLabel(totalPosition, labelPosition, label);
         }
+
+        // IsPreset is an internal API - lets reuse the usable part of this function
+        // 93 is a "magic number" and does not represent a combination of other flags here
+        internal static bool IsPresetEditor(UnityEditor.Editor editor)
+        {
+            return (int)((editor.target as Component).gameObject.hideFlags) == 93;
+        }
+
+        internal static void QualitySettingsHelpBox(string message, MessageType type, HDRenderPipelineUI.Expandable uiSection, string propertyPath)
+        {
+            CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
+            {
+                SettingsService.OpenProjectSettings("Project/Quality/HDRP");
+                HDRenderPipelineUI.Inspector.Expand((int)uiSection);
+                CoreEditorUtils.Highlight("Project Settings", propertyPath, HighlightSearchMode.Identifier);
+                GUIUtility.ExitGUI();
+            });
+        }
+
+        internal static void GlobalSettingsHelpBox(string message, MessageType type, string propertyPath)
+        {
+            CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
+            {
+                SettingsService.OpenProjectSettings("Project/Graphics/HDRP Global Settings");
+                CoreEditorUtils.Highlight("Project Settings", propertyPath);
+                GUIUtility.ExitGUI();
+            });
+        }
     }
 }

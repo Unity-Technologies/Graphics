@@ -86,8 +86,8 @@ The tables that follow provide an overview of the Features that the High Definit
 
 | **Feature**            | **Built-in Render Pipeline** | **High Definition Render Pipeline (HDRP)** |
 | ------------------ | ------------------------ | ------------------------------- |
-| **Enlighten**      | Yes                      | Deprecated                   |
-| **Enlighten Realtime** | Yes                      | Yes                   |
+| **Enlighten Baked Global Illumination**      | Yes                      | Deprecated <br/><br/>   (Use the [CPU or GPU Progressive Lightmapper](https://docs.unity3d.com/Manual/progressive-lightmapper.html) instead) |
+| **Enlighten Realtime Global Illumination** | Yes                      | Yes                   |
 | **Progressive CPU** | Yes                      | Yes                             |
 | **Progressive GPU** | Yes                      | Yes                             |
 
@@ -116,6 +116,7 @@ The tables that follow provide an overview of the Features that the High Definit
 | **Realtime**            | Yes                                                          | yes                                                          |
 | **Baked**               | Yes                                                          | Yes                                                          |
 | ***Sampling***          |                                                              |                                                              |
+| **Anchor Override**     | Yes                                                          | Not supported                                                |
 | **Simple**              | Yes                                                          | See [Reflection Hierarchy](Reflection-in-HDRP.md). |
 | **Blend Probes**        | Yes                                                          | See [Reflection Hierarchy](Reflection-in-HDRP.md). |
 | **Blend Probes and Skybox** | Yes                                                          | See [Reflection Hierarchy](Reflection-in-HDRP.md). |

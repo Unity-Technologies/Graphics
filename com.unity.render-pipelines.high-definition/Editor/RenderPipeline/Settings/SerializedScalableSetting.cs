@@ -53,6 +53,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 return false;
             }
         }
+
+        public int GetSchemaLevelCount()
+        {
+            var schema = ScalableSettingSchema.GetSchemaOrNull(new ScalableSettingSchemaId(schemaId.stringValue))
+                ?? ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels);
+
+            return schema.levelCount;
+        }
     }
 
     internal static class SerializedScalableSettingUI

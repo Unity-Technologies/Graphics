@@ -57,7 +57,7 @@ namespace UnityEditor.VFX.Operator
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             if (mask.Length == 0)
-                return new VFXExpression[] {};
+                return new VFXExpression[] { };
 
             var inputComponents = (inputExpression.Length > 0) ? VFXOperatorUtility.ExtractComponents(inputExpression[0]).ToArray() : new VFXExpression[0];
 

@@ -142,6 +142,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/geometric-specular-aa.md)]
 [!include[](snippets/shader-properties/surface-options/ss-depth-offset.md)]
 [!include[](snippets/shader-properties/surface-options/conservative-depth-offset.md)]
+[!include[](snippets/shader-properties/surface-options/velocity.md)]
 [!include[](snippets/shader-properties/surface-options/tessellation.md)]
 [!include[](snippets/shader-properties/surface-options/subsurface-scattering.md)]
 [!include[](snippets/shader-properties/surface-options/iris-normal.md)]

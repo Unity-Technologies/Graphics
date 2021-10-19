@@ -6,14 +6,14 @@ using UnityEngine.Rendering.HighDefinition;
 
 public class LightScriptCreator : MonoBehaviour
 {
-    public int          gridWidth = 13;
-    public int          gridHeight = 7;
+    public int gridWidth = 13;
+    public int gridHeight = 7;
 
     [Space, Header("Resources")]
-    public Texture2D    cookie2D;
-    public Cubemap      cookieCube;
+    public Texture2D cookie2D;
+    public Cubemap cookieCube;
 
-    public Material     transparentShadowCastingMaterial;
+    public Material transparentShadowCastingMaterial;
 
     IEnumerable<Vector2Int> GetGridPositions()
     {

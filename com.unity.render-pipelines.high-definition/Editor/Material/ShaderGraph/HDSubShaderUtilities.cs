@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Configure render state
-            BaseLitGUI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
+            BaseLitAPI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
             );
@@ -169,8 +169,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 overrideReferenceName = kTransparentCullMode,
                 floatType = FloatType.Enum,
                 value = (int)transparentCullMode,
-                enumNames = {"Front", "Back"},
-                enumValues = {(int)TransparentCullMode.Front, (int)TransparentCullMode.Back},
+                enumNames = { "Front", "Back" },
+                enumValues = { (int)TransparentCullMode.Front, (int)TransparentCullMode.Back },
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
@@ -241,7 +241,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty("_DoubleSidedEnable", mode != DoubleSidedMode.Disabled);
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
-                enumNames = {"Flip", "Mirror", "None"}, // values will be 0, 1 and 2
+                enumNames = { "Flip", "Mirror", "None" }, // values will be 0, 1 and 2
                 floatType = FloatType.Enum,
                 overrideReferenceName = "_DoubleSidedNormalMode",
                 hidden = true,

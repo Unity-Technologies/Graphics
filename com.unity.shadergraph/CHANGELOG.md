@@ -4,6 +4,53 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.1] - 2021-10-04
+
+### Added
+ - Adding ability to automatically cast Bools to Vector types in ShaderGraph [1359160]
+ - Added ShaderGraph import warning to old nodes and properties, and ability to dismiss the warning if old behavior is desired.
+ - Added normal transforms to the Transform node
+
+### Changed
+ - Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
+
+### Fixed
+ - Fixed Triplanar ShaderGraph node to handle arbitrary input and output coordinate spaces [1346477] (https://issuetracker.unity3d.com/issues/shader-graph-rotating-gameobject-get-material-stretched-when-using-triplanar-node)
+ - Fixed a bug that Parallax Mapping and Parallax Occlusion Mapping nodes don't use the same channel to sample heightmap by adding drop-downs for channel selecting to both of the nodes. [1347270] (https://fogbugz.unity3d.com/f/cases/1347270/)
+ - Fixed errors in the ShaderGraph Transform node [1368082]
+ - Fixed the Scene Depth node so it returns proper results in Eye space when using an orthographic camera [1311272]
+
+## [13.1.0] - 2021-09-24
+
+### Fixed
+ - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
+ - Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
+ - Fixed unhandled exception when loading a subgraph with duplicate slots [1366200] (https://issuetracker.unity3d.com/product/unity/issues/guid/1366200/)
+
+## [13.0.0] - 2021-09-01
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+### Added
+ - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
+
+### Fixed
+ - Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
+ - Fixed an incorrect direction transform from view to world space [1362034] (https://issuetracker.unity3d.com/product/unity/issues/guid/1362034/)
+ - Fixed ShaderGraph HDRP master preview disappearing for a few seconds when graph is modified  [1330289] (https://issuetracker.unity3d.com/issues/shadergraph-hdrp-main-preview-is-invisible-until-moved)
+ - Fixed noise nodes to use a deterministic integer hash, instead of platform dependent floating point hashes [1156544]
+ - Fixed the appearance (wrong text color, and not wrapped) of a warning in Node Settings [1356725] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356725/)
+ - Fixed the ordering of inputs on a SubGraph node to match the properties on the blackboard of the subgraph itself [1354463]
+ - Added more inputs to the Parallax Occlusion Mapping node to handle non-uniformly scaled UVs such as HDRP/Lit POM [1347008].
+ - Fixed the wrong scaling of the main preview window  [1356719] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356719/)
+ - Fixed an issue where ShaderGraph "view shader" commands were opening in individual windows, and blocking Unity from closing [1367188]
+ - Improved screenspace position accuracy in the fragment shader by using VPOS [1352662] (https://issuetracker.unity3d.com/issues/shadergraph-dither-node-results-in-artifacts-when-far-from-origin-caused-by-screen-position-breaking-down)
+ - Fixed the node searcher results to prefer names over synonyms [1366058]
+
+ - Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
+ - Fixed how graph errors were displayed when variant limits were reached [1355815]
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -33,6 +80,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added `Gather Texture 2D` node, for retrieving the four samples (red component only) that would be used for bilinear interpolation when sampling a Texture2D.
   - Added toggle "Disable Global Mip Bias" in Sample Texture 2D and Sample Texture 2D array node. This checkbox disables the runtimes automatic Mip Bias, which for instance can be activated during dynamic resolution scaling.
   - Added `Sprite` option to Main Preview, which is similar to `Quad` but does not allow rotation. `Sprite` is used as the default preview for URP Sprite shaders.
+  - Added Tessellation Option to PositionNode settings, to provide access to the pre-displaced tessellated position.
+  - Added visible errors for invalid stage capability connections to shader graph.
+  - Added a ShaderGraph animated preview framerate throttle.
+  - Added many node synonyms for the Create Node search so that it's easier to find nodes.
 
 ### Changed
 - Properties and Keywords are no longer separated by type on the blackboard. Categories allow for any combination of properties and keywords to be grouped together as the user defines.
@@ -47,6 +98,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated Custom Function Node to use new ShaderInclude asset type instead of TextAsset (.hlsl and .cginc softcheck remains).
 - Change BranchOnInputNode to choose NotConnected branch when generating Preview
 - Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
+- ShaderGraph SubGraphs will now report errors and warnings in a condensed single error.
+- Changed "Create Node" action in ShaderGraph stack separator context menu to "Add Block Node" and added it to main stack context menu
+- GatherTexture2D and TexelSize nodes now support all shader stages.
 
 ### Fixed
 - Fixed an issue where fog node density was incorrectly calculated.
@@ -114,6 +168,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where an informational message could cause some UI controls on the graph inspector to be pushed outside the window [1343124] (https://issuetracker.unity3d.com/product/unity/issues/guid/1343124/)
 - Fixed a ShaderGraph issue where selecting a keyword property in the blackboard would invalidate all previews, causing them to recompile [1347666] (https://issuetracker.unity3d.com/product/unity/issues/guid/1347666/)
 - Fixed the incorrect value written to the VT feedback buffer when VT is not used.
+- Fixed ShaderGraph isNaN node, which was always returning false on Vulkan and Metal platforms.
+- Fixed ShaderGraph sub-graph stage limitations to be per slot instead of per sub-graph node [1337137].
+- Disconnected nodes with errors in ShaderGraph no longer cause the imports to fail [1349311] (https://issuetracker.unity3d.com/issues/shadergraph-erroring-unconnected-node-causes-material-to-become-invalid-slash-pink)
+- ShaderGraph SubGraphs now report node warnings in the same way ShaderGraphs do [1350282].
+- Fixed ShaderGraph exception when trying to set a texture to "main texture" [1350573].
+- Fixed a ShaderGraph issue where Float properties in Integer mode would not be cast properly in graph previews [1330302](https://fogbugz.unity3d.com/f/cases/1330302/)
+- Fixed a ShaderGraph issue where hovering over a context block but not its node stack would not bring up the incorrect add menu [1351733](https://fogbugz.unity3d.com/f/cases/1351733/)
+- Fixed the BuiltIn Target to perform shader variant stripping [1345580] (https://issuetracker.unity3d.com/product/unity/issues/guid/1345580/)
+- Fixed incorrect warning while using VFXTarget
+- Fixed a bug with Sprite Targets in ShaderGraph not rendering correctly in game view [1352225]
+- Fixed compilation problems on preview shader when using hybrid renderer v2 and property desc override Hybrid Per Instance
+- Fixed a serialization bug wrt PVT property flags when using subgraphs. This fixes SRP batcher compatibility.
 
 ## [11.0.0] - 2020-10-21
 
@@ -146,7 +212,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ParallaxMapping node compile issue on GLES2
 - Fixed a selection bug with block nodes after changing tabs [1312222]
 - Fixed some shader graph compiler errors not being logged [1304162].
+- Fixed a shader graph bug where the Hue node would have a large seam with negative values [1340849].
 - Fixed an error when using camera direction with sample reflected cube map [1340538].
+- Fixed ShaderGraph's FogNode returning an incorrect density when the fog setting was disabled [1347235].
 
 ## [10.3.0] - 2020-11-03
 

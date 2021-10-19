@@ -32,12 +32,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!currentAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportRayTracing");
                 return;
             }
 
             // If ray tracing is supported display the content of the volume component
-            if (RenderPipelineManager.currentPipeline is not HDRenderPipeline {rayTracingSupported : true})
+            if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
                 return;
 
             PropertyField(m_RayTracing);

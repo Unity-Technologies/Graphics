@@ -18,23 +18,23 @@ public class DocChecker : EditorWindow
 {
     const string key = "HDRP Documnetation Checker";
 
-    ListRequest         packageListRequest;
-    PackageCollection   collection;
-    string[]            packageNames;
-    Event               e => Event.current;
+    ListRequest packageListRequest;
+    PackageCollection collection;
+    string[] packageNames;
+    Event e => Event.current;
 
-    int                 selectedPackage
+    int selectedPackage
     {
         get => EditorPrefs.GetInt($"{key} selectedPackage", 0);
         set => EditorPrefs.SetInt($"{key} selectedPackage", value);
     }
-    string              outputFolder
+    string outputFolder
     {
         get => EditorPrefs.GetString($"{key} outputFolder", "");
         set => EditorPrefs.SetString($"{key} outputFolder", value);
     }
     [SerializeField]
-    bool                excludeTests
+    bool excludeTests
     {
         get => EditorPrefs.GetBool($"{key} excludeTests", true);
         set => EditorPrefs.SetBool($"{key} excludeTests", value);

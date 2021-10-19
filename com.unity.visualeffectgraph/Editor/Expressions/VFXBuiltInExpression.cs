@@ -5,7 +5,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    #pragma warning disable 0659
+#pragma warning disable 0659
     sealed class VFXBuiltInExpression : VFXExpression
     {
         public static readonly VFXExpression FrameIndex = new VFXBuiltInExpression(VFXExpressionOperation.FrameIndex);
@@ -70,5 +70,5 @@ namespace UnityEditor.VFX
             return this;
         }
     }
-    #pragma warning restore 0659
+#pragma warning restore 0659
 }

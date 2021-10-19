@@ -4,7 +4,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class DecalDrawFowardEmissiveSystem : DecalDrawSystem
     {
-        public DecalDrawFowardEmissiveSystem(DecalEntityManager entityManager) : base("DecalDrawFowardEmissiveSystem.Execute", entityManager) {}
+        public DecalDrawFowardEmissiveSystem(DecalEntityManager entityManager) : base("DecalDrawFowardEmissiveSystem.Execute", entityManager) { }
         protected override int GetPassIndex(DecalCachedChunk decalCachedChunk) => decalCachedChunk.passIndexEmissive;
     }
 

@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
     class VFXExpressionCombine : VFXExpressionNumericOperation
     {
         public VFXExpressionCombine() : this(VFXValue<float>.Default, VFXValue<float>.Default)
-        {}
+        { }
 
         public VFXExpressionCombine(params VFXExpression[] parents)
             : base(parents)

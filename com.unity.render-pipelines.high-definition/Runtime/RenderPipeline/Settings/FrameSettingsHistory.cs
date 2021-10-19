@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Contrarily to other enum of DebugMenu, we do not need to stock index as
                 // it can be computed again with data in the dedicated debug section of history
                 getIndex = () => frameSettingsContainer.frameSettingsHistory.debug.IsEnabled(field) ? 1 : 0,
-                setIndex = (int a) => {},
+                setIndex = (int a) => { },
 
                 historyIndexGetter = new Func<int>[]
                 {

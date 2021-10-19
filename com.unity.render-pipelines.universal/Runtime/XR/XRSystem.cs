@@ -201,8 +201,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal void ReleaseFrame()
         {
-            foreach (XRPass xrPass in framePasses)
+            for (int i = 0; i < framePasses.Count; i++)
             {
+                // Pop from the back to keep initial ordering (see implementation of ObjectPool)
+                var xrPass = framePasses[framePasses.Count - i - 1];
+
                 if (xrPass != emptyPass)
                     XRPass.Release(xrPass);
             }

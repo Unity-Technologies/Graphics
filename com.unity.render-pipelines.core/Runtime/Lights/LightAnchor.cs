@@ -10,7 +10,6 @@ namespace UnityEngine
     /// Represents camera-space light controls around a virtual pivot point.
     /// </summary>
     [AddComponentMenu("Rendering/Light Anchor")]
-    [RequireComponent(typeof(Light))]
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [CoreRPHelpURLAttribute("View-Lighting-Tool")]
@@ -18,14 +17,22 @@ namespace UnityEngine
     {
         const float k_ArcRadius = 5;
         const float k_AxisLength = 10;
+        internal const float k_MaxDistance = 10000f;
 
-        [SerializeField]
-        float m_Distance = 3;
+        [SerializeField, Min(0)]
+        float m_Distance = 0f;
         [SerializeField]
         UpDirection m_FrameSpace = UpDirection.World;
+        [SerializeField]
+        Transform m_AnchorPositionOverride;
+        [SerializeField]
+        Vector3 m_AnchorPositionOffset;
 
+        [SerializeField]
         float m_Yaw;
+        [SerializeField]
         float m_Pitch;
+        [SerializeField]
         float m_Roll;
 
         /// <summary>
@@ -69,8 +76,8 @@ namespace UnityEngine
         /// </summary>
         public float distance
         {
-            get { return m_Distance; }
-            set { m_Distance = Mathf.Max(value, .01f); }
+            get => m_Distance;
+            set => m_Distance = Mathf.Clamp(value, 0f, k_MaxDistance);
         }
 
         /// <summary>
@@ -102,7 +109,13 @@ namespace UnityEngine
         /// </summary>
         public Vector3 anchorPosition
         {
-            get { return transform.position + transform.forward * m_Distance; }
+            get
+            {
+                if (anchorPositionOverride != null)
+                    return anchorPositionOverride.position + anchorPositionOverride.TransformDirection(anchorPositionOffset);
+                else
+                    return transform.position + transform.forward * distance;
+            }
         }
 
         struct Axes
@@ -110,6 +123,25 @@ namespace UnityEngine
             public Vector3 up;
             public Vector3 right;
             public Vector3 forward;
+        }
+
+        /// <summary>
+        /// Overrides the pivot of used to compute the light position. This is useful to track an existing object in the scene.
+        /// The transform of the light will be automatically updated by the Update() method of the LightAnchor.
+        /// </summary>
+        public Transform anchorPositionOverride
+        {
+            get => m_AnchorPositionOverride;
+            set => m_AnchorPositionOverride = value;
+        }
+
+        /// <summary>
+        /// Offset relative to the position of the anchor position override transform in object space.
+        /// </summary>
+        public Vector3 anchorPositionOffset
+        {
+            get => m_AnchorPositionOffset;
+            set => m_AnchorPositionOffset = value;
         }
 
         /// <summary>
@@ -135,6 +167,10 @@ namespace UnityEngine
             Axes axes = GetWorldSpaceAxes(camera);
 
             Vector3 worldAnchorToLight = transform.position - anchorPosition;
+
+            // In case the distance is 0 or the anchor override is at the same position than the light anchor
+            if (worldAnchorToLight.magnitude == 0)
+                worldAnchorToLight = -transform.forward;
 
             Vector3 projectOnGround = Vector3.ProjectOnPlane(worldAnchorToLight, axes.up);
             projectOnGround.Normalize();
@@ -162,7 +198,28 @@ namespace UnityEngine
 
         Axes GetWorldSpaceAxes(Camera camera)
         {
+            // Fallback when the light anchor object is child of the camera (bad setup)
+            if (transform.IsChildOf(camera.transform))
+            {
+                return new Axes
+                {
+                    up = Vector3.up,
+                    right = Vector3.right,
+                    forward = Vector3.forward,
+                };
+            }
+
             Matrix4x4 viewToWorld = camera.cameraToWorldMatrix;
+
+            // Correct view to world for perspective
+            if (!camera.orthographic && camera.transform.position != anchorPosition)
+            {
+                var d = (anchorPosition - camera.transform.position).normalized;
+                var f = Quaternion.LookRotation(d);
+                viewToWorld = Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.TRS(camera.transform.position, f, Vector3.one).inverse;
+                viewToWorld = viewToWorld.inverse;
+            }
+
             if (m_FrameSpace == UpDirection.World)
             {
                 Vector3 viewUp = (Vector3)(Camera.main.worldToCameraMatrix * Vector3.up);
@@ -182,15 +239,25 @@ namespace UnityEngine
             };
         }
 
+        void Update()
+        {
+            if (anchorPositionOverride == null || Camera.main == null)
+                return;
+
+            if (anchorPositionOverride.hasChanged || Camera.main.transform.hasChanged)
+                UpdateTransform(Camera.main, anchorPosition);
+        }
+
         void OnDrawGizmosSelected()
         {
             var camera = Camera.main;
 
             if (camera == null)
             {
-                Debug.LogError("At least one camera must be tagged as MainCamera");
                 return;
             }
+
+            // TODO: fix light rotated when camera rotates
 
             Axes axes = GetWorldSpaceAxes(camera);
             Vector3 anchor = anchorPosition;
@@ -230,10 +297,10 @@ namespace UnityEngine
         {
             Quaternion worldYawRot = Quaternion.AngleAxis(m_Yaw, up);
             Quaternion worldPitchRot = Quaternion.AngleAxis(m_Pitch, right);
-            Vector3 worldPosition = anchor + (worldYawRot * worldPitchRot) * forward * m_Distance;
+            Vector3 worldPosition = anchor + (worldYawRot * worldPitchRot) * forward * distance;
             transform.position = worldPosition;
 
-            Vector3 lookAt = (anchor - worldPosition).normalized;
+            Vector3 lookAt = -((worldYawRot * worldPitchRot) * forward).normalized;
             Vector3 angles = Quaternion.LookRotation(lookAt, up).eulerAngles;
             angles.z = m_Roll;
             transform.eulerAngles = angles;

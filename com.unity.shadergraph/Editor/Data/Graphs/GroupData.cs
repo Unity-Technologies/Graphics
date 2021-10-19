@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             set { m_Position = value; }
         }
 
-        public GroupData() : base() {}
+        public GroupData() : base() { }
 
         public GroupData(string title, Vector2 position)
         {

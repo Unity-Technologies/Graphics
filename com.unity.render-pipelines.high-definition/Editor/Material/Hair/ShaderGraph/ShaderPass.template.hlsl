@@ -27,26 +27,32 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     surfaceData.specularOcclusion = 1.0;
 
     // copy across graph values, if defined
-    $SurfaceDescription.BaseColor:                      surfaceData.diffuseColor =                  surfaceDescription.BaseColor;
-    $SurfaceDescription.SpecularOcclusion:              surfaceData.specularOcclusion =             surfaceDescription.SpecularOcclusion;
-    $SurfaceDescription.Smoothness:                     surfaceData.perceptualSmoothness =          surfaceDescription.Smoothness;
-    $SurfaceDescription.Occlusion:                      surfaceData.ambientOcclusion =              surfaceDescription.Occlusion;
-    $SurfaceDescription.Transmittance:                  surfaceData.transmittance =                 surfaceDescription.Transmittance;
-    $SurfaceDescription.RimTransmissionIntensity:       surfaceData.rimTransmissionIntensity =      surfaceDescription.RimTransmissionIntensity;
+    $SurfaceDescription.BaseColor:                   surfaceData.diffuseColor =                   surfaceDescription.BaseColor;
 
-    $SurfaceDescription.SpecularTint:                   surfaceData.specularTint =                  surfaceDescription.SpecularTint;
-    $SurfaceDescription.SpecularShift:                  surfaceData.specularShift =                 surfaceDescription.SpecularShift;
+    $SurfaceDescription.AbsorptionCoefficient:       surfaceData.absorption =                     surfaceDescription.AbsorptionCoefficient;
 
-    $SurfaceDescription.SecondarySmoothness:            surfaceData.secondaryPerceptualSmoothness = surfaceDescription.SecondarySmoothness;
-    $SurfaceDescription.SecondarySpecularTint:          surfaceData.secondarySpecularTint =         surfaceDescription.SecondarySpecularTint;
-    $SurfaceDescription.SecondarySpecularShift:         surfaceData.secondarySpecularShift =        surfaceDescription.SecondarySpecularShift;
+    $SurfaceDescription.Eumelanin:                   surfaceData.eumelanin =                      surfaceDescription.Eumelanin;
+    $SurfaceDescription.Pheomelanin:                 surfaceData.pheomelanin =                    surfaceDescription.Pheomelanin;
+\
+    $SurfaceDescription.SpecularOcclusion:           surfaceData.specularOcclusion =              surfaceDescription.SpecularOcclusion;
+    $SurfaceDescription.Smoothness:                  surfaceData.perceptualSmoothness =           surfaceDescription.Smoothness;
+    $SurfaceDescription.Occlusion:                   surfaceData.ambientOcclusion =               surfaceDescription.Occlusion;
+    $SurfaceDescription.Transmittance:               surfaceData.transmittance =                  surfaceDescription.Transmittance;
+    $SurfaceDescription.RimTransmissionIntensity:    surfaceData.rimTransmissionIntensity =       surfaceDescription.RimTransmissionIntensity;
 
-    // TODO: Adopt smoothness nomenclature + factorization?
-    $SurfaceDescription.LongitudinalRoughness:          surfaceData.roughnessLongitudinal =         surfaceDescription.LongitudinalRoughness;
-    $SurfaceDescription.AzimuthalRoughness:             surfaceData.roughnessAzimuthal =            surfaceDescription.AzimuthalRoughness;
-    $SurfaceDescription.PrimaryReflectionRoughness:     surfaceData.roughnessPrimaryReflection =    surfaceDescription.PrimaryReflectionRoughness;
-    $SurfaceDescription.RefractionIndex:                surfaceData.ior =                           surfaceDescription.RefractionIndex;
-    $SurfaceDescription.CuticleAngle:                   surfaceData.cuticleAngle =                  surfaceDescription.CuticleAngle;
+    $SurfaceDescription.SpecularTint:                surfaceData.specularTint =                   surfaceDescription.SpecularTint;
+    $SurfaceDescription.SpecularShift:               surfaceData.specularShift =                  surfaceDescription.SpecularShift;
+
+    $SurfaceDescription.SecondarySmoothness:         surfaceData.secondaryPerceptualSmoothness =  surfaceDescription.SecondarySmoothness;
+    $SurfaceDescription.SecondarySpecularTint:       surfaceData.secondarySpecularTint =          surfaceDescription.SecondarySpecularTint;
+    $SurfaceDescription.SecondarySpecularShift:      surfaceData.secondarySpecularShift =         surfaceDescription.SecondarySpecularShift;
+
+    $SurfaceDescription.RadialSmoothness:            surfaceData.perceptualRadialSmoothness =     surfaceDescription.RadialSmoothness;
+    $SurfaceDescription.PrimaryReflectionSmoothness: surfaceData.primaryReflectionSmoothness =    surfaceDescription.PrimaryReflectionSmoothness;
+    $SurfaceDescription.CuticleAngle:                surfaceData.cuticleAngle =                   surfaceDescription.CuticleAngle;
+
+    $SurfaceDescription.StrandCountProbe:            surfaceData.strandCountProbe =               surfaceDescription.StrandCountProbe;
+    $SurfaceDescription.StrandShadowBias:            surfaceData.strandShadowBias =               surfaceDescription.StrandShadowBias;
 
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = 0;

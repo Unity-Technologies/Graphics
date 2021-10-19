@@ -100,7 +100,8 @@ namespace UnityEditor.Rendering.Universal
                 PostProcessingWarningDrawer,
                 CED.Group(
                     DrawerRenderingClearDepth,
-                    DrawerRenderingRenderShadows
+                    DrawerRenderingRenderShadows,
+                    DrawerRenderingDepthTexture
                 )
             );
 
@@ -115,6 +116,17 @@ namespace UnityEditor.Rendering.Universal
                     ),
                 BaseCameraRenderTypeDrawer,
                 OverlayCameraRenderTypeDrawer,
+                CED.Group(
+                    CameraUI.Rendering.Drawer_Rendering_CullingMask,
+                    CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
+                )
+            );
+
+            public static readonly CED.IDrawer DrawerPreset = CED.FoldoutGroup(
+                CameraUI.Rendering.Styles.header,
+                Expandable.Rendering,
+                k_ExpandedState,
+                FoldoutOption.Indent,
                 CED.Group(
                     CameraUI.Rendering.Drawer_Rendering_CullingMask,
                     CameraUI.Rendering.Drawer_Rendering_OcclusionCulling

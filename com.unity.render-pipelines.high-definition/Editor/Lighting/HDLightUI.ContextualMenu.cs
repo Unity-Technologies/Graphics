@@ -6,18 +6,6 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     partial class HDLightUI
     {
-        [MenuItem("CONTEXT/Light/Remove Component", false, 0)]
-        static void RemoveLight(MenuCommand menuCommand)
-        {
-            GameObject go = ((Light)menuCommand.context).gameObject;
-
-            Assert.IsNotNull(go);
-
-            Undo.IncrementCurrentGroup();
-            Undo.DestroyObjectImmediate(go.GetComponent<Light>());
-            Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalLightData>());
-        }
-
         [MenuItem("CONTEXT/Light/Reset", false, 0)]
         static void ResetLight(MenuCommand menuCommand)
         {

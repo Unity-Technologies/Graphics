@@ -24,6 +24,21 @@ namespace UnityEditor.ShaderGraph.Internal
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
+        public override float value
+        {
+            get
+            {
+                if (floatType == FloatType.Integer)
+                {
+                    return (int)base.value;
+                }
+
+                return base.value;
+            }
+
+            set => base.value = value;
+        }
+
         string enumTagString
         {
             get

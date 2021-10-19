@@ -139,7 +139,7 @@ namespace UnityEditor.VFX
                     if (attrib.variadic == VFXVariadic.True)
                         result += "." + mask;
                 }
-                catch {} // Must not throw in name getter
+                catch { } // Must not throw in name getter
 
                 return result;
             }

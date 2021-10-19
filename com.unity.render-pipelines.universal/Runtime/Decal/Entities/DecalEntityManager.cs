@@ -145,9 +145,9 @@ namespace UnityEngine.Rendering.Universal
 
         public override void SetCapacity(int newCapacity)
         {
-            ResizeNativeArray(ref decalEntities, newCapacity);
+            decalEntities.ResizeArray(newCapacity);
             ResizeNativeArray(ref transformAccessArray, decalProjectors, newCapacity);
-            ResizeArray(ref decalProjectors, newCapacity);
+            ArrayExtensions.ResizeArray(ref decalProjectors, newCapacity);
             capacity = newCapacity;
         }
 

@@ -12,13 +12,15 @@ namespace UnityEditor.Rendering.HighDefinition
         // Shared rasterization / ray tracing parameter
         SerializedDataParameter m_Enable;
         SerializedDataParameter m_Tracing;
+        SerializedDataParameter m_RayMiss;
 
         // Screen space global illumination parameters
+        SerializedDataParameter m_FullResolutionSS;
         SerializedDataParameter m_DepthBufferThickness;
         SerializedDataParameter m_RaySteps;
-        SerializedDataParameter m_FilterRadius;
 
         // Ray tracing generic attributes
+        SerializedDataParameter m_LastBounce;
         SerializedDataParameter m_LayerMask;
         SerializedDataParameter m_ReceiverMotionRejection;
         SerializedDataParameter m_TextureLodBias;
@@ -31,17 +33,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Performance
         SerializedDataParameter m_FullResolution;
-        SerializedDataParameter m_UpscaleRadius;
 
         // Quality
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_BounceCount;
 
-        // Filtering
+        // Filtering RT
         SerializedDataParameter m_Denoise;
         SerializedDataParameter m_HalfResolutionDenoiser;
         SerializedDataParameter m_DenoiserRadius;
         SerializedDataParameter m_SecondDenoiserPass;
+
+        // Filtering SS
+        SerializedDataParameter m_DenoiseSS;
+        SerializedDataParameter m_HalfResolutionDenoiserSS;
+        SerializedDataParameter m_DenoiserRadiusSS;
+        SerializedDataParameter m_SecondDenoiserPassSS;
 
         public override bool hasAdditionalProperties => true;
 
@@ -51,13 +58,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_Enable = Unpack(o.Find(x => x.enable));
             m_Tracing = Unpack(o.Find(x => x.tracing));
+            m_RayMiss = Unpack(o.Find(x => x.rayMiss));
 
             // SSGI Parameters
+            m_FullResolutionSS = Unpack(o.Find(x => x.fullResolutionSS));
             m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
             m_RaySteps = Unpack(o.Find(x => x.maxRaySteps));
-            m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
 
             // Ray Tracing shared parameters
+            m_LastBounce = Unpack(o.Find(x => x.lastBounceFallbackHierarchy));
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
             m_ReceiverMotionRejection = Unpack(o.Find(x => x.receiverMotionRejection));
             m_TextureLodBias = Unpack(o.Find(x => x.textureLodBias));
@@ -70,7 +79,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Performance
             m_FullResolution = Unpack(o.Find(x => x.fullResolution));
-            m_UpscaleRadius = Unpack(o.Find(x => x.upscaleRadius));
 
             // Quality
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
@@ -82,13 +90,26 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DenoiserRadius = Unpack(o.Find(x => x.denoiserRadius));
             m_SecondDenoiserPass = Unpack(o.Find(x => x.secondDenoiserPass));
 
+            // Filtering SS
+            m_DenoiseSS = Unpack(o.Find(x => x.denoiseSS));
+            m_HalfResolutionDenoiserSS = Unpack(o.Find(x => x.halfResolutionDenoiserSS));
+            m_DenoiserRadiusSS = Unpack(o.Find(x => x.denoiserRadiusSS));
+            m_SecondDenoiserPassSS = Unpack(o.Find(x => x.secondDenoiserPassSS));
+
             base.OnEnable();
         }
 
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of global illumination rays. The higher this value is, the more expensive ray traced global illumination is.");
+        static public readonly GUIContent k_FullResolutionSSText = EditorGUIUtility.TrTextContent("Full Resolution", "Controls if the screen space global illumination should be evaluated at half resolution.");
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Depth Tolerance", "Controls the tolerance when comparing the depth of two pixels.");
+        static public readonly GUIContent k_RayMissFallbackHierarchyText = EditorGUIUtility.TrTextContent("Ray Miss", "Controls the fallback hierarchy for indirect diffuse in case the ray misses.");
+        static public readonly GUIContent k_LastBounceFallbackHierarchyText = EditorGUIUtility.TrTextContent("Last Bounce", "Controls the fallback hierarchy for lighting the last bounce.");
         static public readonly GUIContent k_MaxMixedRaySteps = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for mixed tracing.");
 
+        static public readonly GUIContent k_DenoiseText = EditorGUIUtility.TrTextContent("Denoise", "Denoise the screen space GI.");
+        static public readonly GUIContent k_HalfResolutionDenoiserText = EditorGUIUtility.TrTextContent("Half Resolution Denoiser", "Use a half resolution denoiser.");
+        static public readonly GUIContent k_DenoiserRadiusText = EditorGUIUtility.TrTextContent("Denoiser Radius", "Controls the radius of the GI denoiser (First Pass).");
+        static public readonly GUIContent k_SecondDenoiserPassText = EditorGUIUtility.TrTextContent("Second Denoiser Pass", "Enable second denoising pass.");
 
         public void DenoiserGUI()
         {
@@ -102,6 +123,18 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        public void DenoiserSSGUI()
+        {
+            PropertyField(m_DenoiseSS, k_DenoiseText);
+
+            using (new IndentLevelScope())
+            {
+                PropertyField(m_HalfResolutionDenoiserSS, k_HalfResolutionDenoiserText);
+                PropertyField(m_DenoiserRadiusSS, k_DenoiserRadiusText);
+                PropertyField(m_SecondDenoiserPassSS, k_SecondDenoiserPassText);
+            }
+        }
+
         void RayTracingPerformanceModeGUI(bool mixed)
         {
             base.OnInspectorGUI(); // Quality Setting
@@ -111,7 +144,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_RayLength, k_RayLengthText);
                 PropertyField(m_ClampValue);
                 PropertyField(m_FullResolution);
-                PropertyField(m_UpscaleRadius);
                 if (mixed)
                     PropertyField(m_MaxMixedRaySteps, k_MaxMixedRaySteps);
                 DenoiserGUI();
@@ -136,19 +168,21 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportSSGI ?? false)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Screen Space Global illumination.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Screen Space Global illumination.", MessageType.Error,
+                    HDRenderPipelineUI.Expandable.Reflection, "m_RenderPipelineSettings.supportSSGI");
                 return;
             }
 
             PropertyField(m_Enable);
+            EditorGUILayout.Space();
 
             // If ray tracing is supported display the content of the volume component
-            if (HDRenderPipeline.pipelineSupportsRayTracing)
+            if (HDRenderPipeline.assetSupportsRayTracing)
                 PropertyField(m_Tracing);
 
             // Flag to track if the ray tracing parameters were displayed
             RayCastingMode tracingMode = m_Tracing.value.GetEnumValue<RayCastingMode>();
-            bool rayTracingSettingsDisplayed = HDRenderPipeline.pipelineSupportsRayTracing
+            bool rayTracingSettingsDisplayed = HDRenderPipeline.assetSupportsRayTracing
                 && m_Tracing.overrideState.boolValue
                 && tracingMode != RayCastingMode.RayMarching;
 
@@ -158,6 +192,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     PropertyField(m_LayerMask);
                     PropertyField(m_TextureLodBias);
+
+                    using (new IndentLevelScope())
+                    {
+                        EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
+                        PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
+                        PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
+                    }
 
                     if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
                     {
@@ -191,7 +232,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (tracingMode == RayCastingMode.RayTracing)
                             RayTracingQualityModeGUI();
                         else
-                            EditorGUILayout.HelpBox("The current HDRP Asset does not support the mixed mode which is only available in performance mode.", MessageType.Error, wide: true);
+                            HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support the mixed mode which is only available in performance mode.", MessageType.Error,
+                            HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportedRayTracingMode");
                     }
                     else
                     {
@@ -207,9 +249,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (new QualityScope(this))
                     {
                         PropertyField(m_RaySteps);
-                        PropertyField(m_FilterRadius);
+                        DenoiserSSGUI();
                     }
+                    PropertyField(m_FullResolutionSS, k_FullResolutionSSText);
                     PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
+                    PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
                 }
             }
         }
@@ -223,7 +267,6 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Save<float>(m_RayLength);
             settings.Save<float>(m_ClampValue);
             settings.Save<bool>(m_FullResolution);
-            settings.Save<int>(m_UpscaleRadius);
             settings.Save<int>(m_MaxMixedRaySteps);
             settings.Save<bool>(m_Denoise);
             settings.Save<bool>(m_HalfResolutionDenoiser);
@@ -232,21 +275,23 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // SSGI
             settings.Save<int>(m_RaySteps);
-            settings.Save<int>(m_FilterRadius);
+            settings.Save<bool>(m_DenoiseSS);
+            settings.Save<bool>(m_HalfResolutionDenoiserSS);
+            settings.Save<float>(m_DenoiserRadiusSS);
+            settings.Save<bool>(m_SecondDenoiserPassSS);
 
             return settings;
         }
 
         public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
+            if (HDRenderPipeline.assetSupportsRayTracing && m_Tracing.overrideState.boolValue &&
                 m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
             {
                 // RTGI
                 settings.TryLoad<float>(ref m_RayLength);
                 settings.TryLoad<float>(ref m_ClampValue);
                 settings.TryLoad<bool>(ref m_FullResolution);
-                settings.TryLoad<int>(ref m_UpscaleRadius);
                 settings.TryLoad<int>(ref m_MaxMixedRaySteps);
                 settings.TryLoad<bool>(ref m_Denoise);
                 settings.TryLoad<bool>(ref m_HalfResolutionDenoiser);
@@ -257,20 +302,22 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // SSGI
                 settings.TryLoad<int>(ref m_RaySteps);
-                settings.TryLoad<int>(ref m_FilterRadius);
+                settings.TryLoad<bool>(ref m_DenoiseSS);
+                settings.TryLoad<bool>(ref m_HalfResolutionDenoiserSS);
+                settings.TryLoad<float>(ref m_DenoiserRadiusSS);
+                settings.TryLoad<bool>(ref m_SecondDenoiserPassSS);
             }
         }
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
+            if (HDRenderPipeline.assetSupportsRayTracing && m_Tracing.overrideState.boolValue &&
                 m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
             {
                 // RTGI
                 CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTGIRayLength[level]);
                 CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTGIClampValue[level]);
                 CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTGIFullResolution[level]);
-                CopySetting(ref m_UpscaleRadius, settings.lightingQualitySettings.RTGIUpScaleRadius[level]);
                 CopySetting(ref m_MaxMixedRaySteps, settings.lightingQualitySettings.RTGIRaySteps[level]);
                 CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTGIDenoise[level]);
                 CopySetting(ref m_HalfResolutionDenoiser, settings.lightingQualitySettings.RTGIHalfResDenoise[level]);
@@ -281,14 +328,17 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // SSGI
                 CopySetting(ref m_RaySteps, settings.lightingQualitySettings.SSGIRaySteps[level]);
-                CopySetting(ref m_FilterRadius, settings.lightingQualitySettings.SSGIFilterRadius[level]);
+                CopySetting(ref m_DenoiseSS, settings.lightingQualitySettings.SSGIDenoise[level]);
+                CopySetting(ref m_HalfResolutionDenoiserSS, settings.lightingQualitySettings.SSGIHalfResDenoise[level]);
+                CopySetting(ref m_DenoiserRadiusSS, settings.lightingQualitySettings.SSGIDenoiserRadius[level]);
+                CopySetting(ref m_SecondDenoiserPassSS, settings.lightingQualitySettings.SSGISecondDenoise[level]);
             }
         }
 
         public override bool QualityEnabled()
         {
             // Quality always used for SSGI
-            if (!HDRenderPipeline.rayTracingSupportedBySystem || m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
+            if (!HDRenderPipeline.assetSupportsRayTracing || m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
                 return true;
 
             // Handle the quality usage for RTGI

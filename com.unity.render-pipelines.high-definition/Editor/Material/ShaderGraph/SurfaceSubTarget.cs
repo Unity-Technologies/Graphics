@@ -211,20 +211,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
             // Regular alpha test is only done if artist haven't ask to use the specific alpha test shadow one
-            bool isShadowPass               = (context.pass.lightMode == "ShadowCaster") || (context.pass.lightMode == "VisibilityDXR");
-            bool isTransparentDepthPrepass  = context.pass.lightMode == "TransparentDepthPrepass";
+            bool isShadowPass = (context.pass.lightMode == "ShadowCaster") || (context.pass.lightMode == "VisibilityDXR");
+            bool isTransparentDepthPrepass = context.pass.lightMode == "TransparentDepthPrepass";
 
             // Shadow use the specific alpha test only if user have ask to override it
-            context.AddField(HDFields.DoAlphaTestShadow,    systemData.alphaTest && builtinData.alphaTestShadow && isShadowPass &&
+            context.AddField(HDFields.DoAlphaTestShadow, systemData.alphaTest && builtinData.alphaTestShadow && isShadowPass &&
                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
             // Pre/post pass always use the specific alpha test provided for those pass
-            context.AddField(HDFields.DoAlphaTestPrepass,   systemData.alphaTest && builtinData.transparentDepthPrepass && isTransparentDepthPrepass &&
+            context.AddField(HDFields.DoAlphaTestPrepass, systemData.alphaTest && builtinData.transparentDepthPrepass && isTransparentDepthPrepass &&
                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));
 
             // Features & Misc
-            context.AddField(Fields.LodCrossFade,           builtinData.supportLodCrossFade);
-            context.AddField(Fields.AlphaToMask,            systemData.alphaTest);
-            context.AddField(HDFields.TransparentBackFace,  builtinData.backThenFrontRendering);
+            context.AddField(Fields.LodCrossFade, builtinData.supportLodCrossFade);
+            context.AddField(Fields.AlphaToMask, systemData.alphaTest);
+            context.AddField(HDFields.TransparentBackFace, builtinData.backThenFrontRendering);
             context.AddField(HDFields.TransparentDepthPrePass, builtinData.transparentDepthPrepass);
             context.AddField(HDFields.TransparentDepthPostPass, builtinData.transparentDepthPostpass);
 
@@ -235,6 +235,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (builtinData.depthOffset)
                 context.AddField(HDStructFields.FragInputs.positionRWS);
 
+            context.AddField(HDFields.CustomVelocity, systemData.customVelocity);
+
             context.AddField(HDFields.TessellationFactor, systemData.tessellation);
             context.AddField(HDFields.TessellationDisplacement, systemData.tessellation);
         }
@@ -242,11 +244,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected void AddDistortionFields(ref TargetFieldContext context)
         {
             // Distortion
-            context.AddField(HDFields.DistortionDepthTest,                  builtinData.distortionDepthTest);
-            context.AddField(HDFields.DistortionAdd,                        builtinData.distortionMode == DistortionMode.Add);
-            context.AddField(HDFields.DistortionMultiply,                   builtinData.distortionMode == DistortionMode.Multiply);
-            context.AddField(HDFields.DistortionReplace,                    builtinData.distortionMode == DistortionMode.Replace);
-            context.AddField(HDFields.TransparentDistortion,                systemData.surfaceType != SurfaceType.Opaque && builtinData.distortion);
+            context.AddField(HDFields.DistortionDepthTest, builtinData.distortionDepthTest);
+            context.AddField(HDFields.DistortionAdd, builtinData.distortionMode == DistortionMode.Add);
+            context.AddField(HDFields.DistortionMultiply, builtinData.distortionMode == DistortionMode.Multiply);
+            context.AddField(HDFields.DistortionReplace, builtinData.distortionMode == DistortionMode.Replace);
+            context.AddField(HDFields.TransparentDistortion, systemData.surfaceType != SurfaceType.Opaque && builtinData.distortion);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -274,14 +276,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Misc
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, builtinData.depthOffset);
 
+            context.AddBlock(HDBlockFields.VertexDescription.CustomVelocity, systemData.customVelocity);
+
             context.AddBlock(HDBlockFields.VertexDescription.TessellationFactor, systemData.tessellation);
             context.AddBlock(HDBlockFields.VertexDescription.TessellationDisplacement, systemData.tessellation);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)
         {
-            context.AddBlock(HDBlockFields.SurfaceDescription.Distortion,       systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DistortionBlur,   systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
+            context.AddBlock(HDBlockFields.SurfaceDescription.Distortion, systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
+            context.AddBlock(HDBlockFields.SurfaceDescription.DistortionBlur, systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -407,7 +411,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // No sorting priority for shader graph preview
             material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderQueueType, offset: 0, alphaTest: systemData.alphaTest, false);
 
-            LightingShaderGraphGUI.SetupLightingKeywordsAndPass(material);
+            ShaderGraphAPI.ValidateLightingMaterial(material);
         }
 
         internal override void MigrateTo(ShaderGraphVersion version)

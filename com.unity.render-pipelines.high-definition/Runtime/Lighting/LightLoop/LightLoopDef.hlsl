@@ -23,6 +23,7 @@ struct LightLoopContext
     uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
     real contactShadowFade;     // combined fade factor of all contact shadows
     SHADOW_TYPE shadowValue;    // Stores the value of the cascade shadow map
+    real splineVisibility;      // Stores the value of the cascade shadow map (unbiased for splines)
 };
 
 // LightLoopOutput is the output of the LightLoop fuction call.
@@ -152,15 +153,18 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, _EnvSliceSize * index + sliceIdx, lod).rgb;
         }
 
+        // Planar and Reflection Probes aren't pre-expose, so best to clamp to max16 here in case of inf
+        color.rgb = ClampToFloat16Max(color.rgb);
+
         color.rgb *= rangeCompressionFactorCompensation;
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {
         color.rgb = SampleSkyTexture(texCoord, lod, sliceIdx).rgb;
+        // Sky isn't pre-expose, so best to clamp to max16 here in case of inf
+        color.rgb = ClampToFloat16Max(color.rgb);
     }
 
-    // Planar, Reflection Probes and Sky aren't pre-expose, so best to clamp to max16 here in case of inf
-    color.rgb = ClampToFloat16Max(color.rgb);
 
     return color;
 }
@@ -188,7 +192,7 @@ void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint 
 #endif
 
     // The first entry inside a tile is the number of light for lightCategory (thus the +0)
-    lightCount = g_vLightListGlobal[DWORD_PER_TILE * tileOffset + 0] & 0xffff;
+    lightCount = g_vLightListTile[DWORD_PER_TILE * tileOffset + 0] & 0xffff;
     start = tileOffset;
 }
 
@@ -208,7 +212,7 @@ uint FetchIndex(uint tileOffset, uint lightOffset)
 {
     const uint lightOffsetPlusOne = lightOffset + 1; // Add +1 as first slot is reserved to store number of light
     // Light index are store on 16bit
-    return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
+    return (g_vLightListTile[DWORD_PER_TILE * tileOffset + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
 }
 
 #elif defined(USE_CLUSTERED_LIGHTLIST)
@@ -261,7 +265,7 @@ void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint star
 
 uint FetchIndex(uint lightStart, uint lightOffset)
 {
-    return g_vLightListGlobal[lightStart + lightOffset];
+    return g_vLightListCluster[lightStart + lightOffset];
 }
 
 #elif defined(USE_BIG_TILE_LIGHTLIST)

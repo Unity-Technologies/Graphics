@@ -185,11 +185,11 @@ namespace UnityEditor.VFX.Block
                 }
                 else
                 {
-                    var particleIdExpr =  new VFXAttributeExpression(VFXAttribute.ParticleId);
+                    var particleIdExpr = new VFXAttributeExpression(VFXAttribute.ParticleId);
                     var attribMapExpr = GetExpressionsFromSlots(this).First(o => o.name == "attributeMap").exp;
                     var height = new VFXExpressionTextureHeight(attribMapExpr);
-                    var width =  new VFXExpressionTextureWidth(attribMapExpr);
-                    var countExpr =   height * width;
+                    var width = new VFXExpressionTextureWidth(attribMapExpr);
+                    var countExpr = height * width;
                     VFXExpression samplePos = VFXValue.Constant(0);
 
                     switch (SampleMode)
@@ -212,16 +212,16 @@ namespace UnityEditor.VFX.Block
                             samplePos = new VFXExpressionCastFloatToUint(randExpr * new VFXExpressionCastUintToFloat(countExpr));
                             break;
                         case AttributeMapSampleMode.RandomConstantPerParticle:
-                            var seedExpr =  GetExpressionsFromSlots(this).First(o => o.name == "Seed").exp;
+                            var seedExpr = GetExpressionsFromSlots(this).First(o => o.name == "Seed").exp;
                             var randFixedExpr = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, true, new RandId(this), seedExpr);
-                            samplePos =  new VFXExpressionCastFloatToUint(randFixedExpr * new VFXExpressionCastUintToFloat(countExpr));
+                            samplePos = new VFXExpressionCastFloatToUint(randFixedExpr * new VFXExpressionCastUintToFloat(countExpr));
                             break;
                     }
                     var y = samplePos / width;
                     var x = samplePos - (y * width);
                     var outputType = VFXExpression.TypeToType(currentAttribute.type);
                     var type = typeof(VFXExpressionSampleAttributeMap<>).MakeGenericType(outputType);
-                    var outputExpr = Activator.CreateInstance(type, new object[] {attribMapExpr, x, y });
+                    var outputExpr = Activator.CreateInstance(type, new object[] { attribMapExpr, x, y });
 
                     yield return new VFXNamedExpression((VFXExpression)outputExpr, "value");
                 }

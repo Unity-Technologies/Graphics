@@ -113,7 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (hdrpSettings.supportRayTracing)
                     {
                         bool rtEffectUseAsync = (serialized.IsEnabled(FrameSettingsField.SSRAsync) ?? false) || (serialized.IsEnabled(FrameSettingsField.SSAOAsync) ?? false)
-                            //|| (serialized.IsEnabled(FrameSettingsField.ContactShadowsAsync) ?? false) // Contact shadow async is not visible in the UI for now and defaults to true.
+                        //|| (serialized.IsEnabled(FrameSettingsField.ContactShadowsAsync) ?? false) // Contact shadow async is not visible in the UI for now and defaults to true.
                         ;
                         if (rtEffectUseAsync)
                             EditorGUILayout.HelpBox("Asynchronous execution of Raytracing effects is not supported. Asynchronous Execution will be forced to false for them", MessageType.Warning);
@@ -266,21 +266,25 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.Volumetrics, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.TransparentSSR, ignoreDependencies: true);
+
+            //TODO: Remove hideUI when out of experimental. I don't like hideUI it make things more difficult to add a FrameSettings at a given position.
+            //      This should not be used except for experimental stuff (it is not compliant with the remaining of UX flows anyway)
             area.AmmendInfo(FrameSettingsField.ProbeVolume, hideInUI: !HDRenderPipelineGlobalSettings.Ensure().supportProbeVolumes);
+            area.AmmendInfo(FrameSettingsField.NormalizeReflectionProbeWithProbeVolume, hideInUI: !HDRenderPipelineGlobalSettings.Ensure().supportProbeVolumes);
 
             area.AmmendInfo(
                 FrameSettingsField.SssQualityMode,
                 overridedDefaultValue: SssQualityMode.FromQualitySettings,
                 customGetter: () => serialized.sssQualityMode.GetEnumValue<SssQualityMode>(),
-                customSetter: v  => serialized.sssQualityMode.SetEnumValue((SssQualityMode)v),
+                customSetter: v => serialized.sssQualityMode.SetEnumValue((SssQualityMode)v),
                 overrideable: () => serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false,
                 ignoreDependencies: true,
                 hasMixedValues: serialized.sssQualityMode.hasMultipleDifferentValues
             );
             area.AmmendInfo(FrameSettingsField.SssQualityLevel,
                 overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
-                customGetter:       () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.sssQualityLevel.intValue,// 3 levels
-                customSetter:       v  => serialized.sssQualityLevel.intValue = Math.Max(0, Math.Min((int)v, 2)),// Levels 0-2
+                customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.sssQualityLevel.intValue,// 3 levels
+                customSetter: v => serialized.sssQualityLevel.intValue = Math.Max(0, Math.Min((int)v, 2)),// Levels 0-2
                 overrideable: () => (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
                 && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() == SssQualityMode.FromQualitySettings),
                 ignoreDependencies: true,
@@ -288,8 +292,8 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             area.AmmendInfo(FrameSettingsField.SssCustomSampleBudget,
                 overridedDefaultValue: (int)DefaultSssSampleBudgetForQualityLevel.Low,
-                customGetter:       () => serialized.sssCustomSampleBudget.intValue,
-                customSetter:       v  => serialized.sssCustomSampleBudget.intValue = Math.Max(1, Math.Min((int)v, (int)DefaultSssSampleBudgetForQualityLevel.Max)),
+                customGetter: () => serialized.sssCustomSampleBudget.intValue,
+                customSetter: v => serialized.sssCustomSampleBudget.intValue = Math.Max(1, Math.Min((int)v, (int)DefaultSssSampleBudgetForQualityLevel.Max)),
                 overrideable: () => (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
                 && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() != SssQualityMode.FromQualitySettings),
                 ignoreDependencies: true,

@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph
         public Vector3Node()
         {
             name = "Vector 3";
+            synonyms = new string[] { "3", "v3", "vec3", "float3" };
             UpdateNodeAfterDeserialization();
         }
 

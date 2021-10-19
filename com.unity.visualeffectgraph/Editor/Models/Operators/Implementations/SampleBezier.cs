@@ -51,7 +51,7 @@ namespace UnityEditor.VFX.Operator
             var D = posD * vt * vt * vt;
 
             // Derivative
-            var dA = three * vtc * vtc  * (posB - posA);
+            var dA = three * vtc * vtc * (posB - posA);
             var dB = six * vtc * vt * (posC - posB);
             var dC = three * vt * vt * (posD - posC);
 

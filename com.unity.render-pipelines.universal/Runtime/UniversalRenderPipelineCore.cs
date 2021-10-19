@@ -43,6 +43,11 @@ namespace UnityEngine.Rendering.Universal
         public bool reflectionProbeBoxProjection;
         public bool reflectionProbeBlending;
         public bool supportsLightLayers;
+
+        /// <summary>
+        /// True if additional lights enabled.
+        /// </summary>
+        public bool supportsAdditionalLights;
     }
 
     public struct CameraData
@@ -111,6 +116,12 @@ namespace UnityEngine.Rendering.Universal
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+
+        /// <summary>
+        /// Returns true if post processing passes require depth texture.
+        /// </summary>
+        public bool postProcessingRequiresDepthTexture;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
         public bool xrRendering;
 #endif
@@ -136,6 +147,8 @@ namespace UnityEngine.Rendering.Universal
         /// True if the camera rendering is for the preview window in the editor
         /// </summary>
         public bool isPreviewCamera => cameraType == CameraType.Preview;
+
+        internal bool isRenderPassSupportedCamera => (cameraType == CameraType.Game || cameraType == CameraType.Reflection);
 
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
@@ -199,6 +212,11 @@ namespace UnityEngine.Rendering.Universal
         /// Camera position in world space.
         /// </summary>
         public Vector3 worldSpaceCameraPos;
+
+        /// <summary>
+        /// Final background color in the active color space.
+        /// </summary>
+        public Color backgroundColor;
     }
 
     public struct ShadowData

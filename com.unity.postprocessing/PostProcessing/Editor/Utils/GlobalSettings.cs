@@ -8,9 +8,9 @@ namespace UnityEditor.Rendering.PostProcessing
         static class Keys
         {
             internal const string trackballSensitivity = "PostProcessing.Trackball.Sensitivity";
-            internal const string volumeGizmoColor     = "PostProcessing.Volume.GizmoColor";
-            internal const string currentChannelMixer  = "PostProcessing.ChannelMixer.CurrentChannel";
-            internal const string currentCurve         = "PostProcessing.Curve.Current";
+            internal const string volumeGizmoColor = "PostProcessing.Volume.GizmoColor";
+            internal const string currentChannelMixer = "PostProcessing.ChannelMixer.CurrentChannel";
+            internal const string currentCurve = "PostProcessing.Curve.Current";
         }
 
         static bool m_Loaded = false;
@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.PostProcessing
             Load();
         }
 
-        #if UNITY_2018_3_OR_NEWER
+#if UNITY_2018_3_OR_NEWER
         [SettingsProvider]
         static SettingsProvider PreferenceGUI()
         {
@@ -58,14 +58,14 @@ namespace UnityEditor.Rendering.PostProcessing
             };
         }
 
-        #else
+#else
         [PreferenceItem("Post-processing")]
         static void PreferenceGUI()
         {
             OpenGUI();
         }
 
-        #endif
+#endif
 
         static void OpenGUI()
         {
@@ -75,15 +75,15 @@ namespace UnityEditor.Rendering.PostProcessing
             EditorGUILayout.Space();
 
             trackballSensitivity = EditorGUILayout.Slider("Trackballs Sensitivity", trackballSensitivity, 0.05f, 1f);
-            volumeGizmoColor     = EditorGUILayout.ColorField("Volume Gizmo Color", volumeGizmoColor);
+            volumeGizmoColor = EditorGUILayout.ColorField("Volume Gizmo Color", volumeGizmoColor);
         }
 
         static void Load()
         {
             m_TrackballSensitivity = EditorPrefs.GetFloat(Keys.trackballSensitivity, 0.2f);
-            m_VolumeGizmoColor     = GetColor(Keys.volumeGizmoColor, new Color(0.2f, 0.8f, 0.1f, 0.5f));
-            m_CurrentChannelMixer  = EditorPrefs.GetInt(Keys.currentChannelMixer, 0);
-            m_CurrentCurve         = EditorPrefs.GetInt(Keys.currentCurve, 0);
+            m_VolumeGizmoColor = GetColor(Keys.volumeGizmoColor, new Color(0.2f, 0.8f, 0.1f, 0.5f));
+            m_CurrentChannelMixer = EditorPrefs.GetInt(Keys.currentChannelMixer, 0);
+            m_CurrentCurve = EditorPrefs.GetInt(Keys.currentCurve, 0);
 
             m_Loaded = true;
         }

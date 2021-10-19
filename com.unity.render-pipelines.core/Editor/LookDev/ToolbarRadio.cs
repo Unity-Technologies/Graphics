@@ -7,8 +7,8 @@ namespace UnityEditor.Rendering.LookDev
 {
     class ToolbarRadio : UIElements.Toolbar, INotifyValueChanged<int>
     {
-        public new class UxmlFactory : UxmlFactory<ToolbarRadio, UxmlTraits> {}
-        public new class UxmlTraits : Button.UxmlTraits {}
+        public new class UxmlFactory : UxmlFactory<ToolbarRadio, UxmlTraits> { }
+        public new class UxmlTraits : Button.UxmlTraits { }
 
         List<ToolbarToggle> radios = new List<ToolbarToggle>();
 
@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
-        public ToolbarRadio() : this(null, false) {}
+        public ToolbarRadio() : this(null, false) { }
 
         public ToolbarRadio(string label = null, bool canDeselectAll = false)
         {

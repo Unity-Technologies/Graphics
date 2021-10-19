@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Exposure effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Exposure")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Exposure", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Override-Exposure")]
     public sealed class Exposure : VolumeComponent, IPostProcessComponent
     {
@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Sets the texture mask used to weight the pixels in the buffer when computing exposure.
         /// </summary>
         [Tooltip("Sets the texture mask to be used to weight the pixels in the buffer for the sake of computing exposure.")]
-        public NoInterpTextureParameter weightTextureMask = new NoInterpTextureParameter(null);
+        public Texture2DParameter weightTextureMask = new Texture2DParameter(null);
 
         /// <summary>
         /// These values are the lower and upper percentages of the histogram that will be used to
@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the radii of the procedural mask, in terms of fraction of half the screen (i.e. 0.5 means a mask that stretch half of the screen in both directions).
         /// </summary>
-        public NoInterpVector2Parameter proceduralRadii  = new NoInterpVector2Parameter(new Vector2(0.3f, 0.3f));
+        public NoInterpVector2Parameter proceduralRadii = new NoInterpVector2Parameter(new Vector2(0.3f, 0.3f));
         /// <summary>
         /// All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.
         /// </summary>
@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public ExposureModeParameter(ExposureMode value, bool overrideState = false) : base(value, overrideState) {}
+        public ExposureModeParameter(ExposureMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public MeteringModeParameter(MeteringMode value, bool overrideState = false) : base(value, overrideState) {}
+        public MeteringModeParameter(MeteringMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -348,7 +348,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public LuminanceSourceParameter(LuminanceSource value, bool overrideState = false) : base(value, overrideState) {}
+        public LuminanceSourceParameter(LuminanceSource value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -362,7 +362,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public AdaptationModeParameter(AdaptationMode value, bool overrideState = false) : base(value, overrideState) {}
+        public AdaptationModeParameter(AdaptationMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -376,6 +376,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public TargetMidGrayParameter(TargetMidGray value, bool overrideState = false) : base(value, overrideState) {}
+        public TargetMidGrayParameter(TargetMidGray value, bool overrideState = false) : base(value, overrideState) { }
     }
 }
