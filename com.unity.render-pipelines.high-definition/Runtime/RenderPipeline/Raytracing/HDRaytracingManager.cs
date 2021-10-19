@@ -155,7 +155,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static AccelerationStructureStatus AddInstanceToRAS(RayTracingAccelerationStructure targetRTAS, Renderer currentRenderer, HDEffectsParameters effectsParameters, ref bool transformDirty, ref bool materialsDirty)
+        /// <summary>
+        /// Function that adds a renderer to a ray tracing acceleration structure.
+        /// </summary>
+        /// <param name="targetRTAS">Ray Tracing Acceleration structure the renderer should be added to.</param>
+        /// <param name="currentRenderer">The renderer that should be added to the RTAS.</param>
+        /// <param name="rayTracedShadow">Flag that defines if at least one light has ray traced shadows.</param>
+        /// <param name="aoEnabled">Flag that defines if ray traced ambient occlusion will be evaluated using this RTAS.</param>
+        /// <param name="aoLayerValue">Layer mask to include objects into the ray traced ambient occlusion.</param>
+        /// <param name="reflEnabled">Flag that defines if ray traced reflections will be evaluated using this RTAS.</param>
+        /// <param name="reflLayerValue">Layer mask to include objects into the ray traced reflections.</param>
+        /// <param name="giEnabled">Flag that defines if ray traced global illumination will be evaluated using this RTAS.</param>
+        /// <param name="giLayerValue">Layer mask to include objects into the ray traced global illumination.</param>
+        /// <param name="recursiveEnabled">Flag that defines if recursive rendering will be evaluated using this RTAS.</param>
+        /// <param name="rrLayerValue">Layer mask to include objects into the recursive rendering.</param>
+        /// <param name="pathTracingEnabled">Flag that defines if path tracing will be evaluated using this RTAS.</param>
+        /// <param name="ptLayerValue">Layer mask to include objects into the path tracing.</param>
+        /// <returns>AccelerationStructureStatus type.</returns>
+        public static AccelerationStructureStatus AddInstanceToRAS(RayTracingAccelerationStructure targetRTAS, Renderer currentRenderer, HDEffectsParameters effectsParameters, ref bool transformDirty, ref bool materialsDirty)
         {
             // Get all the materials of the mesh renderer
             currentRenderer.GetSharedMaterials(materialArray);
@@ -594,7 +611,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_ValidRayTracingState)
             {
-                return m_RTASManager.rtas;
+                RayTracingSettings rtSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
+                if (rtSettings.buildMode.value == RTASBuildMode.Automatic)
+                    return m_CurrentRAS;
+                else
+                    return hdCamera.rayTracingAccelerationStructure;
             }
             return null;
         }
