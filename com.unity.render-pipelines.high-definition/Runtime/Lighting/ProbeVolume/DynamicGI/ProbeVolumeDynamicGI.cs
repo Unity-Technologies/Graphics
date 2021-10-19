@@ -73,7 +73,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private ComputeShader _PropagationAxesShader = null;
         private ComputeShader _PropagationCombineShader = null;
 
-        private AxisVector4[] _tempAxisLookups;
         private Vector4[] _sortedAxisLookups;
         private ProbeVolumeSimulationRequest[] _probeVolumeSimulationRequests;
 
@@ -131,7 +130,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 new Vector4( 0, -s_2DDiagonal, -s_2DDiagonal, s_2DDiagonalDist),
             };
 
-            _tempAxisLookups = new AxisVector4[s_NeighborAxis.Length];
             _sortedAxisLookups = new Vector4[s_NeighborAxis.Length * s_NeighborAxis.Length];
             _probeVolumeSimulationRequests = new ProbeVolumeSimulationRequest[MAX_SIMULATIONS_PER_FRAME];
         }
@@ -252,16 +250,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static void SetNeighborDataHit(ref ProbeVolumePayload payload, Vector3 albedo, Vector3 normal, float distance, float validity, int probeIndex, int axis, int neighborIndex, float maxDensity)
+        internal static void SetNeighborDataHit(ref ProbeVolumePayload payload, Vector3 albedo, Vector3 normal, float distance, float validity, int probeIndex, int axis, int hitIndex, float maxDensity)
         {
-            ref var neighborData = ref payload.hitNeighborAxis;
-            if (neighborIndex >= neighborData.Length)
+            ref var neighborDataHits = ref payload.hitNeighborAxis;
+            if (hitIndex >= neighborDataHits.Length)
             {
                 Debug.Assert(false, "Probe Volume Neighbor Indexing Code Error");
                 return;
             }
 
-            neighborData[neighborIndex] = new PackedNeighborHit
+            neighborDataHits[hitIndex] = new PackedNeighborHit
             {
                 indexValidity = PackIndexAndValidity((uint) probeIndex, (uint) axis, validity),
                 albedoDistance = PackAlbedoAndDistance(albedo, distance, maxDensity * s_DiagonalDist),
@@ -271,8 +269,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static void SetNeighborData(ref ProbeVolumePayload payload, float validity, int probeIndex, int axis, uint hitIndexOrMiss)
         {
-            var axisIndex = probeIndex * s_NeighborAxis.Length + axis;
             ref var neighborData = ref payload.neighborAxis;
+            var probeCount = neighborData.Length / s_NeighborAxis.Length;
+            var axisIndex = axis * probeCount + probeIndex;
             if (axisIndex >= neighborData.Length)
             {
                 Debug.Assert(false, "Probe Volume Neighbor Indexing Code Error");
@@ -406,9 +405,13 @@ namespace UnityEngine.Rendering.HighDefinition
             var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume);
 
             DispatchClearPreviousRadianceCache(cmd, probeVolume, previousRadianceCacheInvalid || giSettings.clear.value || _clearAllActive);
-            DispatchPropagationHits(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
-            DispatchPropagationAxes(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
-            DispatchPropagationCombine(cmd, probeVolume, in giSettings, in shaderGlobals, probeVolumeAtlasSHRTHandle);
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIHits)))
+                DispatchPropagationHits(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIAxes)))
+                DispatchPropagationAxes(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGICombine)))
+                DispatchPropagationCombine(cmd, probeVolume, in giSettings, in shaderGlobals, probeVolumeAtlasSHRTHandle);
 
             _stats.Simulated(probeVolume);
             probeVolume.propagationBuffers.SwapRadianceCaches();
@@ -431,18 +434,21 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (previousRadianceCacheInvalid)
             {
-                var kernel = _PropagationClearRadianceShader.FindKernel("ClearPreviousRadianceCache");
-                var shader = _PropagationClearRadianceShader;
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIClear)))
+                {
+                    var kernel = _PropagationClearRadianceShader.FindKernel("ClearPreviousRadianceCache");
+                    var shader = _PropagationClearRadianceShader;
 
-                cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis0", probeVolume.propagationBuffers.radianceCacheAxis0);
-                cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis1", probeVolume.propagationBuffers.radianceCacheAxis1);
-                cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", probeVolume.propagationBuffers.radianceCacheAxis0.count);
-                cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", probeVolume.propagationBuffers.hitRadianceCache);
-                cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.propagationBuffers.hitRadianceCache.count);
+                    cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis0", probeVolume.propagationBuffers.radianceCacheAxis0);
+                    cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis1", probeVolume.propagationBuffers.radianceCacheAxis1);
+                    cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", probeVolume.propagationBuffers.radianceCacheAxis0.count);
+                    cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", probeVolume.propagationBuffers.hitRadianceCache);
+                    cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.propagationBuffers.hitRadianceCache.count);
 
-                int numHits = Mathf.Max(probeVolume.propagationBuffers.radianceCacheAxis0.count, probeVolume.propagationBuffers.hitRadianceCache.count);
-                int dispatchX = (numHits + 63) / 64;
-                cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
+                    int numHits = Mathf.Max(probeVolume.propagationBuffers.radianceCacheAxis0.count, probeVolume.propagationBuffers.hitRadianceCache.count);
+                    int dispatchX = (numHits + 63) / 64;
+                    cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
+                }
             }
         }
 
@@ -555,6 +561,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeNeighbors", probeVolume.propagationBuffers.neighbors);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeNeighborsCount", probeVolume.propagationBuffers.neighbors.count);
+            cmd.SetComputeIntParam(shader, "_ProbeVolumeProbeCount", probeVolume.propagationBuffers.neighbors.count / s_NeighborAxis.Length);
             cmd.SetComputeFloatParam(shader, "_LeakMultiplier", giSettings.leakMultiplier.value);
             cmd.SetComputeFloatParam(shader, "_PropagationContribution", giSettings.propagationContribution.value);
             cmd.SetComputeFloatParam(shader, "_PropagationSharpness", giSettings.propagationSharpness.value);
@@ -568,7 +575,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeBufferParam(shader, kernel, "_PreviousRadianceCacheAxis", probeVolume.propagationBuffers.GetReadRadianceCacheAxis());
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis", probeVolume.propagationBuffers.GetWriteRadianceCacheAxis());
-            cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", probeVolume.propagationBuffers.radianceCacheAxis0.count);
 
             PrecomputeAxisCacheLookup(giSettings.propagationSharpness.value);
             cmd.SetComputeVectorArrayParam(shader, "_SortedNeighborAxis", _sortedAxisLookups);
@@ -709,20 +715,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int axisIndex = 0; axisIndex < s_NeighborAxis.Length; ++axisIndex)
                 {
                     var axis = s_NeighborAxis[axisIndex];
+                    var sortedAxisStart = axisIndex * s_NeighborAxis.Length;
                     for (int neighborIndex = 0; neighborIndex < s_NeighborAxis.Length; ++neighborIndex)
                     {
                         var neighborDirection = s_NeighborAxis[neighborIndex];
                         var sgWeight = SGEvaluateFromDirection(1, sgSharpness, neighborDirection, axis);
-                        _tempAxisLookups[neighborIndex] = new AxisVector4(new Vector4(sgWeight, neighborIndex, 0, 0));
+                        sgWeight /= neighborDirection.w * neighborDirection.w;
+                        _sortedAxisLookups[sortedAxisStart + neighborIndex] = new Vector4(sgWeight, neighborIndex, 0, 0);
                     }
 
-                    fixed (AxisVector4* axisPtr = &_tempAxisLookups[0])
+                    fixed (Vector4* sortedAxisPtr = &_sortedAxisLookups[sortedAxisStart])
                     {
-                        CoreUnsafeUtils.QuickSort<AxisVector4>(_tempAxisLookups.Length, axisPtr);
-                    }
-                    fixed (Vector4* sortedAxisPtr = &_sortedAxisLookups[axisIndex * s_NeighborAxis.Length])
-                    {
-                        CoreUnsafeUtils.CopyTo(_tempAxisLookups, sortedAxisPtr, s_NeighborAxis.Length);
+                        CoreUnsafeUtils.QuickSort<AxisVector4>(s_NeighborAxis.Length, sortedAxisPtr);
                     }
                 }
 

@@ -127,14 +127,14 @@ SHIncomingIrradiance ProjectPropagationAxisFromPeak(uint probeIndex)
     SHIncomingIrradiance incomingIrradiance;
     ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
 
-    uint localIndex = probeIndex * NEIGHBOR_AXIS_COUNT;
+    uint localIndex = probeIndex;
     for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
     {
         float3 radiance = _RadianceCacheAxis[localIndex].xyz;
         float3 direction = _RayAxis[axis].xyz;
         SHIncomingIrradianceAccumulate(incomingIrradiance, direction, radiance);
         //FCCAddToOutputRepresentation(radiance, direction, incomingIrradiance);
-        localIndex++;
+        localIndex += _ProbeVolumeAtlasReadBufferCount;
     }
 
     return incomingIrradiance;
@@ -213,7 +213,7 @@ SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
     SHIncomingIrradiance incomingIrradiance;
     ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
 
-    uint localIndex = probeIndex * NEIGHBOR_AXIS_COUNT;
+    uint localIndex = probeIndex;
     for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
     {
         float3 radiance = _RadianceCacheAxis[localIndex].xyz;
@@ -223,7 +223,7 @@ SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
 
         SHIncomingIrradianceAccumulateFromSHIncomingIrradiance(incomingIrradiance, incomingIrradianceCurrentSG);
 
-        localIndex++;
+        localIndex += _ProbeVolumeAtlasReadBufferCount;
     }
 
     return incomingIrradiance;
