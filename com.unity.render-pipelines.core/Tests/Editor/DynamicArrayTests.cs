@@ -59,6 +59,26 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
+        public void TestAddRangeOutOfSpaceKeepPreviousElements()
+        {
+            var smallDynamicArray = new DynamicArray<int>(2);
+            smallDynamicArray[0] = 1;
+            smallDynamicArray[1] = 2;
+
+            var otherArray = new DynamicArray<int>();
+            otherArray.Add(3);
+            otherArray.Add(4);
+
+            smallDynamicArray.AddRange(otherArray);
+
+            Assert.AreEqual(1, smallDynamicArray[0]);
+            Assert.AreEqual(2, smallDynamicArray[1]);
+            Assert.AreEqual(3, smallDynamicArray[2]);
+            Assert.AreEqual(4, smallDynamicArray[3]);
+            Assert.AreEqual(4, smallDynamicArray.size);
+        }
+
+        [Test]
         public void TestRemoveElementCorrectSize()
         {
             m_DynamicArray.Add(2);

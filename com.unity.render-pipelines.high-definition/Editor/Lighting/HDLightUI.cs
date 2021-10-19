@@ -758,7 +758,15 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (serialized.areaLightShape == AreaLightShape.Rectangle || serialized.areaLightShape == AreaLightShape.Disc)
             {
-                EditorGUILayout.ObjectField(serialized.areaLightCookie, s_Styles.areaLightCookie);
+                // Area lights in HDRP uses internally the LightType.Point to correctly handle the realtime properties (see HDAdditionalLightData.ResolveAreaShape())
+                // To show the cookie for correctly, we compute the true LightType of the property instead of relying on the one we normally use.
+                LightType inspectorAreaLightType = serialized.areaLightShape switch
+                {
+                    AreaLightShape.Rectangle => LightType.Area,
+                    AreaLightShape.Disc => LightType.Disc,
+                    _ => throw new Exception("Unexpected area light type: " + serialized.areaLightShape),
+                };
+                serialized.settings.DrawCookieProperty(serialized.areaLightCookie, s_Styles.areaLightCookie, inspectorAreaLightType);
                 ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
             }
             if (serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot || (serialized.type == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
@@ -1164,7 +1172,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.Slider(serialized.areaLightShadowCone, HDAdditionalLightData.k_MinAreaLightShadowCone, HDAdditionalLightData.k_MaxAreaLightShadowCone, s_Styles.areaLightShadowCone);
                 }
 
-                if (HDRenderPipeline.buildPipelineSupportsRayTracing && HDRenderPipeline.pipelineSupportsScreenSpaceShadows)
+                if (HDRenderPipeline.assetSupportsRayTracing && HDRenderPipeline.pipelineSupportsScreenSpaceShadows)
                 {
                     bool isPunctual = lightType == HDLightType.Point || (lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Cone);
                     if (isPunctual || (lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
@@ -1199,7 +1207,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (lightType == HDLightType.Directional && HDRenderPipeline.pipelineSupportsScreenSpaceShadows)
                 {
                     EditorGUILayout.PropertyField(serialized.useScreenSpaceShadows, s_Styles.useScreenSpaceShadows);
-                    if (HDRenderPipeline.buildPipelineSupportsRayTracing)
+                    if (HDRenderPipeline.assetSupportsRayTracing)
                     {
                         using (new EditorGUI.DisabledScope(!serialized.useScreenSpaceShadows.boolValue))
                         {
@@ -1333,7 +1341,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp),
                 hdrp.name
             );
-            if (HDRenderPipeline.buildPipelineSupportsRayTracing
+            if (HDRenderPipeline.assetSupportsRayTracing
                 && serialized.contactShadows.@override.boolValue)
             {
                 EditorGUI.indentLevel++;
