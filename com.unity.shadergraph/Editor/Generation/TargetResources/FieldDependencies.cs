@@ -101,8 +101,8 @@ namespace UnityEditor.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,                    StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
 
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ScreenPosition,                               StructFields.SurfaceDescriptionInputs.WorldSpacePosition),
-            // new FieldDependency(StructFields.SurfaceDescriptionInputs.PixelPosition,                                 StructFields.Varyings.vpos),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.NDCPosition,                                   StructFields.SurfaceDescriptionInputs.PixelPosition),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.NDCPosition,                                  StructFields.SurfaceDescriptionInputs.PixelPosition),  // for non-XR
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.NDCPosition,                                  StructFields.SurfaceDescriptionInputs.ScreenPosition), // for XR
 
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv0,                                          StructFields.Varyings.texCoord0),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv1,                                          StructFields.Varyings.texCoord1),
