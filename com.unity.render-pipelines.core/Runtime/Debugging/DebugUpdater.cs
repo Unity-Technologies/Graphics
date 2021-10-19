@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void RuntimeInit()
         {
-            if (!Debug.isDebugBuild || FindObjectOfType<DebugUpdater>() != null)
+            if (!Debug.isDebugBuild || !DebugManager.instance.enableRuntimeUI || FindObjectOfType<DebugUpdater>() != null)
                 return;
 
             var go = new GameObject { name = "[Debug Updater]" };

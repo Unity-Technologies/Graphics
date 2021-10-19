@@ -88,6 +88,24 @@ namespace UnityEngine.Rendering
         /// <param name="open">State of the debug window.</param>
         public void ToggleEditorUI(bool open) => m_EditorOpen = open;
 
+        private bool m_EnableRuntimeUI = true;
+
+        /// <summary>
+        /// Controls whether runtime UI can be enabled. When this is set to false, there will be no overhead
+        /// from debug GameObjects or runtime initialization.
+        /// </summary>
+        public bool enableRuntimeUI
+        {
+            get => m_EnableRuntimeUI;
+            set
+            {
+                if (value != m_EnableRuntimeUI)
+                {
+                    m_EnableRuntimeUI = value;
+                }
+            }
+        }
+
         /// <summary>
         /// Displays the runtime version of the debug window.
         /// </summary>
