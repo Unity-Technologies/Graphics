@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.1] - 2021-10-04
 
+### Added
+- Added Adaptive Performance Decals scaler access.
+
 ### Fixed
 - Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]
 - Fix for rendering thumbnails. [case 1348209](https://issuetracker.unity3d.com/issues/preview-of-assets-do-not-show-in-the-project-window)
