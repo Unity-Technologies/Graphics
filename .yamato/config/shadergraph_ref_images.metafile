@@ -40,7 +40,7 @@ test_platforms:
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: set UTR_VERSION=0.14.1-rc1
     - [OSX_OpenGLCore, OSX_Metal, Linux_OpenGLCore]: UTR_VERSION=0.14.1-rc1
     - [all]: <shared.platform.commands.setup_utr>
-    - [OSX_Metal, OSX_OpenGLCore]: <shared.platform.commands.unity_downloader_cli>
+    - [all]: <shared.platform.commands.unity_downloader_cli>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 -s artifactory.prd.it.unity3d.com && refreshenv
     - [OSX_OpenGLCore]: brew install python
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/

@@ -105,6 +105,10 @@ ShaderGraph_ref_Win_Vulkan_playmode_ref_images_mono_Linear_trunk:
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
       -  choco install python3 -s artifactory.prd.it.unity3d.com && refreshenv
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -296,6 +300,10 @@ ShaderGraph_ref_Win_Vulkan_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
       -  command: NetSh Advfirewall set allprofiles state off
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  choco install python3 -s artifactory.prd.it.unity3d.com && refreshenv
       -  |5-
