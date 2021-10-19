@@ -102,7 +102,8 @@ namespace UnityEditor.Graphing
         public virtual void RegisterCompleteObjectUndo(string actionName)
         {
             Undo.RegisterCompleteObjectUndo(this, actionName);
-            Undo.RecordObject(materialArtifact, actionName);
+            if (materialArtifact)
+                Undo.RecordObject(m_MaterialArtifact, actionName);
             m_SerializedVersion++;
             m_DeserializedVersion++;
             m_IsDirty = true;
