@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for orthographic camera in path tracing.
 - Added public API to edit materials from script at runtime.
 - Added new functions that sample the custom buffer in custom passes (CustomPassSampleCustomColor and CustomPassLoadCustomColor) to handle the RTHandleScale automatically.
-- Added a help box to inform users of the potential dependency to directional lights when baking.
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
@@ -36,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
 - Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
 - PrepareLightsForGPU CPU Light loop performance improvement (40% to 70% faster), utilizing burst and optimized. Utilizing better sorting, distributing work in jobs and improving cache access of light data.
+- Integrate a help box to inform users of the potential dependency to directional lights when baking.
 
 ## [13.1.0] - 2021-09-24
 
