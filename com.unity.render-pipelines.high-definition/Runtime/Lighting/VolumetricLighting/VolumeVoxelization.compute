@@ -189,7 +189,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 
             const OrientedBBox obb = _VolumeBounds[volumeIndex];
 
-            const float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.up, obb.right));
+            const float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.right, obb.up));
             const float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
 
             // Express the voxel center in the local coordinate system of the box.
