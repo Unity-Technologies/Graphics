@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         #region Expandable States
 
-        enum Expandable
+        internal enum Expandable
         {
             // Obsolete values
             Rendering = 1 << 4,
@@ -232,7 +232,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings.", MessageType.Warning, wide: true);
+                HDEditorUtils.GlobalSettingsHelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Global Settings.",
+                    MessageType.Info, "supportProbeVolumes");
             }
         }
 
@@ -264,7 +265,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionReflection(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSR, Styles.supportSSRContent);
-            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportSSR.boolValue))
+            // Both support SSR and support transparent depth prepass are required for ssr transparent to be supported.
+            using (new EditorGUI.DisabledScope(!(serialized.renderPipelineSettings.supportSSR.boolValue && serialized.renderPipelineSettings.supportTransparentDepthPrepass.boolValue)))
             {
                 ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSRTransparent, Styles.supportSSRTransparentContent);
@@ -356,7 +358,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!serialized.renderPipelineSettings.supportedLitShaderMode.hasMultipleDifferentValues)
             {
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, Styles.filteringQuality);
+                // TEMP: HDShadowFilteringQuality.VeryHigh - This filtering mode is not ready so disabling in UI
+                // To re-enable remove the wo following light and re-enable the third one
+                int value = EditorGUILayout.IntPopup(Styles.filteringQuality, serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality.enumValueIndex, Styles.shadowFilteringNames, Styles.shadowFilteringValue);
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality.enumValueIndex = value;
+                //EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, Styles.filteringQuality);
             }
             else
             {

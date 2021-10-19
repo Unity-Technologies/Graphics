@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(124, Extension, -902)]
+    [ScriptedImporter(125, Extension, -902)]
 #else
-    [ScriptedImporter(53, Extension, -902)]
+    [ScriptedImporter(54, Extension, -902)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -772,6 +772,8 @@ Shader ""Hidden/GraphErrorShader2""
 
             AddRequirementsSnippet(r => r.requiresVertexColor, $"float4 {ShaderGeneratorNames.VertexColor}");
             AddRequirementsSnippet(r => r.requiresScreenPosition, $"float4 {ShaderGeneratorNames.ScreenPosition}");
+            AddRequirementsSnippet(r => r.requiresNDCPosition, $"float2 {ShaderGeneratorNames.NDCPosition}");
+            AddRequirementsSnippet(r => r.requiresPixelPosition, $"float2 {ShaderGeneratorNames.PixelPosition}");
             AddRequirementsSnippet(r => r.requiresFaceSign, $"float4 {ShaderGeneratorNames.FaceSign}");
 
             foreach (var uvChannel in EnumInfo<UVChannel>.values)

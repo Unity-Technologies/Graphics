@@ -10,12 +10,8 @@ using UnityEngine.Rendering;
 using UnityEngine.VFX;
 
 using UnityEditor.Overlays;
-using UnityEditor.Experimental;
-using UnityEditor.SceneManagement;
-
-using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
-using EditMode = UnityEditorInternal.EditMode;
+
 using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
@@ -64,7 +60,6 @@ namespace UnityEditor.VFX
         const string kPropertyFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Properties";
 
         bool showGeneralCategory;
-
         bool showRendererCategory;
         bool showPropertyCategory;
 
@@ -79,9 +74,9 @@ namespace UnityEditor.VFX
 
         static SerializedObject s_FakeObjectSerializedCache;
 
-        static List<VisualEffectEditor> s_AllEditors = new List<VisualEffectEditor>();
+        static readonly List<VisualEffectEditor> s_AllEditors = new List<VisualEffectEditor>();
 
-        static public void RepaintAllEditors()
+        public static void RepaintAllEditors()
         {
             foreach (var ed in s_AllEditors)
             {
@@ -99,14 +94,7 @@ namespace UnityEditor.VFX
             showRendererCategory = EditorPrefs.GetBool(kRendererFoldoutStatePreferenceName, true);
             showGeneralCategory = EditorPrefs.GetBool(kGeneralFoldoutStatePreferenceName, true);
 
-            if (targets.Length > 1)
-            {
-                m_OtherSerializedObjects = new SerializedObject[targets.Length - 1];
-                for (int i = 1; i < targets.Length; ++i)
-                {
-                    m_OtherSerializedObjects[i - 1] = new SerializedObject(targets[i]);
-                }
-            }
+            m_OtherSerializedObjects = targets.Skip(1).Select(x => new SerializedObject(x)).ToArray();
             s_AllEditors.Add(this);
             m_RandomSeed = serializedObject.FindProperty("m_StartSeed");
             m_ReseedOnPlay = serializedObject.FindProperty("m_ResetSeedOnPlay");
@@ -124,12 +112,6 @@ namespace UnityEditor.VFX
 
         protected void OnDisable()
         {
-            VisualEffect effect = ((VisualEffect)targets[0]);
-            if (effect != null)
-            {
-                effect.pause = false;
-                effect.playRate = 1.0f;
-            }
             OnDisableWithoutResetting();
             if (s_EffectUi == this)
                 s_EffectUi = null;
@@ -144,7 +126,7 @@ namespace UnityEditor.VFX
 
         protected const float overrideWidth = 16;
 
-        static private bool GenerateMultipleField(ref VFXParameterInfo parameter, SerializedProperty property)
+        private static bool GenerateMultipleField(ref VFXParameterInfo parameter, SerializedProperty property)
         {
             if (property.propertyType == SerializedPropertyType.Vector4 && parameter.realType != typeof(Color).Name)
             {
@@ -405,7 +387,7 @@ namespace UnityEditor.VFX
             return changed;
         }
 
-        static Gradient s_DefaultGradient = new Gradient();
+        static readonly Gradient s_DefaultGradient = new Gradient();
 
         protected static object GetObjectValue(SerializedProperty prop)
         {
@@ -475,48 +457,60 @@ namespace UnityEditor.VFX
 
         protected virtual void SceneViewGUICallback()
         {
-            VisualEffect effect = ((VisualEffect)targets[0]);
-            if (effect == null)
+            var effects = targets
+                .OfType<VisualEffect>()
+                .Where(x => x != null)
+                .ToList();
+            if (effects.Count == 0)
                 return;
 
             var buttonWidth = GUILayout.Width(52);
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Stop), buttonWidth))
             {
-                effect.ControlStop();
+                effects.ForEach(x => x.ControlStop());
             }
-            if (effect.pause)
+            if (effects.All(x => x.pause))
             {
                 if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Play), buttonWidth))
                 {
-                    effect.ControlPlayPause();
+                    effects.ForEach(x => x.ControlPlayPause());
                 }
             }
             else
             {
                 if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Pause), buttonWidth))
                 {
-                    effect.ControlPlayPause();
+                    effects.ForEach(x => x.ControlPlayPause());
                 }
             }
 
 
             if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Step), buttonWidth))
             {
-                effect.ControlStep();
+                effects.ForEach(x => x.ControlStep());
             }
             if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Restart), buttonWidth))
             {
-                effect.ControlRestart();
+                effects.ForEach(x => x.ControlRestart());
             }
             GUILayout.EndHorizontal();
 
-            float playRate = effect.playRate * VisualEffectControl.playRateToValue;
+
+            var playRates = effects.Select(x => x.playRate).Distinct().ToArray();
+            float playRate = playRates[0];
+
+            float playRateValue = playRate * VisualEffectControl.playRateToValue;
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Contents.playRate, GUILayout.Width(46));
-            playRate = EditorGUILayout.PowerSlider("", playRate, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
-            effect.playRate = playRate * VisualEffectControl.valueToPlayRate;
+            EditorGUI.showMixedValue = playRates.Length > 1;
+            var newPlayRateVal = EditorGUILayout.PowerSlider("", (float)Math.Round(playRateValue), VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
+            EditorGUI.showMixedValue = false;
+            if (playRate >= 0 && GUI.changed)
+            {
+                effects.ForEach(x => x.playRate = newPlayRateVal * VisualEffectControl.valueToPlayRate);
+            }
 
             var eventType = Event.current.type;
             if (EditorGUILayout.DropdownButton(Contents.setPlayRate, FocusType.Passive, GUILayout.Width(40)))
@@ -546,17 +540,19 @@ namespace UnityEditor.VFX
 
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(new GUIContent("Play()")))
-                effect.Play();
+                effects.ForEach(x => x.Play());
             if (GUILayout.Button(new GUIContent("Stop()")))
-                effect.Stop();
+                effects.ForEach(x => x.Stop());
             GUILayout.EndHorizontal();
         }
 
         void SetPlayRate(object value)
         {
-            float rate = (float)((int)value) * VisualEffectControl.valueToPlayRate;
-            VisualEffect effect = ((VisualEffect)targets[0]);
-            effect.playRate = rate;
+            float rate = (int)value * VisualEffectControl.valueToPlayRate;
+            foreach (var visualEffect in targets.OfType<VisualEffect>())
+            {
+                visualEffect.playRate = rate;
+            }
         }
 
         static VisualEffectEditor s_EffectUi;
@@ -805,7 +801,7 @@ namespace UnityEditor.VFX
             EditorGUI.indentLevel = 0;
             if (serializedObject.ApplyModifiedProperties())
             {
-                var window = EditorWindow.GetWindow<VFXViewWindow>();
+                var window = WindowLayout.FindEditorWindowOfType(typeof(VFXViewWindow)) as VFXViewWindow;
                 if (window != null)
                     window.OnVisualEffectComponentChanged(targets.Cast<VisualEffect>());
             }

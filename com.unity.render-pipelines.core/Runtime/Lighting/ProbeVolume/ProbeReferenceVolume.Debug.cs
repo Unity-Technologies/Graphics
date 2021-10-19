@@ -53,6 +53,8 @@ namespace UnityEngine.Experimental.Rendering
 
         internal float dilationValidtyThreshold = 0.25f; // We ned to store this here to access it
 
+        // Field used for the realtime subdivision preview
+        internal Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>> realtimeSubdivisionInfo = new Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>>();
 
         /// <summary>
         /// Render Probe Volume related debug
@@ -223,7 +225,7 @@ namespace UnityEngine.Experimental.Rendering
                         var probeBuffer = debug.probeBuffers[i];
                         var props = debug.props[i];
                         props.SetInt("_ShadingMode", (int)debugDisplay.probeShading);
-                        props.SetFloat("_ExposureCompensation", -debugDisplay.exposureCompensation);
+                        props.SetFloat("_ExposureCompensation", debugDisplay.exposureCompensation);
                         props.SetFloat("_ProbeSize", debugDisplay.probeSize);
                         props.SetFloat("_CullDistance", debugDisplay.probeCullingDistance);
                         props.SetInt("_MaxAllowedSubdiv", debugDisplay.maxSubdivToVisualize);
@@ -238,10 +240,12 @@ namespace UnityEngine.Experimental.Rendering
         void ClearDebugData()
         {
             m_CellDebugData.Clear();
+            realtimeSubdivisionInfo.Clear();
         }
 
         void CreateInstancedProbes()
         {
+            int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
             foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
             {
                 if (cell.sh == null || cell.sh.Length == 0)
@@ -251,10 +255,13 @@ namespace UnityEngine.Experimental.Rendering
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
                 List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
                 CellChunkInfo chunks;
-                m_ChunkInfo.TryGetValue(cell.index, out chunks);
+                if (!m_ChunkInfo.TryGetValue(cell.index, out chunks))
+                    continue;
 
                 Vector4[] texels = new Vector4[kProbesPerBatch];
                 float[] validity = new float[kProbesPerBatch];
+                float[] relativeSize = new float[kProbesPerBatch];
+
                 List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
 
                 var debugData = new CellInstancedDebugProbes();
@@ -280,6 +287,7 @@ namespace UnityEngine.Experimental.Rendering
                     probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
                     validity[idxInBatch] = cell.validity[i];
                     texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
+                    relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
                     idxInBatch++;
 
                     if (probeBuffer.Count >= kProbesPerBatch || i == cell.probePositions.Length - 1)
@@ -288,6 +296,7 @@ namespace UnityEngine.Experimental.Rendering
                         MaterialPropertyBlock prop = new MaterialPropertyBlock();
 
                         prop.SetFloatArray("_Validity", validity);
+                        prop.SetFloatArray("_RelativeSize", relativeSize);
                         prop.SetVectorArray("_IndexInAtlas", texels);
 
                         props.Add(prop);

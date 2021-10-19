@@ -110,9 +110,13 @@ namespace UnityEditor.VFX
             base.OnEnable();
             EditMode.editModeStarted += OnEditModeStart;
             EditMode.editModeEnded += OnEditModeEnd;
+            Selection.selectionChanged += OnHierarchySelectionChanged;
 
-            // Force rebuilding the parameterinfos
-            VisualEffect effect = ((VisualEffect)targets[0]);
+            // Try to auto attach because the selection could have changed while the VFX editor was disabled
+            AutoAttachToSelection();
+
+            // Force rebuilding the parameter infos
+            VisualEffect effect = (VisualEffect)targets[0];
 
             var asset = effect.visualEffectAsset;
             if (asset != null && asset.GetResource() != null)
@@ -128,10 +132,8 @@ namespace UnityEditor.VFX
 
         new void OnDisable()
         {
-            VisualEffect effect = ((VisualEffect)targets[0]);
-            // Check if the component is attach in the editor. If So do not call base.OnDisable() because we don't want to reset the playrate or pause
-            VFXViewWindow window = VFXViewWindow.currentWindow;
-            if (window == null || window.graphView == null || window.graphView.attachedComponent != effect)
+            // Reset play rate only when no vfx is selected anymore
+            if (Selection.gameObjects.All(x => x.GetComponent<VisualEffect>() == null))
             {
                 base.OnDisable();
             }
@@ -143,12 +145,20 @@ namespace UnityEditor.VFX
             m_ContextsPerComponent.Clear();
             EditMode.editModeStarted -= OnEditModeStart;
             EditMode.editModeEnded -= OnEditModeEnd;
+            Selection.selectionChanged -= OnHierarchySelectionChanged;
+
+            DetachIfDeleted();
         }
 
         public override void OnInspectorGUI()
         {
             m_GizmoableParameters.Clear();
             base.OnInspectorGUI();
+        }
+
+        private void OnHierarchySelectionChanged()
+        {
+            AutoAttachToSelection();
         }
 
         void OnEditModeStart(IToolModeOwner owner, EditMode.SceneViewEditMode mode)
@@ -736,6 +746,27 @@ namespace UnityEditor.VFX
                 }
                 GUI.enabled = saveEnabled;
                 GUILayout.EndHorizontal();
+            }
+        }
+
+        private void AutoAttachToSelection()
+        {
+            if (EditorWindow.HasOpenInstances<VFXViewWindow>())
+            {
+                VFXViewWindow window = EditorWindow.GetWindowDontShow<VFXViewWindow>();
+                if (window.graphView?.locked == false)
+                {
+                    window.graphView.AttachToSelection();
+                }
+            }
+        }
+
+        private void DetachIfDeleted()
+        {
+            if (EditorWindow.HasOpenInstances<VFXViewWindow>())
+            {
+                VFXViewWindow window = EditorWindow.GetWindowDontShow<VFXViewWindow>();
+                window.graphView.DetachIfDeleted();
             }
         }
     }
