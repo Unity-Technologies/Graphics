@@ -310,12 +310,12 @@ platforms:
         image: mobile/android-execution-r19:stable
         flavor: b1.large
       standalone_build:
-        type: Unity::mobile::android
-        image: mobile/android-execution-r19:stable
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
       performance_build_editmode:
-        type: Unity::mobile::android
-        image: mobile/android-execution-r19:stable
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
   - name: iPhone
     apis:
@@ -401,7 +401,7 @@ jobs:
         build_config: il2cpp
         color_space: Linear
         test_platforms:
-          - performance_playmode_runtime
+          #- performance_playmode_runtime https://fogbugz.unity3d.com/f/cases/1372763/
           - performance_build_editmode
       - platform: Linux
         api: Vulkan

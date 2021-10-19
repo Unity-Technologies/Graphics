@@ -1,15 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
-using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
-using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
-using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
+
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -27,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
-        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Hair;
+        protected override ShaderID shaderID => ShaderID.SG_Hair;
         protected override string subShaderInclude => CoreIncludes.kHair;
         protected override string raytracingInclude => CoreIncludes.kHairRaytracing;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Hair SubShader", "");
@@ -37,9 +32,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         // Only allow advanced scattering for Marschner Strands explicitly set to advanced.
         private bool useAdvancedMultipleScattering =>
-            hairData.materialType == ShaderGraph.HairData.MaterialType.Marschner &&
+            hairData.materialType == ShaderGraph.HairData.MaterialType.Physical &&
             hairData.geometryType == HairData.GeometryType.Strands &&
-            hairData.scatteringMode == HairData.ScatteringMode.Advanced;
+            hairData.scatteringMode == HairData.ScatteringMode.Physical;
 
         HairData m_HairData;
 
@@ -72,8 +67,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descs = context.blocks.Select(x => x.descriptor);
 
             // Hair specific properties:
-            context.AddField(KajiyaKay, hairData.materialType == HairData.MaterialType.KajiyaKay);
-            context.AddField(Marschner, hairData.materialType == HairData.MaterialType.Marschner);
+            context.AddField(KajiyaKay, hairData.materialType == HairData.MaterialType.Approximate);
+            context.AddField(Marschner, hairData.materialType == HairData.MaterialType.Physical);
             context.AddField(HairStrandDirection, descs.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection));
             context.AddField(RimTransmissionIntensity, descs.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
             context.AddField(UseLightFacingNormal, hairData.geometryType == HairData.GeometryType.Strands);
@@ -96,7 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.HairStrandDirection);
 
             // Parametrization for Kajiya-Kay and Marschner models.
-            if (hairData.materialType == HairData.MaterialType.KajiyaKay)
+            if (hairData.materialType == HairData.MaterialType.Approximate)
             {
                 context.AddBlock(HDBlockFields.SurfaceDescription.Transmittance);
                 context.AddBlock(HDBlockFields.SurfaceDescription.RimTransmissionIntensity);
