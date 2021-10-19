@@ -33,9 +33,10 @@ namespace UnityEditor.VFX
             { typeof(DirectionType), new[] {typeof(Vector3), typeof(Position), typeof(Vector)} },
             { typeof(Vector), new[] {typeof(Vector3), typeof(Position), typeof(DirectionType) } },
             { typeof(Vector2), new[] {typeof(float), typeof(int), typeof(uint)} },
-            { typeof(float), new[] {typeof(int), typeof(uint), typeof(Vector2), typeof(Vector3), typeof(Position), typeof(Vector), typeof(Vector4), typeof(Color)} },
-            { typeof(int), new[] {typeof(uint), typeof(float), typeof(Vector2), typeof(Vector3), typeof(Position), typeof(Vector), typeof(Vector4), typeof(Color)} },
-            { typeof(uint), new[] {typeof(int), typeof(float), typeof(Vector2), typeof(Vector3), typeof(Position), typeof(Vector), typeof(Vector4), typeof(Color)} },
+            { typeof(float), new[] {typeof(int), typeof(uint), typeof(bool), typeof(Vector2), typeof(Vector3), typeof(Position), typeof(Vector), typeof(Vector4), typeof(Color)} },
+            { typeof(int), new[] {typeof(uint), typeof(float), typeof(bool), typeof(Vector2), typeof(Vector3), typeof(Position), typeof(Vector), typeof(Vector4), typeof(Color)} },
+            { typeof(uint), new[] {typeof(int), typeof(float), typeof(bool), typeof(Vector2), typeof(Vector3), typeof(Position), typeof(Vector), typeof(Vector4), typeof(Color)} },
+            { typeof(bool), new[] { typeof(uint), typeof(int), typeof(float) } }
         };
 
         static public IEnumerable<Type> GetTypeAffinityList(Type type)
