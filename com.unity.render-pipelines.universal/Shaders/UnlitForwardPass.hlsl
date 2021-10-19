@@ -122,7 +122,7 @@ half4 UniversalFragmentUnlit(Varyings input) : SV_Target
     #else
     half fogFactor = input.fogCoord;
     #endif
-    half4 finalColor = UniversalFragmentUnlit(inputData, color, alpha);
+    half4 finalColor = UniversalFragmentUnlit_two(inputData, color, alpha);
 
 #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);

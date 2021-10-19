@@ -140,7 +140,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     InitializeInputData(input, surfaceData, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.texcoord, _BaseMap);
 
-    half4 finalColor = UniversalFragmentUnlit(inputData, surfaceData);
+    half4 finalColor = UniversalFragmentUnlit_one(inputData, surfaceData);
 
     #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
         float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);

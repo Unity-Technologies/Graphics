@@ -6,7 +6,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 
-half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
+half4 UniversalFragmentUnlit_one(InputData inputData, SurfaceData surfaceData)
 {
     half3 albedo = surfaceData.albedo;
 
@@ -29,7 +29,7 @@ half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
 }
 
 // Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments.
-half4 UniversalFragmentUnlit(InputData inputData, half3 color, half alpha)
+half4 UniversalFragmentUnlit_two(InputData inputData, half3 color, half alpha)
 {
     SurfaceData surfaceData;
 
@@ -44,7 +44,7 @@ half4 UniversalFragmentUnlit(InputData inputData, half3 color, half alpha)
     surfaceData.clearCoatSmoothness = 1;
     surfaceData.normalTS = half3(0, 0, 1);
 
-    return UniversalFragmentUnlit(inputData, surfaceData);
+    return UniversalFragmentUnlit_one(inputData, surfaceData);
 }
 
 #endif

@@ -60,7 +60,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     // TODO: Mip debug modes would require this, open question how to do this on ShaderGraph.
     //SETUP_DEBUG_TEXTURE_DATA(inputData, input.texCoord1, _MainTex);
 
-    half4 finalColor = UniversalFragmentUnlit(inputData, surfaceDescription.BaseColor, alpha);
+    half4 finalColor = UniversalFragmentUnlit_two(inputData, surfaceDescription.BaseColor, alpha);
 
     return finalColor;
 }

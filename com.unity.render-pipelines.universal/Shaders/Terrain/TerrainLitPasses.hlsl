@@ -139,9 +139,9 @@ void NormalMapMix(float4 uvSplat01, float4 uvSplat23, inout half4 splatControl, 
     #if defined(_NORMALMAP)
         half3 nrm = half(0.0);
         nrm += splatControl.r * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal0, sampler_Normal0, uvSplat01.xy), _NormalScale0);
-        nrm += splatControl.g * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, uvSplat01.zw), _NormalScale1);
-        nrm += splatControl.b * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, uvSplat23.xy), _NormalScale2);
-        nrm += splatControl.a * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, uvSplat23.zw), _NormalScale3);
+        nrm += splatControl.g * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal1, sampler_Normal1, uvSplat01.zw), _NormalScale1);
+        nrm += splatControl.b * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal2, sampler_Normal2, uvSplat23.xy), _NormalScale2);
+        nrm += splatControl.a * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal3, sampler_Normal3, uvSplat23.zw), _NormalScale3);
 
         // avoid risk of NaN when normalizing.
         #if HAS_HALF
@@ -159,9 +159,9 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     half4 diffAlbedo[4];
 
     diffAlbedo[0] = SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, uvSplat01.xy);
-    diffAlbedo[1] = SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, uvSplat01.zw);
-    diffAlbedo[2] = SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, uvSplat23.xy);
-    diffAlbedo[3] = SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, uvSplat23.zw);
+    diffAlbedo[1] = SAMPLE_TEXTURE2D(_Splat1, sampler_Splat1, uvSplat01.zw);
+    diffAlbedo[2] = SAMPLE_TEXTURE2D(_Splat2, sampler_Splat2, uvSplat23.xy);
+    diffAlbedo[3] = SAMPLE_TEXTURE2D(_Splat3, sampler_Splat3, uvSplat23.zw);
 
     // This might be a bit of a gamble -- the assumption here is that if the diffuseMap has no
     // alpha channel, then diffAlbedo[n].a = 1.0 (and _DiffuseHasAlphaN = 0.0)
@@ -346,9 +346,9 @@ void ComputeMasks(out half4 masks[4], half4 hasMask, Varyings IN)
 
 #ifdef _MASKMAP
     masks[0] = lerp(masks[0], SAMPLE_TEXTURE2D(_Mask0, sampler_Mask0, IN.uvSplat01.xy), hasMask.x);
-    masks[1] = lerp(masks[1], SAMPLE_TEXTURE2D(_Mask1, sampler_Mask0, IN.uvSplat01.zw), hasMask.y);
-    masks[2] = lerp(masks[2], SAMPLE_TEXTURE2D(_Mask2, sampler_Mask0, IN.uvSplat23.xy), hasMask.z);
-    masks[3] = lerp(masks[3], SAMPLE_TEXTURE2D(_Mask3, sampler_Mask0, IN.uvSplat23.zw), hasMask.w);
+    masks[1] = lerp(masks[1], SAMPLE_TEXTURE2D(_Mask1, sampler_Mask1, IN.uvSplat01.zw), hasMask.y);
+    masks[2] = lerp(masks[2], SAMPLE_TEXTURE2D(_Mask2, sampler_Mask2, IN.uvSplat23.xy), hasMask.z);
+    masks[3] = lerp(masks[3], SAMPLE_TEXTURE2D(_Mask3, sampler_Mask3, IN.uvSplat23.zw), hasMask.w);
 #endif
 
     masks[0] *= _MaskMapRemapScale0.rgba;

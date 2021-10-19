@@ -42,22 +42,22 @@ CBUFFER_END
 
 TEXTURE2D(_Control);    SAMPLER(sampler_Control);
 TEXTURE2D(_Splat0);     SAMPLER(sampler_Splat0);
-TEXTURE2D(_Splat1);
-TEXTURE2D(_Splat2);
-TEXTURE2D(_Splat3);
+TEXTURE2D(_Splat1);SAMPLER(sampler_Splat1);
+TEXTURE2D(_Splat2);SAMPLER(sampler_Splat2);
+TEXTURE2D(_Splat3);SAMPLER(sampler_Splat3);
 
 #ifdef _NORMALMAP
 TEXTURE2D(_Normal0);     SAMPLER(sampler_Normal0);
-TEXTURE2D(_Normal1);
-TEXTURE2D(_Normal2);
-TEXTURE2D(_Normal3);
+TEXTURE2D(_Normal1);SAMPLER(sampler_Normal1);
+TEXTURE2D(_Normal2);SAMPLER(sampler_Normal2);
+TEXTURE2D(_Normal3);SAMPLER(sampler_Normal3);
 #endif
 
 #ifdef _MASKMAP
 TEXTURE2D(_Mask0);      SAMPLER(sampler_Mask0);
-TEXTURE2D(_Mask1);
-TEXTURE2D(_Mask2);
-TEXTURE2D(_Mask3);
+TEXTURE2D(_Mask1);SAMPLER(sampler_Mask1)
+TEXTURE2D(_Mask2);SAMPLER(sampler_Mask2)
+TEXTURE2D(_Mask3);SAMPLER(sampler_Mask3)
 #endif
 
 TEXTURE2D(_MainTex);       SAMPLER(sampler_MainTex);

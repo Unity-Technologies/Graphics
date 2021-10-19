@@ -56,6 +56,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             Tags { "LightMode" = "UniversalForward" }
             HLSLPROGRAM
             #pragma target 3.0
+			//2
 
             #pragma vertex SplatmapVert
             #pragma fragment SplatmapFragment
