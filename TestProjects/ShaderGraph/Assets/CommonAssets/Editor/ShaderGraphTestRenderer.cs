@@ -49,7 +49,7 @@ public class ShaderGraphTestRenderer
     internal Vector3 testPosition = new Vector3(0.24699998f, 0.51900005f, 0.328999996f);
     internal Quaternion testRotation = new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f);
 
-    internal int RunNodeTest(GraphData graph, string filePrefix, SetupMaterialDelegate setupMaterial = null, Color32? expectedColor = null, int expectedIncorrectPixels = 0)
+    internal int RunNodeTest(GraphData graph, string filePrefix, SetupMaterialDelegate setupMaterial = null, Color32? expectedColor = null, int expectedIncorrectPixels = 0, int errorThreshold = 0)
     {
         RenderTextureDescriptor descriptor = new RenderTextureDescriptor(defaultResolution, defaultResolution, GraphicsFormat.R8G8B8A8_SRGB, depthBufferBits: 32);
         var target = RenderTexture.GetTemporary(descriptor);
@@ -58,7 +58,7 @@ public class ShaderGraphTestRenderer
         RenderQuadPreview(graph, target, testPosition, testRotation, setupMaterial, Mode.DIFF, useSRP: true);
 
         // default expected color is green (test shaders should be set up to return green on success)
-        int incorrectPixels = CountPixelsNotEqual(target, expectedColor ?? new Color32(0, 255, 0, 255), false);
+        int incorrectPixels = CountPixelsNotEqual(target, expectedColor ?? new Color32(0, 255, 0, 255), false, errorThreshold);
 
         if (incorrectPixels != expectedIncorrectPixels)
         {
@@ -172,7 +172,7 @@ public class ShaderGraphTestRenderer
             ShaderGraphTestRenderer.ReportArtifact(path);
     }
 
-    internal static int CountPixelsNotEqual(RenderTexture target, Color32 value, bool compareAlpha)
+    internal static int CountPixelsNotEqual(RenderTexture target, Color32 value, bool compareAlpha, int errorThreshold = 0)
     {
         Texture2D temp = new Texture2D(target.width, target.height, TextureFormat.RGBA32, mipChain: false, linear: false);
 
@@ -185,10 +185,10 @@ public class ShaderGraphTestRenderer
         var pixels = temp.GetPixels32(0);
         foreach (var pixel in pixels)
         {
-            if ((pixel.r != value.r) ||
-                (pixel.g != value.g) ||
-                (pixel.b != value.b) ||
-                (compareAlpha && (pixel.a != value.a)))
+            if ((Math.Abs(pixel.r - value.r) > errorThreshold) ||
+                (Math.Abs(pixel.g - value.g) > errorThreshold) ||
+                (Math.Abs(pixel.b - value.b) > errorThreshold) ||
+                (compareAlpha && (Math.Abs(pixel.a - value.a) > errorThreshold)))
             {
                 mismatchCount++;
             }
