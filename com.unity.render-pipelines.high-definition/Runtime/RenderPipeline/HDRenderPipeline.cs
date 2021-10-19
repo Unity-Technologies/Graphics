@@ -670,6 +670,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             base.Dispose(disposing);
 
+            HDLightRenderDatabase.instance.Cleanup();
             ReleaseScreenSpaceShadows();
 
             if (m_RayTracingSupported)
@@ -1942,7 +1943,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This call need to happen once per camera
                 // TODO: This can be wasteful for "compatible" cameras.
                 // We need to determine the minimum set of feature used by all the camera and build the minimum number of acceleration structures.
-                BuildRayTracingAccelerationStructure(hdCamera);
+                using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructure)))
+                {
+                    BuildRayTracingAccelerationStructure(hdCamera);
+                }
                 CullForRayTracing(cmd, hdCamera);
             }
 
@@ -2135,14 +2139,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Retrieve debug display settings to init FrameSettings, unless we are a reflection and in this case we don't have debug settings apply.
             DebugDisplaySettings debugDisplaySettings = (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview) ? s_NeutralDebugDisplaySettings : m_DebugDisplaySettings;
-
-            // Getting the background color from preferences to add to the preview camera
-#if UNITY_EDITOR
-            if (camera.cameraType == CameraType.Preview)
-            {
-                camera.backgroundColor = CoreRenderPipelinePreferences.previewBackgroundColor;
-            }
-#endif
 
             // Disable post process if we enable debug mode or if the post process layer is disabled
             if (debugDisplaySettings.IsDebugDisplayEnabled())

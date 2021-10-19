@@ -41,17 +41,10 @@ namespace UnityEditor.Rendering.HighDefinition
             uiBlocks.OnGUI(materialEditor, props);
         }
 
-        // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        /// <summary>
-        /// Sets up the keywords and passes for a Decal Shader Graph material.
-        /// </summary>
-        /// <param name="material">The selected material.</param>
-        public static void SetupDecalKeywordsAndPass(Material material) => DecalUI.SetupCommonDecalMaterialKeywordsAndPass(material);
-
         /// <summary>
         /// Sets up the keywords and passes for the current selected material.
         /// </summary>
         /// <param name="material">The selected material.</param>
-        public override void ValidateMaterial(Material material) => SetupDecalKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => ShaderGraphAPI.ValidateDecalMaterial(material);
     }
 }

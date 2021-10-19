@@ -4,11 +4,29 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.1] - 2021-10-04
+
+### Added
+- Added Depth Texture setting for Overlay Camera.
+- Added Depth Priming support for Vulkan with MSAA.
+- Added Shadows and Additional Lights off variants stripping.
+
+### Changed
+- Main light shadow, additional light shadow and additional light keywords are now enabled based on urp setting instead of existence in scene. This allows better variant stripping.
+
+### Fixed
+- Fixed a regression where ShaderGraph screen position was not correct in game view and when using XR [1369450]
+- Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
+- Fixed ShadowCaster now requires varying normalWS to include changed normals from vertex shader in shader graph.
+- Fixed typo in numIterationsEnclosingSphere api name
+- Fix for rendering thumbnails. [case 1348209](https://issuetracker.unity3d.com/issues/preview-of-assets-do-not-show-in-the-project-window)
+- Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]
+- Fixed an issue in where installing the Adaptive Performance package caused errors to the inspector UI [1368161](https://issuetracker.unity3d.com/issues/urp-package-throws-compilation-error-cs1525-when-imported-together-with-adaptive-performance-package)
+
 ## [13.1.0] - 2021-09-24
 
 ### Added
 - Added public api and updated docs for Light2D shape properties.
-- Depth Texture setting for Overlay Camera.
 
 ### Changed
 
@@ -18,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
 - Fixed an issue where Unlit and ParticlesUnlit shaders did not have HDR color selection for albedo [case 1283767](https://issuetracker.unity3d.com/issues/built-in-unlit-particle-shader-has-hdr-color-selection-for-albedo-urp-unlit-particles-do-not)
+
 
 ## [13.0.0] - 2021-09-01
 ### Added
@@ -211,6 +230,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed graphical artefact when terrain height map is used with rendering layer mask for lighting.
 - Fixed an issue where screen space shadows has flickering with deferred mode [case 1354681](https://issuetracker.unity3d.com/issues/screen-space-shadows-flicker-in-scene-view-when-using-deferred-rendering)
 - Fixed shadowCascadeBlendCullingFactor to be 1.0
+- Fixed missing property values in a RendererFeature of screen space shadows by adding tooltip for it instead of showing them. [case 1327356]
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
