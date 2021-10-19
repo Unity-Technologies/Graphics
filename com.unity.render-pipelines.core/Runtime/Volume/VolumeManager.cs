@@ -40,11 +40,11 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
         /// </summary>
-        public Type[] baseComponentTypeArray => m_VolumeComponentSet.baseComponentTypeArray;
+        public Type[] baseComponentTypeArray => m_VolumeComponentTypeSet.AsArray();
 
         // expose for editor utilities only
         // not public
-        internal VolumeComponentSet baseComponentSet => m_VolumeComponentSet;
+        internal VolumeComponentTypeSet baseComponentTypeSet => m_VolumeComponentTypeSet;
 
         // Max amount of layers available in Unity
         const int k_MaxLayerCount = 32;
@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering
         // we want to be able to switch to the default one through the ResetMainStack() function.
         VolumeStack m_DefaultStack = null;
 
-        VolumeComponentSet m_VolumeComponentSet;
+        VolumeComponentTypeSet m_VolumeComponentTypeSet;
 
         VolumeManager()
         {
@@ -125,12 +125,8 @@ namespace UnityEngine.Rendering
         void ReloadBaseTypes()
         {
             var currentPipelineType = RenderPipelineManager.currentPipeline?.GetType();
-            m_VolumeComponentSet = VolumeComponentSet.CreateSetFromFilter(type =>
+            m_VolumeComponentTypeSet = VolumeComponentTypeSet.CreateSetFromFilter(type =>
                 IsSupportedOn.IsSupportedBy(type, currentPipelineType));
-
-#if UNITY_EDITOR
-            m_VolumeComponentSet.AddExtension<VolumeComponentProviderExtension>(out var extension);
-#endif
         }
 
         /// <summary>
@@ -236,6 +232,9 @@ namespace UnityEngine.Rendering
                 if (!component.active)
                     continue;
 
+                if (!m_VolumeComponentTypeSet.ContainsType(component.GetType()))
+                    continue;
+
                 var state = stack.GetComponent(component.GetType());
                 component.Override(state, interpFactor);
             }
@@ -249,7 +248,7 @@ namespace UnityEngine.Rendering
         public void CheckBaseTypes()
         {
             // Editor specific hack to work around serialization doing funky things when exiting
-            if ((m_VolumeComponentSet?.baseComponentTypeArray.Length ?? 0) == 0)
+            if ((m_VolumeComponentTypeSet?.AsArray().Length ?? 0) == 0)
                 ReloadBaseTypes();
         }
 
@@ -310,8 +309,9 @@ namespace UnityEngine.Rendering
             CheckBaseTypes();
             CheckStack(stack);
 
-            // Start by resetting the global state to default values
-            m_VolumeComponentSet.ReplaceData(stack);
+            if (m_VolumeComponentTypeSet.GetOrAddDefaultState(out var defaultState))
+                // Start by resetting the global state to default values
+                defaultState.ReplaceData(stack);
 
             bool onlyGlobal = trigger == null;
             var triggerPos = onlyGlobal ? Vector3.zero : trigger.position;

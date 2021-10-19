@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering
     ///
     /// Don't show a volume if it is already in the stack
     /// </summary>
-    class VolumeComponentProvider : IProvider
+    class VolumeComponentTreeProvider : IProvider
     {
         class VolumeComponentElement : Element
         {
@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering
         VolumeProfile m_Target;
         VolumeComponentListEditor m_TargetEditor;
 
-        public VolumeComponentProvider(VolumeProfile target, VolumeComponentListEditor targetEditor)
+        public VolumeComponentTreeProvider(VolumeProfile target, VolumeComponentListEditor targetEditor)
         {
             m_Target = target;
             m_TargetEditor = targetEditor;
@@ -44,8 +44,8 @@ namespace UnityEditor.Rendering
         {
             tree.Add(new GroupElement(0, "Volume Overrides"));
 
-            if (!VolumeManager.instance.baseComponentSet.GetExtension<VolumeComponentProviderExtension>(out var extension)
-                || extension.root == null)
+            if (!VolumeManager.instance.baseComponentTypeSet
+                .GetOrAddTreeProvider(out var extension))
                 return;
 
             // Recursively add all elements to the tree
@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering
             return false;
         }
 
-        void Traverse(VolumeComponentProviderExtension.PathNode node, int depth, List<Element> tree)
+        void Traverse(VolumeComponentTypeSetTreeProvider.PathNode node, int depth, List<Element> tree)
         {
             node.nodes.Sort();
 

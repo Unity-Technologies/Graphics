@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Bloom", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Bloom"), SupportedOn(typeof(UniversalRenderPipeline))]
     public sealed class Bloom : VolumeComponent, IPostProcessComponent
     {
         [Header("Bloom")]
