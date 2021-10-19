@@ -44,8 +44,8 @@ namespace UnityEditor.Rendering
         {
             tree.Add(new GroupElement(0, "Volume Overrides"));
 
-            if (!VolumeManager.instance.baseComponentArchetype
-                .GetOrAddTreeProvider(out var extension))
+            VolumeComponentArchetypeTreeProvider extension = null;
+            if (!(VolumeComponentTreeUI.displayedArchetype?.GetOrAddTreeProvider(out extension) ?? false))
                 return;
 
             // Recursively add all elements to the tree
