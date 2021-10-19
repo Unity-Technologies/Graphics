@@ -372,6 +372,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ShaderVariablesVolumetric = Shader.PropertyToID("ShaderVariablesVolumetric");
         public static readonly int _ShaderVariablesLightList = Shader.PropertyToID("ShaderVariablesLightList");
         public static readonly int _ShaderVariablesRaytracing = Shader.PropertyToID("ShaderVariablesRaytracing");
+        public static readonly int _ShaderVariablesBilateralUpsample = Shader.PropertyToID("ShaderVariablesBilateralUpsample");
         public static readonly int _ShaderVariablesRaytracingLightLoop = Shader.PropertyToID("ShaderVariablesRaytracingLightLoop");
         public static readonly int _ShaderVariablesDebugDisplay = Shader.PropertyToID("ShaderVariablesDebugDisplay");
         public static readonly int _ShaderVariablesClouds = Shader.PropertyToID("ShaderVariablesClouds");
@@ -637,6 +638,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SampleCountTextureRW = Shader.PropertyToID("_SampleCountTextureRW");
         public static readonly int _AffectSmoothSurfaces = Shader.PropertyToID("_AffectSmoothSurfaces");
         public static readonly int _ObjectMotionStencilBit = Shader.PropertyToID("_ObjectMotionStencilBit");
+        public static readonly int _PointDistribution = Shader.PropertyToID("_PointDistribution");
 
         public static readonly int _DenoiseInputArrayTexture = Shader.PropertyToID("_DenoiseInputArrayTexture");
         public static readonly int _ValidityInputArrayTexture = Shader.PropertyToID("_ValidityInputArrayTexture");
