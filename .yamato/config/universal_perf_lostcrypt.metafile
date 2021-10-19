@@ -371,5 +371,5 @@ jobs:
         build_config: il2cpp
         color_space: Linear
         test_platforms:
-          - performance_playmode_runtime
+          #- performance_playmode_runtime https://fogbugz.unity3d.com/f/cases/1372763/
           - performance_build_editmode
