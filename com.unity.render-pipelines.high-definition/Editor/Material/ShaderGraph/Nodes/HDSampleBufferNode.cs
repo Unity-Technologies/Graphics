@@ -185,37 +185,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     s.AppendLine("$precision{1} {0}($precision2 uv)", GetFunctionName(), channelCount);
                     using (s.BlockScope())
                     {
-                        s.AppendLine(@"
-float3 origin = float3(0.0, 0.0, 0.0);
-float3 direction = normalize(float3(uv * 2 - 1, 1.0));
-float3 center = float3(0.0, 0.0, 1.5);
-float radius = 1;
-
-float3 rc = origin - center;
-float c = dot(rc, rc) - (radius*radius);
-float b = dot(direction, rc);
-float d = b*b - c;
-float t = -b - sqrt(abs(d));
-float st = step(0.0, min(t,d));
-float sphereDistance = lerp(-1.0, t, st);
-float3 sphereNormal = 0;
-
-if (sphereDistance > 0)
-{
-    float3 hit = origin+direction*sphereDistance;
-    sphereNormal = normalize(hit - center);
-}
-");
                         switch (bufferType)
                         {
                             case BufferType.NormalWorldSpace:
-                                s.AppendLine("return sphereNormal;");
+                                s.AppendLine("return LatlongToDirectionCoordinate(uv);");
                                 break;
                             case BufferType.MotionVectors:
-                                s.AppendLine("return sphereDistance > 0 ? float3(0.5, 0, 0) : 0;");
+                                s.AppendLine("return uv * 2 - 1;");
                                 break;
                             case BufferType.Roughness:
-                                s.AppendLine("return sphereDistance > 0 ? float3(0.5, 0.5, 0.5) : 0;");
+                                s.AppendLine("return uv.x;");
                                 break;
                             case BufferType.PostProcessInput:
                             case BufferType.BlitSource:
