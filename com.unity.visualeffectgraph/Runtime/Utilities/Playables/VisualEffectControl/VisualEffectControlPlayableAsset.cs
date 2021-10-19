@@ -104,7 +104,23 @@ namespace UnityEngine.VFX
         }
 
         [NotKeyable]
-        public List<VisualEffectPlayableSerializedEvent> events;
+        public List<VisualEffectPlayableSerializedEvent> events = new List<VisualEffectPlayableSerializedEvent>()
+        {
+            new VisualEffectPlayableSerializedEvent()
+            {
+                name = VisualEffectAsset.PlayEventName,
+                time = 0.0,
+                timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart,
+                type = VisualEffectPlayableSerializedEvent.Type.Play
+            },
+            new VisualEffectPlayableSerializedEvent()
+            {
+                name = VisualEffectAsset.StopEventName,
+                time = 0.0,
+                timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd,
+                type = VisualEffectPlayableSerializedEvent.Type.Stop
+            },
+        };
 
         public override Playable CreatePlayable(PlayableGraph graph, GameObject owner)
         {
@@ -112,7 +128,7 @@ namespace UnityEngine.VFX
             var behaviour = playable.GetBehaviour();
             behaviour.clipStart = clipStart;
             behaviour.clipEnd = clipEnd;
-            behaviour.events = events.ToArray();
+            behaviour.events = events == null ? new VisualEffectPlayableSerializedEvent[] { } : events.ToArray();
             return playable;
         }
     }
