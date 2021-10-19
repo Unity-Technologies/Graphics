@@ -33,8 +33,10 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_MaterialPassName;
         SerializedProperty m_FetchColorBuffer;
         SerializedProperty m_TargetColorBuffer;
+        SerializedProperty m_TargetDepthBuffer;
 
         CustomPass.TargetBuffer targetColorBuffer => (CustomPass.TargetBuffer)m_TargetColorBuffer.intValue;
+        CustomPass.TargetBuffer targetDepthBuffer => (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue;
 
         protected override void Initialize(SerializedProperty customPass)
         {
@@ -42,6 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_MaterialPassName = customPass.FindPropertyRelative("materialPassName");
             m_FetchColorBuffer = customPass.FindPropertyRelative("fetchColorBuffer");
             m_TargetColorBuffer = customPass.FindPropertyRelative("targetColorBuffer");
+            m_TargetDepthBuffer = customPass.FindPropertyRelative("targetDepthBuffer");
         }
 
         protected override void DoPassGUI(SerializedProperty customPass, Rect rect)
@@ -89,6 +92,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool DoesWriteMaskContainsReservedBits(Material material)
         {
+            if (targetDepthBuffer == CustomPass.TargetBuffer.Custom)
+                return false;
+
             int writeMask = GetStencilWriteMask(material);
             return ((writeMask & (int)~(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1)) != 0);
         }

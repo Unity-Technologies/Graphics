@@ -69,6 +69,38 @@ namespace UnityEditor.Rendering.HighDefinition
             public static string objectRendererTwiceWithMSAA = "If MSAA is enabled, re-rendering the same object twice will cause depth test artifacts in Before/After Post Process injection points";
         }
 
+        // Workaround enum to make the EnumFlagsField work, it doesn't handle well enm flags that don't contain all the individual bits as enum values like the UserStencilUsage enum.
+        [Flags]
+        enum UserStencilUsageWorkaround
+        {
+            UserBit0 = 1 << 0,
+            UserBit1 = 1 << 1,
+        }
+
+        static UserStencilUsage ConvertToUserStencilUsage(UserStencilUsageWorkaround w)
+        {
+            UserStencilUsage result = 0;
+
+            if ((w & UserStencilUsageWorkaround.UserBit0) != 0)
+                result |= UserStencilUsage.UserBit0;
+            if ((w & UserStencilUsageWorkaround.UserBit1) != 0)
+                result |= UserStencilUsage.UserBit1;
+
+            return result;
+        }
+
+        static UserStencilUsageWorkaround ConvertToUserStencilUsageWorkaround(UserStencilUsage w)
+        {
+            UserStencilUsageWorkaround result = 0;
+
+            if ((w & UserStencilUsage.UserBit0) != 0)
+                result |= UserStencilUsageWorkaround.UserBit0;
+            if ((w & UserStencilUsage.UserBit1) != 0)
+                result |= UserStencilUsageWorkaround.UserBit1;
+
+            return result;
+        }
+
         //Headers and layout
         private int m_FilterLines = 2;
         private int m_MaterialLines = 2;
@@ -108,7 +140,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         CustomPassVolume m_Volume;
 
-        bool customDepthIsNone => (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue == CustomPass.TargetBuffer.None;
+        CustomPass.TargetBuffer targetDepthBuffer => (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue;
+        bool customDepthIsNone => targetDepthBuffer == CustomPass.TargetBuffer.None;
 
         protected bool showMaterialOverride = true;
 
@@ -135,6 +168,15 @@ namespace UnityEditor.Rendering.HighDefinition
             m_OverrideDepthState = customPass.FindPropertyRelative("overrideDepthState");
             m_DepthCompareFunction = customPass.FindPropertyRelative("depthCompareFunction");
             m_DepthWrite = customPass.FindPropertyRelative("depthWrite");
+
+            // Stencil options
+            m_OverrideStencilState = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.overrideStencil));
+            m_StencilReferenceValue = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilReferenceValue));
+            m_StencilWriteMask = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilWriteMask));
+            m_StencilReadMask = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilReadMask));
+            m_StencilPassOperation = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilPassOperation));
+            m_StencilFailOperation = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilFailOperation));
+            m_StencilDepthFailOperation = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilDepthFailOperation));
 
             m_Volume = customPass.serializedObject.targetObject as CustomPassVolume;
 
@@ -313,6 +355,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Stencil properties
+            rect.y += Styles.defaultLineSpace;
             EditorGUI.BeginProperty(rect, Styles.overrideStencil, m_OverrideStencilState);
             {
                 if (customDepthIsNone)
@@ -330,33 +373,41 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_OverrideStencilState.boolValue && !customDepthIsNone)
             {
                 EditorGUI.indentLevel++;
-                rect.y += Styles.defaultLineSpace;
-                EditorGUI.PropertyField(rect, m_StencilReferenceValue, Styles.stencilReferenceValue);
-                rect.y += Styles.defaultLineSpace;
-                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
-                rect.y += Styles.defaultLineSpace;
-                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
-                rect.y += Styles.defaultLineSpace;
-                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
-                rect.y += Styles.defaultLineSpace;
-                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
-                rect.y += Styles.defaultLineSpace;
-                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
-                rect.y += Styles.defaultLineSpace;
-                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
-                rect.y += Styles.defaultLineSpace;
-                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
 
-                // SerializedProperty m_StencilWriteMask;
-                // SerializedProperty m_StencilReadMask;
-                // SerializedProperty m_StencilPassOperation;
-                // SerializedProperty m_StencilFailOperation;
-                // SerializedProperty m_StencilDepthFailOperation;
-
+                DrawStencilIntField(ref rect, m_StencilReferenceValue, Styles.stencilReferenceValue);
+                DrawStencilIntField(ref rect, m_StencilReadMask, Styles.stencilReadMask);
+                DrawStencilIntField(ref rect, m_StencilWriteMask, Styles.stencilWriteMask);
+                rect.y += Styles.defaultLineSpace;
+                EditorGUI.PropertyField(rect, m_StencilPassOperation, Styles.stencilPassOperation);
+                rect.y += Styles.defaultLineSpace;
+                EditorGUI.PropertyField(rect, m_StencilFailOperation, Styles.stencilFailOperation);
+                rect.y += Styles.defaultLineSpace;
+                EditorGUI.PropertyField(rect, m_StencilDepthFailOperation, Styles.stencilDepthFailOperation);
 
                 EditorGUI.indentLevel--;
-
             }
+        }
+
+        void DrawStencilIntField(ref Rect rect, SerializedProperty property, GUIContent label)
+        {
+            rect.y += Styles.defaultLineSpace;
+            EditorGUI.BeginProperty(rect, label, property);
+            if (targetDepthBuffer == CustomPass.TargetBuffer.Camera)
+            {
+                var userStencilBits = (UserStencilUsage)property.intValue;
+                EditorGUI.BeginChangeCheck();
+                var e = ConvertToUserStencilUsage((UserStencilUsageWorkaround)EditorGUI.EnumFlagsField(rect, label, ConvertToUserStencilUsageWorkaround(userStencilBits)));
+                if (EditorGUI.EndChangeCheck())
+                    property.intValue = (int)(e & (UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1));
+            }
+            else
+            {
+                EditorGUI.BeginChangeCheck();
+                property.intValue = EditorGUI.IntField(rect, Styles.stencilReferenceValue, m_StencilReferenceValue.intValue);
+                if (EditorGUI.EndChangeCheck())
+                    property.intValue &= 0xFF;
+            }
+            EditorGUI.EndProperty();
         }
 
         void DoShaderPassesList(ref Rect rect)
@@ -415,7 +466,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (showMaterialOverride)
                     height += Styles.defaultLineSpace * m_MaterialLines;
                 height += Styles.defaultLineSpace * (m_OverrideDepthState.boolValue && !customDepthIsNone ? 3 : 1);
-                height += Styles.defaultLineSpace * (m_OverrideStencilState.boolValue && !customDepthIsNone ? 6 : 1);
+                height += Styles.defaultLineSpace * (m_OverrideStencilState.boolValue && !customDepthIsNone ? 7 : 1);
                 var mat = m_OverrideMaterial.objectReferenceValue as Material;
 
 #if SHOW_PASS_NAMES
