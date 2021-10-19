@@ -18,6 +18,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_MaxDepth;
         SerializedDataParameter m_MaxIntensity;
         SerializedDataParameter m_SkyImportanceSampling;
+        SerializedDataParameter m_Denoising;
 
         public override void OnEnable()
         {
@@ -30,6 +31,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MaxDepth = Unpack(o.Find(x => x.maximumDepth));
             m_MaxIntensity = Unpack(o.Find(x => x.maximumIntensity));
             m_SkyImportanceSampling = Unpack(o.Find(x => x.skyImportanceSampling));
+            m_Denoising = Unpack(o.Find(x => x.denoise));
         }
 
         public override void OnInspectorGUI()
@@ -57,6 +59,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                         PropertyField(m_MaxDepth);
                         PropertyField(m_MaxIntensity);
                         PropertyField(m_SkyImportanceSampling);
+                        PropertyField(m_Denoising);
                     }
 
                     // Make sure MaxDepth is always greater or equal than MinDepth

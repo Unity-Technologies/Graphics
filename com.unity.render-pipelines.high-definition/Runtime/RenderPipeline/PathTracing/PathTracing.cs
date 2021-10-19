@@ -86,6 +86,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Defines the maximum, post-exposed luminance computed for indirect path segments. Lower values help against noise and fireflies (very bright pixels), but introduce bias by darkening the overall result. Increase this value if your image looks too dark.")]
         public MinFloatParameter maximumIntensity = new MinFloatParameter(10f, 0f);
 
+        [Tooltip("Enables denoising for the converged path tracer frame")]
+        public BoolParameter denoise = new BoolParameter(false);
+
         /// <summary>
         /// Defines if and when sky importance sampling is enabled. It should be turned on for sky models with high contrast and bright spots, and turned off for smooth, uniform skies.
         /// </summary>
@@ -571,6 +574,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
 
+            bool denoise = false;
             if (camData.currentIteration < m_SubFrameManager.subFrameCount)
             {
                 // Keep a sky texture around, that we compute only once per accumulation (except when recording, with potential camera motion blur)
@@ -588,8 +592,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderPathTracingFrame(m_RenderGraph, hdCamera, camData, m_FrameTexture);
             }
+            else
+            {
+                if (m_PathTracingSettings.denoise.value && !camData.denoised)
+                {
+                    camData.denoised = true;
+                    m_SubFrameManager.SetCameraData(camID, camData);
+                    denoise = true;
+                }
 
-            RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, true);
+            }
+
+            RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, true, denoise);
 
             return colorBuffer;
         }
