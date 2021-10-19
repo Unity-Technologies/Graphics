@@ -11,16 +11,16 @@ namespace UnityEngine.Rendering
     /// * <see cref="HideInInspector"/> attribute
     /// * <see cref="ObsoleteAttribute"/> attribute
     /// </summary>
-    class VolumeComponentTypeSetPathAndType : VolumeComponentTypeSetExtension
+    class VolumeComponentArchetypePathAndType : VolumeComponentArchetypeExtension
     {
-        public struct Factory : IVolumeComponentTypeSetExtensionFactory<VolumeComponentTypeSetPathAndType>
+        public struct Factory : IVolumeComponentArchetypeExtensionFactory<VolumeComponentArchetypePathAndType>
         {
             struct BuiltinRenderPipeline { }
 
-            public VolumeComponentTypeSetPathAndType Create(VolumeComponentTypeSet volumeComponentTypeSet)
+            public VolumeComponentArchetypePathAndType Create(VolumeComponentArchetype volumeComponentArchetype)
             {
                 var currentPipeline = RenderPipelineManager.currentPipeline?.GetType() ?? typeof(BuiltinRenderPipeline);
-                var types = volumeComponentTypeSet.AsArray();
+                var types = volumeComponentArchetype.AsArray();
 
                 var componentPathAndTypes = new List<(string path, Type type)>();
 
@@ -60,11 +60,11 @@ namespace UnityEngine.Rendering
                     componentPathAndTypes.Add((path, type));
                 }
 
-                return new VolumeComponentTypeSetPathAndType(componentPathAndTypes);
+                return new VolumeComponentArchetypePathAndType(componentPathAndTypes);
             }
         }
 
-        VolumeComponentTypeSetPathAndType(List<(string path, Type type)> componentPathAndTypes)
+        VolumeComponentArchetypePathAndType(List<(string path, Type type)> componentPathAndTypes)
         {
             volumeComponentPathAndTypes = componentPathAndTypes;
         }
@@ -76,8 +76,8 @@ namespace UnityEngine.Rendering
     static class VolumeComponentTypeSetPathAndTypeExtension
     {
         public static bool GetOrAddPathAndType(
-            [DisallowNull] this VolumeComponentTypeSet typeSet,
-            [NotNullWhen(true)] out VolumeComponentTypeSetPathAndType extension)
-            => typeSet.GetOrAddExtension<VolumeComponentTypeSetPathAndType, VolumeComponentTypeSetPathAndType.Factory>(out extension);
+            [DisallowNull] this VolumeComponentArchetype archetype,
+            [NotNullWhen(true)] out VolumeComponentArchetypePathAndType extension)
+            => archetype.GetOrAddExtension<VolumeComponentArchetypePathAndType, VolumeComponentArchetypePathAndType.Factory>(out extension);
     }
 }

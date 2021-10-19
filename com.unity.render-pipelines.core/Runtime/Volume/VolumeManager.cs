@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UnityEngine.Assertions;
 
@@ -25,6 +26,7 @@ namespace UnityEngine.Rendering
         /// A reference to the main <see cref="VolumeStack"/>.
         /// </summary>
         /// <seealso cref="VolumeStack"/>
+        [Obsolete("Use custom VolumeStack instances instead.")]
         public VolumeStack stack { get; set; }
 
         /// <summary>
@@ -40,11 +42,11 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
         /// </summary>
-        public Type[] baseComponentTypeArray => m_VolumeComponentTypeSet.AsArray();
+        public Type[] baseComponentTypeArray => m_VolumeComponentArchetype.AsArray();
 
         // expose for editor utilities only
         // not public
-        internal VolumeComponentTypeSet baseComponentTypeSet => m_VolumeComponentTypeSet;
+        internal VolumeComponentArchetype baseComponentArchetype => m_VolumeComponentArchetype;
 
         // Max amount of layers available in Unity
         const int k_MaxLayerCount = 32;
@@ -66,7 +68,7 @@ namespace UnityEngine.Rendering
         // we want to be able to switch to the default one through the ResetMainStack() function.
         VolumeStack m_DefaultStack = null;
 
-        VolumeComponentTypeSet m_VolumeComponentTypeSet;
+        VolumeComponentArchetype m_VolumeComponentArchetype;
 
         VolumeManager()
         {
@@ -95,10 +97,10 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         /// <seealso cref="VolumeStack"/>
         /// <seealso cref="Update(VolumeStack,Transform,LayerMask)"/>
+        [Obsolete("Please use new VolumeStack(VolumeComponentArchetype) instead to create a stack.")]
         public VolumeStack CreateStack()
         {
-            var stack = new VolumeStack();
-            stack.Reload(baseComponentTypeArray);
+            var stack = new VolumeStack(m_VolumeComponentArchetype);
             return stack;
         }
 
@@ -125,8 +127,7 @@ namespace UnityEngine.Rendering
         void ReloadBaseTypes()
         {
             var currentPipelineType = RenderPipelineManager.currentPipeline?.GetType();
-            m_VolumeComponentTypeSet = VolumeComponentTypeSet.CreateSetFromFilter(type =>
-                IsSupportedOn.IsSupportedBy(type, currentPipelineType));
+            m_VolumeComponentArchetype = VolumeComponentArchetype.FromFilter(new IsSupportedVolumeComponentFilter(currentPipelineType));
         }
 
         /// <summary>
@@ -232,7 +233,7 @@ namespace UnityEngine.Rendering
                 if (!component.active)
                     continue;
 
-                if (!m_VolumeComponentTypeSet.ContainsType(component.GetType()))
+                if (!stack.archetype.ContainsType(component.GetType()))
                     continue;
 
                 var state = stack.GetComponent(component.GetType());
@@ -247,9 +248,7 @@ namespace UnityEngine.Rendering
         [Conditional("UNITY_EDITOR")]
         public void CheckBaseTypes()
         {
-            // Editor specific hack to work around serialization doing funky things when exiting
-            if ((m_VolumeComponentTypeSet?.AsArray().Length ?? 0) == 0)
-                ReloadBaseTypes();
+
         }
 
         /// <summary>
@@ -260,24 +259,7 @@ namespace UnityEngine.Rendering
         [Conditional("UNITY_EDITOR")]
         public void CheckStack(VolumeStack stack)
         {
-            // The editor doesn't reload the domain when exiting play mode but still kills every
-            // object created while in play mode, like stacks' component states
-            var components = stack.components;
-
-            if (components == null)
-            {
-                stack.Reload(baseComponentTypeArray);
-                return;
-            }
-
-            foreach (var kvp in components)
-            {
-                if (kvp.Key == null || kvp.Value == null)
-                {
-                    stack.Reload(baseComponentTypeArray);
-                    return;
-                }
-            }
+            stack.CheckStack();
         }
 
         /// <summary>
@@ -309,7 +291,7 @@ namespace UnityEngine.Rendering
             CheckBaseTypes();
             CheckStack(stack);
 
-            if (m_VolumeComponentTypeSet.GetOrAddDefaultState(out var defaultState))
+            if (stack.archetype.GetOrAddDefaultState(out var defaultState))
                 // Start by resetting the global state to default values
                 defaultState.ReplaceData(stack);
 

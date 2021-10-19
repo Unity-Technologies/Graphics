@@ -7,13 +7,13 @@ namespace UnityEngine.Rendering
     ///
     /// The purpose is to extract immutable data from the volume component set.
     /// </summary>
-    abstract class VolumeComponentTypeSetExtension
+    abstract class VolumeComponentArchetypeExtension
     {
     }
 
-    interface IVolumeComponentTypeSetExtensionFactory<T>
-        where T : VolumeComponentTypeSetExtension
+    interface IVolumeComponentArchetypeExtensionFactory<T>
+        where T : VolumeComponentArchetypeExtension
     {
-        [return: NotNull] T Create([DisallowNull] VolumeComponentTypeSet volumeComponentTypeSet);
+        [return: NotNull] T Create([DisallowNull] VolumeComponentArchetype volumeComponentArchetype);
     }
 }

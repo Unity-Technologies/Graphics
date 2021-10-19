@@ -9,37 +9,47 @@ using NotNullAttribute = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Manage a set of volume component types and their default state.
+    /// Manage a set of volume component types.
     ///
     /// The managed set can be a subset defined by a filter.
     ///
     /// Immutable type
     /// </summary>
-    sealed class VolumeComponentTypeSet
+    public sealed class VolumeComponentArchetype
     {
-        Type[] baseComponentTypeArray { get; }
-        HashSet<Type> baseComponentTypeSet { get; }
+        static Dictionary<IVolumeComponentFilter, VolumeComponentArchetype> s_Cache
+            = new Dictionary<IVolumeComponentFilter, VolumeComponentArchetype>();
 
-        Dictionary<(Type factory, Type extension), VolumeComponentTypeSetExtension> m_Extensions
-            = new Dictionary<(Type factory, Type extension), VolumeComponentTypeSetExtension>();
+        Type[] typeArray { get; }
+        HashSet<Type> typeSet { get; }
 
-        VolumeComponentTypeSet([DisallowNull] Type[] baseComponentTypeArray)
+        Dictionary<(Type factory, Type extension), VolumeComponentArchetypeExtension> m_Extensions
+            = new Dictionary<(Type factory, Type extension), VolumeComponentArchetypeExtension>();
+
+        VolumeComponentArchetype([DisallowNull] Type[] typeArray)
         {
-            this.baseComponentTypeArray = baseComponentTypeArray;
-            baseComponentTypeSet = baseComponentTypeArray.ToHashSet();
+            this.typeArray = typeArray;
+            typeSet = typeArray.ToHashSet();
         }
 
         [return: NotNull]
-        public static VolumeComponentTypeSet CreateSetFromFilter([DisallowNull] Func<Type, bool> filter)
+        public static VolumeComponentArchetype FromFilter<TFilter>([DisallowNull] in TFilter filter)
+            where TFilter : IVolumeComponentFilter
         {
-            var baseComponentTypeArray = VolumeComponentDatabase.baseComponentTypeArray
-                .Where(filter).ToArray();
-            return new VolumeComponentTypeSet(baseComponentTypeArray);
+            if (!s_Cache.TryGetValue(filter, out var set))
+            {
+                var baseComponentTypeArray = VolumeComponentDatabase.baseComponentTypeArray
+                    .Where(filter.IsAccepted).ToArray();
+                set = new VolumeComponentArchetype(baseComponentTypeArray);
+                s_Cache.Add(filter, set);
+            }
+
+            return set;
         }
 
         [return: NotNull]
-        public Type[] AsArray() => baseComponentTypeArray;
-        public bool ContainsType(Type type) => baseComponentTypeSet.Contains(type);
+        public Type[] AsArray() => typeArray;
+        public bool ContainsType(Type type) => typeSet.Contains(type);
 
         /// <summary>
         /// Adds an extension if it does not exists
@@ -49,8 +59,8 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         [MustUseReturnValue]
         internal bool AddExtension<TExtension, TFactory>([NotNullWhen(true)] out TExtension extension)
-            where TExtension : VolumeComponentTypeSetExtension
-            where TFactory : struct, IVolumeComponentTypeSetExtensionFactory<TExtension>
+            where TExtension : VolumeComponentArchetypeExtension
+            where TFactory : struct, IVolumeComponentArchetypeExtensionFactory<TExtension>
         {
             if (GetExtension<TExtension, TFactory>(out extension))
                 return true;
@@ -62,8 +72,8 @@ namespace UnityEngine.Rendering
 
         [MustUseReturnValue]
         internal bool GetExtension<TExtension, TFactory>([NotNullWhen(true)] out TExtension extension)
-            where TExtension : VolumeComponentTypeSetExtension
-            where TFactory : struct, IVolumeComponentTypeSetExtensionFactory<TExtension>
+            where TExtension : VolumeComponentArchetypeExtension
+            where TFactory : struct, IVolumeComponentArchetypeExtensionFactory<TExtension>
         {
             if (m_Extensions.TryGetValue((typeof(TFactory), typeof(TExtension)), out var extensionBase))
             {
@@ -77,8 +87,8 @@ namespace UnityEngine.Rendering
 
         [MustUseReturnValue]
         internal bool GetOrAddExtension<TExtension, TFactory>([NotNullWhen(true)] out TExtension extension)
-            where TExtension : VolumeComponentTypeSetExtension
-            where TFactory : struct, IVolumeComponentTypeSetExtensionFactory<TExtension>
+            where TExtension : VolumeComponentArchetypeExtension
+            where TFactory : struct, IVolumeComponentArchetypeExtensionFactory<TExtension>
         {
             return GetExtension<TExtension, TFactory>(out extension) || AddExtension<TExtension, TFactory>(out extension);
         }

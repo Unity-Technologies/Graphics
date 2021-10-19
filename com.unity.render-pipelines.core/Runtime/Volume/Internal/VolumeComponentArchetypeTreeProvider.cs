@@ -9,15 +9,15 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Extracts the tree structure to display for the add volume menu.
     /// </summary>
-    class VolumeComponentTypeSetTreeProvider : VolumeComponentTypeSetExtension
+    class VolumeComponentArchetypeTreeProvider : VolumeComponentArchetypeExtension
     {
-        public struct Factory : IVolumeComponentTypeSetExtensionFactory<VolumeComponentTypeSetTreeProvider>
+        public struct Factory : IVolumeComponentArchetypeExtensionFactory<VolumeComponentArchetypeTreeProvider>
         {
-            public VolumeComponentTypeSetTreeProvider Create(VolumeComponentTypeSet volumeComponentTypeSet)
+            public VolumeComponentArchetypeTreeProvider Create(VolumeComponentArchetype volumeComponentArchetype)
             {
                 var root = new PathNode();
 
-                if (volumeComponentTypeSet.GetOrAddExtension<VolumeComponentTypeSetPathAndType, VolumeComponentTypeSetPathAndType.Factory>(out VolumeComponentTypeSetPathAndType extension))
+                if (volumeComponentArchetype.GetOrAddExtension<VolumeComponentArchetypePathAndType, VolumeComponentArchetypePathAndType.Factory>(out VolumeComponentArchetypePathAndType extension))
                 {
                     // Build the tree
                     if (extension.volumeComponentPathAndTypes.Count > 0)
@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering
                         }
                     }
                 }
-                return new VolumeComponentTypeSetTreeProvider(root);
+                return new VolumeComponentArchetypeTreeProvider(root);
             }
 
             static void AddNode(PathNode root, string path, Type type)
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering
         [NotNull]
         public PathNode root => m_Root;
 
-        VolumeComponentTypeSetTreeProvider(PathNode rootArg)
+        VolumeComponentArchetypeTreeProvider(PathNode rootArg)
         {
             m_Root = rootArg;
         }
@@ -77,9 +77,9 @@ namespace UnityEngine.Rendering
     static class VolumeComponentTypeSetTreeProviderExtension
     {
         public static bool GetOrAddTreeProvider(
-            [DisallowNull] this VolumeComponentTypeSet typeSet,
-            [NotNullWhen(true)] out VolumeComponentTypeSetTreeProvider extension)
-            => typeSet.GetOrAddExtension<VolumeComponentTypeSetTreeProvider, VolumeComponentTypeSetTreeProvider.Factory>(out extension);
+            [DisallowNull] this VolumeComponentArchetype archetype,
+            [NotNullWhen(true)] out VolumeComponentArchetypeTreeProvider extension)
+            => archetype.GetOrAddExtension<VolumeComponentArchetypeTreeProvider, VolumeComponentArchetypeTreeProvider.Factory>(out extension);
     }
 }
 

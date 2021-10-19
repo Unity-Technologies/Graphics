@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering
         {
             tree.Add(new GroupElement(0, "Volume Overrides"));
 
-            if (!VolumeManager.instance.baseComponentTypeSet
+            if (!VolumeManager.instance.baseComponentArchetype
                 .GetOrAddTreeProvider(out var extension))
                 return;
 
@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering
             return false;
         }
 
-        void Traverse(VolumeComponentTypeSetTreeProvider.PathNode node, int depth, List<Element> tree)
+        void Traverse(VolumeComponentArchetypeTreeProvider.PathNode node, int depth, List<Element> tree)
         {
             node.nodes.Sort();
 

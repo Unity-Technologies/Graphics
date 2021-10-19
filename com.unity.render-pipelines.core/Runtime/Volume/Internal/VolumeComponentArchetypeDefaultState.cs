@@ -7,21 +7,21 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Manages the default data set of the volume components
     /// </summary>
-    class VolumeComponentTypeSetDefaultState : VolumeComponentTypeSetExtension
+    class VolumeComponentArchetypeDefaultState : VolumeComponentArchetypeExtension
     {
-        public struct Factory : IVolumeComponentTypeSetExtensionFactory<VolumeComponentTypeSetDefaultState>
+        public struct Factory : IVolumeComponentArchetypeExtensionFactory<VolumeComponentArchetypeDefaultState>
         {
-            public VolumeComponentTypeSetDefaultState Create(VolumeComponentTypeSet volumeComponentTypeSet)
+            public VolumeComponentArchetypeDefaultState Create(VolumeComponentArchetype volumeComponentArchetype)
             {
-                var componentsDefaultState = volumeComponentTypeSet.AsArray()
+                var componentsDefaultState = volumeComponentArchetype.AsArray()
                     .Select(type => (VolumeComponent)ScriptableObject.CreateInstance(type)).ToArray();
 
-                return new VolumeComponentTypeSetDefaultState(componentsDefaultState);
+                return new VolumeComponentArchetypeDefaultState(componentsDefaultState);
             }
         }
         VolumeComponent[] m_ComponentsDefaultState { get; }
 
-        VolumeComponentTypeSetDefaultState(VolumeComponent[] componentsDefaultState)
+        VolumeComponentArchetypeDefaultState(VolumeComponent[] componentsDefaultState)
         {
             m_ComponentsDefaultState = componentsDefaultState;
         }
@@ -49,8 +49,8 @@ namespace UnityEngine.Rendering
     static class VolumeComponentTypeSetDefaultStateExtension
     {
         public static bool GetOrAddDefaultState(
-            [DisallowNull] this VolumeComponentTypeSet typeSet,
-            [NotNullWhen(true)] out VolumeComponentTypeSetDefaultState extension)
-            => typeSet.GetOrAddExtension<VolumeComponentTypeSetDefaultState, VolumeComponentTypeSetDefaultState.Factory>(out extension);
+            [DisallowNull] this VolumeComponentArchetype archetype,
+            [NotNullWhen(true)] out VolumeComponentArchetypeDefaultState extension)
+            => archetype.GetOrAddExtension<VolumeComponentArchetypeDefaultState, VolumeComponentArchetypeDefaultState.Factory>(out extension);
     }
 }
