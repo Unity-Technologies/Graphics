@@ -1,4 +1,4 @@
-Shader "Hidden/Universal Render Pipeline/Picking"
+Shader "Hidden/Universal Render Pipeline/BRGPickingFallback"
 {
     SubShader
     {

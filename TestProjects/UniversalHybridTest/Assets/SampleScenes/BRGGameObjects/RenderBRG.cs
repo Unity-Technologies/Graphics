@@ -338,7 +338,7 @@ public unsafe class RenderBRG : MonoBehaviour
 
     public static Material LoadPickingFallbackMaterial()
     {
-        Shader shader = Shader.Find("Hidden/Universal Render Pipeline/Picking");
+        Shader shader = Shader.Find("Hidden/Universal Render Pipeline/BRGPickingFallback");
         Material material = new Material(shader);
 
         // Prevent Material unloading when switching scene

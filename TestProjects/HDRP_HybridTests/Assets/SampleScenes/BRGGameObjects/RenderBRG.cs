@@ -337,7 +337,7 @@ public unsafe class RenderBRG : MonoBehaviour
 
     public static Material LoadPickingFallbackMaterial()
     {
-        Shader shader = Shader.Find("Hidden/HDRP/Picking");
+        Shader shader = Shader.Find("Hidden/HDRP/BRGPickingFallback");
         Material material = new Material(shader);
 
         // Prevent Material unloading when switching scene
