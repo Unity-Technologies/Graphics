@@ -47,6 +47,16 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent depthWrite = new GUIContent("Write Depth", "Choose to write depth to the screen.");
             public static GUIContent depthCompareFunction = new GUIContent("Depth Test", "Choose a new test setting for the depth.");
 
+            //Stencil Settings
+            public static GUIContent overrideStencil = new GUIContent("Override Stencil", "Override stencil state of the objects rendered.");
+            public static GUIContent stencilReferenceValue = new GUIContent("Reference", ".");
+            public static GUIContent stencilWriteMask = new GUIContent("Write Mask", ".");
+            public static GUIContent stencilReadMask = new GUIContent("Read Mask", ".");
+            public static GUIContent stencilCompareFunction = new GUIContent("Compare Function", ".");
+            public static GUIContent stencilPassOperation = new GUIContent("Pass", ".");
+            public static GUIContent stencilFailOperation = new GUIContent("Fail", ".");
+            public static GUIContent stencilDepthFailOperation = new GUIContent("Depth Fail", ".");
+
             //Camera Settings
             public static GUIContent overrideCamera = new GUIContent("Camera", "Override camera projections.");
             public static GUIContent cameraFOV = new GUIContent("Field Of View", "Field Of View to render this pass in.");
@@ -84,6 +94,15 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_OverrideDepthState;
         SerializedProperty m_DepthCompareFunction;
         SerializedProperty m_DepthWrite;
+
+        // Override stencil state
+        SerializedProperty m_OverrideStencilState;
+        SerializedProperty m_StencilReferenceValue;
+        SerializedProperty m_StencilWriteMask;
+        SerializedProperty m_StencilReadMask;
+        SerializedProperty m_StencilPassOperation;
+        SerializedProperty m_StencilFailOperation;
+        SerializedProperty m_StencilDepthFailOperation;
 
         ReorderableList m_ShaderPassesList;
 
@@ -268,6 +287,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 rect.y += Styles.defaultLineSpace;
             }
 
+            // Depth properties
             EditorGUI.BeginProperty(rect, Styles.overrideDepth, m_OverrideDepthState);
             {
                 if (customDepthIsNone)
@@ -290,6 +310,52 @@ namespace UnityEditor.Rendering.HighDefinition
                 rect.y += Styles.defaultLineSpace;
                 EditorGUI.PropertyField(rect, m_DepthWrite, Styles.depthWrite);
                 EditorGUI.indentLevel--;
+            }
+
+            // Stencil properties
+            EditorGUI.BeginProperty(rect, Styles.overrideStencil, m_OverrideStencilState);
+            {
+                if (customDepthIsNone)
+                {
+                    using (new EditorGUI.DisabledScope(true))
+                        EditorGUI.Toggle(rect, Styles.overrideStencil, false);
+                }
+                else
+                {
+                    EditorGUI.PropertyField(rect, m_OverrideStencilState, Styles.overrideStencil);
+                }
+            }
+            EditorGUI.EndProperty();
+
+            if (m_OverrideStencilState.boolValue && !customDepthIsNone)
+            {
+                EditorGUI.indentLevel++;
+                rect.y += Styles.defaultLineSpace;
+                EditorGUI.PropertyField(rect, m_StencilReferenceValue, Styles.stencilReferenceValue);
+                rect.y += Styles.defaultLineSpace;
+                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
+                rect.y += Styles.defaultLineSpace;
+                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
+                rect.y += Styles.defaultLineSpace;
+                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
+                rect.y += Styles.defaultLineSpace;
+                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
+                rect.y += Styles.defaultLineSpace;
+                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
+                rect.y += Styles.defaultLineSpace;
+                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
+                rect.y += Styles.defaultLineSpace;
+                EditorGUI.PropertyField(rect, m_StencilReadMask, Styles.stencilReadMask);
+
+                // SerializedProperty m_StencilWriteMask;
+                // SerializedProperty m_StencilReadMask;
+                // SerializedProperty m_StencilPassOperation;
+                // SerializedProperty m_StencilFailOperation;
+                // SerializedProperty m_StencilDepthFailOperation;
+
+
+                EditorGUI.indentLevel--;
+
             }
         }
 
@@ -349,6 +415,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (showMaterialOverride)
                     height += Styles.defaultLineSpace * m_MaterialLines;
                 height += Styles.defaultLineSpace * (m_OverrideDepthState.boolValue && !customDepthIsNone ? 3 : 1);
+                height += Styles.defaultLineSpace * (m_OverrideStencilState.boolValue && !customDepthIsNone ? 6 : 1);
                 var mat = m_OverrideMaterial.objectReferenceValue as Material;
 
 #if SHOW_PASS_NAMES

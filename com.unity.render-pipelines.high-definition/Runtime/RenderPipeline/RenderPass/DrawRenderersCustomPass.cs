@@ -67,6 +67,46 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool depthWrite = true;
 
         /// <summary>
+        /// Override the stencil state of the objects.
+        /// </summary>
+        public bool overrideStencil = false;
+
+        /// <summary>
+        /// Stencil reference value.
+        /// </summary>
+        public int stencilReferenceValue;
+
+        /// <summary>
+        /// Write mask of the stencil.
+        /// </summary>
+        public int stencilWriteMask;
+
+        /// <summary>
+        /// Read mask of the stencil
+        /// </summary>
+        public int stencilReadMask;
+
+        /// <summary>
+        /// Comparison operation between the stencil buffer and the reference value.
+        /// </summary>
+        public CompareFunction stencilCompareFunction;
+
+        /// <summary>
+        /// Operation to execute if the stencil test passes.
+        /// </summary>
+        public StencilOp stencilPassOperation;
+
+        /// <summary>
+        /// Operation to execute if the stencil test fails.
+        /// </summary>
+        public StencilOp stencilFailOperation;
+
+        /// <summary>
+        /// Operation to execute if the depth test fails.
+        /// </summary>
+        public StencilOp stencilDepthFailOperation;
+
+        /// <summary>
         /// Set the shader pass to use when the override material is null
         /// </summary>
         public ShaderPass shaderPass = ShaderPass.Forward;

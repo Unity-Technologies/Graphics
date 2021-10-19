@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent fetchColorBuffer = new GUIContent("Fetch Color Buffer", "Tick this if your effect sample/fetch the camera color buffer");
 
             public readonly static string writeAndFetchColorBufferWarning = "Fetching and Writing to the camera color buffer at the same time is not supported on most platforms.";
+            public readonly static string stencilWriteOverReservedBits = "The Stencil Write Mask of your material overwrites the bits reserved by HDRP. To avoid rendering errors, set the Write Mask to " + (int)(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1);
         }
 
         // Fullscreen pass
@@ -72,8 +73,46 @@ namespace UnityEditor.Rendering.HighDefinition
                             m_MaterialPassName.stringValue = mat.GetPassName(index);
                     }
                     EditorGUI.EndProperty();
+                    rect.y += Styles.defaultLineSpace;
+
+                    if (DoesWriteMaskContainsReservedBits(mat))
+                    {
+                        Rect helpBoxRect = rect;
+                        helpBoxRect.height = Styles.helpBoxHeight;
+                        EditorGUI.HelpBox(helpBoxRect, Styles.stencilWriteOverReservedBits, MessageType.Warning);
+                        rect.y += Styles.helpBoxHeight;
+                    }
+                    // TODO: get the material stencil property and show a warning if writing to HDRP bits
                 }
             }
+        }
+
+        bool DoesWriteMaskContainsReservedBits(Material material)
+        {
+            int writeMask = GetStencilWriteMask(material);
+            return ((writeMask & (int)~(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1)) != 0);
+        }
+
+        int GetStencilWriteMask(Material material)
+        {
+            if (material.shader == null)
+                return 0;
+
+            var serializedShader = new SerializedObject(material.shader);
+            var parsed = serializedShader.FindProperty("m_ParsedForm");
+            var subShaders = parsed.FindPropertyRelative("m_SubShaders");
+            var subShader = subShaders.GetArrayElementAtIndex(0);
+            var passes = subShader.FindPropertyRelative("m_Passes");
+            var pass = passes.GetArrayElementAtIndex(0);
+            var state = pass.FindPropertyRelative("m_State");
+            var writeMask = state.FindPropertyRelative("stencilWriteMask");
+            var writeMaskFloatValue = writeMask.FindPropertyRelative("val");
+            var writeMaskPropertyName = writeMask.FindPropertyRelative("name");
+
+            if (material.HasProperty(writeMaskPropertyName.stringValue))
+                return (int)material.GetFloat(writeMaskPropertyName.stringValue);
+            else
+                return (int)writeMaskFloatValue.floatValue;
         }
 
         protected override float GetPassHeight(SerializedProperty customPass)
@@ -82,6 +121,8 @@ namespace UnityEditor.Rendering.HighDefinition
             int height = (int)(Styles.defaultLineSpace * lineCount);
 
             height += (m_FetchColorBuffer.boolValue && targetColorBuffer == CustomPass.TargetBuffer.Camera) ? (int)Styles.helpBoxHeight : 0;
+            if (m_FullScreenPassMaterial.objectReferenceValue is Material mat)
+                height += (DoesWriteMaskContainsReservedBits(mat)) ? (int)Styles.helpBoxHeight : 0;
 
             return height;
         }
