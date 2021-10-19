@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added a SG node to get the main directional light direction.
 - Added support for orthographic camera in path tracing.
-- Added support for interleaved tiling in path tracing.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
@@ -33,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed area light cookie field to use the same style as the other cookie fields
 - Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
 - Fixed the cloudlayer not using depth buffer.
+- Fixed support for interleaved tiling in path tracing.
 
 ## [13.0.0] - 2021-09-01
 
