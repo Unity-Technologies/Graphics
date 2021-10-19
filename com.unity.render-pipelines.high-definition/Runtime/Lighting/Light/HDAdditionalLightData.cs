@@ -639,7 +639,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// IES texture for Point lights.
         /// </summary>
-        public Texture IESPoint
+        internal Texture IESPoint
         {
             get => m_IESPoint;
             set
@@ -675,6 +675,30 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.LogError("Texture dimension " + value.dimension + " is not supported for spot lights or rectangular light (only square images).");
                     m_IESSpot = null;
                 }
+            }
+        }
+
+        /// <summary>
+        /// IES texture for Point, Spot or Rectangular lights.
+        /// For Point lights, this must be a cubemap.
+        /// For Spot or Rectangle lights, this must be a 2D texture
+        /// </summary>
+        public Texture IESTexture
+        {
+            get
+            {
+                if (type == HDLightType.Point)
+                    return IESPoint;
+                else if (type == HDLightType.Spot || (type == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle))
+                    return IESSpot;
+                return null;
+            }
+            set
+            {
+                if (type == HDLightType.Point)
+                    IESPoint = value;
+                else if (type == HDLightType.Spot || (type == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle))
+                    IESSpot = value;
             }
         }
 
