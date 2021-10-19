@@ -43,6 +43,9 @@ If a Scene uses Density Volumes, HDRP automatically changes the GameObjects to u
 
 However, if you reference a **Density Volume** through a C# script, a warning appears (**DensityVolume has been deprecated (UnityUpgradable) -> Local Volumetric Fog**) in the Console window. This warning may stop your Project from compiling in future versions of HDRP. To resolve this, change your code to target the new component.
 
+The sampling axis of **3DTexture** in the **Density Volume** component has been corrected to match Unity's axis convention.
+To accommodate this change you will have to mirror the **3DTextures** you are using along their **Z axis**.
+
 ## ClearFlag
 
 HDRP 2021.2 includes the new `ClearFlag.Stencil` function. Use this to clear all flags from a stencil.
