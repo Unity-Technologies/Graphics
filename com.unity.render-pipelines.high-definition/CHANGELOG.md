@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for orthographic camera in path tracing.
 - Added public API to edit materials from script at runtime.
 - Added new functions that sample the custom buffer in custom passes (CustomPassSampleCustomColor and CustomPassLoadCustomColor) to handle the RTHandleScale automatically.
+- Added a help box to inform users of the potential dependency to directional lights when baking.
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
