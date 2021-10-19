@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -10,6 +9,11 @@ namespace UnityEditor.Rendering
     using Element = FilterWindow.Element;
     using GroupElement = FilterWindow.GroupElement;
 
+    /// <summary>
+    /// Build a tree for the add volume override menu.
+    ///
+    /// Don't show a volume if it is already in the stack
+    /// </summary>
     class VolumeComponentProvider : IProvider
     {
         class VolumeComponentElement : Element
@@ -25,18 +29,6 @@ namespace UnityEditor.Rendering
             }
         }
 
-        class PathNode : IComparable<PathNode>
-        {
-            public List<PathNode> nodes = new List<PathNode>();
-            public string name;
-            public Type type;
-
-            public int CompareTo(PathNode other)
-            {
-                return name.CompareTo(other.name);
-            }
-        }
-
         public Vector2 position { get; set; }
 
         VolumeProfile m_Target;
@@ -48,96 +40,16 @@ namespace UnityEditor.Rendering
             m_TargetEditor = targetEditor;
         }
 
-        static readonly Dictionary<Type, List<(string, Type)>> s_SupportedVolumeComponentsForRenderPipeline = new();
-
-        static List<(string, Type)> GetSupportedVolumeComponents(Type currentPipelineType)
-        {
-            if (s_SupportedVolumeComponentsForRenderPipeline.TryGetValue(currentPipelineType,
-                out var supportedVolumeComponents))
-                return supportedVolumeComponents;
-
-            supportedVolumeComponents = FilterVolumeComponentTypes(
-                VolumeManager.instance.baseComponentTypeArray, currentPipelineType);
-            s_SupportedVolumeComponentsForRenderPipeline[currentPipelineType] = supportedVolumeComponents;
-
-            return supportedVolumeComponents;
-        }
-
-        static List<(string, Type)> FilterVolumeComponentTypes(Type[] types, Type currentPipelineType)
-        {
-            var volumes = new List<(string, Type)>();
-            foreach (var t in types)
-            {
-                string path = string.Empty;
-
-                var attrs = t.GetCustomAttributes(false);
-
-                bool skipComponent = false;
-
-                // Look for the attributes of this volume component and decide how is added and if it needs to be skipped
-                foreach (var attr in attrs)
-                {
-                    switch (attr)
-                    {
-                        case VolumeComponentMenu attrMenu:
-                        {
-                            path = attrMenu.menu;
-                            if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
-                                skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
-                            break;
-                        }
-                        case HideInInspector attrHide:
-                        case ObsoleteAttribute attrDeprecated:
-                            skipComponent = true;
-                            break;
-                    }
-                }
-
-                if (skipComponent)
-                    continue;
-
-                // If no attribute or in case something went wrong when grabbing it, fallback to a
-                // beautified class name
-                if (string.IsNullOrEmpty(path))
-                    path = ObjectNames.NicifyVariableName(t.Name);
-
-                volumes.Add((path, t));
-            }
-
-            return volumes;
-        }
-
         public void CreateComponentTree(List<Element> tree)
         {
-            var currentPipeline = RenderPipelineManager.currentPipeline;
-            if (currentPipeline == null)
-            {
-                tree.Add(new GroupElement(0, "No SRP in use"));
-                return;
-            }
-
             tree.Add(new GroupElement(0, "Volume Overrides"));
 
-            var volumeComponentTypesFiltered =
-                GetSupportedVolumeComponents(currentPipeline.GetType());
+            if (!VolumeManager.instance.baseComponentSet.GetExtension<VolumeComponentProviderExtension>(out var extension)
+                || extension.root == null)
+                return;
 
-            if (volumeComponentTypesFiltered.Any())
-            {
-                var rootNode = new PathNode();
-
-                foreach (var (path, t) in volumeComponentTypesFiltered)
-                {
-                    // Skip components that have already been added to the volume
-                    if (m_Target.Has(t))
-                        continue;
-
-                    // Prep the categories & types tree
-                    AddNode(rootNode, path, t);
-                }
-
-                // Recursively add all elements to the tree
-                Traverse(rootNode, 1, tree);
-            }
+            // Recursively add all elements to the tree
+            Traverse(extension.root, 1, tree);
         }
 
         public bool GoToChild(Element element, bool addIfComponent)
@@ -151,26 +63,7 @@ namespace UnityEditor.Rendering
             return false;
         }
 
-        void AddNode(PathNode root, string path, Type type)
-        {
-            var current = root;
-            var parts = path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var part in parts)
-            {
-                var child = current.nodes.Find(x => x.name == part);
-
-                if (child == null)
-                {
-                    child = new PathNode { name = part, type = type };
-                    current.nodes.Add(child);
-                }
-
-                current = child;
-            }
-        }
-
-        void Traverse(PathNode node, int depth, List<Element> tree)
+        void Traverse(VolumeComponentProviderExtension.PathNode node, int depth, List<Element> tree)
         {
             node.nodes.Sort();
 
@@ -181,7 +74,7 @@ namespace UnityEditor.Rendering
                     tree.Add(new GroupElement(depth, n.name));
                     Traverse(n, depth + 1, tree);
                 }
-                else // Element
+                else if (!m_Target.Has(n.type)) // Element
                 {
                     tree.Add(new VolumeComponentElement(depth, n.name, n.type));
                 }

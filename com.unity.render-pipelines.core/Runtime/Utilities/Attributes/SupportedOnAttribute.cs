@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
@@ -14,7 +15,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     ///     Use this attribute to specify that a type is compatible with another.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class SupportedOnAttribute : Attribute
     {
         /// <summary>
@@ -49,7 +50,7 @@ namespace UnityEngine.Rendering
         /// <typeparam name="TSubject">Which type will support <typeparamref name="TTarget" />.</typeparam>
         /// <typeparam name="TTarget">Defines what to support.</typeparam>
         /// <returns>Is <typeparamref name="TSubject" /> supported by  <typeparamref name="TTarget" />?.</returns>
-        public static bool IsRelated<TSubject, TTarget>()
+        public static bool IsSupportedBy<TSubject, TTarget>()
         {
             return IsSupportedOn<TSubject, TTarget>.Value;
         }
@@ -59,7 +60,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <typeparam name="TSubject">Does it explicitly support another type?</typeparam>
         /// <returns>Does <typeparamref name="TSubject" /> explicitly support another type?</returns>
-        public static bool HasRelations<TSubject>()
+        public static bool HasExplicitSupport<TSubject>()
         {
             return HasIsSupportedOn<TSubject>.Value;
         }
@@ -69,7 +70,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="subject">Which type will support <paramref name="target" />.</param>
         /// <param name="target">Defines what to support.</param>
-        internal static void RegisterStaticRelation(Type subject, Type target)
+        internal static void RegisterStaticRelation([DisallowNull] Type subject, [DisallowNull] Type target)
         {
             // Note: Null Ref for types.
             //   We fetch an API that is defined below, we fully own the type definition.
@@ -98,7 +99,7 @@ namespace UnityEngine.Rendering
         /// <param name="subject">Which type will support <paramref name="target" />.</param>
         /// <param name="target">Defines what to support.</param>
         [Conditional("SUPPORT_DYNAMIC")]
-        internal static void RegisterDynamicRelation(Type subject, Type target)
+        internal static void RegisterDynamicRelation([DisallowNull] Type subject, [DisallowNull] Type target)
         {
 #if SUPPORT_DYNAMIC
             s_Relations.RegisterRelation(subject, target);
@@ -111,7 +112,7 @@ namespace UnityEngine.Rendering
         /// <param name="subject">Which type will support <paramref name="target" />.</param>
         /// <param name="target">Defines what to support.</param>
         /// <returns></returns>
-        public static bool IsRelated(Type subject, Type target)
+        public static bool IsSupportedBy([DisallowNull] Type subject, [DisallowNull] Type target)
         {
 #if SUPPORT_DYNAMIC
             return s_Relations.IsRelated(subject, target);
@@ -126,7 +127,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="subject">Does it explicitly support another type?</param>
         /// <returns></returns>
-        public static bool HasRelations(Type subject)
+        public static bool HasExplicitSupport([DisallowNull] Type subject)
         {
 #if SUPPORT_DYNAMIC
             return s_Relations.HasRelations(subject);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace UnityEngine.Rendering
 {
@@ -17,7 +18,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="subject"></param>
         /// <param name="target"></param>
-        public void RegisterRelation(Type subject, Type target)
+        public void RegisterRelation([DisallowNull] Type subject, [DisallowNull] Type target)
         {
             if (!m_Dictionary.TryGetValue(subject, out var targets))
             {
@@ -39,7 +40,7 @@ namespace UnityEngine.Rendering
         /// <param name="subject"></param>
         /// <param name="target"></param>
         /// <returns></returns>
-        public bool IsRelated(Type subject, Type target)
+        public bool IsRelated([DisallowNull] Type subject, [DisallowNull] Type target)
         {
             var hasRelations = m_Dictionary.TryGetValue(subject, out var targets);
             return hasRelations && targets.Contains(target) || !hasRelations;
@@ -56,7 +57,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="subject"></param>
         /// <returns></returns>
-        public bool HasRelations(Type subject)
+        public bool HasRelations([DisallowNull] Type subject)
         {
             return m_Dictionary.ContainsKey(subject);
         }

@@ -34,13 +34,17 @@ namespace UnityEngine.Rendering
         public IEnumerable<Type> baseComponentTypes
         {
             get => baseComponentTypeArray;
-            private set { }
+            private set => Debug.LogWarning("VolumeManager.baseComponentTypes is obsolete, please use baseComponentTypeArray instead.");
         }
 
         /// <summary>
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
         /// </summary>
         public Type[] baseComponentTypeArray => m_VolumeComponentSet.baseComponentTypeArray;
+
+        // expose for editor utilities only
+        // not public
+        internal VolumeComponentSet baseComponentSet => m_VolumeComponentSet;
 
         // Max amount of layers available in Unity
         const int k_MaxLayerCount = 32;
@@ -71,8 +75,15 @@ namespace UnityEngine.Rendering
             m_SortNeeded = new Dictionary<int, bool>();
             m_TempColliders = new List<Collider>(8);
 
-            ReloadBaseTypes();
+            RenderPipelineManager.activeRenderPipelineTypeChanged += Initialize;
+            Initialize();
+        }
 
+        void Initialize()
+        {
+            stack?.Dispose();
+
+            ReloadBaseTypes();
             m_DefaultStack = CreateStack();
             stack = m_DefaultStack;
         }
@@ -115,7 +126,11 @@ namespace UnityEngine.Rendering
         {
             var currentPipelineType = RenderPipelineManager.currentPipeline?.GetType();
             m_VolumeComponentSet = VolumeComponentSet.CreateSetFromFilter(type =>
-                IsSupportedOn.IsRelated(type, currentPipelineType));
+                IsSupportedOn.IsSupportedBy(type, currentPipelineType));
+
+#if UNITY_EDITOR
+            m_VolumeComponentSet.AddExtension<VolumeComponentProviderExtension>(out var extension);
+#endif
         }
 
         /// <summary>
