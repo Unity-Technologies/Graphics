@@ -58,6 +58,9 @@ namespace UnityEditor.ShaderGraph
 
             if (pd.pragmas == null)
                 pd.pragmas = new PragmaCollection();
+
+            if (pd.requiredFields == null)
+                pd.requiredFields = new FieldCollection();
         }
 
         /// <summary>
@@ -80,6 +83,7 @@ namespace UnityEditor.ShaderGraph
                     pd.defines.Add(Defines.TerrainShader);
                     AddRPKeywords(ref pd, rpTerrainKeywords, rpTerrainDefines);
                     pd.pragmas.Add(InstancingOptions);
+                    pd.requiredFields.Add(TerrainFields);
                     break;
                 case (int)TerrainShaders.BasemapGen:
                     pd.keywords.Add(Keywords.BasemapGenKeywords);
@@ -92,6 +96,7 @@ namespace UnityEditor.ShaderGraph
                 case (int)TerrainShaders.Basemap:
                     pd.defines.Add(Defines.BasePass);
                     pd.pragmas.Add(InstancingOptions);
+                    pd.requiredFields.Add(TerrainFields);
                     pd.useInPreview = false;
                     break;
                 case (int)TerrainShaders.Add:
@@ -99,6 +104,7 @@ namespace UnityEditor.ShaderGraph
                     AddRPKeywords(ref pd, rpTerrainKeywords, rpTerrainDefines);
                     pd.defines.Add(Defines.AddPass);
                     pd.pragmas.Add(InstancingOptions);
+                    pd.requiredFields.Add(TerrainFields);
                     pd.useInPreview = false;
                     break;
                 default:
@@ -207,6 +213,14 @@ namespace UnityEditor.ShaderGraph
                 { AddPassDesc, 1 }
             };
         }
+
+        public static FieldCollection TerrainFields = new FieldCollection()
+        {
+            // Instanced terrain needs uv0 at all stages to correctly scale UVs
+            StructFields.Attributes.uv0,
+            StructFields.VertexDescriptionInputs.uv0,
+            StructFields.SurfaceDescriptionInputs.uv0
+        };
 
         public static class Keywords
         {
