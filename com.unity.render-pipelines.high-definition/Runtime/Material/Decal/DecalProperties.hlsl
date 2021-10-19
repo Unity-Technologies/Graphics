@@ -35,7 +35,7 @@ float _Metallic;
 
 CBUFFER_END
 
-// Following three variables are fed by the C++ Editor for Scene selection
+// Following three variables are feeded by the C++ Editor for Scene selection
 #ifdef SCENEPICKINGPASS
 float4 _SelectionID;
 #endif
