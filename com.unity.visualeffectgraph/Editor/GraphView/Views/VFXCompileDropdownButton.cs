@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.UI
         readonly Toggle m_ShaderValidationToggle;
         readonly Button m_ResyncMaterial;
 
-        public VFXCompileDropdownButton(VFXView vfxView, VFXViewWindow parentWindow)
+        public VFXCompileDropdownButton(VFXView vfxView)
             : base(
                 vfxView,
                 "VFXCompileDropdownPanel",

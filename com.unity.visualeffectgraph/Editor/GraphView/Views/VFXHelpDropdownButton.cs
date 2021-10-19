@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
         readonly Button m_installSamplesButton;
         readonly Button m_installHelpersButton;
 
-        public VFXHelpDropdownButton(VFXView vfxView, VFXViewWindow parentWindow)
+        public VFXHelpDropdownButton(VFXView vfxView)
             : base(
                 vfxView,
                 "VFXHelpDropdownPanel",
