@@ -16,7 +16,6 @@ namespace UnityEditor.VFX.UI
     [Serializable]
     class VFXViewWindow : EditorWindow
     {
-        static Dictionary<VFXView, VFXViewWindow> s_windows = new Dictionary<VFXView, VFXViewWindow>();
 
         ShortcutHandler m_ShortcutHandler;
 
@@ -50,36 +49,37 @@ namespace UnityEditor.VFX.UI
             GetWindow<VFXViewWindow>();
         }
 
-        public static void ShowWindow(VFXView vfxView)
+        public static VFXViewWindow GetWindow(VisualEffectAsset vfxAsset, bool createIfNeeded = false)
         {
-            VFXLibrary.LogUnsupportedSRP();
+            return GetWindowLambda(x => x.graphView?.controller?.graph.visualEffectResource.asset == vfxAsset, createIfNeeded);
+        }
 
-            if (!s_windows.TryGetValue(vfxView, out var window))
+        public static VFXViewWindow GetWindow(VFXGraph vfxGraph, bool createIfNeeded = false)
+        {
+            return GetWindowLambda(x => x.graphView?.controller?.graph.visualEffectResource == vfxGraph.visualEffectResource, createIfNeeded);
+        }
+
+        static VFXViewWindow GetWindowLambda(Func<VFXViewWindow, bool> func, bool createIfNeeded)
+        {
+            var windows = Resources.FindObjectsOfTypeAll<VFXViewWindow>().ToArray();
+            var window = windows.SingleOrDefault(func);
+            if (window == null)
             {
-                window = GetWindow<VFXViewWindow>();
-                s_windows[vfxView] = window;
+                window = windows.SingleOrDefault(x => x.graphView == null);
             }
 
-            window?.Show();
+            if (window == null && createIfNeeded)
+            {
+                window = CreateWindow();
+            }
+
+            window?.Show(true);
+
+            return window;
         }
 
-        public static VFXViewWindow ShowWindow(VisualEffectAsset vfxAsset)
-        {
-            return ShowWindowGeneric(x => x.controller == null || x.controller.graph.visualEffectResource.asset == vfxAsset);
-        }
-
-        public static VFXViewWindow ShowWindow(VisualEffectResource vfxResource)
-        {
-            return ShowWindowGeneric(x => x.controller == null || x.controller.graph.visualEffectResource == vfxResource);
-        }
-
-        public static VFXViewWindow GetWindow(VFXGraph vfxGraph)
-        {
-            return s_windows.SingleOrDefault(x => x.Key.controller.graph == vfxGraph).Value;
-        }
-
-        public static VFXViewWindow GetWindow(VFXView vfxView) => s_windows.TryGetValue(vfxView, out var window) ? window : null;
-        public static IEnumerable<VFXViewWindow> GetAllWindows() => s_windows.Values.ToArray();
+        public static VFXViewWindow GetWindow(VFXView vfxView) => GetWindow(vfxView.controller?.graph);
+        public static IEnumerable<VFXViewWindow> GetAllWindows() => Resources.FindObjectsOfTypeAll<VFXViewWindow>().ToArray();
 
         public VFXView graphView { get; private set; }
 
@@ -104,12 +104,12 @@ namespace UnityEditor.VFX.UI
         public void LoadResource(VisualEffectResource resource, VisualEffect effectToAttach = null)
         {
             m_ResourceHistory.Clear();
-            if (graphView.controller == null || graphView.controller.model != resource)
+            if (graphView?.controller == null || graphView.controller.model != resource)
             {
                 InternalLoadResource(resource);
             }
 
-            if (!graphView.TryAttachTo(effectToAttach))
+            if (graphView?.TryAttachTo(effectToAttach) != true)
             {
                 s_LastAttachedComponent = null;
             }
@@ -154,6 +154,11 @@ namespace UnityEditor.VFX.UI
 
         protected VisualEffectResource GetCurrentResource()
         {
+            if (m_DisplayedResource != null)
+            {
+                return m_DisplayedResource;
+            }
+
             var objs = Selection.objects;
 
             VisualEffectResource selectedResource = null;
@@ -182,10 +187,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-            if (selectedResource == null && m_DisplayedResource != null)
-            {
-                selectedResource = m_DisplayedResource;
-            }
+
             return selectedResource;
         }
 
@@ -199,7 +201,6 @@ namespace UnityEditor.VFX.UI
                 m_ResourceHistory = new List<VisualEffectResource>();
 
             graphView = new VFXView();
-            s_windows[graphView] = this;
             graphView.StretchToParentSize();
             SetupFramingShortcutHandler(graphView);
 
@@ -259,28 +260,17 @@ namespace UnityEditor.VFX.UI
                 graphView.Dispose();
                 graphView = null;
             }
-
-            if (graphView != null)
-            {
-                s_windows.Remove(graphView);
-            }
         }
 
-        static VFXViewWindow ShowWindowGeneric(Func<VFXView, bool> action)
+        static VFXViewWindow CreateWindow()
         {
-            var window = s_windows.SingleOrDefault(x => action(x.Key)).Value;
-            if (window == null)
-            {
-                window = CreateInstance<VFXViewWindow>();
-            }
+            var lastVFXWindow = GetAllWindows().LastOrDefault();
 
-            var lastVFXWindow = s_windows.LastOrDefault(x => x.Value != window).Value;
+            var window = CreateInstance<VFXViewWindow>();
+
             if (!TryToTabNextTo(lastVFXWindow, window))
             {
-                if (!TryToTabNextTo(GetWindowDontShow<SceneView>(), window))
-                {
-                    window.Show(true);
-                }
+                TryToTabNextTo(GetWindowDontShow<SceneView>(), window);
             }
 
             return window;

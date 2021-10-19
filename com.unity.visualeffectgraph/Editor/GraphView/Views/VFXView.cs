@@ -514,10 +514,10 @@ namespace UnityEditor.VFX.UI
 
             m_Toolbar = new UnityEditor.UIElements.Toolbar();
 
-            var saveDropDownButton = new VFXSaveDropdownButton(this, VFXViewWindow.GetWindow(this));
+            var saveDropDownButton = new VFXSaveDropdownButton(this);
             m_Toolbar.Add(saveDropDownButton);
 
-            var compileDropDownButton = new VFXCompileDropdownButton(this, VFXViewWindow.GetWindow(this));
+            var compileDropDownButton = new VFXCompileDropdownButton(this);
             m_Toolbar.Add(compileDropDownButton);
 
             m_LinkedIcon = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "Linked.png"));
@@ -553,7 +553,7 @@ namespace UnityEditor.VFX.UI
             m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
             m_Toolbar.Add(m_ToggleComponentBoard);
 
-            var helpDropDownButton = new VFXHelpDropdownButton(this, VFXViewWindow.GetWindow(this));
+            var helpDropDownButton = new VFXHelpDropdownButton(this);
             m_Toolbar.Add(helpDropDownButton);
             // End Toolbar
 
@@ -821,8 +821,13 @@ namespace UnityEditor.VFX.UI
 
         public void AttachToSelection()
         {
+            if (m_Controller == null)
+            {
+                return;
+            }
+
             var vfxWindow = VFXViewWindow.GetWindow(this);
-            if (TryAttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>()) && vfxWindow != null)
+            if (vfxWindow != null && TryAttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>()) && vfxWindow != null)
             {
                 string truncatedObjectName = TruncateName(Selection.activeObject.name, MaximumNameLengthInNotification);
                 vfxWindow.ShowNotification(new GUIContent($"Attached to {truncatedObjectName}"), 1.5);
