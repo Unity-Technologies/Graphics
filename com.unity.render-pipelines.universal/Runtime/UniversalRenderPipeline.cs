@@ -145,6 +145,8 @@ namespace UnityEngine.Rendering.Universal
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
+        internal static VolumeStack currentStack;
+
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
 #if UNITY_EDITOR
@@ -669,8 +671,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     camera.UpdateVolumeStack(additionalCameraData);
                 }
-
-                VolumeManager.instance.stack = additionalCameraData.volumeStack;
                 return;
             }
 
@@ -685,11 +685,11 @@ namespace UnityEngine.Rendering.Universal
 
             // Get the mask + trigger and update the stack
             camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out LayerMask layerMask, out Transform trigger);
-            VolumeManager.instance.ResetMainStack();
-            VolumeManager.instance.Update(trigger, layerMask);
+            VolumeManager.instance.Update(additionalCameraData.volumeStack, trigger, layerMask);
+            currentStack = additionalCameraData.volumeStack;
         }
 
-        static bool CheckPostProcessForDepth(in CameraData cameraData)
+        static bool CheckPostProcessForDepth(in CameraData cameraData, VolumeStack volumeStack)
         {
             if (!cameraData.postProcessEnabled)
                 return false;
@@ -697,12 +697,10 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
                 return true;
 
-            var stack = VolumeManager.instance.stack;
-
-            if (stack.GetComponent<DepthOfField>().IsActive())
+            if (volumeStack.GetComponent<DepthOfField>().IsActive())
                 return true;
 
-            if (stack.GetComponent<MotionBlur>().IsActive())
+            if (volumeStack.GetComponent<MotionBlur>().IsActive())
                 return true;
 
             return false;
@@ -902,7 +900,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             cameraData.requiresDepthTexture |= isSceneViewCamera;
-            cameraData.postProcessingRequiresDepthTexture |= CheckPostProcessForDepth(cameraData);
+            cameraData.postProcessingRequiresDepthTexture |= CheckPostProcessForDepth(cameraData, additionalCameraData.volumeStack);
             cameraData.resolveFinalTarget = resolveFinalTarget;
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls

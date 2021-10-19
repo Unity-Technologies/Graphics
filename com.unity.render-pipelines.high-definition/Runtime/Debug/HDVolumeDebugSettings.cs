@@ -5,6 +5,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public class HDVolumeDebugSettings : VolumeDebugSettings<HDAdditionalCameraData>
     {
+        static VolumeStack s_DefaultStack = new VolumeStack(HDUtils.hdVolumeArchetype);
+
+        public override VolumeComponentArchetype archetype => HDUtils.hdVolumeArchetype;
+
         /// <summary>Selected camera volume stack.</summary>
         public override VolumeStack selectedCameraVolumeStack
         {
@@ -16,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var stack = HDCamera.GetOrCreate(cam).volumeStack;
                 if (stack != null)
                     return stack;
-                return VolumeManager.instance.stack;
+                return s_DefaultStack;
             }
         }
 

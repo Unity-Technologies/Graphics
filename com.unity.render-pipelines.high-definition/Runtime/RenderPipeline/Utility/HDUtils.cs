@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
 using System.Text.RegularExpressions;
@@ -54,6 +55,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_ClearTexture3D;
             }
         }
+
+        [NotNull]
+        internal static VolumeComponentArchetype hdVolumeArchetype { get; } = VolumeComponentArchetype.FromFilter(new IsSupportedVolumeComponentFilter(typeof(HDRenderPipeline)));
 
         /// <summary>
         /// Default 1x1x1 3D RTHandle initialized with Color.clear.

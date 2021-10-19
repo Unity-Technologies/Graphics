@@ -1652,7 +1652,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var componentValues = new List<int>() { componentIndex++ };
 
             // TODO @alex.vazquez: Use the same method as VolumeComponentProvider
-            foreach (var type in HDVolumeDebugSettings.componentTypes)
+            foreach (var type in ((HDVolumeDebugSettings)data.volumeDebugSettings).archetype.AsArray())
             {
                 componentNames.Add(new GUIContent() { text = HDVolumeDebugSettings.ComponentDisplayName(type) });
                 componentValues.Add(componentIndex++);

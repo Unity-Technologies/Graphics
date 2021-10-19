@@ -228,7 +228,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // Start by pre-fetching all builtin effect settings we need
             // Some of the color-grading settings are only used in the color grading lut pass
-            var stack = VolumeManager.instance.stack;
+            var stack = UniversalRenderPipeline.currentStack;
             m_DepthOfField = stack.GetComponent<DepthOfField>();
             m_MotionBlur = stack.GetComponent<MotionBlur>();
             m_PaniniProjection = stack.GetComponent<PaniniProjection>();

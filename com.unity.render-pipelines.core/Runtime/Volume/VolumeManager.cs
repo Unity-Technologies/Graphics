@@ -42,11 +42,8 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
         /// </summary>
-        public Type[] baseComponentTypeArray => m_VolumeComponentArchetype.AsArray();
-
-        // expose for editor utilities only
-        // not public
-        internal VolumeComponentArchetype baseComponentArchetype => m_VolumeComponentArchetype;
+        [Obsolete("Use VolumeComponentArchetype to get the appropriate type array.")]
+        public Type[] baseComponentTypeArray => null;
 
         // Max amount of layers available in Unity
         const int k_MaxLayerCount = 32;
@@ -63,33 +60,13 @@ namespace UnityEngine.Rendering
         // Recycled list used for volume traversal
         readonly List<Collider> m_TempColliders;
 
-        // The default stack the volume manager uses.
-        // We cache this as users able to change the stack through code and
-        // we want to be able to switch to the default one through the ResetMainStack() function.
-        VolumeStack m_DefaultStack = null;
-
-        VolumeComponentArchetype m_VolumeComponentArchetype;
-
         VolumeManager()
         {
             m_SortedVolumes = new Dictionary<int, List<Volume>>();
             m_Volumes = new List<Volume>();
             m_SortNeeded = new Dictionary<int, bool>();
             m_TempColliders = new List<Collider>(8);
-
-            RenderPipelineManager.activeRenderPipelineTypeChanged += Initialize;
-            Initialize();
         }
-
-        void Initialize()
-        {
-            stack?.Dispose();
-
-            ReloadBaseTypes();
-            m_DefaultStack = CreateStack();
-            stack = m_DefaultStack;
-        }
-
         /// <summary>
         /// Creates and returns a new <see cref="VolumeStack"/> to use when you need to store
         /// the result of the Volume blending pass in a separate stack.
@@ -100,17 +77,16 @@ namespace UnityEngine.Rendering
         [Obsolete("Please use new VolumeStack(VolumeComponentArchetype) instead to create a stack.")]
         public VolumeStack CreateStack()
         {
-            var stack = new VolumeStack(m_VolumeComponentArchetype);
-            return stack;
+            return null;
         }
 
         /// <summary>
         /// Resets the main stack to be the default one.
         /// Call this function if you've assigned the main stack to something other than the default one.
         /// </summary>
+        [Obsolete("Not required")]
         public void ResetMainStack()
         {
-            stack = m_DefaultStack;
         }
 
         /// <summary>
@@ -120,14 +96,6 @@ namespace UnityEngine.Rendering
         public void DestroyStack(VolumeStack stack)
         {
             stack.Dispose();
-        }
-
-        // This will be called only once at runtime and everytime script reload kicks-in in the
-        // editor as we need to keep track of any compatible component in the project
-        void ReloadBaseTypes()
-        {
-            var currentPipelineType = RenderPipelineManager.currentPipeline?.GetType();
-            m_VolumeComponentArchetype = VolumeComponentArchetype.FromFilter(new IsSupportedVolumeComponentFilter(currentPipelineType));
         }
 
         /// <summary>
@@ -246,6 +214,7 @@ namespace UnityEngine.Rendering
         /// entering and exiting of play mode and domain reload.
         /// </summary>
         [Conditional("UNITY_EDITOR")]
+        [Obsolete("Not required anymore")]
         public void CheckBaseTypes()
         {
 
@@ -270,6 +239,7 @@ namespace UnityEngine.Rendering
         /// </param>
         /// <param name="layerMask">The LayerMask that the Volume manager uses to filter Volumes that it should consider
         /// for blending.</param>
+        [Obsolete("Use the overload with the stack parameter.")]
         public void Update(Transform trigger, LayerMask layerMask)
         {
             Update(stack, trigger, layerMask);
@@ -288,8 +258,7 @@ namespace UnityEngine.Rendering
         {
             Assert.IsNotNull(stack);
 
-            CheckBaseTypes();
-            CheckStack(stack);
+            stack.CheckStack();
 
             if (stack.archetype.GetOrAddDefaultState(out var defaultState))
                 // Start by resetting the global state to default values

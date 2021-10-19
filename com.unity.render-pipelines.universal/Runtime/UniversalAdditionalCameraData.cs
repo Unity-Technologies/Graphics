@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
             // Create stack for camera
             if (cameraData.volumeStack == null)
             {
-                cameraData.volumeStack = VolumeManager.instance.CreateStack();
+                cameraData.volumeStack = new VolumeStack(RenderingUtils.volumeArchetype);
             }
 
             camera.GetVolumeLayerMaskAndTrigger(cameraData, out LayerMask layerMask, out Transform trigger);

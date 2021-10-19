@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using JetBrains.Annotations;
 using UnityEditor;
 
 namespace UnityEngine.Rendering
@@ -14,6 +15,9 @@ namespace UnityEngine.Rendering
     {
         /// <summary>Current volume component to debug.</summary>
         public int selectedComponent { get; set; } = 0;
+
+        [NotNull]
+        public abstract VolumeComponentArchetype archetype { get; }
 
         protected int m_SelectedCameraIndex = 0;
 
@@ -78,33 +82,18 @@ namespace UnityEngine.Rendering
         /// <summary>Type of the current component to debug.</summary>
         public Type selectedComponentType
         {
-            get { return componentTypes[selectedComponent - 1]; }
+            get => archetype?.AsArray()[selectedComponent - 1];
             set
             {
-                var index = componentTypes.FindIndex(t => t == value);
+                var index = Array.FindIndex(archetype.AsArray(), t => t == value);
                 if (index != -1)
                     selectedComponent = index + 1;
             }
         }
 
-        static List<Type> s_ComponentTypes;
-
         /// <summary>List of Volume component types.</summary>
-        static public List<Type> componentTypes
-        {
-            get
-            {
-                if (s_ComponentTypes == null)
-                {
-                    s_ComponentTypes = VolumeManager.instance.baseComponentTypeArray
-                        .Where(t => !t.IsDefined(typeof(HideInInspector), false))
-                        .Where(t => !t.IsDefined(typeof(ObsoleteAttribute), false))
-                        .OrderBy(t => ComponentDisplayName(t))
-                        .ToList();
-                }
-                return s_ComponentTypes;
-            }
-        }
+        [Obsolete]
+        static public List<Type> componentTypes => null;
 
         /// <summary>Returns the name of a component from its VolumeComponentMenuForRenderPipeline.</summary>
         /// <param name="component">A volume component.</param>
