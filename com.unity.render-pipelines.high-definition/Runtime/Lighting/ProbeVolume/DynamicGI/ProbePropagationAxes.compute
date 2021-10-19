@@ -225,8 +225,8 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
     const int index = id.x;
     if (index < _ProbeVolumeNeighborsCount)
     {
-        const uint probeIndex = (uint)index / NEIGHBOR_AXIS_COUNT;
-        const uint axisIndex = (uint)index - probeIndex * NEIGHBOR_AXIS_COUNT;
+        const uint axisIndex = (uint)index / _ProbeVolumeProbeCount;
+        const uint probeIndex = (uint)index - axisIndex * _ProbeVolumeProbeCount;
 
         float4 lightingAndWeight = float4(0, 0, 0, 1);
         uint3 probeCoordinate = ProbeIndexToProbeCoordinatesUint(probeIndex);
@@ -237,6 +237,12 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         // Early out at far distances
         if (IsFarFromCamera(probePositionWS, _RangeInFrontOfCamera, _RangeBehindCamera))
         {
+            #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
+            _RadianceCacheAxis[index] = 0;
+            #else
+            _RadianceCacheAxis[index] = _PreviousRadianceCacheAxis[index];
+            #endif
+            
             return;
         }
 
@@ -263,7 +269,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             float sgWeight = neighborAxisLookup.x;
 
             float3 neighborDirection = _RayAxis[i].xyz;
-            uint sampleAxis = probeIndex * NEIGHBOR_AXIS_COUNT + i;
+            uint sampleAxis = i * _ProbeVolumeProbeCount + probeIndex;
             NeighborAxis neighbor = _ProbeVolumeNeighbors[sampleAxis];
 
             uint hitIndex = 0;
@@ -322,6 +328,6 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         probeValidity *= 1.0 / PROPAGATION_AXIS_AMOUNT;
 
         lightingAndWeight.rgb += incomingRadiance * _PropagationContribution;
-        WritePropagationOutput(probeIndex, axisIndex, lightingAndWeight, probeValidity);
+        WritePropagationOutput(index, lightingAndWeight, probeValidity);
     }
 }

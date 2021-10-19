@@ -893,96 +893,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return probeVolumeAsset.rotation;
         }
 
-        bool CheckMigrationRequirement()
-        {
-            if (probeVolumeAsset == null) return false;
-            if (probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.Current) return false;
-            return true;
-        }
-
         void Migrate()
         {
-            // Must not be called at deserialization time if require other component
-            while (CheckMigrationRequirement())
-            {
-                ApplyMigration();
-            }
-        }
-
-        void ApplyMigration()
-        {
-            switch ((ProbeVolumeAsset.AssetVersion)probeVolumeAsset.Version)
-            {
-                case ProbeVolumeAsset.AssetVersion.First:
-                    ApplyMigrationAddProbeVolumesAtlasEncodingModes();
-                    break;
-
-                case ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes:
-                    ApplyMigrationAddOctahedralDepthVarianceFromLightmapper();
-                    break;
-                case ProbeVolumeAsset.AssetVersion.AddOctahedralDepthVarianceFromLightmapper:
-                    ApplyMigrationAddRotation();
-                    break;
-                default:
-                    // No migration required.
-                    break;
-            }
-        }
-
-        void ApplyMigrationAddProbeVolumesAtlasEncodingModes()
-        {
-            Debug.Assert(probeVolumeAsset != null && probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.First);
-
-            probeVolumeAsset.m_Version = (int)ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes;
-
-            int probeLength = probeVolumeAsset.dataSH.Length;
-
-            ProbeVolumePayload.Allocate(ref probeVolumeAsset.payload, probeLength);
-
-            for (int i = 0; i < probeLength; ++i)
-            {
-                ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, probeVolumeAsset.dataSH[i], i);
-            }
-
-            probeVolumeAsset.dataSH = null;
-            probeVolumeAsset.dataValidity = null;
-            probeVolumeAsset.dataOctahedralDepth = null;
-        }
-
-        void ApplyMigrationAddOctahedralDepthVarianceFromLightmapper()
-        {
-            Debug.Assert(probeVolumeAsset != null && probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes);
-
-            probeVolumeAsset.m_Version = (int)ProbeVolumeAsset.AssetVersion.AddOctahedralDepthVarianceFromLightmapper;
-
-            if (probeVolumeAsset.payload.dataOctahedralDepth == null) { return; }
-
-            int probeLength = ProbeVolumePayload.GetLength(ref probeVolumeAsset.payload);
-            var dataOctahedralDepthMigrated = new float[probeLength * ProbeVolumePayload.GetDataOctahedralDepthStride()];
-
-            // Previously, the lightmapper only returned scalar mean depth values for octahedralDepth.
-            // Now it returns float2(depthMean, depthMean^2) which can be used to reconstruct a variance estimate.
-            int dataOctahedralDepthLengthPrevious = probeVolumeAsset.payload.dataOctahedralDepth.Length;
-            for (int i = 0; i < dataOctahedralDepthLengthPrevious; ++i)
-            {
-                float depthMean = probeVolumeAsset.payload.dataOctahedralDepth[i];
-
-                // For our migration, simply initialize our depthMeanSquared slots with depthMean * depthMean, which will reconstruct a zero variance estimate.
-                // Really, the user will want to rebake to get a real variance estimate. This migration just ensures we do not error out.
-                float depthMeanSquared = depthMean * depthMean;
-                dataOctahedralDepthMigrated[i * 2 + 0] = depthMean;
-                dataOctahedralDepthMigrated[i * 2 + 1] = depthMeanSquared;
-            }
-            probeVolumeAsset.payload.dataOctahedralDepth = dataOctahedralDepthMigrated;
-        }
-
-        void ApplyMigrationAddRotation()
-        {
-            Debug.Assert(probeVolumeAsset != null && probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.AddOctahedralDepthVarianceFromLightmapper);
-
-            probeVolumeAsset.m_Version = (int)ProbeVolumeAsset.AssetVersion.AddRotation;
-
-            probeVolumeAsset.rotation = transform.rotation;
+            if (probeVolumeAsset != null)
+                probeVolumeAsset.Migrate(this);
         }
 
         protected void OnEnable()
