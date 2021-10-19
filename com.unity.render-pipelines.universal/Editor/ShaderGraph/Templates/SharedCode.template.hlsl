@@ -27,7 +27,8 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
 #endif // ENABLE_TERRAIN_PERPIXEL_NORMAL
 #endif // UNITY_INSTANCING_ENABLED
     // terrain lightmap uvs are always taken from uv0
-    input.texCoord1 = input.texCoord2 = input.texCoord0;
+    $SurfaceDescriptionInputs.uv1:  input.texCoord1 = input.texCoord0;
+    $SurfaceDescriptionInputs.uv2:  input.texCoord2 = input.texCoord0;
     $SurfaceDescriptionInputs.WorldSpaceNormal:                             output.WorldSpaceNormal = input.tangentToWorld[2].xyz;
     $SurfaceDescriptionInputs.WorldSpaceTangent:                            output.WorldSpaceTangent = normalize(input.tangentToWorld[0].xyz);
     $SurfaceDescriptionInputs.WorldSpaceBiTangent:                          output.WorldSpaceBiTangent = input.tangentToWorld[1].xyz;
