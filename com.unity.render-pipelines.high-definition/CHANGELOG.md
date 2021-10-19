@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed anchor position offset property for the Light Anchor component. (case 1362809)
 - Fixed minor performance issues in SSGI (case 1367144).
 - Fixed scaling issues with dynamic resolution and the CustomPassSampleCameraColor function.
+- Fixed Z axis orientation when sampling 3D textures in local volumetric fog.
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
