@@ -61,13 +61,22 @@ namespace UnityEngine.Rendering.Universal
     {
         private DecalEntityManager m_EntityManager;
         private ProfilingSampler m_Sampler;
-        public float maxDrawDistance;
+        private float m_MaxDrawDistance;
+
+        /// <summary>
+        /// Provides acces to the maximum draw distance.
+        /// </summary>
+        public float maxDrawDistance
+        {
+            get { return m_MaxDrawDistance; }
+            set { m_MaxDrawDistance = value; }
+        }
 
         public DecalCreateDrawCallSystem(DecalEntityManager entityManager, float maxDrawDistance)
         {
             m_EntityManager = entityManager;
             m_Sampler = new ProfilingSampler("DecalCreateDrawCallSystem.Execute");
-            this.maxDrawDistance = maxDrawDistance;
+            m_MaxDrawDistance = maxDrawDistance;
         }
 
         public void Execute()
@@ -102,7 +111,7 @@ namespace UnityEngine.Rendering.Universal
                 cullingMask = culledChunk.cullingMask,
                 visibleDecalIndices = culledChunk.visibleDecalIndices,
                 visibleDecalCount = culledChunk.visibleDecalCount,
-                maxDrawDistance = maxDrawDistance,
+                maxDrawDistance = m_MaxDrawDistance,
 
                 decalToWorldsDraw = drawCallChunk.decalToWorlds,
                 normalToDecalsDraw = drawCallChunk.normalToDecals,

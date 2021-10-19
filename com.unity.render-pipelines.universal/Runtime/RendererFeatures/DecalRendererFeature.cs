@@ -511,7 +511,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 if (m_DecalUpdateCullingGroupSystem != null)
                 {
-                    m_DecalUpdateCullingGroupSystem.boundingDistance[0] = AdaptivePerformance.AdaptivePerformanceRenderSettings.DecalsDrawDistance;
+                    m_DecalUpdateCullingGroupSystem.boundingDistance = AdaptivePerformance.AdaptivePerformanceRenderSettings.DecalsDrawDistance;
                 }
             }
         }
