@@ -57,17 +57,11 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
             surfaceData.occlusion = 1;
             surfaceData.clearCoatMask = 0;
             surfaceData.clearCoatSmoothness = 1;
+            surfaceData.specular = 1;
+            surfaceData.metallic = 0;
             if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
             {
-                surfaceData.specular = 1;
-                surfaceData.metallic = 0;
                 surfaceData.smoothness = 1;
-            }
-            else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
-            {
-                surfaceData.specular = 0;
-                surfaceData.metallic = 1;
-                surfaceData.smoothness = 0;
             }
             changed = true;
         }
