@@ -35,6 +35,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_TargetColorBuffer;
         SerializedProperty m_TargetDepthBuffer;
 
+        bool m_ShowStencilWriteWarning = false;
+
         CustomPass.TargetBuffer targetColorBuffer => (CustomPass.TargetBuffer)m_TargetColorBuffer.intValue;
         CustomPass.TargetBuffer targetDepthBuffer => (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue;
 
@@ -80,14 +82,24 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if (DoesWriteMaskContainsReservedBits(mat))
                     {
+                        if (!m_ShowStencilWriteWarning)
+                        {
+                            m_ShowStencilWriteWarning = true;
+                            GUI.changed = true; // Workaround to update the internal state of the ReorderableList and update the height of the element.
+                        }
                         Rect helpBoxRect = rect;
                         helpBoxRect.height = Styles.helpBoxHeight;
                         EditorGUI.HelpBox(helpBoxRect, Styles.stencilWriteOverReservedBits, MessageType.Warning);
                         rect.y += Styles.helpBoxHeight;
                     }
-                    // TODO: get the material stencil property and show a warning if writing to HDRP bits
+                    else if (m_ShowStencilWriteWarning)
+                    {
+                        m_ShowStencilWriteWarning = false;
+                        GUI.changed = true; // Workaround to update the internal state of the ReorderableList and update the height of the element.
+                    }
                 }
             }
+            GUI.changed = true;
         }
 
         bool DoesWriteMaskContainsReservedBits(Material material)
