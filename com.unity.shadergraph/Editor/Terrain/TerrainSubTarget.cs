@@ -48,6 +48,18 @@ namespace UnityEditor.ShaderGraph
             yield return GetAddPassSubShader(rpSsd);
         }
 
+        private static void InitializePd(ref PassDescriptor pd)
+        {
+            if (pd.keywords == null)
+                pd.keywords = new KeywordCollection();
+
+            if (pd.defines == null)
+                pd.defines = new DefineCollection();
+
+            if (pd.pragmas == null)
+                pd.pragmas = new PragmaCollection();
+        }
+
         /// <summary>
         /// Depending on the target shaderIdx, set up pass descriptors correctly for Terrain main and dependency shaders.
         /// </summary>
@@ -60,6 +72,7 @@ namespace UnityEditor.ShaderGraph
         public static void PostProcessPass(ref PassDescriptor pd, int shaderIdx, string basemapGenTemplate = "", KeywordCollection rpTerrainKeywords = null, DefineCollection rpTerrainDefines = null, FieldCollection rpBasemapGenFields = null)
         {
             pd.includes.Add(Includes.TerrainIncludes);
+            InitializePd(ref pd);
             switch (shaderIdx)
             {
                 case (int)TerrainShaders.Main:
@@ -93,6 +106,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        private static void AddTerrainTag(ref SubShaderDescriptor ssd)
+        {
+            if (ssd.customTags == null || ssd.customTags.Length == 0)
+                ssd.customTags = kTerrainTag;
+            else
+                ssd.customTags = string.Concat(ssd.customTags, " ", kTerrainTag);
+        }
+
         /// <summary>
         /// Sets up terrain tag and postprocesses all passes in a given subshader descriptor.
         /// </summary>
@@ -104,7 +125,7 @@ namespace UnityEditor.ShaderGraph
         /// <param name="rpBasemapGenFields">Fields that must be enabled for a basic blit shader in the current render pipeline.</param>
         public static void PostProcessSubShader(ref SubShaderDescriptor ssd, int shaderIdx, string basemapGenTemplate = "", KeywordCollection rpTerrainKeywords = null, DefineCollection rpTerrainDefines = null, FieldCollection rpBasemapGenFields = null)
         {
-            ssd.customTags.Insert(ssd.customTags.Length, kTerrainTag);
+            AddTerrainTag(ref ssd);
             var passes = ssd.passes.ToArray();
             PassCollection finalPasses = new PassCollection();
             for (int i = 0; i < passes.Length; i++)
