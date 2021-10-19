@@ -329,24 +329,20 @@ namespace UnityEditor.ShaderGraph
 
                 if (!fieldName.StartsWith("features", StringComparison.Ordinal) && activeFields.permutationCount > 0)
                 {
-                    var passedPermutations = activeFields.allPermutations.instances.Where(i => i.Contains(fieldName)).ToList();
-                    if (passedPermutations.Count > 0)
+                    var activePermutations = activeFields.SelectPermutationsWhere(i => i.Contains(fieldName));
+                    if (activePermutations.Any())
                     {
                         string ifdefs = null;
-                        if (passedPermutations.Count < activeFields.permutationCount)
+                        if (activePermutations.Count() < activeFields.permutationCount)
                         {
-                            ifdefs = KeywordUtil.GetKeywordPermutationSetConditional(
-                                passedPermutations.Select(i => i.permutationIndex).ToList()
-                            );
+                            ifdefs = KeywordUtil.GetKeywordPermutationSetConditional(activePermutations);
                             result.AppendLine(ifdefs);
                         }
                         //Append the rest of the line
                         AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
                         result.AppendNewLine();
                         if (ifdefs != null)
-                        {
                             result.AppendLine("#endif");
-                        }
                         return false;
                     }
                     else

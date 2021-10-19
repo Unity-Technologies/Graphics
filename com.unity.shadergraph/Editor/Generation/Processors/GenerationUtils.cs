@@ -86,12 +86,13 @@ namespace UnityEditor.ShaderGraph
 
                     if (activeFields.permutationCount > 0)
                     {
-                        //find all active fields per permutation
-                        var instances = activeFields.allPermutations.instances
-                            .Where(i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional))).ToList();
-                        fieldIsActive = instances.Count > 0;
-                        if (fieldIsActive && (instances.Count < activeFields.permutationCount))
-                            keywordIfDefs = KeywordUtil.GetKeywordPermutationSetConditional(instances.Select(i => i.permutationIndex).ToList());
+                        // find all active fields per permutation
+                        var activeInstances = activeFields.SelectPermutationsWhere(
+                            i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional)));
+                        fieldIsActive = activeInstances.Any();
+                        bool fieldIsAlwaysActive = (activeInstances.Count() == activeFields.permutationCount);
+                        if (fieldIsActive && !fieldIsAlwaysActive)
+                            keywordIfDefs = KeywordUtil.GetKeywordPermutationSetConditional(activeInstances);
                     }
                     else
                         fieldIsActive = IsFieldActive(subscript, activeFields.baseInstance, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional));
@@ -141,11 +142,12 @@ namespace UnityEditor.ShaderGraph
                 if (activeFields.permutationCount > 0)
                 {
                     //find all active fields per permutation
-                    var instances = activeFields.allPermutations.instances
-                        .Where(i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional))).ToList();
-                    fieldIsActive = instances.Count > 0;
-                    if (fieldIsActive && (instances.Count < activeFields.permutationCount))
-                        keywordIfDefs = KeywordUtil.GetKeywordPermutationSetConditional(instances.Select(i => i.permutationIndex).ToList());
+                    var activeInstances = activeFields.SelectPermutationsWhere(
+                        i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional)));
+                    fieldIsActive = activeInstances.Any();
+                    bool fieldIsAlwaysActive = (activeInstances.Count() == activeFields.permutationCount);
+                    if (fieldIsActive && !fieldIsAlwaysActive)
+                        keywordIfDefs = KeywordUtil.GetKeywordPermutationSetConditional(activeInstances);
                 }
                 else
                     fieldIsActive = IsFieldActive(subscript, activeFields.baseInstance, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional));

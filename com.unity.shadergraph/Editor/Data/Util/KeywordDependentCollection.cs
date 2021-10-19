@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -83,5 +84,10 @@ namespace UnityEditor.ShaderGraph.Internal
         protected abstract TAllPermutations CreateAllPermutationsSmartPointer();
         protected abstract TForPermutation CreateForPermutationSmartPointer(int index);
         protected abstract TBase CreateBaseSmartPointer();
+
+        internal IEnumerable<int> SelectPermutationsWhere(Func<TIInstance, bool> filter)
+        {
+            return allPermutations.instances.Where(filter).Select(p => p.permutationIndex);
+        }
     }
 }

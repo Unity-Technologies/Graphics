@@ -652,6 +652,7 @@ namespace UnityEditor.ShaderGraph
                     //generate packed functions
                     if (activeFields.permutationCount > 0)
                     {
+                        // merge identical interpolator packing together
                         var generatedPackedTypes = new Dictionary<string, (ShaderStringBuilder, List<int>)>();
                         foreach (var instance in activeFields.allPermutations.instances)
                         {
@@ -664,21 +665,20 @@ namespace UnityEditor.ShaderGraph
                                 generatedPackedTypes.Add(key, (instanceGenerator, new List<int> { instance.permutationIndex }));
                         }
 
-                        var isFirst = true;
+                        var isFirstIfDef = true;
                         foreach (var generated in generatedPackedTypes)
                         {
-                            if (isFirst)
+                            bool alwaysActive = (generated.Value.Item2.Count == activeFields.permutationCount);
+                            if (!alwaysActive)
                             {
-                                isFirst = false;
-                                interpolatorBuilder.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2));
+                                interpolatorBuilder.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2, isFirstIfDef ? "#if" : "#elif"));
+                                isFirstIfDef = false;
                             }
-                            else
-                                interpolatorBuilder.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2).Replace("#if", "#elif"));
 
-                            //interpolatorBuilder.Concat(generated.Value.Item1);
                             interpolatorBuilder.AppendLines(generated.Value.Item1.ToString());
                         }
-                        if (generatedPackedTypes.Count > 0)
+
+                        if (!isFirstIfDef)
                             interpolatorBuilder.AppendLine("#endif");
                     }
                     else
@@ -928,14 +928,10 @@ namespace UnityEditor.ShaderGraph
 
                 if (graphRequirements.permutationCount > 0)
                 {
-                    List<int> activePermutationIndices;
-
                     // Depth Texture
-                    activePermutationIndices = graphRequirements.allPermutations.instances
-                        .Where(p => p.requirements.requiresDepthTexture)
-                        .Select(p => p.permutationIndex)
-                        .ToList();
-                    if (activePermutationIndices.Count > 0)
+                    var activePermutationIndices = graphRequirements.SelectPermutationsWhere(
+                        p => p.requirements.requiresDepthTexture);
+                    if (activePermutationIndices.Any())
                     {
                         graphDefines.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(activePermutationIndices));
                         graphDefines.AppendLine("#define REQUIRE_DEPTH_TEXTURE");
@@ -943,11 +939,9 @@ namespace UnityEditor.ShaderGraph
                     }
 
                     // Opaque Texture
-                    activePermutationIndices = graphRequirements.allPermutations.instances
-                        .Where(p => p.requirements.requiresCameraOpaqueTexture)
-                        .Select(p => p.permutationIndex)
-                        .ToList();
-                    if (activePermutationIndices.Count > 0)
+                    activePermutationIndices = graphRequirements.SelectPermutationsWhere(
+                        p => p.requirements.requiresCameraOpaqueTexture);
+                    if (activePermutationIndices.Any())
                     {
                         graphDefines.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(activePermutationIndices));
                         graphDefines.AppendLine("#define REQUIRE_OPAQUE_TEXTURE");

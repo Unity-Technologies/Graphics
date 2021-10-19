@@ -173,21 +173,23 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static string GetKeywordPermutationSetConditional(List<int> permutationSet)
+        public static string GetKeywordPermutationSetConditional(IEnumerable<int> permutationSet, string command = "#if")
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("#if ");
-
-            for (int i = 0; i < permutationSet.Count; i++)
+            sb.Append(command);
+            sb.Append(" ");
+            bool isFirst = true;
+            foreach (int permutation in permutationSet)
             {
                 // Subsequent permutation predicates require ||
-                if (i != 0)
+                if (isFirst)
+                    isFirst = false;
+                else
                     sb.Append(" || ");
 
                 // Append permutation
-                sb.Append($"defined(KEYWORD_PERMUTATION_{permutationSet[i]})");
+                sb.Append($"defined(KEYWORD_PERMUTATION_{permutation})");
             }
-
             return sb.ToString();
         }
 
