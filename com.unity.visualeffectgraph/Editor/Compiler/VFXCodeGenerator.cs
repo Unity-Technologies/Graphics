@@ -786,8 +786,8 @@ namespace UnityEditor.VFX
         {
             // Check enabled state
             VFXExpression enabledExp = contextData.gpuMapper.FromNameAndId("_vfx_enabled",blockIndex);
-            bool needsEnabledCheck = !enabledExp.Is(VFXExpression.Flags.Constant);
-            if (!needsEnabledCheck && !enabledExp.Get<bool>())
+            bool needsEnabledCheck = enabledExp != null && !enabledExp.Is(VFXExpression.Flags.Constant);
+            if (enabledExp != null && !needsEnabledCheck && !enabledExp.Get<bool>())
                 throw new ArgumentException("This method should not be called on a disabled block");
 
             var parameters = block.mergedAttributes.Select(o =>
