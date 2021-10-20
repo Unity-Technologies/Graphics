@@ -10,4 +10,9 @@ To enable or disable most HDRP shader features on a material, changes need to be
 
 For more information, see the [Material Scripting API documentation](Material-API.md).
 
+### Access main directional light from ShaderGraph
+
+From HDRP 13, you can access the main light direction from a ShaderGraph using the *Main Light Direction* node.
+For more information, see the [node documentation](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Main-Light-Direction-Node.html).
+
 ## Updated
