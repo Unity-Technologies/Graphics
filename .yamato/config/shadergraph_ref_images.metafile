@@ -88,6 +88,8 @@ test_platforms:
                     ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
                     ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP cat ~/Graphics/TestProjects/ShaderGraph/Assets/Resources/UpdateTests.txt
                     scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
+    - [OSX_Metal]: mkdir -p TestProjects/ShaderGraph/test-results/
+    - [all]: <shared.platform.commands.call_utr>
     after:
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore, Linux_OpenGLCore]: python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/

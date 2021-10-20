@@ -125,6 +125,7 @@ ShaderGraph_ref_Linux_OpenGLCore_Standalone_cache_ref_images_mono_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
@@ -292,6 +293,7 @@ ShaderGraph_ref_Linux_OpenGLCore_Standalone_cache_ref_images_mono_Linear_CUSTOM-
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
