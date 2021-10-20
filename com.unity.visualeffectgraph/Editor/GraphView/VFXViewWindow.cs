@@ -57,7 +57,12 @@ namespace UnityEditor.VFX.UI
 
         public static VFXViewWindow GetWindow(VFXGraph vfxGraph, bool createIfNeeded = false)
         {
-            return GetWindowLambda(x => x.graphView?.controller?.graph.visualEffectResource == vfxGraph.visualEffectResource, createIfNeeded);
+            return GetWindowLambda(x => x.graphView?.controller?.graph.visualEffectResource == vfxGraph?.visualEffectResource, createIfNeeded);
+        }
+
+        public static VFXViewWindow GetWindow(VFXParameter vfxParameter, bool createIfNeeded = false)
+        {
+            return GetWindowLambda(x => x.graphView?.controller?.parameterControllers.Any(y => y.model == vfxParameter) == true, createIfNeeded);
         }
 
         static VFXViewWindow GetWindowLambda(Func<VFXViewWindow, bool> func, bool createIfNeeded)
