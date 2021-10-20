@@ -32,6 +32,15 @@ VFX_URP_OSX_Metal_Standalone_mono_Linear_trunk:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
+                YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+                YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+                YAMATO_JOB_ID='$YAMATO_JOB_ID'
+                YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+                YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+                GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+                GIT_BRANCH='$GIT_BRANCH'
+                GIT_REVISION='$GIT_REVISION'
+                GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --timeout=2400 --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP
@@ -72,6 +81,15 @@ VFX_URP_OSX_Metal_Standalone_PerformanceTests_mono_Linear_trunk:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
+                YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+                YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+                YAMATO_JOB_ID='$YAMATO_JOB_ID'
+                YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+                YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+                GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+                GIT_BRANCH='$GIT_BRANCH'
+                GIT_REVISION='$GIT_REVISION'
+                GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --timeout=1200 --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP
@@ -112,6 +130,15 @@ VFX_URP_OSX_Metal_playmode_mono_Linear_trunk:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
+                YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+                YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+                YAMATO_JOB_ID='$YAMATO_JOB_ID'
+                YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+                YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+                GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+                GIT_BRANCH='$GIT_BRANCH'
+                GIT_REVISION='$GIT_REVISION'
+                GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP
@@ -152,6 +179,15 @@ VFX_URP_OSX_Metal_playmode_PerformanceTests_mono_Linear_trunk:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
+                YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+                YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+                YAMATO_JOB_ID='$YAMATO_JOB_ID'
+                YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+                YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+                GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+                GIT_BRANCH='$GIT_BRANCH'
+                GIT_REVISION='$GIT_REVISION'
+                GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP
@@ -192,6 +228,15 @@ VFX_URP_OSX_Metal_editmode_mono_Linear_trunk:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
+                YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+                YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+                YAMATO_JOB_ID='$YAMATO_JOB_ID'
+                YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+                YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+                GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+                GIT_BRANCH='$GIT_BRANCH'
+                GIT_REVISION='$GIT_REVISION'
+                GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP
@@ -232,6 +277,15 @@ VFX_URP_OSX_Metal_editmode_PerformanceTests_mono_Linear_trunk:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
+                YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+                YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+                YAMATO_JOB_ID='$YAMATO_JOB_ID'
+                YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+                YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+                GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+                GIT_BRANCH='$GIT_BRANCH'
+                GIT_REVISION='$GIT_REVISION'
+                GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP
@@ -272,6 +326,15 @@ VFX_URP_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
+                YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+                YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+                YAMATO_JOB_ID='$YAMATO_JOB_ID'
+                YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+                YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+                GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+                GIT_BRANCH='$GIT_BRANCH'
+                GIT_REVISION='$GIT_REVISION'
+                GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --timeout=2400 --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP
@@ -312,6 +375,15 @@ VFX_URP_OSX_Metal_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
+                YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+                YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+                YAMATO_JOB_ID='$YAMATO_JOB_ID'
+                YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+                YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+                GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+                GIT_BRANCH='$GIT_BRANCH'
+                GIT_REVISION='$GIT_REVISION'
+                GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --timeout=1200 --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP
@@ -352,6 +424,15 @@ VFX_URP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
+                YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+                YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+                YAMATO_JOB_ID='$YAMATO_JOB_ID'
+                YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+                YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+                GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+                GIT_BRANCH='$GIT_BRANCH'
+                GIT_REVISION='$GIT_REVISION'
+                GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP
@@ -392,6 +473,15 @@ VFX_URP_OSX_Metal_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
+                YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+                YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+                YAMATO_JOB_ID='$YAMATO_JOB_ID'
+                YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+                YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+                GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+                GIT_BRANCH='$GIT_BRANCH'
+                GIT_REVISION='$GIT_REVISION'
+                GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP
@@ -432,6 +522,15 @@ VFX_URP_OSX_Metal_editmode_mono_Linear_CUSTOM-REVISION:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
+                YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+                YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+                YAMATO_JOB_ID='$YAMATO_JOB_ID'
+                YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+                YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+                GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+                GIT_BRANCH='$GIT_BRANCH'
+                GIT_REVISION='$GIT_REVISION'
+                GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP
@@ -472,6 +571,15 @@ VFX_URP_OSX_Metal_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  command: |5-
+                YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+                YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+                YAMATO_JOB_ID='$YAMATO_JOB_ID'
+                YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+                YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+                GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+                GIT_BRANCH='$GIT_BRANCH'
+                GIT_REVISION='$GIT_REVISION'
+                GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP
