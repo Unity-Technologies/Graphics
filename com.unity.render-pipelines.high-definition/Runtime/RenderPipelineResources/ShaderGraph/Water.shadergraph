@@ -232,7 +232,7 @@
                 "m_Node": {
                     "m_Id": "1b5726f5dcb44e4096dac67f14daa5a3"
                 },
-                "m_SlotId": 11
+                "m_SlotId": 10
             },
             "m_InputSlot": {
                 "m_Node": {
@@ -246,7 +246,7 @@
                 "m_Node": {
                     "m_Id": "1b5726f5dcb44e4096dac67f14daa5a3"
                 },
-                "m_SlotId": 12
+                "m_SlotId": 11
             },
             "m_InputSlot": {
                 "m_Node": {
@@ -351,6 +351,20 @@
                     "m_Id": "a6453810ec57426dab06f744eba8ffe2"
                 },
                 "m_SlotId": -1331914060
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "4d7fd5efee0c42d893cbde2482f27d03"
+                },
+                "m_SlotId": 8
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "1b5726f5dcb44e4096dac67f14daa5a3"
+                },
+                "m_SlotId": 5
             }
         },
         {
@@ -762,6 +776,29 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "00947914743f444bb604453e0c0c4aa8",
+    "m_Id": 3,
+    "m_DisplayName": "SimulationFoam",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "SimulationFoam",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.BlockNode",
     "m_ObjectId": "0107d5a900b3465eae80774d7bf59ce5",
     "m_Group": {
@@ -1130,7 +1167,7 @@
             "m_Id": "91dbbaf218ee47ba8facfe629c1f5b0b"
         },
         {
-            "m_Id": "603c1f7e8d4d41a3886f82029e779211"
+            "m_Id": "93be42a747ce484e9d7322182b9deb27"
         },
         {
             "m_Id": "5055e7d41ae74cb58ce4f5f2c1c53baa"
@@ -1151,10 +1188,7 @@
             "m_Id": "61b9b93b11cf416d886ccc77e51d8676"
         },
         {
-            "m_Id": "8510f83a43c2494ea07af9c2ecf62b1b"
-        },
-        {
-            "m_Id": "8d6762ba5b1647838a279ed7b3fb7fd9"
+            "m_Id": "cc561d3ba6f7434986d39b6ff5d2440c"
         },
         {
             "m_Id": "e257a9ecf6934ed8913263100621bb7e"
@@ -1670,6 +1704,29 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "4cb9563d4d634002a6d65abb46f7cace",
+    "m_Id": 2,
+    "m_DisplayName": "SimulationFoam",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "SimulationFoam",
+    "m_StageCapability": 2,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.Rendering.HighDefinition.EvaluateFoamData_Water",
     "m_ObjectId": "4d7fd5efee0c42d893cbde2482f27d03",
     "m_Group": {
@@ -1694,7 +1751,7 @@
             "m_Id": "d3f9432d07c147f4ab09e545d67c9b2b"
         },
         {
-            "m_Id": "5bfddb9a90884717908ab236fdb71f6e"
+            "m_Id": "4cb9563d4d634002a6d65abb46f7cace"
         },
         {
             "m_Id": "5eb212b04b43445c9f043b26d56d3f0f"
@@ -1911,27 +1968,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
-    "m_ObjectId": "5bfddb9a90884717908ab236fdb71f6e",
-    "m_Id": 2,
-    "m_DisplayName": "SimulationFoam",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "SimulationFoam",
-    "m_StageCapability": 2,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.Rendering.HighDefinition.ShaderGraph.SystemData",
     "m_ObjectId": "5cc1ac2d57954ab6bf56ad7e4b4bb8ab",
     "m_MaterialNeedsUpdateHash": 23,
@@ -2009,38 +2045,13 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "603c1f7e8d4d41a3886f82029e779211",
-    "m_Id": 3,
-    "m_DisplayName": "ScreenPosition",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "ScreenPosition",
-    "m_StageCapability": 2,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "61b9b93b11cf416d886ccc77e51d8676",
     "m_Id": 10,
-    "m_DisplayName": "FoamScatteringTint",
+    "m_DisplayName": "RefractionColor",
     "m_SlotType": 1,
     "m_Hidden": false,
-    "m_ShaderOutputName": "FoamScatteringTint",
+    "m_ShaderOutputName": "RefractionColor",
     "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
@@ -2370,29 +2381,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
-    "m_ObjectId": "8510f83a43c2494ea07af9c2ecf62b1b",
-    "m_Id": 11,
-    "m_DisplayName": "RefractionColor",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "RefractionColor",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.Rendering.HighDefinition.ShaderGraph.WaterSubTarget",
     "m_ObjectId": "86e46bfd88c24393977abdb193ce34c9"
 }
@@ -2501,21 +2489,6 @@
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "8d6762ba5b1647838a279ed7b3fb7fd9",
-    "m_Id": 12,
-    "m_DisplayName": "TipThickness",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "TipThickness",
-    "m_StageCapability": 3,
-    "m_Value": 0.5,
-    "m_DefaultValue": 0.5,
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "9096233aab104023b31511c040a20608",
     "m_Id": 1,
     "m_DisplayName": "LowFrequencyHeight",
@@ -2562,6 +2535,27 @@
         "x": 0.0,
         "y": 0.0,
         "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
+    "m_ObjectId": "93be42a747ce484e9d7322182b9deb27",
+    "m_Id": 3,
+    "m_DisplayName": "ScreenPosition",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "ScreenPosition",
+    "m_StageCapability": 2,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0
     },
     "m_Labels": []
 }
@@ -2906,7 +2900,7 @@
             "m_Id": "de352b4fabef4f99a68bc3afd0f59871"
         },
         {
-            "m_Id": "d6f6ed4358ae4cacbe96fd71b96cd896"
+            "m_Id": "00947914743f444bb604453e0c0c4aa8"
         }
     ],
     "synonyms": [],
@@ -3130,6 +3124,21 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "cc561d3ba6f7434986d39b6ff5d2440c",
+    "m_Id": 11,
+    "m_DisplayName": "TipThickness",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "TipThickness",
+    "m_StageCapability": 3,
+    "m_Value": 0.5,
+    "m_DefaultValue": 0.5,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
     "m_ObjectId": "cedbe4898d42440895fcff00ff894268",
     "m_Id": 8,
@@ -3327,27 +3336,6 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
-    "m_ObjectId": "d6f6ed4358ae4cacbe96fd71b96cd896",
-    "m_Id": 3,
-    "m_DisplayName": "SimulationFoam",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "SimulationFoam",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0
     },
     "m_Labels": []
 }

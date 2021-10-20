@@ -51,11 +51,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public float deepFoam = 0.3f;
         public Color deepFoamColor = new Color(1.0f, 1.0f, 1.0f);
         public Texture2D foamMask = null;
-        public Vector2 foamExtent = new Vector2(100.0f, 100.0f);
+        public Vector2 foamMaskExtent = new Vector2(100.0f, 100.0f);
+        public Vector2 foamMaskOffset = new Vector2(0.0f, 0.0f);
 
         // Water Masking
         public Texture2D waterMask = null;
-        public Vector2 maskExtent = new Vector2(100.0f, 100.0f);
+        public Vector2 waterMaskExtent = new Vector2(100.0f, 100.0f);
+        public Vector2 waterMaskOffset = new Vector2(0.0f, 0.0f);
 
         // Wind
         public float windOrientation = 0.0f;

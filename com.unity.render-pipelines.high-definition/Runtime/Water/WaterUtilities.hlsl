@@ -355,7 +355,6 @@ void EvaluateWaterDisplacement(float3 positionAWS, out WaterDisplacementData dis
     // Fourth band
     rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand3, 3, 0).xyz * displacementNormalization.w * waterMask.y;
     totalDisplacementNoChopiness += rawDisplacement;
-    lowFrequencyHeight += rawDisplacement.x * 0.25;
     normalizedDisplacement = rawDisplacement.x / patchSizes2.w;
 #endif
 
@@ -365,7 +364,7 @@ void EvaluateWaterDisplacement(float3 positionAWS, out WaterDisplacementData dis
     // The vertical displacement is stored in the X channel and the XZ displacement in the YZ channel
     displacementData.displacement = float3(-totalDisplacement.y, totalDisplacement.x, -totalDisplacement.z);
     displacementData.displacementNoChopiness = float3(-totalDisplacementNoChopiness.y, totalDisplacementNoChopiness.x - positionAWS.y, -totalDisplacementNoChopiness.z);
-    displacementData.lowFrequencyHeight = (_MaxWaveHeight - lowFrequencyHeight) / _MaxWaveHeight - 0.5f;
+    displacementData.lowFrequencyHeight = (_MaxWaveHeight + lowFrequencyHeight) / _MaxWaveHeight - 0.5f;
     displacementData.foamFromHeight = foamFromHeight;
     displacementData.sssMask = EvaluateSSSMask(positionAWS, _WorldSpaceCameraPos);
 }
@@ -411,21 +410,20 @@ void EvaluateWaterAdditionalData(float3 positionAWS, out WaterAdditionalData wat
     float4 additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand0, 0, texSize) * waterMask.x;
     float3 surfaceGradient = float3(additionalData.x, 0, additionalData.y) * _WaveAmplitude.x;
     float3 lowFrequencySurfaceGradient = surfaceGradient;
-    float surfaceFoam = additionalData.z;
+    float lowSurfaceFoam = additionalData.z;
     float deepFoam = additionalData.w * saturate(_WaveAmplitude.x);
 
     // Second band
     additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand1, 1, texSize) * waterMask.x;
     surfaceGradient += float3(additionalData.x, 0, additionalData.y) * _WaveAmplitude.y;
     lowFrequencySurfaceGradient += float3(additionalData.x, 0, additionalData.y) * _WaveAmplitude.y;
-    surfaceFoam *= additionalData.z;
+    lowSurfaceFoam += additionalData.z;
     deepFoam += additionalData.w * saturate(_WaveAmplitude.y);
 
 #if defined(HIGH_RESOLUTION_WATER)
     // Third band
     additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand2, 2, texSize)* waterMask.y;
     surfaceGradient += float3(additionalData.x, 0, additionalData.y) * _WaveAmplitude.z;
-    surfaceFoam *= additionalData.z;
 
     // Fourth band
     additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand3, 3, texSize) * waterMask.y;
@@ -435,7 +433,7 @@ void EvaluateWaterAdditionalData(float3 positionAWS, out WaterAdditionalData wat
     // Blend the various surface gradients
     waterAdditionalData.surfaceGradient = surfaceGradient;
     waterAdditionalData.lowFrequencySurfaceGradient = lowFrequencySurfaceGradient;
-    waterAdditionalData.simulationFoam = float2(deepFoam, surfaceFoam * _WindFoamAttenuation);
+    waterAdditionalData.simulationFoam = float2(deepFoam, lowSurfaceFoam);
 }
 
 float3 ComputeDebugNormal(float3 worldPos)
@@ -447,7 +445,7 @@ float3 ComputeDebugNormal(float3 worldPos)
 
 float2 EvaluateFoamUV(float3 positionAWS)
 {
-    return (positionAWS.xz) * _FoamTilling + _FoamOffsets.xy;
+    return (positionAWS.xz + _FoamOffsets.xy) * _FoamTilling;
 }
 
 struct FoamData
@@ -465,17 +463,15 @@ void EvaluateFoamData(float3 surfaceGradient, float3 lowFrequencySurfaceGradient
 
     // Compute the surface foam
     float2 foamUV = EvaluateFoamUV(positionAWS);
-    float surfaceFoam = DecorrelatedStochasticSample_R(foamUV, _FoamTexture);
+    float foamTex = DecorrelatedStochasticSample_R(foamUV, _FoamTexture);
     float3 foamNormal = DecorrelatedStochasticSample(foamUV, _FoamNormal);
 
-    // Combine the surface foam with the simulation top foam
-    surfaceFoam = saturate((simulationFoam.y + surfaceFoam - 1) / simulationFoam.y);
-
+    float surfaceFoam = simulationFoam.y * lerp(foamTex * foamTex, foamTex, saturate(lowFrequencyHeight - 0.5f));
     float3 deepFoam = _DeepFoamAmount * simulationFoam.x * lerp(0.5, 0.8, foamFromHeight) * foamMask.x * _DeepFoamColor;
-    float3 topFoam = _SurfaceFoamIntensity * surfaceFoam * foamMask.y;
+    float3 topFoam = _SurfaceFoamIntensity * surfaceFoam * foamMask.y * _WindFoamAttenuation;
     foamData.foamValue = deepFoam + topFoam;
 
-    float foamTransition = saturate(surfaceFoam * foamMask.y * _SurfaceFoamIntensity);
+    float foamTransition = saturate(simulationFoam.y * foamMask.y * _SurfaceFoamIntensity * _WindFoamAttenuation * 10);
     
     // Fix the normal, remove this
     float3 surfaceFoamNormals = foamNormal.xyz;
@@ -494,14 +490,13 @@ void EvaluateFoamData(float3 surfaceGradient, float3 lowFrequencySurfaceGradient
 struct ScatteringData
 {
     float3 scatteringColor;
-    float3 foamScatteringTint;
     float3 refractionColor;
     float tipThickness;
 };
 
 float EvaluateHeightBasedScattering(float lowFrequencyHeight)
 {
-    float heightBasedScattering = lerp(1.0, 0.01, saturate(1.0 - lowFrequencyHeight));
+    float heightBasedScattering = lerp(1.0, 0.01, saturate(lowFrequencyHeight));
     return lerp(1.0, heightBasedScattering, _HeightBasedScattering);
 }
 
@@ -513,8 +508,8 @@ float EvaluateDisplacementScattering(float displacement)
 
 float GetWaveTipThickness(float normalizedDistanceToMaxWaveHeightPlane, float3 worldView, float3 refractedRay)
 {
-    float H = saturate(1.f - normalizedDistanceToMaxWaveHeightPlane);
-    return 1.f - saturate(1 + refractedRay.y - 0.2) * pow(H, 2)/0.4;
+    float H = saturate(normalizedDistanceToMaxWaveHeightPlane);
+    return 1.f - saturate(1 + refractedRay.y - 0.2) * pow(H, 2) / 0.4;
 }
 
 float2 EvaluateCausticsUV(float3 causticPosAWS)
@@ -583,20 +578,17 @@ float EvaluateCaustics(float3 bedPositionAWS)
 
 void EvaluateScatteringData(float3 waterPosRWS, float3 waterNormal, float3 lowFrequencyNormals, 
     float2 screenPosition, float3 viewWS,
-    float sssMask, float lowFrequencyHeight, float lowFrequencyDisplacement, float scatteringFoam,
+    float sssMask, float lowFrequencyHeight, float lowFrequencyDisplacement, float foamIntensity,
     out ScatteringData scatteringData)
 {
     // Compute the position of the surface behind the water surface
     float  directWaterDepth = SampleCameraDepth(screenPosition);
     float3 directWaterPosRWS = ComputeWorldSpacePosition(screenPosition, directWaterDepth, UNITY_MATRIX_I_VP);
 
-    // Compute the vector between the surface of the water and the underwater
-    float3 underWaterVector = directWaterPosRWS - waterPosRWS;
-
     // Compute the distance between the water surface and the object behind
     float underWaterDistance = directWaterDepth == UNITY_RAW_FAR_CLIP_VALUE ? WATER_BACKGROUND_ABSORPTION_DISTANCE : length(directWaterPosRWS - waterPosRWS);
 
-    // Blend both normals to decide what normal will be used for the frraction
+    // Blend both normals to decide what normal will be used for the refraction
     float3 refractionNormal = normalize(lerp(waterNormal, lowFrequencyNormals, saturate(underWaterDistance / _MaxRefractionDistance)));
 
     // Compute the distorded water position and NDC
@@ -633,7 +625,7 @@ void EvaluateScatteringData(float3 waterPosRWS, float3 waterNormal, float3 lowFr
     float3 scatteringCoefficients = (displacementScattering * heightBasedScattering) * (1.f - _ScatteringColorTips.rgb);
     float3 scatteringTint = _ScatteringColorTips * exp(-scatteringCoefficients);
     float lambertCompensation = lerp(_ScatteringLambertLighting.z, _ScatteringLambertLighting.w, sssMask);
-    scatteringData.scatteringColor =  scatteringTint * (1.f - absorptionTint) * lambertCompensation * _ScatteringIntensity;
+    scatteringData.scatteringColor =  scatteringTint * (1.f - absorptionTint) * lambertCompensation * _ScatteringIntensity * (1.0 - foamIntensity);
     
     // Compute how deep the ray travels (in the [0, 1] space)
     float normalizedTravelLength = saturate(underWaterDistance / _MaxAbsorptionDistance);
@@ -642,18 +634,13 @@ void EvaluateScatteringData(float3 waterPosRWS, float3 waterNormal, float3 lowFr
     float blurLod = saturate(refractedWaterDistance / _MaxAbsorptionDistance);
 
     // Evaluate the refracted camera color
-    float3 cameraColor = LoadCameraColor(distortedWaterNDC* _ScreenSize.xy, 0);
+    float3 cameraColor = LoadCameraColor(distortedWaterNDC * _ScreenSize.xy, 0);
 
     float3 causticPosAWS = GetAbsolutePositionWS(waterPosRWS + refractedView * underWaterDistance);
     float causticsIntensity = EvaluateCaustics(causticPosAWS);
 
-    // Evaluate the refraction color
-    scatteringData.refractionColor = cameraColor * (1 + causticsIntensity) * absorptionTint * GetInverseCurrentExposureMultiplier();
-
-    // Evaluate the fom scattering tint
-    float foamDistanceToSurface = max(saturate(1.f - scatteringFoam) + 5.0, 0);
-    float3 foamScatteringCoefficients = foamDistanceToSurface * _CloudTexturedAmount * (1.f - _ScatteringColorTips);
-    scatteringData.foamScatteringTint = scatteringFoam * exp(-foamScatteringCoefficients);
+    // Evaluate the refraction color (we need to account for the initial absoption (light to underwater))
+    scatteringData.refractionColor = cameraColor * (absorptionTint + causticsIntensity) * absorptionTint * GetInverseCurrentExposureMultiplier() * (1.0 - foamIntensity);
 
     // Compute the tip thickness
     float3 lowFreqeuncyRefractedRay = refract(-viewWS, lowFrequencyNormals, WATER_INV_IOR);

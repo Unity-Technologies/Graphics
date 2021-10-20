@@ -74,6 +74,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector3 _DeepFoamColor;
         public float _HeightBasedScattering;
+
+        public Vector4 _FoamJacobianLambda;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]

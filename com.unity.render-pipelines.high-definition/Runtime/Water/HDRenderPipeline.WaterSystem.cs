@@ -307,11 +307,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Foam data
             cb._SurfaceFoamIntensity = currentWater.surfaceFoamIntensity;
-            cb._SurfaceFoamAmount = (currentWater.surfaceFoamAmount - 0.5f);
-            cb._FoamTilling = currentWater.surfaceFoamTiling / 5.0f;
+            cb._SurfaceFoamAmount = currentWater.surfaceFoamAmount;
+            cb._FoamTilling = currentWater.surfaceFoamTiling * 0.025f;
             cb._DeepFoamAmount = 0.05f * currentWater.deepFoam;
             cb._DeepFoamColor = new Vector3(currentWater.deepFoamColor.r, currentWater.deepFoamColor.g, currentWater.deepFoamColor.b);
-            cb._FoamOffsets = Vector2.zero;
+            float foamSpeed = currentWater.simulation.m_SimulationTime * Mathf.Sqrt(windMpS * k_PhillipsGravityConstant) * currentWater.windAffectCurrent;
+            cb._FoamOffsets = new Vector2(cb._WindDirection.x * foamSpeed * 0.5f, cb._WindDirection.y * foamSpeed * 0.5f);
 
             cb._SSSMaskCoefficient = 1000.0f;
 
@@ -339,6 +340,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Defines the amount of foam based on the wind speed.
             cb._WindFoamAttenuation = Mathf.Clamp(currentWater.windFoamCurve.Evaluate(currentWater.windSpeed / 100.0f), 0.0f, 1.0f);
+            cb._FoamJacobianLambda = new Vector4(cb._BandPatchSize.x, cb._BandPatchSize.y * 16.0f, 0.0f, 0.0f);
         }
 
         void UpdateWaterSurfaces(CommandBuffer cmd)
@@ -447,6 +449,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2 extent;
             public Mesh targetMesh;
             public float rotation;
+            public Vector2 foamMaskOffset;
+            public Vector2 waterMaskOffset;
 
             // Water Mask
             public Texture2D waterMask;
@@ -482,6 +486,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.extent = new Vector2(currentWater.transform.localScale.z, currentWater.transform.localScale.x);
             parameters.targetMesh = currentWater.geometryType == WaterSurface.WaterGeometryType.Custom ? currentWater.geometry : null;
             parameters.rotation = currentWater.transform.eulerAngles.y;
+            parameters.foamMaskOffset = currentWater.foamMaskOffset;
+            parameters.waterMaskOffset = currentWater.waterMaskOffset;
 
             // All the required global textures
             parameters.waterMask = currentWater.waterMask != null ? currentWater.waterMask : Texture2D.whiteTexture;
@@ -499,8 +505,8 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateShaderVariablesWater(currentWater, ref parameters.waterCB);
 
             // Setup the water rendering constant buffers (parameters that we can setup
-            parameters.waterRenderingCB._WaterMaskScale.Set(1.0f / currentWater.maskExtent.x, 1.0f / currentWater.maskExtent.y);
-            parameters.waterRenderingCB._FoamMaskScale.Set(1.0f / currentWater.foamExtent.x, 1.0f / currentWater.foamExtent.y);
+            parameters.waterRenderingCB._WaterMaskScale.Set(1.0f / currentWater.waterMaskExtent.x, 1.0f / currentWater.waterMaskExtent.y);
+            parameters.waterRenderingCB._FoamMaskScale.Set(1.0f / currentWater.foamMaskExtent.x, 1.0f / currentWater.foamMaskExtent.y);
             parameters.waterRenderingCB._WaterAmbientProbe = EvaluateWaterAmbientProbe(hdCamera, settings.ambientProbeDimmer.value);
             parameters.waterRenderingCB._CausticsIntensity = currentWater.causticsIntensity;
             parameters.waterRenderingCB._CausticsTiling = currentWater.causticsTiling;
@@ -669,8 +675,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (data.parameters.infinite)
                             {
                                 // Need to inject at water and foam mask rotations and offsets
-                                data.parameters.waterRenderingCB._WaterMaskOffset.Set(0.0f, 0.0f);
-                                data.parameters.waterRenderingCB._FoamMaskOffset.Set(0.0f, 0.0f);
+                                data.parameters.waterRenderingCB._WaterMaskOffset.Set(data.parameters.waterMaskOffset.x, data.parameters.waterMaskOffset.y);
+                                data.parameters.waterRenderingCB._FoamMaskOffset.Set(data.parameters.foamMaskOffset.x, data.parameters.foamMaskOffset.y);
                                 data.parameters.waterRenderingCB._WaterRotation.Set(1.0f, 0.0f);
 
                                 // Loop through the patches
@@ -716,12 +722,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             else
                             {
                                 // Set the masks offsets and rotations
-                                data.parameters.waterRenderingCB._WaterMaskOffset.Set(data.parameters.center.x, data.parameters.center.z);
-                                data.parameters.waterRenderingCB._FoamMaskOffset.Set(data.parameters.center.x, data.parameters.center.z);
+                                data.parameters.waterRenderingCB._WaterMaskOffset.Set(data.parameters.center.x + data.parameters.waterMaskOffset.x, data.parameters.center.z + data.parameters.waterMaskOffset.y);
+                                data.parameters.waterRenderingCB._FoamMaskOffset.Set(data.parameters.center.x + data.parameters.foamMaskOffset.x, data.parameters.center.z + data.parameters.foamMaskOffset.y);
                                 data.parameters.waterRenderingCB._WaterRotation.Set(Mathf.Cos(data.parameters.rotation), Mathf.Sin(data.parameters.rotation));
 
                                 // Patch offset and grid size
-                                data.parameters.waterRenderingCB._GridSize.Set(Mathf.Min(data.parameters.extent.x, data.parameters.gridSize), Mathf.Min(data.parameters.extent.y, data.parameters.gridSize));
+                                data.parameters.waterRenderingCB._GridSize.Set(data.parameters.extent.x, data.parameters.extent.y);
                                 data.parameters.waterRenderingCB._PatchOffset = data.parameters.center;
                                 data.parameters.waterRenderingCB._GridRenderingResolution = (uint)data.parameters.gridResolution;
 

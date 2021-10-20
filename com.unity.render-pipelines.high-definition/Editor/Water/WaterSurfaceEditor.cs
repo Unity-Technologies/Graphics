@@ -43,7 +43,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Water masking
         SerializedProperty m_WaterMask;
-        SerializedProperty m_MaskExtent;
+        SerializedProperty m_WaterMaskExtent;
+        SerializedProperty m_WaterMaskOffset;
 
         // Foam
         SerializedProperty m_SurfaceFoamIntensity;
@@ -52,7 +53,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_DeepFoam;
         SerializedProperty m_DeepFoamColor;
         SerializedProperty m_FoamMask;
-        SerializedProperty m_FoamExtent;
+        SerializedProperty m_FoamMaskExtent;
+        SerializedProperty m_FoamMaskOffset;
 
         // Wind
         SerializedProperty m_WindOrientation;
@@ -105,11 +107,13 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DeepFoam = o.Find(x => x.deepFoam);
             m_DeepFoamColor = o.Find(x => x.deepFoamColor);
             m_FoamMask = o.Find(x => x.foamMask);
-            m_FoamExtent = o.Find(x => x.foamExtent);
+            m_FoamMaskExtent = o.Find(x => x.foamMaskExtent);
+            m_FoamMaskOffset = o.Find(x => x.foamMaskOffset);
 
             // Water masking
             m_WaterMask = o.Find(x => x.waterMask);
-            m_MaskExtent = o.Find(x => x.maskExtent);
+            m_WaterMaskExtent = o.Find(x => x.waterMaskExtent);
+            m_WaterMaskOffset = o.Find(x => x.waterMaskOffset);
 
             // Wind parameters
             m_WindOrientation = o.Find(x => x.windOrientation);
@@ -231,7 +235,11 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_WaterMask);
-                EditorGUILayout.PropertyField(m_MaskExtent);
+                if (m_WaterMask.objectReferenceValue != null)
+                {
+                    EditorGUILayout.PropertyField(m_WaterMaskExtent);
+                    EditorGUILayout.PropertyField(m_WaterMaskOffset);
+                }
             }
 
             EditorGUILayout.LabelField("Foam", EditorStyles.boldLabel);
@@ -252,7 +260,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Foam masking
                 EditorGUILayout.PropertyField(m_FoamMask);
-                EditorGUILayout.PropertyField(m_FoamExtent);
+                if (m_FoamMask.objectReferenceValue != null)
+                {
+                    EditorGUILayout.PropertyField(m_FoamMaskExtent);
+                    EditorGUILayout.PropertyField(m_FoamMaskOffset);
+                }
             }
 
             EditorGUILayout.LabelField("Wind", EditorStyles.boldLabel);

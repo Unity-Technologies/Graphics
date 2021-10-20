@@ -44,6 +44,7 @@ CBUFFER_START(ShaderVariablesWater)
     float4 _ScatteringLambertLighting;
     float3 _DeepFoamColor;
     float _HeightBasedScattering;
+    float4 _FoamJacobianLambda;
 CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterRendering

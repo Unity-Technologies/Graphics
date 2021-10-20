@@ -51,13 +51,10 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kScatteringColorOutputSlotId = 9;
         const string kScatteringColorOutputSlotName = "ScatteringColor";
 
-        const int kFoamScatteringTintOutputSlotId = 10;
-        const string kFoamScatteringTintOutputSlotName = "FoamScatteringTint";
-
-        const int kRefractionColorOutputSlotId = 11;
+        const int kRefractionColorOutputSlotId = 10;
         const string kRefractionColorOutputSlotName = "RefractionColor";
         
-        const int kTipThicknessOutputSlotId = 12;
+        const int kTipThicknessOutputSlotId = 11;
         const string kTipThicknessOutputSlotName = "TipThickness";
 
         public override bool hasPreview { get { return false; } }
@@ -77,7 +74,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Output
             AddSlot(new Vector3MaterialSlot(kScatteringColorOutputSlotId, kScatteringColorOutputSlotName, kScatteringColorOutputSlotName, SlotType.Output, Vector3.zero));
-            AddSlot(new Vector3MaterialSlot(kFoamScatteringTintOutputSlotId, kFoamScatteringTintOutputSlotName, kFoamScatteringTintOutputSlotName, SlotType.Output, Vector3.zero));
             AddSlot(new Vector3MaterialSlot(kRefractionColorOutputSlotId, kRefractionColorOutputSlotName, kRefractionColorOutputSlotName, SlotType.Output, Vector3.zero));
             AddSlot(new Vector1MaterialSlot(kTipThicknessOutputSlotId, kTipThicknessOutputSlotName, kTipThicknessOutputSlotName, SlotType.Output, 0.5f));
 
@@ -96,7 +92,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Output
                 kScatteringColorOutputSlotId,
-                kFoamScatteringTintOutputSlotId,
                 kRefractionColorOutputSlotId,
                 kTipThicknessOutputSlotId,
             });
@@ -125,8 +120,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Output the data
                 sb.AppendLine("$precision3 {0} = scatteringData.scatteringColor;",
                     GetVariableNameForSlot(kScatteringColorOutputSlotId));
-                sb.AppendLine("$precision3 {0} = scatteringData.foamScatteringTint;",
-                    GetVariableNameForSlot(kFoamScatteringTintOutputSlotId));
                 sb.AppendLine("$precision3 {0} = scatteringData.refractionColor;",
                     GetVariableNameForSlot(kRefractionColorOutputSlotId));
                 sb.AppendLine("$precision {0} = scatteringData.tipThickness;",
@@ -138,8 +131,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("$precision3 {0} = 0.0",
                     GetVariableNameForSlot(kScatteringColorOutputSlotId));
                 sb.AppendLine("$precision3 {0} = 0.0",
-                    GetVariableNameForSlot(kFoamScatteringTintOutputSlotId));
-                sb.AppendLine("$precision3 {0} = 0.0;",
                     GetVariableNameForSlot(kRefractionColorOutputSlotId));
                 sb.AppendLine("$precision {0} = 1.0f;",
                     GetVariableNameForSlot(kTipThicknessOutputSlotId));
