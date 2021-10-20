@@ -205,10 +205,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 #endif
 
             // Sample twice
-            float3 color1 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir + alpha.x*dd, 0).rgb;
-            color1.rgb = DecodeHDREnvironment(color1, _Cubemap_HDR);
-            float3 color2 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir + alpha.y*dd, 0).rgb;
-            color2.rgb = DecodeHDREnvironment(color2, _Cubemap_HDR);
+            float3 color1 = DecodeHDREnvironment(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir + alpha.x * dd, 0), _Cubemap_HDR);
+            float3 color2 = DecodeHDREnvironment(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir + alpha.y * dd, 0), _Cubemap_HDR);
 
             // Blend color samples
             return lerp(color1, color2, abs(2.0 * alpha.x));
