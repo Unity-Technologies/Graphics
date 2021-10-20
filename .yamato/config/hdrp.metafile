@@ -83,7 +83,7 @@ platforms:
         image: package-ci/ubuntu:stable
         flavor: b1.large
       editmode:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
         flavor: b1.large
       standalone_build:
