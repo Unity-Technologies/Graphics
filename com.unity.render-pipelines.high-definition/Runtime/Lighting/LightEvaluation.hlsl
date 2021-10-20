@@ -297,7 +297,16 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
 
     // Transparents have no contact shadow information
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(LIGHT_EVALUATION_NO_CONTACT_SHADOWS)
-    shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
+{
+    // In certain cases (like hair) we allow to force the contact shadow sample.
+    #ifdef LIGHT_EVALUATION_CONTACT_SHADOW_DISABLE_NDOTL
+        const bool allowContactShadow = true;
+    #else
+        const bool allowContactShadow = NdotL > 0.0;
+    #endif
+
+    shadow = min(shadow, allowContactShadow ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
+}
 #endif
 
 #ifdef DEBUG_DISPLAY
@@ -471,7 +480,16 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
 
     // Transparents have no contact shadow information
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(LIGHT_EVALUATION_NO_CONTACT_SHADOWS)
-    shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
+    {
+    // In certain cases (like hair) we allow to force the contact shadow sample.
+    #ifdef LIGHT_EVALUATION_CONTACT_SHADOW_DISABLE_NDOTL
+        const bool allowContactShadow = true;
+    #else
+        const bool allowContactShadow = NdotL > 0.0;
+    #endif
+
+        shadow = min(shadow, allowContactShadow ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
+    }
 #endif
 
 #ifdef DEBUG_DISPLAY

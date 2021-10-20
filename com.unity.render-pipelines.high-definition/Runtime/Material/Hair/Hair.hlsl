@@ -312,6 +312,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.splineVisibility = -1;
     #endif
 
+        // By default the normalization factor should be 1 and overridden by area lights.
+        bsdfData.distributionNormalizationFactor = 1;
+
         // Only necesarry for reference.
         // bsdfData.h = -1 + 2 * InterleavedGradientNoise(positionSS, _TaaFrameInfo.z);
     }
@@ -725,7 +728,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         float3 F, Tr, S = 0;
 
         // Evaluate the longitudinal scattering for all three paths.
-        const float3 M = D_LongitudinalScatteringGaussian(angles.thetaH - alpha, beta);
+        const float3 M = D_LongitudinalScatteringGaussian(angles.thetaH - alpha, beta) * bsdfData.distributionNormalizationFactor;
 
         // Save the attenuations in case of multiple scattering.
         float3 A[3];
@@ -758,6 +761,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
             S += M[1] * A[1] * D[1];
         }
+        else
+            A[1] = 0; // Required to fully initialize.
 
         // TRT
         {
@@ -793,15 +798,15 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         else
     #endif
         {
-            #if _USE_LIGHT_FACING_NORMAL
-                // See "Analytic Tangent Irradiance Environment Maps for Anisotropic Surfaces".
-                cbsdf.diffR = rcp(PI * PI) * clampedNdotL;
-                // Transmission is built into the model, and it's not exactly clear how to split it.
-                cbsdf.diffT = 0;
-            #else
-                // Double-sided Lambert.
-                cbsdf.diffR = Lambert() * clampedNdotL;
-            #endif // _USE_LIGHT_FACING_NORMAL
+        #if _USE_LIGHT_FACING_NORMAL
+            // See "Analytic Tangent Irradiance Environment Maps for Anisotropic Surfaces".
+            cbsdf.diffR = rcp(PI * PI) * clampedNdotL;
+            // Transmission is built into the model, and it's not exactly clear how to split it.
+            cbsdf.diffT = 0;
+        #else
+            // Double-sided Lambert.
+            cbsdf.diffR = Lambert() * clampedNdotL;
+        #endif // _USE_LIGHT_FACING_NORMAL
         }
     }
 
@@ -816,14 +821,21 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 #define MATERIAL_INCLUDE_PRECOMPUTED_TRANSMISSION
 
 #if _USE_ADVANCED_MULTIPLE_SCATTERING
-// Disable the contact shadow in case of multiple scattering.
-#define LIGHT_EVALUATION_NO_CONTACT_SHADOWS
 
-// Hair requires shadow biasing toward light for splines while in advanced scattering mode.
-#define LIGHT_EVALUATION_SPLINE_SHADOW_BIAS
+    // Disable the contact shadow in case of multiple scattering.
+    #define LIGHT_EVALUATION_NO_CONTACT_SHADOWS
 
-// Secondary shadow tap that can provide a higher quality occlusion information for the multiple scattering.
-#define LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
+    // Hair requires shadow biasing toward light for splines while in advanced scattering mode.
+    #define LIGHT_EVALUATION_SPLINE_SHADOW_BIAS
+
+    // Secondary shadow tap that can provide a higher quality occlusion information for the multiple scattering.
+    #define LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
+
+#else
+
+    // Force contact shadows to skip the NdotL computation (allows to mitigate glowing heads for un-shadow mapped lights).
+    #define LIGHT_EVALUATION_CONTACT_SHADOW_DISABLE_NDOTL
+
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
@@ -878,7 +890,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
                            PreLightData preLightData, LightData lightData, BSDFData bsdfData,
                            out float3 diffuseLighting, out float3 specularLighting,
-                           uint sampleCount = 512)
+                           uint sampleCount = 16)
 {
     diffuseLighting = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -1115,7 +1127,6 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     return lighting;
 }
 
-// NOTE: Already exists in ShaderGraphLibrary/GeometricUtils.
 float3 RayPlaneIntersect(in float3 rayOrigin, in float3 rayDirection, in float3 planeOrigin, in float3 planeNormal)
 {
     float dist = dot(planeNormal, planeOrigin - rayOrigin) / dot(planeNormal, rayDirection);
@@ -1156,26 +1167,139 @@ float RightPyramidSolidAngle(float positionWS, float lightPositionWS, float half
 
 // Ref: Moving Frostbite to PBR (Appendix E, Listing E.2)
 // Returns the closest point to a rectangular shape defined by right and up (and the rect extents).
-float3 RectangleClosestPoint(float3 positionWS, float3 planeOrigin, float3 right, float3 up, float halfWidth, float halfHeight)
+float3 RectangleClosestPoint(float3 positionWS, float3 planeOrigin, float3 left, float3 up, float halfWidth, float halfHeight)
 {
     float3 dir = positionWS - planeOrigin;
 
     // Project into the 2D light plane.
-    float2 dist2D = float2(dot(dir, right), dot(dir, up));
+    float2 dist2D = float2(dot(dir, left), dot(dir, up));
 
     // Clamp within the rectangle.
     const float2 halfSize = float2(halfWidth, halfHeight);
-    dist2D = clamp(dist2D, -halfWidth, halfHeight);
+    dist2D = clamp(dist2D, -halfSize, halfSize);
 
     // Compute the new world position.
-    return planeOrigin + dist2D.x * right + dist2D.y * up;
+    return planeOrigin + dist2D.x * left + dist2D.y * up;
 }
 
-// Returns the dominant direction of the multiple marschner lobes.
-float3 ComputeDominantMarschnerLobeDirection()
+DirectLighting EvaluateBSDF_Rect_MRP(LightLoopContext lightLoopContext,
+                                     float3 V, PositionInputs posInput,
+                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
-    // TODO
-    return float3(0, 1, 0);
+    DirectLighting lighting;
+    ZERO_INITIALIZE(DirectLighting, lighting);
+
+    #if 1
+    {
+        // Ref: Moving Frostbite to PBR (Appendix E)
+        // Solve the area lighting using the Most Representative Point detection method.
+        // This is a stop-gap solution until further research is given to LTC support for anisotropic BSDFs.
+        // In the future, when strand-space shading is added, it might be doable to take a "structured sampling" approach.
+        const float3 positionWS = posInput.positionWS;
+
+    #if SHADEROPTIONS_BARN_DOOR
+        // Apply the barn door modification to the light data
+        RectangularLightApplyBarnDoor(lightData, positionWS);
+    #endif
+
+        float3 unL = lightData.positionRWS - positionWS;
+
+        if (dot(lightData.forward, unL) < FLT_EPS)
+        {
+            const float halfWidth  = lightData.size.x * 0.5;
+            const float halfHeight = lightData.size.y * 0.5;
+
+            // Solid angle computation (brute force or approximate routine).
+        #if 1
+            float4x3 lightVerts;
+            lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
+            lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
+            lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
+            lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
+
+            float solidAngle = RectangleSolidAngle(positionWS, lightVerts);
+        #else
+            float solidAngle = RightPyramidSolidAngle(positionWS, lightData.positionRWS, halfWidth, halfHeight);
+        #endif
+
+        #if 1
+            const float3 dh = ComputeViewFacingNormal(V, bsdfData.hairStrandDirectionWS);
+
+            // Intersect the dominant specular direction with the light plane.
+            float3 ph = RayPlaneIntersect(positionWS, dh, lightData.positionRWS, lightData.forward);
+
+            // Compute the closest position on the rectangle.
+            ph = RectangleClosestPoint(ph, lightData.positionRWS, -lightData.right, lightData.up, halfWidth, halfHeight);
+
+            // Determine the dominant hemisphere direction based on the camera-light plane angle.
+            const float LdotV = max(dot(-lightData.forward, V), 0);
+
+            // Construct the most representative direction.
+            // We must consider multiple specular lobes, on the backward (R, TRT) and forward (TT) scattering hemisphere.
+            // For the backward hemisphere we handle R and TRT similarly, and use the MRP result (based on the "fake" normal just like how we use it for IBL).
+            // For the forward hemisphere we need to approximate harsher. We can get away with falling back to the light center and modifying the roughness.
+            const float3 LBHemisphere = ph - positionWS;
+            const float3 LFHemisphere = unL;
+            const float3 L = SafeNormalize(lerp(LFHemisphere, LBHemisphere, LdotV));
+
+            // Modify the roughness for the forward hemisphere scattering.
+            // Slight hack as we weight the solid angle contribution by a fudge factor term to match the reference.
+            const float backwardHemisphereRoughnessFactor = 0.1;
+            const float roughnessTTPrime = saturate(bsdfData.roughnessTT + backwardHemisphereRoughnessFactor * solidAngle);
+            bsdfData.roughnessTT = lerp(roughnessTTPrime, bsdfData.roughnessTT, LdotV);
+
+            // Attempt at energy normalization for rectangular lights.
+            const float3 alpha = float3(
+                bsdfData.roughnessR,
+                bsdfData.roughnessTT,
+                bsdfData.roughnessTRT
+            );
+
+            const float3 alphaPrime = saturate(alpha + solidAngle);
+
+            bsdfData.distributionNormalizationFactor = sqrt(alpha / alphaPrime);
+        #else
+            // For small area lights, this will visually match the reference exactly (as it is almost essentially a point light).
+            const float3 L = normalize(lightData.positionRWS - positionWS);
+        #endif
+
+            // Configure a theoretically placed point light at the most important position contributing the area light irradiance.
+            float3 lightColor = lightData.color * solidAngle;
+
+            // TODO: Cookie
+
+            // Shadows
+        #ifndef SKIP_RASTERIZED_AREA_SHADOWS
+            {
+            // NOTE: Do not handle the spline visibility sample for area light.
+            // Instead fall back to the strand count probe for multiple scattering.
+            #ifdef LIGHT_EVALUATION_SPLINE_SHADOW_BIAS
+                posInput.positionWS += L * GetSplineOffsetForShadowBias(bsdfData);
+            #endif
+
+                SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
+                lightColor *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
+            }
+        #endif
+
+            // Simulate a sphere/disk light with this hack.
+            // Note that it is not correct with our precomputation of PartLambdaV
+            // (means if we disable the optimization it will not have the
+            // same result) but we don't care as it is a hack anyway.
+            ClampRoughness(preLightData, bsdfData, lightData.minRoughness);
+
+            lighting = ShadeSurface_Infinitesimal(preLightData, bsdfData, V, L, lightColor.rgb,
+                                                  lightData.diffuseDimmer, lightData.specularDimmer);
+        }
+    }
+    #else
+    {
+        IntegrateBSDF_AreaRef(V, posInput.positionWS, preLightData, lightData, bsdfData,
+                              lighting.diffuse, lighting.specular);
+    }
+    #endif
+
+    return lighting;
 }
 
 DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
@@ -1189,79 +1313,11 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     }
     else
     {
-    #if 0
-        // Falls back to the GGX LTC.
-        return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
-    #else
-        DirectLighting lighting;
-        ZERO_INITIALIZE(DirectLighting, lighting);
-
-        #if 1
-        {
-            // Ref: Moving Frostbite to PBR (Appendix E)
-            // Solve the area lighting using the Most Representative Point detection method.
-            // This is a stop-gap solution until further research is given to LTC support for anisotropic BSDFs.
-            const float3 positionWS = posInput.positionWS;
-
-        #if SHADEROPTIONS_BARN_DOOR
-            // Apply the barn door modification to the light data
-            RectangularLightApplyBarnDoor(lightData, positionWS);
-        #endif
-
-            if (dot(positionWS - lightData.positionRWS, lightData.forward) > 0)
-            {
-                const float  halfWidth  = lightData.size.x * 0.5;
-                const float  halfHeight = lightData.size.y * 0.5;
-
-                // Compute the dominant specular direction for Marschner BSDF (instead of the reflection vector, which is only really useful for Phong distribution).
-                float3 dh = ComputeDominantMarschnerLobeDirection();
-
-                // Intersect the dominant specular direction with the light plane.
-                float3 ph = RayPlaneIntersect(positionWS, dh, lightData.positionRWS, lightData.forward);
-
-                // Compute the closest position on the rectangle.
-                ph = RectangleClosestPoint(ph, lightData.positionRWS, -lightData.right, lightData.up, halfWidth, halfHeight);
-
-                // Solid angle computation (brute force or approximate routine).
-            #if 1
-                float4x3 lightVerts;
-                lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
-                lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
-                lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
-                lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
-
-                float solidAngle = RectangleSolidAngle(positionWS, lightVerts);
-            #else
-                float solidAngle = RightPyramidSolidAngle(positionWS, lightData.positionRWS, halfWidth, halfHeight);
-            #endif
-
-                // Construct the most representative direction.
-                float3 L = normalize(ph - positionWS);
-
-                // Shade the surface with a theoretically placed point light at the most important position.
-                float3 lightColor = lightData.color * solidAngle;
-
-                // TODO: Area Shadow Sample
-
-                // Simulate a sphere/disk light with this hack.
-                // Note that it is not correct with our precomputation of PartLambdaV
-                // (means if we disable the optimization it will not have the
-                // same result) but we don't care as it is a hack anyway.
-                ClampRoughness(preLightData, bsdfData, lightData.minRoughness);
-
-                lighting = ShadeSurface_Infinitesimal(preLightData, bsdfData, V, L, lightColor.rgb,
-                                                      lightData.diffuseDimmer, lightData.specularDimmer);
-            }
-        }
-        #else
-        {
-            IntegrateBSDF_AreaRef(V, posInput.positionWS, preLightData, lightData, bsdfData,
-                                  lighting.diffuse, lighting.specular);
-        }
-        #endif
-
-        return lighting;
-    #endif
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
+            // Falls back to the GGX LTC for Kajiya.
+            return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+        else
+            return EvaluateBSDF_Rect_MRP(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
     }
 }
 
