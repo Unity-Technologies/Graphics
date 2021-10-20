@@ -11,7 +11,7 @@ test_platforms:
     - [OSX_OpenGLCore, OSX_Metal, Linux_OpenGLCore]: UTR_VERSION=0.14.1-rc1
     - [all]: <shared.platform.commands.setup_utr>
     - [OSX_Metal, OSX_OpenGLCore]: <shared.platform.commands.unity_downloader_cli>
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 -s https://artifactory.prd.cds.internal.unity3d.com && refreshenv
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 && refreshenv
     - [OSX_OpenGLCore]: brew install python
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: |5-
@@ -41,7 +41,7 @@ test_platforms:
     - [OSX_OpenGLCore, OSX_Metal, Linux_OpenGLCore]: UTR_VERSION=0.14.1-rc1
     - [all]: <shared.platform.commands.setup_utr>
     - [all]: <shared.platform.commands.unity_downloader_cli>
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 -s https://artifactory.prd.cds.internal.unity3d.com && refreshenv
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 && refreshenv
     - [OSX_OpenGLCore]: brew install python
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: |5-
@@ -69,7 +69,8 @@ test_platforms:
     - [OSX_OpenGLCore, OSX_Metal, Linux_OpenGLCore]: UTR_VERSION=0.14.1-rc1
     - [all]: <shared.platform.commands.setup_utr>
     - [OSX_Metal, OSX_OpenGLCore]: <shared.platform.commands.unity_downloader_cli>
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 -s https://artifactory.prd.cds.internal.unity3d.com && refreshenv
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: python --version
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 && refreshenv
     - [OSX_OpenGLCore]: brew install python
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: |5-
@@ -108,24 +109,24 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
       editmode:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.large
       standalone:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.large
       standalone_cache:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
   - name: OSX
     apis:
