@@ -450,6 +450,7 @@ float2 EvaluateFoamUV(float3 positionAWS)
 
 struct FoamData
 {
+    float smoothness;
     float3 foamValue;
     float3 surfaceGradient;
 };
@@ -483,6 +484,9 @@ void EvaluateFoamData(float3 surfaceGradient, float3 lowFrequencySurfaceGradient
 
     // Combine it with the regular surface gradient
     foamData.surfaceGradient = lerp(surfaceGradient, foamSurfaceGradient, foamTransition);
+
+    // Blend the smoothness of the water and the foam
+    foamData.smoothness = lerp(_WaterSmoothness, _FoamSmoothness, foamTransition);
 }
 
 #define WATER_BACKGROUND_ABSORPTION_DISTANCE 1000.f

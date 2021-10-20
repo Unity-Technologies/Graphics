@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Rendering parameters
         public Material material = null;
+        public float waterSmoothness = 0.8f;
 
         // Refraction parameters
         public Color transparentColor = new Color(0.00f, 0.45f, 0.65f);
@@ -45,6 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float causticsPlaneOffset = 0.0f;
 
         // Foam parameters
+        public float surfaceFoamSmoothness = 0.0f;
         public float surfaceFoamIntensity = 0.5f;
         public float surfaceFoamAmount = 0.5f;
         public float surfaceFoamTiling = 1.0f;

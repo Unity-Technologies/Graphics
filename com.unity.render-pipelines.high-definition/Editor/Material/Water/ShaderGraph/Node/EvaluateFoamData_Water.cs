@@ -48,6 +48,9 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kFoamOutputSlotId = 8;
         const string kFoamOutputSlotName = "Foam";
 
+        const int kSmoothnessOutputSlotId = 9;
+        const string kSmoothnessOutputSlotName = "Smoothness";
+
         public override bool hasPreview { get { return false; } }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -64,6 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Output
             AddSlot(new Vector3MaterialSlot(kSurfaceGradientOutputSlotId, kSurfaceGradientOutputSlotName, kSurfaceGradientOutputSlotName, SlotType.Output, Vector3.zero));
             AddSlot(new Vector3MaterialSlot(kFoamOutputSlotId, kFoamOutputSlotName, kFoamOutputSlotName, SlotType.Output, Vector3.zero));
+            AddSlot(new Vector1MaterialSlot(kSmoothnessOutputSlotId, kSmoothnessOutputSlotName, kSmoothnessOutputSlotName, SlotType.Output, 0));
 
             RemoveSlotsNameNotMatching(new[]
             {
@@ -79,6 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Output
                 kSurfaceGradientOutputSlotId,
                 kFoamOutputSlotId,
+                kSmoothnessOutputSlotId,
             });
         }
 
@@ -107,6 +112,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     positionWS
                 );
 
+                sb.AppendLine("$precision {0} = foamData.smoothness;",
+                    GetVariableNameForSlot(kSmoothnessOutputSlotId)
+                );
+
                 sb.AppendLine("$precision3 {0} = foamData.foamValue;",
                     GetVariableNameForSlot(kFoamOutputSlotId)
                 );
@@ -117,6 +126,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
+                sb.AppendLine("$precision {0} = 0.0;",
+                    GetVariableNameForSlot(kSmoothnessOutputSlotId)
+                );
+
                 sb.AppendLine("$precision3 {0} = 0.0;",
                     GetVariableNameForSlot(kFoamOutputSlotId)
                 );

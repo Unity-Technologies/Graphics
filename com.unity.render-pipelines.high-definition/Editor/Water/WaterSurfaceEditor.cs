@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Rendering parameters
         SerializedProperty m_Material;
+        SerializedProperty m_WaterSmoothness;
 
         // Refraction parameters
         SerializedProperty m_MaxRefractionDistance;
@@ -47,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_WaterMaskOffset;
 
         // Foam
+        SerializedProperty m_SurfaceFoamSmoothness;
         SerializedProperty m_SurfaceFoamIntensity;
         SerializedProperty m_SurfaceFoamAmount;
         SerializedProperty m_SurfaceFoamTiling;
@@ -80,6 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Rendering parameters
             m_Material = o.Find(x => x.material);
+            m_WaterSmoothness = o.Find(x => x.waterSmoothness);
 
             // Refraction parameters
             m_MaxAbsorptionDistance = o.Find(x => x.maxAbsorptionDistance);
@@ -101,6 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CausticsPlaneOffset = o.Find(x => x.causticsPlaneOffset);
 
             // Foam
+            m_SurfaceFoamSmoothness = o.Find(x => x.surfaceFoamSmoothness);
             m_SurfaceFoamIntensity = o.Find(x => x.surfaceFoamIntensity);
             m_SurfaceFoamAmount = o.Find(x => x.surfaceFoamAmount);
             m_SurfaceFoamTiling = o.Find(x => x.surfaceFoamTiling);
@@ -190,6 +194,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_Material);
+                EditorGUILayout.PropertyField(m_WaterSmoothness);
             }
 
             EditorGUILayout.LabelField("Refraction", EditorStyles.boldLabel);
@@ -246,6 +251,8 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 // Surface foam
+                EditorGUILayout.PropertyField(m_SurfaceFoamSmoothness);
+                m_SurfaceFoamSmoothness.floatValue = Mathf.Clamp(m_SurfaceFoamSmoothness.floatValue, 0.0f, 1.0f);
                 EditorGUILayout.PropertyField(m_SurfaceFoamIntensity);
                 m_SurfaceFoamIntensity.floatValue = Mathf.Clamp(m_SurfaceFoamIntensity.floatValue, 0.0f, 1.0f);
                 EditorGUILayout.PropertyField(m_SurfaceFoamAmount);

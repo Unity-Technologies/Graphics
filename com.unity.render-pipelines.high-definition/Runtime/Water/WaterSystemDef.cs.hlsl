@@ -25,12 +25,12 @@ CBUFFER_START(ShaderVariablesWater)
     float _CloudTexturedAmount;
     float _RefractionNormalWeight;
     float _MaxRefractionDistance;
-    float _PaddingW2;
+    float _WaterSmoothness;
     float2 _FoamOffsets;
     float _FoamTilling;
     float _WindFoamAttenuation;
     float3 _ScatteringColorTips;
-    float _PaddingW3;
+    float _FoamSmoothness;
     float _Refraction;
     float _RefractionLow;
     float _MaxAbsorptionDistance;

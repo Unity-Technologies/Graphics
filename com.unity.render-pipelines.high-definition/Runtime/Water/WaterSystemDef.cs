@@ -49,14 +49,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // Padding
         public float _RefractionNormalWeight;
         public float _MaxRefractionDistance;
-        public float _PaddingW2;
+        public float _WaterSmoothness;
 
         public Vector2 _FoamOffsets;
         public float _FoamTilling;
         public float _WindFoamAttenuation;
 
         public Vector3 _ScatteringColorTips;
-        public float _PaddingW3;
+        public float _FoamSmoothness;
 
         public float _Refraction;
         public float _RefractionLow;

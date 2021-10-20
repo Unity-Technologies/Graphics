@@ -292,6 +292,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Choppiness factor
             cb._Choppiness = currentWater.choppiness;
 
+            // Water smoothness
+            cb._WaterSmoothness = currentWater.waterSmoothness;
+
             // Compute the size of the patches and their scale
             float range = currentWater.waterMaxPatchSize - k_MinPatchSize;
             cb._BandPatchSize = new Vector4(currentWater.waterMaxPatchSize, currentWater.waterMaxPatchSize - range * 7 / 8, currentWater.waterMaxPatchSize - range * 31 / 32, currentWater.waterMaxPatchSize - range * 63 / 64);
@@ -309,6 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._WindSpeed.w = windMpS * MaximumWindForPatch(cb._BandPatchSize.w) / maxWindForBand0 * Mathf.Pow(0.7f, 0.333333f * 6);
 
             // Foam data
+            cb._FoamSmoothness = currentWater.surfaceFoamSmoothness;
             cb._SurfaceFoamIntensity = currentWater.surfaceFoamIntensity;
             cb._SurfaceFoamAmount = currentWater.surfaceFoamAmount;
             cb._FoamTilling = currentWater.surfaceFoamTiling * 0.025f;
