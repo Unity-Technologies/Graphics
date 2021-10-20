@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-Cube-IES"))
                     additionalData.IESPoint = subAsset as Texture;
                 else if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-2D-IES"))
-                    additionalData .IESSpot = subAsset as Texture;
+                    additionalData.IESSpot = subAsset as Texture;
             }
         }
     }
