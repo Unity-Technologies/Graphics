@@ -36,14 +36,22 @@ RW_TEXTURE2D_X(float4, _FrameTexture);
 [shader("miss")]
 void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
 {
+    // In indirect-only mode, it makes more sense to return a null value
+    if (_RaytracingMinRecursion > 1)
+    {
+        pathIntersection.value = 0.0;
+        pathIntersection.alpha = 0.0;
+        return;
+    }
+
     bool skyEnabled = _EnvLightSkyEnabled && _RaytracingCameraSkyEnabled;
     float4 missColor = skyEnabled ? _SkyCameraTexture[COORD_TEXTURE2D_X(pathIntersection.pixelCoord)] : _RaytracingCameraClearColor;
-    pathIntersection.value = missColor.xyz * GetInverseCurrentExposureMultiplier();
-    pathIntersection.alpha = missColor.w;
+    pathIntersection.value = missColor.rgb * GetInverseCurrentExposureMultiplier();
+    pathIntersection.alpha = missColor.a;
 
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value, pathIntersection.alpha);
 
-    if (_EnableVolumetricFog && _RaytracingMinRecursion <= 1)
+    if (_EnableVolumetricFog)
     {
         float3 lightPosition, envValue = pathIntersection.value;
 
@@ -85,7 +93,7 @@ void MissMaterial(inout PathIntersection pathIntersection : SV_RayPayload)
         return;
     }
 
-    pathIntersection.value = _EnvLightSkyEnabled ? SampleSkyTexture(WorldRayDirection(), 0.0, 0).xyz : 0.0;
+    pathIntersection.value = _EnvLightSkyEnabled ? SampleSkyTexture(WorldRayDirection(), 0.0, 0).rgb : 0.0;
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
 }
 
