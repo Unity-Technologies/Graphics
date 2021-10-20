@@ -20,14 +20,19 @@ using System.Reflection;
 [CanEditMultipleObjects]
 class VFXSlotContainerEditor : Editor
 {
+    private bool isRegistered;
+
     protected void OnEnable()
     {
-        SceneView.duringSceneGui += OnSceneGUI;
+        if (!isRegistered)
+        {
+            isRegistered = true;
+            SceneView.duringSceneGui += OnSceneGUI;
+        }
     }
 
     protected void OnDisable()
     {
-        SceneView.duringSceneGui -= OnSceneGUI;
         if (s_EffectUi == this)
             s_EffectUi = null;
     }
@@ -173,20 +178,20 @@ class VFXSlotContainerEditor : Editor
             if (window != null)
             {
                 VFXView view = window.graphView;
-                if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
+                if (view.controller != null && view.controller.model)
                 {
-                    if (slotContainer is VFXParameter)
+                    if (slotContainer is VFXParameter vfxParameter && view.selection.OfType<IControlledElement<VFXParameterController>>().Any(x => x.controller.model == vfxParameter))
                     {
-                        var controller = view.controller.GetParameterController(slotContainer as VFXParameter);
-
-                        m_CurrentController = controller;
-                        if (controller != null)
-                            controller.DrawGizmos(view.attachedComponent);
+                        m_CurrentController = view.controller.GetParameterController(vfxParameter);
                     }
                     else
                     {
-                        m_CurrentController = view.controller.GetNodeController(slotContainer, 0);
+                        var controller = view.controller.GetNodeController(slotContainer, 0);
+                        m_CurrentController = view.selection.OfType<ISettableControlledElement<VFXNodeController>>().Any(x => x.controller == controller)
+                            ? controller
+                            : null;
                     }
+
                     if (m_CurrentController != null)
                     {
                         m_CurrentController.DrawGizmos(view.attachedComponent);
