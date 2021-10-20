@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed screen space reflection PBR Accumulation
 - Fixed and optimize distance shadowmask fade.
 
+### Changed
+- MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+
 ## [10.7.0] - 2021-07-02
 
 ### Fixed
