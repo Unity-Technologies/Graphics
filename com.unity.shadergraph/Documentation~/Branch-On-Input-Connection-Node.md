@@ -53,7 +53,7 @@ To use the Branch On Input Connection node in a Subgraph:
 | Out          | Output        | Dynamic Vector    | Outputs the value of either **Connected** or **NotConnected**, depending on whether the property specified in **Input** is connected in the parent Shader Graph.        |
 
 
-## Example Subgraph
+## Example Subgraph usage
 
 This Branch On Input Connection node uses the connection status of a Vector2 property to change the UV channel used to generate a checkerboard pattern:
 
