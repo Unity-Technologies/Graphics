@@ -208,6 +208,8 @@ namespace UnityEditor.VFX.UI
                 m_Controller.graph.errorManager.onClearAllErrors -= ClearAllErrors;
                 m_Controller.graph.errorManager.onRegisterError -= RegisterError;
             }
+
+            SceneView.duringSceneGui -= OnSceneGUI;
         }
 
         void ConnectController()
@@ -247,6 +249,8 @@ namespace UnityEditor.VFX.UI
                     controller.graph.AddChild(VFXBlockSubgraphContext.CreateInstance<VFXBlockSubgraphContext>(), 0);
                 }
             }
+
+            SceneView.duringSceneGui += OnSceneGUI;
         }
 
         IEnumerable<Type> GetAcceptedTypeNodes()
@@ -2736,6 +2740,42 @@ namespace UnityEditor.VFX.UI
             }
 
             return newParameterController;
+        }
+
+        void OnSceneGUI(SceneView sv)
+        {
+            try // make sure we don't break the whole scene
+            {
+                if (controller != null && controller.model && attachedComponent != null)
+                {
+                    var controllers = selection
+                        .OfType<IControlledElement<VFXParameterController>>()
+                        .Select(x => x.controller)
+                        .OfType<IGizmoController>()
+                        .Union(selection.OfType<ISettableControlledElement<VFXNodeController>>()
+                            .Select(x => x.controller)
+                            .OfType<IGizmoController>()).ToList();
+
+                    controllers.ForEach(x => x.DrawGizmos(attachedComponent));
+
+                    VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.UpdateFromVFXView(this, controllers);
+                    /*selection
+                        .OfType<IControlledElement<VFXParameterController>>()
+                        .Select(x => x.controller)
+                        .ToList()
+                        .ForEach(x => x.DrawGizmos(attachedComponent));
+
+                    selection
+                        .OfType<ISettableControlledElement<VFXNodeController>>()
+                        .Select(x => x.controller)
+                        .ToList()
+                        .ForEach(x => x.DrawGizmos(attachedComponent));*/
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
         }
     }
 }
