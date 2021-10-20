@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compatibility message not displayed correctly when switching platforms.
 - Fixed support for interleaved tiling in path tracing.
 - Fixed robustness issues with the stacklit material in path tracing (case 1373971).
+- Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.

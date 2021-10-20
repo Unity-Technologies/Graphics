@@ -20,6 +20,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool m_ShouldOverrideColorBufferFormat = false;
         GraphicsFormat m_AOVGraphicsFormat = GraphicsFormat.None;
 
+        // Property used for transparent motion vector color mask - depends on presence of virtual texturing or not
+        int colorMaskTransparentVel;
+        int colorMaskAdditionalTarget;
+
         void RecordRenderGraph(RenderRequest renderRequest,
             AOVRequestData aovRequest,
             List<RTHandle> aovBuffers,
@@ -897,7 +901,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (ForwardTransparentPassData data, RenderGraphContext context) =>
                     {
                         // Bind all global data/parameters for transparent forward pass
-                        context.cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, data.renderMotionVecForTransparent ? (int)ColorWriteMask.All : 0);
+                        context.cmd.SetGlobalInt(colorMaskTransparentVel, data.renderMotionVecForTransparent ? (int)ColorWriteMask.All : 0);
                         if (data.decalsEnabled)
                             DecalSystem.instance.SetAtlas(context.cmd); // for clustered decals
 
