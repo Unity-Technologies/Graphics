@@ -50,14 +50,14 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
             // For preview only we declare CRT defines
             if (generationMode == GenerationMode.Preview)
             {
-                registry.builder.AppendLine("#define _CustomRenderTextureHeight 0.0");
-                registry.builder.AppendLine("#define _CustomRenderTextureWidth 0.0");
-                registry.builder.AppendLine("#define _CustomRenderTextureDepth 0.0");
+                registry.builder.AppendLine("#define _CustomRenderTextureHeight 1.0");
+                registry.builder.AppendLine("#define _CustomRenderTextureWidth 1.0");
+                registry.builder.AppendLine("#define _CustomRenderTextureDepth 1.0");
             }
         }
     }
 
-    [Title("Custom Render Texture", "Slice / Face")]
+    [Title("Custom Render Texture", "Slice Index / Cubemap Face")]
     class CustomTextureSlice : AbstractMaterialNode, IGeneratesFunction
     {
         private const string kOutputSlotCubeFaceName = "Texture Cube Face";
@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
 
         public CustomTextureSlice()
         {
-            name = "Custom Render Texture Size";
+            name = "Slice Index / Cubemap Face";
             UpdateNodeAfterDeserialization();
         }
 
@@ -152,10 +152,13 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
             {
                 registry.builder.AppendLine("TEXTURE2D(_SelfTexture2D);");
                 registry.builder.AppendLine("SAMPLER(sampler_SelfTexture2D);");
+                registry.builder.AppendLine("float4 _SelfTexture2D_TexelSize;");
                 registry.builder.AppendLine("TEXTURE2D(_SelfTextureCube);");
                 registry.builder.AppendLine("SAMPLER(sampler_SelfTextureCube);");
+                registry.builder.AppendLine("float4 _SelfTextureCube_TexelSize;");
                 registry.builder.AppendLine("TEXTURE2D(_SelfTexture3D);");
                 registry.builder.AppendLine("SAMPLER(sampler_SelfTexture3D);");
+                registry.builder.AppendLine("float4 sampler_SelfTexture3D_TexelSize;");
             }
         }
     }
@@ -202,44 +205,5 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
                 sb.AppendLine(@"bool {0} = CustomRenderTextureDimension == CRT_DIMENSION_CUBE;", GetVariableNameForSlot(kOutputSlotCubeId));
             }
         }
-    }
-
-    [Title("Custom Render Texture", "UV/Direction")]
-    class UVOrDirection : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV, IMayRequireViewDirection
-    {
-        private const string kOutput = "Uv/Direction";
-
-        public UVOrDirection()
-        {
-            name = "UV/Direction";
-            UpdateNodeAfterDeserialization();
-        }
-
-        public sealed override void UpdateNodeAfterDeserialization()
-        {
-            AddSlot(new Vector3MaterialSlot(0, kOutput, kOutput, SlotType.Output, Vector3.zero));
-        }
-
-        public override bool hasPreview => false;
-
-        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
-        {
-            if (generationMode.IsPreview())
-            {
-                sb.AppendLine(@"$precision3 {0} = 0;", GetVariableNameForSlot(0));
-            }
-            else
-            {
-                var dir = CoordinateSpace.World.ToVariableName(InterpolatorType.ViewDirection);
-                var uv = UVChannel.UV0.GetUVName();
-                sb.AppendLine(@"$precision3 {0} = CustomRenderTextureDimension == CRT_DIMENSION_CUBE ? IN.{1} : IN.{2}.xyz;", GetVariableNameForSlot(0), dir, uv);
-            }
-        }
-
-        public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability = ShaderStageCapability.All)
-            => channel == UVChannel.UV0 && stageCapability == ShaderStageCapability.Fragment;
-
-        public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability = ShaderStageCapability.All)
-            => NeededCoordinateSpace.World;
     }
 }
