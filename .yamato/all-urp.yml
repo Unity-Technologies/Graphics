@@ -69,8 +69,8 @@ Nightly_URP_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_upgrade.yml#URP_Upgrade_test_win_trunk
          rerun: on_new_revision
-All_URP_on_Win_DX11_trunk:
-    name: All URP on Win DX11 on trunk
+All_URP_on_Win_DX11_playmode_trunk:
+    name: All URP on Win DX11 playmode on trunk
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
@@ -149,8 +149,8 @@ Nightly_URP_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/urp_upgrade.yml#URP_Upgrade_test_win_CUSTOM-REVISION
          rerun: on_new_revision
-All_URP_on_Win_DX11_CUSTOM-REVISION:
-    name: All URP on Win DX11 on CUSTOM-REVISION
+All_URP_on_Win_DX11_playmode_CUSTOM-REVISION:
+    name: All URP on Win DX11 playmode on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
