@@ -720,7 +720,10 @@ namespace UnityEngine.Rendering
                 m_drawIndices.Dispose();
 
                 foreach (var added in m_AddedRenderers)
-                    added.forceRenderingOff = false;
+                {
+                    if (added != null)
+                        added.forceRenderingOff = false;
+                }
             }
         }
     }
