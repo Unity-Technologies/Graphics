@@ -27,7 +27,7 @@ The Subgraph Dropdown node is similar to the [Keyword node](Keyword-Node.md), an
 
 8. (Optional) In the **Default** list, select the default Entry that you want Shader Graph to select on your property.
 
-9. (Optional) Enable **Use Custom Binding** to
+![](images/sg-subgraph-dropdown-node-example.png)
 
 
 ## Ports

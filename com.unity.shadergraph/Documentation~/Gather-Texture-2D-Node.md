@@ -23,3 +23,5 @@ This node uses the [Gather](https://docs.microsoft.com/en-us/windows/win32/direc
 | G            | Output        | Float         |    None     | The second neighboring pixel's Red channel.       |
 | B            | Output        | Float         |    None     | The third neighboring pixel's Red channel.        |
 | A            | Output        | Float         |    None     | The fourth neighboring pixel's Red channel.       |
+
+## Example shader usage
