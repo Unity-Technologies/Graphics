@@ -82,7 +82,7 @@ HDRP_Linux_Vulkan_playmode_XR_mono_Linear_2021.2:
 HDRP_Linux_Vulkan_editmode_mono_Linear_2021.2:
     name: HDRP on Linux_Vulkan_editmode_mono_Linear on version 2021.2
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
@@ -364,7 +364,7 @@ HDRP_Linux_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
 HDRP_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
