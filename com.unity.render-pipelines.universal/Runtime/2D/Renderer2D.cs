@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.Universal
             if (DebugHandler != null)
             {
 #if UNITY_EDITOR
-                UnityEditorInternal.SpriteMaskUtility.EnableDebugMode(DebugHandler.DebugDisplaySettings.MaterialSettings.DebugMaterialModeData == DebugMaterialMode.SpriteMask);
+                UnityEditorInternal.SpriteMaskUtility.EnableDebugMode(DebugHandler.DebugDisplaySettings.materialSettings.materialDebugMode == DebugMaterialMode.SpriteMask);
 #endif
                 if (DebugHandler.AreAnySettingsActive)
                 {
