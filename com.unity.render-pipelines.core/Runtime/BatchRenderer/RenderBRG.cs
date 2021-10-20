@@ -126,8 +126,7 @@ namespace UnityEngine.Rendering
     unsafe class SceneBRG
     {
         private BatchRendererGroup m_BatchRendererGroup;
-        private ComputeBuffer m_GPUPersistentInstanceData;
-        private BatchBufferID m_GPUPersistanceBufferId;
+        private GraphicsBuffer m_GPUPersistentInstanceData;
 
         private BatchID m_batchID;
         private bool m_initialized;
@@ -584,10 +583,9 @@ namespace UnityEngine.Rendering
             }
 
             m_GPUPersistentInstanceData =
-                new ComputeBuffer((int)bigDataBufferVector4Count * 16 / 4, 4, ComputeBufferType.Raw);
+                new GraphicsBuffer(GraphicsBuffer.Target.Raw, (int)bigDataBufferVector4Count * 16 / 4, 4);
             m_GPUPersistentInstanceData.SetData(vectorBuffer);
 
-            m_GPUPersistanceBufferId = m_BatchRendererGroup.RegisterBuffer(m_GPUPersistentInstanceData);
 
 #if DEBUG_LOG_SCENE
             Debug.Log("DrawRanges: " + m_drawRanges.Length + ", DrawBatches: " + m_drawBatches.Length +
@@ -690,7 +688,7 @@ namespace UnityEngine.Rendering
             batchMetadata[12] = CreateMetadataValue(SHCID, SHCOffset * UnsafeUtility.SizeOf<Vector4>(), true);
 
             // Register batch
-            m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistanceBufferId);
+            m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistentInstanceData.bufferHandle);
 
             m_initialized = true;
         }
