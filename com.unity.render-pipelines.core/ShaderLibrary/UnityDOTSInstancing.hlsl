@@ -96,24 +96,27 @@ for t, c, sz in (
 #define UNITY_DOTS_INSTANCING_CONCAT2(a, b) a ## b
 #define UNITY_DOTS_INSTANCING_CONCAT4(a, b, c, d) a ## b ## c ## d
 #define UNITY_DOTS_INSTANCING_CONCAT_WITHOUT_METADATA(metadata_prefix, typespec, metadata_underscore_var) UNITY_DOTS_INSTANCING_CONCAT4(metadata_prefix, typespec, _, metadata_underscore_var)
-#define UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(metadata_prefix, typespec, name) UNITY_DOTS_INSTANCING_CONCAT4(metadata_prefix, typespec, _Metadata_, name)
+#define UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(metadata_prefix, typespec, name) UNITY_DOTS_INSTANCING_CONCAT4(metadata_prefix, typespec, _Metadata, name)
 
 // Metadata constants for properties have the following name format:
-// unity_DOTSInstancing_<Type><Size>_Metadata_<Name>
+// unity_DOTSInstancing<Type><Size>_Metadata<Name>
 // where
 // <Type> is a single character element type specifier (e.g. F for float4x4)
 //          F = float, I = int, U = uint, H = half
 // <Size> is the total size of the property in bytes (e.g. 64 for float4x4)
 // <Name> is the name of the property
-#define UNITY_DOTS_INSTANCED_METADATA_NAME(type, name) UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(unity_DOTSInstancing_, UNITY_DOTS_INSTANCING_CONCAT2(UNITY_DOTS_INSTANCING_TYPESPEC_, type), name)
-#define UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(type, metadata_underscore_var) UNITY_DOTS_INSTANCING_CONCAT_WITHOUT_METADATA(unity_DOTSInstancing_, UNITY_DOTS_INSTANCING_CONCAT2(UNITY_DOTS_INSTANCING_TYPESPEC_, type), metadata_underscore_var)
+// NOTE: There is no underscore between 'Metadata' and <Name> to avoid a double
+//       underscore in the common case where the property name starts with an underscore.
+//       A prefix double underscore is illegal on some platforms like OpenGL.
+#define UNITY_DOTS_INSTANCED_METADATA_NAME(type, name) UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(unity_DOTSInstancing, UNITY_DOTS_INSTANCING_CONCAT2(UNITY_DOTS_INSTANCING_TYPESPEC_, type), name)
+#define UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(type, metadata_underscore_var) UNITY_DOTS_INSTANCING_CONCAT_WITHOUT_METADATA(unity_DOTSInstancing, UNITY_DOTS_INSTANCING_CONCAT2(UNITY_DOTS_INSTANCING_TYPESPEC_, type), metadata_underscore_var)
 
 #define UNITY_DOTS_INSTANCING_START(name) cbuffer UnityDOTSInstancing_##name {
 #define UNITY_DOTS_INSTANCING_END(name)   }
 #define UNITY_DOTS_INSTANCED_PROP(type, name) uint UNITY_DOTS_INSTANCED_METADATA_NAME(type, name);
 
 // There is a separate FROM_MACRO variant to be used in macros of the form
-// #define <MACRO_NAME> UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float4, Metadata_<MACRO_NAME>)
+// #define <MACRO_NAME> UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float4, Metadata<MACRO_NAME>)
 // These kinds of macros can be used to have shader code load constants from DOTS instancing
 // as if they were normal constants.
 // The reason for having the FROM_MACRO variant is that the fxc shader preprocessor is buggy,

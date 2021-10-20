@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Light))]
     [URPHelpURL("universal-additional-light-data")]
-    public class UniversalAdditionalLightData : MonoBehaviour
+    public class UniversalAdditionalLightData : MonoBehaviour, IAdditionalData
     {
         // Version 0 means serialized data before the version field.
         [SerializeField] int m_Version = 1;

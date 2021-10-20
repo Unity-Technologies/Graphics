@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportShadowMaskContent = EditorGUIUtility.TrTextContent("Shadowmask", "When enabled, HDRP allocates Shader variants and memory for processing shadow masks. This allows you to use shadow masks in your Unity Project.");
             public static readonly GUIContent supportSSRContent = EditorGUIUtility.TrTextContent("Screen Space Reflection", "When enabled, HDRP allocates memory for processing screen space reflection (SSR). This allows you to use SSR in your Unity Project.");
             public static readonly GUIContent planarResolutionTitle = EditorGUIUtility.TrTextContent("Planar Resolution Tiers");
-            public static readonly GUIContent supportSSRTransparentContent = EditorGUIUtility.TrTextContent("Transparent", "When enabled, HDRP executes additional steps to achieve screen space reflection (SSR) on transparent objects.");
+            public static readonly GUIContent supportSSRTransparentContent = EditorGUIUtility.TrTextContent("Transparent", "When enabled, HDRP executes additional steps to achieve screen space reflection (SSR) on transparent objects. This feature requires both screen space reflections and transparent depth prepass to be enabled.");
             public static readonly GUIContent supportSSAOContent = EditorGUIUtility.TrTextContent("Screen Space Ambient Occlusion", "When enabled, HDRP allocates memory for processing screen space ambient occlusion (SSAO). This allows you to use SSAO in your Unity Project.");
             public static readonly GUIContent supportSSGIContent = EditorGUIUtility.TrTextContent("Screen Space Global Illumination", "When enabled, HDRP allocates memory for processing screen space global illumination (SSGI). This allows you to use SSGI in your Unity Project.");
             public static readonly GUIContent supportedSSSContent = EditorGUIUtility.TrTextContent("Subsurface Scattering", "When enabled, HDRP allocates memory for processing subsurface scattering (SSS). This allows you to use SSS in your Unity Project.");
@@ -263,6 +263,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent[] shadowBitDepthNames = { new GUIContent("32 bit"), new GUIContent("16 bit") };
             public static readonly int[] shadowBitDepthValues = { (int)DepthBits.Depth32, (int)DepthBits.Depth16 };
+
+            // TEMP: HDShadowFilteringQuality.VeryHigh - This filtering mode is not ready so disabling in UI
+            // To re-enable remove the two following light and re-enable the third one
+            public static readonly GUIContent[] shadowFilteringNames = { new GUIContent("Low"), new GUIContent("Medium"), new GUIContent("High") };
+            public static readonly int[] shadowFilteringValue = { 0, 1, 2 };
 
             public const string memoryDrawback = "Adds GPU memory";
             public const string shaderVariantDrawback = "Adds Shader Variants";

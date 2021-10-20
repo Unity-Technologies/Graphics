@@ -4,6 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.1] - 2021-10-04
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [12.1.0] - 2021-09-23
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [12.0.0] - 2021-01-11
 ### Added
 - Added support for Texture2D Arrays in Flipbooks
@@ -23,7 +33,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Is Inside subgraph into VFX Graph additions package
 - The VFX editor automatically attach to the current selection if the selected gameobject uses the currently edited VFX asset
 - Two new buttons are available in the editor's tool bar. One will display a popup panel to handle attachement and one to lock/unlock the current attachement
-
 
 ### Changed
 - Allow remaking an existing link.
@@ -98,6 +107,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix compilation failure on OpenGLES [Case 1348666](https://issuetracker.unity3d.com/product/unity/issues/guid/1348666/)
 - Don't open an empty VFX Graph Editor when assigning a VFX Asset to a Visual Effect GameObject from the inspector [Case 1347399](https://issuetracker.unity3d.com/product/unity/issues/guid/1347399/)
 - Visual Effect inspector input fields don't lose focus anymore while typing (Random seed)
+- Prevent vector truncation error in HDRP Decal template
+- Unexpected compilation error while modifying ShaderGraph exposed properties [Case 1361601](https://issuetracker.unity3d.com/product/unity/issues/guid/1361601/)
+- Compilation issue while using new SG integration and SampleTexture/SampleMesh [Case 1359391](https://issuetracker.unity3d.com/product/unity/issues/guid/1359391/)
+- Eye dropper in the color fields kept updating after pressing the Esc key
+- Prevent vfx re-compilation in some cases when a value has not changed
+- Prevent VFX Graph compilation each time a property's min/max value is changed
+- Exposed Camera property fails to upgrade and is converted to a float type [Case 1357685](https://issuetracker.unity3d.com/product/unity/issues/guid/1357685/)
+- Fix SDF Baker fail on PS4 & PS5 [Case 1351595](https://fogbugz.unity3d.com/f/cases/1351595/)
+- Fix potential infinite compilation when using subgraphs [Case 1346576](https://issuetracker.unity3d.com/product/unity/issues/guid/1346576/)
+- Prevent out of sync serialization of VFX assets that could cause the asset to be dirtied without reason
+- Fix undetermitism in space with LocalToWorld and WorldToLocal operators [Case 1355820](https://issuetracker.unity3d.com/product/unity/issues/guid/1355820/)
+- Added a missing paste option in the context menu for VFX contexts. Also the paste options is now disabled when uneffective
+- Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
 
 ## [11.0.0] - 2020-10-21
 ### Added

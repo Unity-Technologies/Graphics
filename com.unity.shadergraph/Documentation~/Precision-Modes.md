@@ -4,15 +4,15 @@
 
 Shader Graph provides specific [data precision modes](https://en.wikipedia.org/wiki/Precision_(computer_science)) for nodes, graphs, and Sub Graphs to help you optimize your content for different platforms.
 
-To set the precision of an entire graph, open the [Graph Settings](Graph-Settings-Menu) menu and adjust the **Precision** control. You can then use the [context menu](Node) to adjust the precision of individual nodes.
+To set the precision of an entire graph, select the [**Graph Settings**](Graph-Settings-Menu) tab in the [Graph Inspector](Internal-Inspector.md) and adjust the **Precision** control. Select a node in your graph and select the **Node Settings** tab in the Graph Inspector to adjust the precision of individual nodes.
 
 ## Precision mode settings
 | Name | Description |
 |------:|------------|
 | Single | This is a high-precision floating point value. The number of bits is platform-specific. For modern desktop computers, it is 32 bits.<br/>This mode is useful for world space positions, texture coordinates, and scalar computations that involve complex functions such as trigonometry, power, and exponentiation. |
 | Half | This is a low-precision floating point value. The number of bits is platform-specific. For modern desktop computers, it is 16 bits.<br/>This mode is useful for short vectors, directions, object space positions, and many high dynamic range colors, but not very strong light sources, such as the sun.|
-| Switchable | This mode is only for Sub Graphs. When you enable this mode for a Sub Graph Node, that node determines the precision of the Sub Graph that it references. See Sub Graph precision within other graphs for more information. |
-| Inherit | This mode determines a node's precision based on a set of inheritance rules. See the Precision inheritance section.|
+| Switchable | This mode is only for Sub Graphs. When you enable this mode for a Sub Graph, the default precision of the Sub Graph is decided by its Sub Graph node. See **Use Graph Precision** below. |
+| Inherit | This mode determines a node's precision based on a set of inheritance rules. See [Precision inheritance](#precision-inheritance).|
 | Use Graph Precision | This mode forces this node to use the same precision setting as the graph.<br/>If this is a node in a Sub Graph, and that Sub Graph’s **Precision** is set to **Switchable**, then the precision of this node is the precision of the Sub Graph node representing this Sub Graph. |
 
 ## Using Precision Modes
@@ -88,14 +88,16 @@ Precision behavior and user interface elements for [Sub Graphs](Sub-graph) and t
 
 #### Outputs
 
-To manually determine the precision of a Sub Graph's output, modify the **Output** node’s **Sub Graph Output** setting.
+To manually determine the precision of a Sub Graph's output, modify the **Output** node’s **Precision Mode** setting.
 
 #### Inputs
 
-To manually determine the precision of **Sub Graph Inputs**, open the [Internal Inspector](Internal-Inspector) and set precision modes for each individual [Property](Property-Types). Properties that use the Inherit option take on the **Graph Precision** you set for the Sub Graph.
+To manually determine the precision of **Sub Graph Inputs**, open the [Graph Inspector](Internal-Inspector) and set precision modes for each individual [Property](Property-Types). Properties that use the Inherit option take on the **Graph Precision** you set for the Sub Graph.
 
 #### Sub Graph Precision within other graphs
 
-By default, you cannot change the precision of a [Sub Graph Node](Sub-graph-Node) in a Shader Graph. This is because the input and output precision you set in a Sub Graph define the precision of its associated Sub Graph Node. However, if you set the **Sub Graph Precision** to **Switchable**, you can adjust Sub Graph Node precision values via your Shader Graph.
+By default, a Sub Graph has a Precision Mode of `Switchable`. You can modify Precision Mode of any [Sub Graph node](Sub-graph-Node) for that Sub Graph, as long as you set the Precision Mode on the Sub Graph as `Switchable`.
+
+Shader Graph won't allow you to change the Precision Mode for any Sub Graph node that doesn't have its Sub Graph set to `Switchable`. This is because the input and output precision you set in a Sub Graph define the precision of its associated Sub Graph Node.
 
 For example, let's say that Sub Graph A is **Switchable**. You open Graph 1, which includes a Sub Graph Node referencing Sub Graph A. Like all other nodes, Sub Graph Node A defaults to **Inherit**. You change the precision of Sub Graph Node A to **Half**. The precision of Sub Graph A also becomes **Half**.

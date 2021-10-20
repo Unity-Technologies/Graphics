@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_GlobalSettings == null || UniversalRenderPipelineGlobalSettings.instance == null)
             {
                 m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
-                return;
+                if(m_GlobalSettings == null) return;
             }
 #endif
 
@@ -545,7 +545,8 @@ namespace UnityEngine.Rendering.Universal
 
                 // Helper function for updating cameraData with xrPass Data
                 m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
-
+                // Need to update XRSystem using baseCameraData to handle the case where camera position is modified in BeginCameraRendering
+                m_XRSystem.UpdateFromCamera(ref baseCameraData.xr, baseCameraData);
                 m_XRSystem.BeginLateLatching(baseCamera, xrPass);
             }
 #endif
@@ -664,6 +665,15 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // When we want to update the volumes every frame...
+
+            // We destroy the volumeStack in the additional camera data, if present, to make sure
+            // it gets recreated and initialized if the update mode gets later changed to ViaScripting...
+            if (additionalCameraData && additionalCameraData.volumeStack != null)
+            {
+                camera.DestroyVolumeStack(additionalCameraData);
+            }
+
+            // Get the mask + trigger and update the stack
             camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out LayerMask layerMask, out Transform trigger);
             VolumeManager.instance.ResetMainStack();
             VolumeManager.instance.Update(trigger, layerMask);

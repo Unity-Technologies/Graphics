@@ -107,6 +107,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_DepthPrimingRecommended;
         StencilState m_DefaultStencilState;
         LightCookieManager m_LightCookieManager;
+        IntermediateTextureMode m_IntermediateTextureMode;
 
         // Materials used in URP Scriptable Render Passes
         Material m_BlitMaterial = null;
@@ -122,7 +123,6 @@ namespace UnityEngine.Rendering.Universal
         internal ColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
         internal PostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
         internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
-        internal RenderTargetHandle afterPostProcessColor { get => m_PostProcessPasses.afterPostProcessColor; }
         internal RenderTargetHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
         internal DeferredLights deferredLights { get => m_DeferredLights; }
 
@@ -151,6 +151,8 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetPassOperation(stencilData.passOperation);
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
+
+            m_IntermediateTextureMode = data.intermediateTextureMode;
 
             {
                 var settings = LightCookieManager.Settings.GetDefault();
@@ -286,6 +288,10 @@ namespace UnityEngine.Rendering.Universal
                     GraphicsDeviceType.OpenGLES3
                 };
             }
+
+            LensFlareCommonSRP.mergeNeeded = 0;
+            LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
+            LensFlareCommonSRP.Initialize();
         }
 
         /// <inheritdoc />
@@ -304,6 +310,8 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_ObjectMotionVecMaterial);
 
             Blitter.Cleanup();
+
+            LensFlareCommonSRP.Dispose();
         }
 
         private void SetupFinalPassDebug(ref CameraData cameraData)
@@ -391,7 +399,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Assign the camera color target early in case it is needed during AddRenderPasses.
             bool isPreviewCamera = cameraData.isPreviewCamera;
-            var createColorTexture = rendererFeatures.Count != 0 && !isPreviewCamera;
+            var createColorTexture = m_IntermediateTextureMode == IntermediateTextureMode.Always && !isPreviewCamera;
             if (createColorTexture)
             {
                 m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
@@ -888,6 +896,10 @@ namespace UnityEngine.Rendering.Universal
                 cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights + 1;
             }
             cullingParameters.shadowDistance = cameraData.maxShadowDistance;
+
+            cullingParameters.conservativeEnclosingSphere = UniversalRenderPipeline.asset.conservativeEnclosingSphere;
+
+            cullingParameters.numIterationsEnclosingSphere = UniversalRenderPipeline.asset.numIterationsEnclosingSphere;
         }
 
         /// <inheritdoc />
@@ -1022,6 +1034,8 @@ namespace UnityEngine.Rendering.Universal
 
                     m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
                     cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.id);
+                    //Set _AfterPostProcessTexture, users might still rely on this although it is now always the cameratarget due to swapbuffer
+                    cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.id);
                 }
 
                 if (m_ActiveCameraDepthAttachment != RenderTargetHandle.CameraTarget)
@@ -1130,11 +1144,18 @@ namespace UnityEngine.Rendering.Universal
 
             m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
             cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.id);
+            //Set _AfterPostProcessTexture, users might still rely on this although it is now always the cameratarget due to swapbuffer
+            cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.id);
         }
 
         internal override RenderTargetIdentifier GetCameraColorFrontBuffer(CommandBuffer cmd)
         {
             return m_ColorBufferSystem.GetFrontBuffer(cmd).id;
+        }
+
+        internal override void EnableSwapBufferMSAA(bool enable)
+        {
+            m_ColorBufferSystem.EnableMSAA(enable);
         }
     }
 }

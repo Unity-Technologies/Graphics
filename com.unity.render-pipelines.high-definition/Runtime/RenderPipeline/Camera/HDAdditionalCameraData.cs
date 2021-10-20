@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("")] // Hide in menu
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
-    public partial class HDAdditionalCameraData : MonoBehaviour, IFrameSettingsHistoryContainer
+    public partial class HDAdditionalCameraData : MonoBehaviour, IFrameSettingsHistoryContainer, IAdditionalData
     {
         /// <summary>
         /// How the camera should handle vertically flipping the frame at the end of rendering.
@@ -326,7 +326,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool taaAntiHistoryRinging = false;
 
         /// <summary> Determines how much the history buffer is blended together with current frame result. Higher values means more history contribution. </summary>
-        [Range(0.6f, 0.95f)]
+        [Range(HDRenderPipeline.TAABaseBlendFactorMin, HDRenderPipeline.TAABaseBlendFactorMax)]
         public float taaBaseBlendFactor = 0.875f;
 
         /// <summary>Physical camera parameters.</summary>

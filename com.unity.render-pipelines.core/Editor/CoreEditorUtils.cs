@@ -975,7 +975,7 @@ namespace UnityEditor.Rendering
         /// <param name="name">The wanted name (can be updated with a number if a sibling with same name exist</param>
         /// <param name="types">Required component on this object in addition to Transform</param>
         /// <returns>The created object</returns>
-        static public GameObject CreateGameObject(GameObject parent, string name, params Type[] types)
+        public static GameObject CreateGameObject(GameObject parent, string name, params Type[] types)
             => ObjectFactory.CreateGameObject(GameObjectUtility.GetUniqueNameForSibling(parent != null ? parent.transform : null, name), types);
 
         /// <summary>
@@ -991,7 +991,16 @@ namespace UnityEditor.Rendering
             GameObjectUtility.SetParentAndAlign(go, context as GameObject);
             Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
             Selection.activeObject = go;
-            EditorApplication.ExecuteMenuItem("GameObject/Move To View");
+
+            if (parent != null)
+                go.transform.localPosition = Vector3.zero;
+            else
+            {
+                if (EditorPrefs.GetBool("Create3DObject.PlaceAtWorldOrigin", false))
+                    go.transform.localPosition = Vector3.zero;
+                else
+                    EditorApplication.ExecuteMenuItem("GameObject/Move To View");
+            }
             return go;
         }
 
