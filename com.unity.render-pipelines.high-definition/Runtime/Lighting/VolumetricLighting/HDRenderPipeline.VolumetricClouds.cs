@@ -36,38 +36,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Combine pass via hardware blending, used in case of MSAA color target.
         Material m_CloudCombinePass;
 
-        // This is the representation of the half resolution neighborhood
-        // |-----|-----|-----|
-        // |     |     |     |
-        // |-----|-----|-----|
-        // |     |     |     |
-        // |-----|-----|-----|
-        // |     |     |     |
-        // |-----|-----|-----|
-
-        // This is the representation of the full resolution neighborhood
-        // |-----|-----|-----|
-        // |     |     |     |
-        // |-----|--|--|-----|
-        // |     |--|--|     |
-        // |-----|--|--|-----|
-        // |     |     |     |
-        // |-----|-----|-----|
-
-        // The base is centered at (0, 0) at the center of the center pixel:
-        // The 4 full res pixels are centered {L->R, T->B} at {-0.25, -0.25}, {0.25, -0.25}
-        //                                                    {-0.25, 0.25}, {0.25, 0.25}
-        //
-        // The 9 half res pixels are placed {L->R, T->B} at {-1.0, -1.0}, {0.0, -1.0}, {1.0, -1.0}
-        //                                                  {-1.0, 0.0}, {0.0, 0.0}, {1.0, 0.0}
-        //                                                  {-1.0, 1.0}, {0.0, 1.0}, {1.0, 1.0}
-
-        // Set of pre-generated weights (L->R, T->B). After experimentation, the final weighting function is exp(-distance^2)
-        static float[] m_DistanceBasedWeights = new float[] { 0.324652f, 0.535261f, 0.119433f, 0.535261f, 0.882497f, 0.196912f, 0.119433f, 0.196912f, 0.0439369f,
-                                                              0.119433f, 0.535261f, 0.324652f, 0.196912f, 0.882497f, 0.535261f, 0.0439369f, 0.196912f, 0.119433f,
-                                                              0.119433f, 0.196912f, 0.0439369f, 0.535261f, 0.882497f, 0.196912f, 0.324652f, 0.535261f, 0.119433f,
-                                                              0.0439369f, 0.196912f, 0.119433f, 0.196912f, 0.882497f, 0.535261f, 0.119433f, 0.535261f, 0.324652f};
-
         struct VolumetricCloudsCameraData
         {
             public TVolumetricCloudsCameraType cameraType;
@@ -177,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cloudModelData.shapeFactor = 0.9f;
                     cloudModelData.shapeScale = 3.0f;
                     cloudModelData.erosionFactor = 0.9f;
-                    cloudModelData.erosionScale = 75.0f;
+                    cloudModelData.erosionScale = 61.4f;
                     cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
                     return;
                 }
@@ -186,18 +154,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     cloudModelData.densityMultiplier = 0.3f;
                     cloudModelData.shapeFactor = 0.9f;
                     cloudModelData.shapeScale = 5.0f;
-                    cloudModelData.erosionFactor = 0.9f;
-                    cloudModelData.erosionScale = 120.0f;
+                    cloudModelData.erosionFactor = 0.95f;
+                    cloudModelData.erosionScale = 87.7f;
                     cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Overcast:
                 {
-                    cloudModelData.densityMultiplier = 0.25f;
-                    cloudModelData.shapeFactor = 0.55f;
-                    cloudModelData.shapeScale = 8.0f;
-                    cloudModelData.erosionFactor = 0.6f;
-                    cloudModelData.erosionScale = 80.0f;
+                    cloudModelData.densityMultiplier = 0.3f;
+                    cloudModelData.shapeFactor = 0.6f;
+                    cloudModelData.shapeScale = 6.0f;
+                    cloudModelData.erosionFactor = 0.75f;
+                    cloudModelData.erosionScale = 87.2f;
                     cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
                     return;
                 }
@@ -206,8 +174,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cloudModelData.densityMultiplier = 0.3f;
                     cloudModelData.shapeFactor = 0.85f;
                     cloudModelData.shapeScale = 3.0f;
-                    cloudModelData.erosionFactor = 0.95f;
-                    cloudModelData.erosionScale = 60.0f;
+                    cloudModelData.erosionFactor = 0.9f;
+                    cloudModelData.erosionScale = 57.9f;
                     cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
                     return;
                 }
@@ -422,7 +390,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!shadowPass)
                 {
-                    cb._SunLightColor = m_lightList.directionalLights[0].color * settings.sunLightDimmer.value;
+                    cb._SunLightColor = m_GpuLightsBuilder.directionalLights[0].color * settings.sunLightDimmer.value;
                 }
             }
             else
@@ -547,7 +515,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 for (int p = 0; p < 4; ++p)
                     for (int i = 0; i < 9; ++i)
-                        cb._DistanceBasedWeights[12 * p + i] = m_DistanceBasedWeights[9 * p + i];
+                        cb._DistanceBasedWeights[12 * p + i] = BilateralUpsample.distanceBasedWeights_3x3[9 * p + i];
             }
         }
 

@@ -4,6 +4,43 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.1] - 2021-10-04
+
+- Fixed decal position when created from context menu. (case 1368987)
+- Fixed the clouds not taking properly into account the fog when in distant mode and with a close far plane (case 1367993).
+- Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
+- Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
+- Fixed the volumetric clouds debug view not taking into account the exposure and leading to Nans (case 1365054).
+- Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
+- Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
+- Fixed the cloudlayer not using depth buffer.
+- Fixed support for orthographic camera in path tracing.
+- Fixed crossfade not working on the HD ST8 ShaderGraph [case 1369586](https://fogbugz.unity3d.com/f/cases/1369586/)
+- Fixed minor performance issues in SSGI (case 1367144).
+- Fixed range compression factor being clamped. (case 1365707)
+- Fixed tooltip not showing on labels in ShaderGraphs (1358483).
+- Fix API warnings in Matcap mode on Metal.
+- Fix D3D validation layer errors w.r.t shadow textures when an atlas is not used.
+
+### Changed
+- Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
+
+## [12.1.0] - 2021-09-23
+
+### Fixed
+- Fixed the volume not being assigned on some scene templates.
+- Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
+- Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
+- Fixed Probe volume debug exposure compensation to match the Lighting debug one.
+- Fixed misleading text and improving the eye scene material samples. (case 1368665)
+- MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+- Fixed lens flare occlusion issues with TAA. (1365098)
+- Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
+- Fixed missing DisallowMultipleComponent annotations in HDAdditionalReflectionData and HDAdditionalLightData (case 1365879).
+- Fixed support for light/shadow dimmers (volumetric or not) in path tracing.
+- Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
+- Fixed emissive value when switching between HDR and LDR mode.
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -428,9 +465,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed double camera preview.
 - Fixed memory leak with XR combined occlusion meshes.
 - Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
-- Fixed the volume not being assigned on some scene templates.
-- Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
-- Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
+- Fixed performance on PrepareLightsForGPU by burstifying light loop.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
