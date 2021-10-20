@@ -4,6 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.1] - 2021-10-04
+
+### Fixed
+- Compilation error while using not exposed texture in ShaderGraph [Case 1367167](https://issuetracker.unity3d.com/product/unity/issues/guid/1367167/)
+- Texture picker lists only textures with expected dimensions (2D, 3D, Cubemap)
+
 ## [13.1.0] - 2021-09-24
 
 ### Fixed

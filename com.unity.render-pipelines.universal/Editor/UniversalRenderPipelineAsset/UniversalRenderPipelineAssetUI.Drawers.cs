@@ -107,7 +107,7 @@ namespace UnityEditor.Rendering.Universal
             CED.AdditionalPropertiesFoldoutGroup(Styles.shadowSettingsText, Expandable.Shadows, k_ExpandedState, ExpandableAdditional.Shadows, k_AdditionalPropertiesState, DrawShadows, DrawShadowsAdditional),
             CED.AdditionalPropertiesFoldoutGroup(Styles.postProcessingSettingsText, Expandable.PostProcessing, k_ExpandedState, ExpandableAdditional.PostProcessing, k_AdditionalPropertiesState, DrawPostProcessing, DrawPostProcessingAdditional)
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-            , CED.FoldoutGroup(Styles.adaptivePerformanceText, Expandable.AdaptivePerformance, k_ExpandedState, CED.Group(DrawAdvanced)),
+            , CED.FoldoutGroup(Styles.adaptivePerformanceText, Expandable.AdaptivePerformance, k_ExpandedState, CED.Group(DrawAdaptivePerformance))
 #endif
         );
 
@@ -472,9 +472,8 @@ namespace UnityEditor.Rendering.Universal
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
         static void DrawAdaptivePerformance(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
-            EditorGUILayout.PropertyField(m_UseAdaptivePerformance, Styles.useAdaptivePerformance);
+            EditorGUILayout.PropertyField(serialized.useAdaptivePerformance, Styles.useAdaptivePerformance);
         }
-
 #endif
     }
 }
