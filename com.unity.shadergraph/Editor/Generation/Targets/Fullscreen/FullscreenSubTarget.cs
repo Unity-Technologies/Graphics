@@ -238,6 +238,32 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             _ => ZTest.Always
         };
 
+        public static string CompareFunctionToStencilString(CompareFunction compare) => compare switch
+        {
+            CompareFunction.Never => "Never",
+            CompareFunction.Equal => "Equal",
+            CompareFunction.NotEqual => "NotEqual",
+            CompareFunction.Greater => "Greater",
+            CompareFunction.Less => "Less",
+            CompareFunction.GreaterEqual => "GEqual",
+            CompareFunction.LessEqual => "LEqual",
+            CompareFunction.Always => "Always",
+            _ => "Always"
+        };
+
+        public static string StencilOpToStencilString(StencilOp op) => op switch
+        {
+            StencilOp.Keep => "Keep",
+            StencilOp.Zero => "Zero",
+            StencilOp.Replace => "Replace",
+            StencilOp.IncrementSaturate => "IncrSat",
+            StencilOp.DecrementSaturate => "DecrSat",
+            StencilOp.Invert => "Invert",
+            StencilOp.IncrementWrap => "IncrWrap",
+            StencilOp.DecrementWrap => "DecrWrap",
+            _ => "Keep"
+        };
+
         public virtual SubShaderDescriptor GenerateSubShader()
         {
             var result = new SubShaderDescriptor()
