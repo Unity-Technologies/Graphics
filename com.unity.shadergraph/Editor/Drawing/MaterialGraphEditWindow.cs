@@ -516,6 +516,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Undo.ClearUndo(graphObject);
             }
 
+            // Discard any unsaved modification on the generated material
+            if (graphObject && graphObject.materialArtifact && EditorUtility.IsDirty(graphObject.materialArtifact))
+            {
+                var material = new Material(AssetDatabase.LoadAssetAtPath<Shader>(AssetDatabase.GUIDToAssetPath(graphObject.AssetGuid)));
+                graphObject.materialArtifact.CopyPropertiesFromMaterial(material);
+                CoreUtils.Destroy(material);
+            }
+
             graphObject = null;
             graphEditorView = null;
 

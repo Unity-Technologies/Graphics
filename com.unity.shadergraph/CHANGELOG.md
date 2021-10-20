@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Adding ability to automatically cast Bools to Vector types in ShaderGraph [1359160]
  - Added ShaderGraph import warning to old nodes and properties, and ability to dismiss the warning if old behavior is desired.
  - Added normal transforms to the Transform node
+ - Added an automatically generated material subasset on ShaderGraphs.
 
 ### Changed
  - Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
