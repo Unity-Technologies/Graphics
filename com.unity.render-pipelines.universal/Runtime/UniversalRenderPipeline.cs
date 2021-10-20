@@ -145,7 +145,9 @@ namespace UnityEngine.Rendering.Universal
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
-        internal static VolumeStack currentStack;
+        internal static VolumeStack defaultVolumeStack = new VolumeStack(RenderingUtils.volumeArchetype);
+        internal static VolumeStack overrideVolumeStack;
+        internal static VolumeStack currentVolumeStack => overrideVolumeStack ?? defaultVolumeStack;
 
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
@@ -269,6 +271,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < cameras.Length; ++i)
 #endif
             {
+                overrideVolumeStack = null;
                 var camera = cameras[i];
                 if (IsGameCamera(camera))
                 {
@@ -360,6 +363,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="anyPostProcessingEnabled">True if at least one camera has post-processing enabled in the stack, false otherwise.</param>
         static void RenderSingleCamera(ScriptableRenderContext context, CameraData cameraData, bool anyPostProcessingEnabled)
         {
+            overrideVolumeStack = null;
             Camera camera = cameraData.camera;
             var renderer = cameraData.renderer;
             if (renderer == null)
@@ -671,6 +675,8 @@ namespace UnityEngine.Rendering.Universal
                 {
                     camera.UpdateVolumeStack(additionalCameraData);
                 }
+
+                overrideVolumeStack = additionalCameraData.volumeStack;
                 return;
             }
 
@@ -685,11 +691,10 @@ namespace UnityEngine.Rendering.Universal
 
             // Get the mask + trigger and update the stack
             camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out LayerMask layerMask, out Transform trigger);
-            VolumeManager.instance.Update(additionalCameraData.volumeStack, trigger, layerMask);
-            currentStack = additionalCameraData.volumeStack;
+            VolumeManager.instance.Update(currentVolumeStack, trigger, layerMask);
         }
 
-        static bool CheckPostProcessForDepth(in CameraData cameraData, VolumeStack volumeStack)
+        static bool CheckPostProcessForDepth(in CameraData cameraData)
         {
             if (!cameraData.postProcessEnabled)
                 return false;
@@ -697,10 +702,10 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
                 return true;
 
-            if (volumeStack.GetComponent<DepthOfField>().IsActive())
+            if (currentVolumeStack.GetComponent<DepthOfField>().IsActive())
                 return true;
 
-            if (volumeStack.GetComponent<MotionBlur>().IsActive())
+            if (currentVolumeStack.GetComponent<MotionBlur>().IsActive())
                 return true;
 
             return false;
@@ -900,7 +905,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             cameraData.requiresDepthTexture |= isSceneViewCamera;
-            cameraData.postProcessingRequiresDepthTexture |= CheckPostProcessForDepth(cameraData, additionalCameraData.volumeStack);
+            cameraData.postProcessingRequiresDepthTexture |= CheckPostProcessForDepth(cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls

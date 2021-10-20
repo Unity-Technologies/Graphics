@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.ColorGradingLUT)))
             {
                 // Fetch all color grading settings
-                var stack = UniversalRenderPipeline.currentStack;
+                var stack = UniversalRenderPipeline.currentVolumeStack;
                 var channelMixer = stack.GetComponent<ChannelMixer>();
                 var colorAdjustments = stack.GetComponent<ColorAdjustments>();
                 var curves = stack.GetComponent<ColorCurves>();

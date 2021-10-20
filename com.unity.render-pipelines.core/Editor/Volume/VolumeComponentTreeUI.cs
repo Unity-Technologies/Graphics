@@ -5,6 +5,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Manage what to display to the users
     /// </summary>
+    [InitializeOnLoad]
     internal static class VolumeComponentTreeUI
     {
         // what archetype to use when displaying an Add Volume Override menu
