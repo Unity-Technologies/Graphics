@@ -373,6 +373,7 @@ namespace UnityEditor.Rendering
         {
             var targetType = target.GetType();
             string title = string.IsNullOrEmpty(target.displayName) ? ObjectNames.NicifyVariableName(target.GetType().Name) : target.displayName;
+            // TODO: add explicitly supported types in the tooltip
             string tooltip = targetType.GetCustomAttribute(typeof(VolumeComponentMenuForRenderPipeline), false) is VolumeComponentMenuForRenderPipeline supportedOn
                 ? string.Join(", ", supportedOn.pipelineTypes.Select(t => ObjectNames.NicifyVariableName(t.Name)))
                 : string.Empty;
