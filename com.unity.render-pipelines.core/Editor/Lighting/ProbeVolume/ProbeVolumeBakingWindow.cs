@@ -418,6 +418,9 @@ namespace UnityEngine.Experimental.Rendering
                 var serializedSet = serializedSets.GetArrayElementAtIndex(m_BakingSets.index);
                 var probeVolumeBakingSettings = serializedSet.FindPropertyRelative("settings");
                 EditorGUILayout.PropertyField(probeVolumeBakingSettings);
+
+                // Clamp to make sure minimum we set for dilation distance is min probe distance
+                set.settings.dilationSettings.dilationDistance = Mathf.Max(set.profile.minDistanceBetweenProbes, set.settings.dilationSettings.dilationDistance);
             }
             else
             {
