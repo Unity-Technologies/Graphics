@@ -1,5 +1,3 @@
-#define SUPPORT_DYNAMIC
-
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -36,23 +34,38 @@ namespace UnityEngine.Rendering
     /// </summary>
     public static class IsSupportedOn
     {
-#if SUPPORT_DYNAMIC
+        static IsSupportedOn()
+        {
+            if (!SupportedOnAttributeSetter.isLoaded)
+                Debug.LogWarning("IsSupportedOn is not loaded.");
+        }
+
         static DynamicTypeRelation s_Relations = new DynamicTypeRelation();
-#else
-        const string k_Unsupported = "Dynamic querying is unsupported, please add SUPPORT_DYNAMIC keyword";
-#endif
 
         /// <summary>
         ///     Is <typeparamref name="TSubject" /> supported by  <typeparamref name="TTarget" />?.
         ///     This is 10x faster than querying dynamically.
-        ///     See <see cref="IsSupportedOn{TSubject,TTarget}.Value" />.
+        ///     See <see cref="IsSupportedOn{TSubject,TTarget}.IsImplicit" />.
         /// </summary>
         /// <typeparam name="TSubject">Which type will support <typeparamref name="TTarget" />.</typeparam>
         /// <typeparam name="TTarget">Defines what to support.</typeparam>
         /// <returns>Is <typeparamref name="TSubject" /> supported by  <typeparamref name="TTarget" />?.</returns>
         public static bool IsSupportedBy<TSubject, TTarget>()
         {
-            return IsSupportedOn<TSubject, TTarget>.Value;
+            return IsSupportedOn<TSubject, TTarget>.IsSupported;
+        }
+
+        /// <summary>
+        ///     Is <typeparamref name="TSubject" /> explicitly supported by  <typeparamref name="TTarget" />?.
+        ///     This is 10x faster than querying dynamically.
+        ///     See <see cref="IsSupportedOn{TSubject,TTarget}.IsImplicit" />.
+        /// </summary>
+        /// <typeparam name="TSubject">Which type will support <typeparamref name="TTarget" />.</typeparam>
+        /// <typeparam name="TTarget">Defines what to support.</typeparam>
+        /// <returns>Is <typeparamref name="TSubject" /> supported by  <typeparamref name="TTarget" />?.</returns>
+        public static bool IsExplicitlySupportedBy<TSubject, TTarget>()
+        {
+            return IsSupportedOn<TSubject, TTarget>.IsExplicit;
         }
 
         /// <summary>
@@ -87,7 +100,7 @@ namespace UnityEngine.Rendering
 
             // ReSharper disable once PossibleNullReferenceException
             isSupportedOn
-                .GetProperty(nameof(IsSupportedOn<bool, bool>.internalValue), BindingFlags.Static | BindingFlags.NonPublic)
+                .GetProperty(nameof(IsSupportedOn<bool, bool>.IsExplicit), BindingFlags.Static | BindingFlags.Public)
                 .SetValue(null, true);
         }
 
@@ -98,12 +111,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="subject">Which type will support <paramref name="target" />.</param>
         /// <param name="target">Defines what to support.</param>
-        [Conditional("SUPPORT_DYNAMIC")]
         internal static void RegisterDynamicRelation([DisallowNull] Type subject, [DisallowNull] Type target)
         {
-#if SUPPORT_DYNAMIC
             s_Relations.RegisterRelation(subject, target);
-#endif
         }
 
         /// <summary>
@@ -114,12 +124,18 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         public static bool IsSupportedBy([DisallowNull] Type subject, [DisallowNull] Type target)
         {
-#if SUPPORT_DYNAMIC
-            return s_Relations.IsRelated(subject, target);
-#else
-            Debug.LogWarning(k_Unsupported);
-            return default;
-#endif
+            return !s_Relations.HasRelations(subject) || s_Relations.AreRelated(subject, target);
+        }
+
+        /// <summary>
+        ///     Is <paramref name="subject" /> explicitly supported by  <paramref name="target" />?
+        /// </summary>
+        /// <param name="subject">Which type will support <paramref name="target" />.</param>
+        /// <param name="target">Defines what to support.</param>
+        /// <returns></returns>
+        public static bool IsExplicitlySupportedBy([DisallowNull] Type subject, [DisallowNull] Type target)
+        {
+            return s_Relations.AreRelated(subject, target);
         }
 
         /// <summary>
@@ -129,12 +145,7 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         public static bool HasExplicitSupport([DisallowNull] Type subject)
         {
-#if SUPPORT_DYNAMIC
             return s_Relations.HasRelations(subject);
-#else
-            Debug.LogWarning(k_Unsupported);
-            return default;
-#endif
         }
     }
 
@@ -157,7 +168,7 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>
-    ///     Use <see cref="Value" /> to know if <typeparamref name="TSubject" /> explicitly supports
+    ///     Use <see cref="IsImplicit" /> to know if <typeparamref name="TSubject" /> explicitly supports
     ///     <typeparamref name="TTarget" />.
     /// </summary>
     /// <typeparam name="TSubject">The subject to query.</typeparam>
@@ -166,14 +177,18 @@ namespace UnityEngine.Rendering
     // ReSharper disable once UnusedTypeParameter
     public struct IsSupportedOn<TSubject, TTarget>
     {
-        // ReSharper disable once StaticMemberInGenericType
-        internal static bool internalValue { get; set; } = false;
+        public static bool IsExplicit { get; set; } = false;
 
         /// <summary>
-        ///     Use it to know if <typeparamref name="TSubject" /> explicitly supports <typeparamref name="TTarget" />.
+        ///     Use it to know if <typeparamref name="TSubject" /> implicitly supports <typeparamref name="TTarget" />.
         /// </summary>
-        public static bool Value
-            => HasIsSupportedOn<TSubject>.Value && internalValue || !HasIsSupportedOn<TSubject>.Value;
+        public static bool IsImplicit => !HasIsSupportedOn<TSubject>.Value;
+
+        /// <summary>
+        ///     Use it to know if <typeparamref name="TSubject" />
+        ///     supports <typeparamref name="TTarget" /> implicitly or explicitly.
+        /// </summary>
+        public static bool IsSupported => IsExplicit || IsImplicit;
     }
 
     #region Registration Executor
@@ -184,26 +199,24 @@ namespace UnityEngine.Rendering
     /// </summary>
     static class SupportedOnAttributeSetter
     {
-        static bool s_AssemblyConstructorRan = false;
-#if UNITY_EDITOR
-        [InitializeOnLoadMethod]
-#endif
-        [RuntimeInitializeOnLoadMethod]
-        static void Initialize()
-        {
-            if (s_AssemblyConstructorRan)
-                return;
+        public static bool isLoaded { get; private set; } = false;
 
+        static SupportedOnAttributeSetter()
+        {
             // Note: Querying type with attribute with TypeCache is 4x faster that querying for assembly attribute
             foreach (var type in TypeCache.GetTypesWithAttribute<SupportedOnAttribute>())
             {
-                var attribute = type.GetCustomAttributes(typeof(SupportedOnAttribute)).FirstOrDefault() as SupportedOnAttribute;
-                if (attribute?.target == null)
-                    continue;
+                foreach (var attribute in type.GetCustomAttributes(typeof(SupportedOnAttribute)).Cast<SupportedOnAttribute>())
+                {
+                    if (attribute?.target == null)
+                        continue;
 
-                IsSupportedOn.RegisterStaticRelation(type, attribute.target);
-                IsSupportedOn.RegisterDynamicRelation(type, attribute.target);
+                    IsSupportedOn.RegisterStaticRelation(type, attribute.target);
+                    IsSupportedOn.RegisterDynamicRelation(type, attribute.target);
+                }
             }
+
+            isLoaded = true;
         }
     }
 

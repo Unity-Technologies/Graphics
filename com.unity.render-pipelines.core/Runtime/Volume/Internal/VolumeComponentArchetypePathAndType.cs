@@ -17,7 +17,8 @@ namespace UnityEngine.Rendering
         {
             struct BuiltinRenderPipeline { }
 
-            public VolumeComponentArchetypePathAndType Create(VolumeComponentArchetype volumeComponentArchetype)
+            [return: NotNull]
+            public VolumeComponentArchetypePathAndType Create([DisallowNull] VolumeComponentArchetype volumeComponentArchetype)
             {
                 var currentPipeline = RenderPipelineManager.currentPipeline?.GetType() ?? typeof(BuiltinRenderPipeline);
                 var types = volumeComponentArchetype.AsArray();

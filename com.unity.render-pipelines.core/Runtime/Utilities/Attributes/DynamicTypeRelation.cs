@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Set the value in a dictionary.
         /// </summary>
-        public bool IsRelated<TSubject, TTarget>() => IsRelated(typeof(TSubject), typeof(TTarget));
+        public bool AreRelated<TSubject, TTarget>() => AreRelated(typeof(TSubject), typeof(TTarget));
 
         /// <summary>
         /// Are the provided type related?
@@ -40,10 +40,10 @@ namespace UnityEngine.Rendering
         /// <param name="subject"></param>
         /// <param name="target"></param>
         /// <returns></returns>
-        public bool IsRelated([DisallowNull] Type subject, [DisallowNull] Type target)
+        public bool AreRelated([DisallowNull] Type subject, [DisallowNull] Type target)
         {
             var hasRelations = m_Dictionary.TryGetValue(subject, out var targets);
-            return hasRelations && targets.Contains(target) || !hasRelations;
+            return hasRelations && targets.Contains(target);
         }
 
         /// <summary>

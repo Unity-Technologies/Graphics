@@ -3,7 +3,7 @@ using System;
 namespace UnityEngine.Rendering.HighDefinition
 {
     // Deprecated, kept for migration
-    [Obsolete()]
+    [Obsolete(), SupportedOn(typeof(HDRenderPipeline))]
     class VolumetricFog : AtmosphericScattering
     {
         public ColorParameter albedo = new ColorParameter(Color.white);

@@ -18,7 +18,10 @@ namespace UnityEngine.Rendering
         internal Dictionary<Type, VolumeComponent> components;
         internal VolumeComponentArchetype archetype { get; }
 
-        public VolumeStack([DisallowNull] VolumeComponentArchetype archetype)
+        [return: NotNull]
+        public static VolumeStack FromArchetype([DisallowNull] VolumeComponentArchetype archetype) => new VolumeStack(archetype);
+
+        VolumeStack([DisallowNull] VolumeComponentArchetype archetype)
         {
             this.archetype = archetype;
             components = new Dictionary<Type, VolumeComponent>();

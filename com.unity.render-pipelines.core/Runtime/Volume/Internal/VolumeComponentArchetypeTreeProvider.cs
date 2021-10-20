@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering
     {
         public struct Factory : IVolumeComponentArchetypeExtensionFactory<VolumeComponentArchetypeTreeProvider>
         {
-            public VolumeComponentArchetypeTreeProvider Create(VolumeComponentArchetype volumeComponentArchetype)
+            [return: NotNull]
+            public VolumeComponentArchetypeTreeProvider Create([DisallowNull] VolumeComponentArchetype volumeComponentArchetype)
             {
                 var root = new PathNode();
 
@@ -64,13 +65,12 @@ namespace UnityEngine.Rendering
             }
         }
 
-        PathNode m_Root { get; }
         [NotNull]
-        public PathNode root => m_Root;
+        public PathNode root { get; }
 
-        VolumeComponentArchetypeTreeProvider(PathNode rootArg)
+        VolumeComponentArchetypeTreeProvider([DisallowNull] PathNode rootArg)
         {
-            m_Root = rootArg;
+            root = rootArg;
         }
     }
 

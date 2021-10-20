@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Panini Projection", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Panini Projection"), SupportedOn(typeof(UniversalRenderPipeline))]
     public sealed class PaniniProjection : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Panini projection distance.")]

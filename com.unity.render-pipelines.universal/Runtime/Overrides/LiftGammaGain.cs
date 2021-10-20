@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Lift, Gamma, Gain", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Lift, Gamma, Gain"), SupportedOn(typeof(UniversalRenderPipeline))]
     public sealed class LiftGammaGain : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Use this to control and apply a hue to the dark tones. This has a more exaggerated effect on shadows.")]

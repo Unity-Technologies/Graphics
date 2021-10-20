@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.Universal
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
-        internal static VolumeStack defaultVolumeStack = new VolumeStack(RenderingUtils.volumeArchetype);
+        internal static VolumeStack defaultVolumeStack = VolumeStack.FromArchetype(RenderingUtils.volumeArchetype);
         internal static VolumeStack overrideVolumeStack;
         internal static VolumeStack currentVolumeStack => overrideVolumeStack ?? defaultVolumeStack;
 

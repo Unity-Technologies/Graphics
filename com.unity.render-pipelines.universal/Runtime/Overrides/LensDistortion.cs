@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Lens Distortion", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Lens Distortion"), SupportedOn(typeof(UniversalRenderPipeline))]
     public sealed class LensDistortion : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Total distortion amount.")]

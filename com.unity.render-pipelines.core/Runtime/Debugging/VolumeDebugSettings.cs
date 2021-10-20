@@ -100,10 +100,7 @@ namespace UnityEngine.Rendering
         /// <returns>The component display name.</returns>
         public static string ComponentDisplayName(Type component)
         {
-            if (component.GetCustomAttribute(typeof(VolumeComponentMenuForRenderPipeline), false) is VolumeComponentMenuForRenderPipeline volumeComponentMenuForRenderPipeline)
-                return volumeComponentMenuForRenderPipeline.menu;
-
-            if (component.GetCustomAttribute(typeof(VolumeComponentMenu), false) is VolumeComponentMenuForRenderPipeline volumeComponentMenu)
+            if (component.GetCustomAttribute(typeof(VolumeComponentMenu), false) is VolumeComponentMenu volumeComponentMenu)
                 return volumeComponentMenu.menu;
 
             return component.Name;

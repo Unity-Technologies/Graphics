@@ -341,7 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ComputeAmbientProbeCS = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.ambientProbeConvolutionCS;
             m_ComputeAmbientProbeKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolution");
 
-            lightingOverrideVolumeStack = new VolumeStack(HDUtils.hdVolumeArchetype);
+            lightingOverrideVolumeStack = VolumeStack.FromArchetype(HDUtils.hdVolumeArchetype);
             lightingOverrideLayerMask = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask;
 
             int resolution = (int)hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;

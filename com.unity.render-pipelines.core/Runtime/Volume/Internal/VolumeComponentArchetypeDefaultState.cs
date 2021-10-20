@@ -11,7 +11,8 @@ namespace UnityEngine.Rendering
     {
         public struct Factory : IVolumeComponentArchetypeExtensionFactory<VolumeComponentArchetypeDefaultState>
         {
-            public VolumeComponentArchetypeDefaultState Create(VolumeComponentArchetype volumeComponentArchetype)
+            [return: NotNull]
+            public VolumeComponentArchetypeDefaultState Create([DisallowNull] VolumeComponentArchetype volumeComponentArchetype)
             {
                 var componentsDefaultState = volumeComponentArchetype.AsArray()
                     .Select(type => (VolumeComponent)ScriptableObject.CreateInstance(type)).ToArray();
@@ -19,17 +20,17 @@ namespace UnityEngine.Rendering
                 return new VolumeComponentArchetypeDefaultState(componentsDefaultState);
             }
         }
-        VolumeComponent[] m_ComponentsDefaultState { get; }
+        VolumeComponent[] componentsDefaultState { get; }
 
         VolumeComponentArchetypeDefaultState(VolumeComponent[] componentsDefaultState)
         {
-            m_ComponentsDefaultState = componentsDefaultState;
+            this.componentsDefaultState = componentsDefaultState;
         }
 
         // Faster version of OverrideData to force replace values in the global state
         public void ReplaceData([DisallowNull] VolumeStack stack)
         {
-            foreach (var component in m_ComponentsDefaultState)
+            foreach (var component in componentsDefaultState)
             {
                 var target = stack.GetComponent(component.GetType());
                 var count = component.parameters.Count;
