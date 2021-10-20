@@ -8,9 +8,6 @@ using UnityEngine.TestTools.Graphics;
 
 public class Editmode_PowerSampling_Tests
 {
-    /* Reenable these tests once https://ono.unity3d.com/unity/unity/pull-request/132498/_/lighting/bugfix/1352923-power-sampling-and-progressive-updates
-    lands
-
     private readonly string sceneOutputPath = "Assets/Tests/Editor/Tests_Unit_Editmode/ProgressiveUpdates";
     private readonly string sceneFileName = "Assets/Tests/Editor/Tests_Unit_Editmode/ProgressiveUpdates.unity";
 
@@ -140,5 +137,4 @@ public class Editmode_PowerSampling_Tests
         clearAll();
         AssetDatabase.DeleteAsset(sceneOutputPath);
     }
-    */
 }
