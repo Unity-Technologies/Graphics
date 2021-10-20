@@ -76,6 +76,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 airExtinctionCoefficient;
             [ReadOnly]
             public float aerosolExtinctionCoefficient;
+            [ReadOnly]
+            public float maxShadowDistance;
+            [ReadOnly]
+            public float shadowOutBorderDistance;
+            
+
             #endregion
 
             #region input light entity data
@@ -321,6 +327,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     lightData.shadowMaskSelector[visibleLightBakingOutput.occlusionMaskChannel] = 1.0f;
                     lightData.nonLightMappedOnly = visibleLightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
+                    // Get shadow info from the volume stack.
+                    float maxDistanceSq = maxShadowDistance * maxShadowDistance;
+                    float outBorderDistance = shadowOutBorderDistance;
+                    if (outBorderDistance < 1e-4f)
+                    {
+                        lightData.cascadesBorderFadeScaleBias = new Vector2(1e6f, -maxDistanceSq * 1e6f);
+                    }
+                    else
+                    {
+                        outBorderDistance = 1.0f - outBorderDistance;
+                        outBorderDistance *= outBorderDistance;
+                        float distanceFadeNear = outBorderDistance * maxDistanceSq;
+                        lightData.cascadesBorderFadeScaleBias.x = 1.0f / (maxDistanceSq - distanceFadeNear);
+                        lightData.cascadesBorderFadeScaleBias.y = -distanceFadeNear / (maxDistanceSq - distanceFadeNear);
+                    }
                 }
                 else
                 {
@@ -692,6 +713,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
             var skySettings = hdCamera.volumeStack.GetComponent<PhysicallyBasedSky>();
+            var shadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
             Debug.Assert(visualEnvironment != null);
             bool isPbrSkyActive = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased;
 
@@ -717,6 +739,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 aerosolScaleHeight = skySettings.GetAerosolScaleHeight(),
                 airExtinctionCoefficient = skySettings.GetAirExtinctionCoefficient(),
                 aerosolExtinctionCoefficient = skySettings.GetAerosolExtinctionCoefficient(),
+
+                maxShadowDistance = shadowSettings.maxShadowDistance.value,
+                shadowOutBorderDistance = shadowSettings.cascadeShadowBorders[shadowSettings.cascadeShadowSplitCount.value - 1],
 
                 // light entity data
                 lightRenderDataArray = lightEntities.lightData,
