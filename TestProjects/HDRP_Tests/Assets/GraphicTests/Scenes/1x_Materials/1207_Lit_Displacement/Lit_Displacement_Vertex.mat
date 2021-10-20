@@ -176,6 +176,7 @@ Material:
     - _DistortionVectorBias: -1
     - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
+    - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
     - _DstBlend: 0
@@ -192,14 +193,14 @@ Material:
     - _EnergyConservingSpecularColor: 1
     - _ForceForwardEmissive: 0
     - _HdrpVersion: 2
-    - _HeightAmplitude: 0.06
+    - _HeightAmplitude: 0.02
     - _HeightCenter: 0.3
     - _HeightMapParametrization: 1
     - _HeightMax: 3
     - _HeightMin: -3
     - _HeightOffset: 0
     - _HeightPoMAmplitude: 6
-    - _HeightTessAmplitude: 6
+    - _HeightTessAmplitude: 2
     - _HeightTessCenter: 0.3
     - _IOR: 1
     - _InitialBend: 1
@@ -307,3 +308,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   version: 12
+  hdPluginSubTargetMaterialVersions:
+    m_Keys: []
+    m_Values: 
