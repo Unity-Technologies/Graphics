@@ -5,8 +5,8 @@
 
 // Required to be defined for some includes
 #define WATER_SIMULATION
-static const float tipFoamThreshold[4] = {4, 2, 10, 10};
-static const float tipFoamOffThreshold[4] = {8, 2, 10, 10};
+static const float tipFoamThreshold[4] = {4, 10, 10, 10};
+static const float tipFoamOffThreshold[4] = {8, 10, 10, 10};
 static const float deepFoamThreshold[4] = {1, 0.75, 0, 0};
 
 // #pragma enable_d3d11_debug_symbols
@@ -185,7 +185,7 @@ void BlurFoamAndCombine(uint3 currentThread : SV_DispatchThreadID, int groupInde
     // Combine with the previous jacobian
     float deltaNormalization = _BandResolution / _BandPatchSize[bandIdx];
 
-    const float sigma = 0.9 * 4;
+    const float sigma = 0.9 * 6;
     float2 waterFoam = 0;
     float weightSum = 0;
 
@@ -205,7 +205,8 @@ void BlurFoamAndCombine(uint3 currentThread : SV_DispatchThreadID, int groupInde
     float2 waterSurfaceGraddient = LOAD_TEXTURE2D_ARRAY(_WaterSurfaceGradientBuffer, coord, bandIdx).xy;
 
     // Combine the tip foam
-    float tipFoam = saturate(_WaterAdditionalDataBufferRW[int3(coord, bandIdx)].z * 0.99 + waterFoam.x * 0.01);
+    float accumulationFactor = saturate(0.01f * _DeltaTime / 0.005f);
+    float tipFoam = _WaterAdditionalDataBufferRW[int3(coord, bandIdx)].z * (1.0 - accumulationFactor) + waterFoam.x * accumulationFactor;
     float deepFoam = _WaterAdditionalDataBufferRW[int3(coord, bandIdx)].w * 0.999 + waterFoam.y * 0.001;
     deepFoam = waterFoam.y;
 

@@ -32,7 +32,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 _WindDirection;
         // Amount of choppiness per band
         public float _Choppiness;
-        public float _PaddingW0;
+        // Delta-time since the last simulation step
+        public float _DeltaTime;
 
         // Intensity of the surface foam
         public float _SurfaceFoamIntensity;

@@ -17,7 +17,7 @@ CBUFFER_START(ShaderVariablesWater)
     float4 _WindSpeed;
     float2 _WindDirection;
     float _Choppiness;
-    float _PaddingW0;
+    float _DeltaTime;
     float _SurfaceFoamIntensity;
     float _SurfaceFoamAmount;
     float _DeepFoamAmount;

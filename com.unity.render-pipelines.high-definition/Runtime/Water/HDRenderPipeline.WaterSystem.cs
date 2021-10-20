@@ -15,7 +15,8 @@ namespace UnityEngine.Rendering.HighDefinition
     internal class WaterSiumulationResources
     {
         private float m_Time = 0;
-        public float m_SimulationTime = 0;
+        public float simulationTime = 0;
+        public float deltaTime = 0;
         public RTHandle m_H0s;
         public RTHandle m_DisplacementBuffer;
         public RTHandle m_AdditionalData;
@@ -33,7 +34,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SimulationSize = simulationRes;
             m_NumBands = numBands;
             m_Time = 0;
-            m_SimulationTime = 0;
+            simulationTime = 0;
+            deltaTime = 0;
 
             m_H0s = RTHandles.Alloc(m_SimulationSize, m_SimulationSize, m_NumBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
             m_DisplacementBuffer = RTHandles.Alloc(m_SimulationSize, m_SimulationSize, m_NumBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
@@ -52,8 +54,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Update(float totalTime, float timeMultiplier)
         {
-            float deltaTime = totalTime - m_Time;
-            m_SimulationTime += deltaTime * timeMultiplier;
+            deltaTime = (totalTime - m_Time) * timeMultiplier;
+            simulationTime += deltaTime;
             m_Time = totalTime;
         }
 
@@ -71,7 +73,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SimulationSize = 0;
             m_NumBands = 0;
             m_Time = 0;
-            m_SimulationTime = 0;
+            simulationTime = 0;
+            deltaTime = 0;
 
             // Simulation parameters
             m_WindSpeed = 0;
@@ -278,7 +281,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._MaxWaveHeight = ComputeMaximumWaveHeight(currentWater.waveAmplitude, currentWater.waterMaxPatchSize, currentWater.windSpeed, currentWater.highBandCound ? k_WaterHighBandCount : k_WaterLowBandCount);
 
             // Current simulation time
-            cb._SimulationTime = currentWater.simulation.m_SimulationTime;
+            cb._SimulationTime = currentWater.simulation.simulationTime;
 
             // Controls how much the wind affect the current of the waves
             cb._DirectionDampener = 1.0f - currentWater.windAffectCurrent;
@@ -311,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._FoamTilling = currentWater.surfaceFoamTiling * 0.025f;
             cb._DeepFoamAmount = 0.05f * currentWater.deepFoam;
             cb._DeepFoamColor = new Vector3(currentWater.deepFoamColor.r, currentWater.deepFoamColor.g, currentWater.deepFoamColor.b);
-            float foamSpeed = currentWater.simulation.m_SimulationTime * Mathf.Sqrt(windMpS * k_PhillipsGravityConstant) * currentWater.windAffectCurrent;
+            float foamSpeed = currentWater.simulation.simulationTime * Mathf.Sqrt(windMpS * k_PhillipsGravityConstant) * currentWater.windAffectCurrent;
             cb._FoamOffsets = new Vector2(cb._WindDirection.x * foamSpeed * 0.5f, cb._WindDirection.y * foamSpeed * 0.5f);
 
             cb._SSSMaskCoefficient = 1000.0f;
@@ -319,6 +322,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ScatteringColorTips = new Vector3(currentWater.scatteringColor.r, currentWater.scatteringColor.g, currentWater.scatteringColor.b);
             cb._BodyScatteringWeight = currentWater.directLightBodyScattering;
             cb._TipScatteringWeight = currentWater.directLightTipScattering;
+            cb._DeltaTime = currentWater.simulation.deltaTime;
 
             cb._Refraction = 0.5f;
             cb._RefractionLow = 2.0f;
@@ -513,7 +517,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.waterRenderingCB._CausticsPlaneOffset = currentWater.causticsPlaneOffset;
 
             // Compute the caustics offsets
-            float causticsOffset = currentWater.simulation.m_SimulationTime * currentWater.causticsSpeed * k_KilometerPerHourToMeterPerSecond;
+            float causticsOffset = currentWater.simulation.simulationTime * currentWater.causticsSpeed * k_KilometerPerHourToMeterPerSecond;
             Vector2 causticOrientation = OrientationToDirection(currentWater.windOrientation);
             parameters.waterRenderingCB._CausticsOffset.Set(causticsOffset * causticOrientation.x, causticsOffset * causticOrientation.y);
 
