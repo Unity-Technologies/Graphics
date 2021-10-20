@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float causticsPlaneOffset = 0.0f;
 
         // Foam parameters
-        public float surfaceFoamSmoothness = 0.0f;
+        public float surfaceFoamSmoothness = 0.2f;
         public float surfaceFoamIntensity = 0.5f;
         public float surfaceFoamAmount = 0.5f;
         public float surfaceFoamTiling = 1.0f;
