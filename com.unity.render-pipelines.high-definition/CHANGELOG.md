@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix API warnings in Matcap mode on Metal.
 - Fix D3D validation layer errors w.r.t shadow textures when an atlas is not used.
 - Fixed compatibility message not displayed correctly when switching platforms.
+- Fixed support for interleaved tiling in path tracing.
 
 ### Changed
 - Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
