@@ -21,19 +21,19 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/ffx/ffx_a.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/ffx/ffx_fsr1.hlsl"
 
-/// Bindings for FSR constants provided by the CPU
+/// Bindings for FSR EASU constants provided by the CPU
 ///
 /// Helper functions that set these constants can be found in FSRUtils
-float4 _FsrConstants0;
-float4 _FsrConstants1;
-float4 _FsrConstants2;
-float4 _FsrConstants3;
+float4 _FsrEasuConstants0;
+float4 _FsrEasuConstants1;
+float4 _FsrEasuConstants2;
+float4 _FsrEasuConstants3;
 
 // Unity doesn't currently have a way to bind uint4 types so we reinterpret float4 as uint4 using macros below
-#define FSR_CONSTANTS_0 asuint(_FsrConstants0)
-#define FSR_CONSTANTS_1 asuint(_FsrConstants1)
-#define FSR_CONSTANTS_2 asuint(_FsrConstants2)
-#define FSR_CONSTANTS_3 asuint(_FsrConstants3)
+#define FSR_EASU_CONSTANTS_0 asuint(_FsrEasuConstants0)
+#define FSR_EASU_CONSTANTS_1 asuint(_FsrEasuConstants1)
+#define FSR_EASU_CONSTANTS_2 asuint(_FsrEasuConstants2)
+#define FSR_EASU_CONSTANTS_3 asuint(_FsrEasuConstants3)
 
 /// EASU glue functions
 ///
@@ -66,6 +66,40 @@ AF4 FsrEasuBF(AF2 p)
 }
 #endif
 
+/// Applies FidelityFX Super Resolution Edge Adaptive Spatial Upsampling at the provided pixel position
+///
+/// The source texture must be provided before this file is included via the FSR_INPUT_TEXTURE preprocessor symbol
+/// Ex: #define FSR_INPUT_TEXTURE _SourceTex
+///
+/// A valid sampler must also be provided via the FSR_INPUT_SAMPLER preprocessor symbol
+/// Ex: #define FSR_INPUT_SAMPLER sampler_LinearClamp
+///
+/// The color data stored in the source texture should be in gamma 2.0 color space
+half3 ApplyEASU(uint2 positionSS)
+{
+    #if FSR_EASU_H
+    // Execute 16-bit EASU
+    AH3 color;
+    FsrEasuH(
+    #else
+    // Execute 32-bit EASU
+    AF3 color;
+    FsrEasuF(
+    #endif
+        color, positionSS, FSR_EASU_CONSTANTS_0, FSR_EASU_CONSTANTS_1, FSR_EASU_CONSTANTS_2, FSR_EASU_CONSTANTS_3
+    );
+
+    return color;
+}
+
+/// Bindings for FSR RCAS constants provided by the CPU
+///
+/// Helper functions that set these constants can be found in FSRUtils
+float4 _FsrRcasConstants;
+
+// Unity doesn't currently have a way to bind uint4 types so we reinterpret float4 as uint4 using macros below
+#define FSR_RCAS_CONSTANTS asuint(_FsrRcasConstants)
+
 /// RCAS glue functions
 ///
 /// These are used by the RCAS implementation to access texture data and perform color space conversion if necessary
@@ -89,32 +123,6 @@ void FsrRcasInputF(inout AF1 r, inout AF1 g, inout AF1 b)
 }
 #endif
 
-/// Applies FidelityFX Super Resolution Edge Adaptive Spatial Upsampling at the provided pixel position
-///
-/// The source texture must be provided before this file is included via the FSR_INPUT_TEXTURE preprocessor symbol
-/// Ex: #define FSR_INPUT_TEXTURE _SourceTex
-///
-/// A valid sampler must also be provided via the FSR_INPUT_SAMPLER preprocessor symbol
-/// Ex: #define FSR_INPUT_SAMPLER sampler_LinearClamp
-///
-/// The color data stored in the source texture should be in gamma 2.0 color space
-half3 ApplyEASU(uint2 positionSS)
-{
-    #if FSR_EASU_H
-    // Execute 16-bit EASU
-    AH3 color;
-    FsrEasuH(
-    #else
-    // Execute 32-bit EASU
-    AF3 color;
-    FsrEasuF(
-    #endif
-        color, positionSS, FSR_CONSTANTS_0, FSR_CONSTANTS_1, FSR_CONSTANTS_2, FSR_CONSTANTS_3
-    );
-
-    return color;
-}
-
 /// Applies FidelityFX Super Resolution Robust Contrast Adaptive Sharpening at the provided pixel position
 ///
 /// The source texture must be provided before this file is included via the FSR_INPUT_TEXTURE preprocessor symbol
@@ -135,7 +143,7 @@ half3 ApplyRCAS(uint2 positionSS)
     AF3 color;
     FsrRcasF(
     #endif
-        color.r, color.g, color.b, positionSS, FSR_CONSTANTS_0
+        color.r, color.g, color.b, positionSS, FSR_RCAS_CONSTANTS
     );
 
     return color;

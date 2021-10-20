@@ -11,10 +11,14 @@ namespace UnityEngine.Rendering
         /// Shader constant ids used to communicate with the FSR shader implementation
         static class ShaderConstants
         {
-            public static readonly int _FsrConstants0 = Shader.PropertyToID("_FsrConstants0");
-            public static readonly int _FsrConstants1 = Shader.PropertyToID("_FsrConstants1");
-            public static readonly int _FsrConstants2 = Shader.PropertyToID("_FsrConstants2");
-            public static readonly int _FsrConstants3 = Shader.PropertyToID("_FsrConstants3");
+            // EASU
+            public static readonly int _FsrEasuConstants0 = Shader.PropertyToID("_FsrEasuConstants0");
+            public static readonly int _FsrEasuConstants1 = Shader.PropertyToID("_FsrEasuConstants1");
+            public static readonly int _FsrEasuConstants2 = Shader.PropertyToID("_FsrEasuConstants2");
+            public static readonly int _FsrEasuConstants3 = Shader.PropertyToID("_FsrEasuConstants3");
+
+            // RCAS
+            public static readonly int _FsrRcasConstants = Shader.PropertyToID("_FsrRcasConstants");
         }
 
         /// <summary>
@@ -74,10 +78,10 @@ namespace UnityEngine.Rendering
             constants3.z = 0.0f;
             constants3.w = 0.0f;
 
-            cmd.SetGlobalVector(ShaderConstants._FsrConstants0, constants0);
-            cmd.SetGlobalVector(ShaderConstants._FsrConstants1, constants1);
-            cmd.SetGlobalVector(ShaderConstants._FsrConstants2, constants2);
-            cmd.SetGlobalVector(ShaderConstants._FsrConstants3, constants3);
+            cmd.SetGlobalVector(ShaderConstants._FsrEasuConstants0, constants0);
+            cmd.SetGlobalVector(ShaderConstants._FsrEasuConstants1, constants1);
+            cmd.SetGlobalVector(ShaderConstants._FsrEasuConstants2, constants2);
+            cmd.SetGlobalVector(ShaderConstants._FsrEasuConstants3, constants3);
         }
 
         /// <summary>
@@ -92,20 +96,20 @@ namespace UnityEngine.Rendering
             // Transform from stops to linear value.
             sharpness = Mathf.Pow(2.0f, -sharpness);
 
-            Vector4 constants0;
+            Vector4 constants;
 
             ushort sharpnessAsHalf = Mathf.FloatToHalf(sharpness);
             uint packedSharpness = (uint)(sharpnessAsHalf | (sharpnessAsHalf << 16));
             float packedSharpnessAsFloat = BitConverter.ToSingle(BitConverter.GetBytes(packedSharpness));
 
-            constants0.x = sharpness;
-            constants0.y = packedSharpnessAsFloat;
+            constants.x = sharpness;
+            constants.y = packedSharpnessAsFloat;
 
             // Fill the last constant with zeros to avoid using uninitialized memory
-            constants0.z = 0.0f;
-            constants0.w = 0.0f;
+            constants.z = 0.0f;
+            constants.w = 0.0f;
 
-            cmd.SetGlobalVector(ShaderConstants._FsrConstants0, constants0);
+            cmd.SetGlobalVector(ShaderConstants._FsrRcasConstants, constants);
         }
 
         /// <summary>
