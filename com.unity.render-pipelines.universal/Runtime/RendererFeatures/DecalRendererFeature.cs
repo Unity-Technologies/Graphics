@@ -503,6 +503,7 @@ namespace UnityEngine.Rendering.Universal
         [Conditional("ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER")]
         private void ChangeAdaptivePerformanceDrawDistances()
         {
+#if ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER
             if (UniversalRenderPipeline.asset.useAdaptivePerformance)
             {
                 if (m_DecalCreateDrawCallSystem != null)
@@ -514,6 +515,7 @@ namespace UnityEngine.Rendering.Universal
                     m_DecalUpdateCullingGroupSystem.boundingDistance = AdaptivePerformance.AdaptivePerformanceRenderSettings.DecalsDrawDistance;
                 }
             }
+#endif
         }
     }
 }
