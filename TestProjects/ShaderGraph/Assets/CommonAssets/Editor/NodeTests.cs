@@ -329,5 +329,17 @@ namespace UnityEditor.ShaderGraph.UnitTests
             yield break;
         }
 
+        [UnityTest]
+        public IEnumerator PixelPosition()
+        {
+            // Test that pixel position acts as expected relative to raw screen space
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/PixelPosition.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+            RunNodeTest(graph, "PixelPosition");
+            ReportTests();
+            yield break;
+        }
+
     }
 }
