@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.Universal
                     renderingData.cameraData.camera.orthographicSize = ppc.orthographicSize;
 
                     colorTextureFilterMode = FilterMode.Point;
-                    ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
+                    ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture || ppc.requiresUpscalePass;
                 }
             }
 
