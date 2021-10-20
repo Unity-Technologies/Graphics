@@ -552,8 +552,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // in the pipeline to avoid this extra blit.
                     if (!finishPostProcessOnScreen && !m_UseSwapBuffer)
                     {
-                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
-                        cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
+                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTarget);
+                        cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source, 0, CubemapFace.Unknown, -1),
                             colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
                         scaleBias = new Vector4(1, 1, 0, 0);;
@@ -578,8 +578,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // in the pipeline to avoid this extra blit.
                     if (!finishPostProcessOnScreen && !m_UseSwapBuffer)
                     {
-                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
-                        cmd.SetRenderTarget(cameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTarget);
+                        cmd.SetRenderTarget(m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                     }
 
