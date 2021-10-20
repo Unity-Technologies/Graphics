@@ -403,7 +403,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 EditorGUI.BeginChangeCheck();
-                property.intValue = EditorGUI.IntField(rect, Styles.stencilReferenceValue, m_StencilReferenceValue.intValue);
+                property.intValue = EditorGUI.IntField(rect, label, property.intValue);
                 if (EditorGUI.EndChangeCheck())
                     property.intValue &= 0xFF;
             }

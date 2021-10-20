@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
             public static float helpBoxHeight = EditorGUIUtility.singleLineHeight * 2;
+            public static float indentPadding = 17;
 
             public static GUIContent fullScreenPassMaterial = new GUIContent("FullScreen Material", "FullScreen Material used for the full screen DrawProcedural.");
             public static GUIContent materialPassName = new GUIContent("Pass Name", "The shader pass to use for your fullscreen pass.");
@@ -89,6 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                         Rect helpBoxRect = rect;
                         helpBoxRect.height = Styles.helpBoxHeight;
+                        helpBoxRect.xMin += Styles.indentPadding;
                         EditorGUI.HelpBox(helpBoxRect, Styles.stencilWriteOverReservedBits, MessageType.Warning);
                         rect.y += Styles.helpBoxHeight;
                     }
@@ -116,21 +118,64 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.shader == null)
                 return 0;
 
-            var serializedShader = new SerializedObject(material.shader);
-            var parsed = serializedShader.FindProperty("m_ParsedForm");
-            var subShaders = parsed.FindPropertyRelative("m_SubShaders");
-            var subShader = subShaders.GetArrayElementAtIndex(0);
-            var passes = subShader.FindPropertyRelative("m_Passes");
-            var pass = passes.GetArrayElementAtIndex(0);
-            var state = pass.FindPropertyRelative("m_State");
-            var writeMask = state.FindPropertyRelative("stencilWriteMask");
-            var writeMaskFloatValue = writeMask.FindPropertyRelative("val");
-            var writeMaskPropertyName = writeMask.FindPropertyRelative("name");
+            try
+            {
+                // Try to retrieve the serialized information of the stencil in the shader
+                var serializedShader = new SerializedObject(material.shader);
+                var parsed = serializedShader.FindProperty("m_ParsedForm");
+                var subShaders = parsed.FindPropertyRelative("m_SubShaders");
+                var subShader = subShaders.GetArrayElementAtIndex(0);
+                var passes = subShader.FindPropertyRelative("m_Passes");
+                var pass = passes.GetArrayElementAtIndex(0);
+                var state = pass.FindPropertyRelative("m_State");
+                var writeMask = state.FindPropertyRelative("stencilWriteMask");
+                var readMask = state.FindPropertyRelative("stencilWriteMask");
+                var reference = state.FindPropertyRelative("stencilRef");
+                var stencilOpFront = state.FindPropertyRelative("stencilOpFront");
+                var passOp = stencilOpFront.FindPropertyRelative("pass");
+                var failOp = stencilOpFront.FindPropertyRelative("fail");
+                var zFailOp = stencilOpFront.FindPropertyRelative("zFail");
+                var writeMaskFloatValue = writeMask.FindPropertyRelative("val");
+                var writeMaskPropertyName = writeMask.FindPropertyRelative("name");
 
-            if (material.HasProperty(writeMaskPropertyName.stringValue))
-                return (int)material.GetFloat(writeMaskPropertyName.stringValue);
-            else
-                return (int)writeMaskFloatValue.floatValue;
+                bool IsStencilEnabled()
+                {
+                    bool enabled = false;
+                    enabled |= IsNotDefaultValue(reference, 0);
+                    enabled |= IsNotDefaultValue(passOp, 0);
+                    enabled |= IsNotDefaultValue(failOp, 0);
+                    enabled |= IsNotDefaultValue(zFailOp, 0);
+                    enabled |= IsNotDefaultValue(writeMask, 255);
+                    enabled |= IsNotDefaultValue(readMask, 255);
+                    return enabled;
+                }
+
+                bool IsNotDefaultValue(SerializedProperty prop, float defaultValue)
+                {
+                    var value = prop.FindPropertyRelative("val");
+                    var propertyName = prop.FindPropertyRelative("name");
+
+                    if (value.floatValue != defaultValue)
+                        return true;
+                    if (material.HasProperty(propertyName.stringValue))
+                        return true;
+                    return false;
+                }
+
+                // First check if the stencil is enabled in the shader:
+                // We can do this by checking if there are any non-default values in the stencil state
+                if (!IsStencilEnabled())
+                    return 0;
+
+                if (material.HasProperty(writeMaskPropertyName.stringValue))
+                    return (int)material.GetFloat(writeMaskPropertyName.stringValue);
+                else
+                    return (int)writeMaskFloatValue.floatValue;
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         protected override float GetPassHeight(SerializedProperty customPass)
