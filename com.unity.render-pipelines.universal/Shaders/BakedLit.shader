@@ -66,7 +66,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_O
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma vertex BakedLitForwardPassVertex
             #pragma fragment BakedLitForwardPassFragment

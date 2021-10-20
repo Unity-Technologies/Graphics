@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering
                     Material material = null;
                     // if not valid for lightmapping - just use the current material
                     if (!maps.isValid
-                        || renderer.materials[i] == null
+                        || sharedMaterials[i] == null
                         || lightmapIndex < 0
                         || lightmapIndex == 65534
                         || lightmapIndex > maps.colors.depth)
