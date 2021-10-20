@@ -12,11 +12,10 @@ using FrustumPlanes = Unity.Rendering.FrustumPlanes;
 public struct RangeKey : IEquatable<RangeKey>
 {
     public ShadowCastingMode shadows;
-    public int pickableObjectInstanceID;
 
     public bool Equals(RangeKey other)
     {
-        return shadows == other.shadows && pickableObjectInstanceID == other.pickableObjectInstanceID;
+        return shadows == other.shadows;
     }
 }
 
@@ -237,6 +236,12 @@ public unsafe class RenderBRG : MonoBehaviour
                             flags = BatchDrawCommandFlags.None,
                             sortingPosition = 0
                         };
+
+                        if (draws.drawCommandPickingInstanceIDs != null)
+                        {
+                            draws.drawCommandPickingInstanceIDs[outBatch] = drawBatches[remappedIndex].key.pickableObjectInstanceID;
+                        }
+
                         outBatch++;
                     }
 
@@ -265,7 +270,6 @@ public unsafe class RenderBRG : MonoBehaviour
                                     staticShadowCaster = false,
                                     allDepthSorted = false,
                                 },
-                                pickableObjectID = drawRanges[activeRange].key.pickableObjectInstanceID
                             };
                             outRange++;
                         }
@@ -296,6 +300,7 @@ public unsafe class RenderBRG : MonoBehaviour
         BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
         drawCommands.drawRanges = Malloc<BatchDrawRange>(m_drawRanges.Length);
         drawCommands.drawCommands = Malloc<BatchDrawCommand>(m_drawBatches.Length);
+        drawCommands.drawCommandPickingInstanceIDs = Malloc<int>(m_drawBatches.Length);
         drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
 
         // Zero init: Culling job sets the values!
@@ -472,7 +477,7 @@ public unsafe class RenderBRG : MonoBehaviour
                     m_batchHash[key] = drawBatchIndex;
 
                     // Different renderer settings? -> new range
-                    var rangeKey = new RangeKey { shadows = shadows, pickableObjectInstanceID = instanceID };
+                    var rangeKey = new RangeKey { shadows = shadows };
                     var drawRange = new DrawRange
                     {
                         key = rangeKey,
@@ -522,7 +527,7 @@ public unsafe class RenderBRG : MonoBehaviour
         for (int i = 0; i < m_drawBatches.Length; i++)
         {
             var draw = m_drawBatches[i];
-            if (m_rangeHash.TryGetValue(new RangeKey { shadows = draw.key.shadows, pickableObjectInstanceID = draw.key.pickableObjectInstanceID }, out int drawRangeIndex))
+            if (m_rangeHash.TryGetValue(new RangeKey { shadows = draw.key.shadows }, out int drawRangeIndex))
             {
                 var drawRange = m_drawRanges[drawRangeIndex];
                 m_drawIndices[drawRange.drawOffset + m_internalRangeIndex[drawRangeIndex]] = i;
