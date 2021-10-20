@@ -86,12 +86,18 @@
         },
         {
             "m_Id": "78d56da3b7c04a2bb758b91a7890e319"
+        },
+        {
+            "m_Id": "e823f2a0bc294dd2a7ca398f55356527"
         }
     ],
     "m_GroupDatas": [],
     "m_StickyNoteDatas": [
         {
             "m_Id": "6861d370b150463a8e84fb6bf7973bdc"
+        },
+        {
+            "m_Id": "a45123088d0f413a9e9c888f17f30c09"
         }
     ],
     "m_Edges": [
@@ -331,6 +337,20 @@
                     "m_Id": "f58ad1b986714270923fde1db3755c90"
                 },
                 "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "e823f2a0bc294dd2a7ca398f55356527"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "cd74f48ac90a40f49890cd16fbf6660a"
+                },
+                "m_SlotId": 1
             }
         },
         {
@@ -625,6 +645,21 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "1cf3c9a2d7db40d895b7c5e55e6be34f",
+    "m_Id": 0,
+    "m_DisplayName": "Out",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "1d11b6b53cef4b47869bbb766c74c0ea",
     "m_Id": 0,
@@ -899,6 +934,21 @@
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
     "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "3c693d26071c4cc4a7c6e94a6c61ab8d",
+    "m_Id": 6,
+    "m_DisplayName": "GLES",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "GLES",
+    "m_StageCapability": 3,
+    "m_Value": 200.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
 }
@@ -1597,10 +1647,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -480.00006103515627,
-            "y": -124.99999237060547,
+            "x": -480.0,
+            "y": -60.0,
             "width": 208.0,
-            "height": 126.99998474121094
+            "height": 127.0
         }
     },
     "m_Slots": [
@@ -1971,6 +2021,26 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "a45123088d0f413a9e9c888f17f30c09",
+    "m_Title": "Sensitivity",
+    "m_Content": "OSX OpenGL has much worse behavior than other platforms -- so we set the error sensitivity much lower on OpenGL in general...",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": -1400.0,
+        "y": -883.0,
+        "width": 200.0,
+        "height": 160.0
+    },
+    "m_Group": {
+        "m_Id": ""
+    }
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicValueMaterialSlot",
     "m_ObjectId": "a6ad0619b0ff4b35b9c068ac56819033",
     "m_Id": 2,
@@ -2151,6 +2221,21 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "c05d034432984955b5e2e2f617d4c597",
+    "m_Id": 3,
+    "m_DisplayName": "D3D11",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "D3D11",
+    "m_StageCapability": 3,
+    "m_Value": 200.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.SplitNode",
     "m_ObjectId": "c1b60d078c8e4b1db6a77e483afebfc2",
     "m_Group": {
@@ -2243,6 +2328,21 @@
         "z": 0.0,
         "w": 0.0
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "caaf11170c2d499ba041dc6ee7240162",
+    "m_Id": 7,
+    "m_DisplayName": "OTHER",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "OTHER",
+    "m_StageCapability": 3,
+    "m_Value": 200.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
 }
 
 {
@@ -2382,6 +2482,36 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "d67cc57810f14cb393fa295bf9db7d1d",
+    "m_Id": 2,
+    "m_DisplayName": "PS4",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "PS4",
+    "m_StageCapability": 3,
+    "m_Value": 200.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "d8386a0ebc75498d9edd9bc2cfe40899",
+    "m_Id": 4,
+    "m_DisplayName": "VULKAN",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "VULKAN",
+    "m_StageCapability": 3,
+    "m_Value": 200.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicValueMaterialSlot",
     "m_ObjectId": "df63aca4443847ec96ffc346ffd297b7",
     "m_Id": 1,
@@ -2426,6 +2556,21 @@
         "e32": 0.0,
         "e33": 1.0
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "e1e7d1212115443787b7a9e880adebd7",
+    "m_Id": 5,
+    "m_DisplayName": "GLCORE",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "GLCORE",
+    "m_StageCapability": 3,
+    "m_Value": 20.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
 }
 
 {
@@ -2525,6 +2670,67 @@
 }
 
 {
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.CustomFunctionNode",
+    "m_ObjectId": "e823f2a0bc294dd2a7ca398f55356527",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "APISwitch (Custom Function)",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -1402.0,
+            "y": -717.0,
+            "width": 211.9998779296875,
+            "height": 421.9999084472656
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "f1a4bf47670844eab6ca75c4e0730d25"
+        },
+        {
+            "m_Id": "d67cc57810f14cb393fa295bf9db7d1d"
+        },
+        {
+            "m_Id": "c05d034432984955b5e2e2f617d4c597"
+        },
+        {
+            "m_Id": "d8386a0ebc75498d9edd9bc2cfe40899"
+        },
+        {
+            "m_Id": "e1e7d1212115443787b7a9e880adebd7"
+        },
+        {
+            "m_Id": "3c693d26071c4cc4a7c6e94a6c61ab8d"
+        },
+        {
+            "m_Id": "caaf11170c2d499ba041dc6ee7240162"
+        },
+        {
+            "m_Id": "1cf3c9a2d7db40d895b7c5e55e6be34f"
+        }
+    ],
+    "synonyms": [
+        "code",
+        "HLSL"
+    ],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_SourceType": 1,
+    "m_FunctionName": "APISwitch",
+    "m_FunctionSource": "",
+    "m_FunctionBody": "#if defined (SHADER_API_GAMECORE)\nOut = GAMECORE;\n#elif defined(SHADER_API_PS4)\nOut = PS4;\n#elif defined(SHADER_API_D3D11)\nOut = D3D11;\n#elif defined(SHADER_API_VULKAN)\nOut = VULKAN;\n#elif defined(SHADER_API_GLCORE)\nOut = GLCORE;\n#elif defined(SHADER_API_GLES)\nOut = GLES;\n#else\nOut = OTHER;\n#endif\n"
+}
+
+{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "f06bcf4ba9ee4e3fbafef72972ba8de2",
@@ -2578,6 +2784,21 @@
     "m_TessellationMaxDisplacement": 0.009999999776482582,
     "m_Version": 1,
     "inspectorFoldoutMask": 9
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "f1a4bf47670844eab6ca75c4e0730d25",
+    "m_Id": 1,
+    "m_DisplayName": "GAMECORE",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "GAMECORE",
+    "m_StageCapability": 3,
+    "m_Value": 200.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
 }
 
 {
