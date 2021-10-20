@@ -977,6 +977,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { Descriptors.DecalsNormalBlend },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
+                { CoreKeywordDescriptors.RenderPassEnabled },
                 { Descriptors.LodCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
             };
 
@@ -986,6 +987,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { Descriptors.DecalsNormalBlend },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
+                { CoreKeywordDescriptors.RenderPassEnabled },
             };
         }
         #endregion
