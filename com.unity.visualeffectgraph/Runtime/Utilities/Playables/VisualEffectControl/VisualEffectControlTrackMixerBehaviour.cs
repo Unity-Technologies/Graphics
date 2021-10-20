@@ -22,6 +22,8 @@ namespace UnityEngine.VFX
                 public double begin;
                 public double end;
                 public Event[] events;
+                public bool scrubbing;
+                public uint startSeed;
             }
             Chunk[] m_Chunks;
 
@@ -109,89 +111,118 @@ namespace UnityEngine.VFX
                     m_LastEvent = kErrorIndex;
                 }
 
-                vfx.pause = paused;
                 if (currentChunkIndex != kErrorIndex)
                 {
                     dbg = dbg_state.Playing;
 
                     var chunk = m_Chunks[currentChunkIndex];
-                    var actualCurrentTime = chunk.begin + vfx.time;
-                    if (!playingBackward)
-                    {
-                        if (Abs(m_LastPlayableTime - actualCurrentTime) < VFXManager.maxDeltaTime)
-                        {
-                            //Remove the float part from VFX and only keep double precision
-                            actualCurrentTime = m_LastPlayableTime;
-                        }
-                        else
-                        {
-                            //VFX is too late on timeline, we will have to launch simulate
-                            //Warning, in that case, event could have been already sent
-                            //m_LastEvent status prevents sending twice the same event
-                        }
-                    }
-                    else
-                    {
-                        dbg = dbg_state.ScrubbingBackward;
-                        actualCurrentTime = chunk.begin;
-                        m_LastPlayableTime = actualCurrentTime;
-                        m_LastEvent = kErrorIndex;
-                        OnEnterChunk(vfx);
-                    }
 
-                    double expectedCurrentTime;
-                    if (paused)
-                        expectedCurrentTime = playableTime;
-                    else
-                        expectedCurrentTime = playableTime - VFXManager.fixedTimeStep;
-
+                    if (chunk.scrubbing)
                     {
-                        //1. Process adjustment if actualCurrentTime < expectedCurrentTime
-                        var eventList = GetEventsIndex(chunk, actualCurrentTime, expectedCurrentTime, m_LastEvent);
-                        var eventCount = eventList.Count();
-                        var nextEvent = 0;
+                        vfx.pause = paused;
+                        var actualCurrentTime = chunk.begin + vfx.time;
 
-                        var fixedStep = VFXManager.maxDeltaTime; //TODOPAUL, reduce the interval in case of paused ?
-                        while (actualCurrentTime < expectedCurrentTime)
+                        if (!playingBackward)
                         {
-                            var currentEventIndex = kErrorIndex;
-                            uint currentStepCount;
-                            if (nextEvent < eventCount)
+                            if (Abs(m_LastPlayableTime - actualCurrentTime) < VFXManager.maxDeltaTime)
                             {
-                                currentEventIndex = eventList.ElementAt(nextEvent++);
-                                var currentEvent = chunk.events[currentEventIndex];
-                                currentStepCount = (uint)((currentEvent.time - actualCurrentTime) / fixedStep);
+                                //Remove the float part from VFX and only keep double precision
+                                actualCurrentTime = m_LastPlayableTime;
                             }
                             else
                             {
-                                currentStepCount = (uint)((expectedCurrentTime - actualCurrentTime) / fixedStep);
-                                if (currentStepCount == 0)
-                                {
-                                    //We reached the maximum precision according to fixedStep & no more event
-                                    break;
-                                }
+                                //VFX is too late on timeline, we will have to launch simulate
+                                //Warning, in that case, event could have been already sent
+                                //m_LastEvent status prevents sending twice the same event
                             }
+                        }
+                        else
+                        {
+                            dbg = dbg_state.ScrubbingBackward;
+                            actualCurrentTime = chunk.begin;
+                            m_LastEvent = kErrorIndex;
+                            OnEnterChunk(vfx);
+                        }
 
-                            if (currentStepCount != 0)
+                        double expectedCurrentTime;
+                        if (paused)
+                            expectedCurrentTime = playableTime;
+                        else
+                            expectedCurrentTime = playableTime - VFXManager.fixedTimeStep;
+
+                        {
+                            //1. Process adjustment if actualCurrentTime < expectedCurrentTime
+                            var eventList = GetEventsIndex(chunk, actualCurrentTime, expectedCurrentTime, m_LastEvent);
+                            var eventCount = eventList.Count();
+                            var nextEvent = 0;
+
+                            var fixedStep = VFXManager.maxDeltaTime; //TODOPAUL, reduce the interval in case of paused ?
+                            while (actualCurrentTime < expectedCurrentTime)
                             {
-                                if (dbg != dbg_state.ScrubbingBackward)
-                                    dbg = dbg_state.ScrubbingForward;
+                                var currentEventIndex = kErrorIndex;
+                                uint currentStepCount;
+                                if (nextEvent < eventCount)
+                                {
+                                    currentEventIndex = eventList.ElementAt(nextEvent++);
+                                    var currentEvent = chunk.events[currentEventIndex];
+                                    currentStepCount = (uint)((currentEvent.time - actualCurrentTime) / fixedStep);
+                                }
+                                else
+                                {
+                                    currentStepCount = (uint)((expectedCurrentTime - actualCurrentTime) / fixedStep);
+                                    if (currentStepCount == 0)
+                                    {
+                                        //We reached the maximum precision according to fixedStep & no more event
+                                        break;
+                                    }
+                                }
 
-                                vfx.Simulate((float)fixedStep, currentStepCount);
-                                actualCurrentTime += fixedStep * currentStepCount;
+                                if (currentStepCount != 0)
+                                {
+                                    if (dbg != dbg_state.ScrubbingBackward)
+                                        dbg = dbg_state.ScrubbingForward;
+
+                                    vfx.Simulate((float)fixedStep, currentStepCount);
+                                    actualCurrentTime += fixedStep * currentStepCount;
+                                }
+                                ProcessEvent(currentEventIndex, chunk, vfx);
                             }
-                            ProcessEvent(currentEventIndex, chunk, vfx);
+                        }
+
+                        //Sending incoming event
+                        {
+                            var eventList = GetEventsIndex(chunk, actualCurrentTime, playableTime, m_LastEvent);
+                            foreach (var itEvent in eventList)
+                                ProcessEvent(itEvent, chunk, vfx);
                         }
                     }
-
-                    //Sending incoming event
+                    else //no scrubbing
                     {
-                        var eventList = GetEventsIndex(chunk, actualCurrentTime, playableTime, m_LastEvent);
+                        vfx.pause = false;
+                        if (playingBackward)
+                        {
+                            var eventBehind = GetEventsIndex(chunk, playableTime, m_LastPlayableTime, kErrorIndex);
+                            if (eventBehind.Any())
+                            {
+                                //Pretend we have played a full loop from last to the end, to there
+                                //TODOPAUL: It's a bit hacky, better to consider "mirror" event only
+                                var eventAhead = GetEventsIndex(chunk, m_LastPlayableTime, chunk.end, kErrorIndex);
+                                foreach (var itEvent in eventAhead)
+                                    ProcessEvent(itEvent, chunk, vfx);
+
+                                m_LastEvent = kErrorIndex;
+                                m_LastPlayableTime = chunk.begin;
+                                dbg = dbg_state.ScrubbingBackward;
+                            }
+                        }
+
+                        var eventList = GetEventsIndex(chunk, m_LastPlayableTime, playableTime, m_LastEvent);
                         foreach (var itEvent in eventList)
                             ProcessEvent(itEvent, chunk, vfx);
+
+                        UpdateScrubbingState(vfx, dbg);
                     }
                 }
-
                 UpdateScrubbingState(vfx, dbg);
                 m_LastPlayableTime = playableTime;
             }
@@ -260,12 +291,16 @@ namespace UnityEngine.VFX
                 foreach (var inputBehavior in playableBehaviors)
                 {
                     if (   !chunks.Any()
-                        || inputBehavior.clipStart > chunks.Peek().end)
+                        || inputBehavior.clipStart > chunks.Peek().end
+                        || inputBehavior.scrubbing != chunks.Peek().scrubbing
+                        || inputBehavior.startSeed != chunks.Peek().startSeed)
                     {
                         chunks.Push(new Chunk()
                         {
                             begin = inputBehavior.clipStart,
-                            events = new Event[0]
+                            events = new Event[0],
+                            scrubbing = inputBehavior.scrubbing,
+                            startSeed = inputBehavior.startSeed
                         });
                     }
 
@@ -283,20 +318,6 @@ namespace UnityEngine.VFX
 
         ScrubbingCacheHelper m_ScrubbingCacheHelper;
         VisualEffect m_Target;
-
-        public override void OnBehaviourPause(Playable playable, FrameData info)
-        {
-            base.OnBehaviourPause(playable, info);
-            if (m_Target != null)
-                m_Target.pause = true;
-        }
-
-        public override void OnBehaviourPlay(Playable playable, FrameData info)
-        {
-            base.OnBehaviourPlay(playable, info);
-            if (m_Target != null)
-                m_Target.pause = false;
-        }
 
         public override void PrepareFrame(Playable playable, FrameData data)
         {

@@ -12,10 +12,6 @@ namespace UnityEngine.VFX
     [Serializable]
     public class VisualEffectControlPlayableAsset : PlayableAsset, ITimelineClipAsset
     {
-        //[NoFoldOut]
-        [NotKeyable] // NotKeyable used to prevent Timeline from making fields available for animation.
-        public VisualEffectControlPlayableBehaviour template = new VisualEffectControlPlayableBehaviour();
-
         public static bool useBlending_WIP
         {
             get
@@ -35,6 +31,11 @@ namespace UnityEngine.VFX
 
         public double clipStart { get; set; }
         public double clipEnd { get; set; }
+
+        [NotKeyable]
+        public bool scrubbing = true;
+        [NotKeyable]
+        public uint startSeed;
 
         public void SetDefaultEvent(double playAfterClipStart, double stopBeforeClipEnd)
         {
@@ -124,10 +125,12 @@ namespace UnityEngine.VFX
 
         public override Playable CreatePlayable(PlayableGraph graph, GameObject owner)
         {
-            var playable = ScriptPlayable<VisualEffectControlPlayableBehaviour>.Create(graph, template);
+            var playable = ScriptPlayable<VisualEffectControlPlayableBehaviour>.Create(graph, new VisualEffectControlPlayableBehaviour());
             var behaviour = playable.GetBehaviour();
             behaviour.clipStart = clipStart;
             behaviour.clipEnd = clipEnd;
+            behaviour.scrubbing = scrubbing;
+            behaviour.startSeed = startSeed;
             behaviour.events = events == null ? new VisualEffectPlayableSerializedEvent[] { } : events.ToArray();
             return playable;
         }

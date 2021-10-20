@@ -111,6 +111,8 @@ namespace UnityEngine.VFX
     {
         public double clipStart { get; set; }
         public double clipEnd { get; set; }
+        public bool scrubbing { get; set; }
+        public uint startSeed { get; set; }
 
         public VisualEffectPlayableSerializedEvent[] events { get; set; }
     }
