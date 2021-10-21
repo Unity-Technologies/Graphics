@@ -23,8 +23,13 @@ namespace UnityEditor.VFX
         {
             get
             {
-                var exclude = new[] { typeof(GPUEvent), typeof(CameraBuffer) };
-                return VFXLibrary.GetSlotsType().Except(exclude);
+                foreach (var type in VFXLibrary.GetSlotsType())
+                {
+                    var attribute = VFXLibrary.GetAttributeFromSlotType(type);
+                    if (attribute != null && attribute.usages.HasFlag(VFXTypeAttribute.Usage.ExcludeFromProperty))
+                        continue;
+                    yield return type;
+                }
             }
         }
     }
@@ -71,6 +76,20 @@ namespace UnityEditor.VFX
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return inputExpression;
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+
+            var type = this.type;
+            if (Deprecated.s_Types.Contains(type))
+            {
+                manager.RegisterError(
+                    "DeprecatedTypeInlineOperator",
+                    VFXErrorType.Warning,
+                    string.Format("The structure of the '{0}' has changed, the position property has been moved to a transform type. You should consider to recreate this operator.", type));
+            }
         }
 
         public override void Sanitize(int version)

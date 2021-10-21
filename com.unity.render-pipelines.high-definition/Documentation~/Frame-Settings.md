@@ -126,4 +126,4 @@ Note: These settings are for debugging purposes only. Each property here describ
 
 ## Debugging Frame Settings
 
-You can use the [Render Pipeline Debugger Window](Render-Pipeline-Debug-Window.md) to temporarily change Frame Settings for a Camera without altering the actual Frame Settings data of the Camera itself. This means that, when you stop debugging, the Frame Settings for the Camera are as you set them before you started debugging.
+You can use the [Rendering Debugger](Render-Pipeline-Debug-Window.md) to temporarily change Frame Settings for a Camera without altering the actual Frame Settings data of the Camera itself. This means that, when you stop debugging, the Frame Settings for the Camera are as you set them before you started debugging.

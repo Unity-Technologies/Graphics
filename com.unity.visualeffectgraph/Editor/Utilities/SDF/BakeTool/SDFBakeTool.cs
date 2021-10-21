@@ -206,7 +206,7 @@ namespace UnityEditor.VFX.SDF
             }
             EditorGUIUtility.wideMode = prevWideMode;
 
-            if (selectedMesh != null)
+            if (mesh != null)
             {
                 EditorGUILayout.BeginHorizontal();
                 EditorGUI.BeginChangeCheck();
@@ -222,8 +222,6 @@ namespace UnityEditor.VFX.SDF
                     FitCubeToMesh();
                 }
                 needsUpdate |= EditorGUI.EndChangeCheck();
-
-
                 EditorGUILayout.EndHorizontal();
             }
 
@@ -640,7 +638,7 @@ namespace UnityEditor.VFX.SDF
             {
                 m_MeshPreview.Dispose();
             }
-            m_MeshPreview = new SdfBakerPreview(selectedMesh);
+            m_MeshPreview = new SdfBakerPreview(mesh);
             m_BakedSDF = null;
         }
 

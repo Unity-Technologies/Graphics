@@ -336,6 +336,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Mark the HDCamera as persistant so it won't be destroyed if the camera is disabled</summary>
         internal bool isPersistent = false;
 
+        internal HDUtils.PackedMipChainInfo m_DepthBufferMipChainInfo = new HDUtils.PackedMipChainInfo();
+
+        internal ref HDUtils.PackedMipChainInfo depthBufferMipChainInfo => ref m_DepthBufferMipChainInfo;
+
+        internal Vector2Int depthMipChainSize => m_DepthBufferMipChainInfo.textureSize;
+
         // VisualSky is the sky used for rendering in the main view.
         // LightingSky is the sky used for lighting the scene (ambient probe and sky reflection)
         // It's usually the visual sky unless a sky lighting override is setup.
@@ -357,6 +363,11 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool m_ClearHistoryRequest;
 
         internal float deltaTime => time - lastTime;
+
+        // Useful for the deterministic testing of motion vectors.
+        // This is currently override only in com.unity.testing.hdrp/TestRunner/OverrideTime.cs
+        internal float animateMaterialsTime { get; set; } = -1;
+        internal float animateMaterialsTimeLast { get; set; } = -1;
 
         // Non oblique projection matrix (RHS)
         // TODO: this code is never used and not compatible with XR
@@ -692,6 +703,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             volumeStack = VolumeManager.instance.CreateStack();
 
+            m_DepthBufferMipChainInfo.Allocate();
+
             // Initially, we don't want to clear any history buffer
             m_ClearHistoryRequest = false;
 
@@ -731,7 +744,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!transparent)
                 return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value && frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects);
             else
-                return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabled.value;
+                return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabledTransparent.value;
         }
 
         internal bool IsSSGIEnabled()
@@ -937,6 +950,8 @@ namespace UnityEngine.Rendering.HighDefinition
             DynamicResolutionHandler.instance.finalViewport = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
 
             Vector2Int nonScaledViewport = new Vector2Int(actualWidth, actualHeight);
+
+            m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(nonScaledViewport);
 
             lowResScale = 0.5f;
             if (canDoDynamicResolution)
@@ -1148,6 +1163,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float ct = time;
             float pt = lastTime;
 #if UNITY_EDITOR
+            // Apply editor mode time override if any.
+            if (animateMaterials)
+            {
+                ct = animateMaterialsTime < 0 ? ct : animateMaterialsTime;
+                pt = animateMaterialsTimeLast < 0 ? pt : animateMaterialsTimeLast;
+            }
+
             float dt = time - lastTime;
             float sdt = dt;
 #else
@@ -1285,6 +1307,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 visualSky.skySettings = skyManager.GetDefaultPreviewSkyInstance();
                 visualSky.cloudSettings = null;
+                visualSky.volumetricClouds = null;
                 lightingSky = visualSky;
                 skyAmbientMode = SkyAmbientMode.Dynamic;
             }
@@ -1295,6 +1318,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
                 visualSky.cloudSettings = SkyManager.GetCloudSetting(volumeStack);
+                visualSky.volumetricClouds = SkyManager.GetVolumetricClouds(volumeStack);
 
                 lightingSky = visualSky;
 
@@ -1308,9 +1332,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         SkySettings newSkyOverride = SkyManager.GetSkySetting(skyManager.lightingOverrideVolumeStack);
                         CloudSettings newCloudOverride = SkyManager.GetCloudSetting(skyManager.lightingOverrideVolumeStack);
+                        VolumetricClouds newVolumetricCloudsOverride = SkyManager.GetVolumetricClouds(skyManager.lightingOverrideVolumeStack);
 
                         if ((m_LightingOverrideSky.skySettings != null && newSkyOverride == null) ||
-                            (m_LightingOverrideSky.cloudSettings != null && newCloudOverride == null))
+                            (m_LightingOverrideSky.cloudSettings != null && newCloudOverride == null) ||
+                            (m_LightingOverrideSky.volumetricClouds != null && newVolumetricCloudsOverride == null))
                         {
                             // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
                             // Resetting the visual sky hash will ensure that.
@@ -1318,6 +1344,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             m_LightingOverrideSky.skySettings = newSkyOverride;
                             m_LightingOverrideSky.cloudSettings = newCloudOverride;
+                            m_LightingOverrideSky.volumetricClouds = newVolumetricCloudsOverride;
                             lightingSky = m_LightingOverrideSky;
                         }
                     }

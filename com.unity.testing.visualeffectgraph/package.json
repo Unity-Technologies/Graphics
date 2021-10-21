@@ -1,14 +1,14 @@
 {
-    "name": "com.unity.testing.visualeffectgraph",
-    "displayName": "Visual Effect Graphic Tests",
-    "version": "12.0.0",
-    "unity": "2021.2",
-    "unityRelease": "0a1",
-    "description": "This package contains common graphics tests from several scriptable renderpipeline",
-    "dependencies": {
-        "com.unity.visualeffectgraph": "12.0.0",
-        "com.unity.testframework.graphics": "7.8.11-preview",
-        "com.unity.testing.graphics-performance": "8.0.0",
-        "com.unity.test-framework": "1.1.18"
-    }
+  "name": "com.unity.testing.visualeffectgraph",
+  "displayName": "Visual Effect Graphic Tests",
+  "version": "13.1.1",
+  "unity": "2022.1",
+  "unityRelease": "0a7",
+  "description": "This package contains common graphics tests from several scriptable renderpipeline",
+  "dependencies": {
+    "com.unity.visualeffectgraph": "13.1.1",
+    "com.unity.testframework.graphics": "7.8.11-preview",
+    "com.unity.testing.graphics-performance": "8.0.0",
+    "com.unity.test-framework": "1.1.29"
+  }
 }

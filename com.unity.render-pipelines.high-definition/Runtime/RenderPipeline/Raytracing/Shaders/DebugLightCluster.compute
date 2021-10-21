@@ -1,6 +1,6 @@
 #pragma kernel DebugLightCluster
 
-#pragma only_renderers d3d11
+#pragma only_renderers d3d11 ps5
 
 #define DEBUG_LIGHT_CLUSTER_TILE_SIZE 8
 

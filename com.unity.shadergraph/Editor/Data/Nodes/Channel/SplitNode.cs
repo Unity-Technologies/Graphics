@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph
         public SplitNode()
         {
             name = "Split";
+            synonyms = new string[] { "separate" };
             UpdateNodeAfterDeserialization();
         }
 

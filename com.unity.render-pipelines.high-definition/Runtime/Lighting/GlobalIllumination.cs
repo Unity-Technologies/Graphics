@@ -50,6 +50,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Defines if the screen space global illumination should be evaluated at full resolution.
+        /// </summary>
+        public BoolParameter fullResolutionSS = new BoolParameter(true);
+
+        /// <summary>
         /// The number of steps that should be used during the ray marching pass.
         /// </summary>
         public int maxRaySteps

@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
+
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -14,11 +15,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override int Priority => 50;
 
-        protected UnityEngine.Rendering.ShaderKeyword m_ForceForwardEmissive;
-
         public LitShaderPreprocessor()
         {
-            m_ForceForwardEmissive = new UnityEngine.Rendering.ShaderKeyword("_FORCE_FORWARD_EMISSIVE");
         }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
@@ -37,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (shader.TryGetMetadataOfType<HDMetadata>(out var obj))
                 {
-                    isBuiltInLit |= obj.shaderID == HDShaderUtils.ShaderID.SG_Lit;
+                    isBuiltInLit |= obj.shaderID == ShaderID.SG_Lit;
                 }
             }
 
@@ -77,18 +75,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // Apply following set of rules only to lit shader (remember that LitPreprocessor is call for any shader)
             if (isBuiltInLit)
             {
-                // ForwardEmissiveForDeferred only make sense for deferred mode
-                bool isForwardEmissiveForDeferred = snippet.passName == "ForwardEmissiveForDeferred";
-                if (isForwardEmissiveForDeferred)
-                {
-                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
-                        return true;
-
-                    // If the pass is not used because the keyword ForceForwardEmissive is not enabled, then discard
-                    if (!inputData.shaderKeywordSet.IsEnabled(m_ForceForwardEmissive))
-                        return true;
-                }
-
                 // Forward material don't use keyword for WriteNormalBuffer but #define so we can't test for the keyword outside of isBuiltInLit
                 // otherwise the pass will be remove for non-lit shader graph version (like StackLit)
                 bool isMotionPass = snippet.passName == "MotionVectors";
@@ -126,10 +112,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     // If transparent we don't need the depth only pass
                     if (isDepthOnlyPass)
-                        return true;
-
-                    // If transparent, we never need ForwardEmissiveForDeferred pass.
-                    if (isForwardEmissiveForDeferred)
                         return true;
                 }
             }

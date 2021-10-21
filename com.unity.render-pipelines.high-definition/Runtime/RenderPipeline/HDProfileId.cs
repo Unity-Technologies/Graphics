@@ -90,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepareVisibleLocalVolumetricFogList,
         UpdateLocalVolumetricFogAtlas,
 
+        // Volumetric clouds
         VolumetricClouds,
         VolumetricCloudsPrepare,
         VolumetricCloudsTrace,
@@ -98,11 +99,14 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricCloudsUpscaleAndCombine,
         VolumetricCloudsShadow,
         VolumetricCloudMapGeneration,
+        VolumetricCloudsAmbientProbe,
 
         // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
         RaytracingDebugCluster,
+        // RT acceleration structure setup
+        RaytracingBuildAccelerationStructure,
         // RTR
         RaytracingReflectionDirectionGeneration,
         RaytracingReflectionEvaluation,
@@ -152,6 +156,10 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepareGPUProbeData,
         ConvertLightsGpuFormat,
         ProcessVisibleLights,
+        ProcessDirectionalAndCookies,
+        SortVisibleLights,
+        BuildVisibleLightEntities,
+        ProcessShadows,
 
         // Profile sampler for shadow
         RenderShadowMaps,
@@ -206,6 +214,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldPreCombine,
         DepthOfFieldCombine,
         LensFlareDataDriven,
+        LensFlareComputeOcclusionDataDriven,
+        LensFlareMergeOcclusionDataDriven,
         MotionBlur,
         MotionBlurMotionVecPrep,
         MotionBlurTileMinMax,

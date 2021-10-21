@@ -14,6 +14,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.contactShadow    = 1.0;
     context.shadowContext    = InitShadowContext();
     context.shadowValue      = 1.0;
+    context.splineVisibility = -1;
     context.sampleReflection = 0;
 
     // Initialize the contactShadow and contactShadowFade fields
@@ -84,7 +85,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // Add the traced reflection (if any)
     if (reflection.w == 1.0)
     {
-        IndirectLighting lighting = EvaluateBSDF_RaytracedReflection(context, bsdfData, preLightData, reflection);
+        IndirectLighting lighting = EvaluateBSDF_RaytracedReflection(context, bsdfData, preLightData, reflection.xyz);
         AccumulateIndirectLighting(lighting, aggregateLighting);
         reflectionHierarchyWeight = 1.0;
     }
@@ -95,7 +96,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     {
         IndirectLighting indirect;
         ZERO_INITIALIZE(IndirectLighting, indirect);
-        IndirectLighting lighting = EvaluateBSDF_RaytracedRefraction(context, preLightData, transmission);
+        IndirectLighting lighting = EvaluateBSDF_RaytracedRefraction(context, preLightData, transmission.xyz);
         AccumulateIndirectLighting(lighting, aggregateLighting);
         refractionHierarchyWeight = 1.0;
     }

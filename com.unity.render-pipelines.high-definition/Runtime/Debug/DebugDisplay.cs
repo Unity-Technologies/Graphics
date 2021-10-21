@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DebugUI.Widget[] m_DebugLightingItems;
         DebugUI.Widget[] m_DebugVolumeItems;
         DebugUI.Widget[] m_DebugRenderingItems;
-        DebugUI.Widget[] m_DebugDecalsAffectingTransparentItems;
+        DebugUI.Widget[] m_DebugDecalsItems;
 
         static GUIContent[] s_LightingFullScreenDebugStrings = null;
         static int[] s_LightingFullScreenDebugValues = null;
@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Current transparency debug settings.</summary>
             public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
             /// <summary>Current volume debug settings.</summary>
-            public VolumeDebugSettings volumeDebugSettings = new VolumeDebugSettings();
+            public IVolumeDebugSettings volumeDebugSettings = new HDVolumeDebugSettings();
             /// <summary>Index of screen space shadow to display.</summary>
             public uint screenSpaceShadowIndex = 0;
             /// <summary>Max quad cost for quad overdraw display.</summary>
@@ -316,20 +316,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             private bool m_UseDebugGlobalMipBiasOverride = false;
 
-            /// <summary>
-            /// Returns true if the rendering pipeline should apply the mip bias override from the debug settings.
-            /// </summary>
-            /// <returns>True if mip bias override should be applied, false otherwise</returns>
-            public bool UseDebugGlobalMipBiasOverride()
+            internal bool UseDebugGlobalMipBiasOverride()
             {
                 return m_UseDebugGlobalMipBiasOverride;
             }
 
-            /// <summary>
-            /// Sets whether to use or not use the mip bias override in the rendering pipeline.
-            /// </summary>
-            /// <param name="value">True to tell the rendering pipeline to use the mip bias override, false otherwise</returns>
-            public void SetUseDebugGlobalMipBiasOverride(bool value)
+            internal void SetUseDebugGlobalMipBiasOverride(bool value)
             {
                 m_UseDebugGlobalMipBiasOverride = value;
             }
@@ -1029,6 +1021,25 @@ namespace UnityEngine.Rendering.HighDefinition
             panel.children.Add(m_DebugDisplayStatsItems);
         }
 
+        DebugUI.Widget CreateMissingDebugShadersWarning()
+        {
+            return new DebugUI.MessageBox
+            {
+                displayName = "Warning: the debug shader variants are missing. Ensure that the \"Runtime Debug Shaders\" option is enabled in HDRP Global Settings.",
+                style = DebugUI.MessageBox.Style.Warning,
+                isHiddenCallback = () =>
+                {
+#if UNITY_EDITOR
+                    return true;
+#else
+                    if (HDRenderPipelineGlobalSettings.instance != null)
+                        return HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
+                    return true;
+#endif
+                }
+            };
+        }
+
         static class MaterialStrings
         {
             public static readonly NameAndTooltip CommonMaterialProperties = new() { name = "Common Material Properties", tooltip = "Use the drop-down to select and debug a Material property to visualize on every GameObject on screen." };
@@ -1049,7 +1060,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void RegisterMaterialDebug()
         {
             var list = new List<DebugUI.Widget>();
-
+            list.Add(CreateMissingDebugShadersWarning());
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.CommonMaterialProperties, getter = () => (int)data.materialDebugSettings.debugViewMaterialCommonValue, setter = value => SetDebugViewCommonMaterialProperty((MaterialSharedProperty)value), autoEnum = typeof(MaterialSharedProperty), getIndex = () => (int)data.materialDebugSettings.debugViewMaterialCommonValue, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialDebugSettings.debugViewMaterialCommonValue = (MaterialSharedProperty)value; } });
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.Material, getter = () => (data.materialDebugSettings.debugViewMaterial[0]) == 0 ? 0 : data.materialDebugSettings.debugViewMaterial[1], setter = value => SetDebugViewMaterial(value), enumNames = MaterialDebugSettings.debugViewMaterialStrings, enumValues = MaterialDebugSettings.debugViewMaterialValues, getIndex = () => data.materialDebugSettings.materialEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialDebugSettings.materialEnumIndex = value; } });
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.Engine, getter = () => data.materialDebugSettings.debugViewEngine, setter = value => SetDebugViewEngine(value), enumNames = MaterialDebugSettings.debugViewEngineStrings, enumValues = MaterialDebugSettings.debugViewEngineValues, getIndex = () => data.engineEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.engineEnumIndex = value; } });
@@ -1116,7 +1127,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RefreshDecalsDebug<T>(DebugUI.Field<T> field, T value)
         {
-            UnregisterDebugItems(k_PanelDecals, m_DebugDecalsAffectingTransparentItems);
+            UnregisterDebugItems(k_PanelDecals, m_DebugDecalsItems);
             RegisterDecalsDebug();
         }
 
@@ -1233,7 +1244,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void RegisterLightingDebug()
         {
             var list = new List<DebugUI.Widget>();
-
+            list.Add(CreateMissingDebugShadersWarning());
             {
                 var shadows = new DebugUI.Container() { displayName = "Shadows" };
 
@@ -1654,9 +1665,10 @@ namespace UnityEngine.Rendering.HighDefinition
             var componentNames = new List<GUIContent>() { new GUIContent("None") };
             var componentValues = new List<int>() { componentIndex++ };
 
-            foreach (var type in VolumeDebugSettings.componentTypes)
+            // TODO @alex.vazquez: Use the same method as VolumeComponentProvider
+            foreach (var type in HDVolumeDebugSettings.componentTypes)
             {
-                componentNames.Add(new GUIContent() { text = VolumeDebugSettings.ComponentDisplayName(type) });
+                componentNames.Add(new GUIContent() { text = HDVolumeDebugSettings.ComponentDisplayName(type) });
                 componentValues.Add(componentIndex++);
             }
 
@@ -1683,7 +1695,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 componentValues.Add(componentIndex++);
 #endif
 
-                foreach (var camera in VolumeDebugSettings.cameras)
+                foreach (var camera in data.volumeDebugSettings.cameras)
                 {
                     componentNames.Add(new GUIContent() { text = camera.name });
                     componentValues.Add(componentIndex++);
@@ -1925,6 +1937,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var widgetList = new List<DebugUI.Widget>();
 
+            widgetList.Add(CreateMissingDebugShadersWarning());
+
             widgetList.Add(
                 new DebugUI.EnumField { nameAndTooltip = RenderingStrings.FullscreenDebugMode, getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), onValueChanged = RefreshRenderingDebug, enumNames = s_RenderingFullScreenDebugStrings, enumValues = s_RenderingFullScreenDebugValues, getIndex = () => data.renderingFulscreenDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.renderingFulscreenDebugModeEnumIndex = value; } }
             );
@@ -2066,9 +2080,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             };
 
-            m_DebugDecalsAffectingTransparentItems = new DebugUI.Widget[] { decalAffectingTransparent };
+            m_DebugDecalsItems = new DebugUI.Widget[]
+            {
+                CreateMissingDebugShadersWarning(),
+                decalAffectingTransparent
+            };
+
             var panel = DebugManager.instance.GetPanel(k_PanelDecals, true);
-            panel.children.Add(m_DebugDecalsAffectingTransparentItems);
+            panel.children.Add(m_DebugDecalsItems);
         }
 
         internal void RegisterDebug()
@@ -2084,7 +2103,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UnregisterDebug()
         {
-            UnregisterDebugItems(k_PanelDecals, m_DebugDecalsAffectingTransparentItems);
+            UnregisterDebugItems(k_PanelDecals, m_DebugDecalsItems);
 
             DisableProfilingRecorders();
             if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? true)
@@ -2202,7 +2221,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade || debugLighting == DebugLightingMode.ProbeVolumeSampledSubdivision) ||
                 (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
-                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination;
+                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination || data.fullScreenDebugMode == FullScreenDebugMode.VolumetricClouds;
         }
     }
 }
