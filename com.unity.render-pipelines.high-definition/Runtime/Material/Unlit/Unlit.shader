@@ -632,7 +632,8 @@ Shader "HDRP/Unlit"
             #define SHADER_UNLIT
             #define HAS_LIGHTLOOP // Used when computing volumetric scattering
 
-            #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE
+            #define SENSORSDK_SHADERGRAPH
+            #define SENSORSDK_OVERRIDE_REFLECTANCE
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 

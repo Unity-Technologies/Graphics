@@ -11,14 +11,11 @@
 #endif
 
 #ifdef SENSORSDK_OVERRIDE_REFLECTANCE
-
 TEXTURE2D(_SensorCustomReflectance);
 float Wavelength;
 #endif
 
-#if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
 int _SensorLightCount;
-#endif
 
 float PowerHeuristic(float f, float b)
 {
@@ -164,9 +161,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         float3 lightNormal = GetLightNormal(mtlData);
     #endif
     
-    #if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)
-        LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
-    #endif
+        //LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
 
         // Bunch of variables common to material and light sampling
         float pdf;
@@ -179,23 +174,22 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
         PathIntersection nextPathIntersection;
 
-    #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
-            pathIntersection.value = float3(0., 0., 0.);
-            for (uint i = 0; i < _SensorLightCount; i++)
+        pathIntersection.value = float3(0., 0., 0.);
+        for (uint i = 0; i < _SensorLightCount; i++)
+        {
+            if (SampleBeam(_LightDatasRT[i], rayDescriptor.Origin, bsdfData.normalWS,
+                            rayDescriptor.Direction, value, pdf, rayDescriptor.TMax,
+                            pathIntersection))
             {
-                if (SampleBeam(_LightDatasRT[i], rayDescriptor.Origin, bsdfData.normalWS,
-                               rayDescriptor.Direction, value, pdf, rayDescriptor.TMax,
-                               pathIntersection))
-                {
-                    EvaluateMaterial(mtlData, rayDescriptor.Direction, mtlResult);
+                EvaluateMaterial(mtlData, rayDescriptor.Direction, mtlResult);
 
-                    // value is in radian (w/sr) not in lumen (cd/sr) and only the r channel is used
-                    value *= (mtlResult.diffValue + mtlResult.specValue) / pdf;
+                // value is in radian (w/sr) not in lumen (cd/sr) and only the r channel is used
+                value *= (mtlResult.diffValue + mtlResult.specValue) / pdf;
 
-                    pathIntersection.value += value;
-                }
+                pathIntersection.value += value;
             }
-    #else
+        }
+/*
         // Light sampling
         if (computeDirect)
         {
@@ -277,7 +271,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 pathIntersection.value += value * rrFactor * nextPathIntersection.value;
             }
         }
-    #endif
+*/
     }
 
 #else // SHADER_UNLIT

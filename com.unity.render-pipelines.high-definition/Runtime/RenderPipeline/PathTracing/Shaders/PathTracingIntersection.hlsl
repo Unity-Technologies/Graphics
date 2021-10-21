@@ -21,8 +21,7 @@ struct PathIntersection
     // Max roughness encountered along the path
     float maxRoughness;
 
-// SensorSDK - Begin
-#if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
+#if defined(SENSORSDK_SHADERGRAPH)
     // Extra params for beam lighthing
     float3 beamDirection;
     float3 beamOrigin;
@@ -30,7 +29,6 @@ struct PathIntersection
     float beamRadius;
     float beamDepth;
 #endif
-//SensorSDK - End    
 };
 
 #endif // UNITY_PATH_TRACING_INTERSECTION_INCLUDED

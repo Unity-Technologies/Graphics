@@ -2,7 +2,6 @@
 #define UNITY_SENSOR_LIGHT_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
-//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Sensor/Shaders/PathTracingIntersection.hlsl"
 
 /*
 struct LightData
