@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fixed unhandled exception when loading a subgraph with duplicate slots [1366200] (https://issuetracker.unity3d.com/product/unity/issues/guid/1366200/)
  - Fixed Triplanar ShaderGraph node to handle arbitrary input and output coordinate spaces [1346477] (https://issuetracker.unity3d.com/issues/shader-graph-rotating-gameobject-get-material-stretched-when-using-triplanar-node)
  - Fixed a bug that Parallax Mapping and Parallax Occlusion Mapping nodes don't use the same channel to sample heightmap by adding drop-downs for channel selecting to both of the nodes. [1347270] (https://fogbugz.unity3d.com/f/cases/1347270/)
+ - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
 
 ## [13.0.0] - 2021-09-01
 
