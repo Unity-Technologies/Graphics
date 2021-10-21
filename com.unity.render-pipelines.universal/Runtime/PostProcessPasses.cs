@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (data != null)
             {
-                m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRendering, data);
+                m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses - 1, data);
                 m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data, m_BlitMaterial);
                 m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data, m_BlitMaterial);
                 m_CurrentPostProcessData = data;
