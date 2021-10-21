@@ -1193,11 +1193,11 @@ PrefabInstance:
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: waitFrames
-      value: 40
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
-      propertyPath: xrCompatible
+      propertyPath: checkMemoryAllocation
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
@@ -2111,7 +2111,7 @@ MonoBehaviour:
       viewerScale: 1
     type: 1
     mode: 1
-    realtimeMode: 1
+    realtimeMode: 0
     lighting:
       multiplier: 1
       weight: 1

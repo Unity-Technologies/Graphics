@@ -4,6 +4,62 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.1] - 2021-10-04
+
+### Added
+- Added support for orthographic camera in path tracing.
+- Added public API to edit materials from script at runtime.
+- Added new functions that sample the custom buffer in custom passes (CustomPassSampleCustomColor and CustomPassLoadCustomColor) to handle the RTHandleScale automatically.
+
+### Fixed
+- Fixed decal position when created from context menu. (case 1368987)
+- Fixed the clouds not taking properly into account the fog when in distant mode and with a close far plane (case 1367993).
+- Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
+- Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
+- Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
+- Fixed the volumetric clouds debug view not taking into account the exposure and leading to Nans (case 1365054).
+- Fixed area light cookie field to use the same style as the other cookie fields
+- Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
+- Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
+- Fixed the cloudlayer not using depth buffer.
+- Fixed crossfade not working on the HD ST8 ShaderGraph [case 1369586](https://fogbugz.unity3d.com/f/cases/1369586/)
+- Fixed range compression factor being clamped. (case 1365707)
+- Fixed tooltip not showing on labels in ShaderGraphs (1358483).
+- Fix API warnings in Matcap mode on Metal.
+- Fix D3D validation layer errors w.r.t shadow textures when an atlas is not used.
+- Fixed anchor position offset property for the Light Anchor component. (case 1362809)
+- Fixed minor performance issues in SSGI (case 1367144).
+- Fixed scaling issues with dynamic resolution and the CustomPassSampleCameraColor function.
+- Fixed compatibility message not displayed correctly when switching platforms.
+- Fixed support for interleaved tiling in path tracing.
+- Fixed robustness issues with the stacklit material in path tracing (case 1373971).
+- Fixed custom pass injection point not visible in the UI when using the Camera mode.
+
+### Changed
+- Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
+- Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
+- PrepareLightsForGPU CPU Light loop performance improvement (40% to 70% faster), utilizing burst and optimized. Utilizing better sorting, distributing work in jobs and improving cache access of light data.
+- In path tracing, camera ray misses now return a null value with Minimum Depth > 1.
+- HD's SpeedTree 8 upgrader now sets up CullModeForward as well.
+
+## [13.1.0] - 2021-09-24
+
+### Added
+- Added a SG node to get the main directional light direction.
+
+### Changed
+- MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+
+### Fixed
+- Fixed the volume not being assigned on some scene templates.
+- Fixed corruption in player with lightmap uv when Optimize Mesh Data is enabled [1357902]
+- Fixed a warning to Rendering Debugger Runtime UI when debug shaders are stripped.
+- Fixed Probe volume debug exposure compensation to match the Lighting debug one.
+- Fixed lens flare occlusion issues with TAA. (1365098)
+- Fixed misleading text and improving the eye scene material samples. (case 1368665)
+- Fixed missing DisallowMultipleComponent annotations in HDAdditionalReflectionData and HDAdditionalLightData (case 1365879).
+- Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
+
 ## [13.0.0] - 2021-09-01
 
 ### Fixed
@@ -14,9 +70,56 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light anchor min distance value + properties not working with prefabs (case 1345509).
 - Fixed specular occlusion sharpness and over darkening at grazing angles.
 - Fixed edge bleeding when rendering volumetric clouds.
+- Fixed the performance of the volumetric clouds in non-local mode when large occluders are on screen.
+- Fixed a regression that broke punctual and directional raytraced shadows temporal denoiser (case 1360132).
+- Fixed regression in the ambient probe intensity for volumetric clouds.
+- Fixed the sun leaking from behind fully opaque clouds.
+- Fixed artifacts in volumetric cloud shadows.
+- Fixed the missing parameter to control the sun light dimmer (case 1364152).
+- Fixed regression in the clouds presets.
+- Fixed the way we are handling emissive for SSGI/RTGI/Mixed and APV and remove ForceForwardEmissive code
+- Fixed EmissiveLighting Debug Light mode not managing correctly emissive for unlit
+- Fixed remove of the Additional Light Data when removing the Light Component.
+- Fixed remove of the Additional Camera Data when removing the Camera Component.
+- Fixed remove of the Additional Light Data when removing the Light Component.
+- Fixed remove of the Additional Camera Data when removing the Camera Component.
+- Fixed a null ref exception when no opaque objects are rendered.
+- Fixed issue with depth slope scale depth bias when a material uses depth offset.
+- Fixed shadow sampling artifact when using the spot light shadow option 'custom spot angle'
+- Fixed issue with fading in SSR applying fade factor twice, resulting in darkening of the image in the transition areas.
+- Fixed path traced subsurface scattering for transmissive surfaces (case 1329403)
+- Fixed missing context menu for “Post Anti-Aliasing” in Camera (1357283)
+- Fixed error when disabling opaque objects on a camera with MSAA.
+- Fixed double camera preview.
+- Fixed the volumetric clouds cloud map not being centered over the world origin (case 1364465).
+- Fixed the emissive being overriden by ray traced sub-surface scattering (case 1364456).
+- Fixed support of directional light coloring from physical sky in path tracing.
+- Fixed disabled menu item for volume additional properties.
+- Fixed Shader advanced options for lit shaders.
+- Fixed Dof, would sometimes get corrupted when DLSS was on caused by TAA logic accidentally being on for DOF (1357722)
+- Fixed shadowmask editable when not supported.
+- Fixed sorting for mesh decals.
+- Fixed a warning when enabling tile/cluster debug.
+- Fix recursive rendering transmittance over the sky (case 1323945).
+- Fixed specular anti aliasing for layeredlit shader.
+- Fixed lens flare occlusion issues with transparent depth. It had the wrong depth bound (1365098)
+- Fixed double contribution from the clear coat when having SSR or RTR on the Lit and StackLit shaders (case 1352424).
+- Fixed texture fields for volume parameters accepting textures with wrong dimensions.
+- Fixed Realtime lightmap not working correctly in player with various lit shader (case 1360021)
+- Fixed unexpectedly strong contribution from directional lights in path-traced volumetric scattering (case 1304688).
+- Fixed memory leak with XR combined occlusion meshes (case 1366173).
+- Fixed diffusion profile being reset to default on SpeedTree8 materials with subsurface scattering enabled during import.
+- Fixed support for light/shadow dimmers (volumetric or not) in path tracing.
 
-### changed
+### Changed
 - Visual Environment ambient mode is now Dynamic by default.
+- Surface ReflectionTypeLoadExceptions in HDUtils.GetRenderPipelineMaterialList(). Without surfacing these exceptions, developers cannot act on any underlying reflection errors in the HDRP assembly.
+- Improved the DynamicArray class by adding several utility APIs.
+- Moved AMD FidelityFX shaders to core
+- Improved sampling of overlapping point/area lights in path-traced volumetric scattering (case 1358777).
+- Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1346105, 1358783).
+- Fixed minor readability issues in the ray tracing code.
+
 
 ## [12.0.0] - 2021-01-11
 
@@ -99,6 +202,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a parameter to control the vertical shape offset of the volumetric clouds (case 1358528).
 - Added an option to render screen space global illumination in half resolution to achieve real-time compatible performance in high resolutions (case 1353727).
 - Added a built-in custom pass to draw object IDs.
+- Added an example in the documentation that shows how to use the accumulation API for high quality antialiasing (supersampling).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -393,6 +497,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
 - Fixed ThreadMapDetail to saturate AO & smoothness strength inputs to prevent out-of-bounds values set by users (1357740)
 - Allow negative wind speed parameter.
+- Fixed custom pass custom buffer not bound after being created inside a custom pass.
+- Fixed silhouette issue with emissive decals
+- Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -498,6 +605,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make some volumetric clouds properties additional to reduce the number default parameters (case 1357926).
 - Renamed the Cloud Offset to Cloud Map Offset in the volumetric clouds volume component (case 1358528).
 - Made debug panel mip bias functions internal, not public.
+- Mitigate ghosting / overbluring artifacts when TAA and physically-based DoF are enabled by adjusting the internal range of blend factor values (case 1340541).
 
 ## [11.0.0] - 2020-10-21
 

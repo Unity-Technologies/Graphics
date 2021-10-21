@@ -40,6 +40,15 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, buffers.screenspaceShadowBuffer);
         }
 
+        static void BindDefaultTexturesLightingBuffers(RenderGraphDefaultResources defaultResources, CommandBuffer cmd)
+        {
+            cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, defaultResources.blackTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, defaultResources.blackTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, defaultResources.blackTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, defaultResources.blackUIntTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, defaultResources.blackTextureXR);
+        }
+
         class BuildGPULightListPassData
         {
             // Common
@@ -51,8 +60,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool computeMaterialVariants;
             public bool computeLightVariants;
             public bool skyEnabled;
-            public bool probeVolumeEnabled;
             public LightList lightList;
+            public bool canClearLightList;
+            public int directionalLightCount;
 
             // Clear Light lists
             public ComputeShader clearLightListCS;
@@ -159,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Also, we clear all the lists and to be resilient to changes in pipeline.
                 if (data.runBigTilePrepass)
                     ClearLightList(data, cmd, data.output.bigTileLightList);
-                if (data.lightList != null) // This can happen for probe volume light list build where we only generate clusters.
+                if (data.canClearLightList) // This can happen when we dont have a GPULight list builder and a light list instantiated.
                     ClearLightList(data, cmd, data.output.lightList);
                 ClearLightList(data, cmd, data.output.perVoxelOffset);
             }
@@ -223,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (data.enableFeatureVariants)
                 {
                     uint baseFeatureFlags = 0;
-                    if (data.lightList.directionalLights.Count > 0)
+                    if (data.directionalLightCount > 0)
                     {
                         baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
                     }
@@ -234,16 +244,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!data.computeMaterialVariants)
                     {
                         baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
-                    }
-
-                    if (data.probeVolumeEnabled)
-                    {
-                        // If probe volume feature is enabled, we toggle this feature on for all tiles.
-                        // This is necessary because all tiles must sample ambient probe fallback.
-                        // It is possible we could save a little bit of work by having 2x feature flags for probe volumes:
-                        // one specifiying which tiles contain probe volumes,
-                        // and another triggered for all tiles to handle fallback.
-                        baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
                     }
 
                     localLightListCB.g_BaseFeatureFlags = baseFeatureFlags;
@@ -310,16 +310,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         baseFeatureFlags |= LightDefinitions.s_LightFeatureMaskFlags;
                     }
-                    if (data.probeVolumeEnabled)
-                    {
-                        // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
-                        baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
-                    }
 
                     // If we haven't run the light list building, we are missing some basic lighting flags.
                     if (!tileFlagsWritten)
                     {
-                        if (data.lightList.directionalLights.Count > 0)
+                        if (data.directionalLightCount > 0)
                         {
                             baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
                         }
@@ -458,9 +453,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb.g_isOrthographic = camera.orthographic ? 1u : 0u;
             cb.g_BaseFeatureFlags = 0; // Filled for each individual pass.
             cb.g_iNumSamplesMSAA = (int)hdCamera.msaaSamples;
-            cb._EnvLightIndexShift = (uint)m_lightList.lights.Count;
-            cb._DecalIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count);
-            cb._LocalVolumetricFogIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
+            cb._EnvLightIndexShift = (uint)m_GpuLightsBuilder.lightsCount;
+            cb._DecalIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count);
+            cb._LocalVolumetricFogIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount);
 
             // Copy the constant buffer into the parameter struct.
             passData.lightListCB = cb;
@@ -494,10 +489,10 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && tileAndClusterData.hasTileBuffers;
             passData.computeMaterialVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants);
             passData.computeLightVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants);
-            passData.lightList = m_lightList;
+            passData.directionalLightCount = m_GpuLightsBuilder.directionalLightCount;
+            passData.canClearLightList = m_GpuLightsBuilder != null && m_lightList != null;
             passData.skyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera);
             passData.useComputeAsPixel = DeferredUseComputeAsPixel(hdCamera.frameSettings);
-            passData.probeVolumeEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume);
 
             bool isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
@@ -620,7 +615,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 var nrBigTilesX = (m_MaxCameraWidth + 63) / 64;
                 var nrBigTilesY = (m_MaxCameraHeight + 63) / 64;
                 var nrBigTiles = nrBigTilesX * nrBigTilesY * m_MaxViewCount;
-                // TODO: (Nick) In the case of Probe Volumes, this buffer could be trimmed down / tuned more specifically to probe volumes if we added a s_MaxNrBigTileProbeVolumesPlusOne value.
                 passData.output.bigTileLightList = builder.WriteComputeBuffer(
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc(LightDefinitions.s_MaxNrBigTileLightsPlusOne * nrBigTiles, sizeof(uint)) { name = "BigTiles" }));
             }
@@ -1102,7 +1096,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SsrEdgeFadeRcpLength = Mathf.Min(1.0f / settings.screenFadeDistance.value, float.MaxValue);
             cb._ColorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
             cb._SsrColorPyramidMaxMip = hdCamera.colorPyramidHistoryMipCount - 1;
-            cb._SsrDepthPyramidMaxMip = m_DepthBufferMipChainInfo.mipLevelCount - 1;
+            cb._SsrDepthPyramidMaxMip = hdCamera.depthBufferMipChainInfo.mipLevelCount - 1;
             if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 2)
                 cb._SsrAccumulationAmount = 1.0f;
             else
@@ -1141,6 +1135,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: true, ref prepassOutput);
                 }
 
+                // The first color pyramid of the frame is generated after the SSR transparent, so we have no choice but to use the previous
+                // frame color pyramid (that includes transparents from the previous frame).
+                RTHandle colorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                if (colorPyramidRT == null)
+                    return renderGraph.defaultResources.blackTextureXR;
+
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {
                     builder.EnableAsyncCompute(hdCamera.frameSettings.SSRRunsAsync());
@@ -1148,7 +1148,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);
 
                     bool usePBRAlgo = !transparent && settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
-                    var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
+                    var colorPyramid = renderGraph.ImportTexture(colorPyramidRT);
                     var volumeSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
                     UpdateSSRConstantBuffer(hdCamera, volumeSettings, ref passData.cb);
@@ -1164,7 +1164,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.width = hdCamera.actualWidth;
                     passData.height = hdCamera.actualHeight;
                     passData.viewCount = hdCamera.viewCount;
-                    passData.offsetBufferData = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+                    passData.offsetBufferData = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
                     passData.accumNeedClear = usePBRAlgo;
                     passData.previousAccumNeedClear = usePBRAlgo && (hdCamera.currentSSRAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation || hdCamera.isFirstFrame || hdCamera.resetPostProcessingHistory);
                     hdCamera.currentSSRAlgorithm = volumeSettings.usedAlgorithm.value; // Store for next frame comparison
