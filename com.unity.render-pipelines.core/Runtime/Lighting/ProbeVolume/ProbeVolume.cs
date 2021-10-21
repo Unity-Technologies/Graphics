@@ -241,15 +241,18 @@ namespace UnityEngine.Experimental.Rendering
                     }
                     else
                     {
-                        foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                        foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
                         {
-                            if (ShouldCullCell(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
+                            if (!cellInfo.loaded)
                                 continue;
 
-                            if (cell.bricks == null)
+                            if (ShouldCullCell(cellInfo.cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
                                 continue;
 
-                            foreach (var brick in cell.bricks)
+                            if (cellInfo.cell.bricks == null)
+                                continue;
+
+                            foreach (var brick in cellInfo.cell.bricks)
                                 yield return brick;
                         }
                     }
@@ -264,35 +267,39 @@ namespace UnityEngine.Experimental.Rendering
                     if (brick.subdivisionLevel < 0)
                         continue;
 
-                    Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
-                    Vector3 scaledPos = brick.position + scaledSize / 2;
+                    float brickSize = ProbeReferenceVolume.instance.BrickSize(brick.subdivisionLevel);
+                    float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
+                    Vector3 scaledSize = new Vector3(brickSize, brickSize, brickSize);
+                    Vector3 scaledPos = new Vector3(brick.position.x * minBrickSize, brick.position.y * minBrickSize, brick.position.z * minBrickSize) + scaledSize / 2;
                     brickGizmos.AddWireCube(scaledPos, scaledSize, subdivColors[brick.subdivisionLevel]);
                 }
 
-                brickGizmos.RenderWireframe(ProbeReferenceVolume.instance.GetRefSpaceToWS(), gizmoName: "Brick Gizmo Rendering");
+                brickGizmos.RenderWireframe(Matrix4x4.identity, gizmoName: "Brick Gizmo Rendering");
             }
 
             if (debugDisplay.drawCells)
             {
-                IEnumerable<Vector3> GetVisibleCellCenters()
+                IEnumerable<Vector4> GetVisibleCellCentersAndState()
                 {
                     if (debugDisplay.realtimeSubdivision)
                     {
                         foreach (var kp in ProbeReferenceVolume.instance.realtimeSubdivisionInfo)
                         {
                             kp.Key.CalculateCenterAndSize(out var center, out var _);
-                            yield return center;
+                            yield return new Vector4(center.x, center.y, center.z, 1.0f);
                         }
                     }
                     else
                     {
-                        foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                        foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
                         {
-                            if (ShouldCullCell(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
+                            if (ShouldCullCell(cellInfo.cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
                                 continue;
 
-                            var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
-                            var center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector3.one;
+                            var cell = cellInfo.cell;
+                            var positionF = new Vector4(cell.position.x, cell.position.y, cell.position.z, 0.0f);
+                            var center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector4.one;
+                            center.w = cellInfo.loaded ? 1.0f : 0.0f;
                             yield return center;
                         }
                     }
@@ -304,17 +311,18 @@ namespace UnityEngine.Experimental.Rendering
                 if (debugDisplay.realtimeSubdivision)
                     trs = Matrix4x4.TRS(transform.position, Quaternion.identity, Vector3.one);
 
-                // Fetching this from components instead of from the reference volume allows the user to
-                // preview how cells will look before they commit to a bake.
-                Gizmos.color = new Color(0, 1, 0.5f, 0.2f);
-                Gizmos.matrix = trs;
                 if (cellGizmo == null)
                     cellGizmo = new MeshGizmo();
                 cellGizmo.Clear();
-                foreach (var center in GetVisibleCellCenters())
+                foreach (var center in GetVisibleCellCentersAndState())
                 {
+                    bool loaded = center.w == 1.0f;
+
+                    Gizmos.color = loaded ? new Color(0, 1, 0.5f, 0.2f) : new Color(1, 0.0f, 0.0f, 0.2f);
+                    Gizmos.matrix = trs;
+
                     Gizmos.DrawCube(center, Vector3.one * cellSizeInMeters);
-                    cellGizmo.AddWireCube(center, Vector3.one * cellSizeInMeters, new Color(0, 1, 0.5f, 1));
+                    cellGizmo.AddWireCube(center, Vector3.one * cellSizeInMeters, loaded ? new Color(0, 1, 0.5f, 1) : new Color(1, 0.0f, 0.0f, 1));
                 }
                 cellGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
             }
