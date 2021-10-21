@@ -24,7 +24,6 @@ ShaderGraph_ref_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_trunk:
     commands:
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
-      -  command: NetSh Advfirewall set allprofiles state off
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -108,7 +107,6 @@ ShaderGraph_ref_Android_Vulkan_playmode_ref_images_il2cpp_Linear_trunk:
     commands:
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
-      -  command: NetSh Advfirewall set allprofiles state off
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -240,7 +238,6 @@ ShaderGraph_ref_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_CUSTOM-REVISI
     commands:
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
-      -  command: NetSh Advfirewall set allprofiles state off
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -324,7 +321,6 @@ ShaderGraph_ref_Android_Vulkan_playmode_ref_images_il2cpp_Linear_CUSTOM-REVISION
     commands:
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
-      -  command: NetSh Advfirewall set allprofiles state off
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
