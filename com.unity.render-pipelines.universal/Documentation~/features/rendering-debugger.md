@@ -60,15 +60,32 @@ The **Rendering Debugger** window contains the following sections:
 
 The following illustration shows the Rendering Debugger window in the Scene view.
 
-![Rendering Debugger window.](../Images/rendering-debugger/rendering-debugger--ui-sections.png)
+![Rendering Debugger window.](../Images/rendering-debugger/rendering-debugger-ui-sections.png)
 
 ### Frequently Used
 
-This section contains a selection of properties that users use often. The properties are from the other sections in the Rendering Debugger window.
+This section contains a selection of properties that users use often. The properties are from the other sections in the Rendering Debugger window. For information about the properties, see the sections [Material](#material), [Lighting](#lighting), and [Rendering](#rendering).
 
 ### Material
 
 The properties in this section let you visualize different Material properties.
+
+![Rendering Debugger, Material section](../Images/rendering-debugger/material-section.png)<br/>*Rendering Debugger, Material section*
+
+#### Material Filters
+
+| **Property** | **Description** |
+| --- | --- |
+| **Material&#160;Override** | Select a Material property to visualize on every GameObject on screen.<br/>The available options are:<ul><li>Albedo</li><li>Specular</li><li>Alpha</li><li>Smoothness</li><li>AmbientOcclusion</li><li>Emission</li><li>NormalWorldSpace</li><li>NormalTangentSpace</li><li>LightingComplexity</li><li>Metallic</li><li>SpriteMask</li></ul>With the **LightingComplexity** value selected, Unity shows how many Lights affect areas of the screen space. |
+| **Vertex&#160;Attribute** | Select a vertex attribute of GameObjects to visualize on screen.<br/>The available options are:<ul><li>Texcoord0</li><li>Texcoord1</li><li>Texcoord2</li><li>Texcoord3</li><li>Color</li><li>Tangent</li><li>Normal</li></ul> |
+
+#### Material Validation
+
+| **Property** | **Description** |
+| --- | --- |
+| **Material&#160;Validation Mode** | Select which Material properties to visualize: Albedo, or Metallic. Selecting one of the properties shows the new context menu. |
+| &#160;&#160;&#160;&#160;**Validation&#160;Mode:&#160;Albedo** | Selecting **Albedo** in the Material&#160;Validation Mode property shows the **Albedo Settings** section with the following properties:<br>**Validation&#160;Preset**: Select a pre-configured material, or Default Luminance to visualize luminance ranges.<br/>**Min Luminance**: Unity draws pixels where the luminance is lower than this value with red color.<br/>**Max Luminance**: Unity draws pixels where the luminance is higher than this value with blue color.<br/>**Hue Tolerance**: available only when you select a pre-set material. Unity adds the hue tolerance to the minimum and maximum luminance values.<br/>**Saturation Tolerance**: available only when you select a pre-set material. Unity adds the saturation tolerance to the minimum and maximum luminance values. |
+| &#160;&#160;&#160;&#160;**Validation&#160;Mode:&#160;Metallic** | Selecting **Metallic** in the Material&#160;Validation Mode property shows the **Metallic Settings** section with the following properties:<br>**Min Value**: Unity draws pixels where the metallic value is lower than this value with red color.<br>**Max Value**: Unity draws pixels where the metallic value is higher than this value with blue color. |
 
 ### Lighting
 
@@ -76,8 +93,7 @@ The properties in this section let you visualize different settings and elements
 
 #### Lighting Debug Modes
 
-![](../Images/Inspectors/rendering-debugger/lighting-debug-modes.png)
-> *The Lighting Debug Modes subsection.*
+![](../Images/rendering-debugger/lighting-debug-modes.png)<br/>*The Lighting Debug Modes subsection.*
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
@@ -90,8 +106,7 @@ The properties in this section let you visualize different rendering features.
 
 #### Rendering Debug
 
-![](../Images/Inspectors/rendering-debugger/rendering-debug.png)
-> *The Rendering Debug subsection.*
+![](../Images/rendering-debugger/rendering-debug.png)<br/>*The Rendering Debug subsection.*
 
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
@@ -105,9 +120,7 @@ The properties in this section let you visualize different rendering features.
 
 #### Pixel Validation
 
-![](../Images/Inspectors/rendering-debugger/pixel-validation.png)
-> *The Pixel Validation subsection.*
-
+![](../Images/rendering-debugger/pixel-validation.png)<br/>*The Pixel Validation subsection.*
 
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
@@ -132,7 +145,7 @@ To change the current active item:
 
 To change the current tab:
 
-* **Keyboard**: use the Page up and Page down keys (Fn + Up and Fn + Down keys respectively for MacOS).
+* **Keyboard**: use the Page up and Page down keys (Fn + Up and Fn + Down keys for MacOS).
 
 * **Touch screen**: tap the arrows next to tab title.
 
