@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float maxShadowDistance;
             [ReadOnly]
             public float shadowOutBorderDistance;
-            
+
 
             #endregion
 
