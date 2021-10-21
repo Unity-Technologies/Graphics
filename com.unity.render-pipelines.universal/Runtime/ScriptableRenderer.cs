@@ -640,7 +640,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // Initialize Camera Render State
                 ClearRenderingState(cmd);
-                SetPerCameraShaderVariables(cmd, ref cameraData);
                 SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -685,11 +684,13 @@ namespace UnityEngine.Rendering.Universal
                     {
                         context.SetupCameraProperties(camera);
                         SetCameraMatrices(cmd, ref cameraData, true);
+                        SetPerCameraShaderVariables(cmd, ref cameraData);
                     }
                     else
                     {
                         // Set new properties
                         SetCameraMatrices(cmd, ref cameraData, true);
+                        SetPerCameraShaderVariables(cmd, ref cameraData);
                         SetPerCameraClippingPlaneProperties(cmd, in cameraData);
                         SetPerCameraBillboardProperties(cmd, ref cameraData);
                     }
