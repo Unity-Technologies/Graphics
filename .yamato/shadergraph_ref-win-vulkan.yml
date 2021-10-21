@@ -145,7 +145,6 @@ ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -348,7 +347,6 @@ ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISI
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
