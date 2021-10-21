@@ -1,26 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8440709049026511563
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 488c20dddec813547afc71a1f46c10dd, type: 3}
-  m_Name: VisualEffectControlPlayableAsset
-  m_EditorClassIdentifier: 
-  events:
-  - type: 1
-    timeSpace: 0
-    time: 0
-    name: OnPlay
-  - type: 2
-    timeSpace: 1
-    time: 10.4
-    name: OnStop
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bfda56da833e2384a9677cd3c976a436, type: 3}
-  m_Name: _B
+  m_Name: _C
   m_EditorClassIdentifier: 
   m_Version: 0
   m_Tracks:
-  - {fileID: 1878446720703206300}
+  - {fileID: 4808763219808352262}
   m_FixedDuration: 0
   m_EditorSettings:
     m_Framerate: 60
     m_ScenePreview: 1
   m_DurationMode: 0
   m_MarkerTrack: {fileID: 0}
---- !u!114 &1878446720703206300
+--- !u!114 &4808763219808352262
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -64,12 +43,12 @@ MonoBehaviour:
   m_Children: []
   m_Clips:
   - m_Version: 1
-    m_Start: 11.416666666666666
+    m_Start: 4.333333333333333
     m_ClipIn: 0
-    m_Asset: {fileID: -8440709049026511563}
-    m_Duration: 65.51666666666667
+    m_Asset: {fileID: 6006823783136220112}
+    m_Duration: 28.949999999999996
     m_TimeScale: 1
-    m_ParentTrack: {fileID: 1878446720703206300}
+    m_ParentTrack: {fileID: 4808763219808352262}
     m_EaseInDuration: 0
     m_EaseOutDuration: 0
     m_BlendInDuration: 0
@@ -134,3 +113,38 @@ MonoBehaviour:
     m_DisplayName: VFX
   m_Markers:
     m_Objects: []
+--- !u!114 &6006823783136220112
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 488c20dddec813547afc71a1f46c10dd, type: 3}
+  m_Name: VisualEffectControlPlayableAsset
+  m_EditorClassIdentifier: 
+  scrubbing: 0
+  startSeed: 0
+  clipEvents:
+  - enter:
+      timeSpace: 0
+      time: 1
+      name: SmokePlay
+    exit:
+      timeSpace: 1
+      time: 4
+      name: SmokeStop
+  - enter:
+      timeSpace: 0
+      time: 6
+      name: FirePlay
+    exit:
+      timeSpace: 1
+      time: 8
+      name: FireStop
+  singleEvents:
+  - timeSpace: 0
+    time: 12
+    name: Spark
