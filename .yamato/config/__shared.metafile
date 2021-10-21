@@ -263,7 +263,7 @@ platforms:
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
             retries: 2
         turn_off_firewall:
-          - command: NetSh Advfirewall set allprofiles state off
+          - command: gsudo NetSh Advfirewall set allprofiles state off
         log_parser:
           - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
           - command: find_instabilities || exit 0
@@ -445,7 +445,7 @@ platforms:
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
             retries: 2
         turn_off_firewall:
-          - command: NetSh Advfirewall set allprofiles state off
+          - command: gsudo NetSh Advfirewall set allprofiles state off
         connect_bokken_hikey:
           - command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
             retries: 2
@@ -504,7 +504,7 @@ platforms:
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
             retries: 2
         turn_off_firewall:
-          - command: NetSh Advfirewall set allprofiles state off
+          - command: gsudo NetSh Advfirewall set allprofiles state off
         connect_bokken:
           - command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
             retries: 2

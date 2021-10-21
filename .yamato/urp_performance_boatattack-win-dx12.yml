@@ -24,7 +24,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Linear_tru
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -93,7 +93,7 @@ Build_URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Line
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -168,7 +168,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_editor_mono_Linear_trun
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -239,7 +239,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_build_editmode_mono_Linear_trunk
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -288,7 +288,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Linear_CUS
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -357,7 +357,7 @@ Build_URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Line
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -432,7 +432,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_editor_mono_Linear_CUST
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -503,7 +503,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_build_editmode_mono_Linear_CUSTO
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local

@@ -27,7 +27,7 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_
          retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -97,7 +97,7 @@ Build_URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_i
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -167,7 +167,7 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_build_editmode_il2cpp_Li
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -218,7 +218,7 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_
          retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -288,7 +288,7 @@ Build_URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_i
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -358,7 +358,7 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_build_editmode_il2cpp_Li
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local

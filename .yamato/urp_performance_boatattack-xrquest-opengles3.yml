@@ -106,7 +106,7 @@ Build_URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23 --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple || exit 0
       -  command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
@@ -333,7 +333,7 @@ Build_URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23 --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple || exit 0
       -  command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git

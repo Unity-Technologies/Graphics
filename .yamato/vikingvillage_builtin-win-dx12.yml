@@ -24,7 +24,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_playmode_runtime_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -79,7 +79,7 @@ Build_VikingVillage_BuiltIn_Win_DX12_performance_playmode_runtime_mono_Linear_tr
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -140,7 +140,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_playmode_editor_mono_Linear_trunk:
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -197,7 +197,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_build_editmode_mono_Linear_trunk:
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -234,7 +234,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_playmode_runtime_mono_Linear_CUSTOM-R
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -289,7 +289,7 @@ Build_VikingVillage_BuiltIn_Win_DX12_performance_playmode_runtime_mono_Linear_CU
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -350,7 +350,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_playmode_editor_mono_Linear_CUSTOM-RE
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -407,7 +407,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM-REV
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
-      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
