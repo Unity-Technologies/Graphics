@@ -4,7 +4,6 @@ using System.Linq;
 using System.Collections.Generic;
 
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.VersionControl;
 
 using UnityEngine;
 using UnityEngine.VFX;
@@ -17,6 +16,7 @@ namespace UnityEditor.VFX.UI
     class VFXViewWindow : EditorWindow
     {
         static VisualEffect s_LastAttachedComponent;
+        static List<VFXViewWindow> s_VFXWindows = new();
 
         ShortcutHandler m_ShortcutHandler;
 
@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.UI
 
         static VFXViewWindow GetWindowLambda(Func<VFXViewWindow, bool> func, bool createIfNeeded)
         {
-            var windows = Resources.FindObjectsOfTypeAll<VFXViewWindow>().ToArray();
+            var windows = GetAllWindows();
             var window = windows.SingleOrDefault(func);
             if (window == null)
             {
@@ -89,7 +89,7 @@ namespace UnityEditor.VFX.UI
         }
 
         public static VFXViewWindow GetWindow(VFXView vfxView) => GetWindow(vfxView.controller?.graph);
-        public static IEnumerable<VFXViewWindow> GetAllWindows() => Resources.FindObjectsOfTypeAll<VFXViewWindow>().ToArray();
+        public static IEnumerable<VFXViewWindow> GetAllWindows() => s_VFXWindows.ToArray();
 
         public VFXView graphView { get; private set; }
 
@@ -257,6 +257,7 @@ namespace UnityEditor.VFX.UI
 
         protected void OnDestroy()
         {
+            s_VFXWindows.Remove(this);
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
             EditorApplication.wantsToQuit -= Quitting_Workaround;
 #endif
@@ -272,9 +273,11 @@ namespace UnityEditor.VFX.UI
 
         static VFXViewWindow CreateWindow()
         {
-            var lastVFXWindow = GetAllWindows().LastOrDefault();
+            var allWindows = GetAllWindows().ToArray();
+            var lastVFXWindow = allWindows.LastOrDefault();
 
             var window = CreateInstance<VFXViewWindow>();
+            s_VFXWindows.Add(window);
 
             if (!TryToTabNextTo(lastVFXWindow, window))
             {
