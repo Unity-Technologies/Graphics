@@ -592,7 +592,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // pixel shader: pixel position read from vpos, then used to calculate NDC position.  Screen position calculated separately from world space position
             new FieldDependency(StructFields.SurfaceDescriptionInputs.PixelPosition,                                HDStructFields.FragInputs.positionPixel),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.NDCPosition,                                  StructFields.SurfaceDescriptionInputs.PixelPosition),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.NDCPosition,                                  StructFields.SurfaceDescriptionInputs.PixelPosition),       // for non-XR
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.NDCPosition,                                  StructFields.SurfaceDescriptionInputs.ScreenPosition),      // for XR
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ScreenPosition,                               StructFields.SurfaceDescriptionInputs.WorldSpacePosition),
 
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv0,                                          HDStructFields.FragInputs.texCoord0),
