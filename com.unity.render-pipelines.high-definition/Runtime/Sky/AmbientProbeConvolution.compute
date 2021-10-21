@@ -7,6 +7,7 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel AmbientProbeConvolution KERNEL_NAME=AmbientProbeConvolution
+#pragma kernel AmbientProbeConvolutionVolumetric KERNEL_NAME=AmbientProbeConvolutionVolumetric OUTPUT_VOLUMETRIC
 #pragma kernel AmbientProbeConvolutionNoMip KERNEL_NAME=AmbientProbeConvolutionNoMip NO_MIPS
 
 // Input Cubemap
@@ -207,6 +208,7 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
             _AmbientProbeOutputBuffer[i] = outputSHCoeffs[i] * ConvolveCosineLobeBandFactor[i % 9] * weight;
         }
 
+#if OUTPUT_VOLUMETRIC
         // Following is a shader rewrite of the ambient probe transformation code found in HDRenderPipeline.VolumetricLighting.cs SetPreconvolvedAmbientLightProbe
         // The whole thing can probably be simplified but for the sake of readability it is kept as is for now. Performance should not be an issue as this is executed usually only once.
         // (or very rarely)
@@ -251,5 +253,6 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
 
         // Quadratic (5)
         _VolumetricAmbientProbeOutputBuffer[6] = float4(result[0 * 9 + 8], result[1 * 9 + 8], result[2 * 9 + 8], 1.0f);
+#endif
     }
 }
