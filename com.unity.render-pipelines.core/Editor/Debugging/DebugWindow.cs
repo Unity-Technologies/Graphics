@@ -286,12 +286,10 @@ namespace UnityEditor.Rendering
 
         void ApplyState(string queryPath, DebugState state)
         {
-            if (state == null ||
-                state.GetValue() == null ||
-                !(DebugManager.instance.GetItem(queryPath) is DebugUI.IValueField widget))
+            if (!(DebugManager.instance.GetItem(queryPath) is DebugUI.IValueField widget))
                 return;
 
-            widget.SetValue(state.GetValue());
+            widget.SetValue(state.GetValue()); 
         }
 
         void OnUndoRedoPerformed()
