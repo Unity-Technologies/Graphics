@@ -47,4 +47,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/URP_InstancingTest.unity
     guid: 4229d44b837011e48b0f123903ea0ea5
+  - enabled: 1
+    path: Assets/Scenes/Fullscreen.unity
+    guid: 8b2856898c3f1cb43a36c7329bdbcc97
   m_configObjects: {}
