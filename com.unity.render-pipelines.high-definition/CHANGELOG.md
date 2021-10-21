@@ -30,11 +30,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed anchor position offset property for the Light Anchor component. (case 1362809)
 - Fixed minor performance issues in SSGI (case 1367144).
 - Fixed scaling issues with dynamic resolution and the CustomPassSampleCameraColor function.
+- Fixed compatibility message not displayed correctly when switching platforms.
+- Fixed support for interleaved tiling in path tracing.
+- Fixed robustness issues with the stacklit material in path tracing (case 1373971).
+- Fixed custom pass injection point not visible in the UI when using the Camera mode.
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
 - Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
 - PrepareLightsForGPU CPU Light loop performance improvement (40% to 70% faster), utilizing burst and optimized. Utilizing better sorting, distributing work in jobs and improving cache access of light data.
+- In path tracing, camera ray misses now return a null value with Minimum Depth > 1.
+- HD's SpeedTree 8 upgrader now sets up CullModeForward as well.
 
 ## [13.1.0] - 2021-09-24
 

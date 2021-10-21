@@ -80,7 +80,7 @@ HDRP_Win_Vulkan_playmode_XR_mono_Linear_trunk:
 HDRP_Win_Vulkan_editmode_mono_Linear_trunk:
     name: HDRP on Win_Vulkan_editmode_mono_Linear on version trunk
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
@@ -360,7 +360,7 @@ HDRP_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
 HDRP_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
