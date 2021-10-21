@@ -27,10 +27,6 @@ test_platforms:
                     mkdir -p TestProjects/ShaderGraph/test-results/
 
     - [all]: <shared.platform.commands.call_utr>
-    commands_build:
-      - [all]: <shared.platform.commands.setup_utr>
-      - [all]: <shared.platform.commands.unity_downloader_cli>
-      - [all]: <shared.platform.commands.call_utr>
     after:
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore]: python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     - [OSX_Metal]: scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
@@ -58,10 +54,6 @@ test_platforms:
                     rm revdate.tmp
     - [OSX_Metal]: mkdir -p TestProjects/ShaderGraph/test-results/
     - [all]: <shared.platform.commands.call_utr>
-    commands_build:
-      - [all]: <shared.platform.commands.setup_utr>
-      - [all]: <shared.platform.commands.unity_downloader_cli>
-      - [all]: <shared.platform.commands.call_utr>
     after:
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore]: python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     - [OSX_Metal]: scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
@@ -96,10 +88,6 @@ test_platforms:
                     scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
     - [OSX_Metal]: mkdir -p TestProjects/ShaderGraph/test-results/
     - [all]: <shared.platform.commands.call_utr>
-    commands_build:
-      - [all]: <shared.platform.commands.setup_utr>
-      - [all]: <shared.platform.commands.unity_downloader_cli>
-      - [all]: <shared.platform.commands.call_utr>
     after:
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore, Linux_OpenGLCore]: python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
@@ -118,24 +106,24 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
+        image: sdet/gamecode-win10:stable
         flavor: b1.xlarge
         model: rtx2080
       editmode:
         type: Unity::VM
-        image: sdet/gamecode-win10-1909:stable
+        image: sdet/gamecode-win10:stable
         flavor: b1.large
       standalone:
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
+        image: sdet/gamecode-win10:stable
         flavor: b1.large
       standalone_cache:
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
+        image: sdet/gamecode-win10:stable
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode-win10-1909:stable
+        image: sdet/gamecode-win10:stable
         flavor: b1.xlarge
   - name: OSX
     apis:

@@ -36,7 +36,8 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_memory_il2cpp_Linear_trunk:
       -  command: git checkout %GIT_BRANCH%
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -74,7 +75,8 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_counters_il2cpp_Linear_trunk:
       -  command: git checkout $GIT_BRANCH
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --scripting-backend=IL2CPP --suite=playmode --testfilter=Counters --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -112,7 +114,8 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_run_build_il2cpp_Linear_trunk:
       -  command: git checkout %GIT_BRANCH%
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=editmode --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -150,7 +153,8 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_memory_il2cpp_Linear_CUSTOM-REVIS
       -  command: git checkout %GIT_BRANCH%
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -188,7 +192,8 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_counters_il2cpp_Linear_CUSTOM-REV
       -  command: git checkout $GIT_BRANCH
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --scripting-backend=IL2CPP --suite=playmode --testfilter=Counters --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -226,7 +231,8 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_run_build_il2cpp_Linear_CUSTOM-RE
       -  command: git checkout %GIT_BRANCH%
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=editmode --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:

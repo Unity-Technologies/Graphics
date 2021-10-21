@@ -55,7 +55,7 @@ Build_ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_trun
     name: Build ShaderGraph_ref on Android_OpenGLES3_il2cpp_Linear_Standalone_ref_images_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -64,6 +64,7 @@ Build_ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_trun
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -76,9 +77,6 @@ Build_ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_trun
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --timeout=2700
-    after:
-      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -185,7 +183,7 @@ Build_ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linea
     name: Build ShaderGraph_ref on Android_OpenGLES3_il2cpp_Linear_Standalone_cache_ref_images_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -194,6 +192,7 @@ Build_ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linea
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -206,9 +205,6 @@ Build_ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linea
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --timeout=2700
-    after:
-      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -267,7 +263,7 @@ Build_ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_CUST
     name: Build ShaderGraph_ref on Android_OpenGLES3_il2cpp_Linear_Standalone_ref_images_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -276,6 +272,7 @@ Build_ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_CUST
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -288,9 +285,6 @@ Build_ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_CUST
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --timeout=2700
-    after:
-      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -397,7 +391,7 @@ Build_ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linea
     name: Build ShaderGraph_ref on Android_OpenGLES3_il2cpp_Linear_Standalone_cache_ref_images_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -406,6 +400,7 @@ Build_ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linea
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -418,9 +413,6 @@ Build_ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linea
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --timeout=2700
-    after:
-      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
