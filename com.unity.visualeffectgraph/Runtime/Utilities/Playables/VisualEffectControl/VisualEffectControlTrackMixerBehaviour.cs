@@ -321,7 +321,8 @@ namespace UnityEngine.VFX
 
         public override void PrepareFrame(Playable playable, FrameData data)
         {
-            if (m_Target == null || m_Target.visualEffectAsset == null)
+            //TODOPAUL we aren't detecting correctly the change of visualEffectAsset
+            if (m_Target == null && m_Target.visualEffectAsset == null)
                 return;
 
             if (m_ScrubbingCacheHelper == null)
@@ -358,7 +359,10 @@ namespace UnityEngine.VFX
         {
             if (m_Target == vfx)
                 return;
+
             m_Target = vfx;
+            if (m_Target)
+                m_Target.pause = true; //Awaiting for the first clip to call Reinit
             m_ScrubbingCacheHelper = null;
         }
     }

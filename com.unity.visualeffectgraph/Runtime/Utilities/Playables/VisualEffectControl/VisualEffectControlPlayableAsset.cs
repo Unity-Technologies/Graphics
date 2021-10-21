@@ -125,7 +125,7 @@ namespace UnityEngine.VFX
 
         public override Playable CreatePlayable(PlayableGraph graph, GameObject owner)
         {
-            var playable = ScriptPlayable<VisualEffectControlPlayableBehaviour>.Create(graph, new VisualEffectControlPlayableBehaviour());
+            var playable = ScriptPlayable<VisualEffectControlPlayableBehaviour>.Create(graph);
             var behaviour = playable.GetBehaviour();
             behaviour.clipStart = clipStart;
             behaviour.clipEnd = clipEnd;

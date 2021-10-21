@@ -94,9 +94,9 @@ namespace UnityEngine.VFX
         {
             AfterClipStart,
             BeforeClipEnd,
-            AfterPlay,
+            AfterPlay, //TODOPAUL remove AfterPlay
             Absolute
-            //...
+            //... TODOPAUL Add Percentage between Start/End
         }
 
         public Type type;
@@ -106,7 +106,6 @@ namespace UnityEngine.VFX
         //TODOPAUL payload of attribute
     }
 
-    [Serializable]
     public class VisualEffectControlPlayableBehaviour : PlayableBehaviour
     {
         public double clipStart { get; set; }
@@ -115,6 +114,8 @@ namespace UnityEngine.VFX
         public uint startSeed { get; set; }
 
         public VisualEffectPlayableSerializedEvent[] events { get; set; }
+
+        //TODOPAUL Corresponding Cancel Events
     }
 }
 #endif
