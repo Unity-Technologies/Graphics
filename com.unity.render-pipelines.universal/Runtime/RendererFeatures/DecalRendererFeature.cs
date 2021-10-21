@@ -493,6 +493,25 @@ namespace UnityEngine.Rendering.Universal
             return m_Technique == DecalTechnique.GBuffer || m_Technique == DecalTechnique.ScreenSpace;
         }
 
+        public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
+        {
+            if (m_Technique == DecalTechnique.DBuffer)
+            {
+                var universalRenderer = renderer as UniversalRenderer;
+                if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
+                    m_CopyDepthPass.Setup(
+                        renderer.cameraDepthTargetHandle,
+                        universalRenderer.m_DepthTexture
+                    );
+                else
+                    m_CopyDepthPass.Setup(
+                        universalRenderer.m_DepthTexture,
+                        m_DBufferRenderPass.dBufferColorHandle
+                    );
+                m_CopyDepthPass.MssaSamples = 1;
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
             CoreUtils.Destroy(m_CopyDepthMaterial);

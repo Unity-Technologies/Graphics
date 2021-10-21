@@ -14,9 +14,8 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class CopyDepthPass : ScriptableRenderPass
     {
-        private RenderTargetHandle source { get; set; }
-        private RenderTargetHandle destination { get; set; }
-        internal bool AllocateRT { get; set; }
+        private RTHandle source { get; set; }
+        private RTHandle destination { get; set; }
         internal int MssaSamples { get; set; }
         // In some cases (Scene view, XR and etc.) we actually want to output to depth buffer
         // So this variable needs to be set to true to enable the correct copy shader semantic
@@ -28,7 +27,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
-            AllocateRT = true;
             CopyToDepth = false;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
@@ -39,12 +37,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// Configure the pass with the source and destination to execute on.
         /// </summary>
         /// <param name="source">Source Render Target</param>
-        /// <param name="destination">Destination Render Targt</param>
-        public void Setup(RenderTargetHandle source, RenderTargetHandle destination)
+        /// <param name="destination">Destination Render Target</param>
+        public void Setup(RTHandle source, RTHandle destination)
         {
             this.source = source;
             this.destination = destination;
-            this.AllocateRT = !destination.HasInternalRenderTargetId();
             this.MssaSamples = -1;
         }
 
@@ -60,15 +57,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 #endif
             descriptor.msaaSamples = 1;
-            if (this.AllocateRT)
-                cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
-            var target = new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1);
+            var target = destinationnew RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, -1);
 #if UNITY_EDITOR
-            ConfigureTarget(target, target, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples);
+            ConfigureTarget(destination, destination, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples);
 #else
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(target, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples, false);
+            ConfigureTarget(destination, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples, false);
 #endif
             ConfigureClear(ClearFlag.None, Color.black);
         }
@@ -132,7 +127,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                     cmd.DisableShaderKeyword("_OUTPUT_DEPTH");
 
-                cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
+                cmd.SetGlobalTexture("_CameraDepthAttachment", source.nameID);
 
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -145,7 +140,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // 1) we are bliting from render texture to back buffer and
                     // 2) renderTexture starts UV at top
                     // XRTODO: handle scalebias and scalebiasRt for src and dst separately
-                    bool isRenderToBackBufferTarget = destination.Identifier() == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                    bool isRenderToBackBufferTarget = destination.nameID == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
                     bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
                     float flipSign = (yflip) ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
@@ -167,7 +162,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // scaleBias.z = bias
                     // scaleBias.w = unused
                     // In game view final target acts as back buffer were target is not flipped
-                    bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination == RenderTargetHandle.CameraTarget);
+                    bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination.nameID == k_CameraTarget.nameID);
                     bool yflip = (cameraData.IsCameraProjectionMatrixFlipped()) && !isGameViewFinalTarget;
                     float flipSign = yflip ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
@@ -189,9 +184,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            if (this.AllocateRT)
-                cmd.ReleaseTemporaryRT(destination.id);
-            destination = RenderTargetHandle.CameraTarget;
+            destination = k_CameraTarget;
         }
     }
 }
