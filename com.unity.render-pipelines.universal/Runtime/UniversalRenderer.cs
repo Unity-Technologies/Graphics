@@ -519,6 +519,12 @@ namespace UnityEngine.Rendering.Universal
                 createColorTexture = createDepthTexture;
             }
 
+            bool requiresDepthCopyPass = !requiresDepthPrepass
+                && requiresDepthTexture
+                && createDepthTexture;
+            // Post process passes that require depth texture (Motion Blur / DoF) as shader read resource will need to access depth information from main geometry pass if there is no depth copy
+            // and depth pre-pass enqueued
+            bool postProcessingUseDepthTextureMainPass = !requiresDepthCopyPass && !requiresDepthPrepass && cameraHasPostProcessingWithDepth;
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
@@ -531,7 +537,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
                 if (intermediateRenderTexture)
-                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, useDepthPriming);
+                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, useDepthPriming, postProcessingUseDepthTextureMainPass);
             }
             else
             {
@@ -541,9 +547,6 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.renderer.useDepthPriming = useDepthPriming;
 
-            bool requiresDepthCopyPass = !requiresDepthPrepass
-                && (requiresDepthTexture || cameraHasPostProcessingWithDepth)
-                && createDepthTexture;
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
 
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
@@ -684,13 +687,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 // handle multisample depth resolve by setting the appropriate store actions if supported
-                if (requiresDepthCopyPass && cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled))
+                if ((requiresDepthCopyPass || postProcessingUseDepthTextureMainPass) && cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled))
                 {
                     bool isCopyDepthAfterTransparent = m_CopyDepthPass.renderPassEvent == RenderPassEvent.AfterRenderingTransparents;
 
                     // we could StoreAndResolve when the depth copy is after opaque, but performance wise doing StoreAndResolve of depth targets is more expensive than a simple Store + following depth copy pass on Apple GPUs,
                     // because of the extra resolve step. So, unless we are copying the depth after the transparent pass, just Store the depth target.
-                    if (isCopyDepthAfterTransparent && !copyColorPass)
+                    if ((isCopyDepthAfterTransparent || postProcessingUseDepthTextureMainPass) && !copyColorPass)
                     {
                         if (opaquePassDepthStoreAction == RenderBufferStoreAction.Store)
                             opaquePassDepthStoreAction = RenderBufferStoreAction.StoreAndResolve;
@@ -762,8 +765,9 @@ namespace UnityEngine.Rendering.Universal
                 RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 && lastCameraInTheStack ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 RenderBufferStoreAction transparentPassDepthStoreAction = RenderBufferStoreAction.DontCare;
 
-                // If CopyDepthPass pass event is scheduled on or after AfterRenderingTransparent, we will need to store the depth buffer or resolve (store for now until latest trunk has depth resolve support) it for MSAA case
-                if (requiresDepthCopyPass && m_CopyDepthPass.renderPassEvent >= RenderPassEvent.AfterRenderingTransparents)
+                // If CopyDepthPass pass event is scheduled on or after AfterRenderingTransparent, or if post processing passes will read from main geometry pass' depth texture,
+                // we will need to store the depth buffer or resolve it for MSAA case
+                if (postProcessingUseDepthTextureMainPass || (requiresDepthCopyPass && m_CopyDepthPass.renderPassEvent >= RenderPassEvent.AfterRenderingTransparents))
                 {
                     transparentPassDepthStoreAction = RenderBufferStoreAction.Store;
 
@@ -796,7 +800,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
                     bool doSRGBConvertion = resolvePostProcessingToCameraTarget;
-                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
+                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, postProcessingUseDepthTextureMainPass, m_ActiveCameraDepthAttachment, m_DepthTexture, colorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
                     EnqueuePass(postProcessPass);
                 }
 
@@ -850,7 +854,7 @@ namespace UnityEngine.Rendering.Universal
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing)
             {
-                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
+                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, postProcessingUseDepthTextureMainPass, m_ActiveCameraDepthAttachment, m_DepthTexture, colorGradingLut, false, false);
                 EnqueuePass(postProcessPass);
             }
 
@@ -1002,7 +1006,7 @@ namespace UnityEngine.Rendering.Universal
             return inputSummary;
         }
 
-        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool primedDepth)
+        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool primedDepth, bool postProcessingUseDepthTextureMainPass)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(null, Profiling.createCameraRenderTarget))
@@ -1035,7 +1039,7 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.autoGenerateMips = false;
                     depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
 
-                    if (depthDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled) && m_CopyDepthMode == CopyDepthMode.AfterTransparents)
+                    if (depthDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled) && (m_CopyDepthMode == CopyDepthMode.AfterTransparents || postProcessingUseDepthTextureMainPass))
                         depthDescriptor.bindMS = false;
 
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;

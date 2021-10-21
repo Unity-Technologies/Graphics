@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetIdentifier m_Source;
         RenderTargetHandle m_Destination;
         RenderTargetHandle m_Depth;
+        RenderTargetHandle m_CameraDepthTexture; // m_DepthTexture from UniversalRenderer instance, needed if we need to restore "_CameraDepthTexture" binding to its original resource
         RenderTargetHandle m_InternalLut;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
@@ -86,6 +87,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Renderer is using swapbuffer system
         bool m_UseSwapBuffer;
 
+        // When true, PostProcessPass will use depth information from main geometry render pass' depth texture
+        bool m_UseDepthTextureFromMainPass;
+
         Material m_BlitMaterial;
 
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
@@ -141,13 +145,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Cleanup() => m_Materials.Cleanup();
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, bool resolveToScreen, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, bool resolveToScreen, bool useDepthTextureFromMainPass, in RenderTargetHandle depth, in RenderTargetHandle cameraDepthTexture, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
             m_Descriptor.autoGenerateMips = false;
             m_Source = source.id;
             m_Depth = depth;
+            m_CameraDepthTexture = cameraDepthTexture;
             m_InternalLut = internalLut;
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
@@ -155,6 +160,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ResolveToScreen = resolveToScreen;
             m_Destination = RenderTargetHandle.CameraTarget;
             m_UseSwapBuffer = true;
+            m_UseDepthTextureFromMainPass = useDepthTextureFromMainPass;
         }
 
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
@@ -266,7 +272,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingRenderPostProcessing))
                 {
+                    // m_Depth is the main geometry pass' depth buffer. If condition is true, we bind this depth buffer to _CameraDepthTexture shader binding resource
+                    if (m_UseDepthTextureFromMainPass)
+                        cmd.SetGlobalTexture("_CameraDepthTexture", m_Depth.Identifier());
+
                     Render(cmd, ref renderingData);
+
+                    // Restore the _CameraDepthTexture binding to its original bound resource
+                    if (m_UseDepthTextureFromMainPass)
+                        cmd.SetGlobalTexture("_CameraDepthTexture", m_CameraDepthTexture.Identifier());
                 }
 
                 context.ExecuteCommandBuffer(cmd);
