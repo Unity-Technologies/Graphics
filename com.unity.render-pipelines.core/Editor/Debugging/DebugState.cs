@@ -147,27 +147,15 @@ namespace UnityEditor.Rendering
     public sealed class DebugStateFlags : DebugState<Enum>
     {
         [SerializeField]
-        private string m_EnumValueAsString;
-
-        [SerializeField]
-        private Type m_EnumType;
+        private SerializableEnum m_SerializableEnum;
 
         /// <summary>
         /// Value of the Debug Item
         /// </summary>
         public override Enum value
         {
-            get
-            {
-                if (Enum.TryParse(m_EnumType, m_EnumValueAsString, out object result))
-                    return (Enum)result;
-
-                return default(Enum);
-            }
-            set
-            {
-                m_EnumValueAsString = value.ToString(); 
-            }
+            get => m_SerializableEnum?.value ?? default;
+            set => m_SerializableEnum.value = value;
         }
 
         /// <summary>
@@ -177,8 +165,9 @@ namespace UnityEditor.Rendering
         /// <param name="field">Debug Item field.</param>
         public override void SetValue(object value, DebugUI.IValueField field)
         {
+            if (m_SerializableEnum == null)
+                m_SerializableEnum = new SerializableEnum((field as DebugUI.BitField).enumType);
             base.SetValue(value, field);
-            m_EnumType = (field as DebugUI.BitField).enumType;
         }
     }
 
