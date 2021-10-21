@@ -127,10 +127,10 @@ namespace UnityEngine.VFX
 
                 if (m_LastChunk != currentChunkIndex)
                 {
-                    if (m_LastChunk == kErrorIndex)
-                        OnEnterChunk(vfx, currentChunkIndex);
-                    else
+                    if (m_LastChunk != kErrorIndex)
                         OnLeaveChunk(vfx, m_LastChunk);
+                    if (currentChunkIndex != kErrorIndex)
+                        OnEnterChunk(vfx, currentChunkIndex);
 
                     m_LastChunk = currentChunkIndex;
                     m_LastEvent = kErrorIndex;
