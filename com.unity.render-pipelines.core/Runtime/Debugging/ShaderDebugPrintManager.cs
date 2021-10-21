@@ -297,7 +297,6 @@ namespace UnityEngine.Rendering
         }
     }
 
-    // TODO: Move, rename, perhaps #ifdef. Has dependencies to Input systems.
     public static class ShaderDebugPrintInputProducer
     {
         static public ShaderDebugPrintInput Get()

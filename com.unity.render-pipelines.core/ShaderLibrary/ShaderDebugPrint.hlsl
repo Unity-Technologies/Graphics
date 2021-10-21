@@ -40,7 +40,7 @@ CBUFFER_END
 
 // Mouse coordinates in pixels
 // Relative to game view surface/rendertarget
-// (Typically (0,0) is bottom-left. Tip: print mouse coords to check.)
+// (Typically (0,0) is bottom-left in Unity. TIP: print mouse coords to check if unsure.)
 int2 ShaderDebugMouseCoords()           { return _ShaderDebugPrintInputMouse.xy; }
 
 // Mouse buttons
@@ -51,7 +51,7 @@ int  ShaderDebugMouseButton(int button) { return button == 0 ? ShaderDebugMouseB
 
 int  ShaderDebugFrameNumber()           { return _ShaderDebugPrintInputFrame; }
 
-// Output Data type encondings
+// Output Data type encodings
 // Must match C# side decoding
 static const uint ValueTypeUint   = 1;
 static const uint ValueTypeInt    = 2;
@@ -215,7 +215,10 @@ void ShaderDebugPrint(float4 value) PRINT4(ValueTypeFloat4, asuint(value), 0, Sh
 }
 
 // Print value for pixel under mouse cursor
-// pixelPos, screen space pixel coordinates for this fragment shader thread. Typically .xy of fragment shader input parameter with SV_Position semantic.
+// pixelPos, screen pixel coordinates for this fragment shader thread. Typically .xy of fragment shader input parameter with SV_Position semantic.
+//           NOTE: Any render target scaling (or offset) is NOT taken into account as that can be arbitrary. You must correct scaling manually.
+//                 (e.g. URP backbuffer correction: fragment.xy * _ScreenParams.xy / _ScaledScreenParams.xy)
+//           TIP: Light the fragment at mouse coords to debug scaling/offset.
 // (tag), an optional text tag for the print. Use ShaderDebugTag() helper to create.
 // value, to be printed
 void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, bool   value) PRINT_MOUSE_WITH_TAG(value, tag);
@@ -261,7 +264,7 @@ void ShaderDebugPrintMouseOver(int2 pixelPos, float4 value) PRINT_MOUSE(value);
 }
 
 // Print value for pixel under mouse cursor when mouse left button is pressed
-// pixelPos, screen space pixel coordinates for this fragment shader thread. Typically .xy of fragment shader input parameter with SV_Position semantic.
+// pixelPos, screen pixel coordinates for this fragment shader thread. Typically .xy of fragment shader input parameter with SV_Position semantic.
 // (tag), an optional text tag for the print. Use ShaderDebugTag() helper to create.
 // value, to be printed
 void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, bool   value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
