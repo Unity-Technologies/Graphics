@@ -27,7 +27,6 @@ namespace UnityEngine.VFX
             }
         }
 
-
         public static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(TimeSpace space, VisualEffectControlPlayableAsset source, bool clipEvents)
         {
             IEnumerable<VisualEffectPlayableSerializedEvent> sourceEvents;
@@ -101,8 +100,7 @@ namespace UnityEngine.VFX
         public uint startSeed { get; set; }
 
         public VisualEffectPlayableSerializedEvent[] events { get; set; }
-
-        //TODOPAUL Corresponding Cancel Events
+        public uint clipEventsCount { get; set; }
     }
 }
 #endif

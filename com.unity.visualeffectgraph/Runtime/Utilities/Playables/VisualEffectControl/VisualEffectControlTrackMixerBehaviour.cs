@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Playables;
 using System.Linq;
 using System.Collections.Generic;
+using System;
 
 namespace UnityEngine.VFX
 {
@@ -15,15 +16,33 @@ namespace UnityEngine.VFX
                 public int nameId;
                 public VFXEventAttribute attribute;
                 public double time;
+
+                public enum ClipType
+                {
+                    None,
+                    Enter,
+                    Exit
+                }
+                public int clipIndex;
+                public ClipType clipType;
+            }
+
+            struct Clip
+            {
+                public int enter;
+                public int exit;
             }
 
             struct Chunk
             {
-                public double begin;
-                public double end;
-                public Event[] events;
                 public bool scrubbing;
                 public uint startSeed;
+
+                public double begin;
+                public double end;
+
+                public Event[] events;
+                public Clip[] clips;
             }
             Chunk[] m_Chunks;
 
@@ -38,15 +57,21 @@ namespace UnityEngine.VFX
             const int kErrorIndex = int.MinValue;
             private int m_LastChunk = kErrorIndex;
             private int m_LastEvent = kErrorIndex;
+            private bool[] m_ClipState; //TODOPAUL: Actually, it's only useful for debug
             private double m_LastPlayableTime = double.MinValue;
 
-            private void OnEnterChunk(VisualEffect vfx)
+            private void OnEnterChunk(VisualEffect vfx, int currentChunk)
             {
                 vfx.Reinit(false);
+                if (!m_Chunks[currentChunk].scrubbing)
+                {
+                    m_ClipState = new bool[m_Chunks[currentChunk].clips.Length];
+                }
             }
 
-            private void OnLeaveChunk(VisualEffect vfx)
+            private void OnLeaveChunk(VisualEffect vfx, int previousChunk)
             {
+                m_ClipState = null;
                 vfx.Reinit(false);
             }
 
@@ -103,9 +128,9 @@ namespace UnityEngine.VFX
                 if (m_LastChunk != currentChunkIndex)
                 {
                     if (m_LastChunk == kErrorIndex)
-                        OnEnterChunk(vfx);
+                        OnEnterChunk(vfx, currentChunkIndex);
                     else
-                        OnLeaveChunk(vfx);
+                        OnLeaveChunk(vfx, m_LastChunk);
 
                     m_LastChunk = currentChunkIndex;
                     m_LastEvent = kErrorIndex;
@@ -116,7 +141,6 @@ namespace UnityEngine.VFX
                     dbg = dbg_state.Playing;
 
                     var chunk = m_Chunks[currentChunkIndex];
-
                     if (chunk.scrubbing)
                     {
                         vfx.pause = paused;
@@ -141,7 +165,7 @@ namespace UnityEngine.VFX
                             dbg = dbg_state.ScrubbingBackward;
                             actualCurrentTime = chunk.begin;
                             m_LastEvent = kErrorIndex;
-                            OnEnterChunk(vfx);
+                            OnEnterChunk(vfx, m_LastChunk);
                         }
 
                         double expectedCurrentTime;
@@ -196,24 +220,28 @@ namespace UnityEngine.VFX
                                 ProcessEvent(itEvent, chunk, vfx);
                         }
                     }
-                    else //no scrubbing
+                    else //No scrubbing
                     {
                         vfx.pause = false;
                         if (playingBackward)
                         {
                             var eventBehind = GetEventsIndex(chunk, playableTime, m_LastPlayableTime, kErrorIndex);
-                            if (eventBehind.Any())
+                            foreach (var itEvent in eventBehind)
                             {
-                                //Pretend we have played a full loop from last to the end, to there
-                                //TODOPAUL: It's a bit hacky, better to consider "mirror" event only
-                                var eventAhead = GetEventsIndex(chunk, m_LastPlayableTime, chunk.end, kErrorIndex);
-                                foreach (var itEvent in eventAhead)
-                                    ProcessEvent(itEvent, chunk, vfx);
-
-                                m_LastEvent = kErrorIndex;
-                                m_LastPlayableTime = chunk.begin;
-                                dbg = dbg_state.ScrubbingBackward;
+                                var currentEvent = chunk.events[itEvent];
+                                if (currentEvent.clipType == Event.ClipType.Enter)
+                                {
+                                    ProcessEvent(chunk.clips[currentEvent.clipIndex].exit, chunk, vfx);
+                                    dbg = dbg_state.ScrubbingBackward;
+                                }
+                                else if (currentEvent.clipType == Event.ClipType.Exit)
+                                {
+                                    ProcessEvent(chunk.clips[currentEvent.clipIndex].enter, chunk, vfx);
+                                    dbg = dbg_state.ScrubbingBackward;
+                                }
+                                //Else: Ignore, we aren't playing single event backward
                             }
+                            m_LastEvent = kErrorIndex; //TODOPAUL: Think twice, could it be an issue ?
                         }
 
                         var eventList = GetEventsIndex(chunk, m_LastPlayableTime, playableTime, m_LastEvent);
@@ -234,6 +262,22 @@ namespace UnityEngine.VFX
 
                 m_LastEvent = eventIndex;
                 var currentEvent = currentChunk.events[eventIndex];
+
+                if (currentEvent.clipType == Event.ClipType.Enter)
+                {
+                    if (m_ClipState[currentEvent.clipIndex])
+                        throw new InvalidOperationException(); //TODOPAUL remove exception here
+
+                    m_ClipState[currentEvent.clipIndex] = true;
+                }
+                else if (currentEvent.clipType == Event.ClipType.Exit)
+                {
+                    if (!m_ClipState[currentEvent.clipIndex])
+                        throw new InvalidOperationException(); //TODOPAUL remove exception here
+
+                    m_ClipState[currentEvent.clipIndex] = false;
+                }
+
                 vfx.SendEvent(currentEvent.nameId);
             }
 
@@ -266,9 +310,11 @@ namespace UnityEngine.VFX
 
                     yield return new Event()
                     {
-                        attribute = null,
+                        attribute = null, //TODOPAUL, compute payload here
                         nameId = Shader.PropertyToID(itEvent.name),
-                        time = absoluteTime
+                        time = absoluteTime,
+                        clipIndex = -1,
+                        clipType = Event.ClipType.None
                     };
                 }
             }
@@ -299,6 +345,7 @@ namespace UnityEngine.VFX
                         {
                             begin = inputBehavior.clipStart,
                             events = new Event[0],
+                            clips = new Clip[0],
                             scrubbing = inputBehavior.scrubbing,
                             startSeed = inputBehavior.startSeed
                         });
@@ -306,8 +353,58 @@ namespace UnityEngine.VFX
 
                     var currentChunk = chunks.Peek();
                     currentChunk.end = inputBehavior.clipEnd;
-                    var currentsEvents = ComputeRuntimeEvent(inputBehavior, vfx).OrderBy(o => o.time).ToArray();
-                    currentChunk.events = currentChunk.events.Concat(currentsEvents).ToArray();
+                    var currentsEvents = ComputeRuntimeEvent(inputBehavior, vfx);
+
+                    if (!currentChunk.scrubbing)
+                    {
+                        //TODOPAUL: Not optimal due O² search (+ lot of garbage)
+                        var eventsWithIndex = currentsEvents.Select((e, i) =>
+                        {
+                            return new
+                            {
+                                evt = e,
+                                index = i
+                            };
+                        }).OrderBy(o => o.evt.time)
+                        .ToList();
+
+                        var newClips = new Clip[inputBehavior.clipEventsCount];
+                        var newEvents = new List<Event>();
+                        foreach (var itEvent in eventsWithIndex)
+                        {
+                            var newEvent = itEvent.evt;
+                            if (itEvent.index < inputBehavior.clipEventsCount * 2)
+                            {
+                                var actualSortedClipIndex = currentChunk.events.Length + eventsWithIndex.FindIndex(o => o.index == itEvent.index);
+                                var localClipIndex = itEvent.index / 2;
+                                newEvent.clipIndex = localClipIndex + currentChunk.clips.Length;
+                                if (itEvent.index % 2 == 0)
+                                {
+                                    newEvent.clipType = Event.ClipType.Enter;
+                                    newClips[localClipIndex].enter = actualSortedClipIndex;
+                                }
+                                else
+                                {
+                                    newEvent.clipType = Event.ClipType.Exit;
+                                    newClips[localClipIndex].exit = actualSortedClipIndex;
+                                }
+                                newEvents.Add(newEvent);
+                            }
+                            else //Not a clip event
+                            {
+                                newEvents.Add(newEvent);
+                            }
+                        }
+                        currentChunk.clips = currentChunk.clips.Concat(newClips).ToArray();
+                        currentChunk.events = currentChunk.events.Concat(newEvents).ToArray();
+                    }
+                    else
+                    {
+                        //No need to compute clip information
+                        currentsEvents = currentsEvents.OrderBy(o => o.time);
+                        currentChunk.events = currentChunk.events.Concat(currentsEvents).ToArray();
+                    }
+
 
                     chunks.Pop();
                     chunks.Push(currentChunk);

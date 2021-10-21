@@ -71,6 +71,7 @@ namespace UnityEngine.VFX
             if (singleEvents == null)
                 singleEvents = new List<VisualEffectPlayableSerializedEvent>();
 
+            behaviour.clipEventsCount = (uint)clipEvents.Count;
             behaviour.events = new VisualEffectPlayableSerializedEvent[clipEvents.Count * 2 + singleEvents.Count];
             int cursor = 0;
             foreach (var itEvent in clipEvents)
