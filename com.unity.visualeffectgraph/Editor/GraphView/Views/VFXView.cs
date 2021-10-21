@@ -2852,17 +2852,6 @@ namespace UnityEditor.VFX.UI
                     controllers.ForEach(x => x.DrawGizmos(attachedComponent));
 
                     VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.UpdateFromVFXView(this, controllers);
-                    /*selection
-                        .OfType<IControlledElement<VFXParameterController>>()
-                        .Select(x => x.controller)
-                        .ToList()
-                        .ForEach(x => x.DrawGizmos(attachedComponent));
-
-                    selection
-                        .OfType<ISettableControlledElement<VFXNodeController>>()
-                        .Select(x => x.controller)
-                        .ToList()
-                        .ForEach(x => x.DrawGizmos(attachedComponent));*/
                 }
             }
             catch (Exception e)

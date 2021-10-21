@@ -81,11 +81,7 @@ namespace UnityEditor.VFX.UI
             if (window != null)
             {
                 window.Show(true);
-                if (window.m_Parent is DockArea dockArea)
-                {
-                    var index = dockArea.m_Panes.IndexOf(window);
-                    dockArea.selected = index;
-                }
+                window.Focus();
             }
 
             return window;
