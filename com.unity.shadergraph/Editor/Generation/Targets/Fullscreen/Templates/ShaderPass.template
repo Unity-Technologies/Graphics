@@ -52,7 +52,6 @@ $Varyings.cullFace: #define VARYINGS_NEED_CULLFACE
 $features.graphVertex: #define FEATURES_GRAPH_VERTEX
 
 // Force depth texture because we need it for almost every nodes
-// TODO: dependency system that triggers this define from position or view direction usage
 #define REQUIRE_DEPTH_TEXTURE
 
 $splice(PassInstancing)

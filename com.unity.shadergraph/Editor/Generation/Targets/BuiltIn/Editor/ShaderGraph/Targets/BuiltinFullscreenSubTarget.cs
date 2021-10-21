@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {
     class BuiltInFullscreenSubTarget : FullscreenSubTarget<BuiltInTarget>, IRequiresData<FullscreenData>
     {
-        static readonly GUID kSourceCodeGuid = new GUID("3107a8a084c35ab4cb765b37e0699ce3");  // BuiltInFullscreenSubTarget.cs // TODO
+        static readonly GUID kSourceCodeGuid = new GUID("3107a8a084c35ab4cb765b37e0699ce3");  // BuiltInFullscreenSubTarget.cs
 
         // In builtin there is no inverse view projection matrix, so we need to compute it in the vertex shader
         protected override string fullscreenDrawProceduralInclude => "Packages/com.unity.shadergraph/Editor/Generation/Targets/Builtin/Editor/ShaderGraph/Includes/FullscreenDrawProcedural.hlsl";

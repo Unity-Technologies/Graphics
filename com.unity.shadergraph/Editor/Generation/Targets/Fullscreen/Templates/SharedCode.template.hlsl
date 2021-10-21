@@ -3,7 +3,6 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     SurfaceDescriptionInputs output;
     ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
-    // Normal is not available yet, TODO: add a node to sample the normal buffer if it exists
     float3 normalWS = float3(0, 0, 1);
     float4 tangentWS = float4(0, 1, 0, 0); // We can't access the tangent in screen space
 

@@ -13,14 +13,6 @@ using System.Reflection;
 
 namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
 {
-    [GenerateBlocks]
-    internal struct FullScreenBlocks
-    {
-        // TODO: use base color and alpha blocks
-        public static BlockFieldDescriptor colorBlock = new BlockFieldDescriptor(String.Empty, "Color", "Color",
-                new ColorRGBAControl(UnityEngine.Color.white), ShaderStage.Fragment);
-    }
-
     sealed class CustomRenderTextureTarget : Target
     {
         // Constants
