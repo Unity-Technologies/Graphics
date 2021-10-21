@@ -289,7 +289,7 @@ namespace UnityEditor.Rendering
             if (!(DebugManager.instance.GetItem(queryPath) is DebugUI.IValueField widget))
                 return;
 
-            widget.SetValue(state.GetValue()); 
+            widget.SetValue(state.GetValue());
         }
 
         void OnUndoRedoPerformed()
