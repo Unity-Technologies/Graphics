@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering
             public VolumeComponentArchetypeDefaultState Create([DisallowNull] VolumeComponentArchetype volumeComponentArchetype)
             {
                 var componentsDefaultState = volumeComponentArchetype.AsArray()
-                    .Select(type => (VolumeComponent)ScriptableObject.CreateInstance(type)).ToArray();
+                    .Select(type => (VolumeComponent)ScriptableObject.CreateInstance(type.AsType())).ToArray();
 
                 return new VolumeComponentArchetypeDefaultState(componentsDefaultState);
             }

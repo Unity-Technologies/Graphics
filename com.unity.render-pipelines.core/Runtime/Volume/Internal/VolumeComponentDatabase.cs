@@ -16,13 +16,13 @@ namespace UnityEngine.Rendering
         {
             // Get the types
             baseComponentTypeArray = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
-                .Where(t => !t.IsAbstract).ToArray();
+                .Where(t => !t.IsAbstract).Select(VolumeComponentType.FromTypeUnsafe).ToArray();
 
             // Call the init method if it exists.
             const BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
             foreach (var type in baseComponentTypeArray)
             {
-                var initMethod = type.GetMethod("Init", flags);
+                var initMethod = type.AsType().GetMethod("Init", flags);
                 if (initMethod != null)
                 {
                     initMethod.Invoke(null, null);
@@ -33,6 +33,6 @@ namespace UnityEngine.Rendering
         }
 
         [NotNull]
-        public static Type[] baseComponentTypeArray { get; }
+        public static VolumeComponentType[] baseComponentTypeArray { get; }
     }
 }

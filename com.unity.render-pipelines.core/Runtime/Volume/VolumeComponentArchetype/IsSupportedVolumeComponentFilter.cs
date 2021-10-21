@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace UnityEngine.Rendering
 {
-    public sealed class IsSupportedVolumeComponentFilter : IVolumeComponentFilter
+    public sealed class IsSupportedVolumeComponentFilter : IFilter<VolumeComponentType>
     {
         [NotNull]
         Type targetType { get; }
@@ -13,9 +13,9 @@ namespace UnityEngine.Rendering
             this.targetType = targetType;
         }
 
-        public bool IsAccepted(Type subjectType)
+        public bool IsAccepted(VolumeComponentType subjectType)
         {
-            return IsSupportedOn.IsSupportedBy(subjectType, targetType);
+            return IsSupportedOn.IsSupportedBy((Type)subjectType, targetType);
         }
 
         bool Equals(IsSupportedVolumeComponentFilter other)
@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering
             return targetType == other.targetType;
         }
 
-        public bool Equals(IVolumeComponentFilter other)
+        public bool Equals(IFilter<VolumeComponentType> other)
         {
             return other is IsSupportedVolumeComponentFilter filter && Equals(filter);
         }

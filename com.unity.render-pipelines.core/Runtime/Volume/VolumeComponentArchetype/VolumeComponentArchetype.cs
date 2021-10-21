@@ -15,41 +15,72 @@ namespace UnityEngine.Rendering
     ///
     /// Immutable type
     /// </summary>
-    public sealed class VolumeComponentArchetype
+    public sealed class VolumeComponentArchetype : IEquatable<VolumeComponentArchetype>
     {
-        static Dictionary<IVolumeComponentFilter, VolumeComponentArchetype> s_Cache
-            = new Dictionary<IVolumeComponentFilter, VolumeComponentArchetype>();
+        static Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype> s_CacheByFilter
+            = new Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype>();
 
-        Type[] typeArray { get; }
-        HashSet<Type> typeSet { get; }
+        VolumeComponentType[] typeArray { get; }
+        HashSet<VolumeComponentType> typeSet { get; }
 
         Dictionary<(Type factory, Type extension), VolumeComponentArchetypeExtension> m_Extensions
             = new Dictionary<(Type factory, Type extension), VolumeComponentArchetypeExtension>();
 
-        VolumeComponentArchetype([DisallowNull] Type[] typeArray)
+        VolumeComponentArchetype([DisallowNull] params VolumeComponentType[] typeArray)
         {
             this.typeArray = typeArray;
             typeSet = typeArray.ToHashSet();
         }
 
         [return: NotNull]
+        public static VolumeComponentArchetype FromTypes([DisallowNull] params VolumeComponentType[] types)
+            => new VolumeComponentArchetype(types);
+
+        [NotNull]
+        public static VolumeComponentArchetype Empty { get; } = new VolumeComponentArchetype();
+        public static VolumeComponentArchetype Everything { get; } = FromFilter(new EverythingVolumeComponentFilter());
+
+        [return: NotNull]
         public static VolumeComponentArchetype FromFilter<TFilter>([DisallowNull] in TFilter filter)
-            where TFilter : IVolumeComponentFilter
+            where TFilter : IFilter<VolumeComponentType>
         {
-            if (!s_Cache.TryGetValue(filter, out var set))
+            if (!s_CacheByFilter.TryGetValue(filter, out var set))
             {
                 var baseComponentTypeArray = VolumeComponentDatabase.baseComponentTypeArray
                     .Where(filter.IsAccepted).ToArray();
                 set = new VolumeComponentArchetype(baseComponentTypeArray);
-                s_Cache.Add(filter, set);
+                s_CacheByFilter.Add(filter, set);
             }
 
             return set;
         }
 
         [return: NotNull]
-        public Type[] AsArray() => typeArray;
-        public bool ContainsType(Type type) => typeSet.Contains(type);
+        public static VolumeComponentArchetype FromIncludeExclude(
+            [DisallowNull] IReadOnlyCollection<VolumeComponentArchetype> includes,
+            [DisallowNull] IReadOnlyCollection<VolumeComponentArchetype> excludes)
+        {
+            using (HashSetPool<VolumeComponentType>.Get(out var included))
+            using (HashSetPool<VolumeComponentType>.Get(out var excluded))
+            {
+                foreach (var include in includes)
+                    included.UnionWith(include.typeSet);
+                foreach (var exclude in excludes)
+                    excluded.UnionWith(exclude.typeSet);
+
+                included.ExceptWith(excluded);
+                return new VolumeComponentArchetype(included.ToArray());
+            }
+        }
+
+        [return: NotNull]
+        public VolumeComponentType[] AsArray() => typeArray;
+        public bool ContainsType(VolumeComponentType type) => typeSet.Contains(type);
+
+        public bool ContainsType([AllowNull] Type type)
+        {
+            return VolumeComponentType.FromType(type, out var volumeType) && ContainsType(volumeType);
+        }
 
         /// <summary>
         /// Adds an extension if it does not exists
@@ -91,6 +122,23 @@ namespace UnityEngine.Rendering
             where TFactory : struct, IVolumeComponentArchetypeExtensionFactory<TExtension>
         {
             return GetExtension<TExtension, TFactory>(out extension) || AddExtension<TExtension, TFactory>(out extension);
+        }
+
+        public bool Equals(VolumeComponentArchetype other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return typeSet.SetEquals(other.typeSet);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return ReferenceEquals(this, obj) || obj is VolumeComponentArchetype other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return (typeSet != null ? typeSet.GetHashCode() : 0);
         }
     }
 }

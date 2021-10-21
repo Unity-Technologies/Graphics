@@ -8,8 +8,8 @@ namespace UnityEngine.Rendering
     ///
     /// Use it with <see cref="VolumeComponentArchetype.FromFilter{TFilter}"/> to create a <see cref="VolumeComponentArchetype"/>.
     /// </summary>
-    public interface IVolumeComponentFilter : IEquatable<IVolumeComponentFilter>
+    public interface IFilter<T> : IEquatable<IFilter<T>>
     {
-        bool IsAccepted([DisallowNull] Type subjectType);
+        bool IsAccepted(T subjectType);
     }
 }

@@ -23,14 +23,14 @@ namespace UnityEngine.Rendering
                 var currentPipeline = RenderPipelineManager.currentPipeline?.GetType() ?? typeof(BuiltinRenderPipeline);
                 var types = volumeComponentArchetype.AsArray();
 
-                var componentPathAndTypes = new List<(string path, Type type)>();
+                var componentPathAndTypes = new List<(string path, VolumeComponentType type)>();
 
                 // filter types based on attributes
                 foreach (var type in types)
                 {
                     var path = string.Empty;
-                    var attrs = type.GetCustomAttributes(false);
-                    var skipComponent = !IsSupportedOn.IsSupportedBy(type, currentPipeline);
+                    var attrs = type.AsType().GetCustomAttributes(false);
+                    var skipComponent = !IsSupportedOn.IsSupportedBy((Type)type, currentPipeline);
                     if (skipComponent)
                         continue;
 
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering
                     // If no attribute or in case something went wrong when grabbing it, fallback to a
                     // beautified class name
                     if (string.IsNullOrEmpty(path))
-                        path = UnityEditor.ObjectNames.NicifyVariableName(type.Name);
+                        path = UnityEditor.ObjectNames.NicifyVariableName(type.AsType().Name);
 #endif
 
                     componentPathAndTypes.Add((path, type));
@@ -65,13 +65,13 @@ namespace UnityEngine.Rendering
             }
         }
 
-        VolumeComponentArchetypePathAndType(List<(string path, Type type)> componentPathAndTypes)
+        VolumeComponentArchetypePathAndType(List<(string path, VolumeComponentType type)> componentPathAndTypes)
         {
             volumeComponentPathAndTypes = componentPathAndTypes;
         }
 
         [NotNull]
-        public IReadOnlyList<(string path, Type type)> volumeComponentPathAndTypes { get; }
+        public IReadOnlyList<(string path, VolumeComponentType type)> volumeComponentPathAndTypes { get; }
     }
 
     static class VolumeComponentTypeSetPathAndTypeExtension

@@ -82,10 +82,10 @@ namespace UnityEngine.Rendering
         /// <summary>Type of the current component to debug.</summary>
         public Type selectedComponentType
         {
-            get => archetype?.AsArray()[selectedComponent - 1];
+            get => archetype?.AsArray()[selectedComponent - 1].AsType();
             set
             {
-                var index = Array.FindIndex(archetype.AsArray(), t => t == value);
+                var index = Array.FindIndex(archetype.AsArray(), t => t.AsType() == value);
                 if (index != -1)
                     selectedComponent = index + 1;
             }
@@ -98,12 +98,12 @@ namespace UnityEngine.Rendering
         /// <summary>Returns the name of a component from its VolumeComponentMenuForRenderPipeline.</summary>
         /// <param name="component">A volume component.</param>
         /// <returns>The component display name.</returns>
-        public static string ComponentDisplayName(Type component)
+        public static string ComponentDisplayName(VolumeComponentType component)
         {
-            if (component.GetCustomAttribute(typeof(VolumeComponentMenu), false) is VolumeComponentMenu volumeComponentMenu)
+            if (component.AsType().GetCustomAttribute(typeof(VolumeComponentMenu), false) is VolumeComponentMenu volumeComponentMenu)
                 return volumeComponentMenu.menu;
 
-            return component.Name;
+            return component.AsType().Name;
         }
 
         protected static List<T> additionalCameraDatas { get; private set; } = new List<T>();

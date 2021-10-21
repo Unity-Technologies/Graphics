@@ -64,8 +64,8 @@ namespace UnityEngine.Rendering
 
             foreach (var type in archetype.AsArray())
             {
-                var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
-                components.Add(type, inst);
+                var inst = (VolumeComponent)ScriptableObject.CreateInstance(type.AsType());
+                components.Add(type.AsType(), inst);
             }
         }
 

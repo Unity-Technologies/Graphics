@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering
                 return new VolumeComponentArchetypeTreeProvider(root);
             }
 
-            static void AddNode(PathNode root, string path, Type type)
+            static void AddNode(PathNode root, string path, VolumeComponentType type)
             {
                 var current = root;
                 var parts = path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering
         {
             public List<PathNode> nodes = new List<PathNode>();
             public string name;
-            public Type type;
+            public VolumeComponentType type;
 
             public int CompareTo(PathNode other)
             {

@@ -18,9 +18,9 @@ namespace UnityEditor.Rendering
     {
         class VolumeComponentElement : Element
         {
-            public Type type;
+            public VolumeComponentType type;
 
-            public VolumeComponentElement(int level, string label, Type type)
+            public VolumeComponentElement(int level, string label, VolumeComponentType type)
             {
                 this.level = level;
                 this.type = type;
@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering
             tree.Add(new GroupElement(0, "Volume Overrides"));
 
             VolumeComponentArchetypeTreeProvider extension = null;
-            if (!(VolumeComponentTreeUI.displayedArchetype?.GetOrAddTreeProvider(out extension) ?? false))
+            if (!VolumeComponentUserExperience.displayedArchetype.GetOrAddTreeProvider(out extension))
                 return;
 
             // Recursively add all elements to the tree
@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering
                     tree.Add(new GroupElement(depth, n.name));
                     Traverse(n, depth + 1, tree);
                 }
-                else if (!m_Target.Has(n.type)) // Element
+                else if (!m_Target.Has(n.type.AsType())) // Element
                 {
                     tree.Add(new VolumeComponentElement(depth, n.name, n.type));
                 }

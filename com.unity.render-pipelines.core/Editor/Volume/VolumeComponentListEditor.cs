@@ -301,7 +301,7 @@ namespace UnityEditor.Rendering
             menu.AddItem(EditorGUIUtility.TrTextContent("Collapse All"), false, () => CollapseComponents());
             menu.AddItem(EditorGUIUtility.TrTextContent("Expand All"), false, () => ExpandComponents());
             menu.AddSeparator(string.Empty);
-            menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponent(VolumeComponentType.FromTypeUnsafe(targetComponent.GetType()), id));
             menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
             menu.AddSeparator(string.Empty);
             if (targetEditor.hasAdditionalProperties)
@@ -325,15 +325,15 @@ namespace UnityEditor.Rendering
             menu.DropDown(new Rect(position, Vector2.zero));
         }
 
-        VolumeComponent CreateNewComponent(Type type)
+        static VolumeComponent CreateNewComponent(VolumeComponentType type)
         {
-            var effect = (VolumeComponent)ScriptableObject.CreateInstance(type);
+            var effect = (VolumeComponent)ScriptableObject.CreateInstance(type.AsType());
             effect.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
-            effect.name = type.Name;
+            effect.name = type.AsType().Name;
             return effect;
         }
 
-        internal void AddComponent(Type type)
+        internal void AddComponent(VolumeComponentType type)
         {
             m_SerializedObject.Update();
 
@@ -407,7 +407,7 @@ namespace UnityEditor.Rendering
 
         // Reset is done by deleting and removing the object from the list and adding a new one in
         // the same spot as it was before
-        internal void ResetComponent(Type type, int id)
+        internal void ResetComponent(VolumeComponentType type, int id)
         {
             // Remove from the cached editors list
             m_Editors[id].OnDisable();
