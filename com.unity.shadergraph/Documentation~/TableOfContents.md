@@ -152,6 +152,7 @@
             * [Posterize](Posterize-Node)
             * [Reciprocal](Reciprocal-Node)
             * [Reciprocal Square Root](Reciprocal-Square-Root-Node)
+            * [Refract](Refract-Node)
         * Basic
             * [Add](Add-Node)
             * [Divide](Divide-Node)
