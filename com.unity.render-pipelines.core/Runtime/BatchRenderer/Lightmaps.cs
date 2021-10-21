@@ -47,11 +47,14 @@ namespace UnityEngine.Rendering
             if (data == null)
                 return null;
 
-            var result = new Texture2DArray(data.width, data.height, source.Count, source[0].graphicsFormat, TextureCreationFlags.MipChain);
-            result.filterMode = data.filterMode;
-            result.wrapMode = data.wrapMode;
-            result.anisoLevel = data.anisoLevel;
-            result.mipMapBias = data.mipMapBias;
+            bool isSrgb = GraphicsFormatUtility.IsSRGBFormat(data.graphicsFormat);
+            var result = new Texture2DArray(data.width, data.height, source.Count, source[0].format, true, !isSrgb)
+            {
+                filterMode = data.filterMode,
+                wrapMode = data.wrapMode,
+                anisoLevel = data.anisoLevel,
+                mipMapBias = data.mipMapBias
+            };
 
             for (var sliceIndex = 0; sliceIndex < source.Count; sliceIndex++)
             {

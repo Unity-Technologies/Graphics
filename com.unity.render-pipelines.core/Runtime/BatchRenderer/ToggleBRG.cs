@@ -7,10 +7,10 @@ namespace UnityEngine.Rendering
                 var brg = GetComponent<RenderBRG>();
                 if (brg == null)
                     return;
-
-                GUI.contentColor = Color.black;
+                
                 var state = brg.enabled ? "enabled" : "disabled";
-                GUILayout.Label( $"Toggle BRG (F). Current State: {state}");
+                if (GUILayout.Button($"Toggle BRG (F). Current State: {state}"))
+                    brg.enabled = !brg.enabled;
             }
 
             private void Update()
