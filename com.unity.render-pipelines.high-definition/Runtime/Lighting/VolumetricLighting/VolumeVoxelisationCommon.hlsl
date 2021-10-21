@@ -1,4 +1,14 @@
+//--------------------------------------------------------------------------------------------------
+// Definitions
+//--------------------------------------------------------------------------------------------------
+
 #define GROUP_SIZE_1D     8
+
+#define EXPONENTIAL_FALLOFF_EXPONENT 2.2
+
+//--------------------------------------------------------------------------------------------------
+// Included headers
+//--------------------------------------------------------------------------------------------------
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
@@ -13,6 +23,31 @@
 //--------------------------------------------------------------------------------------------------
 
 RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extinction)
+
+StructuredBuffer<OrientedBBox>            _VolumeBounds;
+StructuredBuffer<LocalVolumetricFogEngineData> _VolumeData;
+
+//--------------------------------------------------------------------------------------------------
+// Implementation
+//--------------------------------------------------------------------------------------------------
+
+float ComputeFadeFactor(float3 coordNDC, float dist,
+    float3 rcpPosFaceFade, float3 rcpNegFaceFade, bool invertFade,
+    float rcpDistFadeLen, float endTimesRcpDistFadeLen, int falloffMode)
+{
+    float3 posF = Remap10(coordNDC, rcpPosFaceFade, rcpPosFaceFade);
+    float3 negF = Remap01(coordNDC, rcpNegFaceFade, 0);
+    float  dstF = Remap10(dist, rcpDistFadeLen, endTimesRcpDistFadeLen);
+    float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
+
+    // We only apply exponential falloff on the Blend Distance and not Distance Fade
+    if (falloffMode == LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL)
+        fade = PositivePow(fade, EXPONENTIAL_FALLOFF_EXPONENT);
+
+    fade = dstF * (invertFade ? (1 - fade) : fade);
+
+    return fade;
+}
 
 // Jittered ray with screen-space derivatives.
 struct JitteredRay

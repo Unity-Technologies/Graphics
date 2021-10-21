@@ -24,7 +24,7 @@ void VoxelizeComputeLocalFog(
         uint3 voxelCoord;
         float3 voxelCenterWS = ComputeVoxelCenterWS(posInput, ray, _VBufferSliceCount, slice, t0, de, voxelCoord, t1, dt, t);
 
-        const OrientedBBox obb = _VolumeBounds[0];
+        const OrientedBBox obb = _VolumeBounds[visibleVolumeIndex];
 
         const float3x3 obbFrame = float3x3(obb.right, obb.up, cross(obb.right, obb.up));
         const float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
@@ -33,17 +33,32 @@ void VoxelizeComputeLocalFog(
         const float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
         const float3 voxelCenterCS = (voxelCenterBS * rcp(obbExtents));
 
-        float3 voxelCenterVolSpace = mul(InvVolumeMatrix, float4(voxelCenterWS, 1)).xyz;
-
         float4 volumeDensity = VolumetricFogFunction(voxelCenterWS, voxelCenterCS);
 
-        float3 mask = abs(voxelCenterVolSpace) * 2.0;
-        mask = saturate(mask);
+        // We must clamp here, otherwise, with soft voxelization enabled,
+        // the center of the voxel can be slightly outside the box.
+        float3 voxelCenterNDC = saturate(voxelCenterCS * 0.5 + 0.5);
 
-        float l = max(mask.x, max(mask.y, mask.z)) * 2.5;
-        l = 1.0-saturate( l - 1.5 );
+        // Due to clamping above, 't' may not exactly correspond to the distance
+        // to the sample point. We ignore it for performance and simplicity.
+        float dist = t;
 
-        _VBufferDensity[voxelCoord] = lerp(_VBufferDensity[voxelCoord], volumeDensity, min(volumeDensity.a, l));
+        bool overlap = Max3(abs(voxelCenterCS.x), abs(voxelCenterCS.y), abs(voxelCenterCS.z)) <= 1;
+
+        float overlapFraction = overlap ? 1 : 0;
+
+        if (overlapFraction > 0)
+        {
+            overlapFraction *= ComputeFadeFactor(voxelCenterNDC, dist,
+                                                _VolumeData[visibleVolumeIndex].rcpPosFaceFade,
+                                                _VolumeData[visibleVolumeIndex].rcpNegFaceFade,
+                                                _VolumeData[visibleVolumeIndex].invertFade,
+                                                _VolumeData[visibleVolumeIndex].rcpDistFadeLen,
+                                                _VolumeData[visibleVolumeIndex].endTimesRcpDistFadeLen,
+                                                _VolumeData[visibleVolumeIndex].falloffMode);
+
+            _VBufferDensity[voxelCoord] = lerp(_VBufferDensity[voxelCoord], volumeDensity, min(volumeDensity.a, overlapFraction));
+        }
 
         t0 = t1;
     }

@@ -238,9 +238,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnEnable()
         {
-            if (localVolumetricFogCompute != null)
-                m_kernelIndex = localVolumetricFogCompute.FindKernel(kernelName);
-
             LocalVolumetricFogManager.manager.RegisterVolume(this);
 
 #if UNITY_EDITOR
@@ -282,6 +279,11 @@ namespace UnityEngine.Rendering.HighDefinition
         private void OnValidate()
         {
             parameters.Constrain();
+
+            if (localVolumetricFogCompute != null)
+                m_kernelIndex = localVolumetricFogCompute.FindKernel(kernelName);
+            else
+                m_kernelIndex = -1;
         }
     }
 }
