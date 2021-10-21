@@ -219,6 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeStreaming, Styles.supportProbeVolumeStreaming);
 
                 int estimatedVMemCost = ProbeReferenceVolume.instance.GetVideoMemoryCost();
                 if (estimatedVMemCost == 0)

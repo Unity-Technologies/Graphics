@@ -116,6 +116,7 @@ void EvaluateAnisoGGX(MaterialData mtlData,
     {
         value = 0.0;
         pdf = 0.0;
+        fresnel = 0.0;
         return;
     }
 

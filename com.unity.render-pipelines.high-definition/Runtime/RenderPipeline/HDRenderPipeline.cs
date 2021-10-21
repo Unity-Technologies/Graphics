@@ -382,7 +382,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeDebugMesh = defaultResources.assets.probeDebugSphere,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
-                    shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands
+                    shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
+                    supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
             }
