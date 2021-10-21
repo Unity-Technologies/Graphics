@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Debug Panels Framework See `IDebugDisplaySettingsQuery`.
 
+### Fixed
+- Fixed keyword and float property upgrading in SpeedTree8MaterialUpgrader
+
 ## [13.0.0] - 2021-09-01
 
 Version Updated
