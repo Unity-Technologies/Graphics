@@ -1,5 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/GTAOCommon.hlsl"
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 #pragma kernel GTAODenoise_CopyHistory
 
 RW_TEXTURE2D_X(float4, _OutputTexture);
