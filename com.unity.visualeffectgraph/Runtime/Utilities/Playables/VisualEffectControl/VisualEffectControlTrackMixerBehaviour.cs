@@ -322,7 +322,7 @@ namespace UnityEngine.VFX
         public override void PrepareFrame(Playable playable, FrameData data)
         {
             //TODOPAUL we aren't detecting correctly the change of visualEffectAsset
-            if (m_Target == null && m_Target.visualEffectAsset == null)
+            if (m_Target == null || m_Target.visualEffectAsset == null)
                 return;
 
             if (m_ScrubbingCacheHelper == null)
