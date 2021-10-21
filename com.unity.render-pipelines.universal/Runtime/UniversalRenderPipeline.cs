@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
 #if ENABLE_SHADER_DEBUG_PRINT
-            ShaderDebugPrintManager.Instance.EndFrame();
+            ShaderDebugPrintManager.instance.EndFrame();
 #endif
         }
 

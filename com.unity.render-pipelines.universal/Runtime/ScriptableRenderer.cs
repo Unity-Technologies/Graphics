@@ -1198,8 +1198,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if ENABLE_SHADER_DEBUG_PRINT
-            ShaderDebugPrintManager.Instance.SetShaderDebugPrintInputConstants(cmd, ShaderDebugPrintInputProducer.Get());
-            ShaderDebugPrintManager.Instance.SetShaderDebugPrintBindings(cmd);
+            ShaderDebugPrintManager.instance.SetShaderDebugPrintInputConstants(cmd, ShaderDebugPrintInputProducer.Get());
+            ShaderDebugPrintManager.instance.SetShaderDebugPrintBindings(cmd);
 #endif
         }
 
