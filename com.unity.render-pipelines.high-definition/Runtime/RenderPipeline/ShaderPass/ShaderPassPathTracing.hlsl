@@ -241,7 +241,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
 #else // SHADER_UNLIT
 
-    pathIntersection.value = (!currentDepth || computeDirect) ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
+    pathIntersection.value = computeDirect ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
 
 // Apply shadow matte if requested
 #ifdef _ENABLE_SHADOW_MATTE
