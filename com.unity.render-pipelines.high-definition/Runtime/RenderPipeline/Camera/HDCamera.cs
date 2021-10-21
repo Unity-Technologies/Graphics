@@ -139,6 +139,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return hdCamera;
         }
 
+        public bool IsFrameCompleted()
+        {
+            return HDRenderPipeline.currentPipeline.IsFrameCompleted(this);
+        }
+
         /// <summary>
         /// Reset the camera persistent informations.
         /// This needs to be used when doing camera cuts for example in order to avoid information from previous unrelated frames to be used.
@@ -251,14 +256,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 //SensorSDK - Begin - Tonemapping support
-        public RayTracingAccelerationStructure accelerationStructure;
-
         public RayTracingShader pathTracingShaderOverride;
         public delegate void PrepareDispatchRaysAction<T1>(T1 cmd);
         public PrepareDispatchRaysAction<UnityEngine.Rendering.CommandBuffer> PrepareDispatchRays;
-
-        public bool isContinousCaptureEnabled = true;
-        public bool isLastIteration = false;
 //SensorSDK - End - Tonemapping support
 
         internal Vector4[] frustumPlaneEquations;

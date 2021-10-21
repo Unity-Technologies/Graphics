@@ -264,6 +264,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SubFrameManager.PrepareNewSubFrame();
         }
 
+        public bool IsFrameCompleted(HDCamera hdCamera)
+        {
+            int camID = hdCamera.camera.GetInstanceID();
+
+            CameraData camData = m_SubFrameManager.GetCameraData(camID);
+            return camData.currentIteration == m_SubFrameManager.subFrameCount;
+        }
+
         class RenderAccumulationPassData
         {
             public ComputeShader accumulationCS;
