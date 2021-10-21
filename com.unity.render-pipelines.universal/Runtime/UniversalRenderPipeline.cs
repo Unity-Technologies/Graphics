@@ -628,10 +628,15 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, Profiling.Pipeline.XR.mirrorView))
             {
+                context.ConfigureFoveatedRendering(xrPasses[0].foveatedRenderingInfo);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.UseFoveatedRendering, xrPasses[0].foveatedRenderingInfo != IntPtr.Zero);
                 m_XRSystem.RenderMirrorView(cmd, baseCamera);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                
             }
 
             context.ExecuteCommandBuffer(cmd);
+            context.ConfigureFoveatedRendering(IntPtr.Zero);
             context.Submit();
             CommandBufferPool.Release(cmd);
         }

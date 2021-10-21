@@ -1215,8 +1215,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (cameraData.xr.isLateLatchEnabled)
                     cameraData.xr.canMarkLateLatch = true;
+
                 cameraData.xr.StartSinglePass(cmd);
+
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.UseFoveatedRendering, cameraData.xr.foveatedRenderingInfo != IntPtr.Zero);
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -1231,7 +1235,10 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 cameraData.xr.StopSinglePass(cmd);
+
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.UseFoveatedRendering);
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
