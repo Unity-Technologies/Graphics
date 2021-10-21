@@ -138,6 +138,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [ExcludeFromPreset]
+    [URPHelpURL("universalrp-asset")]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
