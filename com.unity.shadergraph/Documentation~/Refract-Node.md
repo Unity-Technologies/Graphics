@@ -10,10 +10,10 @@ Based on Ibn Sahl's Law, for a given refractive index of the medium, we can reac
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Incident      | Input | Vector 3 | UV | Incident Vector to the surface |
-| Normal      | Input | Vector 3 | None | Normal of the surface |
-| Eta      | Input | Float    | None | The ratio of refractive index (Eta == (source refractive index)/(medium refractive index)) |
-| Out | Output      |  Vector 3 | None | Refracted vector |
+| Incident      | Input | Vector | None | Incident normalied vector to the surface (From surface to source, for instance from pixel to eye). |
+| Normal      | Input | Vector | None | Normal normalized of the surface |
+| Eta      | Input | Float    | None | The ratio of refractive index (Eta == (source refractive index)/(medium refractive index)), For instance for an interaction from air to glass **Eta** will be 1.0/1.5 and for an interaction from glass to air **Eta** will be 1.5/1.0. |
+| Out | Output      |  Vector | None | Refracted vector |
 
 ## Controls
 
