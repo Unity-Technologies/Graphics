@@ -47,16 +47,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent depthWrite = new GUIContent("Write Depth", "Choose to write depth to the screen.");
             public static GUIContent depthCompareFunction = new GUIContent("Depth Test", "Choose a new test setting for the depth.");
 
-            //Stencil Settings
-            public static GUIContent overrideStencil = new GUIContent("Override Stencil", "Override stencil state of the objects rendered.");
-            public static GUIContent stencilReferenceValue = new GUIContent("Reference", ".");
-            public static GUIContent stencilWriteMask = new GUIContent("Write Mask", ".");
-            public static GUIContent stencilReadMask = new GUIContent("Read Mask", ".");
-            public static GUIContent stencilCompareFunction = new GUIContent("Compare Function", ".");
-            public static GUIContent stencilPassOperation = new GUIContent("Pass", ".");
-            public static GUIContent stencilFailOperation = new GUIContent("Fail", ".");
-            public static GUIContent stencilDepthFailOperation = new GUIContent("Depth Fail", ".");
-
             //Camera Settings
             public static GUIContent overrideCamera = new GUIContent("Camera", "Override camera projections.");
             public static GUIContent cameraFOV = new GUIContent("Field Of View", "Field Of View to render this pass in.");
@@ -67,38 +57,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static string hdrpLitShaderMessage = "HDRP Lit shaders are not supported in a Custom Pass";
             public static string opaqueObjectWithDeferred = "Your HDRP settings do not support ForwardOnly, some objects might not render.";
             public static string objectRendererTwiceWithMSAA = "If MSAA is enabled, re-rendering the same object twice will cause depth test artifacts in Before/After Post Process injection points";
-        }
-
-        // Workaround enum to make the EnumFlagsField work, it doesn't handle well enm flags that don't contain all the individual bits as enum values like the UserStencilUsage enum.
-        [Flags]
-        enum UserStencilUsageWorkaround
-        {
-            UserBit0 = 1 << 0,
-            UserBit1 = 1 << 1,
-        }
-
-        static UserStencilUsage ConvertToUserStencilUsage(UserStencilUsageWorkaround w)
-        {
-            UserStencilUsage result = 0;
-
-            if ((w & UserStencilUsageWorkaround.UserBit0) != 0)
-                result |= UserStencilUsage.UserBit0;
-            if ((w & UserStencilUsageWorkaround.UserBit1) != 0)
-                result |= UserStencilUsage.UserBit1;
-
-            return result;
-        }
-
-        static UserStencilUsageWorkaround ConvertToUserStencilUsageWorkaround(UserStencilUsage w)
-        {
-            UserStencilUsageWorkaround result = 0;
-
-            if ((w & UserStencilUsage.UserBit0) != 0)
-                result |= UserStencilUsageWorkaround.UserBit0;
-            if ((w & UserStencilUsage.UserBit1) != 0)
-                result |= UserStencilUsageWorkaround.UserBit1;
-
-            return result;
         }
 
         //Headers and layout
@@ -127,21 +85,11 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_DepthCompareFunction;
         SerializedProperty m_DepthWrite;
 
-        // Override stencil state
-        SerializedProperty m_OverrideStencilState;
-        SerializedProperty m_StencilReferenceValue;
-        SerializedProperty m_StencilWriteMask;
-        SerializedProperty m_StencilReadMask;
-        SerializedProperty m_StencilPassOperation;
-        SerializedProperty m_StencilFailOperation;
-        SerializedProperty m_StencilDepthFailOperation;
-
         ReorderableList m_ShaderPassesList;
 
         CustomPassVolume m_Volume;
 
-        CustomPass.TargetBuffer targetDepthBuffer => (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue;
-        bool customDepthIsNone => targetDepthBuffer == CustomPass.TargetBuffer.None;
+        bool customDepthIsNone => (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue == CustomPass.TargetBuffer.None;
 
         protected bool showMaterialOverride = true;
 
@@ -168,15 +116,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_OverrideDepthState = customPass.FindPropertyRelative("overrideDepthState");
             m_DepthCompareFunction = customPass.FindPropertyRelative("depthCompareFunction");
             m_DepthWrite = customPass.FindPropertyRelative("depthWrite");
-
-            // Stencil options
-            m_OverrideStencilState = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.overrideStencil));
-            m_StencilReferenceValue = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilReferenceValue));
-            m_StencilWriteMask = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilWriteMask));
-            m_StencilReadMask = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilReadMask));
-            m_StencilPassOperation = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilPassOperation));
-            m_StencilFailOperation = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilFailOperation));
-            m_StencilDepthFailOperation = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilDepthFailOperation));
 
             m_Volume = customPass.serializedObject.targetObject as CustomPassVolume;
 
@@ -329,7 +268,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 rect.y += Styles.defaultLineSpace;
             }
 
-            // Depth properties
             EditorGUI.BeginProperty(rect, Styles.overrideDepth, m_OverrideDepthState);
             {
                 if (customDepthIsNone)
@@ -353,61 +291,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.PropertyField(rect, m_DepthWrite, Styles.depthWrite);
                 EditorGUI.indentLevel--;
             }
-
-            // Stencil properties
-            rect.y += Styles.defaultLineSpace;
-            EditorGUI.BeginProperty(rect, Styles.overrideStencil, m_OverrideStencilState);
-            {
-                if (customDepthIsNone)
-                {
-                    using (new EditorGUI.DisabledScope(true))
-                        EditorGUI.Toggle(rect, Styles.overrideStencil, false);
-                }
-                else
-                {
-                    EditorGUI.PropertyField(rect, m_OverrideStencilState, Styles.overrideStencil);
-                }
-            }
-            EditorGUI.EndProperty();
-
-            if (m_OverrideStencilState.boolValue && !customDepthIsNone)
-            {
-                EditorGUI.indentLevel++;
-
-                DrawStencilIntField(ref rect, m_StencilReferenceValue, Styles.stencilReferenceValue);
-                DrawStencilIntField(ref rect, m_StencilReadMask, Styles.stencilReadMask);
-                DrawStencilIntField(ref rect, m_StencilWriteMask, Styles.stencilWriteMask);
-                rect.y += Styles.defaultLineSpace;
-                EditorGUI.PropertyField(rect, m_StencilPassOperation, Styles.stencilPassOperation);
-                rect.y += Styles.defaultLineSpace;
-                EditorGUI.PropertyField(rect, m_StencilFailOperation, Styles.stencilFailOperation);
-                rect.y += Styles.defaultLineSpace;
-                EditorGUI.PropertyField(rect, m_StencilDepthFailOperation, Styles.stencilDepthFailOperation);
-
-                EditorGUI.indentLevel--;
-            }
-        }
-
-        void DrawStencilIntField(ref Rect rect, SerializedProperty property, GUIContent label)
-        {
-            rect.y += Styles.defaultLineSpace;
-            EditorGUI.BeginProperty(rect, label, property);
-            if (targetDepthBuffer == CustomPass.TargetBuffer.Camera)
-            {
-                var userStencilBits = (UserStencilUsage)property.intValue;
-                EditorGUI.BeginChangeCheck();
-                var e = ConvertToUserStencilUsage((UserStencilUsageWorkaround)EditorGUI.EnumFlagsField(rect, label, ConvertToUserStencilUsageWorkaround(userStencilBits)));
-                if (EditorGUI.EndChangeCheck())
-                    property.intValue = (int)(e & (UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1));
-            }
-            else
-            {
-                EditorGUI.BeginChangeCheck();
-                property.intValue = EditorGUI.IntField(rect, label, property.intValue);
-                if (EditorGUI.EndChangeCheck())
-                    property.intValue &= 0xFF;
-            }
-            EditorGUI.EndProperty();
         }
 
         void DoShaderPassesList(ref Rect rect)
@@ -466,7 +349,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (showMaterialOverride)
                     height += Styles.defaultLineSpace * m_MaterialLines;
                 height += Styles.defaultLineSpace * (m_OverrideDepthState.boolValue && !customDepthIsNone ? 3 : 1);
-                height += Styles.defaultLineSpace * (m_OverrideStencilState.boolValue && !customDepthIsNone ? 7 : 1);
                 var mat = m_OverrideMaterial.objectReferenceValue as Material;
 
 #if SHOW_PASS_NAMES

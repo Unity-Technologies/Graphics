@@ -40,10 +40,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
                 hdCamera.depthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize);
 
-                // Bind the depth pyramid offset info for the HDSceneDepth node in ShaderGraph. This can be used by users in custom passes.
-                Shader.SetGlobalBuffer(HDShaderIDs._DepthPyramidMipLevelOffsets, hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer));
-                Shader.SetGlobalVector(HDShaderIDs._DepthPyramidBufferSize, new Vector4(hdCamera.depthBufferMipChainInfo.textureSize.x, hdCamera.depthBufferMipChainInfo.textureSize.y, 1.0f / hdCamera.depthBufferMipChainInfo.textureSize.x, 1.0f / hdCamera.depthBufferMipChainInfo.textureSize.y));
-
 #if UNITY_EDITOR
                 var showGizmos = camera.cameraType == CameraType.Game
                     || camera.cameraType == CameraType.SceneView;

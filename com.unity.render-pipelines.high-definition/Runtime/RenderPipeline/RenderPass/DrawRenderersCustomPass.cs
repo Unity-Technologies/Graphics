@@ -67,46 +67,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool depthWrite = true;
 
         /// <summary>
-        /// Override the stencil state of the objects.
-        /// </summary>
-        public bool overrideStencil = false;
-
-        /// <summary>
-        /// Stencil reference value. Be careful when using this value to write in the stencil buffer to not overwrite HDRP stencil bits.
-        /// </summary>
-        public int stencilReferenceValue = (int)UserStencilUsage.UserBit0;
-
-        /// <summary>
-        /// Write mask of the stencil.
-        /// </summary>
-        public int stencilWriteMask = (int)(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1);
-
-        /// <summary>
-        /// Read mask of the stencil
-        /// </summary>
-        public int stencilReadMask = (int)(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1);
-
-        /// <summary>
-        /// Comparison operation between the stencil buffer and the reference value.
-        /// </summary>
-        public CompareFunction stencilCompareFunction;
-
-        /// <summary>
-        /// Operation to execute if the stencil test passes.
-        /// </summary>
-        public StencilOp stencilPassOperation;
-
-        /// <summary>
-        /// Operation to execute if the stencil test fails.
-        /// </summary>
-        public StencilOp stencilFailOperation;
-
-        /// <summary>
-        /// Operation to execute if the depth test fails.
-        /// </summary>
-        public StencilOp stencilDepthFailOperation;
-
-        /// <summary>
         /// Set the shader pass to use when the override material is null
         /// </summary>
         public ShaderPass shaderPass = ShaderPass.Forward;
@@ -193,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 depthState = new DepthState(depthWrite, depthCompareFunction),
                 // We disable the stencil when the depth is overwritten but we don't write to it, to prevent writing to the stencil.
-                stencilState = new StencilState(overrideStencil, (byte)stencilReadMask, (byte)stencilWriteMask, stencilCompareFunction, stencilPassOperation, stencilFailOperation, stencilDepthFailOperation),
+                stencilState = new StencilState(false),
             };
 
             PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.GetBakedLightingWithShadowMaskRenderConfig() : HDUtils.GetBakedLightingRenderConfig();
