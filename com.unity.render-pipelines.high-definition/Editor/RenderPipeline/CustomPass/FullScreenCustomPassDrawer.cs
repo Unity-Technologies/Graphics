@@ -74,6 +74,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         EditorGUI.BeginChangeCheck();
                         int index = mat.FindPass(m_MaterialPassName.stringValue);
+                        if (index == -1)
+                            index = 0; // Select the first pass by default when the previous pass name doesn't exist in the new material.
                         index = EditorGUI.IntPopup(rect, Styles.materialPassName, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
                         if (EditorGUI.EndChangeCheck())
                             m_MaterialPassName.stringValue = mat.GetPassName(index);
