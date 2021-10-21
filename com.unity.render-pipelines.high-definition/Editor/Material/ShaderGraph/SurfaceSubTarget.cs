@@ -136,7 +136,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 ;
 
                 if (supportPathtracing)
+                {
                     passes.Add(HDShaderPasses.GeneratePathTracing(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateSensorDXR(supportLighting));
+                }
 
                 return passes;
             }

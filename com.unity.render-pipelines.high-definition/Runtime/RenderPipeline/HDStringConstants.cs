@@ -38,6 +38,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_RayTracingVisibilityStr = "VisibilityDXR";
         /// <summary>PathTracing DXR pass name.</summary>
         public static readonly string s_PathTracingDXRStr = "PathTracingDXR";
+        /// <summary>Sensor DXR pass name.</summary>
+        public static readonly string s_SensorDXRStr = "SensorDXR";
         /// <summary>META pass name.</summary>
         public static readonly string s_MetaStr = "META";
         /// <summary>Shadow Caster pass name.</summary>

@@ -1030,6 +1030,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kPassPathTracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl";
         public const string kPassRaytracingSubSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingSubSurface.hlsl";
 
+        // Sensor path tracing
+        public const string kLitSensor = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SensorLit/LitPathTracing.hlsl";
+        public const string kPassSensor = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassSensor.hlsl";
+
         // Public Pregraph Function
         public const string kCommonLighting = "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl";
         public const string kHDShadow = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl";
@@ -1054,6 +1058,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kPostDecalsPlaceholder = "After Decal Include Placeholder, replace me !";
         public const string kRaytracingPlaceholder = "Raytracing Include Placeholder, replace me !";
         public const string kPathtracingPlaceholder = "Pathtracing Include Placeholder, replace me !";
+        public const string kSensorPlaceholder = "Sensor Include Placeholder, replace me !";
 
         // Public Postgraph Pass
         public const string kPassLightTransport = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl";

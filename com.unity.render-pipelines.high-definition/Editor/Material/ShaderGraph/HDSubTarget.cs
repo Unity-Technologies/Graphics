@@ -61,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected virtual string postDecalsInclude => null;
         protected virtual string raytracingInclude => null;
         protected virtual string pathtracingInclude => null;
+        protected virtual string sensorInclude => null;
         protected virtual bool supportPathtracing => false;
         protected virtual bool supportRaytracing => false;
 
@@ -170,6 +171,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         path = raytracingInclude;
                     if (path == CoreIncludes.kPathtracingPlaceholder)
                         path = pathtracingInclude;
+                    if (path == CoreIncludes.kSensorPlaceholder)
+                        path = sensorInclude;
 
                     if (!String.IsNullOrEmpty(path))
                         finalIncludes.Add(path, include.location, include.fieldConditions);

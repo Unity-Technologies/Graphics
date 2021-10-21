@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     || snippet.passName == "ForwardDXR"
                     || snippet.passName == "VisibilityDXR"
                     || snippet.passName == "PathTracingDXR"
+                    || snippet.passName == "SensorDXR"
                     || snippet.passName == "GBufferDXR"
                     || snippet.passName == "SubSurfaceDXR")
                     return true;

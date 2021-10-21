@@ -618,6 +618,39 @@ Shader "HDRP/Unlit"
 
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "SensorDXR"
+            Tags{ "LightMode" = "SensorDXR" }
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps5
+            #pragma raytracing surface_shader
+
+            #define SHADERPASS SHADERPASS_PATH_TRACING
+
+            #define SHADER_UNLIT
+            #define HAS_LIGHTLOOP // Used when computing volumetric scattering
+
+            #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/ShaderPass/UnlitSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassSensor.hlsl"
+
+            ENDHLSL
+        }
     }
 
     CustomEditor "Rendering.HighDefinition.UnlitGUI"
