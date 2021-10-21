@@ -42,12 +42,8 @@ SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, 
     $SurfaceDescriptionInputs.PixelPosition:                                output.PixelPosition = float2(input.positionPixel.x, (_ProjectionParams.x > 0) ? (_ScreenParams.y - input.positionPixel.y) : input.positionPixel.y);
 #endif
 
-#if defined(USING_STEREO_MATRICES)
-    $SurfaceDescriptionInputs.NDCPosition:                                  output.NDCPosition = output.ScreenPosition.xy / output.ScreenPosition.w;
-#else
     $SurfaceDescriptionInputs.NDCPosition:                                  output.NDCPosition = output.PixelPosition.xy / _ScreenParams.xy;
     $SurfaceDescriptionInputs.NDCPosition:                                  output.NDCPosition.y = 1.0f - output.NDCPosition.y;
-#endif
 
     $SurfaceDescriptionInputs.uv0:                                          output.uv0 =                                        input.texCoord0;
     $SurfaceDescriptionInputs.uv1:                                          output.uv1 =                                        input.texCoord1;
