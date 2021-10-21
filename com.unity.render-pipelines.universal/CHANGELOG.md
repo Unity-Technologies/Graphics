@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Main light shadow, additional light shadow and additional light keywords are now enabled based on urp setting instead of existence in scene. This allows better variant stripping.
+- Now using the SpeedTree8 PBRLit shadergraph as the default SpeedTree8 shader for Universal.
 
 ### Fixed
 - Fixed a regression where ShaderGraph screen position was not correct in game view and when using XR [1369450]
@@ -24,7 +25,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue in where installing the Adaptive Performance package caused errors to the inspector UI [1368161](https://issuetracker.unity3d.com/issues/urp-package-throws-compilation-error-cs1525-when-imported-together-with-adaptive-performance-package)
 
 ## [13.1.0] - 2021-09-24
-
 ### Added
 - Added public api and updated docs for Light2D shape properties.
 

@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fixed a bug that Parallax Mapping and Parallax Occlusion Mapping nodes don't use the same channel to sample heightmap by adding drop-downs for channel selecting to both of the nodes. [1347270] (https://fogbugz.unity3d.com/f/cases/1347270/)
  - Fixed errors in the ShaderGraph Transform node [1368082]
  - Fixed the Scene Depth node so it returns proper results in Eye space when using an orthographic camera [1311272]
+ - Fixed missing shader keyword stage during keyword copying.
 
 ## [13.1.0] - 2021-09-24
 
