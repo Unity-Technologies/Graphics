@@ -47,42 +47,29 @@ namespace UnityEditor.VFX
             return (value - a) / (b - a);
         }
 
-        private List<VisualEffectPlayableSerializedEvent> m_CacheEventList;
-
         public override void DrawBackground(TimelineClip clip, ClipBackgroundRegion region)
         {
             base.DrawBackground(clip, region);
             var playable = clip.asset as VisualEffectControlPlayableAsset;
 
-            if (playable.events == null)
+            //TODOPAUL: can be handled safely
+            if (playable.clipEvents == null || playable.singleEvents == null)
                 return;
 
-            if (m_CacheEventList == null)
-                m_CacheEventList = new List<VisualEffectPlayableSerializedEvent>();
-
-            m_CacheEventList.Clear();
-            var eventInRelative = VisualEffectPlayableSerializedEvent.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable);
-            m_CacheEventList.AddRange(eventInRelative);
-
             var iconSize = new Vector2(8, 8);
-            var startEvent = m_CacheEventList.FirstOrDefault(o => o.type == VisualEffectPlayableSerializedEvent.Type.Play);
-            var stopEvent = m_CacheEventList.FirstOrDefault(o => o.type == VisualEffectPlayableSerializedEvent.Type.Stop);
 
-            //TODOPAUL, avoid garbage here
-            var eventStartStop = m_CacheEventList
-                .Where(o => o.type != VisualEffectPlayableSerializedEvent.Type.Custom)
-                .OrderBy(o => o.time)
-                .ToArray();
+            var clipEvents = VisualEffectPlayableSerializedEvent.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable, true);
 
-            for (int i = 0; i < eventStartStop.Length - 1; ++i)
+            using (var iterator = clipEvents.GetEnumerator())
             {
-                var currentEvent = eventStartStop[i];
-                var nextEvent = eventStartStop[i+1];
-                if (currentEvent.type == VisualEffectPlayableSerializedEvent.Type.Play
-                    && nextEvent.type == VisualEffectPlayableSerializedEvent.Type.Stop)
+                while (iterator.MoveNext())
                 {
-                    var relativeStart = InverseLerp(region.startTime, region.endTime, currentEvent.time);
-                    var relativeStop = InverseLerp(region.startTime, region.endTime, nextEvent.time);
+                    var enter = iterator.Current;
+                    iterator.MoveNext();
+                    var exit = iterator.Current;
+
+                    var relativeStart = InverseLerp(region.startTime, region.endTime, enter.time);
+                    var relativeStop = InverseLerp(region.startTime, region.endTime, exit.time);
 
                     var startRange = region.position.width * Mathf.Clamp01((float)relativeStart);
                     var endRange = region.position.width * Mathf.Clamp01((float)relativeStop);
@@ -93,21 +80,24 @@ namespace UnityEditor.VFX
                         endRange - startRange,
                         region.position.y + 0.19f * region.position.height);
 
-                    float color = 0.5f;
-                    EditorGUI.DrawRect(rect, Color.HSVToRGB(color, 1.0f, 1.0f));
+                    float hue = 0.5f;
+                    var color = Color.HSVToRGB(hue, 1.0f, 1.0f);
+                    color.a = 0.5f;
+                    EditorGUI.DrawRect(rect, color);
                 }
             }
 
-            foreach (var itEvent in m_CacheEventList)
+            var singleEvents = VisualEffectPlayableSerializedEvent.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable, false);
+            var allEvents = clipEvents.Concat(singleEvents);
+            var clipEventsCount = clipEvents.Count();
+            int index = 0;
+            foreach (var itEvent in allEvents)
             {
                 var relativeTime = InverseLerp(region.startTime, region.endTime, itEvent.time);
                 var center = new Vector2(region.position.position.x + region.position.width * (float)relativeTime,
                     region.position.position.y + region.position.height * 0.5f);
 
-                float color = 0.5f;
-                if (itEvent.type == VisualEffectPlayableSerializedEvent.Type.Custom)
-                    color = 0.3f;
-
+                float color = index < clipEventsCount ? 0.5f : 0.3f;
                 var eventRect = new Rect(center - iconSize * new Vector2(1.0f, -0.5f), iconSize);
                 EditorGUI.DrawRect(eventRect, Color.HSVToRGB(color, 1.0f, 1.0f));
 
@@ -117,6 +107,8 @@ namespace UnityEditor.VFX
                     fontStyle,
                     Color.HSVToRGB(color, 1.0f, 1.0f),
                     Color.HSVToRGB(color, 1.0f, 0.1f));
+
+                index++;
             }
         }
     }

@@ -8,6 +8,7 @@ using UnityEngine.Timeline;
 
 namespace UnityEngine.VFX
 {
+    //TODOPAUL: check public api
     [Serializable]
     public class VisualEffectControlPlayableAsset : PlayableAsset, ITimelineClipAsset
     {
@@ -25,24 +26,36 @@ namespace UnityEngine.VFX
         [NotKeyable]
         public uint startSeed;
 
-        [NotKeyable]
-        public List<VisualEffectPlayableSerializedEvent> events = new List<VisualEffectPlayableSerializedEvent>()
+        [Serializable]
+        public struct ClipEvent
         {
-            new VisualEffectPlayableSerializedEvent()
+            public VisualEffectPlayableSerializedEvent enter;
+            public VisualEffectPlayableSerializedEvent exit;
+        }
+
+        [NotKeyable]
+        public List<ClipEvent> clipEvents = new List<ClipEvent>()
+        {
+            new ClipEvent()
             {
-                name = VisualEffectAsset.PlayEventName,
-                time = 0.0,
-                timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart,
-                type = VisualEffectPlayableSerializedEvent.Type.Play
-            },
-            new VisualEffectPlayableSerializedEvent()
-            {
-                name = VisualEffectAsset.StopEventName,
-                time = 0.0,
-                timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd,
-                type = VisualEffectPlayableSerializedEvent.Type.Stop
-            },
+                enter = new VisualEffectPlayableSerializedEvent()
+                {
+                    name = VisualEffectAsset.PlayEventName,
+                    time = 0.0,
+                    timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart,
+                },
+
+                exit = new VisualEffectPlayableSerializedEvent()
+                {
+                    name = VisualEffectAsset.StopEventName,
+                    time = 0.0,
+                    timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd,
+                }
+            }
         };
+
+        [NotKeyable]
+        public List<VisualEffectPlayableSerializedEvent> singleEvents = new List<VisualEffectPlayableSerializedEvent>();
 
         public override Playable CreatePlayable(PlayableGraph graph, GameObject owner)
         {
@@ -52,7 +65,25 @@ namespace UnityEngine.VFX
             behaviour.clipEnd = clipEnd;
             behaviour.scrubbing = scrubbing;
             behaviour.startSeed = startSeed;
-            behaviour.events = events == null ? new VisualEffectPlayableSerializedEvent[] { } : events.ToArray();
+
+            if (clipEvents == null)
+                clipEvents = new List<ClipEvent>();
+            if (singleEvents == null)
+                singleEvents = new List<VisualEffectPlayableSerializedEvent>();
+
+            behaviour.events = new VisualEffectPlayableSerializedEvent[clipEvents.Count * 2 + singleEvents.Count];
+            int cursor = 0;
+            foreach (var itEvent in clipEvents)
+            {
+                behaviour.events[cursor++] = itEvent.enter;
+                behaviour.events[cursor++] = itEvent.exit;
+            }
+
+            foreach (var itEvent in singleEvents)
+            {
+                behaviour.events[cursor++] = itEvent;
+            }
+
             return playable;
         }
     }
