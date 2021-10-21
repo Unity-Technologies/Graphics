@@ -97,8 +97,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_BlitMaterial = blitMaterial;
 
             // Texture format pre-lookup
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear) &&
-                SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Render))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
             {
                 m_DefaultHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
                 m_UseRGBM = false;
@@ -117,9 +116,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
                 m_SMAAEdgeFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, FormatUsage.Linear) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, FormatUsage.Render))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, FormatUsage.Linear | FormatUsage.Render))
                 m_GaussianCoCFormat = GraphicsFormat.R16_UNorm;
-            else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Linear) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Render))
+            else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Linear | FormatUsage.Render))
                 m_GaussianCoCFormat = GraphicsFormat.R16_SFloat;
             else // Expect CoC banding
                 m_GaussianCoCFormat = GraphicsFormat.R8_UNorm;
@@ -511,7 +510,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Setup other effects constants
                 SetupLensDistortion(m_Materials.uber, isSceneViewCamera);
                 SetupChromaticAberration(m_Materials.uber);
-                SetupVignette(m_Materials.uber);
+                SetupVignette(m_Materials.uber, cameraData.xr);
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
 
                 // Only apply dithering & grain if there isn't a final pass.
@@ -956,9 +955,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)Screen.width, (float)Screen.height,
                 usePanini, paniniDistance, paniniCropToFit,
                 true,
+                camera.transform.position,
                 gpuVP,
                 cmd, source,
                 (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
+                ShaderConstants._FlareOcclusionTex, ShaderConstants._FlareOcclusionIndex,
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
                 ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
                 false);
@@ -1264,11 +1265,24 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         #region Vignette
 
-        void SetupVignette(Material material)
+        void SetupVignette(Material material, XRPass xrPass)
         {
             var color = m_Vignette.color.value;
             var center = m_Vignette.center.value;
             var aspectRatio = m_Descriptor.width / (float)m_Descriptor.height;
+
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xrPass != null && xrPass.enabled)
+            {
+                if (xrPass.singlePassEnabled)
+                    material.SetVector(ShaderConstants._Vignette_ParamsXR, xrPass.ApplyXRViewCenterOffset(center));
+                else
+                    // In multi-pass mode we need to modify the eye center with the values from .xy of the corrected
+                    // center since the version of the shader that is not single-pass will use the value in _Vignette_Params2
+                    center = xrPass.ApplyXRViewCenterOffset(center);
+            }
+#endif
 
             var v1 = new Vector4(
                 color.r, color.g, color.b,
@@ -1532,12 +1546,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _Chroma_Params = Shader.PropertyToID("_Chroma_Params");
             public static readonly int _Vignette_Params1 = Shader.PropertyToID("_Vignette_Params1");
             public static readonly int _Vignette_Params2 = Shader.PropertyToID("_Vignette_Params2");
+            public static readonly int _Vignette_ParamsXR = Shader.PropertyToID("_Vignette_ParamsXR");
             public static readonly int _Lut_Params = Shader.PropertyToID("_Lut_Params");
             public static readonly int _UserLut_Params = Shader.PropertyToID("_UserLut_Params");
             public static readonly int _InternalLut = Shader.PropertyToID("_InternalLut");
             public static readonly int _UserLut = Shader.PropertyToID("_UserLut");
             public static readonly int _DownSampleScaleFactor = Shader.PropertyToID("_DownSampleScaleFactor");
 
+            public static readonly int _FlareOcclusionTex = Shader.PropertyToID("_FlareOcclusionTex");
+            public static readonly int _FlareOcclusionIndex = Shader.PropertyToID("_FlareOcclusionIndex");
             public static readonly int _FlareTex = Shader.PropertyToID("_FlareTex");
             public static readonly int _FlareColorValue = Shader.PropertyToID("_FlareColorValue");
             public static readonly int _FlareData0 = Shader.PropertyToID("_FlareData0");

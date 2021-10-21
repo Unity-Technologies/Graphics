@@ -1,105 +1,62 @@
+using System;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
+
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UnityEditor.VFX;
-using UnityEditor.VFX.UIElements;
-using UnityObject = UnityEngine.Object;
-using Type = System.Type;
 
-using ObjectField = UnityEditor.VFX.UI.VFXLabeledField<UnityEditor.UIElements.ObjectField, UnityEngine.Object>;
+using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
     class ObjectPropertyRM : PropertyRM<UnityObject>
     {
+        static readonly Dictionary<Type, TextureDimension> s_TypeToDimensionMap = new()
+        {
+            { typeof(Texture2D), TextureDimension.Tex2D },
+            { typeof(Texture3D), TextureDimension.Tex3D },
+            { typeof(Cubemap), TextureDimension.Cube },
+        };
+
+        readonly TextField m_TextField;
+        readonly Image m_ValueIcon;
+        readonly TextureDimension m_textureDimension;
+
         public ObjectPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            m_ObjectField = new ObjectField(m_Label);
-            if (controller.portType == typeof(Texture2D) || controller.portType == typeof(Texture3D) || controller.portType == typeof(Cubemap))
-                m_ObjectField.control.objectType = typeof(Texture);
-            else
-                m_ObjectField.control.objectType = controller.portType;
+            styleSheets.Add(VFXView.LoadStyleSheet("ObjectPropertyRM"));
 
-            m_ObjectField.RegisterCallback<ChangeEvent<UnityObject>>(OnValueChanged);
-            m_ObjectField.control.allowSceneObjects = false;
-            m_ObjectField.style.flexGrow = 1f;
-            m_ObjectField.style.flexShrink = 1f;
-            RegisterCallback<KeyDownEvent>(StopKeyPropagation);
-            Add(m_ObjectField);
-        }
+            m_TextField = new TextField { name = "PickLabel", isReadOnly = true };
+            var button = new Button { name = "PickButton" };
+            var icon = new VisualElement { name = "PickIcon" };
+            m_ValueIcon = new Image { name = "TextureIcon" };
 
-        public override float GetPreferredControlWidth()
-        {
-            return 120;
-        }
+            button.clicked += OnPickObject;
+            button.Add(icon);
+            m_TextField.Add(m_ValueIcon);
+            m_TextField.Add(button);
+            Add(m_TextField);
 
-        void StopKeyPropagation(KeyDownEvent e)
-        {
-            e.StopPropagation();
-        }
+            m_TextField.RegisterCallback<ClickEvent>(OnClickToShow);
+            RegisterCallback<DragUpdatedEvent>(OnDragUpdate);
+            RegisterCallback<DragEnterEvent>(OnDragEnter);
+            RegisterCallback<DragPerformEvent>(OnDragPerformed);
 
-        public void OnValueChanged(ChangeEvent<UnityObject> onObjectChanged)
-        {
-            UnityObject newValue = m_ObjectField.value;
-            if (typeof(Texture).IsAssignableFrom(m_Provider.portType))
+            if (!s_TypeToDimensionMap.TryGetValue(m_Provider.portType, out m_textureDimension))
             {
-                Texture tex = newValue as Texture;
-
-                if (tex != null)
-                {
-                    if (m_Provider.portType == typeof(Texture2D))
-                    {
-                        if (tex.dimension != TextureDimension.Tex2D)
-                        {
-                            Debug.LogError("Wrong Texture Dimension");
-
-                            newValue = null;
-                        }
-                    }
-                    else if (m_Provider.portType == typeof(Texture3D))
-                    {
-                        if (tex.dimension != TextureDimension.Tex3D)
-                        {
-                            Debug.LogError("Wrong Texture Dimension");
-
-                            newValue = null;
-                        }
-                    }
-                    else if (m_Provider.portType == typeof(Cubemap))
-                    {
-                        if (tex.dimension != TextureDimension.Cube)
-                        {
-                            Debug.LogError("Wrong Texture Dimension");
-
-                            newValue = null;
-                        }
-                    }
-                }
+                m_textureDimension = TextureDimension.Unknown;
             }
-            m_Value = newValue;
-            NotifyValueChanged();
         }
 
-        ObjectField m_ObjectField;
-
-        protected override void UpdateEnabled()
-        {
-            m_ObjectField.SetEnabled(propertyEnabled);
-        }
-
-        protected override void UpdateIndeterminate()
-        {
-            m_ObjectField.visible = !indeterminate;
-        }
+        public override float GetPreferredControlWidth() => 120;
 
         public override void UpdateGUI(bool force)
         {
             if (force)
-                m_ObjectField.SetValueWithoutNotify(null);
-            m_ObjectField.SetValueWithoutNotify(m_Value);
+            {
+                NotifyValueChanged();
+            }
         }
 
         public override void SetValue(object obj) // object setvalue should accept null
@@ -107,15 +64,76 @@ namespace UnityEditor.VFX.UI
             try
             {
                 m_Value = (UnityObject)obj;
+                m_ValueIcon.image = obj != null
+                    ? AssetPreview.GetMiniTypeThumbnail(m_Value)
+                    : AssetPreview.GetMiniTypeThumbnail(m_Provider.portType);
+                m_TextField.value = m_Value?.name ?? $"None ({m_Provider.portType.Name})";
             }
-            catch (System.Exception)
+            catch (Exception)
             {
-                Debug.Log("Error Trying to convert" + (obj != null ? obj.GetType().Name : "null") + " to " + typeof(UnityObject).Name);
+                Debug.Log($"Error Trying to convert {obj?.GetType().Name ?? "null"} to Object");
             }
 
-            UpdateGUI(!object.ReferenceEquals(m_Value, obj));
+            UpdateGUI(!ReferenceEquals(m_Value, obj));
         }
 
-        public override bool showsEverything { get { return true; } }
+        public override bool showsEverything => true;
+
+        protected override void UpdateEnabled() => SetEnabled(propertyEnabled);
+
+        protected override void UpdateIndeterminate() => visible = !indeterminate;
+
+        void OnPickObject() => CustomObjectPicker.Pick(m_Provider.portType, m_textureDimension, SelectHandler);
+
+        void SelectHandler(UnityObject obj, bool isCanceled)
+        {
+            if (!isCanceled)
+            {
+                SetValue(obj);
+                NotifyValueChanged();
+            }
+        }
+
+        void OnClickToShow(ClickEvent evt)
+        {
+            EditorGUI.PingObjectOrShowPreviewOnClick(m_Value, Rect.zero);
+        }
+
+        bool CanDrag()
+        {
+            if (DragAndDrop.objectReferences.Length == 1)
+            {
+                var type = DragAndDrop.objectReferences[0].GetType();
+                if (m_Provider.portType.IsAssignableFrom(type))
+                {
+                    return true;
+                }
+
+                if (m_textureDimension != TextureDimension.Unknown && DragAndDrop.objectReferences[0] is Texture texture)
+                {
+                    return texture.dimension == m_textureDimension;
+                }
+            }
+
+            return false;
+        }
+
+        void OnDragEnter(DragEnterEvent evt)
+        {
+            DragAndDrop.visualMode = CanDrag() ? DragAndDropVisualMode.Link : DragAndDropVisualMode.Rejected;
+            evt.StopPropagation();
+        }
+
+        void OnDragUpdate(DragUpdatedEvent evt)
+        {
+            DragAndDrop.visualMode = CanDrag() ? DragAndDropVisualMode.Link : DragAndDropVisualMode.Rejected;
+            evt.StopPropagation();
+        }
+
+        void OnDragPerformed(DragPerformEvent evt)
+        {
+            var dragObject = DragAndDrop.objectReferences.First();
+            SelectHandler(dragObject, false);
+        }
     }
 }

@@ -51,6 +51,7 @@ Shader "Hidden/DebugVTBlit"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         // No culling or depth
         Cull Off
         ZWrite Off
