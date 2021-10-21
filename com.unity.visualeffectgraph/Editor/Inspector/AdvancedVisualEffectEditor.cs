@@ -769,7 +769,7 @@ namespace UnityEditor.VFX
             {
                 foreach (var window in VFXViewWindow.GetAllWindows())
                 {
-                    window.graphView.DetachIfDeleted();
+                    window.graphView?.DetachIfDeleted();
                 }
             }
         }
