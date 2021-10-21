@@ -127,11 +127,10 @@ namespace UnityEditor.VFX
             {
                 Debug.Log("ENABLE SLOT CHANGED " + cause);
 
-                bool oldEnabledStateValid = m_EnableStateUpToDate;
                 bool oldEnableState = m_CachedEnableState;
                 UpdateEnableState();
 
-                if (!oldEnabledStateValid || (m_CachedEnableState != oldEnableState))
+                if (m_CachedEnableState != oldEnableState)
                     Invalidate(InvalidationCause.kEnableChanged);
             }
         }
