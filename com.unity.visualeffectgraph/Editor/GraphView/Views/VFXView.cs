@@ -1123,6 +1123,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
+                VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.UpdateFromVFXView(this, Enumerable.Empty<IGizmoController>());
                 if (m_NoAssetLabel.parent == null)
                 {
                     Add(m_NoAssetLabel);
