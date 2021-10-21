@@ -230,8 +230,8 @@ namespace UnityEngine.Rendering.Universal
 
                 // FR
                 display.foveatedRenderingLevel = 0.5f;
-                //display.foveatedRenderingLevel = Mathf.Cos(Time.realtimeSinceStartup);
-                //display.foveatedRenderingFlags = display.foveatedRenderingLevel > 0.5f ? XRDisplaySubsystem.FoveatedRenderingFlags.GazeAllowed : XRDisplaySubsystem.FoveatedRenderingFlags.None;
+                //display.foveatedRenderingLevel = Mathf.Cos(Time.realtimeSinceStartup * Mathf.PI);
+                //display.foveatedRenderingFlags = XRDisplaySubsystem.FoveatedRenderingFlags.GazeAllowed;
                 // FR
 
                 // Refresh max views
