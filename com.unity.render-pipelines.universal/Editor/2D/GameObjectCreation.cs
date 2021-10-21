@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.Universal
         [MenuItem("GameObject/2D Object/Pixel Perfect Camera", priority = k_PixelPerfectCameraGameObjectMenuPriority)]
         static void GameObjectCreatePixelPerfectCamera(MenuCommand menuCommand)
         {
-            var go = CreateGameObject("Pixel Perfect Camera", menuCommand, new []{typeof(PixelPerfectCamera)});
+            var go = CreateGameObject("Pixel Perfect Camera", menuCommand, new[] { typeof(PixelPerfectCamera) });
             go.GetComponent<PixelPerfectCamera>().gridSnapping = PixelPerfectCamera.GridSnapping.PixelSnapping;
         }
 
@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.Universal
             Undo.RegisterCreatedObjectUndo(newGO, string.Format("Create {0}", name));
             return newGO;
         }
-        
+
         internal static void Place(GameObject go, GameObject parentTransform)
         {
             if (parentTransform != null)
@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal
             Undo.SetCurrentGroupName("Create " + go.name);
             Selection.activeGameObject = go;
         }
-        
+
         internal static void PlaceGameObjectInFrontOfSceneView(GameObject go)
         {
             var view = SceneView.lastActiveSceneView;
