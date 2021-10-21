@@ -10,6 +10,8 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using BlendMode = UnityEditor.Rendering.HighDefinition.BlendMode;
 
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
+
 namespace UnityEditor.VFX.HDRP
 {
     class VFXHDRPBinder : VFXSRPBinder
@@ -104,7 +106,7 @@ namespace UnityEditor.VFX.HDRP
         public override string GetShaderName(ShaderGraphVfxAsset shaderGraph)
         {
             // Recover the HDRP Shader ids from the VFX Shader Graph.
-            (HDShaderUtils.ShaderID shaderID, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromHDMetadata(shaderGraph);
+            (ShaderID shaderID, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromHDMetadata(shaderGraph);
             return HDShaderUtils.GetMaterialSubTargetDisplayName(subTargetGUID);
         }
 

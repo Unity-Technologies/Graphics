@@ -33,6 +33,22 @@ namespace UnityEditor.ShaderGraph
         {
             return normalize ? "true" : "false";
         }
+
+        // non-identity transforms involving tangent space require the full tangent frame
+        public NeededCoordinateSpace RequiresNormal =>
+            (((from == CoordinateSpace.Tangent) || (to == CoordinateSpace.Tangent)) && (from != to)) ?
+                NeededCoordinateSpace.World : NeededCoordinateSpace.None;
+        public NeededCoordinateSpace RequiresTangent =>
+            (((from == CoordinateSpace.Tangent) || (to == CoordinateSpace.Tangent)) && (from != to)) ?
+                NeededCoordinateSpace.World : NeededCoordinateSpace.None;
+        public NeededCoordinateSpace RequiresBitangent =>
+            (((from == CoordinateSpace.Tangent) || (to == CoordinateSpace.Tangent)) && (from != to)) ?
+                NeededCoordinateSpace.World : NeededCoordinateSpace.None;
+
+        // non-identity position transforms involving tangent space require the world position
+        public NeededCoordinateSpace RequiresPosition =>
+            ((type == ConversionType.Position) && ((from == CoordinateSpace.Tangent) || (to == CoordinateSpace.Tangent)) && (from != to)) ?
+                NeededCoordinateSpace.World : NeededCoordinateSpace.None;
     };
 
     static class SpaceTransformUtil

@@ -378,7 +378,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 if (property.sgVersion < property.latestVersion)
                 {
                     var typeString = property.propertyType.ToString();
-                    var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{typeString} Property", () => property.ChangeVersion(property.latestVersion));
+
+                    Action dismissAction = null;
+                    if (property.dismissedUpdateVersion < property.latestVersion)
+                    {
+                        dismissAction = () =>
+                        {
+                            _preChangeValueCallback("Dismiss Property Update");
+                            property.dismissedUpdateVersion = property.latestVersion;
+                            _postChangeValueCallback();
+                            inspectorUpdateDelegate?.Invoke();
+                        };
+                    }
+
+                    var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{typeString} Property",
+                        () => property.ChangeVersion(property.latestVersion),
+                        dismissAction);
                     if (help != null)
                     {
                         propertySheet.Insert(0, help);
@@ -1312,6 +1327,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     this._preChangeValueCallback("Change property value");
                     keyword.value = newValue.isOn ? 1 : 0;
+                    if (graphData.owner.materialArtifact)
+                    {
+                        graphData.owner.materialArtifact.SetFloat(keyword.referenceName, keyword.value);
+                        MaterialEditor.ApplyMaterialPropertyDrawers(graphData.owner.materialArtifact);
+                    }
                     this._postChangeValueCallback(false, ModificationScope.Graph);
                 },
                 new ToggleData(keyword.value == 1),
@@ -1330,6 +1350,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             {
                 this._preChangeValueCallback("Change Keyword Value");
                 keyword.value = field.index;
+                if (graphData.owner.materialArtifact)
+                {
+                    graphData.owner.materialArtifact.SetFloat(keyword.referenceName, field.index);
+                    MaterialEditor.ApplyMaterialPropertyDrawers(graphData.owner.materialArtifact);
+                }
                 this._postChangeValueCallback(false, ModificationScope.Graph);
             });
 
