@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public SphericalHarmonicsL2 ambientProbe => m_AmbientProbe;
 
         public ComputeBuffer ambientProbeResult { get; private set; }
+        public ComputeBuffer volumetricAmbientProbeResult { get; private set; }
         public RTHandle skyboxCubemapRT { get; private set; }
         public CubemapArray skyboxBSDFCubemapArray { get; private set; }
         public bool supportsConvolution { get; private set; } = false;
@@ -23,6 +24,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Compute buffer storing the resulting SH from diffuse convolution. L2 SH => 9 float per component.
             ambientProbeResult = new ComputeBuffer(27, 4);
+            // Compute buffer storing the pre-convolved resulting SH For volumetric lighting. L2 SH => 9 float per component.
+            // Result is stored packed to be used directly by shader code (27 coeffs in 7 float4)
+            volumetricAmbientProbeResult = new ComputeBuffer(7, 16);
 
             skyboxCubemapRT = RTHandles.Alloc(resolution, resolution, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureDimension.Cube, useMipMap: true, autoGenerateMips: false, filterMode: FilterMode.Trilinear, name: name);
 
@@ -49,6 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             ambientProbeResult.Release();
+            volumetricAmbientProbeResult.Release();
         }
 
         public void ClearAmbientProbe()
@@ -63,6 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void OnComputeAmbientProbeDone(AsyncGPUReadbackRequest request)
         {
+            // We only read back the 27 first coeffs for diffuse convolution (as it's requested by C++ CPU code to setup objects)
             if (!request.hasError)
             {
                 var result = request.GetData<float>();

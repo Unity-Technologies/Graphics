@@ -152,9 +152,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Only show the procedural sky upgrade message once
         static bool logOnce = true;
 
-        // This boolean here is only to track the first frame after a domain reload or creation.
-        bool m_RequireWaitForAsyncReadBackRequest = true;
-
         MaterialPropertyBlock m_OpaqueAtmScatteringBlock;
 
 #if UNITY_EDITOR
@@ -171,7 +168,9 @@ namespace UnityEngine.Rendering.HighDefinition
         BuiltinSkyParameters m_BuiltinParameters = new BuiltinSkyParameters();
         ComputeShader m_ComputeAmbientProbeCS;
         readonly int m_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
+        readonly int m_VolumetricAmbientProbeOutputBufferParam = Shader.PropertyToID("_VolumetricAmbientProbeOutputBuffer");
         readonly int m_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
+        readonly int m_FogParameters = Shader.PropertyToID("_FogParameters");
         int m_ComputeAmbientProbeKernel;
         CubemapArray m_BlackCubemapArray;
 
@@ -434,6 +433,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        ComputeBuffer GetVolumetricAmbientProbeBuffer(SkyUpdateContext skyContext)
+        {
+            if (skyContext.IsValid() && IsCachedContextValid(skyContext))
+            {
+                ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
+                return context.renderingContext.volumetricAmbientProbeResult;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         Texture GetSkyCubemap(SkyUpdateContext skyContext)
         {
             if (skyContext.IsValid() && IsCachedContextValid(skyContext))
@@ -465,6 +477,17 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetReflectionTexture(hdCamera.lightingSky);
         }
 
+        SkyUpdateContext GetLightingSky(HDCamera hdCamera)
+        {
+            if (hdCamera.skyAmbientMode == SkyAmbientMode.Static
+                || (hdCamera.camera.cameraType == CameraType.Reflection && HDRenderPipeline.currentPipeline.reflectionProbeBaking))
+            {
+                return m_StaticLightingSky;
+            }
+
+            return hdCamera.lightingSky;
+        }
+
         // Return the value of the ambient probe
         internal SphericalHarmonicsL2 GetAmbientProbe(HDCamera hdCamera)
         {
@@ -474,13 +497,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_BlackAmbientProbe;
             }
 
-            if (hdCamera.skyAmbientMode == SkyAmbientMode.Static
-                || (hdCamera.camera.cameraType == CameraType.Reflection && HDRenderPipeline.currentPipeline.reflectionProbeBaking))
+            return GetAmbientProbe(GetLightingSky(hdCamera));
+        }
+
+        internal ComputeBuffer GetVolumetricAmbientProbeBuffer(HDCamera hdCamera)
+        {
+            // If a camera just returns from being disabled, sky is not setup yet for it.
+            if (hdCamera.lightingSky == null && hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic)
             {
-                return GetAmbientProbe(m_StaticLightingSky);
+                return null;
             }
 
-            return GetAmbientProbe(hdCamera.lightingSky);
+            return GetVolumetricAmbientProbeBuffer(GetLightingSky(hdCamera));
         }
 
         internal bool HasSetValidAmbientProbe(HDCamera hdCamera)
@@ -793,6 +821,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             skyHash = skyHash * 23 + (staticSky ? 1 : 0);
             skyHash = skyHash * 23 + (ambientMode == SkyAmbientMode.Static ? 1 : 0);
+
+            // These parameters have an effect on the ambient probe computed for volumetric lighting. Therefore we need to include them to the hash.
+            if (camera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
+            {
+                var fog = camera.volumeStack.GetComponent<Fog>();
+                skyHash = skyHash * 23 + fog.globalLightProbeDimmer.GetHashCode();
+                skyHash = skyHash * 23 + fog.anisotropy.GetHashCode();
+            }
             return skyHash;
         }
 
@@ -804,7 +840,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void RequestStaticEnvironmentUpdate()
         {
             m_StaticSkyUpdateRequired = true;
-            m_RequireWaitForAsyncReadBackRequest = true;
         }
 
         public void UpdateEnvironment(HDCamera hdCamera,
@@ -886,28 +921,14 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
                                 {
+                                    var fog = hdCamera.volumeStack.GetComponent<Fog>();
+
                                     cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
+                                    cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_VolumetricAmbientProbeOutputBufferParam, renderingContext.volumetricAmbientProbeResult);
                                     cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
+                                    cmd.SetComputeVectorParam(m_ComputeAmbientProbeCS, m_FogParameters, new Vector4(fog.globalLightProbeDimmer.value, fog.anisotropy.value, 0.0f, 0.0f));
                                     cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
                                     cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
-
-                                    // When the profiler is enabled, we don't want to submit the render context because
-                                    // it will break all the profiling sample Begin() calls issued previously, which leads
-                                    // to profiling sample mismatch errors in the console.
-                                    if (!UnityEngine.Profiling.Profiler.enabled)
-                                    {
-                                        // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
-                                        // otherwise ambient probe isn't correct for one frame.
-                                        if (m_RequireWaitForAsyncReadBackRequest)
-                                        {
-                                            cmd.WaitAllAsyncReadbackRequests();
-                                            renderContext.ExecuteCommandBuffer(cmd);
-                                            CommandBufferPool.Release(cmd);
-                                            renderContext.Submit();
-                                            cmd = CommandBufferPool.Get();
-                                            m_RequireWaitForAsyncReadBackRequest = false;
-                                        }
-                                    }
                                 }
                             }
 

@@ -1,5 +1,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Hammersley.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
@@ -12,6 +13,12 @@
 TEXTURECUBE(_AmbientProbeInputCubemap);
 // Output buffer
 RWStructuredBuffer<float> _AmbientProbeOutputBuffer;
+RWStructuredBuffer<float4> _VolumetricAmbientProbeOutputBuffer;
+
+uniform float4 _FogParameters;
+
+#define _FogDimmer _FogParameters.x
+#define _FogAnisotropy _FogParameters.y
 
 // Constants from SetSHEMapConstants function in the Stupid Spherical Harmonics Tricks paper:
 // http://www.ppsloan.org/publications/StupidSH36.pdf
@@ -21,6 +28,27 @@ RWStructuredBuffer<float> _AmbientProbeOutputBuffer;
 #define fC2 (rsqrt(PI * 4.0 / 15.0) * rsqrt(PI * 64.0 / 15.0)) // Equivalent to (1.092548 * (sqrt (15.0) / ( 8.0 * sqrtPI)))
 #define fC3 (rsqrt(PI * 16.0 / 5.0) * rsqrt(PI * 256.0 / 5.0)) // Equivalent to (0.315392 * (sqrt ( 5.0) / (16.0 * sqrtPI)))
 #define fC4 (rsqrt(PI * 16.0 / 15.0) * rsqrt(PI * 256.0 / 15.0)) // Equivalent to  (0.546274 * 0.5 * (sqrt (15.0) / ( 8.0 * sqrtPI)))
+
+static const float ConvolveCosineLobeBandFactor[] = { fC0, -fC1, fC1, -fC1, fC2, -fC2, fC3, -fC2, fC4 };
+
+// Constants used to premultiply SH with coefficients to avoid ALUs when sampling.
+#define k0  0.28209479177387814347f // {0, 0} : 1/2 * sqrt(1/Pi)
+#define k1  0.48860251190291992159f // {1, 0} : 1/2 * sqrt(3/Pi)
+#define k2  1.09254843059207907054f // {2,-2} : 1/2 * sqrt(15/Pi)
+#define k3  0.31539156525252000603f // {2, 0} : 1/4 * sqrt(5/Pi)
+#define k4  0.54627421529603953527f // {2, 2} : 1/4 * sqrt(15/Pi)
+
+static const float ks[] = { k0, -k1, k1, -k1, k2, -k2, k3, -k2, k4 };
+
+// Compute the inverse of SphericalHarmonicsL2::kNormalizationConstants.
+// See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks".
+#define c0 0.28209479177387814347f // 1/2  * sqrt(1/Pi)
+#define c1 0.32573500793527994772f // 1/3  * sqrt(3/Pi)
+#define c2 0.27313710764801976764f // 1/8  * sqrt(15/Pi)
+#define c3 0.07884789131313000151f // 1/16 * sqrt(5/Pi)
+#define c4 0.13656855382400988382f // 1/16 * sqrt(15/Pi)
+
+static const float invNormConsts[] = { 1 / c0, -1 / c1, 1 / c1, -1 / c1, 1 / c2, -1 / c2, 1 / c3, -1 / c2, 1 / c4 };
 
 #define SAMPLE_COUNT 256
 #define SH_COEFF_COUNT 27
@@ -33,7 +61,26 @@ RWStructuredBuffer<float> _AmbientProbeOutputBuffer;
     groupshared float outputSHCoeffsLDS[SH_COEFF_COUNT * SAMPLE_COUNT / 2];
 #endif
 
-static const float ConvolveCosineLobeBandFactor[] = { fC0, -fC1, fC1, -fC1, fC2, -fC2, fC3, -fC2, fC4 };
+
+void ConvolveZonal(inout float sh[27], float zh[3])
+{
+    for (int l = 0; l <= 2; l++)
+    {
+        float n = sqrt((4.0f * PI) / (2 * l + 1));
+        float k = zh[l];
+        float p = n * k;
+
+        for (int m = -l; m <= l; m++)
+        {
+            int i = l * (l + 1) + m;
+
+            for (int c = 0; c < 3; c++)
+            {
+                sh[c * 9 + i] = sh[c * 9 + i ] * p;
+            }
+        }
+    }
+}
 
 [numthreads(SAMPLE_COUNT, 1, 1)]
 void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
@@ -159,5 +206,50 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
         {
             _AmbientProbeOutputBuffer[i] = outputSHCoeffs[i] * ConvolveCosineLobeBandFactor[i % 9] * weight;
         }
+
+        // Following is a shader rewrite of the ambient probe transformation code found in HDRenderPipeline.VolumetricLighting.cs SetPreconvolvedAmbientLightProbe
+        // The whole thing can probably be simplified but for the sake of readability it is kept as is for now. Performance should not be an issue as this is executed usually only once.
+        // (or very rarely)
+        float result[27];
+        // Undo cosine rescaling and apply fog dimmer.
+        // NOTE: In theory we should be able to do directly:
+        // result[i] = outputSHCoeffs[i] * weight *_FogDimmer;
+        // But for some reason the inverse constants invNormConsts applied here are not equivalent to ConvolveCosineLobeBandFactor.
+        // These constant come from the first C# implementation.
+        for (i = 0; i < SH_COEFF_COUNT; ++i)
+        {
+            result[i] = _AmbientProbeOutputBuffer[i] * invNormConsts[i % 9] *_FogDimmer;
+        }
+
+        float zh[3];
+        GetCornetteShanksPhaseFunction(zh, _FogAnisotropy);
+        ConvolveZonal(result, zh);
+
+        // Premultiplies the SH with the polynomial coefficients of SH basis functions,
+        // which avoids using any constants during SH evaluation.
+        // The resulting evaluation takes the form:
+        // (c_0 - c_6) + c_1 y + c_2 z + c_3 x + c_4 x y + c_5 y z + c_6 (3 z^2) + c_7 x z + c_8 (x^2 - y^2)
+        for (i = 0; i < SH_COEFF_COUNT; ++i)
+        {
+            result[i] = result[i] * ks[i % 9];
+        }
+
+        // Packs coefficients so that we can use Peter-Pike Sloan's shader code.
+        // Does not perform premultiplication with coefficients of SH basis functions.
+        // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks".
+        // Constant + linear
+        for (int c = 0; c < 3; c++)
+        {
+            _VolumetricAmbientProbeOutputBuffer[c] = float4(result[c * 9 + 3], result[c * 9 + 1], result[c * 9 + 2], result[c * 9 + 0] - result[c * 9 + 6]);
+        }
+
+        // Quadratic (4/5)
+        for (int c = 0; c < 3; c++)
+        {
+            _VolumetricAmbientProbeOutputBuffer[3 + c] = float4(result[c * 9 + 4], result[c * 9 + 5], result[c * 9 + 6] * 3.0f, result[c * 9 + 7]);
+        }
+
+        // Quadratic (5)
+        _VolumetricAmbientProbeOutputBuffer[6] = float4(result[0 * 9 + 8], result[1 * 9 + 8], result[2 * 9 + 8], 1.0f);
     }
 }

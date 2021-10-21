@@ -121,6 +121,14 @@ float3 SampleSH9(float4 SHCoefficients[7], float3 N)
     return res;
 }
 
+void GetCornetteShanksPhaseFunction(out float zh[3], float anisotropy)
+{
+    float g = anisotropy;
+
+    zh[0] = 0.282095f;
+    zh[1] = 0.293162f * g * (4.0f + (g * g)) / (2.0f + (g * g));
+    zh[2] = (0.126157f + 1.44179f * (g * g) + 0.324403f * (g * g) * (g * g)) / (2.0f + (g * g));
+}
 
 // texture3dLod is not supported on gles2.
 #if !defined(SHADER_API_GLES)
