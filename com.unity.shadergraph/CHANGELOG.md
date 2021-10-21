@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
   - Fixed a bug that caused the Scene Depth Node in Eye space to not work correctly when using an orthographic camera [1311272].
   - Fixed missing shader keyword stage during keyword copying.
- 
+
 ## [12.1.0] - 2021-09-23
 
 ### Added
