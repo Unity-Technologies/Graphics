@@ -1243,7 +1243,6 @@ Shader "HDRP/Lit"
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 

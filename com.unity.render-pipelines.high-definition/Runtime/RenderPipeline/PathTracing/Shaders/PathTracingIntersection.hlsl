@@ -30,7 +30,7 @@ struct PathIntersection
     float beamRadius;
     float beamDepth;
 #endif
-//SensorSDK - End
+//SensorSDK - End    
 };
 
 #endif // UNITY_PATH_TRACING_INTERSECTION_INCLUDED
