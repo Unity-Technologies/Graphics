@@ -9,8 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed black pixel issue in AMD FidelityFX RCAS implementation
 - Fixed a critical issue on android devices & lens flares. Accidentally creating a 16 bit texture was causing gpus not supporting them to fail.
+- Fixed keyword and float property upgrading in SpeedTree8MaterialUpgrader
 
 ## [12.1.0] - 2021-09-23
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [12.0.0] - 2021-01-11
 

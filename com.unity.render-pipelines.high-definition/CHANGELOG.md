@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
 - In path tracing, camera ray misses now return a null value with Minimum Depth > 1.
+- HD's SpeedTree 8 upgrader now sets up CullModeForward as well.
 
 ## [12.1.0] - 2021-09-23
 
