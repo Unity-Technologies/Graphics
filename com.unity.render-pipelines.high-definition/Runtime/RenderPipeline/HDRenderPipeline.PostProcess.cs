@@ -4689,6 +4689,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     source = passData.destination;
                 }
+
+                SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
             }
             return source;
         }
@@ -4805,6 +4807,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     source = passData.destination;
                 }
+
+                SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
             }
             return source;
         }
@@ -4833,8 +4837,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public float filmGrainIntensity;
             public float filmGrainResponse;
 
-            public Vector2Int viewportSize;
-
             public bool ditheringEnabled;
 
             public TextureHandle source;
@@ -4860,7 +4862,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.dynamicResIsOn = hdCamera.canDoDynamicResolution && hdCamera.DynResRequest.enabled;
                 passData.dynamicResFilter = hdCamera.DynResRequest.filter;
                 passData.useFXAA = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing && !passData.dynamicResIsOn && m_AntialiasingFS;
-                passData.viewportSize = postProcessViewportSize;
 
                 // Film Grain
                 passData.filmGrainEnabled = m_FilmGrain.IsActive() && m_FilmGrainFS;
@@ -4931,8 +4932,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     finalPassMaterial.SetTexture(HDShaderIDs._GrainTexture, data.filmGrainTexture);
                                     finalPassMaterial.SetVector(HDShaderIDs._GrainParams, new Vector2(data.filmGrainIntensity * 4f, data.filmGrainResponse));
 
-                                    float uvScaleX = (float)data.viewportSize.x / (float)data.filmGrainTexture.width;
-                                    float uvScaleY = (float)data.viewportSize.y / (float)data.filmGrainTexture.height;
+                                    float uvScaleX = data.hdCamera.finalViewport.width / (float)data.filmGrainTexture.width;
+                                    float uvScaleY = data.hdCamera.finalViewport.height / (float)data.filmGrainTexture.height;
                                     float scaledOffsetX = offsetX * uvScaleX;
                                     float scaledOffsetY = offsetY * uvScaleY;
 
@@ -4953,7 +4954,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 finalPassMaterial.EnableKeyword("DITHER");
                                 finalPassMaterial.SetTexture(HDShaderIDs._BlueNoiseTexture, blueNoiseTexture);
                                 finalPassMaterial.SetVector(HDShaderIDs._DitherParams,
-                                    new Vector3((float)data.viewportSize.x / blueNoiseTexture.width, (float)data.viewportSize.y / blueNoiseTexture.height, textureId));
+                                    new Vector3(data.hdCamera.finalViewport.width / blueNoiseTexture.width, data.hdCamera.finalViewport.height / blueNoiseTexture.height, textureId));
                             }
                         }
 
