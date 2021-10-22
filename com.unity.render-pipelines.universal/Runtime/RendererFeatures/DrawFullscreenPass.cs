@@ -67,11 +67,13 @@ namespace UnityEngine.Rendering.Universal
                 m_ProfilerTagName = profilerTagName;
                 renderPassEvent = featureSettings.injectionPoint;
 
-                ConfigureInput(ScriptableRenderPassInput.Depth);
+                ConfigureInput(ScriptableRenderPassInput.Depth); // We need the depth for fullscreen effects that relies on position
                 if (featureSettings.requiresNormalTexture)
                     ConfigureInput(ScriptableRenderPassInput.Normal);
                 if (featureSettings.requiresMotionVectorTexture)
                     ConfigureInput(ScriptableRenderPassInput.Motion);
+                if (featureSettings.source == DrawFullscreenBufferType.CameraColor)
+                    ConfigureInput(ScriptableRenderPassInput.Color);
 
                 return m_Settings.blitMaterial != null
                     && m_Settings.blitMaterial.passCount > m_Settings.blitMaterialPassIndex
