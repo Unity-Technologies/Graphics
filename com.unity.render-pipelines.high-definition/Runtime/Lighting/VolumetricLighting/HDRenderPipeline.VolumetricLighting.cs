@@ -757,6 +757,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_VisibleComputeLocalVolumes.Clear();
                 m_VisibleComputeLocalVolumeBounds.Clear();
+                m_VisibleComputeVolumeData.Clear();
 
                 // Compute the smallest frustum between the camera's frustum and the V-Buffer's frustum
                 // It's typically much shorter (along the Z axis) than the camera's frustum.
@@ -1036,7 +1037,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             var m = Matrix4x4.TRS(p, v.transform.rotation, v.parameters.size);
 
-                            ctx.cmd.SetGlobalVector("VolumeTime", Vector4.one * Time.realtimeSinceStartup);
+                            ctx.cmd.SetGlobalVector("_VolumeTime", new Vector4(1f/20f, 1f, 2f, 3f) * Time.realtimeSinceStartup);
                             ctx.cmd.SetComputeTextureParam(compute, data.kernel, HDShaderIDs._VBufferDensity, data.vBuffer);
 
                             ConstantBuffer.Push(ctx.cmd, data.volumetricCB, compute, HDShaderIDs._ShaderVariablesVolumetric);

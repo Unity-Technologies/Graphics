@@ -57,7 +57,7 @@ void VoxelizeComputeLocalFog(
                                                 _VolumeData[visibleVolumeIndex].endTimesRcpDistFadeLen,
                                                 _VolumeData[visibleVolumeIndex].falloffMode);
 
-            _VBufferDensity[voxelCoord] = lerp(_VBufferDensity[voxelCoord], volumeDensity, min(volumeDensity.a, overlapFraction));
+            _VBufferDensity[voxelCoord] = lerp(_VBufferDensity[voxelCoord], volumeDensity, min(volumeDensity.a * _VolumeData[visibleVolumeIndex].extinction, overlapFraction));
         }
 
         t0 = t1;
