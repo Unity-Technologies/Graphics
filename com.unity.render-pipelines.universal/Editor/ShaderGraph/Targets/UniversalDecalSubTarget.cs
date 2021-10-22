@@ -3,16 +3,17 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Rendering;
+using Unity.Rendering.Universal;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEngine.Rendering.Universal;
 using UnityEditor.ShaderGraph.Internal;
+using ShaderUtils = Unity.Rendering.Universal.ShaderUtils;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalDecalSubTarget : SubTarget<UniversalTarget>
+    sealed class UniversalDecalSubTarget : UniversalSubTarget
     {
         static readonly GUID kSourceCodeGuid = new GUID("f6cdcb0f9c306bf4895b74013d29ed47"); // UniversalDecalSubTarget.cs
 
@@ -74,8 +75,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override bool IsActive() => true;
 
+        protected override ShaderUtils.ShaderID shaderID => ShaderUtils.ShaderID.SG_Decal;
+
         public override void Setup(ref TargetSetupContext context)
         {
+            base.Setup(ref context);
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddCustomEditorForRenderPipeline("UnityEditor.Rendering.Universal.DecalShaderGraphGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)); // TODO: This should be owned by URP
 
@@ -977,6 +981,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { Descriptors.DecalsNormalBlend },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
+                { CoreKeywordDescriptors.RenderPassEnabled },
                 { Descriptors.LodCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
             };
 
@@ -986,6 +991,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { Descriptors.DecalsNormalBlend },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
+                { CoreKeywordDescriptors.RenderPassEnabled },
             };
         }
         #endregion

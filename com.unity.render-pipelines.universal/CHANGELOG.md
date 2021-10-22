@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Depth Priming support for Vulkan with MSAA.
 - Added Shadows and Additional Lights off variants stripping.
 - Added Adaptive Performance Decals scaler.
+- Exposed public API for DebugDisplaySettings.
+- Added Display Stats panel to Rendering Debugger that displays CPU/GPU frame timings and bottlenecks.
 
 ### Changed
 - Main light shadow, additional light shadow and additional light keywords are now enabled based on urp setting instead of existence in scene. This allows better variant stripping.
@@ -35,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - MaterialReimporter.ReimportAllMaterials now batches the asset database changes to improve performance.
 
 ### Fixed
+- Fixed post processing with Pixel Perfect camera [case 1363763](https://issuetracker.unity3d.com/product/unity/issues/guid/1363763/)
 - Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
 - Fixed an issue where Unlit and ParticlesUnlit shaders did not have HDR color selection for albedo [case 1283767](https://issuetracker.unity3d.com/issues/built-in-unlit-particle-shader-has-hdr-color-selection-for-albedo-urp-unlit-particles-do-not)
 

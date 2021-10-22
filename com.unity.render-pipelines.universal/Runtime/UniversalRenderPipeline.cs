@@ -255,6 +255,11 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (DebugManager.instance.isAnyDebugUIActive)
+                UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateFrameTiming();
+#endif
+
             SortCameras(cameras);
 #if UNITY_2021_1_OR_NEWER
             for (int i = 0; i < cameras.Count; ++i)
@@ -1235,7 +1240,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (debugDisplaySettings.AreAnySettingsActive && !cameraData.isPreviewCamera)
             {
-                DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.RenderingSettings;
+                DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.renderingSettings;
                 int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
 
                 if (!renderingSettings.enableMsaa)

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Velocity", experimental = true, variantProvider = typeof(VelocityBaseProvider))]
+    [VFXInfo(category = "Attribute/{0}/Direction & Speed/{1}", experimental = true, variantProvider = typeof(VelocityBaseProvider))]
     class VelocitySpeed : VelocityBase
     {
         public override string name { get { return string.Format(base.name, "Change Speed"); } }

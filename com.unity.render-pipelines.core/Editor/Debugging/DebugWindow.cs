@@ -130,11 +130,6 @@ namespace UnityEditor.Rendering
         {
             var window = GetWindow<DebugWindow>();
             window.titleContent = Styles.windowTitle;
-
-            if (OnDebugWindowToggled == null)
-                OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
-
-            open = true;
         }
 
         [MenuItem("Window/Analysis/Rendering Debugger", validate = true)]
@@ -145,6 +140,11 @@ namespace UnityEditor.Rendering
 
         void OnEnable()
         {
+            if (OnDebugWindowToggled == null)
+                OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
+
+            open = true;
+
             DebugManager.instance.refreshEditorRequested = false;
 
             hideFlags = HideFlags.HideAndDontSave;
@@ -563,6 +563,8 @@ namespace UnityEditor.Rendering
             public readonly GUIStyle selected = "OL SelectedRow";
             public readonly GUIStyle sectionHeader = new GUIStyle(EditorStyles.largeLabel);
             public readonly Color skinBackgroundColor;
+
+            public static int foldoutColumnWidth = 70;
 
             public Styles()
             {

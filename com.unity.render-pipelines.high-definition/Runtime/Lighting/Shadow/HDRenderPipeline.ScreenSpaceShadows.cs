@@ -479,7 +479,8 @@ namespace UnityEngine.Rendering.HighDefinition
             PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidityBuffer, TextureHandle rayCountTexture)
         {
             // If screen space shadows are not supported for this camera, we are done
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) || !RequestedScreenSpaceShadows())
+            bool validConditions = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) && RequestedScreenSpaceShadows();
+            if (!validConditions)
                 return m_RenderGraph.defaultResources.blackTextureArrayXR;
 
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.ScreenSpaceShadows)))
@@ -490,7 +491,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // First of all we handle the directional light
                 RenderDirectionalLightScreenSpaceShadow(renderGraph, hdCamera, depthBuffer, normalBuffer, motionVectorsBuffer, historyValidityBuffer, rayCountTexture, screenSpaceShadowTexture);
 
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState())
                 {
                     // We handle the other light sources
                     RenderLightScreenSpaceShadows(renderGraph, hdCamera, prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, historyValidityBuffer, rayCountTexture, screenSpaceShadowTexture);
