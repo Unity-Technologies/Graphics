@@ -510,7 +510,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Setup other effects constants
                 SetupLensDistortion(m_Materials.uber, isSceneViewCamera);
                 SetupChromaticAberration(m_Materials.uber);
-                SetupVignette(m_Materials.uber);
+                SetupVignette(m_Materials.uber, cameraData.xr);
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
 
                 // Only apply dithering & grain if there isn't a final pass.
@@ -593,7 +593,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
-                    if ((m_Destination == RenderTargetHandle.CameraTarget && !m_UseSwapBuffer) || m_ResolveToScreen)
+                    if ((m_Destination == RenderTargetHandle.CameraTarget && !m_UseSwapBuffer) || (m_ResolveToScreen && m_UseSwapBuffer))
                         cmd.SetViewport(cameraData.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
@@ -1265,11 +1265,24 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         #region Vignette
 
-        void SetupVignette(Material material)
+        void SetupVignette(Material material, XRPass xrPass)
         {
             var color = m_Vignette.color.value;
             var center = m_Vignette.center.value;
             var aspectRatio = m_Descriptor.width / (float)m_Descriptor.height;
+
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xrPass != null && xrPass.enabled)
+            {
+                if (xrPass.singlePassEnabled)
+                    material.SetVector(ShaderConstants._Vignette_ParamsXR, xrPass.ApplyXRViewCenterOffset(center));
+                else
+                    // In multi-pass mode we need to modify the eye center with the values from .xy of the corrected
+                    // center since the version of the shader that is not single-pass will use the value in _Vignette_Params2
+                    center = xrPass.ApplyXRViewCenterOffset(center);
+            }
+#endif
 
             var v1 = new Vector4(
                 color.r, color.g, color.b,
@@ -1533,6 +1546,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _Chroma_Params = Shader.PropertyToID("_Chroma_Params");
             public static readonly int _Vignette_Params1 = Shader.PropertyToID("_Vignette_Params1");
             public static readonly int _Vignette_Params2 = Shader.PropertyToID("_Vignette_Params2");
+            public static readonly int _Vignette_ParamsXR = Shader.PropertyToID("_Vignette_ParamsXR");
             public static readonly int _Lut_Params = Shader.PropertyToID("_Lut_Params");
             public static readonly int _UserLut_Params = Shader.PropertyToID("_UserLut_Params");
             public static readonly int _InternalLut = Shader.PropertyToID("_InternalLut");
