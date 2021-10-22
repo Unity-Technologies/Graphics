@@ -110,6 +110,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             light.lightType = Light2D.LightType.Freeform;
 
             light.SetShapePath(shapePath);
+            light.UpdateMesh(true);
 
             Assert.AreEqual(true, light.hasCachedMesh);
         }
@@ -121,6 +122,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             var light = m_TestObjectCached.AddComponent<Light2D>();
             light.lightType = Light2D.LightType.Freeform;
             light.SetShapePath(shapePath);
+            light.UpdateMesh(true);
 
             int vertexCount = 0, triangleCount = 0;
 
@@ -132,6 +134,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             // Simulate Runtime Behavior.
             var shapePathChanged = new Vector3[5] { new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(1, 1, 0), new Vector3(0.5f, 1.5f, 0), new Vector3(0, 1, 0) };
             light.SetShapePath(shapePathChanged);
+            light.UpdateMesh(true);
 
             // Check if Cached Data and the actual data are no longer the same. (We don't save cache on Runtime)
             Assert.AreNotEqual(vertexCount, light.lightMesh.triangles.Length);

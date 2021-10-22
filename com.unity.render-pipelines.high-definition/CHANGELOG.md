@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for orthographic camera in path tracing.
 - Added public API to edit materials from script at runtime.
 - Added new functions that sample the custom buffer in custom passes (CustomPassSampleCustomColor and CustomPassLoadCustomColor) to handle the RTHandleScale automatically.
+- Added new panels to Rendering Debugger Display Stats panel, displaying improved CPU/GPU frame timings and bottlenecks.
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
@@ -41,6 +42,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - PrepareLightsForGPU CPU Light loop performance improvement (40% to 70% faster), utilizing burst and optimized. Utilizing better sorting, distributing work in jobs and improving cache access of light data.
 - In path tracing, camera ray misses now return a null value with Minimum Depth > 1.
 - HD's SpeedTree 8 upgrader now sets up CullModeForward as well.
+- Restructured data under Display Stats panel to use column layout.
+- Added controls for the users to manually feed the ray tracing acceleration structure that should be used for a given camera (case 1370678).
 - Modified HDRP to use common FSR logic from SRP core
 
 ## [13.1.0] - 2021-09-24
