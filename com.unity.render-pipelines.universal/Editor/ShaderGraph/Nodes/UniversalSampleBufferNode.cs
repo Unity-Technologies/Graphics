@@ -12,7 +12,7 @@ using System.Linq;
 namespace UnityEditor.Rendering.Universal
 {
     [SRPFilter(typeof(UniversalRenderPipeline))]
-    [Title("Input", "Universal", "Universal Sample Buffer")]
+    [Title("Input", "Universal", "URP Sample Buffer")]
     sealed class UniversalSampleBufferNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireScreenPosition, IMayRequireNDCPosition
     {
         const string k_ScreenPositionSlotName = "UV";
@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.Universal
 
         public UniversalSampleBufferNode()
         {
-            name = "Universal Sample Buffer";
+            name = "URP Sample Buffer";
             synonyms = new string[] { "normal", "motion vector", "postprocessinput", "blit" };
             UpdateNodeAfterDeserialization();
         }
@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (bufferType == BufferType.BlitSource)
             {
-                properties.AddShaderProperty(new Texture2DArrayShaderProperty
+                properties.AddShaderProperty(new Texture2DShaderProperty
                 {
                     // Make it compatible with Blitter.cs calls
                     overrideReferenceName = "_BlitTexture",
@@ -145,17 +145,13 @@ namespace UnityEditor.Rendering.Universal
                                 s.AppendLine("return SampleSceneNormals(uv);");
                                 break;
                             case BufferType.MotionVectors:
-                                // if we have a value > 1.0f, it means we have selected the "no motion option", hence we force motionVec 0.
-                                s.AppendLine($"float4 motionVecBufferSample = SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, samplerState, uv * _RTHandleScale.xy, 0);");
-                                s.AppendLine("float2 motionVec;");
-                                s.AppendLine("DecodeMotionVector(motionVecBufferSample, motionVec);");
-                                s.AppendLine("return motionVec;");
+                                s.AppendLine($"return motionVecBufferSample = SAMPLE_TEXTURE2D_X_LOD(_MotionVectorTexture, samplerState, uv * _RTHandleScale.xy, 0).xy;");
                                 break;
                             // case BufferType.PostProcessInput:
                             //     s.AppendLine("return SAMPLE_TEXTURE2D_X_LOD(_CustomPostProcessInput, samplerState, uv * _RTHandlePostProcessScale.xy, 0);");
                             //     break;
                             case BufferType.BlitSource:
-                                s.AppendLine($"return SAMPLE_TEXTURE2D_X_LOD(_MainTex, samplerState, uv, 0); ");
+                                s.AppendLine($"return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, samplerState, uv, 0); ");
                                 break;
                             default:
                                 s.AppendLine("return 0.0;");
