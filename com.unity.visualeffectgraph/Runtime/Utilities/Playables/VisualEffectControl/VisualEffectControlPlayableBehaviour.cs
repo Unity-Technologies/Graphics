@@ -8,7 +8,6 @@ using UnityEngine.VFX.Utility;
 
 namespace UnityEngine.VFX
 {
-#pragma warning disable 649
     [Serializable]
     public struct EventAttributes //Using encapsulated structure to ease CustomPropertyDrawer
     {
@@ -36,7 +35,6 @@ namespace UnityEngine.VFX
     [Serializable] public class EventAttributeInt : EventAttributeValue<int> {}
     [Serializable] public class EventAttributeUInt : EventAttributeValue<uint> {}
     [Serializable] public class EventAttributeBool : EventAttributeValue<bool> {}
-#pragma warning restore 649
 
     [Serializable]
     public struct VisualEffectPlayableSerializedEvent

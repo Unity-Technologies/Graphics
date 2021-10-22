@@ -263,6 +263,7 @@ namespace UnityEngine.VFX
                 m_LastEvent = eventIndex;
                 var currentEvent = currentChunk.events[eventIndex];
 
+                //TODOPAUL, these update are only debug code
                 if (currentEvent.clipType == Event.ClipType.Enter)
                 {
                     if (m_ClipState[currentEvent.clipIndex])
@@ -278,7 +279,7 @@ namespace UnityEngine.VFX
                     m_ClipState[currentEvent.clipIndex] = false;
                 }
 
-                vfx.SendEvent(currentEvent.nameId);
+                vfx.SendEvent(currentEvent.nameId, currentEvent.attribute);
             }
 
             static IEnumerable<int> GetEventsIndex(Chunk chunk, double minTime, double maxTime, int lastIndex)
@@ -293,6 +294,24 @@ namespace UnityEngine.VFX
                     if (minTime <= currentEvent.time)
                         yield return i;
                 }
+            }
+
+            static VFXEventAttribute ComputeAttribute(VisualEffect vfx, EventAttributes attributes)
+            {
+                if (attributes.content == null || attributes.content.Length == 0)
+                    return null;
+
+                var vfxAttribute = vfx.CreateVFXEventAttribute();
+                foreach (var attr in attributes.content)
+                {
+                    if (attr is EventAttributeValue<Vector3>)
+                    {
+                        var test = attr as EventAttributeValue<Vector3>;
+                        vfxAttribute.SetVector3((int)attr.id, test.value);
+                    }
+                    //TODOPAUL: finish it here or abstract it
+                }
+                return vfxAttribute;
             }
 
             static IEnumerable<Event> ComputeRuntimeEvent(VisualEffectControlPlayableBehaviour behavior, VisualEffect vfx)
@@ -310,7 +329,7 @@ namespace UnityEngine.VFX
 
                     yield return new Event()
                     {
-                        attribute = null, //TODOPAUL, compute payload here
+                        attribute = ComputeAttribute(vfx, itEvent.eventAttributes),
                         nameId = Shader.PropertyToID(itEvent.name),
                         time = absoluteTime,
                         clipIndex = -1,
