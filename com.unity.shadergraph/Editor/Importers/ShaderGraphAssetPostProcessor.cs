@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph
                         var asset = AssetDatabase.GetMainAssetTypeAtPath(x);
                         return asset is null || asset.IsSubclassOf(typeof(Texture));
                     }
-                } )
+                })
                 .Select(AssetDatabase.AssetPathToGUID)
                 .Distinct()
                 .ToList();
