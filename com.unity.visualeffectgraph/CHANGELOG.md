@@ -10,9 +10,8 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ## [12.1.0] - 2021-09-23
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Compilation error while using not exposed texture in ShaderGraph [Case 1367167](https://issuetracker.unity3d.com/product/unity/issues/guid/1367167/)
 
 ## [12.0.0] - 2021-01-11
 ### Added
