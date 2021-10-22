@@ -1,20 +1,23 @@
+using System;
 using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
 {
     /// <summary>
-    /// DebugUIHandler for value widgets.
+    /// DebugUIHandler for progress bar widget.
     /// </summary>
-    public class DebugUIHandlerValue : DebugUIHandlerWidget
+    public class DebugUIHandlerProgressBar : DebugUIHandlerWidget
     {
-        /// <summary>Name of the value field.</summary>
+        /// <summary>Name of the progress bar.</summary>
         public Text nameLabel;
-        /// <summary>Value of the value field.</summary>
+        /// <summary>Value of the progress bar.</summary>
         public Text valueLabel;
+        /// <summary>Rectangle representing the progress bar.</summary>
+        public RectTransform progressBarRect;
 
-        DebugUI.Value m_Field;
-        protected internal float m_Timer;
-        static readonly Color k_ZeroColor = Color.gray;
+        DebugUI.ProgressBarValue m_Value;
+
+        float m_Timer;
 
         /// <summary>
         /// OnEnable implementation.
@@ -27,8 +30,9 @@ namespace UnityEngine.Rendering.UI
         internal override void SetWidget(DebugUI.Widget widget)
         {
             base.SetWidget(widget);
-            m_Field = CastWidget<DebugUI.Value>();
-            nameLabel.text = m_Field.displayName;
+            m_Value = CastWidget<DebugUI.ProgressBarValue>();
+            nameLabel.text = m_Value.displayName;
+            UpdateValue();
         }
 
         /// <summary>
@@ -40,7 +44,6 @@ namespace UnityEngine.Rendering.UI
         public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
             nameLabel.color = colorSelected;
-            valueLabel.color = colorSelected;
             return true;
         }
 
@@ -50,22 +53,27 @@ namespace UnityEngine.Rendering.UI
         public override void OnDeselection()
         {
             nameLabel.color = colorDefault;
-            valueLabel.color = colorDefault;
         }
 
         void Update()
         {
-            if (m_Timer >= m_Field.refreshRate)
+            if (m_Timer >= m_Value.refreshRate)
             {
-                var value = m_Field.GetValue();
-                valueLabel.text = m_Field.FormatString(value);
-                // De-emphasize zero values by switching to dark gray color
-                if (value is float)
-                    valueLabel.color = (float)value == 0f ? k_ZeroColor : colorDefault;
-                m_Timer -= m_Field.refreshRate;
+                UpdateValue();
+                m_Timer -= m_Value.refreshRate;
             }
 
             m_Timer += Time.deltaTime;
+        }
+
+        void UpdateValue()
+        {
+            float value = (float)m_Value.GetValue();
+            valueLabel.text = m_Value.FormatString(value);
+
+            Vector3 scale = progressBarRect.localScale;
+            scale.x = value;
+            progressBarRect.localScale = scale;
         }
     }
 }
