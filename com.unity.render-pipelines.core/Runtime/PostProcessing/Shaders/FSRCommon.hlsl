@@ -1,3 +1,28 @@
+///
+/// FidelityFX Super Resolution (FSR) Common Shader Code
+///
+/// This file provides shader helper functions which are intended to be used with the C# helper functions in
+/// FSRUtils.cs. The main purpose of this file is to simplify the usage of the external FSR shader functions within
+/// the Unity shader environment.
+///
+/// Usage:
+/// - Call SetXConstants function on a command buffer in C#
+/// - Launch shader (via draw or dispatch)
+/// - Call associated ApplyX function provided by this file
+///
+/// The following preprocessor parameters MUST be defined before including this file:
+/// - FSR_INPUT_TEXTURE
+///     - The texture to use as input for the FSR passes
+/// - FSR_INPUT_SAMPLER
+///     - The sample to use for FSR_INPUT_TEXTURE
+///
+/// The following preprocessor parameters are optional and MAY be defined before including this file:
+/// - FSR_ENABLE_16BIT
+///     - Enables the 16-bit implementation of FSR (should only be used when supported by hardware!)
+/// - FSR_ENABLE_ALPHA
+///     - Enables alpha pass-through functionality for the RCAS pass
+///
+
 // Ensure that the shader including this file is targeting an adequate shader level
 #if SHADER_TARGET < 45
 #error FidelityFX Super Resolution requires a shader target of 4.5 or greater
@@ -7,14 +32,19 @@
 #define A_GPU 1
 #define A_HLSL 1
 
-// Enable either the 16-bit or the 32-bit implementation of FSR depending on platform support
-#if HAS_FLOAT
+// Enable either the 16-bit or the 32-bit implementation of FSR depending on preprocessor definitions
+#if FSR_ENABLE_16BIT
     #define A_HALF
     #define FSR_EASU_H 1
     #define FSR_RCAS_H 1
 #else
     #define FSR_EASU_F 1
     #define FSR_RCAS_F 1
+#endif
+
+// Enable the RCAS passthrough alpha feature when the alpha channel is in use
+#if FSR_ENABLE_ALPHA
+    #define FSR_RCAS_PASSTHROUGH_ALPHA 1
 #endif
 
 // Include the external FSR HLSL files
@@ -75,22 +105,23 @@ AF4 FsrEasuBF(AF2 p)
 /// Ex: #define FSR_INPUT_SAMPLER sampler_LinearClamp
 ///
 /// The color data stored in the source texture should be in gamma 2.0 color space
+#if FSR_EASU_H
 half3 ApplyEASU(uint2 positionSS)
 {
-    #if FSR_EASU_H
     // Execute 16-bit EASU
     AH3 color;
-    FsrEasuH(
-    #else
-    // Execute 32-bit EASU
-    AF3 color;
-    FsrEasuF(
-    #endif
-        color, positionSS, FSR_EASU_CONSTANTS_0, FSR_EASU_CONSTANTS_1, FSR_EASU_CONSTANTS_2, FSR_EASU_CONSTANTS_3
-    );
-
+    FsrEasuH(color, positionSS, FSR_EASU_CONSTANTS_0, FSR_EASU_CONSTANTS_1, FSR_EASU_CONSTANTS_2, FSR_EASU_CONSTANTS_3);
     return color;
 }
+#else
+float3 ApplyEASU(uint2 positionSS)
+{
+    // Execute 32-bit EASU
+    AF3 color;
+    FsrEasuF(color, positionSS, FSR_EASU_CONSTANTS_0, FSR_EASU_CONSTANTS_1, FSR_EASU_CONSTANTS_2, FSR_EASU_CONSTANTS_3);
+    return color;
+}
+#endif
 
 /// Bindings for FSR RCAS constants provided by the CPU
 ///
@@ -131,20 +162,58 @@ void FsrRcasInputF(inout AF1 r, inout AF1 g, inout AF1 b)
 /// A valid sampler must also be provided via the FSR_INPUT_SAMPLER preprocessor symbol
 /// Ex: #define FSR_INPUT_SAMPLER sampler_LinearClamp
 ///
+/// RCAS supports an optional alpha passthrough that can be enabled via the FSR_ENABLE_ALPHA preprocessor symbol
+/// When passthrough is enabled, this function will return the input texture's alpha channel unmodified
+///
 /// The color data stored in the source texture should be in linear color space
+#if FSR_RCAS_H
+#if FSR_ENABLE_ALPHA
+half4 ApplyRCAS(uint2 positionSS)
+#else
 half3 ApplyRCAS(uint2 positionSS)
+#endif
 {
-    #if FSR_RCAS_H
     // Execute 16-bit RCAS
+#if FSR_ENABLE_ALPHA
+    AH4 color;
+#else
     AH3 color;
+#endif
     FsrRcasH(
-    #else
-    // Execute 32-bit RCAS
-    AF3 color;
-    FsrRcasF(
-    #endif
-        color.r, color.g, color.b, positionSS, FSR_RCAS_CONSTANTS
+        color.r,
+        color.g,
+        color.b,
+#if FSR_ENABLE_ALPHA
+        color.a,
+#endif
+        positionSS,
+        FSR_RCAS_CONSTANTS
     );
-
     return color;
 }
+#else
+#if FSR_ENABLE_ALPHA
+float4 ApplyRCAS(uint2 positionSS)
+#else
+float3 ApplyRCAS(uint2 positionSS)
+#endif
+{
+    // Execute 32-bit RCAS
+#if FSR_ENABLE_ALPHA
+    AF4 color;
+#else
+    AF3 color;
+#endif
+    FsrRcasF(
+        color.r,
+        color.g,
+        color.b,
+#if FSR_ENABLE_ALPHA
+        color.a,
+#endif
+        positionSS,
+        FSR_RCAS_CONSTANTS
+    );
+    return color;
+}
+#endif

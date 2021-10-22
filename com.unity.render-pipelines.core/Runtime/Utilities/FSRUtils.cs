@@ -5,6 +5,8 @@ namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Utility functions relating to FidelityFX Super Resolution (FSR)
+    ///
+    /// These functions are expected to be used in conjuction with the helper functions provided by FSRCommon.hlsl.
     /// </summary>
     public static class FSRUtils
     {
