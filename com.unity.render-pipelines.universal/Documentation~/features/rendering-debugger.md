@@ -38,7 +38,7 @@ Use one of the following options to open the **Rendering Debugger** window.
 
 **In the Play mode or at runtime in a Development build**:
 
-* On a desktop or laptop computer, press **Ctrl+Backspace** (**Ctrl+Delete** on macOS).
+* On a desktop or laptop computer, press **LeftCtrl+Backspace** (**Ctrl+Delete** on macOS).
 
 * On a console controller, press L3 and R3 (Left Stick and Right Stick).
 
