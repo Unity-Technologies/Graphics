@@ -60,6 +60,10 @@ From HDRP 12.0, HDRP includes a new [Light Anchor](light-anchor.md) component. Y
 ![](Images/LightAnchor0.png)
 
 
+### Maximum light count for gpu
+
+The new default maximum light count per pixel for Fine Prunning Tile List is now 63.
+Added a new setting in ShaderConfig.cs, FPTLMaxLightCount. This setting can now set the maximum number of lights per tile on the GPU. A new Shader config project must be generated to upgrade. See the [HDRP-Config-Package](HDRP-Config-Package.md) guide for information on how to upgrade.
 
 ## New upsampling methods
 
