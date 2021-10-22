@@ -68,6 +68,27 @@
         }
     ],
     "m_Keywords": [],
+    "m_Dropdowns": [],
+    "m_CategoryData": [
+        {
+            "m_Id": "dec2d123624f4d2392482719d08589d5"
+        },
+        {
+            "m_Id": "b21e085e5c844bc2a7a5bdedc8d3695c"
+        },
+        {
+            "m_Id": "53fbd192f8dd454795cdb085b345a52e"
+        },
+        {
+            "m_Id": "e9275698f33b43b8be9605f8f67bc908"
+        },
+        {
+            "m_Id": "11eb4d692c1b4adcaa57ced6429b519e"
+        },
+        {
+            "m_Id": "407705ab55b84a768ef8a45175e577ff"
+        }
+    ],
     "m_Nodes": [
         {
             "m_Id": "51de60cc4d164e8abec305ea587ab126"
@@ -1342,7 +1363,8 @@
         "serializedMesh": {
             "m_SerializedMesh": "{\"mesh\":{\"instanceID\":0}}",
             "m_Guid": ""
-        }
+        },
+        "preventRotation": false
     },
     "m_Path": "HDRP",
     "m_GraphPrecision": 0,
@@ -1379,7 +1401,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "00f514551918453f9bc9d3f82097fc6a",
     "m_Id": 0,
-    "m_DisplayName": "MinimalPupilAperture",
+    "m_DisplayName": "Minimal Pupil Aperture",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -1465,7 +1487,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
     "m_ObjectId": "02eeb9f6fef446b4ae7505d6c2824e51",
     "m_Id": 0,
-    "m_DisplayName": "IrisClampColor",
+    "m_DisplayName": "Iris Clamp Color",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -1523,7 +1545,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
     "m_ObjectId": "03e818ae56264fcc9839a8e87d83bd0f",
     "m_Id": 0,
-    "m_DisplayName": "ScleraTexture",
+    "m_DisplayName": "Sclera Texture",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -1580,7 +1602,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "062c12b3c858418291c6170749df392d",
     "m_Id": 0,
-    "m_DisplayName": "PupilRadius",
+    "m_DisplayName": "Pupil Radius",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -1758,7 +1780,8 @@
         "m_SerializableColors": []
     },
     "m_TextureType": 0,
-    "m_NormalMapSpace": 0
+    "m_NormalMapSpace": 0,
+    "m_EnableGlobalMipBias": true
 }
 
 {
@@ -1866,10 +1889,31 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "11eb4d692c1b4adcaa57ced6429b519e",
+    "m_Name": "Limbal Ring",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "71630abf51eb4a7293b359652a7133ff"
+        },
+        {
+            "m_Id": "46252f045077431395e01818af3da66f"
+        },
+        {
+            "m_Id": "22e78a32611347ab939960145e45a6c4"
+        },
+        {
+            "m_Id": "b609691398c04e2db2bfa4a0c7b7335f"
+        }
+    ]
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "13ba55f37a194888a303d6c46614753c",
     "m_Id": 0,
-    "m_DisplayName": "MaximalPupilAperture",
+    "m_DisplayName": "Maximal Pupil Aperture",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -2027,7 +2071,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "180dfdbb57f349fab94ffc9411f92ecb",
     "m_Id": 0,
-    "m_DisplayName": "LimbalRingFade",
+    "m_DisplayName": "Limbal Ring Fade",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -2088,7 +2132,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
     "m_ObjectId": "1a2cbeb7bebe4e9db1fbd7aff8cb9a39",
     "m_Id": 0,
-    "m_DisplayName": "IrisNormal",
+    "m_DisplayName": "Iris Normal",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -2345,6 +2389,7 @@
     "m_TransparentWritesMotionVec": false,
     "m_AlphaToMask": false,
     "m_DepthOffset": false,
+    "m_ConservativeDepthOffset": false,
     "m_TransparencyFog": true,
     "m_AlphaTestShadow": false,
     "m_BackThenFrontRendering": false,
@@ -2393,12 +2438,14 @@
     "m_Guid": {
         "m_GuidSerialized": "325a1688-6c35-45f4-9581-2bdc9546fb1f"
     },
-    "m_Name": "LimbalRingFade",
+    "m_Name": "Limbal Ring Fade",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_6C2C412D",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -2512,12 +2559,14 @@
     "m_Guid": {
         "m_GuidSerialized": "31f90d24-1dd3-4541-b63b-13e08a8eac71"
     },
-    "m_Name": "ScleraDiffusionProfile",
+    "m_Name": "Sclera Diffusion Profile",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "DiffusionProfile_261f48f1fbc94ccbafc421414859c159",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -2880,12 +2929,14 @@
     "m_Guid": {
         "m_GuidSerialized": "c3743b78-816c-456f-a839-a2885a95c200"
     },
-    "m_Name": "MaximalPupilAperture",
+    "m_Name": "Maximal Pupil Aperture",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_49C490F5",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -2934,8 +2985,16 @@
     "m_SupportLodCrossFade": false,
     "m_DoubleSidedMode": 0,
     "m_DOTSInstancing": false,
-    "m_Version": 0,
-    "m_FirstTimeMigrationExecuted": true,
+    "m_CustomVelocity": false,
+    "m_Tessellation": false,
+    "m_TessellationMode": 0,
+    "m_TessellationFactorMinDistance": 20.0,
+    "m_TessellationFactorMaxDistance": 50.0,
+    "m_TessellationFactorTriangleSize": 100.0,
+    "m_TessellationShapeFactor": 0.75,
+    "m_TessellationBackFaceCullEpsilon": -0.25,
+    "m_TessellationMaxDisplacement": 0.009999999776482582,
+    "m_Version": 1,
     "inspectorFoldoutMask": 1
 }
 
@@ -3125,6 +3184,18 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "407705ab55b84a768ef8a45175e577ff",
+    "m_Name": "Cornea",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "e4c0540a193245d4883c3571c17ade93"
+        }
+    ]
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "413e32629faf45caa7aff9405f078454",
     "m_Id": 6,
@@ -3145,7 +3216,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "42b1c1deb9104c1b976102d848b26a18",
     "m_Id": 0,
-    "m_DisplayName": "ScleraNormalStrength",
+    "m_DisplayName": "Sclera Normal Strength",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -3253,7 +3324,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "44ce9c86e38b47e99da3bbc9fd33213e",
     "m_Id": 0,
-    "m_DisplayName": "ScleraSmoothness",
+    "m_DisplayName": "Sclera Smoothness",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -3272,12 +3343,14 @@
     "m_Guid": {
         "m_GuidSerialized": "3c690643-530b-4860-af79-7c53df5328cf"
     },
-    "m_Name": "LimbalRingSizeSclera",
+    "m_Name": "Limbal Ring Size Sclera",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_94E1614A",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -3309,8 +3382,16 @@
     "m_SupportLodCrossFade": false,
     "m_DoubleSidedMode": 0,
     "m_DOTSInstancing": false,
+    "m_CustomVelocity": false,
+    "m_Tessellation": false,
+    "m_TessellationMode": 0,
+    "m_TessellationFactorMinDistance": 20.0,
+    "m_TessellationFactorMaxDistance": 50.0,
+    "m_TessellationFactorTriangleSize": 100.0,
+    "m_TessellationShapeFactor": 0.75,
+    "m_TessellationBackFaceCullEpsilon": -0.25,
+    "m_TessellationMaxDisplacement": 0.009999999776482582,
     "m_Version": 0,
-    "m_FirstTimeMigrationExecuted": false,
     "inspectorFoldoutMask": 0
 }
 
@@ -3388,7 +3469,7 @@
     "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
     "m_ObjectId": "490264c928004aeeabf116e1ca388f8d",
     "m_Id": 0,
-    "m_DisplayName": "PupilDebugMode",
+    "m_DisplayName": "Pupil Debug Mode",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -3495,7 +3576,8 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_Space": 0
+    "m_Space": 0,
+    "m_PositionSource": 0
 }
 
 {
@@ -3535,6 +3617,33 @@
     "m_DefaultValue": 0.0,
     "m_Labels": [
         "X"
+    ]
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "53fbd192f8dd454795cdb085b345a52e",
+    "m_Name": "Iris",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "73563f868a3741e296c5b92abb7d4fd7"
+        },
+        {
+            "m_Id": "98eb7ede3dd544aa9d2b1b139d483b96"
+        },
+        {
+            "m_Id": "6ad8827c8f6c457a8e72c940779a3560"
+        },
+        {
+            "m_Id": "9c624b4b85b8409190389e0685a24f01"
+        },
+        {
+            "m_Id": "74ce267f1d8841ec94a07cb2b77f215f"
+        },
+        {
+            "m_Id": "bfbe0deb8ec4428a9cfcdb968651903c"
+        }
     ]
 }
 
@@ -3669,7 +3778,8 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_Space": 0
+    "m_Space": 0,
+    "m_PositionSource": 0
 }
 
 {
@@ -3979,7 +4089,8 @@
         "m_SerializableColors": []
     },
     "m_TextureType": 0,
-    "m_NormalMapSpace": 0
+    "m_NormalMapSpace": 0,
+    "m_EnableGlobalMipBias": true
 }
 
 {
@@ -3988,7 +4099,7 @@
     "m_ObjectId": "60e13120709e4329af3515b50896a9c1",
     "m_MaterialType": 0,
     "m_SubsurfaceScattering": true,
-    "m_IrisNormal": false
+    "m_IrisNormal": true
 }
 
 {
@@ -4048,7 +4159,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
     "m_ObjectId": "697b3b1fb8e84c51bcb2d8fa4a81e056",
     "m_Id": 0,
-    "m_DisplayName": "ScleraNormal",
+    "m_DisplayName": "Sclera Normal",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -4063,12 +4174,14 @@
     "m_Guid": {
         "m_GuidSerialized": "32ca927b-fedc-450d-9a6f-3ed9f328ee77"
     },
-    "m_Name": "IrisOffset",
+    "m_Name": "Iris Offset",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_76BF2124",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -4251,12 +4364,14 @@
     "m_Guid": {
         "m_GuidSerialized": "50189b63-f398-4395-bfa7-67fb002963a8"
     },
-    "m_Name": "MinimalPupilAperture",
+    "m_Name": "Minimal Pupil Aperture",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_2D21A623",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -4276,12 +4391,14 @@
     "m_Guid": {
         "m_GuidSerialized": "fb074b99-476d-4c2e-8fc8-8fb0f671c188"
     },
-    "m_Name": "LimbalRingSizeIris",
+    "m_Name": "Limbal Ring Size Iris",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_C4ED1456",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -4299,7 +4416,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "71f5d20edff741e287c6fcbba60756da",
     "m_Id": 0,
-    "m_DisplayName": "IrisOffset",
+    "m_DisplayName": "Iris Offset",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -4368,12 +4485,14 @@
     "m_Guid": {
         "m_GuidSerialized": "99d5e0e9-d718-4435-b820-41515fde398f"
     },
-    "m_Name": "IrisTexture",
+    "m_Name": "Iris Texture",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_D8BF6575",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -4382,6 +4501,8 @@
         "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
         "m_Guid": ""
     },
+    "isMainTexture": false,
+    "useTilingAndOffset": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
 }
@@ -4393,12 +4514,14 @@
     "m_Guid": {
         "m_GuidSerialized": "296e2e11-fc1b-4b6e-8415-f1d88705b497"
     },
-    "m_Name": "IrisNormalStrength",
+    "m_Name": "Iris Normal Strength",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_FC0895C8",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -4463,7 +4586,8 @@
         "m_SerializableColors": []
     },
     "m_TextureType": 1,
-    "m_NormalMapSpace": 0
+    "m_NormalMapSpace": 0,
+    "m_EnableGlobalMipBias": true
 }
 
 {
@@ -4473,12 +4597,14 @@
     "m_Guid": {
         "m_GuidSerialized": "550d8e4c-b159-40ab-af02-bb1cdcad7bb8"
     },
-    "m_Name": "PupilAperture",
+    "m_Name": "Pupil Aperture",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_FEA38ABB",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -4691,7 +4817,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "839584f8c7684dc3bf129218cd402636",
     "m_Id": 0,
-    "m_DisplayName": "PupilRadius",
+    "m_DisplayName": "Pupil Radius",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -4793,7 +4919,8 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_Space": 0
+    "m_Space": 0,
+    "m_PositionSource": 0
 }
 
 {
@@ -4836,7 +4963,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "884ecb90d5b8473b9672e2a40766950b",
     "m_Id": 0,
-    "m_DisplayName": "LimbalRingIntensity",
+    "m_DisplayName": "Limbal Ring Intensity",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -4853,7 +4980,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "8968117c829146848384633130ae297a",
     "m_Id": 0,
-    "m_DisplayName": "LimbalRingFade",
+    "m_DisplayName": "Limbal Ring Fade",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -4972,7 +5099,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "942c464cf68f49bc88165e2cb86e777f",
     "m_Id": 0,
-    "m_DisplayName": "IrisDiffusionProfile",
+    "m_DisplayName": "Iris Diffusion Profile",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -5131,12 +5258,14 @@
     "m_Guid": {
         "m_GuidSerialized": "b1008dd9-bee9-45cc-ab1f-3330fa868732"
     },
-    "m_Name": "PupilDebugMode",
+    "m_Name": "Pupil Debug Mode",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Boolean_8D34052F",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -5151,12 +5280,14 @@
     "m_Guid": {
         "m_GuidSerialized": "d528889a-712b-4dcd-a1bc-2aac2142f258"
     },
-    "m_Name": "IrisClampColor",
+    "m_Name": "Iris Clamp Color",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Color_83777D09",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -5167,6 +5298,7 @@
         "b": 0.5188679099082947,
         "a": 0.0
     },
+    "isMainColor": false,
     "m_ColorMode": 0
 }
 
@@ -5244,12 +5376,14 @@
     "m_Guid": {
         "m_GuidSerialized": "2a196c17-a7a7-48b1-9520-057b513cbed4"
     },
-    "m_Name": "PupilRadius",
+    "m_Name": "Pupil Radius",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_DFF948F3",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -5269,12 +5403,14 @@
     "m_Guid": {
         "m_GuidSerialized": "e3f9a16c-bc56-4a1e-8a15-ccf48612996e"
     },
-    "m_Name": "IrisNormal",
+    "m_Name": "Iris Normal",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_4DB28C10",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -5283,6 +5419,8 @@
         "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
         "m_Guid": ""
     },
+    "isMainTexture": false,
+    "useTilingAndOffset": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
 }
@@ -5292,7 +5430,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "9d77071e19d3423ca2ed8c8fd60d2ef9",
     "m_Id": 0,
-    "m_DisplayName": "LimbalRingIntensity",
+    "m_DisplayName": "Limbal Ring Intensity",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -5361,7 +5499,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "9ef1bf58fdbe453892ce55ba15362018",
     "m_Id": 0,
-    "m_DisplayName": "ScleraDiffusionProfile",
+    "m_DisplayName": "Sclera Diffusion Profile",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -5428,7 +5566,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "a0126e8d78004c2392e77ec0862d8411",
     "m_Id": 0,
-    "m_DisplayName": "LimbalRingSizeSclera",
+    "m_DisplayName": "Limbal Ring Size Sclera",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -5445,7 +5583,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "a13dfe1d6ead44c583c8676310d6633b",
     "m_Id": 0,
-    "m_DisplayName": "IrisNormalStrength",
+    "m_DisplayName": "Iris Normal Strength",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -5529,7 +5667,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "a670fbbfdf0b4795855a66139af6baf0",
     "m_Id": 0,
-    "m_DisplayName": "CorneaSmoothness",
+    "m_DisplayName": "Cornea Smoothness",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -5639,12 +5777,14 @@
     "m_Guid": {
         "m_GuidSerialized": "4b020807-13bc-490b-bea7-32706d36688d"
     },
-    "m_Name": "ScleraSmoothness",
+    "m_Name": "Sclera Smoothness",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_F084AE9E",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -5972,6 +6112,30 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "b21e085e5c844bc2a7a5bdedc8d3695c",
+    "m_Name": "Sclera",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "e90c81090c004570bf74081a26ad8d32"
+        },
+        {
+            "m_Id": "ab7c2b6d01dd4488be459395551580e1"
+        },
+        {
+            "m_Id": "fd16faa57aeb4c229829b62bb7f7bfd5"
+        },
+        {
+            "m_Id": "c771e025477545a58f7ca8d09b3a95a3"
+        },
+        {
+            "m_Id": "261f48f1fbc94ccbafc421414859c159"
+        }
+    ]
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "b451a3478f004c02999c87f72ae518eb",
     "m_Id": 0,
@@ -6021,12 +6185,14 @@
     "m_Guid": {
         "m_GuidSerialized": "5025e116-d2b9-4c55-beb9-59d28f9a7355"
     },
-    "m_Name": "LimbalRingIntensity",
+    "m_Name": "Limbal Ring Intensity",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_A6DA845F",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -6204,7 +6370,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
     "m_ObjectId": "ba6b5472da704f87a05eb3e18cec4439",
     "m_Id": 0,
-    "m_DisplayName": "IrisTexture",
+    "m_DisplayName": "Iris Texture",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -6292,7 +6458,8 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_Space": 0
+    "m_Space": 0,
+    "m_PositionSource": 0
 }
 
 {
@@ -6450,12 +6617,14 @@
     "m_Guid": {
         "m_GuidSerialized": "9444b3d5-aa8b-46b7-8b27-9b6ed8fcb3e9"
     },
-    "m_Name": "IrisDiffusionProfile",
+    "m_Name": "Iris Diffusion Profile",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "DiffusionProfile_bfbe0deb8ec4428a9cfcdb968651903c",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -6497,7 +6666,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "c018d4ca2bff4bdd8cc3f7aa0623451b",
     "m_Id": 0,
-    "m_DisplayName": "PupilAperture",
+    "m_DisplayName": "Pupil Aperture",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -6712,12 +6881,14 @@
     "m_Guid": {
         "m_GuidSerialized": "dff2bf97-4646-4e48-966f-aa8e61c00f31"
     },
-    "m_Name": "ScleraNormalStrength",
+    "m_Name": "Sclera Normal Strength",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_70564D59",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -7563,6 +7734,14 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "dec2d123624f4d2392482719d08589d5",
+    "m_Name": "",
+    "m_ChildObjectList": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "df861c60aad0478fba02a7b14cab4457",
     "m_Id": 0,
@@ -7656,12 +7835,14 @@
     "m_Guid": {
         "m_GuidSerialized": "6db4e7d9-6746-4a1f-aaea-f1ded256be02"
     },
-    "m_Name": "CorneaSmoothness",
+    "m_Name": "Cornea Smoothness",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_8F0D1174",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -7872,7 +8053,8 @@
         "m_SerializableColors": []
     },
     "m_TextureType": 1,
-    "m_NormalMapSpace": 0
+    "m_NormalMapSpace": 0,
+    "m_EnableGlobalMipBias": true
 }
 
 {
@@ -7949,12 +8131,14 @@
     "m_Guid": {
         "m_GuidSerialized": "0d4d34f4-8f8f-4afa-89fc-bc008c7fb200"
     },
-    "m_Name": "ScleraTexture",
+    "m_Name": "Sclera Texture",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_5F873FC1",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -7963,8 +8147,34 @@
         "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
         "m_Guid": ""
     },
+    "isMainTexture": false,
+    "useTilingAndOffset": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "e9275698f33b43b8be9605f8f67bc908",
+    "m_Name": "Pupil",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "9a6d8a62273c4c4db565fa7872f3919e"
+        },
+        {
+            "m_Id": "97db5880f5d34096a0c3f1d019ec1e5c"
+        },
+        {
+            "m_Id": "76d715779d0943698737ae2608262a35"
+        },
+        {
+            "m_Id": "714c18b2b81f46e7847db477c7242ba4"
+        },
+        {
+            "m_Id": "3624189abff54ea6840759446c17a716"
+        }
+    ]
 }
 
 {
@@ -8089,6 +8299,7 @@
     "m_TransparentWritesMotionVec": false,
     "m_AlphaToMask": false,
     "m_DepthOffset": false,
+    "m_ConservativeDepthOffset": false,
     "m_TransparencyFog": true,
     "m_AlphaTestShadow": false,
     "m_BackThenFrontRendering": false,
@@ -8433,7 +8644,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "f84cf3d2f73c4d7f8efe58ac5b3f7905",
     "m_Id": 0,
-    "m_DisplayName": "LimbalRingSizeIris",
+    "m_DisplayName": "Limbal Ring Size Iris",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -8509,7 +8720,8 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_Space": 0
+    "m_Space": 0,
+    "m_PositionSource": 0
 }
 
 {
@@ -8546,12 +8758,14 @@
     "m_Guid": {
         "m_GuidSerialized": "516bed75-9b12-4aff-bace-a3aa2a3a2a41"
     },
-    "m_Name": "ScleraNormal",
+    "m_Name": "Sclera Normal",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_B9F5688C",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -8560,6 +8774,8 @@
         "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
         "m_Guid": ""
     },
+    "isMainTexture": false,
+    "useTilingAndOffset": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
 }
@@ -8638,6 +8854,7 @@
             "m_Id": "46e21ae687bf4d2a8ed7b7ed6b1186c4"
         }
     ],
-    "m_CustomEditorGUI": ""
+    "m_CustomEditorGUI": "",
+    "m_SupportVFX": false
 }
 
