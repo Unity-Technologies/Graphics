@@ -823,28 +823,31 @@ namespace UnityEditor.VFX.UI
             board.PlaceBehind(m_Toolbar);
         }
 
-        public void AttachToSelection()
+        public bool TryAttachTo(VisualEffect visualEffect, bool showNotification)
         {
-            if (m_Controller == null)
+            if (m_Controller == null || visualEffect == null)
             {
-                return;
+                return false;
             }
 
-            var vfxWindow = VFXViewWindow.GetWindow(this);
-            if (vfxWindow != null && TryAttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>()) && vfxWindow != null)
-            {
-                string truncatedObjectName = TruncateName(Selection.activeObject.name, MaximumNameLengthInNotification);
-                vfxWindow.ShowNotification(new GUIContent($"Attached to {truncatedObjectName}"), 1.5);
-                vfxWindow.Repaint();
-            }
-        }
-
-        public bool TryAttachTo(VisualEffect selectedAsset)
-        {
             bool attached = false;
-            if (selectedAsset != null && controller?.graph.visualEffectResource.asset == selectedAsset.visualEffectAsset)
+            if (visualEffect != null && controller?.graph.visualEffectResource.asset == visualEffect.visualEffectAsset)
             {
-                attached = m_ComponentBoard.Attach(selectedAsset);
+                attached = m_ComponentBoard.Attach(visualEffect);
+            }
+
+            UpdateToolbarButtons();
+
+            if (attached && showNotification)
+            {
+                var vfxWindow = VFXViewWindow.GetWindow(this);
+                if (vfxWindow != null)
+                {
+                    string truncatedObjectName =
+                        TruncateName(Selection.activeObject.name, MaximumNameLengthInNotification);
+                    vfxWindow.ShowNotification(new GUIContent($"Attached to {truncatedObjectName}"), 1.5);
+                    vfxWindow.Repaint();
+                }
             }
 
             m_VFXSettings.AttachedVisualEffect = attached ? selectedAsset : null;
@@ -858,12 +861,9 @@ namespace UnityEditor.VFX.UI
             UpdateToolbarButtons();
         }
 
-        public void DetachIfDeleted()
+        internal void AttachToSelection()
         {
-            if (m_ComponentBoard.GetAttachedComponent() == null)
-            {
-                Detach();
-            }
+            TryAttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>(), true);
         }
 
         private void UpdateToolbarButtons()

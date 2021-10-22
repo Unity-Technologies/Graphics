@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.UI
         {
             if (vfx != null)
             {
-                m_VFXView.TryAttachTo(vfx);
+                m_VFXView.TryAttachTo(vfx, true);
             }
             else
             {
