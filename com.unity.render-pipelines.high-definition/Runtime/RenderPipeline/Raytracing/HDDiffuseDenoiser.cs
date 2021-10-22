@@ -8,7 +8,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Resources used for the de-noiser
         ComputeShader m_DiffuseDenoiser;
-        Texture m_OwenScrambleRGBA;
 
         HDRenderPipeline m_RenderPipeline;
 
@@ -23,7 +22,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Keep track of the resources
             m_DiffuseDenoiser = rpResources.shaders.diffuseDenoiserCS;
-            m_OwenScrambleRGBA = rpResources.textures.owenScrambledRGBATex;
 
             m_RenderPipeline = renderPipeline;
 
@@ -36,6 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Generate the point distribution
             int m_GeneratePointDistributionKernel = m_DiffuseDenoiser.FindKernel("GeneratePointDistribution");
             m_PointDistribution = new ComputeBuffer(16 * 2 * 4, sizeof(float));
+            m_DiffuseDenoiser.SetTexture(m_GeneratePointDistributionKernel, HDShaderIDs._OwenScrambledRGTexture, rpResources.textures.owenScrambledRGBATex);
             m_DiffuseDenoiser.SetBuffer(m_GeneratePointDistributionKernel, "_PointDistributionRW", m_PointDistribution);
             m_DiffuseDenoiser.Dispatch(m_GeneratePointDistributionKernel, 1, 1, 1);
         }
