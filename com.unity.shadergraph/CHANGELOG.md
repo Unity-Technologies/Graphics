@@ -11,6 +11,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
  - Fixed ShaderGraph errors caused by very large or very small default values for color or float properties [1313932]
+ - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
 
 ## [10.7.0] - 2021-07-02
 
