@@ -3,7 +3,8 @@
     "references": [
         "Unity.Timeline",
         "Unity.Timeline.Editor",
-        "Unity.VisualEffectGraph.Runtime"
+        "Unity.VisualEffectGraph.Runtime",
+        "Unity.VisualEffectGraph.Editor"
     ],
     "includePlatforms": [
         "Editor"

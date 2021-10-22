@@ -4,9 +4,40 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
+using UnityEngine.VFX.Utility;
 
 namespace UnityEngine.VFX
 {
+#pragma warning disable 649
+    [Serializable]
+    public struct EventAttributes //Using encapsulated structure to ease CustomPropertyDrawer
+    {
+        [SerializeReference]
+        public EventAttribute[] content;
+    }
+
+    [Serializable]
+    public abstract class EventAttribute
+    {
+        public ExposedProperty id;
+    }
+
+    [Serializable]
+    public abstract class EventAttributeValue<T> : EventAttribute
+    {
+        public T value;
+    }
+
+    [Serializable] public class EventAttributeFloat : EventAttributeValue<float> {}
+    [Serializable] public class EventAttributeVector2 : EventAttributeValue<Vector2> {}
+    [Serializable] public class EventAttributeVector3 : EventAttributeValue<Vector3> {}
+    [Serializable] public class EventAttributeColor : EventAttributeValue<Vector3> {}
+    [Serializable] public class EventAttributeVector4 : EventAttributeValue<Vector4> {}
+    [Serializable] public class EventAttributeInt : EventAttributeValue<int> {}
+    [Serializable] public class EventAttributeUInt : EventAttributeValue<uint> {}
+    [Serializable] public class EventAttributeBool : EventAttributeValue<bool> {}
+#pragma warning restore 649
+
     [Serializable]
     public struct VisualEffectPlayableSerializedEvent
     {
@@ -88,8 +119,9 @@ namespace UnityEngine.VFX
 
         public TimeSpace timeSpace;
         public double time;
-        public string name;
-        //TODOPAUL payload of attribute
+        public string name; //TODOPAUL: use ExposedProperty here, it will cache the propertyID in runtime
+
+        public EventAttributes eventAttributes;
     }
 
     public class VisualEffectControlPlayableBehaviour : PlayableBehaviour

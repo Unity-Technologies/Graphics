@@ -17,6 +17,8 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor-testable")]
 
+[assembly: InternalsVisibleTo("VisualEffect.Playable.Editor")] //TODOPAUL: Temp, not sure I will keep this separated asmdef
+
 namespace UnityEditor.VFX
 {
     static class VisualEffectGraphPackageInfo
