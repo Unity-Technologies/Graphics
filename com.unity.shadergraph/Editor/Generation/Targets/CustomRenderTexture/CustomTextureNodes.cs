@@ -6,6 +6,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
 {
     [Title("Custom Render Texture", "Size")]
+    [SubTargetFilter(typeof(CustomTextureSubTarget))]
     class CustomTextureSize : AbstractMaterialNode, IGeneratesFunction
     {
         private const string kOutputSlotWidthName = "Texture Width";
@@ -58,6 +59,7 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
     }
 
     [Title("Custom Render Texture", "Slice Index / Cubemap Face")]
+    [SubTargetFilter(typeof(CustomTextureSubTarget))]
     class CustomTextureSlice : AbstractMaterialNode, IGeneratesFunction
     {
         private const string kOutputSlotCubeFaceName = "Texture Cube Face";
@@ -106,6 +108,8 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
     }
 
     [Title("Custom Render Texture", "Self")]
+    [SubTargetFilter(typeof(CustomTextureSubTarget))]
+
     class CustomTextureSelf : AbstractMaterialNode, IGeneratesFunction
     {
         private const string kOutputSlotSelf2DName = "Self Texture 2D";
@@ -164,6 +168,8 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
     }
 
     [Title("Custom Render Texture", "Current Dimension")]
+    [SubTargetFilter(typeof(CustomTextureSubTarget))]
+
     class CustomTextureDimension : AbstractMaterialNode, IGeneratesBodyCode
     {
         private const string kOutputSlot2D = "Is 2D";
