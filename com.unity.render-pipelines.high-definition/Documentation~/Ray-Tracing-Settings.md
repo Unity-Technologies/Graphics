@@ -10,7 +10,7 @@ In the High Definition Render Pipeline (HDRP), various ray-traced effects share 
 ## Manually building the Ray Tracing Acceleration Structure
 
 HDRP provides a utility function that adds objects to the ray tracing acceleration structure.
-The function is `AddInstanceToRAS` and it takes a [Renderer](https://docs.unity3d.com/ScriptReference/Renderer.html)) as a parameter and booleans and layers to include or not the renderer into the calculations of different ray traced effects.
+The function is `AddInstanceToRAS` and it takes a [Renderer](https://docs.unity3d.com/ScriptReference/Renderer.html)) a `HDEffectsParameters` parameter and two a booleans that tracks changes in the transform and material properties of the included game objects.
 
 ```
 using System.Collections;
@@ -73,4 +73,4 @@ public class ManualRTASManager : MonoBehaviour
 | **Extend Camera Culling** | Extends the sets of GameObjects that HDRP includes in the rendering. This is a way to force skinned mesh animations for GameObjects that are not in the frustum. |
 | **Directional Shadow Ray Length** | Controls the maximal ray length for ray traced directional shadows. |
 | **Directional Shadow Fallback Intensity** | The shadow intensity value HDRP applies to a point when there is a [Directional Light](Light-Component.md) in the Scene and the point is outside the Light's shadow cascade coverage. This property helps to remove light leaking in certain environments, such as an interior room with a Directional Light outside. |
-| **Build Mode** | Specifies if HDRP handles automatically the building of the ray tracing acceleration structure internally or if it's provided by the user through the camera. If manual is selected and no acceleration structure is fed to the camera, ray-traced effects are not executed and fallback to rasterization. |
+| **Build Mode** | Specifies if HDRP handles automatically the building of the ray tracing acceleration structure internally or if it's provided by the user through the camera. When set to Manual, the RTAS build mode expects a ray tracing acceleration structure to be set on the camera. If not, all ray traced effects will be disabled. This option does not affect the scene view. |
