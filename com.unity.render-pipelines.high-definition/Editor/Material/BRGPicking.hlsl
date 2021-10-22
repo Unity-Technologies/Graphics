@@ -24,26 +24,26 @@ struct PickingMeshToPS
 #define PickingVertexOutput PickingMeshToPS
 #endif
 
-float4x4 _DOTSPickingViewMatrix;
-float4x4 _DOTSPickingProjMatrix;
-float4 _DOTSPickingCameraWorldPos;
+float4x4 unity_BRGPickingViewMatrix;
+float4x4 unity_BRGPickingProjMatrix;
+float4 unity_BRGPickingCameraWorldPos;
 
 #undef unity_ObjectToWorld
 float4x4 LoadObjectToWorldMatrixDOTSPicking()
 {
     float4x4 objectToWorld = LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld));
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    objectToWorld._m03_m13_m23 -= _DOTSPickingCameraWorldPos.xyz;
+    objectToWorld._m03_m13_m23 -= unity_BRGPickingCameraWorldPos.xyz;
  #endif
     return objectToWorld;
 }
 
 float4 ComputePositionCS(float3 positionWS)
 {
-    float4x4 viewMatrix = _DOTSPickingViewMatrix;
+    float4x4 viewMatrix = unity_BRGPickingViewMatrix;
     // HDRP expects no translation in the matrix because of camera relative rendering
     viewMatrix._m03_m13_m23_m33 = float4(0,0,0,1);
-    return mul(_DOTSPickingProjMatrix, mul(viewMatrix, float4(positionWS, 1)));
+    return mul(unity_BRGPickingProjMatrix, mul(viewMatrix, float4(positionWS, 1)));
 }
 
 PickingVertexOutput Vert(PickingAttributesMesh input)

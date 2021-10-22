@@ -30,9 +30,9 @@ Shader "Hidden/Universal Render Pipeline/BRGPickingFallback"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            float4x4 _DOTSPickingViewMatrix;
-            float4x4 _DOTSPickingProjMatrix;
-            float4 _DOTSPickingCameraWorldPos;
+            float4x4 unity_BRGPickingViewMatrix;
+            float4x4 unity_BRGPickingProjMatrix;
+            float4 unity_BRGPickingCameraWorldPos;
             float4 _SelectionID;
 
             struct Attributes
@@ -59,7 +59,7 @@ Shader "Hidden/Universal Render Pipeline/BRGPickingFallback"
                 #ifdef DOTS_INSTANCING_ON
 
                 float3 positionWS = mul(UNITY_MATRIX_M, input.positionOS).xyz;
-                output.positionCS = mul(_DOTSPickingProjMatrix, mul(_DOTSPickingViewMatrix, float4(positionWS, 1)));
+                output.positionCS = mul(unity_BRGPickingProjMatrix, mul(unity_BRGPickingViewMatrix, float4(positionWS, 1)));
 
                 #else
 
