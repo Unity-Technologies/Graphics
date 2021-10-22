@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -300,26 +301,23 @@ namespace UnityEngine.Rendering.HighDefinition
         static extern int Denoise(IntPtr texturePtr);
 
         [DllImport("DenoiserLibrary.dll", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
-        static extern int DenoiseCPU(IntPtr texturePtr);
+        static extern unsafe int DenoiseCPU(void* textureData, int width, int height);
 
         static RenderTexture m_pthistory;
         static Texture2D m_DenoisedHistory = null;
+        static NativeArray<Vector4> s_FrameData;
 
-        public static void OnDenoise(AsyncGPUReadbackRequest request)
+        public unsafe static void OnDenoise(AsyncGPUReadbackRequest request)
         {
             if (!request.hasError)
             {
-                NativeArray<Vector4> result = request.GetData<Vector4>();
-                Debug.Log("Denoising texture (using CPU readback)");
-
-                for (int i = 0; i < result.Length; i++)
-                {
-                    result[i] *= 10.0f;
-                }
+                s_FrameData = request.GetData<Vector4>();
+                var ptr = NativeArrayUnsafeUtility.GetUnsafePtr(s_FrameData); 
+                int res = DenoiseCPU(ptr, m_pthistory.width, m_pthistory.height);
+                Debug.Log($"Denoising texture (using CPU readback) {res}");
                 m_DenoisedHistory = new Texture2D(m_pthistory.width, m_pthistory.height, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
-                m_DenoisedHistory.SetPixelData<Vector4>(result, 0);
+                m_DenoisedHistory.SetPixelData<Vector4>(s_FrameData, 0);
                 m_DenoisedHistory.Apply(false);
-                //Graphics.Blit(m_DenoisedHistory, m_pthistory, 0, 0);
             }
         }
 
