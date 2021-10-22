@@ -188,6 +188,12 @@ Shader ""Hidden/GraphErrorShader2""
             }
 #endif
 
+            if (shader != null)
+            {
+                Material material = new Material(shader) { name = Path.GetFileNameWithoutExtension(path) + " Material" };
+                ctx.AddObjectToAsset("Material", material);
+            }
+
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon");
             ctx.AddObjectToAsset("MainAsset", mainObject, texture);
             ctx.SetMainObject(mainObject);
