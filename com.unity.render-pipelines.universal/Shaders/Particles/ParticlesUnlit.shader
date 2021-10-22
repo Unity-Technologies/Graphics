@@ -70,7 +70,6 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_Cull]
-            ColorMask RGB
 
             HLSLPROGRAM
             #pragma target 2.0
@@ -116,7 +115,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
             Cull[_Cull]
 
             HLSLPROGRAM

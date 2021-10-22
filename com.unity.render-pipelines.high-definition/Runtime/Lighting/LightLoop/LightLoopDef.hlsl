@@ -23,6 +23,7 @@ struct LightLoopContext
     uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
     real contactShadowFade;     // combined fade factor of all contact shadows
     SHADOW_TYPE shadowValue;    // Stores the value of the cascade shadow map
+    real splineVisibility;      // Stores the value of the cascade shadow map (unbiased for splines)
 };
 
 // LightLoopOutput is the output of the LightLoop fuction call.
@@ -152,15 +153,18 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, _EnvSliceSize * index + sliceIdx, lod).rgb;
         }
 
+        // Planar and Reflection Probes aren't pre-expose, so best to clamp to max16 here in case of inf
+        color.rgb = ClampToFloat16Max(color.rgb);
+
         color.rgb *= rangeCompressionFactorCompensation;
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {
         color.rgb = SampleSkyTexture(texCoord, lod, sliceIdx).rgb;
+        // Sky isn't pre-expose, so best to clamp to max16 here in case of inf
+        color.rgb = ClampToFloat16Max(color.rgb);
     }
 
-    // Planar, Reflection Probes and Sky aren't pre-expose, so best to clamp to max16 here in case of inf
-    color.rgb = ClampToFloat16Max(color.rgb);
 
     return color;
 }

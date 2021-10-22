@@ -194,10 +194,11 @@ namespace UnityEditor.VFX.UI
             m_DebugModes = this.Query<Button>("debug-modes");
             m_DebugModes.clickable.clicked += OnDebugModes;
 
-            m_RecordBoundsButton = this.Query<Button>("record");
-            m_RecordBoundsImage = this.Query<Image>("record-icon");
-            m_RecordBoundsButton.clickable.clicked += OnRecordBoundsButton;
             m_RecordIcon = VFXView.LoadImage("d_Record");
+            m_RecordBoundsButton = this.Query<Button>("record");
+            m_RecordBoundsImage = m_RecordBoundsButton.Query<Image>("record-icon");
+            m_RecordBoundsImage.style.backgroundImage = m_RecordIcon;
+            m_RecordBoundsButton.clickable.clicked += OnRecordBoundsButton;
             m_BoundsActionLabel = this.Query<Label>("bounds-label");
             m_BoundsToolContainer = this.Query("bounds-tool-container");
             m_BackgroundDefaultColor = m_BoundsToolContainer.style.backgroundColor;
@@ -606,6 +607,9 @@ namespace UnityEditor.VFX.UI
             {
                 path = m_AttachedComponent.gameObject.scene.name + " : " + path;
             }
+
+            if (m_Subtitle.text != path)
+                m_Subtitle.text = path;
 
             if (m_ParticleCount != null)
             {

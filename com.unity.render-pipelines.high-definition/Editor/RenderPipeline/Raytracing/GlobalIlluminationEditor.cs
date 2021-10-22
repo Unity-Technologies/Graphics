@@ -168,19 +168,21 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportSSGI ?? false)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Screen Space Global illumination.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Screen Space Global illumination.", MessageType.Error,
+                    HDRenderPipelineUI.Expandable.Reflection, "m_RenderPipelineSettings.supportSSGI");
                 return;
             }
 
             PropertyField(m_Enable);
+            EditorGUILayout.Space();
 
             // If ray tracing is supported display the content of the volume component
-            if (HDRenderPipeline.buildPipelineSupportsRayTracing)
+            if (HDRenderPipeline.assetSupportsRayTracing)
                 PropertyField(m_Tracing);
 
             // Flag to track if the ray tracing parameters were displayed
             RayCastingMode tracingMode = m_Tracing.value.GetEnumValue<RayCastingMode>();
-            bool rayTracingSettingsDisplayed = HDRenderPipeline.buildPipelineSupportsRayTracing
+            bool rayTracingSettingsDisplayed = HDRenderPipeline.assetSupportsRayTracing
                 && m_Tracing.overrideState.boolValue
                 && tracingMode != RayCastingMode.RayMarching;
 
@@ -230,7 +232,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (tracingMode == RayCastingMode.RayTracing)
                             RayTracingQualityModeGUI();
                         else
-                            EditorGUILayout.HelpBox("The current HDRP Asset does not support the mixed mode which is only available in performance mode.", MessageType.Error, wide: true);
+                            HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support the mixed mode which is only available in performance mode.", MessageType.Error,
+                            HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportedRayTracingMode");
                     }
                     else
                     {
@@ -282,7 +285,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
-            if (HDRenderPipeline.buildPipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
+            if (HDRenderPipeline.assetSupportsRayTracing && m_Tracing.overrideState.boolValue &&
                 m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
             {
                 // RTGI
@@ -308,7 +311,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
-            if (HDRenderPipeline.buildPipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
+            if (HDRenderPipeline.assetSupportsRayTracing && m_Tracing.overrideState.boolValue &&
                 m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
             {
                 // RTGI
@@ -335,7 +338,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool QualityEnabled()
         {
             // Quality always used for SSGI
-            if (!HDRenderPipeline.buildTargetSupportsRayTracing || m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
+            if (!HDRenderPipeline.assetSupportsRayTracing || m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
                 return true;
 
             // Handle the quality usage for RTGI

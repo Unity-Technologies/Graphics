@@ -147,27 +147,14 @@ GrassVertexOutput WavingGrassVert(GrassVertexInput v)
     UNITY_TRANSFER_INSTANCE_ID(v, o);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+#if defined(_BILLBOARD_VERT)
+    TerrainBillboardGrass(v.vertex, v.tangent.xy);
+#endif
+
     // MeshGrass v.color.a: 1 on top vertices, 0 on bottom vertices
     // _WaveAndDistance.z == 0 for MeshLit
     float waveAmount = v.color.a * _WaveAndDistance.z;
-    o.color = TerrainWaveGrass (v.vertex, waveAmount, v.color);
-
-    InitializeVertData(v, o);
-
-    return o;
-}
-
-GrassVertexOutput WavingGrassBillboardVert(GrassVertexInput v)
-{
-    GrassVertexOutput o = (GrassVertexOutput)0;
-    UNITY_SETUP_INSTANCE_ID(v);
-    UNITY_TRANSFER_INSTANCE_ID(v, o);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-
-    TerrainBillboardGrass (v.vertex, v.tangent.xy);
-    // wave amount defined by the grass height
-    float waveAmount = v.tangent.y;
-    o.color = TerrainWaveGrass (v.vertex, waveAmount, v.color);
+    o.color = TerrainWaveGrass(v.vertex, waveAmount, v.color);
 
     InitializeVertData(v, o);
 
@@ -217,7 +204,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
 #else
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    return color;
+    return half4(color.rgb, 1);
 #endif
 };
 
@@ -254,6 +241,10 @@ GrassVertexDepthOnlyOutput DepthOnlyVertex(GrassVertexDepthOnlyInput v)
     UNITY_TRANSFER_INSTANCE_ID(v, o);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+#if defined(_BILLBOARD_VERT)
+    TerrainBillboardGrass(v.vertex, v.tangent.xy);
+#endif
+
     // MeshGrass v.color.a: 1 on top vertices, 0 on bottom vertices
     // _WaveAndDistance.z == 0 for MeshLit
     float waveAmount = v.color.a * _WaveAndDistance.z;
@@ -267,6 +258,6 @@ GrassVertexDepthOnlyOutput DepthOnlyVertex(GrassVertexDepthOnlyInput v)
 half4 DepthOnlyFragment(GrassVertexDepthOnlyOutput input) : SV_TARGET
 {
     Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, input.color, _Cutoff);
-    return 0;
+    return input.clipPos.z;
 }
 #endif

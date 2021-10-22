@@ -331,8 +331,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugFullScreenMaterial = m_DebugFullScreen;
                 passData.input = builder.ReadTexture(inputFullScreenDebug);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
-                passData.depthPyramidMip = (int)(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * GetDepthBufferMipChainInfo().mipLevelCount);
-                passData.depthPyramidOffsets = GetDepthBufferMipChainInfo().GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+                passData.depthPyramidMip = (int)(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * hdCamera.depthBufferMipChainInfo.mipLevelCount);
+                passData.depthPyramidOffsets = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
                 // On Vulkan, not binding the Random Write Target will result in an invalid drawcall.
                 // To avoid that, if the compute buffer is invalid, we bind a dummy compute buffer anyway.
                 if (m_DebugFullScreenComputeBuffer.IsValid())
@@ -666,7 +666,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             else
                                 data.debugViewTilesMaterial.DisableKeyword("DISABLE_TILE_MODE");
 
-                            CoreUtils.DrawFullScreen(ctx.cmd, data.debugViewTilesMaterial, 0);
+                            CoreUtils.DrawFullScreen(ctx.cmd, data.debugViewTilesMaterial, shaderPassId: 0);
                         }
                     });
             }
@@ -1137,6 +1137,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 HDUtils.BlitColorAndDepth(context.cmd, data.clearColorTexture, data.clearDepthTexture, new Vector4(1, 1, 0, 0), 0, !data.clearDepth);
                             }
+
+                            BindDefaultTexturesLightingBuffers(context.defaultResources, context.cmd);
 
                             BindDBufferGlobalData(data.dbuffer, context);
                             DrawOpaqueRendererList(context, data.frameSettings, data.opaqueRendererList);

@@ -36,18 +36,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool msaa = hdCamera.msaaEnabled;
                 var target = renderRequest.target;
 
-                m_RenderGraph.Begin(new RenderGraphParameters()
-                {
-                    executionName = hdCamera.name,
-                    currentFrameIndex = m_FrameCount,
-                    rendererListCulling = m_GlobalSettings.rendererListCulling,
-                    scriptableRenderContext = renderContext,
-                    commandBuffer = commandBuffer
-                });
-
                 // We need to initialize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
-                m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize);
+                hdCamera.depthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize);
 
 #if UNITY_EDITOR
                 var showGizmos = camera.cameraType == CameraType.Game
@@ -109,6 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // For alpha output in AOVs or debug views, in case we have a shadow matte material, we need to render the shadow maps
                     if (m_CurrentDebugDisplaySettings.data.materialDebugSettings.debugViewMaterialCommonValue == Attributes.MaterialSharedProperty.Alpha)
                         RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
+                    else
+                        HDShadowManager.BindDefaultShadowGlobalResources(m_RenderGraph);
 
                     // Stop Single Pass is after post process.
                     StartXRSinglePass(m_RenderGraph, hdCamera);
@@ -143,8 +136,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Evaluate the history validation buffer that may be required by temporal accumulation based effects
                     TextureHandle historyValidationTexture = EvaluateHistoryValidationBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
 
-                    lightingBuffers.ambientOcclusionBuffer = RenderAmbientOcclusion(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, m_DepthBufferMipChainInfo, m_ShaderVariablesRayTracingCB, rayCountTexture);
-                    lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
+                    lightingBuffers.ambientOcclusionBuffer = RenderAmbientOcclusion(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, hdCamera.depthBufferMipChainInfo, m_ShaderVariablesRayTracingCB, rayCountTexture);
+                    lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, hdCamera.depthBufferMipChainInfo.mipLevelOffsets[1].y);
 
                     var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, gpuLightListOutput.bigTileLightList);
                     VoxelizeComputeLocalVolumetricFogs(m_RenderGraph, hdCamera, volumetricDensityBuffer);
@@ -166,7 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     lightingBuffers.screenspaceShadowBuffer = RenderScreenSpaceShadows(m_RenderGraph, hdCamera, prepassOutput, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.motionVectorsBuffer, historyValidationTexture, rayCountTexture);
 
-                    var maxZMask = GenerateMaxZPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, m_DepthBufferMipChainInfo);
+                    var maxZMask = GenerateMaxZPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, hdCamera.depthBufferMipChainInfo);
 
                     var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
 
@@ -184,7 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderSubsurfaceScattering(m_RenderGraph, hdCamera, colorBuffer, historyValidationTexture, ref lightingBuffers, ref prepassOutput);
 
                     RenderSky(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, prepassOutput.depthBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture);
-                    RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting);
+                    RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting, maxZMask);
 
                     // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
                     SendGeometryGraphicsBuffers(m_RenderGraph, prepassOutput.normalBuffer, prepassOutput.depthPyramidTexture, hdCamera);
@@ -337,11 +330,20 @@ namespace UnityEngine.Rendering.HighDefinition
             ScriptableRenderContext renderContext,
             CommandBuffer commandBuffer)
         {
-            RecordRenderGraph(
-                renderRequest, aovRequest, aovBuffers,
-                aovCustomPassBuffers, renderContext, commandBuffer);
+            using (m_RenderGraph.RecordAndExecute(new RenderGraphParameters
+            {
+                executionName = renderRequest.hdCamera.name,
+                currentFrameIndex = m_FrameCount,
+                rendererListCulling = m_GlobalSettings.rendererListCulling,
+                scriptableRenderContext = renderContext,
+                commandBuffer = commandBuffer
+            }))
+            {
+                RecordRenderGraph(
+                    renderRequest, aovRequest, aovBuffers,
+                    aovCustomPassBuffers, renderContext, commandBuffer);
+            }
 
-            m_RenderGraph.Execute();
 
             if (aovRequest.isValid)
             {
@@ -538,11 +540,16 @@ namespace UnityEngine.Rendering.HighDefinition
                             using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.CopyDepthInTargetTexture)))
                             {
                                 var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
-                                mpb.SetTexture(HDShaderIDs._InputDepth, data.depthBuffer);
-                                // When we are Main Game View we need to flip the depth buffer ourselves as we are after postprocess / blit that have already flipped the screen
-                                mpb.SetInt("_FlipY", data.flipY ? 1 : 0);
-                                mpb.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-                                CoreUtils.DrawFullScreen(ctx.cmd, data.copyDepthMaterial, mpb);
+                                RTHandle depth = data.depthBuffer;
+                                // Depth buffer can be invalid if no opaque has been rendered before.
+                                if (depth != null)
+                                {
+                                    mpb.SetTexture(HDShaderIDs._InputDepth, depth);
+                                    // When we are Main Game View we need to flip the depth buffer ourselves as we are after postprocess / blit that have already flipped the screen
+                                    mpb.SetInt("_FlipY", data.flipY ? 1 : 0);
+                                    mpb.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                                    CoreUtils.DrawFullScreen(ctx.cmd, data.copyDepthMaterial, mpb);
+                                }
                             }
                         }
                     });
@@ -1191,7 +1198,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.hdCamera = hdCamera;
             parameters.needNormalBuffer = false;
             parameters.needDepthBuffer = false;
-            parameters.packedMipChainInfo = m_DepthBufferMipChainInfo;
+            parameters.packedMipChainInfo = hdCamera.depthBufferMipChainInfo;
 
             HDAdditionalCameraData acd = null;
             hdCamera.camera.TryGetComponent(out acd);
@@ -1841,33 +1848,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.shaderVariablesGlobal._RTHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
                             ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesGlobal, HDShaderIDs._ShaderVariablesGlobal);
                             RTHandles.SetReferenceSize((int)data.hdCamera.finalViewport.width, (int)data.hdCamera.finalViewport.height);
-                        });
-                }
-            }
-        }
-
-        class BindCustomPassBuffersPassData
-        {
-            public Lazy<RTHandle> customColorTexture;
-            public Lazy<RTHandle> customDepthTexture;
-        }
-
-        void BindCustomPassBuffers(RenderGraph renderGraph, HDCamera hdCamera)
-        {
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
-            {
-                using (var builder = renderGraph.AddRenderPass<BindCustomPassBuffersPassData>("Bind Custom Pass Buffers", out var passData))
-                {
-                    passData.customColorTexture = m_CustomPassColorBuffer;
-                    passData.customDepthTexture = m_CustomPassDepthBuffer;
-
-                    builder.SetRenderFunc(
-                        (BindCustomPassBuffersPassData data, RenderGraphContext ctx) =>
-                        {
-                            if (data.customColorTexture.IsValueCreated)
-                                ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomColorTexture, data.customColorTexture.Value);
-                            if (data.customDepthTexture.IsValueCreated)
-                                ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, data.customDepthTexture.Value);
                         });
                 }
             }
