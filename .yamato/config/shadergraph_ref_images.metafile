@@ -112,15 +112,15 @@ platforms:
       editmode:
         type: Unity::VM::GPU
         image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
-        flavor: b1.large
+        flavor: b1.xlarge
       standalone:
         type: Unity::VM::GPU
         image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
-        flavor: b1.large
+        flavor: b1.xlarge
       standalone_cache:
         type: Unity::VM::GPU
         image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
-        flavor: b1.large
+        flavor: b1.xlarge
       standalone_build:
         type: Unity::VM::GPU
         image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
