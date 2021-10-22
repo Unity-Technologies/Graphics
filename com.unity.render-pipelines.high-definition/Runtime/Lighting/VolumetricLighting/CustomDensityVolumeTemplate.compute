@@ -5,7 +5,7 @@
 // The output is a float4, RGB being the color, and A is the attenuations.
 // The input parameters of the function are:
 //  voxelCenterWS: The world space coordinate of the voxel.
-//  voxelCenterCS: The "center space" coordine of the voxel. This is relative to the dimention of the local volumetric fog component.
+//  voxelCenterCS: The "center space" coordinate of the voxel. This is relative to the dimension of the local volumetric fog component.
 //      (0,0,0) is the object's pivot point, and ranges from (-1,-1,-1) to (1,1,1).
 //
 // ----- Temporary -----
