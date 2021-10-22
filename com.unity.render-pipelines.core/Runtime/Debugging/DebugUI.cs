@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
@@ -224,6 +225,14 @@ namespace UnityEngine.Rendering
             public float refreshRate = 0.1f;
 
             /// <summary>
+            /// Optional C# numeric format string, using following syntax: "{0[:numericFormatString]}"
+            /// See https://docs.microsoft.com/en-us/dotnet/standard/base-types/standard-numeric-format-strings
+            /// and https://docs.microsoft.com/en-us/dotnet/standard/base-types/composite-formatting
+            /// Example: 123.45678 with formatString "{0:F2} ms" --> "123.45 ms".
+            /// </summary>
+            public string formatString = null;
+
+            /// <summary>
             /// Constructor.
             /// </summary>
             public Value()
@@ -235,11 +244,83 @@ namespace UnityEngine.Rendering
             /// Returns the value of the widget.
             /// </summary>
             /// <returns>The value of the widget.</returns>
-            public object GetValue()
+            public virtual object GetValue()
             {
                 Assert.IsNotNull(getter);
                 return getter();
             }
+
+            /// <summary>
+            /// Returns the formatted value string for display purposes.
+            /// </summary>
+            /// <param name="value">Value to be formatted.</param>
+            /// <returns>The formatted value string.</returns>
+            public virtual string FormatString(object value)
+            {
+                return string.IsNullOrEmpty(formatString) ? $"{value}" : string.Format(formatString, value);
+            }
+        }
+
+        /// <summary>
+        /// Progress bar value.
+        /// </summary>
+        public class ProgressBarValue : Value
+        {
+            /// <summary>
+            /// Minimum value.
+            /// </summary>
+            public float min = 0f;
+            /// <summary>
+            /// Maximum value.
+            /// </summary>
+            public float max = 1f;
+
+            /// <summary>
+            /// Get the current progress string, remapped to [0, 1] range, representing the progress between min and max.
+            /// </summary>
+            /// <param name="value">Value to be formatted.</param>
+            /// <returns>Formatted progress percentage string between 0% and 100%.</returns>
+            public override string FormatString(object value)
+            {
+                static float Remap01(float v, float x0, float y0) => (v - x0) / (y0 - x0);
+
+                float clamped = Mathf.Clamp((float)value, min, max);
+                float percentage = Remap01(clamped, min, max);
+                return $"{percentage:P1}";
+            }
+        }
+
+        /// <summary>
+        /// Tuple of Value widgets for creating tabular UI.
+        /// </summary>
+        public class ValueTuple : Widget
+        {
+            /// <summary>
+            /// Number of elements in the tuple.
+            /// </summary>
+            public int numElements
+            {
+                get
+                {
+                    Assert.IsTrue(values.Length > 0);
+                    return values.Length;
+                }
+            }
+
+            /// <summary>
+            /// Value widgets.
+            /// </summary>
+            public Value[] values;
+
+            /// <summary>
+            /// Refresh rate for the read-only values (runtime only)
+            /// </summary>
+            public float refreshRate => values.FirstOrDefault()?.refreshRate ?? 0.1f;
+
+            /// <summary>
+            /// The currently pinned element index, or -1 if none are pinned.
+            /// </summary>
+            public int pinnedElementIndex = -1;
         }
     }
 }

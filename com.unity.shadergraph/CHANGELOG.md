@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fixed errors in the ShaderGraph Transform node [1368082]
  - Fixed the Scene Depth node so it returns proper results in Eye space when using an orthographic camera [1311272]
  - Fixed missing shader keyword stage during keyword copying.
+ - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
 
 ## [13.1.0] - 2021-09-24
 

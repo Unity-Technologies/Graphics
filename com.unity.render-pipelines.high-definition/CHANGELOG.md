@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for orthographic camera in path tracing.
 - Added public API to edit materials from script at runtime.
 - Added new functions that sample the custom buffer in custom passes (CustomPassSampleCustomColor and CustomPassLoadCustomColor) to handle the RTHandleScale automatically.
+- Added new panels to Rendering Debugger Display Stats panel, displaying improved CPU/GPU frame timings and bottlenecks.
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
@@ -34,6 +35,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support for interleaved tiling in path tracing.
 - Fixed robustness issues with the stacklit material in path tracing (case 1373971).
 - Fixed custom pass injection point not visible in the UI when using the Camera mode.
+- Fixed film grain & dithering when using spatial upscaling methods for DRS.
+- Fixed a regression that was introduced in the diffuse denoiser in a previous PR.
 - Fixed Z axis orientation when sampling 3D textures in local volumetric fog.
 
 ### Changed
@@ -42,11 +45,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - PrepareLightsForGPU CPU Light loop performance improvement (40% to 70% faster), utilizing burst and optimized. Utilizing better sorting, distributing work in jobs and improving cache access of light data.
 - In path tracing, camera ray misses now return a null value with Minimum Depth > 1.
 - HD's SpeedTree 8 upgrader now sets up CullModeForward as well.
+- Restructured data under Display Stats panel to use column layout.
+- Added controls for the users to manually feed the ray tracing acceleration structure that should be used for a given camera (case 1370678).
 
 ## [13.1.0] - 2021-09-24
 
 ### Added
 - Added a SG node to get the main directional light direction.
+- Added public API to edit materials from script at runtime.
+- Added new configuration ShderOptions.FPTLMaxLightCount in ShaderConfig.cs for maximum light count per fine pruned tile.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
@@ -60,6 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed misleading text and improving the eye scene material samples. (case 1368665)
 - Fixed missing DisallowMultipleComponent annotations in HDAdditionalReflectionData and HDAdditionalLightData (case 1365879).
 - Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
+- Maximum light count per fine prunned tile (opaque deferred) is now 63 instead of 23.
 
 ## [13.0.0] - 2021-09-01
 

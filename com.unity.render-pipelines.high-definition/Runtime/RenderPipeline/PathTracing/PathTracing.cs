@@ -201,17 +201,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Check materials dirtiness
-            if (GetMaterialDirtiness())
+            if (GetMaterialDirtiness(hdCamera))
             {
-                ResetMaterialDirtiness();
+                ResetMaterialDirtiness(hdCamera);
                 ResetPathTracing();
                 return camData;
             }
 
             // Check light or geometry transforms dirtiness
-            if (GetTransformDirtiness())
+            if (GetTransformDirtiness(hdCamera))
             {
-                ResetTransformDirtiness();
+                ResetTransformDirtiness(hdCamera);
                 ResetPathTracing();
                 return camData;
             }
@@ -225,7 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Check geometry dirtiness
-            ulong accelSize = RequestAccelerationStructure().GetSize();
+            ulong accelSize = RequestAccelerationStructure(hdCamera).GetSize();
             if (accelSize != m_CacheAccelSize)
             {
                 m_CacheAccelSize = accelSize;
@@ -282,7 +282,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.tilingParameters = m_PathTracingSettings.tilingParameters.value;
                 passData.width = hdCamera.actualWidth;
                 passData.height = hdCamera.actualHeight;
-                passData.accelerationStructure = RequestAccelerationStructure();
+                passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
 
                 passData.shaderVariablesRaytracingCB = m_ShaderVariablesRayTracingCB;

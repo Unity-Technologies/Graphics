@@ -35,6 +35,8 @@ The algorithm to calculate the contribution of ambient occlusion and specular oc
 
 The previous `g_vLightListGlobal` uniform have been rename to explicit `g_vLightListTile` and `g_vLightListCluster` light list name. This work required to fix a wrong behavior on console.
 
+Added a new setting in ShaderConfig.cs, FPTLMaxLightCount. This setting can now set the maximum number of lights per tile on the GPU. A new Shader config project must be generated to upgrade. See the [HDRP-Config-Package](HDRP-Config-Package.md) guide for information on how to upgrade.
+
 ## Density Volumes
 
 Density Volumes are now known as **Local Volumetric Fog**.
