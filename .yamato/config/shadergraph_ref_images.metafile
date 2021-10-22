@@ -110,7 +110,7 @@ platforms:
         flavor: b1.xlarge
         model: rtx2080
       editmode:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
         flavor: b1.large
       standalone:
@@ -122,7 +122,7 @@ platforms:
         image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
         flavor: b1.large
       standalone_build:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
         flavor: b1.xlarge
   - name: OSX

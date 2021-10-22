@@ -52,7 +52,7 @@ ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_trunk:
 Build_ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_trunk:
     name: Build ShaderGraph_ref on Win_Vulkan_mono_Linear_Standalone_ref_images_build_Player on version trunk
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
         flavor: b1.xlarge
     variables:
@@ -174,7 +174,7 @@ ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_trunk:
 Build_ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_trunk:
     name: Build ShaderGraph_ref on Win_Vulkan_mono_Linear_Standalone_cache_ref_images_build_Player on version trunk
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
         flavor: b1.xlarge
     variables:
@@ -252,7 +252,7 @@ ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
 Build_ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
     name: Build ShaderGraph_ref on Win_Vulkan_mono_Linear_Standalone_ref_images_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
         flavor: b1.xlarge
     variables:
@@ -374,7 +374,7 @@ ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISI
 Build_ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISION:
     name: Build ShaderGraph_ref on Win_Vulkan_mono_Linear_Standalone_cache_ref_images_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
         flavor: b1.xlarge
     variables:
