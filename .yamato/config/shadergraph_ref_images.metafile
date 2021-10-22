@@ -106,25 +106,29 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
+        image: slough-ops/win10-base
         flavor: b1.xlarge
-        model: rtx2080
+        model: gtx1080
       editmode:
         type: Unity::VM::GPU
-        image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
+        image: slough-ops/win10-base
         flavor: b1.xlarge
+        model: gtx1080
       standalone:
         type: Unity::VM::GPU
-        image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
+        image: slough-ops/win10-base
         flavor: b1.xlarge
+        model: gtx1080
       standalone_cache:
         type: Unity::VM::GPU
-        image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
+        image: slough-ops/win10-base
         flavor: b1.xlarge
+        model: gtx1080
       standalone_build:
         type: Unity::VM::GPU
-        image: slough-ops/win10-vanilla:21H1-v2.2.0-806659
+        image: slough-ops/win10-base
         flavor: b1.xlarge
+        model: gtx1080
   - name: OSX
     apis:
       - name: Metal
