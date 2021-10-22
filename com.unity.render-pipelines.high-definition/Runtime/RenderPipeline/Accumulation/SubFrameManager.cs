@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using Unity.Collections;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -298,6 +299,30 @@ namespace UnityEngine.Rendering.HighDefinition
         [DllImport("DenoiserLibrary.dll", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
         static extern int Denoise(IntPtr texturePtr);
 
+        [DllImport("DenoiserLibrary.dll", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
+        static extern int DenoiseCPU(IntPtr texturePtr);
+
+        static RenderTexture m_pthistory;
+        static Texture2D m_DenoisedHistory = null;
+
+        public static void OnDenoise(AsyncGPUReadbackRequest request)
+        {
+            if (!request.hasError)
+            {
+                NativeArray<Vector4> result = request.GetData<Vector4>();
+                Debug.Log("Denoising texture (using CPU readback)");
+
+                for (int i = 0; i < result.Length; i++)
+                {
+                    result[i] *= 10.0f;
+                }
+                m_DenoisedHistory = new Texture2D(m_pthistory.width, m_pthistory.height, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
+                m_DenoisedHistory.SetPixelData<Vector4>(result, 0);
+                m_DenoisedHistory.Apply(false);
+                //Graphics.Blit(m_DenoisedHistory, m_pthistory, 0, 0);
+            }
+        }
+
         void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, bool needExposure, bool needDenoise = false)
         {
             using (var builder = renderGraph.AddRenderPass<RenderAccumulationPassData>("Render Accumulation", out var passData))
@@ -336,13 +361,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         RTHandle input = data.input;
                         RTHandle output = data.output;
-
-                        if (data.needDenoise)
+                        RTHandle history = data.history;
+                        if (m_DenoisedHistory != null)
                         {
-                            RTHandle history = data.history;
-                            IntPtr nativeTexture = history.rt.GetNativeTexturePtr();
-
-                            Debug.Log($"denoising texture {Denoise(nativeTexture)}");
+                            ctx.cmd.Blit(m_DenoisedHistory, history.rt, 0, 0);
+                            m_DenoisedHistory = null;
                         }
 
                         // Accumulate the path tracing results
@@ -357,6 +380,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeVectorParam(accumulationShader, HDShaderIDs._AccumulationWeights, frameWeights);
                         ctx.cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNeedsExposure, data.needExposure ? 1 : 0);
                         ctx.cmd.DispatchCompute(accumulationShader, data.accumulationKernel, (data.hdCamera.actualWidth + 7) / 8, (data.hdCamera.actualHeight + 7) / 8, data.hdCamera.viewCount);
+
+                        if (data.needDenoise)
+                        {
+                            IntPtr nativeTexture = history.rt.GetNativeTexturePtr();
+
+                            bool cpuFallBack = true;
+
+                            if (cpuFallBack)
+                            {
+                                m_pthistory = history.rt;
+
+                                ctx.cmd.RequestAsyncReadback(history.rt, 0, TextureFormat.RGBAFloat, OnDenoise);
+                            }
+                            else
+                            {
+                                Debug.Log($"denoising texture {Denoise(nativeTexture)}");
+                            }
+                        }
 
                         // Increment the iteration counter, if we haven't converged yet
                         if (camData.currentIteration < data.subFrameManager.subFrameCount)
