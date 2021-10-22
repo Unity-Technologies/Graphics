@@ -27,4 +27,12 @@ float4 VolumetricFogFunction(float3 voxelCenterWS, float3 voxelCenterCS)
     return float4( c , 1);
 }
 
+// Uncomment the following define to write you own blending function
+// #define CUSTOM_BLEND
+float4 CustomBlend(float4 oldValue, float4 newValue)
+{
+    // Keep previous color, but overwrite extinction.
+    return float4(oldValue.rgb, newValue.a);
+}
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/CustomDensityVolumeBlend.hlsl"

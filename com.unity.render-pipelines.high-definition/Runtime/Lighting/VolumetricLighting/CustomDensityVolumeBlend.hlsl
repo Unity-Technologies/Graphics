@@ -33,8 +33,6 @@ void VoxelizeComputeLocalFog(
         const float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
         const float3 voxelCenterCS = (voxelCenterBS * rcp(obbExtents));
 
-        float4 volumeDensity = VolumetricFogFunction(voxelCenterWS, voxelCenterCS);
-
         // We must clamp here, otherwise, with soft voxelization enabled,
         // the center of the voxel can be slightly outside the box.
         float3 voxelCenterNDC = saturate(voxelCenterCS * 0.5 + 0.5);
@@ -49,6 +47,8 @@ void VoxelizeComputeLocalFog(
 
         if (overlapFraction > 0)
         {
+            float4 volumeDensity = VolumetricFogFunction(voxelCenterWS, voxelCenterCS);
+
             overlapFraction *= ComputeFadeFactor(voxelCenterNDC, dist,
                                                 _VolumeData[visibleVolumeIndex].rcpPosFaceFade,
                                                 _VolumeData[visibleVolumeIndex].rcpNegFaceFade,
@@ -57,7 +57,35 @@ void VoxelizeComputeLocalFog(
                                                 _VolumeData[visibleVolumeIndex].endTimesRcpDistFadeLen,
                                                 _VolumeData[visibleVolumeIndex].falloffMode);
 
-            _VBufferDensity[voxelCoord] = lerp(_VBufferDensity[voxelCoord], volumeDensity, min(volumeDensity.a * _VolumeData[visibleVolumeIndex].extinction, overlapFraction));
+            float3 volumeAlbedo = _VolumeData[visibleVolumeIndex].scattering / _VolumeData[visibleVolumeIndex].extinction;
+
+            // Multiply with settings albedo
+            volumeDensity.rgb *= volumeAlbedo;
+
+            // Apply settings extinction
+            volumeDensity.a *= _VolumeData[visibleVolumeIndex].extinction;
+
+#ifdef CUSTOM_BLEND
+            float4 fogAlbedoExtinction = _VBufferDensity[voxelCoord];
+
+            // Transform scattering to albedo
+            fogAlbedoExtinction.rgb /= fogAlbedoExtinction.a;
+
+            volumeDensity.a *= _VolumeData[visibleVolumeIndex].extinction;
+
+            fogAlbedoExtinction = lerp(fogAlbedoExtinction, CustomBlend(fogAlbedoExtinction, volumeDensity), overlapFraction);
+
+            // Transform back to scattering
+            fogAlbedoExtinction.rgb *= fogAlbedoExtinction.a;
+
+            _VBufferDensity[voxelCoord] = fogAlbedoExtinction;
+#else
+
+            // Transform albedo to scattering
+            volumeDensity.rgb *= volumeDensity.a;
+
+            _VBufferDensity[voxelCoord] = lerp(_VBufferDensity[voxelCoord], volumeDensity, min(volumeDensity.a , overlapFraction));
+#endif
         }
 
         t0 = t1;
