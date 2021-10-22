@@ -1240,7 +1240,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (debugDisplaySettings.AreAnySettingsActive && !cameraData.isPreviewCamera)
             {
-                DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.RenderingSettings;
+                DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.renderingSettings;
                 int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
 
                 if (!renderingSettings.enableMsaa)
