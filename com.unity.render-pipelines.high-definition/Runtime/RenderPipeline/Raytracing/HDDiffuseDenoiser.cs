@@ -18,14 +18,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_GatherSingleKernel;
         int m_GatherColorKernel;
         ComputeBuffer m_PointDistribution;
-        static internal float[] pointDistribution = new float[] { 0.647285104f, -0.534139216f, 0.201738372f, 0.260410696f,
-                                                                  -0.443308681f, 0.259598345f, 0.0f, 0.0f,
-                                                                    0.851900041f, 0.214261428f, 0.0376310274f, -0.406103343f,
-                                                                    -0.357411921f, -0.525219262f, -0.00147355383f, 0.239211172f,
-                                                                    -0.463947058f, 0.646911025f, -0.0379408896f, -0.291660219f,
-                                                                    0.405679494f, -0.473511368f, 0.0473965593f, 0.0411158539f,
-                                                                    -0.963973522f, -0.155723229f, -0.444706231f, 0.141471207f,
-                                                                    0.0980135575f, 0.687162697f, 0.156328082f, -0.0518609099f};
 
         public void Init(HDRenderPipelineRuntimeResources rpResources, HDRenderPipeline renderPipeline)
         {
@@ -40,8 +32,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BilateralFilterColorKernel = m_DiffuseDenoiser.FindKernel("BilateralFilterColor");
             m_GatherSingleKernel = m_DiffuseDenoiser.FindKernel("GatherSingle");
             m_GatherColorKernel = m_DiffuseDenoiser.FindKernel("GatherColor");
-            m_PointDistribution = new ComputeBuffer(16 * 2, sizeof(float));
-            m_PointDistribution.SetData(pointDistribution);
+
+            // Generate the point distribution
+            int m_GeneratePointDistributionKernel = m_DiffuseDenoiser.FindKernel("GeneratePointDistribution");
+            m_PointDistribution = new ComputeBuffer(16 * 2 * 4, sizeof(float));
+            m_DiffuseDenoiser.SetBuffer(m_GeneratePointDistributionKernel, "_PointDistributionRW", m_PointDistribution);
+            m_DiffuseDenoiser.Dispatch(m_GeneratePointDistributionKernel, 1, 1, 1);
         }
 
         public void Release()
