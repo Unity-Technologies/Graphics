@@ -852,7 +852,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.MultiCompileInstancing },
             { Pragma.DOTSInstancing },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
         };
 
         public static PragmaCollection DotsInstancedEditorSync = new PragmaCollection
@@ -862,7 +861,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.DOTSInstancing },
             { Pragma.EditorSyncCompilation },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
         };
     }
     #endregion
