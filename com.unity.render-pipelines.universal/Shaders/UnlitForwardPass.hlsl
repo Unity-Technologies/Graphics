@@ -34,6 +34,34 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+namespace URP
+{
+    namespace VtxTest
+    {
+        struct VtxUV
+        {
+            float2 inputUV;
+
+            static VtxUV Create(Attributes input)
+            {
+                VtxUV this = (VtxUV)0;
+                this.inputUV = input.uv;
+                return this;
+            }
+
+            void Init(Attributes input)
+            {
+                inputUV = input.uv;
+            }
+
+            float2 transformTex()
+            {
+                return TRANSFORM_TEX(inputUV, _BaseMap);
+            }
+        };
+    }
+}
+
 void InitializeInputData(Varyings input, out InputData inputData)
 {
     inputData = (InputData)0;
@@ -65,8 +93,13 @@ Varyings UnlitPassVertex(Attributes input)
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
 
+    URP::VtxTest::VtxUV uvHelper = URP::VtxTest::VtxUV::Create(input);
+
+    URP::VtxTest::VtxUV uvHelper2;
+    uvHelper2.Init(input);
+
     output.positionCS = vertexInput.positionCS;
-    output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+    output.uv = vertexInput.positionCS.x < 0 ? uvHelper.transformTex() : uvHelper2.transformTex();
     #if defined(_FOG_FRAGMENT)
     output.fogCoord = vertexInput.positionVS.z;
     #else
@@ -89,17 +122,122 @@ Varyings UnlitPassVertex(Attributes input)
     return output;
 }
 
+namespace URP
+{
+    namespace FragTypes
+    {
+        struct FragParams
+        {
+            Varyings input;
+
+            static FragParams Create(Varyings input)
+            {
+                FragParams self = (FragParams)0;
+                self.input = input;
+                return self;
+            }
+        };
+
+        struct FragResources
+        {
+            Texture2D baseMap;
+            SamplerState baseMapSampler;
+
+            static FragResources Create(Texture2D baseMap, SamplerState sam)
+            {
+                FragResources m;
+                m.baseMap = baseMap;
+                m.baseMapSampler = sam;
+                return m;
+            }
+
+            Texture2D BaseMap()
+            {
+                return baseMap;
+            }
+
+            SamplerState BaseMapSampler()
+            {
+                return baseMapSampler;
+            }
+
+            half4 SampleBaseMap(float2 uv)
+            {
+                return SAMPLE_TEXTURE2D(baseMap, baseMapSampler, uv);
+            }
+        };
+    }
+}
+
+namespace U
+{
+    namespace URP
+    {
+        namespace FragFuncs
+        {
+            struct FragOps
+            {
+                ::URP::FragTypes::FragParams m_params;
+
+                static FragOps New(::URP::FragTypes::FragParams params)
+                {
+                    FragOps this = (FragOps)0;
+                    this.m_params = params;
+                    return this;
+                }
+
+                float2 Uv()
+                {
+                    return m_params.input.uv;
+                }
+
+                half4 TexColor(::URP::FragTypes::FragResources res)
+                {
+                    return SAMPLE_TEXTURE2D(res.BaseMap(), res.BaseMapSampler(), Uv());
+                }
+
+                half3 Color(half3 texColor, half3 baseColor)
+                {
+                    return texColor * baseColor;
+                }
+
+                half Alpha(half texAlpha, half baseAlpha)
+                {
+                    return texAlpha * baseAlpha;
+                }
+
+                void AlphaDiscard(half alpha, half cutOff)
+                {
+                    ::AlphaDiscard(alpha, cutOff);
+                }
+            };
+        }
+    }
+}
+
 half4 UnlitPassFragment(Varyings input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    half2 uv = input.uv;
-    half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
-    half3 color = texColor.rgb * _BaseColor.rgb;
-    half alpha = texColor.a * _BaseColor.a;
+    URP::FragTypes::FragParams params = URP::FragTypes::FragParams::Create(input);
+    URP::FragTypes::FragResources res = URP::FragTypes::FragResources::Create(_BaseMap, sampler_BaseMap);
+    U::URP::FragFuncs::FragOps op = U::URP::FragFuncs::FragOps::New(params);
 
-    AlphaDiscard(alpha, _Cutoff);
+    float2 uv = op.Uv();
+    half4 texColor = op.TexColor(res);
+    half3 color = op.TexColor(res);
+    half alpha = op.Alpha(res.SampleBaseMap(uv), _BaseColor.a);
+    op.AlphaDiscard(alpha, _Cutoff);
+
+    // Hmmmm.. half doesn't have enough precision for UVs... we should really fix that for platforms that might care.
+    //
+    //half2 uv = input.uv;
+    //half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
+    //half3 color = texColor.rgb * _BaseColor.rgb;
+    //half alpha = texColor.a * _BaseColor.a;
+    //
+    //AlphaDiscard(alpha, _Cutoff);
 
     InputData inputData;
     InitializeInputData(input, inputData);
