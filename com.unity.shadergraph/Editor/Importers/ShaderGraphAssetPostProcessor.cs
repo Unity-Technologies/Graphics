@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph
                 x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase)
                     || CustomFunctionNode.s_ValidExtensions.Contains(Path.GetExtension(x))
                     || (AssetDatabase.GetMainAssetTypeAtPath(x)?.IsSubclassOf(typeof(Texture)) ?? false)
-                    || (AssetDatabase.GetMainAssetTypeAtPath(x)?.IsSubclassOf(typeof(Texture)) ?? true)
+                    || (AssetDatabase.GetMainAssetTypeAtPath(x) is null)
                     )
                 .Select(AssetDatabase.AssetPathToGUID)
                 .Distinct()
