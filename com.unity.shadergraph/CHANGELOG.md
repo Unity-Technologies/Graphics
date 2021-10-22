@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Adding ability to automatically cast Bools to Vector types in ShaderGraph [1359160]
  - Added ShaderGraph import warning to old nodes and properties, and ability to dismiss the warning if old behavior is desired.
  - Added normal transforms to the Transform node
+ - Added an automatically generated material subasset on ShaderGraphs.
 
 ### Changed
  - Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
@@ -19,6 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fixed a bug that Parallax Mapping and Parallax Occlusion Mapping nodes don't use the same channel to sample heightmap by adding drop-downs for channel selecting to both of the nodes. [1347270] (https://fogbugz.unity3d.com/f/cases/1347270/)
  - Fixed errors in the ShaderGraph Transform node [1368082]
  - Fixed the Scene Depth node so it returns proper results in Eye space when using an orthographic camera [1311272]
+ - Fixed missing shader keyword stage during keyword copying.
+ - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
 
 ## [13.1.0] - 2021-09-24
 
@@ -28,9 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fixed unhandled exception when loading a subgraph with duplicate slots [1366200] (https://issuetracker.unity3d.com/product/unity/issues/guid/1366200/)
 
 ## [13.0.0] - 2021-09-01
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+- Remove use of deprecated UNITY_USE_NATIVE_HDR keyword in shaders.
 
 ### Added
  - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
