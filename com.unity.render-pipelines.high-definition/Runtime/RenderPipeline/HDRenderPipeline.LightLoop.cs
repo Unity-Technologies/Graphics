@@ -1118,7 +1118,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
-            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ScreenSpaceReflection.RayTracingActive(settings);
+            // We can use the ray tracing version of the effect if:
+            // - It is enabled in the frame settings
+            // - It is enabled in the volume
+            // - The RTAS has been build validated
+            // - The RTLightCluster has been validated
+            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                                            && ScreenSpaceReflection.RayTracingActive(settings)
+                                            && GetRayTracingState() && GetRayTracingClusterState();
             if (usesRaytracedReflections)
             {
                 result = RenderRayTracedReflections(renderGraph, hdCamera,
@@ -1360,11 +1367,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.contactShadowsCS.EnableKeyword("ENABLE_MSAA");
                 }
 
-                passData.rayTracingEnabled = RayTracedContactShadowsRequired();
+                passData.rayTracingEnabled = RayTracedContactShadowsRequired() && GetRayTracingState();
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
                     passData.contactShadowsRTS = m_GlobalSettings.renderPipelineRayTracingResources.contactShadowRayTracingRT;
-                    passData.accelerationStructure = RequestAccelerationStructure();
+                    passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
 
                     passData.actualWidth = hdCamera.actualWidth;
                     passData.actualHeight = hdCamera.actualHeight;

@@ -87,6 +87,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Reflection_LastBounce_Fallback/110_Reflection_LastBounce_FallbackSky.unity
     guid: 5c56a3e53ee350a4dad439f373d87b59
   - enabled: 1
+    path: Assets/Scenes/111_ReflectionManualRTAS.unity
+    guid: 3c0cc6ddd3708ee40bae99f5e92891a0
+  - enabled: 1
     path: Assets/Scenes/201_LargeAmbientOcclusion.unity
     guid: 41a04a0db6c8e4e4eb54296e4521c3e5
   - enabled: 1
