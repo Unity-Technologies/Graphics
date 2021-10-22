@@ -7,7 +7,9 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel AmbientProbeConvolution KERNEL_NAME=AmbientProbeConvolution
+#pragma kernel AmbientProbeConvolutionDiffuse KERNEL_NAME=AmbientProbeConvolutionDiffuse OUTPUT_DIFFUSE
 #pragma kernel AmbientProbeConvolutionVolumetric KERNEL_NAME=AmbientProbeConvolutionVolumetric OUTPUT_VOLUMETRIC
+#pragma kernel AmbientProbeConvolutionDiffuseVolumetric KERNEL_NAME=AmbientProbeConvolutionDiffuseVolumetric OUTPUT_VOLUMETRIC OUTPUT_DIFFUSE
 #pragma kernel AmbientProbeConvolutionNoMip KERNEL_NAME=AmbientProbeConvolutionNoMip NO_MIPS
 
 // Input Cubemap
@@ -15,6 +17,7 @@ TEXTURECUBE(_AmbientProbeInputCubemap);
 // Output buffer
 RWStructuredBuffer<float> _AmbientProbeOutputBuffer;
 RWStructuredBuffer<float4> _VolumetricAmbientProbeOutputBuffer;
+RWStructuredBuffer<float4> _DiffuseAmbientProbeOutputBuffer;
 
 uniform float4 _FogParameters;
 
@@ -62,7 +65,6 @@ static const float invNormConsts[] = { 1 / c0, -1 / c1, 1 / c1, -1 / c1, 1 / c2,
     groupshared float outputSHCoeffsLDS[SH_COEFF_COUNT * SAMPLE_COUNT / 2];
 #endif
 
-
 void ConvolveZonal(inout float sh[27], float zh[3])
 {
     for (int l = 0; l <= 2; l++)
@@ -81,6 +83,29 @@ void ConvolveZonal(inout float sh[27], float zh[3])
             }
         }
     }
+}
+
+
+void PackSH(RWStructuredBuffer<float4> buffer, float sh[27])
+{
+    // Packs coefficients so that we can use Peter-Pike Sloan's shader code.
+    // Does not perform premultiplication with coefficients of SH basis functions.
+    // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks".
+    // Constant + linear
+    for (int c = 0; c < 3; c++)
+
+    {
+        buffer[c] = float4(sh[c * 9 + 3], sh[c * 9 + 1], sh[c * 9 + 2], sh[c * 9 + 0] - sh[c * 9 + 6]);
+    }
+
+    // Quadratic (4/5)
+    for (int c = 0; c < 3; c++)
+    {
+        buffer[3 + c] = float4(sh[c * 9 + 4], sh[c * 9 + 5], sh[c * 9 + 6] * 3.0f, sh[c * 9 + 7]);
+    }
+
+    // Quadratic (5)
+    buffer[6] = float4(sh[0 * 9 + 8], sh[1 * 9 + 8], sh[2 * 9 + 8], 1.0f);
 }
 
 [numthreads(SAMPLE_COUNT, 1, 1)]
@@ -208,16 +233,28 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
             _AmbientProbeOutputBuffer[i] = outputSHCoeffs[i] * ConvolveCosineLobeBandFactor[i % 9] * weight;
         }
 
+        float result[27];
+
+#if OUTPUT_DIFFUSE
+        for (i = 0; i < SH_COEFF_COUNT; ++i)
+        {
+            result[i] = _AmbientProbeOutputBuffer[i];
+        }
+
+        PackSH(_DiffuseAmbientProbeOutputBuffer, result);
+#endif
+
 #if OUTPUT_VOLUMETRIC
         // Following is a shader rewrite of the ambient probe transformation code found in HDRenderPipeline.VolumetricLighting.cs SetPreconvolvedAmbientLightProbe
         // The whole thing can probably be simplified but for the sake of readability it is kept as is for now. Performance should not be an issue as this is executed usually only once.
         // (or very rarely)
-        float result[27];
+
         // Undo cosine rescaling and apply fog dimmer.
         // NOTE: In theory we should be able to do directly:
         // result[i] = outputSHCoeffs[i] * weight *_FogDimmer;
+        // without cosine convolution
         // But for some reason the inverse constants invNormConsts applied here are not equivalent to ConvolveCosineLobeBandFactor.
-        // These constant come from the first C# implementation.
+        // These constant come from the first C# implementation that this code replace. We probably should investigate why.
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
             result[i] = _AmbientProbeOutputBuffer[i] * invNormConsts[i % 9] *_FogDimmer;
@@ -236,23 +273,7 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
             result[i] = result[i] * ks[i % 9];
         }
 
-        // Packs coefficients so that we can use Peter-Pike Sloan's shader code.
-        // Does not perform premultiplication with coefficients of SH basis functions.
-        // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks".
-        // Constant + linear
-        for (int c = 0; c < 3; c++)
-        {
-            _VolumetricAmbientProbeOutputBuffer[c] = float4(result[c * 9 + 3], result[c * 9 + 1], result[c * 9 + 2], result[c * 9 + 0] - result[c * 9 + 6]);
-        }
-
-        // Quadratic (4/5)
-        for (int c = 0; c < 3; c++)
-        {
-            _VolumetricAmbientProbeOutputBuffer[3 + c] = float4(result[c * 9 + 4], result[c * 9 + 5], result[c * 9 + 6] * 3.0f, result[c * 9 + 7]);
-        }
-
-        // Quadratic (5)
-        _VolumetricAmbientProbeOutputBuffer[6] = float4(result[0 * 9 + 8], result[1 * 9 + 8], result[2 * 9 + 8], 1.0f);
+        PackSH(_VolumetricAmbientProbeOutputBuffer, result);
 #endif
     }
 }

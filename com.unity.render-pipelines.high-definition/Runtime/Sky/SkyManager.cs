@@ -169,6 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader m_ComputeAmbientProbeCS;
         readonly int m_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
         readonly int m_VolumetricAmbientProbeOutputBufferParam = Shader.PropertyToID("_VolumetricAmbientProbeOutputBuffer");
+        readonly int m_DiffuseAmbientProbeOutputBufferParam = Shader.PropertyToID("_DiffuseAmbientProbeOutputBuffer");
         readonly int m_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
         readonly int m_FogParameters = Shader.PropertyToID("_FogParameters");
         int m_ComputeAmbientProbeKernel;
@@ -341,8 +342,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_OpaqueAtmScatteringBlock = new MaterialPropertyBlock();
 
             m_ComputeAmbientProbeCS = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.ambientProbeConvolutionCS;
-            m_ComputeAmbientProbeKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolution");
-            m_ComputeAmbientProbeVolumetricKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionVolumetric");
+            m_ComputeAmbientProbeKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionDiffuse");
+            m_ComputeAmbientProbeVolumetricKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionDiffuseVolumetric");
 
             lightingOverrideVolumeStack = VolumeManager.instance.CreateStack();
             lightingOverrideLayerMask = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask;
@@ -449,12 +450,25 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        ComputeBuffer GetDiffuseAmbientProbeBuffer(SkyUpdateContext skyContext)
+        {
+            if (skyContext.IsValid() && IsCachedContextValid(skyContext))
+            {
+                ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
+                return context.renderingContext.diffuseAmbientProbeBuffer;
+            }
+            else
+            {
+                return m_BlackAmbientProbeBuffer;
+            }
+        }
+
         ComputeBuffer GetVolumetricAmbientProbeBuffer(SkyUpdateContext skyContext)
         {
             if (skyContext.IsValid() && IsCachedContextValid(skyContext))
             {
                 ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
-                return context.renderingContext.volumetricAmbientProbeResult;
+                return context.renderingContext.volumetricAmbientProbeBuffer;
             }
             else
             {
@@ -514,6 +528,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return GetAmbientProbe(GetLightingSky(hdCamera));
+        }
+
+        internal ComputeBuffer GetDiffuseAmbientProbeBuffer(HDCamera hdCamera)
+        {
+            // If a camera just returns from being disabled, sky is not setup yet for it.
+            if (hdCamera.lightingSky == null && hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic)
+            {
+                return m_BlackAmbientProbeBuffer;
+            }
+
+            return GetDiffuseAmbientProbeBuffer(GetLightingSky(hdCamera));
         }
 
         internal ComputeBuffer GetVolumetricAmbientProbeBuffer(HDCamera hdCamera)
@@ -942,9 +967,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                     int kernel = volumetricsEnabled ? m_ComputeAmbientProbeVolumetricKernel : m_ComputeAmbientProbeKernel;
                                     cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, kernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
                                     cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, kernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
+                                    cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, kernel, m_DiffuseAmbientProbeOutputBufferParam, renderingContext.diffuseAmbientProbeBuffer);
                                     if (volumetricsEnabled)
                                     {
-                                        cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, kernel, m_VolumetricAmbientProbeOutputBufferParam, renderingContext.volumetricAmbientProbeResult);
+                                        cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, kernel, m_VolumetricAmbientProbeOutputBufferParam, renderingContext.volumetricAmbientProbeBuffer);
                                         cmd.SetComputeVectorParam(m_ComputeAmbientProbeCS, m_FogParameters, new Vector4(fog.globalLightProbeDimmer.value, fog.anisotropy.value, 0.0f, 0.0f));
                                     }
                                     cmd.DispatchCompute(m_ComputeAmbientProbeCS, kernel, 1, 1, 1);
@@ -1012,6 +1038,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var reflectionTexture = GetReflectionTexture(hdCamera.lightingSky);
             cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, reflectionTexture);
+            cmd.SetGlobalBuffer(HDShaderIDs._AmbientProbeData, GetDiffuseAmbientProbeBuffer(hdCamera));
         }
 
         internal void UpdateBuiltinParameters(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
