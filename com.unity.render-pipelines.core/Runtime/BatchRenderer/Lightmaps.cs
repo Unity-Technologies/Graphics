@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering
             public LightMappingFlags Flags;
         }
 
-        public static LightMaps GetLightmapsStruct()
+        private static Tuple<LightMaps, Dictionary<int, int>> GetLightmapsStruct(List<int> indexesToConvert)
         {
             var lightmapsbaked = LightmapSettings.lightmaps;
 
@@ -100,14 +100,23 @@ namespace UnityEngine.Rendering
             var directions = new List<Texture2D>();
             var shadowMasks = new List<Texture2D>();
 
+            var remapTable = new Dictionary<int, int>();
+
+            int added = 0;
             for (var i = 0; i < lightmapsbaked.Length; i++)
             {
+                if(!indexesToConvert.Contains(i))
+                    continue;
+
+                remapTable[i] = added;
+                added++;
+
                 var lightmapData = lightmapsbaked[i];
                 colors.Add(lightmapData.lightmapColor);
                 directions.Add(lightmapData.lightmapDir);
                 shadowMasks.Add(lightmapData.shadowMask);
             }
-            return ConstructLightMaps(colors, directions, shadowMasks);
+            return new Tuple<LightMaps, Dictionary<int, int>>(ConstructLightMaps(colors, directions, shadowMasks), remapTable);
         }
 
         private static Material GetLightMappedMaterial(Material baseMaterial, LightMaps lightMaps, Dictionary<MaterialLookupKey, Material> lightMappedMaterialCache)
@@ -162,13 +171,27 @@ namespace UnityEngine.Rendering
             return lightMappedMaterial;
         }
 
+        public struct LightMapInformation
+        {
+            public LightMaps lightmaps;
+            public Dictionary<Tuple<Renderer, int>, Material> rendererToMaterialMap;
+            public Dictionary<int, int> lightmapIndexRemap;
+        }
+
         // build a map of renderer / submesh -> Material.
         // create a new material if lightmappingis needed
-        public static Dictionary<Tuple<Renderer, int>, Material> GenerateRenderersToMaterials(List<MeshRenderer> renderers, LightMaps maps)
+        public static LightMapInformation GenerateLightMappingData(List<MeshRenderer> renderers)
         {
             var returnMap = new Dictionary<Tuple<Renderer, int>, Material>();
 
             Dictionary<MaterialLookupKey, Material> lightMappedMaterialCache = new();
+
+            List<int> usedIndices = new();
+            foreach (var renderer in renderers)
+                usedIndices.Add(renderer.lightmapIndex);
+
+            var lightmaps = GetLightmapsStruct(usedIndices);
+            var maps = lightmaps.Item1;
 
             // renderer
             foreach (var renderer in renderers)
@@ -187,8 +210,7 @@ namespace UnityEngine.Rendering
                     // if not valid for lightmapping - just use the current material
                     if (!maps.isValid
                         || sharedMaterials[i] == null
-                        || lightmapIndex < 0
-                        || lightmapIndex == 65534
+                        || lightmapIndex is < 0 or 65534
                         || lightmapIndex > maps.colors.depth)
                         material = sharedMaterials[i];
                     else
@@ -199,7 +221,22 @@ namespace UnityEngine.Rendering
                     returnMap.Add(new Tuple<Renderer, int>(renderer, i), material);
                 }
             }
-            return returnMap;
+            return new LightMapInformation
+            {
+                lightmaps = maps,
+                lightmapIndexRemap = lightmaps.Item2,
+                rendererToMaterialMap = returnMap
+            };
+        }
+
+        public void Destroy()
+        {
+            if(colors != null)
+                Object.Destroy(colors);
+            if(directions != null)
+                Object.Destroy(directions);
+            if(shadowMasks != null)
+                Object.Destroy(shadowMasks);
         }
     }
 }

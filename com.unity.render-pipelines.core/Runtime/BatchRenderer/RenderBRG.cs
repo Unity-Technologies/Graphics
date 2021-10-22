@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering
             return new float4(sh[0, 8], sh[1, 8], sh[2, 8], 1);
         }
     }
-
+    
     unsafe class SceneBRG
     {
         private BatchRendererGroup m_BatchRendererGroup;
@@ -142,6 +142,8 @@ namespace UnityEngine.Rendering
         private NativeArray<int> m_instanceIndices;
         private NativeArray<int> m_drawIndices;
         private NativeArray<DrawRenderer> m_renderers;
+
+        private LightMaps m_Lightmaps;
 
         private List<MeshRenderer> m_AddedRenderers;
 
@@ -165,19 +167,13 @@ namespace UnityEngine.Rendering
         [BurstCompile]
         private struct CullingJob : IJobParallelFor
         {
-            [DeallocateOnJobCompletion]
-            [ReadOnly]
-            public NativeArray<FrustumPlanes.PlanePacket4> planes;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<FrustumPlanes.PlanePacket4> planes;
 
-            [DeallocateOnJobCompletion]
-            [ReadOnly]
-            public NativeArray<int> splitCounts;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> splitCounts;
 
-            [ReadOnly]
-            public NativeArray<DrawRenderer> renderers;
+            [ReadOnly] public NativeArray<DrawRenderer> renderers;
 
-            [WriteOnly]
-            public NativeArray<ulong> rendererVisibility;
+            [WriteOnly] public NativeArray<ulong> rendererVisibility;
 
             public void Execute(int index)
             {
@@ -189,7 +185,7 @@ namespace UnityEngine.Rendering
                 for (int i = start; i < end; i++)
                 {
                     ulong splitMask = FrustumPlanes.Intersect2NoPartial(planes, splitCounts, renderers[i].bounds);
-                    visibleBits |= splitMask << (8 * (i-start));
+                    visibleBits |= splitMask << (8 * (i - start));
                 }
 
                 rendererVisibility[index] = visibleBits;
@@ -197,64 +193,90 @@ namespace UnityEngine.Rendering
         }
 
 
- #if !DEBUG_LOG_CULLING_RESULTS_SLOW
-    [BurstCompile]
+#if !DEBUG_LOG_CULLING_RESULTS_SLOW
+        [BurstCompile]
 #endif
-    private struct DrawCommandOutputJob : IJob
-    {
-        public BatchID batchID;
-        public int viewID;
-        public int sliceID;
-
-        [DeallocateOnJobCompletion][ReadOnly]
-        public NativeArray<ulong> rendererVisibility;
-
-        [ReadOnly]
-        public NativeArray<int> instanceIndices;
-
-        [ReadOnly]
-        public NativeList<DrawBatch> drawBatches;
-
-        [ReadOnly]
-        public NativeList<DrawRange> drawRanges;
-
-        [ReadOnly]
-        public NativeArray<int> drawIndices;
-
-        public NativeArray<BatchCullingOutputDrawCommands> drawCommands;
-
-        public void Execute()
+        private struct DrawCommandOutputJob : IJob
         {
-            var draws = drawCommands[0];
+            public BatchID batchID;
+            public int viewID;
+            public int sliceID;
 
-            int outIndex = 0;
-            int outBatch = 0;
-            int outRange = 0;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<ulong> rendererVisibility;
 
-            int activeBatch = 0;
-            int internalIndex = 0;
-            int batchStartIndex = 0;
+            [ReadOnly] public NativeArray<int> instanceIndices;
 
-            int activeRange = 0;
-            int internalDraw = 0;
-            int rangeStartIndex = 0;
+            [ReadOnly] public NativeList<DrawBatch> drawBatches;
 
-            uint visibleMaskPrev = 0xffffffff;
+            [ReadOnly] public NativeList<DrawRange> drawRanges;
 
-            for (int i = 0; i < instanceIndices.Length; i++)
+            [ReadOnly] public NativeArray<int> drawIndices;
+
+            public NativeArray<BatchCullingOutputDrawCommands> drawCommands;
+
+            public void Execute()
             {
-                var remappedIndex = drawIndices[activeBatch];   // DrawIndices remap to get DrawCommands ordered by DrawRange
-                var rendererIndex = instanceIndices[i];
-                uint visibleMask = (uint)((rendererVisibility[rendererIndex / 8] >> ((rendererIndex % 8) * 8)) & 0xfful);
+                var draws = drawCommands[0];
 
-                if (visibleMask != 0)
+                int outIndex = 0;
+                int outBatch = 0;
+                int outRange = 0;
+
+                int activeBatch = 0;
+                int internalIndex = 0;
+                int batchStartIndex = 0;
+
+                int activeRange = 0;
+                int internalDraw = 0;
+                int rangeStartIndex = 0;
+
+                uint visibleMaskPrev = 0xffffffff;
+
+                for (int i = 0; i < instanceIndices.Length; i++)
                 {
-                    draws.visibleInstances[outIndex] = instanceIndices[i];
-                    outIndex++;
+                    var remappedIndex =
+                        drawIndices[activeBatch]; // DrawIndices remap to get DrawCommands ordered by DrawRange
+                    var rendererIndex = instanceIndices[i];
+                    uint visibleMask =
+                        (uint)((rendererVisibility[rendererIndex / 8] >> ((rendererIndex % 8) * 8)) & 0xfful);
 
-                    // Emit extra DrawCommand if visible mask changes
-                    // TODO: Sort draws in batch first to minimize the number of DrawCommands
-                    if (visibleMaskPrev != 0xffffffff && visibleMask != visibleMaskPrev)
+                    if (visibleMask != 0)
+                    {
+                        draws.visibleInstances[outIndex] = instanceIndices[i];
+                        outIndex++;
+
+                        // Emit extra DrawCommand if visible mask changes
+                        // TODO: Sort draws in batch first to minimize the number of DrawCommands
+                        if (visibleMaskPrev != 0xffffffff && visibleMask != visibleMaskPrev)
+                        {
+                            var visibleCount = outIndex - batchStartIndex;
+                            if (visibleCount > 0)
+                            {
+                                draws.drawCommands[outBatch] = new BatchDrawCommand
+                                {
+                                    visibleOffset = (uint)batchStartIndex,
+                                    visibleCount = (uint)visibleCount,
+                                    batchID = batchID,
+                                    materialID = drawBatches[remappedIndex].key.material,
+                                    meshID = drawBatches[remappedIndex].key.meshID,
+                                    submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
+                                    splitVisibilityMask = (ushort)visibleMask,
+                                    flags = drawBatches[remappedIndex].key.flags,
+                                    sortingPosition = 0
+                                };
+                                outBatch++;
+                            }
+
+                            batchStartIndex = outIndex;
+                        }
+
+                        visibleMaskPrev = visibleMask;
+                    }
+
+                    internalIndex++;
+
+                    // Next draw batch?
+                    if (internalIndex == drawBatches[remappedIndex].instanceCount)
                     {
                         var visibleCount = outIndex - batchStartIndex;
                         if (visibleCount > 0)
@@ -273,74 +295,52 @@ namespace UnityEngine.Rendering
                             };
                             outBatch++;
                         }
+
                         batchStartIndex = outIndex;
-                    }
-                    visibleMaskPrev = visibleMask;
-                }
-                internalIndex++;
+                        internalIndex = 0;
+                        activeBatch++;
+                        internalDraw++;
 
-                // Next draw batch?
-                if (internalIndex == drawBatches[remappedIndex].instanceCount)
-                {
-                    var visibleCount = outIndex - batchStartIndex;
-                    if (visibleCount > 0)
-                    {
-                        draws.drawCommands[outBatch] = new BatchDrawCommand
+                        // Next draw range?
+                        if (internalDraw == drawRanges[activeRange].drawCount)
                         {
-                            visibleOffset = (uint)batchStartIndex,
-                            visibleCount = (uint)visibleCount,
-                            batchID = batchID,
-                            materialID = drawBatches[remappedIndex].key.material,
-                            meshID = drawBatches[remappedIndex].key.meshID,
-                            submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
-                            splitVisibilityMask = (ushort)visibleMask,
-                            flags = drawBatches[remappedIndex].key.flags,
-                            sortingPosition = 0
-                        };
-                        outBatch++;
-                    }
-
-                    batchStartIndex = outIndex;
-                    internalIndex = 0;
-                    activeBatch++;
-                    internalDraw++;
-
-                    // Next draw range?
-                    if (internalDraw == drawRanges[activeRange].drawCount)
-                    {
-                        var visibleDrawCount = outBatch - rangeStartIndex;
-                        if (visibleDrawCount > 0)
-                        {
-                            var rangeKey = drawRanges[activeRange].key;
-                            draws.drawRanges[outRange] = new BatchDrawRange
+                            var visibleDrawCount = outBatch - rangeStartIndex;
+                            if (visibleDrawCount > 0)
                             {
-                                drawCommandsBegin = (uint)rangeStartIndex,
-                                drawCommandsCount = (uint)visibleDrawCount,
-                                filterSettings = new BatchFilterSettings
+                                var rangeKey = drawRanges[activeRange].key;
+                                draws.drawRanges[outRange] = new BatchDrawRange
                                 {
-                                    renderingLayerMask = rangeKey.renderingLayerMask,
-                                    layer = rangeKey.layer,
-                                    motionMode = MotionVectorGenerationMode.Camera,
-                                    shadowCastingMode = rangeKey.shadowCastingMode,
-                                    receiveShadows = (rangeKey.shadowFlags & RangeShadowFlags.ReceiveShadows) == RangeShadowFlags.ReceiveShadows,
-                                    staticShadowCaster = (rangeKey.shadowFlags & RangeShadowFlags.StaticShadowCaster) == RangeShadowFlags.StaticShadowCaster,
-                                    allDepthSorted = false
-                                }
-                            };
-                            outRange++;
-                        }
+                                    drawCommandsBegin = (uint)rangeStartIndex,
+                                    drawCommandsCount = (uint)visibleDrawCount,
+                                    filterSettings = new BatchFilterSettings
+                                    {
+                                        renderingLayerMask = rangeKey.renderingLayerMask,
+                                        layer = rangeKey.layer,
+                                        motionMode = MotionVectorGenerationMode.Camera,
+                                        shadowCastingMode = rangeKey.shadowCastingMode,
+                                        receiveShadows =
+                                            (rangeKey.shadowFlags & RangeShadowFlags.ReceiveShadows) ==
+                                            RangeShadowFlags.ReceiveShadows,
+                                        staticShadowCaster =
+                                            (rangeKey.shadowFlags & RangeShadowFlags.StaticShadowCaster) ==
+                                            RangeShadowFlags.StaticShadowCaster,
+                                        allDepthSorted = false
+                                    }
+                                };
+                                outRange++;
+                            }
 
-                        rangeStartIndex = outBatch;
-                        internalDraw = 0;
-                        activeRange++;
+                            rangeStartIndex = outBatch;
+                            internalDraw = 0;
+                            activeRange++;
+                        }
                     }
                 }
-            }
 
-            draws.drawCommandCount = outBatch;
-            draws.visibleInstanceCount = outIndex;
-            draws.drawRangeCount = outRange;
-            drawCommands[0] = draws;
+                draws.drawCommandCount = outBatch;
+                draws.visibleInstanceCount = outIndex;
+                draws.drawRangeCount = outRange;
+                drawCommands[0] = draws;
 
 #if DEBUG_LOG_CULLING_RESULTS_SLOW
             Debug.Log(
@@ -350,17 +350,18 @@ namespace UnityEngine.Rendering
                 " draws=" + draws.drawCommandCount +
                 " instances=" + draws.visibleInstanceCount);
 #endif
+            }
         }
-    }
 
-    public JobHandle OnPerformCulling(BatchRendererGroup rendererGroup, BatchCullingContext cullingContext, BatchCullingOutput cullingOutput, IntPtr userContext)
-    {
-        if (!m_initialized)
+        public JobHandle OnPerformCulling(BatchRendererGroup rendererGroup, BatchCullingContext cullingContext,
+            BatchCullingOutput cullingOutput, IntPtr userContext)
         {
-            return new JobHandle();
-        }
+            if (!m_initialized)
+            {
+                return new JobHandle();
+            }
 
-        var cc = cullingContext;
+            var cc = cullingContext;
 
 #if DEBUG_LOG_CULLING
         Debug.Log(
@@ -376,11 +377,12 @@ namespace UnityEngine.Rendering
             " cullingPlanes=" + cc.cullingPlanes.Length);
 #endif
 
-        var splitCounts = new NativeArray<int>(cc.cullingSplits.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-        for (int i = 0; i < splitCounts.Length; ++i)
-        {
-            var split = cc.cullingSplits[i];
-            splitCounts[i] = split.cullingPlaneCount;
+            var splitCounts = new NativeArray<int>(cc.cullingSplits.Length, Allocator.TempJob,
+                NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < splitCounts.Length; ++i)
+            {
+                var split = cc.cullingSplits[i];
+                splitCounts[i] = split.cullingPlaneCount;
 
 #if DEBUG_LOG_CULLING_SPLITS
             Debug.Log(
@@ -392,58 +394,63 @@ namespace UnityEngine.Rendering
                 " cascadeBlendCullingFactor=" + split.cascadeBlendCullingFactor +
                 " nearPlane=" + split.nearPlane);
 #endif
+            }
+
+            var planes = FrustumPlanes.BuildSOAPlanePackets(cc.cullingPlanes, splitCounts, Allocator.TempJob);
+
+            BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
+            drawCommands.drawRanges = Malloc<BatchDrawRange>(m_drawRanges.Length);
+            drawCommands.drawCommands =
+                Malloc<BatchDrawCommand>(m_drawBatches.Length *
+                                         splitCounts
+                                             .Length); // TODO: Multiplying the DrawCommand count by splitCount is NOT an conservative upper bound. But in practice is enough...
+            drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
+
+            // Zero init: Culling job sets the values!
+            drawCommands.drawRangeCount = 0;
+            drawCommands.drawCommandCount = 0;
+            drawCommands.visibleInstanceCount = 0;
+
+            drawCommands.instanceSortingPositions = null;
+            drawCommands.instanceSortingPositionFloatCount = 0;
+
+            cullingOutput.drawCommands[0] = drawCommands;
+
+            var visibilityLength = (m_renderers.Length + 7) / 8;
+            var rendererVisibility =
+                new NativeArray<ulong>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+
+            var cullingJob = new CullingJob
+            {
+                planes = planes,
+                splitCounts = splitCounts,
+                renderers = m_renderers,
+                rendererVisibility = rendererVisibility
+            };
+
+            var drawOutputJob = new DrawCommandOutputJob
+            {
+                viewID = cc.viewID.GetInstanceID(),
+                sliceID = cc.viewID.GetInstanceID(),
+                batchID = m_batchID,
+                rendererVisibility = rendererVisibility,
+                instanceIndices = m_instanceIndices,
+                drawBatches = m_drawBatches,
+                drawRanges = m_drawRanges,
+                drawIndices = m_drawIndices,
+                drawCommands = cullingOutput.drawCommands
+            };
+
+            var jobHandleCulling = cullingJob.Schedule(visibilityLength, 2);
+            var jobHandleOutput = drawOutputJob.Schedule(jobHandleCulling);
+
+            //planes.Dispose(jobHandleCulling);
+            //splitCounts.Dispose(jobHandleCulling);
+
+            return jobHandleOutput;
         }
-        var planes = FrustumPlanes.BuildSOAPlanePackets(cc.cullingPlanes, splitCounts, Allocator.TempJob);
 
-        BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
-        drawCommands.drawRanges = Malloc<BatchDrawRange>(m_drawRanges.Length);
-        drawCommands.drawCommands = Malloc<BatchDrawCommand>(m_drawBatches.Length * splitCounts.Length); // TODO: Multiplying the DrawCommand count by splitCount is NOT an conservative upper bound. But in practice is enough...
-        drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
-
-        // Zero init: Culling job sets the values!
-        drawCommands.drawRangeCount = 0;
-        drawCommands.drawCommandCount = 0;
-        drawCommands.visibleInstanceCount = 0;
-
-        drawCommands.instanceSortingPositions = null;
-        drawCommands.instanceSortingPositionFloatCount = 0;
-
-        cullingOutput.drawCommands[0] = drawCommands;
-
-        var visibilityLength = (m_renderers.Length + 7) / 8;
-        var rendererVisibility = new NativeArray<ulong>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-
-        var cullingJob = new CullingJob
-        {
-            planes = planes,
-            splitCounts = splitCounts,
-            renderers = m_renderers,
-            rendererVisibility = rendererVisibility
-        };
-
-        var drawOutputJob = new DrawCommandOutputJob
-        {
-            viewID = cc.viewID.GetInstanceID(),
-            sliceID = cc.viewID.GetInstanceID(),
-            batchID = m_batchID,
-            rendererVisibility = rendererVisibility,
-            instanceIndices = m_instanceIndices,
-            drawBatches = m_drawBatches,
-            drawRanges = m_drawRanges,
-            drawIndices = m_drawIndices,
-            drawCommands = cullingOutput.drawCommands
-        };
-
-        var jobHandleCulling = cullingJob.Schedule(visibilityLength, 2);
-        var jobHandleOutput = drawOutputJob.Schedule(jobHandleCulling);
-
-        //planes.Dispose(jobHandleCulling);
-        //splitCounts.Dispose(jobHandleCulling);
-
-        return jobHandleOutput;
-    }
-
-      // Start is called before the first frame update
+        // Start is called before the first frame update
         public void Initialize(List<MeshRenderer> renderers)
         {
             m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
@@ -498,8 +505,10 @@ namespace UnityEngine.Rendering
 
             m_instances = new NativeList<DrawInstance>(1024, Allocator.Persistent);
 
-            var lightmaps = LightMaps.GetLightmapsStruct();
-            var materialMap = LightMaps.GenerateRenderersToMaterials(renderers, lightmaps);
+            var lightmappingData = LightMaps.GenerateLightMappingData(renderers);
+
+            m_Lightmaps = lightmappingData.lightmaps;
+            var rendererMaterialInfos = lightmappingData.rendererToMaterialMap;
 
             LightProbesQuery lpq = new LightProbesQuery(Allocator.Temp);
 
@@ -530,7 +539,10 @@ namespace UnityEngine.Rendering
                       0.0,  0.0,  0.0,  1.0
                 */
 
-                vectorBuffer[i + lightMapIndexOffset] = new Vector4(renderer.lightmapIndex, 0, 0, 0);
+                if (!lightmappingData.lightmapIndexRemap.TryGetValue(renderer.lightmapIndex, out var newLmIndex))
+                    newLmIndex = 0;
+
+                vectorBuffer[i + lightMapIndexOffset] = new Vector4(newLmIndex, 0, 0, 0);
                 vectorBuffer[i + lightMapScaleOffset] = renderer.lightmapScaleOffset;
 
                 var rendererTransform = renderer.transform;
@@ -595,7 +607,7 @@ namespace UnityEngine.Rendering
                 for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
                 {
                     Material matToUse;
-                    if (!materialMap.TryGetValue(new Tuple<Renderer, int>(renderer, matIndex), out matToUse))
+                    if (!rendererMaterialInfos.TryGetValue(new Tuple<Renderer, int>(renderer, matIndex), out matToUse))
                         matToUse = sharedMaterials[matIndex];
 
                     var material = m_BatchRendererGroup.RegisterMaterial(matToUse);
@@ -646,8 +658,7 @@ namespace UnityEngine.Rendering
 
 
 #if DEBUG_LOG_SCENE
-            Debug.Log("DrawRanges: " + m_drawRanges.Length + ", DrawBatches: " + m_drawBatches.Length +
-                      ", Instances: " + m_instances.Length);
+            Debug.Log("DrawRanges: " + m_drawRanges.Length + ", DrawBatches: " + m_drawBatches.Length + ", Instances: " + m_instances.Length);
 #endif
 
             // Prefix sum to calculate draw offsets for each DrawRange
@@ -706,8 +717,7 @@ namespace UnityEngine.Rendering
             m_internalDrawIndex.Dispose();
 
             // Bounds ("infinite")
-            UnityEngine.Bounds bounds =
-                new Bounds(new Vector3(0, 0, 0), new Vector3(1048576.0f, 1048576.0f, 1048576.0f));
+            Bounds bounds = new Bounds(new Vector3(0, 0, 0), new Vector3(1048576.0f, 1048576.0f, 1048576.0f));
             m_BatchRendererGroup.SetGlobalBounds(bounds);
 
             // Batch metadata buffer...
@@ -774,6 +784,7 @@ namespace UnityEngine.Rendering
                 m_instances.Dispose();
                 m_instanceIndices.Dispose();
                 m_drawIndices.Dispose();
+                m_Lightmaps.Destroy();
 
                 foreach (var added in m_AddedRenderers)
                 {
