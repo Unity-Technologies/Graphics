@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with mixed cached shadow for area lights.
 - Fixed an exception happening when the user doesn't set one of the renderers of a given LOD (case 1372965).
 - Fixed film grain & dithering when using spatial upscaling methods for DRS.
+- Fixed a regression that was introduced in the diffuse denoiser.
 
 ### Changed
 - Maximum light count per fine prunned tile (opaque deferred) is now 63 instead of 23.
