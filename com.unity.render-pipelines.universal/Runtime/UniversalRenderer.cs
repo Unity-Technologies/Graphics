@@ -601,7 +601,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Allocate m_DepthTexture if used
-            if (this.actualRenderingMode == RenderingMode.Deferred || requiresDepthPrepass || requiresDepthCopyPass)
+            if ((this.actualRenderingMode == RenderingMode.Deferred && !this.useRenderPassEnabled)|| requiresDepthPrepass || requiresDepthCopyPass)
             {
                 var depthDescriptor = cameraTargetDescriptor;
                 depthDescriptor.colorFormat = RenderTextureFormat.Depth;
