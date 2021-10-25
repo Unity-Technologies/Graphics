@@ -38,7 +38,7 @@ By default, in the UI for Decal Projectors, Mesh Renderers, or Terrain, Decal La
 
 ### Performance implications
 
-Enabling Decal Layers require increase memory, have a GPU performance cost and generate more Shader Variant (so increase build time).
+Enabling Decal Layers increases memory usage, has a GPU performance cost and generates more Shader Variants. This increases build time.
 
 If you use the Decal Layer system to disable a decal, via the **Rendering Layer Mask** of a Mesh Renderer or Terrain, it doesn't save on any performance. Instead, to save performance, you need to disable the **Receive Decals** property for the Mesh Renderer or Terrain's Material.
 

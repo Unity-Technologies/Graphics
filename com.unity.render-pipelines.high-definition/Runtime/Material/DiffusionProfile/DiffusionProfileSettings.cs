@@ -195,8 +195,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    /// <summary>
+    /// Class for Diffusion Profile settings
+    /// </summary>
     [HDRPHelpURLAttribute("Diffusion-Profile")]
-    internal partial class DiffusionProfileSettings : ScriptableObject
+    public partial class DiffusionProfileSettings : ScriptableObject
     {
         [SerializeField]
         internal DiffusionProfile profile;
@@ -265,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Initialize the settings for the default diffusion profile.
         /// </summary>
-        public void SetDefaultParams()
+        internal void SetDefaultParams()
         {
             worldScaleAndFilterRadiusAndThicknessRemap = new Vector4(1, 0, 0, 1);
             shapeParamAndMaxScatterDist = new Vector4(16777216, 16777216, 16777216, 0);
