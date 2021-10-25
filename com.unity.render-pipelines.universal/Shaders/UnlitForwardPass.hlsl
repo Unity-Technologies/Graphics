@@ -99,6 +99,7 @@ Varyings UnlitPassVertex(Attributes input)
     uvHelper2.Init(input);
 
     output.positionCS = vertexInput.positionCS;
+    //output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
     output.uv = vertexInput.positionCS.x < 0 ? uvHelper.transformTex() : uvHelper2.transformTex();
     #if defined(_FOG_FRAGMENT)
     output.fogCoord = vertexInput.positionVS.z;
@@ -226,8 +227,8 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
 
     float2 uv = op.Uv();
     half4 texColor = op.TexColor(res);
-    half3 color = op.TexColor(res);
-    half alpha = op.Alpha(res.SampleBaseMap(uv), _BaseColor.a);
+    half3 color = op.Color(texColor.rgb, _BaseColor.rgb);
+    half alpha = op.Alpha(res.SampleBaseMap(uv).a, _BaseColor.a);
     op.AlphaDiscard(alpha, _Cutoff);
 
     // Hmmmm.. half doesn't have enough precision for UVs... we should really fix that for platforms that might care.
