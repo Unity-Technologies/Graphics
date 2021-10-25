@@ -872,30 +872,6 @@ namespace UnityEditor.ShaderGraph
             Profiler.EndSample();
 
             // --------------------------------------------------
-            // Dots Instanced Graph Properties
-
-            bool hasDotsProperties = subShaderProperties.HasDotsProperties();
-
-            using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
-            {
-                if (hasDotsProperties)
-                    dotsInstancedPropertyBuilder.AppendLines(subShaderProperties.GetDotsInstancingPropertiesDeclaration(m_Mode));
-                else
-                    dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
-                spliceCommands.Add("HybridV1InjectedBuiltinProperties", dotsInstancedPropertyBuilder.ToCodeBlock());
-            }
-
-            // --------------------------------------------------
-            // Dots Instancing Options
-
-            using (var dotsInstancingOptionsBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
-            {
-                if (dotsInstancingOptionsBuilder.length == 0)
-                    dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");
-                spliceCommands.Add("DotsInstancingOptions", dotsInstancingOptionsBuilder.ToCodeBlock());
-            }
-
-            // --------------------------------------------------
             // Graph Defines
             Profiler.BeginSample("GraphDefines");
             using (var graphDefines = new ShaderStringBuilder(humanReadable: m_humanReadable))

@@ -308,11 +308,6 @@
             UNITY_DEFINE_INSTANCED_PROP(float, unity_RenderingLayerArray)
             #define unity_RenderingLayer UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_RenderingLayerArray).xxxx
         #endif
-
-        // TODO: Hybrid V1 compatibility, remove once Hybrid V1 is removed
-        #if defined(UNITY_HYBRID_V1_INSTANCING_ENABLED) && defined(HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS)
-            HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS
-        #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins0)
 
     UNITY_INSTANCING_BUFFER_START(PerDraw1)
