@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support for interleaved tiling in path tracing.
 - Fixed robustness issues with the stacklit material in path tracing (case 1373971).
 - Fixed custom pass injection point not visible in the UI when using the Camera mode.
+- Fixed issue with mixed cached shadow for area lights.
 
 ### Changed
 - Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
