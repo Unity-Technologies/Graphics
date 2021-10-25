@@ -372,6 +372,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ShaderVariablesVolumetric = Shader.PropertyToID("ShaderVariablesVolumetric");
         public static readonly int _ShaderVariablesLightList = Shader.PropertyToID("ShaderVariablesLightList");
         public static readonly int _ShaderVariablesRaytracing = Shader.PropertyToID("ShaderVariablesRaytracing");
+        public static readonly int _ShaderVariablesBilateralUpsample = Shader.PropertyToID("ShaderVariablesBilateralUpsample");
         public static readonly int _ShaderVariablesRaytracingLightLoop = Shader.PropertyToID("ShaderVariablesRaytracingLightLoop");
         public static readonly int _ShaderVariablesDebugDisplay = Shader.PropertyToID("ShaderVariablesDebugDisplay");
         public static readonly int _ShaderVariablesClouds = Shader.PropertyToID("ShaderVariablesClouds");
@@ -588,8 +589,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string _RaytracingAccelerationStructureName = "_RaytracingAccelerationStructure";
 
         // Path tracing variables
-        public static readonly int _PathTracedDoFConstants = Shader.PropertyToID("_PathTracedDoFConstants");
         public static readonly int _InvViewportScaleBias = Shader.PropertyToID("_InvViewportScaleBias");
+        public static readonly int _PathTracingDoFParameters = Shader.PropertyToID("_PathTracingDoFParameters");
+        public static readonly int _PathTracingTilingParameters = Shader.PropertyToID("_PathTracingTilingParameters");
 
         // Light Cluster
         public static readonly int _LightDatasRT = Shader.PropertyToID("_LightDatasRT");
@@ -636,6 +638,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SampleCountTextureRW = Shader.PropertyToID("_SampleCountTextureRW");
         public static readonly int _AffectSmoothSurfaces = Shader.PropertyToID("_AffectSmoothSurfaces");
         public static readonly int _ObjectMotionStencilBit = Shader.PropertyToID("_ObjectMotionStencilBit");
+        public static readonly int _PointDistribution = Shader.PropertyToID("_PointDistribution");
 
         public static readonly int _DenoiseInputArrayTexture = Shader.PropertyToID("_DenoiseInputArrayTexture");
         public static readonly int _ValidityInputArrayTexture = Shader.PropertyToID("_ValidityInputArrayTexture");

@@ -542,7 +542,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     finalColor *= Mathf.CorrelatedColorTemperatureToRGB(lightComponent.colorTemperature);
                 visibleLight.finalColor = finalColor;
                 visibleLight.range = lightComponent.range;
-                // This should be done explicitely, localtoworld matrix doesn't work here
+                // This should be done explicitly, localToWorld matrix doesn't work here
                 localToWorldMatrix.SetColumn(3, lightComponent.gameObject.transform.position);
                 localToWorldMatrix.SetColumn(2, lightComponent.transform.forward);
                 localToWorldMatrix.SetColumn(1, lightComponent.transform.up);
