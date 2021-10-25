@@ -330,6 +330,18 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [UnityTest]
+        public IEnumerator ScreenPositionVertex()
+        {
+            // Test that default screen space acts as expected relative to raw screen space
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/ScreenPositionVertex.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+            RunNodeTest(graph, "ScreenPositionVertex");
+            ReportTests();
+            yield break;
+        }
+
+        [UnityTest]
         public IEnumerator PixelPosition()
         {
             // Test that pixel position acts as expected relative to raw screen space
@@ -341,5 +353,16 @@ namespace UnityEditor.ShaderGraph.UnitTests
             yield break;
         }
 
+        [UnityTest]
+        public IEnumerator PixelPositionVertex()
+        {
+            // Test that pixel position acts as expected relative to raw screen space
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/PixelPositionVertex.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+            RunNodeTest(graph, "PixelPositionVertex");
+            ReportTests();
+            yield break;
+        }
     }
 }
