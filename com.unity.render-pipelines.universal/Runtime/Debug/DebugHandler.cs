@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalInteger(k_DebugMipInfoModeId, (int)RenderingSettings.mipInfoMode);
                 cmd.SetGlobalInteger(k_DebugSceneOverrideModeId, (int)RenderingSettings.sceneOverrideMode);
                 cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)RenderingSettings.fullScreenDebugMode);
-                cmd.SetGlobalInteger(k_DebugMaxPixelCost, (int)RenderingSettings.maxPixelCost);
+                cmd.SetGlobalInteger(k_DebugMaxPixelCost, (int)RenderingSettings.maxOverdrawCount);
                 cmd.SetGlobalInteger(k_DebugValidationModeId, (int)RenderingSettings.validationMode);
                 cmd.SetGlobalColor(k_DebugValidateBelowMinThresholdColorPropertyId, Color.red);
                 cmd.SetGlobalColor(k_DebugValidateAboveMaxThresholdColorPropertyId, Color.blue);

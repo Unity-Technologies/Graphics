@@ -116,11 +116,11 @@ namespace UnityEngine.Rendering.Universal
                     var isOpaque = m_FilteringSettings.renderQueueRange == RenderQueueRange.opaque || m_FilteringSettings.renderQueueRange == RenderQueueRange.all;
                     var isTransparent = m_FilteringSettings.renderQueueRange == RenderQueueRange.transparent || m_FilteringSettings.renderQueueRange == RenderQueueRange.all;
                     var overdrawOpaque =
-                        m_DebugHandler.DebugDisplaySettings.RenderingSettings.overdrawMode == DebugOverdrawMode.Opaque
-                        || m_DebugHandler.DebugDisplaySettings.RenderingSettings.overdrawMode == DebugOverdrawMode.All;
+                        m_DebugHandler.DebugDisplaySettings.renderingSettings.overdrawMode == DebugOverdrawMode.Opaque
+                        || m_DebugHandler.DebugDisplaySettings.renderingSettings.overdrawMode == DebugOverdrawMode.All;
                     var overdrawTransparent =
-                        m_DebugHandler.DebugDisplaySettings.RenderingSettings.overdrawMode == DebugOverdrawMode.Transparent
-                        || m_DebugHandler.DebugDisplaySettings.RenderingSettings.overdrawMode == DebugOverdrawMode.All;
+                        m_DebugHandler.DebugDisplaySettings.renderingSettings.overdrawMode == DebugOverdrawMode.Transparent
+                        || m_DebugHandler.DebugDisplaySettings.renderingSettings.overdrawMode == DebugOverdrawMode.All;
 
                     var blendOverdraw = isOpaque && overdrawOpaque || isTransparent && overdrawTransparent;
                     var destination = blendOverdraw ? BlendMode.One : BlendMode.Zero;

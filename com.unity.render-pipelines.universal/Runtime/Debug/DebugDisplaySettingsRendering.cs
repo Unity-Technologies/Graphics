@@ -57,7 +57,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal int maxPixelCost { get; set; } = 10;
+        /// <summary>
+        /// Maximum overdraw count for a single pixel.
+        ///
+        /// This is used to setup the feedback range in when <see cref="overdrawMode"/> is active.
+        /// </summary>
+        public int maxOverdrawCount { get; set; } = 10;
 
         void UpdateDebugSceneOverrideMode()
         {
@@ -230,8 +235,8 @@ namespace UnityEngine.Rendering.Universal
                     new DebugUI.IntField
                     {
                         nameAndTooltip = Strings.MaxOverdrawCount,
-                        getter = () => data.maxPixelCost,
-                        setter = value => data.maxPixelCost = value,
+                        getter = () => data.maxOverdrawCount,
+                        setter = value => data.maxOverdrawCount = value,
                         incStep = 10,
                         min = () => 1,
                         max = () => 500
