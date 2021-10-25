@@ -14,8 +14,8 @@ namespace UnityEditor.Rendering
                 return false;
 
             var o = parameter.GetObjectRef<MinFloatParameter>();
-            float v = EditorGUILayout.FloatField(title, value.floatValue);
-            value.floatValue = Mathf.Max(v, o.min);
+            EditorGUILayout.PropertyField(value, title);
+            value.floatValue = Mathf.Max(value.floatValue, o.min);
             return true;
         }
     }
@@ -31,8 +31,8 @@ namespace UnityEditor.Rendering
                 return false;
 
             var o = parameter.GetObjectRef<NoInterpMinFloatParameter>();
-            float v = EditorGUILayout.FloatField(title, value.floatValue);
-            value.floatValue = Mathf.Max(v, o.min);
+            EditorGUILayout.PropertyField(value, title);
+            value.floatValue = Mathf.Max(value.floatValue, o.min);
             return true;
         }
     }
@@ -48,8 +48,8 @@ namespace UnityEditor.Rendering
                 return false;
 
             var o = parameter.GetObjectRef<MaxFloatParameter>();
-            float v = EditorGUILayout.FloatField(title, value.floatValue);
-            value.floatValue = Mathf.Min(v, o.max);
+            EditorGUILayout.PropertyField(value, title);
+            value.floatValue = Mathf.Min(value.floatValue, o.max);
             return true;
         }
     }
@@ -65,8 +65,8 @@ namespace UnityEditor.Rendering
                 return false;
 
             var o = parameter.GetObjectRef<NoInterpMaxFloatParameter>();
-            float v = EditorGUILayout.FloatField(title, value.floatValue);
-            value.floatValue = Mathf.Min(v, o.max);
+            EditorGUILayout.PropertyField(value, title);
+            value.floatValue = Mathf.Min(value.floatValue, o.max);
             return true;
         }
     }

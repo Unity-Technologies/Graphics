@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
+using UnityEditor;
 
 namespace UnityEngine.Rendering
 {
@@ -92,7 +93,11 @@ namespace UnityEngine.Rendering
     /// </code>
     /// </example>
     [Serializable]
+#if UNITY_EDITOR
+    public class VolumeComponent : ScriptableObject, IApplyRevertPropertyContextMenuItemProvider
+#else
     public class VolumeComponent : ScriptableObject
+#endif
     {
         /// <summary>
         /// Local attribute for VolumeComponent fields only.
@@ -146,7 +151,11 @@ namespace UnityEngine.Rendering
                 if (field.FieldType.IsSubclassOf(typeof(VolumeParameter)))
                 {
                     if (filter?.Invoke(field) ?? true)
-                        parameters.Add((VolumeParameter)field.GetValue(o));
+                    {
+                        VolumeParameter volumeParameter = (VolumeParameter)field.GetValue(o);
+                        volumeParameter.name = field.Name;
+                        parameters.Add(volumeParameter);
+                    }
                 }
                 else if (!field.FieldType.IsArray && field.FieldType.IsClass)
                     FindParameters(field.GetValue(o), parameters, filter);
@@ -312,5 +321,60 @@ namespace UnityEngine.Rendering
                     parameters[i].Release();
             }
         }
+
+#if UNITY_EDITOR
+        internal VolumeParameter GetVolumeParameterByName(string volumeParameterName)
+        {
+            for (int i = 0; i < parameters.Count; i++)
+            {
+                if (parameters[i] != null && volumeParameterName.Equals(parameters[i].name))
+                    return parameters[i];
+            }
+
+            return null;
+        }
+
+        public bool TryGetRevertMethodForFieldName(SerializedProperty property, out Action<SerializedProperty> revertMethod)
+        {
+            revertMethod = null;
+
+            var volumeParameterName = property.propertyPath.Replace($".{property.name}", string.Empty);
+            var volumeParameter = GetVolumeParameterByName(volumeParameterName);
+
+            if (volumeParameter == null)
+                return false;
+
+            var defaultVolumeComponent = VolumeManager.instance.GetDefaultVolumeComponent(property.serializedObject.targetObject.GetType());
+            if (defaultVolumeComponent == null)
+                return false;
+
+            revertMethod = property =>
+            {
+                var defaultVolumeParameter = defaultVolumeComponent.GetVolumeParameterByName(volumeParameterName);
+                if (defaultVolumeParameter != null)
+                {
+                    volumeParameter.SetValue(defaultVolumeParameter);
+                }
+            };
+
+            return true;
+        }
+
+        public string GetSourceTerm()
+        {
+            return "Property";
+        }
+
+        public bool TryGetApplyMethodForFieldName(SerializedProperty property, out Action<SerializedProperty> applyMethod)
+        {
+            applyMethod = null;
+            return false;
+        }
+
+        public string GetSourceName(Component comp)
+        {
+            return string.Empty;
+        }
+#endif
     }
 }
