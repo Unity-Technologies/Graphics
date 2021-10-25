@@ -694,6 +694,10 @@ namespace UnityEditor.VFX.UI
                         serializableGraph.contexts[i].dataIndex >= 0)
                     {
                         var data = serializableGraph.datas[serializableGraph.contexts[i].dataIndex];
+
+                        //At this stage, the context has the VFXGraph as its parent, so it can create a properly parented VFXData
+                        contextController.model.SetDefaultData(false);
+
                         VFXData targetData = contextController.model.GetData();
                         if (targetData != null)
                         {
