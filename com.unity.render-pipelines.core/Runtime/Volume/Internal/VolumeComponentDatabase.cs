@@ -6,21 +6,34 @@ using System.Reflection;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Database of all type loaded in memory.
-    ///
-    /// It must only depends on what is loaded in memory (thus it is a static class).
+    /// An immutable database of volume component types.
     /// </summary>
-    static class VolumeComponentDatabase
+    public class VolumeComponentDatabase
     {
+        /// <summary>
+        /// Database of all type loaded in memory.
+        ///
+        /// It must only depends on what is loaded in memory (thus it is a static).
+        /// </summary>
+        [NotNull]
+        public static VolumeComponentDatabase memoryDatabase { get; }
+
         static VolumeComponentDatabase()
         {
             // Get the types
-            baseComponentTypeArray = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
+            var componentTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
                 .Where(t => !t.IsAbstract).Select(VolumeComponentType.FromTypeUnsafe).ToArray();
 
             // Call the init method if it exists.
+            StaticInitializeComponents(componentTypes);
+
+            memoryDatabase = new VolumeComponentDatabase(componentTypes);
+        }
+
+        static void StaticInitializeComponents(VolumeComponentType[] componentTypes)
+        {
             const BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-            foreach (var type in baseComponentTypeArray)
+            foreach (var type in componentTypes)
             {
                 var initMethod = type.AsType().GetMethod("Init", flags);
                 if (initMethod != null)
@@ -32,7 +45,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        public VolumeComponentDatabase(VolumeComponentType[] componentTypes) => this.componentTypes = componentTypes;
+
         [NotNull]
-        public static VolumeComponentType[] baseComponentTypeArray { get; }
+        public VolumeComponentType[] componentTypes { get; }
     }
 }

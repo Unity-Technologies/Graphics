@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering
 
         public bool Equals(VolumeComponentType other)
         {
-            return m_Type == other.m_Type;
+            return Equals(m_Type, other.m_Type);
         }
 
         public override bool Equals(object obj)
@@ -46,5 +46,8 @@ namespace UnityEngine.Rendering
         {
             return (m_Type != null ? m_Type.GetHashCode() : 0);
         }
+
+        public static bool operator ==(in VolumeComponentType l, in VolumeComponentType r) => l.Equals(r);
+        public static bool operator !=(in VolumeComponentType l, in VolumeComponentType r) => !l.Equals(r);
     }
 }

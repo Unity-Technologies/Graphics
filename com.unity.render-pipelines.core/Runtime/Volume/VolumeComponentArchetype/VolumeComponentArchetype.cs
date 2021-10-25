@@ -41,12 +41,14 @@ namespace UnityEngine.Rendering
         public static VolumeComponentArchetype Everything { get; } = FromFilter(new EverythingVolumeComponentFilter());
 
         [return: NotNull]
-        public static VolumeComponentArchetype FromFilter<TFilter>([DisallowNull] in TFilter filter)
+        public static VolumeComponentArchetype FromFilter<TFilter>([DisallowNull] in TFilter filter, [AllowNull] VolumeComponentDatabase database = null)
             where TFilter : IFilter<VolumeComponentType>
         {
+            database ??= VolumeComponentDatabase.memoryDatabase;
+
             if (!s_CacheByFilter.TryGetValue(filter, out var set))
             {
-                var baseComponentTypeArray = VolumeComponentDatabase.baseComponentTypeArray
+                var baseComponentTypeArray = database.componentTypes
                     .Where(filter.IsAccepted).ToArray();
                 set = new VolumeComponentArchetype(baseComponentTypeArray);
                 s_CacheByFilter.Add(filter, set);
