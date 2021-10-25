@@ -4,10 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [12.1.0] - 2021-09-23
+## [12.1.1] - 2021-10-04
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [12.1.0] - 2021-09-23
+### Fixed
+- Compilation error while using not exposed texture in ShaderGraph [Case 1367167](https://issuetracker.unity3d.com/product/unity/issues/guid/1367167/)
 
 ## [12.0.0] - 2021-01-11
 ### Added
