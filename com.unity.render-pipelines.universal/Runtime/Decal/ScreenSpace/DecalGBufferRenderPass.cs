@@ -42,14 +42,20 @@ namespace UnityEngine.Rendering.Universal
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (m_GbufferAttachments == null)
-                m_GbufferAttachments = new RenderTargetIdentifier[] { m_DeferredLights.GbufferAttachmentIdentifiers[0], m_DeferredLights.GbufferAttachmentIdentifiers[1],
-                    m_DeferredLights.GbufferAttachmentIdentifiers[2], m_DeferredLights.GbufferAttachmentIdentifiers[3] };
-
-            ConfigureTarget(m_GbufferAttachments, m_DeferredLights.DepthAttachmentIdentifier,  m_DeferredLights.GbufferFormats);
-            if (m_DeferredLights.UseRenderPass)
+            if (m_DeferredLights != null && m_DeferredLights.UseRenderPass)
+            {
+                if (m_GbufferAttachments == null)
+                    m_GbufferAttachments = new RenderTargetIdentifier[]
+                    {
+                        m_DeferredLights.GbufferAttachmentIdentifiers[0], m_DeferredLights.GbufferAttachmentIdentifiers[1],
+                        m_DeferredLights.GbufferAttachmentIdentifiers[2], m_DeferredLights.GbufferAttachmentIdentifiers[3]
+                    };
                 ConfigureInputAttachments(m_DeferredLights.DepthCopyTextureIdentifier, false);
+            }
+            else
+                m_GbufferAttachments = m_DeferredLights.GbufferAttachmentIdentifiers;
 
+            ConfigureTarget(m_GbufferAttachments, m_DeferredLights.DepthAttachmentIdentifier);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
