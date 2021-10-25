@@ -7,7 +7,7 @@
         * [Main Preview](Main-Preview)
         * [Graph Inspector](Internal-Inspector.md)
     * [Create Node Menu](Create-Node-Menu)
-    * [Graph Settings Menu](Graph-Settings-Menu.md)
+    * [Graph Settings Tab](Graph-Settings-Tab.md)
     * [Master Stack](Master-Stack)
     * [Sticky Notes](Sticky-Notes)
     * [Sub Graph](Sub-graph)

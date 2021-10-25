@@ -10,15 +10,10 @@ public class ScreenSpacePlacement : MonoBehaviour
     [SerializeField]
     private Transform m_FlareObject;
 
-    private bool m_MouseDown;
-
     void OnGUI()
     {
         Event currentEvent = Event.current;
         Vector2 mousePos = new Vector2();
-
-        if (currentEvent.type == EventType.MouseDown) m_MouseDown = true;
-        if (currentEvent.type == EventType.MouseUp) m_MouseDown = false;
 
         mousePos.x = currentEvent.mousePosition.x;
         mousePos.y = m_Cam.pixelHeight - currentEvent.mousePosition.y;
@@ -27,10 +22,7 @@ public class ScreenSpacePlacement : MonoBehaviour
         {
             Vector3 point = m_Cam.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, m_Cam.nearClipPlane));
 
-            if (m_MouseDown)
-            {
-                m_FlareObject.position = point;
-            }
+            m_FlareObject.position = point;
         }
     }
 }

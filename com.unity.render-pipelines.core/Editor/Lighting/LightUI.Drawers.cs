@@ -9,11 +9,6 @@ namespace UnityEditor.Rendering
     /// </summary>
     public partial class LightUI
     {
-        /// <summary>
-        /// Draws the color temperature for a serialized light
-        /// </summary>
-        /// <param name="serialized">The serizalized light</param>
-        /// <param name="owner">The editor</param>
         public static void DrawColor(ISerializedLight serialized, Editor owner)
         {
             if (GraphicsSettings.lightsUseLinearIntensity && GraphicsSettings.lightsUseColorTemperature)
@@ -49,7 +44,7 @@ namespace UnityEditor.Rendering
                     valueRect.width += indent - k_ValueUnitSeparator - k_UnitWidth;
                     Rect unitRect = valueRect;
                     unitRect.x += valueRect.width - indent + k_ValueUnitSeparator;
-                    unitRect.width = k_UnitWidth + k_ValueUnitSeparator;
+                    unitRect.width = k_UnitWidth + .5f;
 
                     EditorGUI.PropertyField(valueRect, serialized.settings.colorTemperature, CoreEditorStyles.empty);
                     EditorGUI.LabelField(unitRect, Styles.lightAppearanceUnits[0]);

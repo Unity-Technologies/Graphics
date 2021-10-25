@@ -50,6 +50,11 @@
             "name": "com.unity.burst",
             "expression": "1.5.0",
             "define": "ENABLE_BURST_1_5_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.rendering.hybrid",
+            "expression": "0.14.0-preview.0",
+            "define": "ENABLE_HYBRID_RENDERER_V2"
         }
     ],
     "noEngineReferences": false

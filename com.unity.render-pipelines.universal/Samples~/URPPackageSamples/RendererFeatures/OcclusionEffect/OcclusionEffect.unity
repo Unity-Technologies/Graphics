@@ -249,7 +249,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_AnchorMax.x
@@ -630,8 +630,6 @@ GameObject:
   - component: {fileID: 1243279514}
   - component: {fileID: 1243279513}
   - component: {fileID: 1243279512}
-  - component: {fileID: 1243279516}
-  - component: {fileID: 1243279517}
   - component: {fileID: 1243279518}
   m_Layer: 8
   m_Name: MovinigCube
@@ -718,35 +716,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 45, y: 45, z: 45}
---- !u!114 &1243279516
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1243279511}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82cb6f9db52a84a1d889793764803890, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Amplitude: {x: 5, y: 0, z: 0}
-  m_Period: 7
---- !u!114 &1243279517
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1243279511}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8725944bdac9042b9b1442ba38a31070, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Space: 0
-  m_Axis: {x: 0, y: 0, z: 0}
-  m_AngularVelocity: 0
 --- !u!95 &1243279518
 Animator:
   serializedVersion: 4

@@ -4,37 +4,20 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [13.1.0] - 2021-09-24
+## [12.1.1] - 2021-10-04
 
 ### Fixed
- - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
- - Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
- - Fixed unhandled exception when loading a subgraph with duplicate slots [1366200] (https://issuetracker.unity3d.com/product/unity/issues/guid/1366200/)
+  - Fixed a bug that caused the Scene Depth Node in Eye space to not work correctly when using an orthographic camera [1311272].
+  - Fixed missing shader keyword stage during keyword copying.
 
-## [13.0.0] - 2021-09-01
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+## [12.1.0] - 2021-09-23
 
 ### Added
- - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
-
-### Changed
+  - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
 
 ### Fixed
- - Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
- - Fixed an incorrect direction transform from view to world space [1362034] (https://issuetracker.unity3d.com/product/unity/issues/guid/1362034/)
- - Fixed ShaderGraph HDRP master preview disappearing for a few seconds when graph is modified  [1330289] (https://issuetracker.unity3d.com/issues/shadergraph-hdrp-main-preview-is-invisible-until-moved)
- - Fixed noise nodes to use a deterministic integer hash, instead of platform dependent floating point hashes [1156544]
- - Fixed the appearance (wrong text color, and not wrapped) of a warning in Node Settings [1356725] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356725/)
- - Fixed the ordering of inputs on a SubGraph node to match the properties on the blackboard of the subgraph itself [1354463]
- - Added more inputs to the Parallax Occlusion Mapping node to handle non-uniformly scaled UVs such as HDRP/Lit POM [1347008].
- - Fixed the wrong scaling of the main preview window  [1356719] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356719/)
- - Fixed an issue where ShaderGraph "view shader" commands were opening in individual windows, and blocking Unity from closing [1367188]
- - Improved screenspace position accuracy in the fragment shader by using VPOS [1352662] (https://issuetracker.unity3d.com/issues/shadergraph-dither-node-results-in-artifacts-when-far-from-origin-caused-by-screen-position-breaking-down)
- - Fixed the node searcher results to prefer names over synonyms [1366058]
- - Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
- - Fixed how graph errors were displayed when variant limits were reached [1355815]
+  - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
+  - Fixed unhandled exception when loading a subgraph with duplicate slots [1369039].
 
 ## [12.0.0] - 2021-01-11
 
@@ -85,9 +68,9 @@ The version number for this package has increased due to a version update of a r
 - Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
 - ShaderGraph SubGraphs will now report errors and warnings in a condensed single error.
 - Changed "Create Node" action in ShaderGraph stack separator context menu to "Add Block Node" and added it to main stack context menu
-- GatherTexture2D and TexelSize nodes now support all shader stages.
 
 ### Fixed
+- Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
 - Fixed an issue where fog node density was incorrectly calculated.
 - Fixed inspector property header styling
 - Added padding to the blackboard window to prevent overlapping of resize region and scrollbars interfering with user interaction
@@ -165,6 +148,13 @@ The version number for this package has increased due to a version update of a r
 - Fixed a bug with Sprite Targets in ShaderGraph not rendering correctly in game view [1352225]
 - Fixed compilation problems on preview shader when using hybrid renderer v2 and property desc override Hybrid Per Instance
 - Fixed a serialization bug wrt PVT property flags when using subgraphs. This fixes SRP batcher compatibility.
+- Fixed an incorrect direction transform from view to world space [1365186]
+- Fixed the appearance (wrong text color, and not wrapped) of a warning in Node Settings [1365780]
+- Fixed the ordering of inputs on a SubGraph node to match the properties on the blackboard of the subgraph itself [1366052]
+- Fixed Parallax Occlusion Mapping node to handle non-uniformly scaled UVs such as HDRP/Lit POM [1347008].
+- Fixed ShaderGraph HDRP master preview disappearing for a few seconds when graph is modified  [1330289] (https://issuetracker.unity3d.com/issues/shadergraph-hdrp-main-preview-is-invisible-until-moved)
+- Fixed an issue where ShaderGraph "view shader" commands were opening in individual windows, and blocking Unity from closing [1367188]
+- Fixed the node searcher results to prefer names over synonyms [1367706]
 
 ## [11.0.0] - 2020-10-21
 

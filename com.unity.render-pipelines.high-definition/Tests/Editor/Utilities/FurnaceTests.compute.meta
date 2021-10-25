@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/LensFlareMergeOcclusionDataDriven.compute.meta
+guid: 07492750f384d9a4da9aaf5d2feeed4a
+=======
 guid: 9c19385e40e70ea41811a942a46b04a3
+>>>>>>> 2021.2/staging:com.unity.render-pipelines.high-definition/Tests/Editor/Utilities/FurnaceTests.compute.meta
 ComputeShaderImporter:
   externalObjects: {}
   preprocessorOverride: 0

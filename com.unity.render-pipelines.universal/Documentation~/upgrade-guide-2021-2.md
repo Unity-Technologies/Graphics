@@ -2,13 +2,17 @@
 
 This page describes how to upgrade from an older version of the Universal Render Pipeline (URP) to version 12.0.x.
 
+For information on converting assets made for a Built-in Render Pipeline project to assets compatible with URP, see the page [Render Pipeline Converter](features/rp-converter.md).
+
 ## Upgrading from URP 11.x.x
 
 * The Forward Renderer asset is renamed to the Universal Renderer asset. When you open an existing project in the Unity Editor containing URP 12, Unity updates the existing Forward Renderer assets to Universal Renderer assets.
 
 * The Universal Renderer asset contains the property **Rendering Path** that lets you select the Forward or the Deferred Rendering Path.
 
-* The method `ClearFlag.Depth` does not implicitely clear the Stencil buffer anymore. Use the new method `ClearFlag.Stencil`.
+* The method `ClearFlag.Depth` does not implicitly clear the Stencil buffer anymore. Use the new method `ClearFlag.Stencil`.
+
+* URP 12 implements the [Render Pipeline Converter](features/rp-converter.md) feature. This feature replaces the asset upgrade functions that were previously available at **Edit > Render Pipeline > Universal Render Pipeline > Upgrade...**
 
 ## Upgrading from URP 10.0.x–10.2.x
 
@@ -68,11 +72,11 @@ As a result, to match exactly shadow outlines from earlier revisions, the parame
 
 ### Intermediate Texture
 
-In previous URP versions, URP performed the rendering via an intermediate Renderer if the Renderer had any active Renderer Features. On some platforms, this had significant performance implications. In this release, URP mitigates the issue in the following way: URP expects Renderer Features to declare their inputs using the `ScriptableRenderPass.ConfigureInput` method. The method provides the information that URP uses to determine automatically whether rendering via an intermediate texture is necessary.
+Previously, URP would force rendering to go through an intermediate renderer if the Renderer had any Renderer Features active. On some platforms, this has significant performance implications. Due to that, Renderer Features are now expected to declare their inputs using `ScriptableRenderPass.ConfigureInput`. This information is used to decide automatically whether rendering via an intermediate texture is necessary.
 
-For compatibility purpose, there is a new property **Intermediate Texture** in the Universal Renderer. If you select **Always** in the property, URP uses an intermediate texture. Selecting **Auto** enables the new behavior. Use the **Always** option only if a Renderer Feature does not declare its inputs using the `ScriptableRenderPass.ConfigureInput` method.
+For compatibility reasons, a new property **Intermediate Texture** has been added to the Universal Renderer. This allows for either using the new behaviour, or to force the use of an intermediate texture. The latter should only be used if a Renderer Feature does not declare its inputs using `ScriptableRenderPass.ConfigureInput`.
 
-To ensure that existing projects work correctly, all existing Universal Renderer assets that were using any Renderer Features (excluding those included with URP) have the option **Always** selected in the **Intermediate Texture** property. Any newly created Universal Renderer assets have the option **Auto** selected.
+All existing Universal Renderer assets that were using any Renderer Features (excluding those included with URP) are upgraded to force the use of an intermediate texture, such that existing setups will continue to work correctly. Any newly created Universal Renderer assets will default to the new behaviour.
 
 ## Upgrading from URP 7.0.x-7.1.x
 

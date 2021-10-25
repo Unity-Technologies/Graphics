@@ -12,5 +12,11 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": []
+    "versionDefines": [
+      {
+          "name": "com.unity.rendering.hybrid",
+          "expression": "0.14.0-preview.0",
+          "define": "ENABLE_HYBRID_RENDERER_V2"
+      }
+    ]
 }

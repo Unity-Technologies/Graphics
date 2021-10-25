@@ -775,7 +775,7 @@ Camera:
     serializedVersion: 2
     x: 0
     y: 0
-    width: 1
+    width: 0.5
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -1494,7 +1494,6 @@ GameObject:
   - component: {fileID: 1158032496}
   - component: {fileID: 1158032495}
   - component: {fileID: 1158032494}
-  - component: {fileID: 1158032493}
   m_Layer: 0
   m_Name: Cylinder
   m_TagString: Untagged
@@ -1502,21 +1501,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1158032493
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1158032492}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8725944bdac9042b9b1442ba38a31070, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Space: 0
-  m_Axis: {x: 0, y: 0, z: 0}
-  m_AngularVelocity: 0
 --- !u!136 &1158032494
 CapsuleCollider:
   m_ObjectHideFlags: 0

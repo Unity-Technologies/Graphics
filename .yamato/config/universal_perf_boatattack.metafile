@@ -173,7 +173,7 @@ test_platforms:
           - [all]: --performance-project-id=BoatAttack
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
@@ -185,7 +185,7 @@ test_platforms:
           - [all]: --performance-project-id=BoatAttack
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack

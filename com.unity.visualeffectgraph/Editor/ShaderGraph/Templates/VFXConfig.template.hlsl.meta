@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:TestProjects/UniversalGraphicsTest_Terrain/Assets/CommonAssets/ZeroVariantColorTextureAlphaOnly.shader.meta
+guid: fa7f99fc1d21347f7bf6e7dc00f76a51
+=======
 guid: 78fee4e885bcd6a48b724731704db35a
+>>>>>>> 2021.2/staging:com.unity.visualeffectgraph/Editor/ShaderGraph/Templates/VFXConfig.template.hlsl.meta
 ShaderImporter:
   externalObjects: {}
   defaultTextures: []

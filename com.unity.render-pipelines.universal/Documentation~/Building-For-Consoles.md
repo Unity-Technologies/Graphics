@@ -8,5 +8,5 @@ Closed platform packages are not available in the package registry or the Packag
 
 To install a Closed platform package:
 
-1. Download the package from the relevant platform developer forum.
+1. Download the package from the relevant developer forum.
 2. Use the Package Manager to install the package locally. For information on how to install packages locally, see [Installing a local package](https://docs.unity3d.com/Manual/upm-ui-local.html).

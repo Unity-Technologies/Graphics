@@ -6,11 +6,11 @@ namespace UnityEngine.Rendering.Universal
     public enum IntermediateTextureMode
     {
         /// <summary>
-        /// Uses information declared by active Renderer Features to automatically determine whether to render via an intermediate texture or not. <seealso cref="ScriptableRenderPass.ConfigureInput"/>.
+        /// Uses information declared by active Renderer Features to automatically determine whether to render through an intermediate texture or not.
         /// </summary>
         Auto,
         /// <summary>
-        /// Forces rendering via an intermediate texture. Use this option only for compatibility with Renderer Features that do not declare their inputs with <see cref="ScriptableRenderPass.ConfigureInput"/>. Using this option might have a significant performance impact on some platforms.
+        /// Forces rendering via an intermediate texture, enabling compatibility with renderer features that do not declare their needed inputs, but can have a significant performance impact on some platforms.
         /// </summary>
         Always
     }
