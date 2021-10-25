@@ -141,6 +141,9 @@ namespace UnityEngine.VFX
                         return clipStart + source.time;
                     case TimeSpace.BeforeClipEnd:
                         return clipEnd - source.time;
+                    case TimeSpace.Percentage:
+                        return clipStart + (clipEnd - clipStart) * (source.time / 100.0);
+                        //return ((clipEnd - clipStart + source.time) / (clipEnd - clipStart)) * 100.0;
                 }
             }
             else if (space == TimeSpace.AfterClipStart)
@@ -151,6 +154,20 @@ namespace UnityEngine.VFX
                         return clipEnd - source.time - clipStart;
                     case TimeSpace.Absolute:
                         return source.time - clipStart;
+                    case TimeSpace.Percentage:
+                        return (clipEnd - clipStart) * (source.time / 100.0);
+                }
+            }
+            else if (space == TimeSpace.Percentage)
+            {
+                switch (source.timeSpace)
+                {
+                    case TimeSpace.AfterClipStart:
+                        return 100.0 * (source.time) / (clipEnd - clipStart);
+                    case TimeSpace.BeforeClipEnd:
+                        return 100.0 * (clipEnd - source.time - clipStart) / (clipEnd - clipStart);
+                    case TimeSpace.Absolute:
+                        return 100.0 * (source.time - clipStart) / (clipEnd - clipStart);
                 }
             }
 
@@ -162,8 +179,8 @@ namespace UnityEngine.VFX
         {
             AfterClipStart,
             BeforeClipEnd,
+            Percentage,
             Absolute
-            //... TODOPAUL Add Percentage between Start/End
         }
 
         public TimeSpace timeSpace;
