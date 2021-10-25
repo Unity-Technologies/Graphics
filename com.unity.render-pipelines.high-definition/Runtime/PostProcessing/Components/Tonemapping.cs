@@ -232,14 +232,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter hueShiftAmount = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
 
         /// <summary>
-        /// Whether to use values detected from the output device as paperwhite. This value will often will not lead to equivalent images between SDR and HDR. It is suggested to manually set this value.
+        /// Whether to use values detected from the output device as paperwhite. This value will often not lead to equivalent images between SDR and HDR. It is suggested to manually set this value.
         /// </summary>
-        [Tooltip("Whether to use values detected from the output device as paperwhite. This value will often will not lead to equivalent images between SDR and HDR. It is suggested to manually set this value.")]
+        [Tooltip("Whether to use values detected from the output device as paperwhite. This value will often not lead to equivalent images between SDR and HDR. It is suggested to manually set this value.")]
         public BoolParameter detectPaperWhite = new BoolParameter(false);
         /// <summary>
         /// The paper white value. It controls how bright a paper white surface should be, it also determines the maximum brightness of UI. The scene is also scaled relative to this value. Value in nits.
         /// </summary>
-        [Tooltip("The paper white value. It controls how bright a paper white surface should be, it also determines the maximum brightness of UI. The scene is also scaled relative to this value. Value in nits.")]
+        [Tooltip("It controls how bright a paper white surface should be, it also determines the maximum brightness of UI. The scene is also scaled relative to this value. Value in nits.")]
         public ClampedFloatParameter paperWhite = new ClampedFloatParameter(300.0f, 0.0f, 400.0f);
         /// <summary>
         /// Whether to use the minimum and maximum brightness values detected from the output device. It might be worth considering calibrating this values manually if the results are not the desired ones.
@@ -249,12 +249,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The minimum brightness (in nits) of the screen. Note that this is assumed to be 0.005f with ACES Tonemap.
         /// </summary>
-        [Tooltip("The minimum brightness (in nits) of the screen. Note that this is assumed to be 0.0f with ACES Tonemap.")]
+        [Tooltip("The minimum brightness (in nits) of the screen. Note that this is assumed to be 0.005 with ACES Tonemap.")]
         public ClampedFloatParameter minNits = new ClampedFloatParameter(0.005f, 0.0f, 50.0f);
         /// <summary>
-        /// The maximum brightness (in nits) of the screen. Note that this is assumed to be 1000.0f with ACES Tonemap.
+        /// The maximum brightness (in nits) of the screen. Note that this is assumed to be defined by the preset when ACES Tonemap is used.
         /// </summary>
-        [Tooltip("The minimum brightness (in nits) of the screen. Note that this is assumed to be 0.0f with ACES Tonemap.")]
+        [Tooltip("The maximum brightness (in nits) of the screen. Note that this is assumed to be defined by the preset when ACES Tonemap is used.")]
         public ClampedFloatParameter maxNits = new ClampedFloatParameter(1000.0f, 0.0f, 5000.0f);
 
         /// <summary>
