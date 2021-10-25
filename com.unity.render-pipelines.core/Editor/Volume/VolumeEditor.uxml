@@ -1,0 +1,7 @@
+<UXML xmlns="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <uie:ObjectField label="Profile"
+					 name="volume-profile"
+					 type="UnityEngine.Rendering.VolumeProfile, Unity.RenderPipelines.Core.Runtime"
+					 binding-path="sharedProfile"
+					 />
+</UXML>

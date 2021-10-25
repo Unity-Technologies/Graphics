@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor.PackageManager;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering
 {
@@ -37,6 +39,9 @@ namespace UnityEditor.Rendering
             public static readonly string noVolumeMessage = L10n.Tr("Please select or create a new Volume profile to begin applying effects to the scene.");
         }
 
+        VisualElement m_RootElement;
+        VisualTreeAsset m_VisualTreeAsset;
+
         SerializedProperty m_IsGlobal;
         SerializedProperty m_BlendRadius;
         SerializedProperty m_Weight;
@@ -49,14 +54,33 @@ namespace UnityEditor.Rendering
 
         VolumeProfile profileRef => actualTarget.HasInstantiatedProfile() ? actualTarget.profile : actualTarget.sharedProfile;
 
+        public override VisualElement CreateInspectorGUI()
+        {
+            m_RootElement = new VisualElement();
+            m_VisualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/com.unity.render-pipelines.core/Editor/Volume/VolumeEditor.uxml");
+            m_VisualTreeAsset.CloneTree(m_RootElement);
+            //m_RootElement.Bind(serializedObject);
+
+            //var uxmlField = m_RootElement.Q<ObjectField>("volume-profile");
+            //uxmlField.Bind(serializedObject);
+            //uxmlField.BindProperty(m_Profile);
+            //uxmlField.value = m_Profile.objectReferenceValue;
+
+            //Debug.Log(typeof(VolumeProfile).AssemblyQualifiedName);
+
+            //return new ObjectField() { bindingPath = "sharedProfile" };
+
+            return m_RootElement;
+        }
+
         void OnEnable()
         {
             var o = new PropertyFetcher<Volume>(serializedObject);
+            m_Profile = o.Find(x => x.sharedProfile);
             m_IsGlobal = o.Find(x => x.isGlobal);
             m_BlendRadius = o.Find(x => x.blendDistance);
             m_Weight = o.Find(x => x.weight);
             m_Priority = o.Find(x => x.priority);
-            m_Profile = o.Find(x => x.sharedProfile);
 
             m_ComponentList = new VolumeComponentListEditor(this);
             RefreshEffectListEditor(actualTarget.sharedProfile);
@@ -116,6 +140,7 @@ namespace UnityEditor.Rendering
                 SetVolumeOverridesActiveState(volumeComponent.profile.components, true);
         }
 
+       /*
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -272,7 +297,7 @@ namespace UnityEditor.Rendering
             if (m_Profile.objectReferenceValue == null)
                 EditorGUILayout.HelpBox(Styles.noVolumeMessage, MessageType.Info);
         }
-
+       */
         static bool IsAssetInReadOnlyPackage(string path)
         {
             Assert.IsNotNull(path);
