@@ -4,10 +4,8 @@
 
 // Path tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
 #ifdef HAS_LIGHTLOOP
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
 #endif
 
 float PowerHeuristic(float f, float b)
@@ -25,7 +23,12 @@ float3 GetPositionBias(float3 geomNormal, float bias, bool below)
 // Compute scalar visibility for shadow mattes, between 0 and 1
 float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
 {
-    LightList lightList = CreateLightList(position, normal);
+    // Select active types of lights
+    bool withPoint = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_PUNCTUAL;
+    bool withArea = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_AREA;
+    bool withDistant = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_DIRECTIONAL;
+
+    LightList lightList = CreateLightList(position, normal, DEFAULT_LIGHT_LAYERS, withPoint, withArea, withDistant);
 
     RayDesc rayDescriptor;
     rayDescriptor.Origin = position + normal * _RaytracingRayBias;
@@ -36,9 +39,9 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
 
     // We will ignore value and pdf here, as we only want to catch occluders (no distance falloffs, cosines, etc.)
     float3 value;
-    float pdf;
+    float pdf, shadowOpacity;
 
-    if (SampleLights(lightList, inputSample, rayDescriptor.Origin, normal, false, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax))
+    if (SampleLights(lightList, inputSample, rayDescriptor.Origin, normal, false, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax, shadowOpacity))
     {
         // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
         PathIntersection intersection;
@@ -50,7 +53,7 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
                  RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, rayDescriptor, intersection);
 
-        visibility = Luminance(intersection.value);
+        visibility = Luminance(GetLightTransmission(intersection.value, shadowOpacity));
     }
 
     return visibility;
@@ -143,8 +146,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     #endif
         LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
 
-        // Bunch of variables common to material and light sampling
-        float pdf;
+        float pdf, shadowOpacity;
         float3 value;
         MaterialResult mtlResult;
 
@@ -157,7 +159,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         // Light sampling
         if (computeDirect)
         {
-            if (SampleLights(lightList, inputSample.xyz, rayDescriptor.Origin, lightNormal, false, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax))
+            if (SampleLights(lightList, inputSample.xyz, rayDescriptor.Origin, lightNormal, false, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax, shadowOpacity))
             {
                 EvaluateMaterial(mtlData, rayDescriptor.Direction, mtlResult);
 
@@ -174,7 +176,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                              RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, rayDescriptor, nextPathIntersection);
 
                     float misWeight = PowerHeuristic(pdf, mtlResult.diffPdf + mtlResult.specPdf);
-                    pathIntersection.value += value * nextPathIntersection.value * misWeight;
+                    pathIntersection.value += value * GetLightTransmission(nextPathIntersection.value, shadowOpacity) * misWeight;
                 }
             }
         }
@@ -239,7 +241,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
 #else // SHADER_UNLIT
 
-    pathIntersection.value = (!currentDepth || computeDirect) ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
+    pathIntersection.value = computeDirect ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
 
 // Apply shadow matte if requested
 #ifdef _ENABLE_SHADOW_MATTE

@@ -37,6 +37,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayHDShadowMap"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Name "RegularShadow"
