@@ -168,8 +168,7 @@ namespace UnityEngine.VFX
 
         public TimeSpace timeSpace;
         public double time;
-        public string name; //TODOPAUL: use ExposedProperty here, it will cache the propertyID in runtime
-
+        public ExposedProperty name;
         public EventAttributes eventAttributes;
     }
 

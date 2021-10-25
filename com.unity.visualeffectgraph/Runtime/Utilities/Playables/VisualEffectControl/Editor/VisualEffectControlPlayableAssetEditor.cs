@@ -102,7 +102,7 @@ namespace UnityEditor.VFX
 
                 var textRect = new Rect(center + new Vector2(2.0f, 0), iconSize);
                 ShadowLabel(textRect,
-                    new GUIContent(itEvent.name),
+                    new GUIContent((string)itEvent.name),
                     fontStyle,
                     Color.HSVToRGB(color, 1.0f, 1.0f),
                     Color.HSVToRGB(color, 1.0f, 0.1f));

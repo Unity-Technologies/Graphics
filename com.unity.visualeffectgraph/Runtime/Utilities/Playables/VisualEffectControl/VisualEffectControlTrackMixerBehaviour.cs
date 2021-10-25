@@ -326,7 +326,7 @@ namespace UnityEngine.VFX
                     yield return new Event()
                     {
                         attribute = ComputeAttribute(vfx, itEvent.eventAttributes),
-                        nameId = Shader.PropertyToID(itEvent.name),
+                        nameId = itEvent.name,
                         time = absoluteTime,
                         clipIndex = -1,
                         clipType = Event.ClipType.None
