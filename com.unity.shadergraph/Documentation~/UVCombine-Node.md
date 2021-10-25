@@ -7,6 +7,10 @@ The UVCombine node lets you select which UV channel you want to use for mapping 
 > [!NOTE]
 > The UVCombine node is a Subgraph node: it represents a Subgraph instead of directly representing shader code. Double-click the node in any Shader Graph to view the Subgraph.
 
+## Create Node menu location
+
+The UVCombine node is under the **Utility** &gt; **High Definition Render Pipeline** category in the Create Node menu.
+
 ## Compatibility
 
 The UVCombine node is a High Definition Render Pipeline (HDRP) node. It's designed to work with Unity's HDRP package. You can use the node in your Shader Graphs if you have the HDRP installed in your project.

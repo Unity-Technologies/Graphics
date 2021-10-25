@@ -11,6 +11,10 @@ For more information on Detail maps, see [Secondary Maps (Detail Maps) & Detail 
 > [!NOTE]
 > The ThreadMapDetail node is a Subgraph node: it represents a Subgraph instead of directly representing shader code. Double-click the node in any Shader Graph to view the Subgraph.
 
+## Create Node menu location
+
+The ThreadMapDetail node is under the **Utility** &gt; **High Definition Render Pipeline** &gt; **Fabric** category in the Create Node menu.
+
 ## Compatibility
 
 The ThreadMapDetail node is a High Definition Render Pipeline (HDRP) node. It's designed to work with Unity's HDRP package. You can use the node in your Shader Graphs if you have the HDRP installed in your project.
