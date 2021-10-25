@@ -1,0 +1,44 @@
+<#@ template language="C#" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+using System;
+
+namespace UnityEngine.Rendering.Tests
+{
+    public partial class TestTypes
+    {
+        public static Type[] AllVolumeComponents = new Type[] {
+<#
+    const uint Entries = 1000;
+    for (var i = 0; i < Entries; ++i)
+    {
+#>
+            typeof(TestVolumeComponent<#= i.ToString("0000") #>),
+<#
+    }
+#>
+        };
+
+<#
+    var value = 6532423454u;
+    for (var i = 0u; i < 1000; ++i)
+    {
+        // Randomized uint
+        value *= 3575452435u;
+        var numberOfSupportedOn = value % 3;
+
+        var newRandom = value;
+        for (var j = 0u; j < numberOfSupportedOn; ++j)
+        {
+            newRandom *= 782345623543u;
+            var offset = newRandom & 0xFF; // mod 256
+            var dependOnIndex = (i + offset + 1) % Entries;
+            WriteLine($"[SupportedOn(typeof(TestVolumeComponent{dependOnIndex:0000}))]");
+        }
+#>
+        public class TestVolumeComponent<#= i.ToString("0000") #> : VolumeComponent { }
+<#
+    }
+#>
+    }
+}

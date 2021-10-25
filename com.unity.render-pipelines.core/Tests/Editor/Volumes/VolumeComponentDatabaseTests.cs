@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using FsCheck;
 using NUnit.Framework;
 
@@ -8,10 +7,19 @@ namespace UnityEngine.Rendering.Tests
     class VolumeComponentDatabaseTests
     {
         [Test]
-        public void Testing()
+        public void ContainsRequiredTypes()
         {
-            Func<int[], bool> revRevIsOrig = xs => xs.Reverse().SequenceEqual(xs);
-            Prop.ForAll(revRevIsOrig).QuickCheckThrowOnFailure();
+            bool Property(VolumeComponentType[] types)
+            {
+                var database = VolumeComponentDatabase.FromTypes(types);
+                using (HashSetPool<VolumeComponentType>.Get(out var set))
+                {
+                    set.UnionWith(types);
+                    return set.SetEquals(database.componentTypes);
+                }
+            }
+
+            Prop.ForAll<VolumeComponentType[]>(Property).QuickCheckThrowOnFailure();
         }
     }
 }

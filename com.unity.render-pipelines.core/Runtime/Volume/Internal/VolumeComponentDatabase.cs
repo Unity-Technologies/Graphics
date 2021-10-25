@@ -45,7 +45,10 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public VolumeComponentDatabase(VolumeComponentType[] componentTypes) => this.componentTypes = componentTypes;
+        public static VolumeComponentDatabase FromTypes([DisallowNull] VolumeComponentType[] types)
+            => new VolumeComponentDatabase(types);
+
+        VolumeComponentDatabase([DisallowNull] VolumeComponentType[] componentTypes) => this.componentTypes = componentTypes;
 
         [NotNull]
         public VolumeComponentType[] componentTypes { get; }

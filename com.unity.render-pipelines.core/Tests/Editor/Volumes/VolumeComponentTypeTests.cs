@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void OnlyAcceptsVolumeComponentTypes()
         {
-            Prop.ForAll(new ArbX.ArbitraryType(), type =>
+            bool Property(Type type)
             {
                 var success = VolumeComponentType.FromType(type, out var volumeType);
                 var isVolumeType = type?.IsSubclassOf(typeof(VolumeComponent));
@@ -25,19 +25,22 @@ namespace UnityEngine.Rendering.Tests
                 var isInvalid = !success && volumeType == default;
 
                 return mustBeValid && isValid || !mustBeValid && isInvalid;
-            })
-                .QuickCheckThrowOnFailure();
+            }
+
+            Prop.ForAll(new ArbX.ArbitraryType(), Property).QuickCheckThrowOnFailure();
         }
 
         [Test]
         public void Equality()
         {
-            Prop.ForAll((VolumeComponentType l, VolumeComponentType r) =>
+            bool Property(VolumeComponentType l, VolumeComponentType r)
             {
                 var expectsAreEqual = l.AsType() == r.AsType();
                 var areEqual = l == r;
                 return expectsAreEqual && areEqual || !expectsAreEqual && !areEqual;
-            }).QuickCheckThrowOnFailure();
+            }
+
+            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).QuickCheckThrowOnFailure();
         }
     }
 }

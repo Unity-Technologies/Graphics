@@ -10,11 +10,11 @@ namespace UnityEngine.Rendering.Tests
     {
         public class ArbitraryVolumeComponentType : Arbitrary<VolumeComponentType>
         {
-            static VolumeComponentType[] Types = TypeCache.GetTypesDerivedFrom<VolumeComponent>()
+            static VolumeComponentType[] s_Types = TestTypes.AllVolumeComponents
                 .Select(VolumeComponentType.FromTypeUnsafe)
                 .ToArray();
 
-            public override Gen<VolumeComponentType> Generator => Gen.Elements(Types);
+            public override Gen<VolumeComponentType> Generator => Gen.Elements(s_Types);
         }
 
         public class Generators
@@ -25,13 +25,11 @@ namespace UnityEngine.Rendering.Tests
 
         public class ArbitraryType : Arbitrary<Type>
         {
-            static Type[] Types = TypeCache.GetTypesDerivedFrom<VolumeComponent>()
-                .Take(20)
+            static Type[] s_Types = TestTypes.AllVolumeComponents
                 .Union(new[] { null, typeof(int), typeof(uint), typeof(string), typeof(byte) })
-                .Union(Assembly.GetAssembly(typeof(VolumeComponentTypeTests)).GetTypes().Take(20))
                 .ToArray();
 
-            public override Gen<Type> Generator => Gen.Elements(Types);
+            public override Gen<Type> Generator => Gen.Elements(s_Types);
         }
 
         public static void Register()
