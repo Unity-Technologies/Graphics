@@ -41,8 +41,6 @@ URP_Performance_LostCrypt_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-vulkan.yml#URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/urp_performance_lostcrypt-iphone-metal.yml#URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-iphone-metal.yml#URP_Performance_LostCrypt_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trunk
          rerun: on_new_revision
 URP_Performance_LostCrypt_CUSTOM-REVISION:
@@ -78,8 +76,6 @@ URP_Performance_LostCrypt_CUSTOM-REVISION:
       -  path: .yamato/urp_performance_lostcrypt-android-vulkan.yml#URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-vulkan.yml#URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_performance_lostcrypt-iphone-metal.yml#URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-iphone-metal.yml#URP_Performance_LostCrypt_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision

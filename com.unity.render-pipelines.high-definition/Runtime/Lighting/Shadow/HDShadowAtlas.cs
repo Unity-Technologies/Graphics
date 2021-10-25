@@ -583,7 +583,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_ShadowRequests.Count == 0)
             {
-                return renderGraph.defaultResources.blackTexture;
+                return renderGraph.defaultResources.defaultShadowTexture;
             }
 
             RenderShadowMaps(renderGraph, cullResults, globalCB, frameSettings, shadowPassName);
