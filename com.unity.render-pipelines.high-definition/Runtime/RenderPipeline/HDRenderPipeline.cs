@@ -257,6 +257,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="asset">Source HDRenderPipelineAsset.</param>
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
+            // We need to call this after the resource initialization as we attempt to use them in checking the supported API.
+            if (!CheckAPIValidity())
+            {
+                m_ValidAPI = false;
+                return;
+            }
+
 #if UNITY_EDITOR
             m_GlobalSettings = HDRenderPipelineGlobalSettings.Ensure();
 #else
@@ -296,12 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GlobalSettings.EnsureShadersCompiled();
 #endif
 
-            // We need to call this after the resource initialization as we attempt to use them in checking the supported API.
-            if (!CheckAPIValidity())
-            {
-                m_ValidAPI = false;
-                return;
-            }
+            CheckResourcesValidity();
 
 #if ENABLE_VIRTUALTEXTURES
             VirtualTexturingSettingsSRP settings = asset.virtualTexturingSettings;
@@ -380,7 +382,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeDebugMesh = defaultResources.assets.probeDebugSphere,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
-                    shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands
+                    shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
+                    supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
             }
@@ -575,6 +578,17 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
+        bool CheckResourcesValidity()
+        {
+            if (!(defaultResources?.shaders.defaultPS?.isSupported ?? true))
+            {
+                HDUtils.DisplayMessageNotification("Unable to compile Default Material based on Lit.shader. Either there is a compile error in Lit.shader or the current platform / API isn't compatible.");
+                return false;
+            }
+
+            return true;
+        }
+
         // Note: If you add new platform in this function, think about adding support when building the player too in HDRPCustomBuildProcessor.cs
         bool IsSupportedPlatformAndDevice(out GraphicsDeviceType unsupportedGraphicDevice)
         {
@@ -583,12 +597,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!SystemInfo.supportsComputeShaders)
             {
                 HDUtils.DisplayMessageNotification("Current platform / API don't support ComputeShaders which is a requirement.");
-                return false;
-            }
-
-            if (!(defaultResources?.shaders.defaultPS?.isSupported ?? true))
-            {
-                HDUtils.DisplayMessageNotification("Unable to compile Default Material based on Lit.shader. Either there is a compile error in Lit.shader or the current platform / API isn't compatible.");
                 return false;
             }
 
@@ -670,6 +678,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             base.Dispose(disposing);
 
+            HDLightRenderDatabase.instance.Cleanup();
             ReleaseScreenSpaceShadows();
 
             if (m_RayTracingSupported)
@@ -884,7 +893,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool enableRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ScreenSpaceReflection.RayTracingActive(settings);
                 m_ShaderVariablesGlobalCB._EnableRayTracedReflections = enableRaytracedReflections ? 1 : 0;
                 RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
-                m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = recursiveSettings.enable.value ? 1u : 0u;
+                // Here we cannot test against the light cluster as it is not build yet but for now there is no case where it shouldnt be valid
+                m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = recursiveSettings.enable.value && GetRayTracingState() ? 1u : 0u;
 
                 m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = EvaluateSpecularOcclusionFlag(hdCamera);
             }
@@ -1058,6 +1068,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         {
 #if UNITY_EDITOR
+            // Build target can change in editor so we need to check if the target is supported
+            if (!HDUtils.IsSupportedBuildTarget(UnityEditor.EditorUserBuildSettings.activeBuildTarget))
+                return;
+
             if (!m_ResourcesInitialized)
                 return;
 #endif
@@ -1127,6 +1141,12 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Update();
 #endif
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (DebugManager.instance.isAnyDebugUIActive)
+                m_DebugDisplaySettings.debugFrameTiming.UpdateFrameTiming();
+#endif
+
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 
             // This syntax is awful and hostile to debugging, please don't use it...
@@ -1942,7 +1962,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This call need to happen once per camera
                 // TODO: This can be wasteful for "compatible" cameras.
                 // We need to determine the minimum set of feature used by all the camera and build the minimum number of acceleration structures.
-                BuildRayTracingAccelerationStructure(hdCamera);
+                using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructure)))
+                {
+                    BuildRayTracingAccelerationStructure(hdCamera);
+                }
                 CullForRayTracing(cmd, hdCamera);
             }
 
@@ -1998,11 +2021,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ApplyDebugDisplaySettings(hdCamera, cmd, aovRequest.isValid);
 
-                if (DebugManager.instance.displayRuntimeUI
-#if UNITY_EDITOR
-                    || DebugManager.instance.displayEditorUI
-#endif
-                )
+                if (DebugManager.instance.isAnyDebugUIActive)
                     m_CurrentDebugDisplaySettings.UpdateAveragedProfilerTimings();
 
                 SetupCameraProperties(hdCamera, renderContext, cmd);
@@ -2031,6 +2050,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do the same for ray tracing if allowed
                 if (m_RayTracingSupported)
                 {
+                    m_RayCountManager.SetRayCountEnabled(m_CurrentDebugDisplaySettings.data.countRays);
                     BuildRayTracingLightData(cmd, hdCamera, m_CurrentDebugDisplaySettings);
                 }
 

@@ -284,7 +284,7 @@ void frag(ps_input i
 		outSelection = float4(_ObjectId, _PassValue, 1.0, 1.0);
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
 		#ifndef WRITE_MSAA_DEPTH
-			dummy = (float4)0;
+		    dummy = float4(i.VFX_VARYING_POSCS.z, 0,0,0);
 		#endif
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
 		dummy = (float4)0;
