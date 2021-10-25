@@ -46,6 +46,23 @@ namespace UnityEditor.VFX
             return (value - a) / (b - a);
         }
 
+        public static uint HashString(string str)
+        {
+            var hash = 0x01000193u;
+            foreach (char c in str)
+            {
+                hash ^= (uint)c;
+                hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+            }
+            return hash;
+        }
+
+        private float ColorFromName(string value)
+        {
+            var hash = HashString(value);
+            return (float)hash / uint.MaxValue;
+        }
+
         public override void DrawBackground(TimelineClip clip, ClipBackgroundRegion region)
         {
             base.DrawBackground(clip, region);
@@ -79,7 +96,7 @@ namespace UnityEditor.VFX
                         endRange - startRange,
                         region.position.y + 0.19f * region.position.height);
 
-                    float hue = 0.5f;
+                    float hue = ColorFromName((string)enter.name);
                     var color = Color.HSVToRGB(hue, 1.0f, 1.0f);
                     color.a = 0.5f;
                     EditorGUI.DrawRect(rect, color);
@@ -88,7 +105,6 @@ namespace UnityEditor.VFX
 
             var singleEvents = VisualEffectPlayableSerializedEvent.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable, false);
             var allEvents = clipEvents.Concat(singleEvents);
-            var clipEventsCount = clipEvents.Count();
             int index = 0;
             foreach (var itEvent in allEvents)
             {
@@ -96,16 +112,16 @@ namespace UnityEditor.VFX
                 var center = new Vector2(region.position.position.x + region.position.width * (float)relativeTime,
                     region.position.position.y + region.position.height * 0.5f);
 
-                float color = index < clipEventsCount ? 0.5f : 0.3f;
+                float hue = ColorFromName((string)itEvent.name);
                 var eventRect = new Rect(center - iconSize * new Vector2(1.0f, -0.5f), iconSize);
-                EditorGUI.DrawRect(eventRect, Color.HSVToRGB(color, 1.0f, 1.0f));
+                EditorGUI.DrawRect(eventRect, Color.HSVToRGB(hue, 1.0f, 1.0f));
 
                 var textRect = new Rect(center + new Vector2(2.0f, 0), iconSize);
                 ShadowLabel(textRect,
                     new GUIContent((string)itEvent.name),
                     fontStyle,
-                    Color.HSVToRGB(color, 1.0f, 1.0f),
-                    Color.HSVToRGB(color, 1.0f, 0.1f));
+                    Color.HSVToRGB(hue, 1.0f, 1.0f),
+                    Color.HSVToRGB(hue, 1.0f, 0.1f));
 
                 index++;
             }
