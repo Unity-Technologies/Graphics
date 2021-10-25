@@ -63,7 +63,12 @@ Currently not supported by HDR Output. It is possible to decide whether to fallb
 
 Not supported. Mostly because every different HDR screen used to display the content would need a different LUT. It is possible to decide whether to fallback on Neutral or ACES for outputting to an HDR device.
 
+## Control HDR via script
 
+In addition to controlling the above described Volume Component parameters through the camera volume stack, it is also possible to query the [HDROutputSettings](https://docs.unity3d.com/ScriptReference/HDROutputSettings.html). This can be used for example to:
+
+- Query the display brightness limits ([min](https://docs.unity3d.com/ScriptReference/HDROutputSettings-minToneMapLuminance.htmlhttps://docs.unity3d.com/ScriptReference/HDROutputSettings-minToneMapLuminance.html) and [max](https://docs.unity3d.com/ScriptReference/HDROutputSettings-maxToneMapLuminance.html)) and [paper white value](https://docs.unity3d.com/ScriptReference/HDROutputSettings-paperWhiteNits.html).
+- [Request a change in HDR](https://docs.unity3d.com/ScriptReference/HDROutputSettings.RequestHDRModeChange.html), turning it on or off.
 
 ## HDR Debug Views
 
