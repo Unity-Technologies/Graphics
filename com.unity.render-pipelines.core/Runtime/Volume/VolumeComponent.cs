@@ -93,11 +93,11 @@ namespace UnityEngine.Rendering
     /// </code>
     /// </example>
     [Serializable]
-#if UNITY_EDITOR
-    public class VolumeComponent : ScriptableObject, IApplyRevertPropertyContextMenuItemProvider
-#else
     public class VolumeComponent : ScriptableObject
+#if UNITY_EDITOR
+    , IApplyRevertPropertyContextMenuItemProvider
 #endif
+
     {
         /// <summary>
         /// Local attribute for VolumeComponent fields only.
