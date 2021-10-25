@@ -66,10 +66,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (cmd != null)
             {
-                if (m_DeferredLights.UseRenderPass)
+                var allocateGbufferDepth = true;
+                if (m_DeferredLights.UseRenderPass && (m_DeferredLights.DepthCopyTexture != null && m_DeferredLights.DepthCopyTexture.rt != null))
                 {
                     m_DeferredLights.GbufferAttachments[m_DeferredLights.GbufferDepthIndex] = m_DeferredLights.DepthCopyTexture;
                     m_DeferredLights.GbufferAttachmentIdentifiers[m_DeferredLights.GbufferDepthIndex] = m_DeferredLights.DepthCopyTexture.nameID;
+                    allocateGbufferDepth = false;
                 }
                 // Create and declare the render targets used in the pass
                 for (int i = 0; i < gbufferAttachments.Length; ++i)
@@ -81,6 +83,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Normal buffer may have already been created if there was a depthNormal prepass before.
                     // DepthNormal prepass is needed for forward-only materials when SSAO is generated between gbuffer and deferred lighting pass.
                     if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
+                        continue;
+
+                    if (i == m_DeferredLights.GbufferDepthIndex && !allocateGbufferDepth)
                         continue;
 
                     // No need to setup temporaryRTs if we are using input attachments as they will be Memoryless
