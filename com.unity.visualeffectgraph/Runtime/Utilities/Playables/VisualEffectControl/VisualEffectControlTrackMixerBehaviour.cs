@@ -44,38 +44,44 @@ namespace UnityEngine.VFX
                 public Event[] events;
                 public Clip[] clips;
             }
-            Chunk[] m_Chunks;
-
-            class VisualEffectControlPlayableBehaviourComparer : IComparer<VisualEffectControlPlayableBehaviour>
-            {
-                public int Compare(VisualEffectControlPlayableBehaviour x, VisualEffectControlPlayableBehaviour y)
-                {
-                    return x.clipStart.CompareTo(y.clipStart);
-                }
-            }
 
             const int kErrorIndex = int.MinValue;
-            private int m_LastChunk = kErrorIndex;
-            private int m_LastEvent = kErrorIndex;
-            private bool[] m_ClipState; //TODOPAUL: Actually, it's only useful for debug
-            private double m_LastPlayableTime = double.MinValue;
+            int m_LastChunk = kErrorIndex;
+            int m_LastEvent = kErrorIndex;
+            bool[] m_ClipState; //TODOPAUL: Actually, it's only useful for debug
+            double m_LastPlayableTime = double.MinValue;
 
-            private void OnEnterChunk(VisualEffect vfx, int currentChunk)
+            VisualEffect m_Target;
+            public bool m_BackupReseedOnPlay;
+            public uint m_BackupStartSeed;
+
+            Chunk[] m_Chunks;
+
+            private void OnEnterChunk(int currentChunk)
             {
-                vfx.Reinit(false);
                 if (!m_Chunks[currentChunk].scrubbing)
                 {
                     m_ClipState = new bool[m_Chunks[currentChunk].clips.Length];
                 }
+                else
+                {
+                    m_Target.Reinit(false);
+                    m_Target.resetSeedOnPlay = false;
+                    m_Target.startSeed = m_Chunks[currentChunk].startSeed;
+                }
             }
 
-            private void OnLeaveChunk(VisualEffect vfx, int previousChunk)
+            private void OnLeaveChunk(int previousChunk)
             {
+                if (m_Chunks[previousChunk].scrubbing)
+                {
+                    m_Target.Reinit(false);
+                    RestoreVFXState();
+                }
                 m_ClipState = null;
-                vfx.Reinit(false);
             }
 
-            //Debug only, will be removed int the end
+            //TODOPAUL Debug only, will be removed int the end
             enum dbg_state
             {
                 Playing,
@@ -84,10 +90,10 @@ namespace UnityEngine.VFX
                 OutChunk
             }
             private int scrubbingID = Shader.PropertyToID("scrubbing");
-            private void UpdateScrubbingState(VisualEffect vfx, dbg_state scrubbing)
+            private void UpdateScrubbingState(dbg_state scrubbing)
             {
-                if (vfx.HasUInt(scrubbingID))
-                    vfx.SetUInt(scrubbingID, (uint)scrubbing);
+                if (m_Target.HasUInt(scrubbingID))
+                    m_Target.SetUInt(scrubbingID, (uint)scrubbing);
             }
 
             private double Min(double a, double b)
@@ -104,11 +110,8 @@ namespace UnityEngine.VFX
                 return a < 0 ? -a : a;
             }
 
-            public void Update(double playableTime, float deltaTime, VisualEffect vfx)
+            public void Update(double playableTime, float deltaTime)
             {
-                if (vfx == null)
-                    return;
-
                 var paused = deltaTime == 0.0;
                 var playingBackward = playableTime < m_LastPlayableTime;
                 var dbg = dbg_state.OutChunk;
@@ -128,9 +131,9 @@ namespace UnityEngine.VFX
                 if (m_LastChunk != currentChunkIndex)
                 {
                     if (m_LastChunk != kErrorIndex)
-                        OnLeaveChunk(vfx, m_LastChunk);
+                        OnLeaveChunk(m_LastChunk);
                     if (currentChunkIndex != kErrorIndex)
-                        OnEnterChunk(vfx, currentChunkIndex);
+                        OnEnterChunk(currentChunkIndex);
 
                     m_LastChunk = currentChunkIndex;
                     m_LastEvent = kErrorIndex;
@@ -143,8 +146,8 @@ namespace UnityEngine.VFX
                     var chunk = m_Chunks[currentChunkIndex];
                     if (chunk.scrubbing)
                     {
-                        vfx.pause = paused;
-                        var actualCurrentTime = chunk.begin + vfx.time;
+                        m_Target.pause = paused;
+                        var actualCurrentTime = chunk.begin + m_Target.time;
 
                         if (!playingBackward)
                         {
@@ -165,7 +168,7 @@ namespace UnityEngine.VFX
                             dbg = dbg_state.ScrubbingBackward;
                             actualCurrentTime = chunk.begin;
                             m_LastEvent = kErrorIndex;
-                            OnEnterChunk(vfx, m_LastChunk);
+                            OnEnterChunk(m_LastChunk);
                         }
 
                         double expectedCurrentTime;
@@ -206,10 +209,10 @@ namespace UnityEngine.VFX
                                     if (dbg != dbg_state.ScrubbingBackward)
                                         dbg = dbg_state.ScrubbingForward;
 
-                                    vfx.Simulate((float)fixedStep, currentStepCount);
+                                    m_Target.Simulate((float)fixedStep, currentStepCount);
                                     actualCurrentTime += fixedStep * currentStepCount;
                                 }
-                                ProcessEvent(currentEventIndex, chunk, vfx);
+                                ProcessEvent(currentEventIndex, chunk);
                             }
                         }
 
@@ -217,12 +220,12 @@ namespace UnityEngine.VFX
                         {
                             var eventList = GetEventsIndex(chunk, actualCurrentTime, playableTime, m_LastEvent);
                             foreach (var itEvent in eventList)
-                                ProcessEvent(itEvent, chunk, vfx);
+                                ProcessEvent(itEvent, chunk);
                         }
                     }
                     else //No scrubbing
                     {
-                        vfx.pause = false;
+                        m_Target.pause = false;
                         if (playingBackward)
                         {
                             var eventBehind = GetEventsIndex(chunk, playableTime, m_LastPlayableTime, kErrorIndex);
@@ -231,12 +234,12 @@ namespace UnityEngine.VFX
                                 var currentEvent = chunk.events[itEvent];
                                 if (currentEvent.clipType == Event.ClipType.Enter)
                                 {
-                                    ProcessEvent(chunk.clips[currentEvent.clipIndex].exit, chunk, vfx);
+                                    ProcessEvent(chunk.clips[currentEvent.clipIndex].exit, chunk);
                                     dbg = dbg_state.ScrubbingBackward;
                                 }
                                 else if (currentEvent.clipType == Event.ClipType.Exit)
                                 {
-                                    ProcessEvent(chunk.clips[currentEvent.clipIndex].enter, chunk, vfx);
+                                    ProcessEvent(chunk.clips[currentEvent.clipIndex].enter, chunk);
                                     dbg = dbg_state.ScrubbingBackward;
                                 }
                                 //Else: Ignore, we aren't playing single event backward
@@ -246,16 +249,15 @@ namespace UnityEngine.VFX
 
                         var eventList = GetEventsIndex(chunk, m_LastPlayableTime, playableTime, m_LastEvent);
                         foreach (var itEvent in eventList)
-                            ProcessEvent(itEvent, chunk, vfx);
-
-                        UpdateScrubbingState(vfx, dbg);
+                            ProcessEvent(itEvent, chunk);
+                        UpdateScrubbingState(dbg);
                     }
                 }
-                UpdateScrubbingState(vfx, dbg);
+                UpdateScrubbingState(dbg);
                 m_LastPlayableTime = playableTime;
             }
 
-            void ProcessEvent(int eventIndex, Chunk currentChunk, VisualEffect vfx)
+            void ProcessEvent(int eventIndex, Chunk currentChunk)
             {
                 if (eventIndex == kErrorIndex)
                     return;
@@ -279,7 +281,7 @@ namespace UnityEngine.VFX
                     m_ClipState[currentEvent.clipIndex] = false;
                 }
 
-                vfx.SendEvent(currentEvent.nameId, currentEvent.attribute);
+                m_Target.SendEvent(currentEvent.nameId, currentEvent.attribute);
             }
 
             static IEnumerable<int> GetEventsIndex(Chunk chunk, double minTime, double maxTime, int lastIndex)
@@ -315,7 +317,7 @@ namespace UnityEngine.VFX
                 {
                     double absoluteTime = itEvent.time;
 
-                    //TODOPAUL: Should not be there but in UX
+                    //TODOPAUL: Should not be there but in UX, maybe ?
                     if (absoluteTime > behavior.clipEnd)
                         absoluteTime = behavior.clipEnd;
                     if (absoluteTime < behavior.clipStart)
@@ -332,8 +334,27 @@ namespace UnityEngine.VFX
                 }
             }
 
+            class VisualEffectControlPlayableBehaviourComparer : IComparer<VisualEffectControlPlayableBehaviour>
+            {
+                public int Compare(VisualEffectControlPlayableBehaviour x, VisualEffectControlPlayableBehaviour y)
+                {
+                    return x.clipStart.CompareTo(y.clipStart);
+                }
+            }
+
+            public void RestoreVFXState()
+            {
+                m_Target.pause = false;
+                m_Target.startSeed = m_BackupStartSeed;
+                m_Target.resetSeedOnPlay = m_BackupReseedOnPlay;
+            }
+
             public void Init(Playable playable, VisualEffect vfx)
             {
+                m_Target = vfx;
+                m_BackupStartSeed = m_Target.startSeed;
+                m_BackupReseedOnPlay = m_Target.resetSeedOnPlay;
+
                 var chunks = new Stack<Chunk>();
                 int inputCount = playable.GetInputCount();
 
@@ -424,6 +445,11 @@ namespace UnityEngine.VFX
                 }
                 m_Chunks = chunks.Reverse().ToArray();
             }
+
+            public void Release()
+            {
+                RestoreVFXState();
+            }
         }
 
         ScrubbingCacheHelper m_ScrubbingCacheHelper;
@@ -443,7 +469,7 @@ namespace UnityEngine.VFX
 
             var globalTime = playable.GetTime();
             var deltaTime = data.deltaTime;
-            m_ScrubbingCacheHelper.Update(globalTime, deltaTime, m_Target);
+            m_ScrubbingCacheHelper.Update(globalTime, deltaTime);
         }
 
         public override void ProcessFrame(Playable playable, FrameData data, object playerData)
@@ -451,18 +477,24 @@ namespace UnityEngine.VFX
             SetDefaults(playerData as VisualEffect);
         }
 
+        private void InvalidateScrubbingHelper()
+        {
+            if (m_ScrubbingCacheHelper != null)
+            {
+                m_ScrubbingCacheHelper.Release();
+                m_ScrubbingCacheHelper = null;
+            }
+        }
+
         public override void OnPlayableCreate(Playable playable)
         {
-            m_ScrubbingCacheHelper = null;
+            InvalidateScrubbingHelper();
         }
 
         public override void OnPlayableDestroy(Playable playable)
         {
-            if (m_Target != null)
-                m_Target.pause = false;
-
+            InvalidateScrubbingHelper();
             m_Target = null;
-            m_ScrubbingCacheHelper = null;
         }
 
         void SetDefaults(VisualEffect vfx)
@@ -472,8 +504,8 @@ namespace UnityEngine.VFX
 
             m_Target = vfx;
             if (m_Target)
-                m_Target.pause = true; //Awaiting for the first clip to call Reinit
-            m_ScrubbingCacheHelper = null;
+                m_Target.pause = true; //Awaiting for the first clip to call
+            InvalidateScrubbingHelper();
         }
     }
 }
