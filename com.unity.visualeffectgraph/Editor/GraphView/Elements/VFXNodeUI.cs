@@ -229,10 +229,12 @@ namespace UnityEditor.VFX.UI
 
                 if (hasSettings)
                 {
+                    RemoveFromClassList("nosettings");
                     settingsContainer.RemoveFromClassList("nosettings");
                 }
                 else
                 {
+                    AddToClassList("nosettings");
                     settingsContainer.AddToClassList("nosettings");
                 }
             }
@@ -326,6 +328,7 @@ namespace UnityEditor.VFX.UI
             anchor.style.top = -30 - settingsCount * 17 - (settingsCount > 0 ? 17 : 0);
             titleContainer.AddToClassList("activationslot");
             anchor.AddToClassList("activationslot");
+            AddToClassList("activationslot");
         }
 
         public void ForceUpdate()

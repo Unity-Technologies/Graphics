@@ -131,3 +131,13 @@ VFXContextUI VFXBlockUI.node #node-border #title.activationslot > #title-label
 {
     align-self: flex-end;
 }
+
+VFXBlockUI.activationslot.collapsed.VFXNodeUI.node #contents > #top > #input
+{
+    padding: 0px;
+}
+
+VFXBlockUI.nosettings.VFXNodeUI.node #contents > #settings-divider
+{
+    display: none;
+}
