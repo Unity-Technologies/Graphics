@@ -149,6 +149,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             shadowMatrix = GetShadowTransform(projMatrix, viewMatrix);
+            splitData.cullingMatrix = shadowMatrix;
             return success;
         }
 
