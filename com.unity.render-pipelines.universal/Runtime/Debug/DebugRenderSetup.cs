@@ -10,13 +10,13 @@ namespace UnityEngine.Rendering.Universal
         private readonly int m_Index;
         readonly FilteringSettings m_FilteringSettings;
 
-        private DebugDisplaySettingsMaterial MaterialSettings => m_DebugHandler.DebugDisplaySettings.MaterialSettings;
-        private DebugDisplaySettingsRendering RenderingSettings => m_DebugHandler.DebugDisplaySettings.RenderingSettings;
-        private DebugDisplaySettingsLighting LightingSettings => m_DebugHandler.DebugDisplaySettings.LightingSettings;
+        private DebugDisplaySettingsMaterial MaterialSettings => m_DebugHandler.DebugDisplaySettings.materialSettings;
+        private DebugDisplaySettingsRendering RenderingSettings => m_DebugHandler.DebugDisplaySettings.renderingSettings;
+        private DebugDisplaySettingsLighting LightingSettings => m_DebugHandler.DebugDisplaySettings.lightingSettings;
 
         private void Begin()
         {
-            DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.debugSceneOverrideMode;
+            DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.sceneOverrideMode;
 
             switch (sceneOverrideMode)
             {
@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void End()
         {
-            DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.debugSceneOverrideMode;
+            DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.sceneOverrideMode;
 
             switch (sceneOverrideMode)
             {
@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal DrawingSettings CreateDrawingSettings(DrawingSettings drawingSettings)
         {
-            bool usesReplacementMaterial = (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
+            bool usesReplacementMaterial = (MaterialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None);
 
             if (usesReplacementMaterial)
             {
@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal RenderStateBlock GetRenderStateBlock(RenderStateBlock renderStateBlock)
         {
-            DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.debugSceneOverrideMode;
+            DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.sceneOverrideMode;
 
             // Potentially override parts of the RenderStateBlock
             switch (sceneOverrideMode)

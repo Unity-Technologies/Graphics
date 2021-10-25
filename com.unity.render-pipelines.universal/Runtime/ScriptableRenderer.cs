@@ -489,11 +489,15 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useDepthPriming { get; set; } = false;
 
+        internal bool stripShadowsOffVariants { get; set; } = false;
+
+        internal bool stripAdditionalLightOffVariants { get; set; } = false;
+
         public ScriptableRenderer(ScriptableRendererData data)
         {
-            if (Debug.isDebugBuild)
-                DebugHandler = new DebugHandler(data);
-
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            DebugHandler = new DebugHandler(data);
+#endif
             profilingExecute = new ProfilingSampler($"{nameof(ScriptableRenderer)}.{nameof(ScriptableRenderer.Execute)}: {data.name}");
 
             foreach (var feature in data.rendererFeatures)
@@ -606,7 +610,7 @@ namespace UnityEngine.Rendering.Universal
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
-            bool drawGizmos = UniversalRenderPipelineDebugDisplaySettings.Instance.RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.None;
+            bool drawGizmos = UniversalRenderPipelineDebugDisplaySettings.Instance.renderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None;
 
             m_IsPipelineExecuting = true;
             ref CameraData cameraData = ref renderingData.cameraData;
@@ -1001,7 +1005,7 @@ namespace UnityEngine.Rendering.Universal
                     // We need to specifically clear the camera color target.
                     // But there is still a chance we don't need to issue individual clear() on each render-targets if they all have the same clear parameters.
                     needCustomCameraColorClear = (cameraClearFlag & ClearFlag.Color) != (renderPass.clearFlag & ClearFlag.Color)
-                        || CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor) != renderPass.clearColor;
+                        || cameraData.backgroundColor != renderPass.clearColor;
                 }
 
                 // Note: if we have to give up the assumption that no depthTarget can be included in the MRT colorAttachments, we might need something like this:
@@ -1025,7 +1029,7 @@ namespace UnityEngine.Rendering.Universal
                     // Clear camera color render-target separately from the rest of the render-targets.
 
                     if ((cameraClearFlag & ClearFlag.Color) != 0 && (!IsRenderPassEnabled(renderPass) || !cameraData.isRenderPassSupportedCamera))
-                        SetRenderTarget(cmd, renderPass.colorAttachments[cameraColorTargetIndex], renderPass.depthAttachment, ClearFlag.Color, CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+                        SetRenderTarget(cmd, renderPass.colorAttachments[cameraColorTargetIndex], renderPass.depthAttachment, ClearFlag.Color, cameraData.backgroundColor);
 
                     if ((renderPass.clearFlag & ClearFlag.Color) != 0)
                     {
@@ -1126,7 +1130,7 @@ namespace UnityEngine.Rendering.Universal
                     m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
 
                     finalClearFlag |= (cameraClearFlag & ClearFlag.Color);
-                    finalClearColor = CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor);
+                    finalClearColor = cameraData.backgroundColor;
 
                     if (m_FirstTimeCameraDepthTargetIsBound)
                     {

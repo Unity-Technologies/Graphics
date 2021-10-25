@@ -158,6 +158,9 @@ namespace UnityEngine.Rendering.Universal
                 m_LightCookieManager = new LightCookieManager(ref settings);
             }
 
+            this.stripShadowsOffVariants = true;
+            this.stripAdditionalLightOffVariants = true;
+
             ForwardLights.InitParams forwardInitParams;
             forwardInitParams.lightCookieManager = m_LightCookieManager;
             forwardInitParams.clusteredRendering = data.clusteredRendering;
@@ -179,6 +182,7 @@ namespace UnityEngine.Rendering.Universal
             // we inject the builtin passes in the before events.
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
             // Schedule XR copydepth right after m_FinalBlitPass(AfterRendering + 1)
@@ -509,9 +513,6 @@ namespace UnityEngine.Rendering.Universal
             bool useDepthPriming = (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || (m_DepthPrimingMode == DepthPrimingMode.Forced);
             useDepthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
 
-            // Temporarily disable depth priming on certain platforms such as Vulkan because we lack proper depth resolve support.
-            useDepthPriming &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan || cameraTargetDescriptor.msaaSamples == 1;
-
             if (useRenderPassEnabled || useDepthPriming)
             {
                 createDepthTexture |= createColorTexture;
@@ -711,7 +712,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
-            if (requiresDepthCopyPass)
+            // Also skip if Deferred+RenderPass as CameraDepthTexture is used and filled by the GBufferPass
+            // however we might need the depth texture with Forward-only pass rendered to it, so enable the copy depth in that case
+            if (requiresDepthCopyPass && !(this.actualRenderingMode == RenderingMode.Deferred && useRenderPassEnabled && !renderPassInputs.requiresDepthTexture))
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
 
@@ -722,7 +725,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Set the depth texture to the far Z if we do not have a depth prepass or copy depth
-            if (!requiresDepthPrepass && !requiresDepthCopyPass)
+            // Don't do this for Overlay cameras to not lose depth data in between cameras (as Base is guaranteed to be first)
+            if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
             {
                 Shader.SetGlobalTexture(m_DepthTexture.id, SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
             }
@@ -840,6 +844,7 @@ namespace UnityEngine.Rendering.Universal
                     if (!depthTargetResolved && cameraData.xr.copyDepth)
                     {
                         m_XRCopyDepthPass.Setup(m_ActiveCameraDepthAttachment, RenderTargetHandle.GetCameraTarget(cameraData.xr));
+                        m_XRCopyDepthPass.CopyToDepth = true;
                         EnqueuePass(m_XRCopyDepthPass);
                     }
                 }
@@ -853,11 +858,11 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if UNITY_EDITOR
-            if (isSceneViewCamera || isGizmosEnabled)
+            if (isSceneViewCamera || (isGizmosEnabled && lastCameraInTheStack))
             {
                 // Scene view camera should always resolve target (not stacked)
-                Assertions.Assert.IsTrue(lastCameraInTheStack, "Editor camera must resolve target upon finish rendering.");
                 m_FinalDepthCopyPass.Setup(m_DepthTexture, RenderTargetHandle.CameraTarget);
+                m_FinalDepthCopyPass.CopyToDepth = true;
                 m_FinalDepthCopyPass.MssaSamples = 0;
                 EnqueuePass(m_FinalDepthCopyPass);
             }
@@ -908,7 +913,7 @@ namespace UnityEngine.Rendering.Universal
 
             cullingParameters.conservativeEnclosingSphere = UniversalRenderPipeline.asset.conservativeEnclosingSphere;
 
-            cullingParameters.numIterationsEnclosingSphere = UniversalRenderPipeline.asset.numItertionsEnclosingSphere;
+            cullingParameters.numIterationsEnclosingSphere = UniversalRenderPipeline.asset.numIterationsEnclosingSphere;
         }
 
         /// <inheritdoc />
