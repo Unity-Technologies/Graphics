@@ -344,6 +344,10 @@ namespace UnityEngine.VFX
 
             public void RestoreVFXState()
             {
+                //Target could have been destroyed
+                if (m_Target == null)
+                    return;
+
                 m_Target.pause = false;
                 m_Target.startSeed = m_BackupStartSeed;
                 m_Target.resetSeedOnPlay = m_BackupReseedOnPlay;
