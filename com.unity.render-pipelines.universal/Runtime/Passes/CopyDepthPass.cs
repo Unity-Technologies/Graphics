@@ -119,6 +119,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // XR uses procedural draw instead of cmd.blit or cmd.DrawFullScreenMesh
                 if (renderingData.cameraData.xr.enabled)
                 {
+                    cmd.SetFoveatedRendering(FoveatedRenderingMode.Off);
+
                     // XR flip logic is not the same as non-XR case because XR uses draw procedure
                     // and draw procedure does not need to take projection matrix yflip into account
                     // We y-flip if

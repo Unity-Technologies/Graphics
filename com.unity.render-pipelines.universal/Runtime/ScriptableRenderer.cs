@@ -956,7 +956,11 @@ namespace UnityEngine.Rendering.Universal
 
             // FR
             if (renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing)
-                cmd.SetFoveatedRendering(FoveatedRenderingMode.EnableAndDistort);
+            {
+                if (renderPass.renderPassEvent <= RenderPassEvent.BeforeRenderingGbuffer || renderPass.renderPassEvent >= RenderPassEvent.AfterRenderingDeferredLights)
+                    cmd.SetFoveatedRendering(FoveatedRenderingMode.EnableAndDistort);
+            }
+                
 
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
