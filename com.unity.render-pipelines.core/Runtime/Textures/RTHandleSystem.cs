@@ -470,10 +470,10 @@ namespace UnityEngine.Rendering
                         depthFormat = GraphicsFormat.D16_UNorm;
                         break;
                     case DepthBits.Depth24:
-                        depthFormat = GraphicsFormat.D24_UNorm;
+                        depthFormat = GraphicsFormat.D24_UNorm_S8_UInt;
                         break;
                     case DepthBits.Depth32:
-                        depthFormat = GraphicsFormat.D32_SFloat;
+                        depthFormat = GraphicsFormat.D32_SFloat_S8_UInt;
                         break;
                 }
             }
