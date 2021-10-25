@@ -3,6 +3,14 @@
 #define USE_FOG 1
 #endif
 
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+#define CameraBuffer Texture2DArray
+#define VFXSamplerCameraBuffer VFXSampler2DArray
+#else
+#define CameraBuffer Texture2D
+#define VFXSamplerCameraBuffer VFXSampler2D
+#endif
+
 // this is only necessary for the old VFXTarget pathway
 // it defines the macro used to access hybrid instanced properties
 // (new HDRP/URP Target pathway overrides the type so this is never used)

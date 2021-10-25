@@ -22,6 +22,7 @@ namespace UnityEditor.VFX
 
         void AddSlot(VFXSlot slot, int index = -1);
         void RemoveSlot(VFXSlot slot);
+        void ReplaceSlot(VFXSlot prevSlot, VFXSlot newSlot);
 
         int GetSlotIndex(VFXSlot slot);
 
@@ -167,6 +168,16 @@ namespace UnityEditor.VFX
                 if (notify)
                     Invalidate(InvalidationCause.kStructureChanged);
             }
+        }
+
+        public virtual void ReplaceSlot(VFXSlot prevSlot, VFXSlot newSlot) { InnerReplaceSlot(prevSlot, newSlot, true); }
+        private void InnerReplaceSlot(VFXSlot prevSlot, VFXSlot newSlot, bool notify)
+        {
+            int index = GetSlotIndex(prevSlot);
+            InnerRemoveSlot(prevSlot, false);
+            InnerAddSlot(newSlot, index, false);
+            if (notify)
+                Invalidate(InvalidationCause.kStructureChanged);
         }
 
         public int GetSlotIndex(VFXSlot slot)
