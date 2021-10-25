@@ -36,19 +36,9 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Sets up the keywords and passes for the Unlit Shader Graph material you pass in.
-        /// </summary>
-        /// <param name="material">The target material.</param>
-        public static void SetupUnlitKeywordsAndPass(Material material)
-        {
-            SynchronizeShaderGraphProperties(material);
-            UnlitGUI.SetupUnlitKeywordsAndPass(material);
-        }
-
-        /// <summary>
         /// Sets up the keywords and passes for the current selected material.
         /// </summary>
         /// <param name="material">The selected material.</param>
-        public override void ValidateMaterial(Material material) => SetupUnlitKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => ShaderGraphAPI.ValidateUnlitMaterial(material);
     }
 }

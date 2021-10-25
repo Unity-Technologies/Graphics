@@ -46,6 +46,9 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         float _Chroma_Params;
         half4 _Vignette_Params1;
         float4 _Vignette_Params2;
+    #ifdef USING_STEREO_MATRICES
+        float4 _Vignette_ParamsXR;
+    #endif
         float2 _Grain_Params;
         float4 _Grain_TilingParams;
         float4 _Bloom_Texture_TexelSize;
@@ -68,7 +71,12 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #define LensDirtIntensity       _LensDirt_Intensity.x
 
         #define VignetteColor           _Vignette_Params1.xyz
+    #ifdef USING_STEREO_MATRICES
+        #define VignetteCenterEye0      _Vignette_ParamsXR.xy
+        #define VignetteCenterEye1      _Vignette_ParamsXR.zw
+    #else
         #define VignetteCenter          _Vignette_Params2.xy
+    #endif
         #define VignetteIntensity       _Vignette_Params2.z
         #define VignetteSmoothness      _Vignette_Params2.w
         #define VignetteRoundness       _Vignette_Params1.w
@@ -191,6 +199,12 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             UNITY_BRANCH
             if (VignetteIntensity > 0)
             {
+            #ifdef USING_STEREO_MATRICES
+                // With XR, the views can use asymmetric FOV which will have the center of each
+                // view be at a different location.
+                const float2 VignetteCenter = unity_StereoEyeIndex == 0 ? VignetteCenterEye0 : VignetteCenterEye1;
+            #endif
+
                 color = ApplyVignette(color, uvDistorted, VignetteCenter, VignetteIntensity, VignetteRoundness, VignetteSmoothness, VignetteColor);
             }
 

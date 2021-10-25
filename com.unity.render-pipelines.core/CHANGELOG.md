@@ -4,10 +4,20 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.1] - 2021-10-04
+
+### Added
+- Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
+- Added DebugFrameTiming class that can be used by render pipelines to display CPU/GPU frame timings and bottlenecks in Rendering Debugger.
+- Added new DebugUI widget types: ProgressBarValue and ValueTuple
+
 ## [13.1.0] - 2021-09-24
 
 ### Added
 - Debug Panels Framework See `IDebugDisplaySettingsQuery`.
+
+### Fixed
+- Fixed keyword and float property upgrading in SpeedTree8MaterialUpgrader
 
 ## [13.0.0] - 2021-09-01
 
@@ -17,6 +27,7 @@ The version number for this package has increased due to a version update of a r
 ### Added
 - New `IVolumeDebugSettings` interface and `VolumeDebugSettings<T>` class that stores the information for the Volumes Debug Panel.
 - Added AMD FidelityFX shaders which were originally in HDRP
+- Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
 
 ### Fixed
 - Fixed black pixel issue in AMD FidelityFX RCAS implementation
