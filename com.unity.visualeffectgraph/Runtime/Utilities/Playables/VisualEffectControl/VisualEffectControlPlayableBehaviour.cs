@@ -123,56 +123,68 @@ namespace UnityEngine.VFX
             {
                 var copy = itEvent;
                 copy.timeSpace = space;
-                copy.time = GetTimeInSpace(space, itEvent, clipStart, clipEnd);
+                copy.time = GetTimeInSpace(itEvent.timeSpace, itEvent.time, space, clipStart, clipEnd);
                 yield return copy;
             }
         }
 
-        private static double GetTimeInSpace(TimeSpace space, VisualEffectPlayableSerializedEvent source, double clipStart, double clipEnd)
+        public static double GetTimeInSpace(TimeSpace srcSpace, double srcTime, TimeSpace dstSpace, double clipStart, double clipEnd)
         {
-            if (source.timeSpace == space)
-                return source.time;
+            if (srcSpace == dstSpace)
+                return srcTime;
 
-            if (space == TimeSpace.Absolute)
+            if (dstSpace == TimeSpace.AfterClipStart)
             {
-                switch (source.timeSpace)
+                switch (srcSpace)
                 {
-                    case TimeSpace.AfterClipStart:
-                        return clipStart + source.time;
                     case TimeSpace.BeforeClipEnd:
-                        return clipEnd - source.time;
+                        return clipEnd - srcTime - clipStart;
                     case TimeSpace.Percentage:
-                        return clipStart + (clipEnd - clipStart) * (source.time / 100.0);
-                        //return ((clipEnd - clipStart + source.time) / (clipEnd - clipStart)) * 100.0;
+                        return (clipEnd - clipStart) * (srcTime / 100.0);
+                    case TimeSpace.Absolute:
+                        return srcTime - clipStart;
                 }
             }
-            else if (space == TimeSpace.AfterClipStart)
+            else if (dstSpace == TimeSpace.BeforeClipEnd)
             {
-                switch (source.timeSpace)
-                {
-                    case TimeSpace.BeforeClipEnd:
-                        return clipEnd - source.time - clipStart;
-                    case TimeSpace.Absolute:
-                        return source.time - clipStart;
-                    case TimeSpace.Percentage:
-                        return (clipEnd - clipStart) * (source.time / 100.0);
-                }
-            }
-            else if (space == TimeSpace.Percentage)
-            {
-                switch (source.timeSpace)
+                switch (srcSpace)
                 {
                     case TimeSpace.AfterClipStart:
-                        return 100.0 * (source.time) / (clipEnd - clipStart);
-                    case TimeSpace.BeforeClipEnd:
-                        return 100.0 * (clipEnd - source.time - clipStart) / (clipEnd - clipStart);
+                        return clipEnd - srcTime - clipStart;
+                    case TimeSpace.Percentage:
+                        //TODOPAUL: Can be simplified
+                        return clipEnd - clipStart - (clipEnd - clipStart) * (srcTime / 100.0);
                     case TimeSpace.Absolute:
-                        return 100.0 * (source.time - clipStart) / (clipEnd - clipStart);
+                        return clipEnd - srcTime;
+                }
+            }
+            else if (dstSpace == TimeSpace.Percentage)
+            {
+                switch (srcSpace)
+                {
+                    case TimeSpace.AfterClipStart:
+                        return 100.0 * (srcTime) / (clipEnd - clipStart);
+                    case TimeSpace.BeforeClipEnd:
+                        return 100.0 * (clipEnd - srcTime - clipStart) / (clipEnd - clipStart);
+                    case TimeSpace.Absolute:
+                        return 100.0 * (srcTime - clipStart) / (clipEnd - clipStart);
+                }
+            }
+            else if (dstSpace == TimeSpace.Absolute)
+            {
+                switch (srcSpace)
+                {
+                    case TimeSpace.AfterClipStart:
+                        return clipStart + srcTime;
+                    case TimeSpace.BeforeClipEnd:
+                        return clipEnd - srcTime;
+                    case TimeSpace.Percentage:
+                        return clipStart + (clipEnd - clipStart) * (srcTime / 100.0);
                 }
             }
 
             //Other conversion
-            throw new NotImplementedException();
+            throw new NotImplementedException(srcSpace + " to " + dstSpace);
         }
 
         public enum TimeSpace
@@ -183,8 +195,8 @@ namespace UnityEngine.VFX
             Absolute
         }
 
-        public TimeSpace timeSpace;
         public double time;
+        public TimeSpace timeSpace;
         public ExposedProperty name;
         public EventAttributes eventAttributes;
     }

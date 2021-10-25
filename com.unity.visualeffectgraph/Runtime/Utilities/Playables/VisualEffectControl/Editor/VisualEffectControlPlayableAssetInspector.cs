@@ -6,9 +6,40 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.VFX;
+using UnityEditor.UIElements;
 
 namespace UnityEditor.VFX
 {
+    [CustomPropertyDrawer(typeof(VisualEffectPlayableSerializedEvent.TimeSpace))]
+    class VisualEffectPlayableSerializedEventTimeSpaceDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            var previousTimeSpace = (VisualEffectPlayableSerializedEvent.TimeSpace)property.enumValueIndex;
+            var newTimeSpace = (VisualEffectPlayableSerializedEvent.TimeSpace)EditorGUI.EnumPopup(position, label, previousTimeSpace);
+            if (previousTimeSpace != newTimeSpace)
+            {
+                property.enumValueIndex = (int)newTimeSpace;
+                var parentEventPath = property.propertyPath.Substring(0, property.propertyPath.Length - nameof(VisualEffectPlayableSerializedEvent.timeSpace).Length - 1);
+                var parentEvent = property.serializedObject.FindProperty(parentEventPath);
+                if (parentEvent == null)
+                    throw new InvalidOperationException();
+
+                var parentEventTime = parentEvent.FindPropertyRelative(nameof(VisualEffectPlayableSerializedEvent.time));
+                if (parentEventTime == null)
+                    throw new InvalidOperationException();
+
+                var parentPlayable = property.serializedObject.targetObject as VisualEffectControlPlayableAsset;
+                if (parentPlayable == null)
+                    throw new InvalidOperationException();
+
+                var oldTime = parentEventTime.doubleValue;
+                var newTime = VisualEffectPlayableSerializedEvent.GetTimeInSpace(previousTimeSpace, oldTime, newTimeSpace, parentPlayable.clipStart, parentPlayable.clipEnd);
+                parentEventTime.doubleValue = newTime;
+            }
+        }
+    }
+
     [CustomPropertyDrawer(typeof(EventAttributes))]
     class EventAttributesDrawer : PropertyDrawer
     {
