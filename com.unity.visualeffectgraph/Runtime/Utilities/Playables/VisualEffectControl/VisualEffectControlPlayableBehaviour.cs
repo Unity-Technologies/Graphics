@@ -19,6 +19,7 @@ namespace UnityEngine.VFX
     public abstract class EventAttribute
     {
         public ExposedProperty id;
+        public abstract void ApplyToVFX(VFXEventAttribute eventAttribute);
     }
 
     [Serializable]
@@ -27,14 +28,64 @@ namespace UnityEngine.VFX
         public T value;
     }
 
-    [Serializable] public class EventAttributeFloat : EventAttributeValue<float> {}
-    [Serializable] public class EventAttributeVector2 : EventAttributeValue<Vector2> {}
-    [Serializable] public class EventAttributeVector3 : EventAttributeValue<Vector3> {}
-    [Serializable] public class EventAttributeColor : EventAttributeValue<Vector3> {}
-    [Serializable] public class EventAttributeVector4 : EventAttributeValue<Vector4> {}
-    [Serializable] public class EventAttributeInt : EventAttributeValue<int> {}
-    [Serializable] public class EventAttributeUInt : EventAttributeValue<uint> {}
-    [Serializable] public class EventAttributeBool : EventAttributeValue<bool> {}
+    [Serializable]
+    public class EventAttributeFloat : EventAttributeValue<float>
+    {
+        public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
+        {
+            eventAttribute.SetFloat(id, value);
+        }
+    }
+    [Serializable]
+    public class EventAttributeVector2 : EventAttributeValue<Vector2>
+    {
+        public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
+        {
+            eventAttribute.SetVector2(id, value);
+        }
+    }
+    [Serializable]
+    public class EventAttributeVector3 : EventAttributeValue<Vector3>
+    {
+        public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
+        {
+            eventAttribute.SetVector3(id, value);
+        }
+    }
+    [Serializable]
+    public class EventAttributeColor : EventAttributeVector3 {}
+    [Serializable]
+    public class EventAttributeVector4 : EventAttributeValue<Vector4>
+    {
+        public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
+        {
+            eventAttribute.SetVector4(id, value);
+        }
+    }
+    [Serializable]
+    public class EventAttributeInt : EventAttributeValue<int>
+    {
+        public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
+        {
+            eventAttribute.SetInt(id, value);
+        }
+    }
+    [Serializable]
+    public class EventAttributeUInt : EventAttributeValue<uint>
+    {
+        public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
+        {
+            eventAttribute.SetUint(id, value);
+        }
+    }
+    [Serializable]
+    public class EventAttributeBool : EventAttributeValue<bool>
+    {
+        public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
+        {
+            eventAttribute.SetBool(id, value);
+        }
+    }
 
     [Serializable]
     public struct VisualEffectPlayableSerializedEvent

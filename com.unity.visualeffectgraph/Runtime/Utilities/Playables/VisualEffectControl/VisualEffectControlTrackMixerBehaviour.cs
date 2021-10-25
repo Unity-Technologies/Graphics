@@ -303,14 +303,8 @@ namespace UnityEngine.VFX
 
                 var vfxAttribute = vfx.CreateVFXEventAttribute();
                 foreach (var attr in attributes.content)
-                {
-                    if (attr is EventAttributeValue<Vector3>)
-                    {
-                        var test = attr as EventAttributeValue<Vector3>;
-                        vfxAttribute.SetVector3((int)attr.id, test.value);
-                    }
-                    //TODOPAUL: finish it here or abstract it
-                }
+                    attr.ApplyToVFX(vfxAttribute);
+
                 return vfxAttribute;
             }
 
