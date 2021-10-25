@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (isHardwareDrsOn)
                     hardwareBlurSourceTextureSize = DynamicResolutionHandler.instance.ApplyScalesOnSize(hardwareBlurSourceTextureSize);
 
-                float blurSourceTextureWidth = (float)hardwareBlurSourceTextureSize.x; 
+                float blurSourceTextureWidth = (float)hardwareBlurSourceTextureSize.x;
                 float blurSourceTextureHeight = (float)hardwareBlurSourceTextureSize.y;
 
                 scaleX = ((float)dstMipWidth / blurSourceTextureWidth);
