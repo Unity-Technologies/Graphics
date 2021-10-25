@@ -19,7 +19,7 @@ using Object = System.Object;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(124, Extension, -902)]
+    [ScriptedImporter(126, Extension, -902)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
