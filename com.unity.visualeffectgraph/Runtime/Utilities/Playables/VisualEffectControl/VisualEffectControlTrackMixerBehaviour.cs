@@ -65,9 +65,9 @@ namespace UnityEngine.VFX
                 }
                 else
                 {
-                    m_Target.Reinit(false);
                     m_Target.resetSeedOnPlay = false;
                     m_Target.startSeed = m_Chunks[currentChunk].startSeed;
+                    m_Target.Reinit(false);
                 }
             }
 
@@ -475,6 +475,12 @@ namespace UnityEngine.VFX
         public override void ProcessFrame(Playable playable, FrameData data, object playerData)
         {
             SetDefaults(playerData as VisualEffect);
+        }
+
+        public override void OnBehaviourPause(Playable playable, FrameData data)
+        {
+            base.OnBehaviourPause(playable, data);
+            PrepareFrame(playable, data);
         }
 
         private void InvalidateScrubbingHelper()
