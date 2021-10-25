@@ -27,7 +27,7 @@ float DecodeHairStrandCount(float3 L, float4 strandCountProbe)
         HALF_SQRT_3_DIV_PI * L.x
     );
 
-    return abs(dot(strandCountProbe, Ylm));
+    return max(dot(strandCountProbe, Ylm), 0);
 }
 
 float GetDirectFraction(BSDFData bsdfData, float strandCount)
@@ -164,7 +164,7 @@ float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3
 
     // Resolve the overall local scattering term ( Eq. 19 & 20 Disney ).
     // Note, for now remove the square, there seems to be a discrepancy in the gaussian used in the paper (ours takes std. dev)
-    float3 fsBack = db * 2 * Ab * D_LongitudinalScatteringGaussian(thetaH - deltaB, sqrt(sigmaB + sigmaF)) / PI;
+    float3 fsBack = db * 2 * Ab * D_LongitudinalScatteringGaussian(thetaH - deltaB, sqrt(sigmaB + sigmaF)) / 1;
 
     // Resolve the approximated multiple scattering. (Approximate Eq. 22)
     // ------------------------------------------------------------------------------------
