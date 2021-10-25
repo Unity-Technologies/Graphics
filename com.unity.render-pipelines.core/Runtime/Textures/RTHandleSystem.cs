@@ -461,32 +461,48 @@ namespace UnityEngine.Rendering
 
             // We need to handle this in an explicit way since GraphicsFormat does not expose depth formats. TODO: Get rid of this branch once GraphicsFormat'll expose depth related formats
             RenderTexture rt;
-            if (isShadowMap || depthBufferBits != DepthBits.None)
+            var depthFormat = GraphicsFormat.None;
+            if (depthBufferBits > 0)
             {
-                RenderTextureFormat format = isShadowMap ? RenderTextureFormat.Shadowmap : RenderTextureFormat.Depth;
-                rt = new RenderTexture(width, height, (int)depthBufferBits, format, RenderTextureReadWrite.Linear)
+                switch (depthBufferBits)
                 {
-                    hideFlags = HideFlags.HideAndDontSave,
-                    volumeDepth = slices,
-                    filterMode = filterMode,
-                    wrapMode = wrapMode,
-                    dimension = dimension,
-                    enableRandomWrite = enableRandomWrite,
-                    useMipMap = useMipMap,
-                    autoGenerateMips = autoGenerateMips,
-                    anisoLevel = anisoLevel,
-                    mipMapBias = mipMapBias,
-                    antiAliasing = (int)msaaSamples,
-                    bindTextureMS = bindTextureMS,
-                    useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
-                    memorylessMode = memoryless,
-                    vrUsage = vrUsage,
-                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, format, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
-                };
+                    case DepthBits.Depth16:
+                        depthFormat = GraphicsFormat.D16_UNorm;
+                        break;
+                    case DepthBits.Depth24:
+                        depthFormat = GraphicsFormat.D24_UNorm;
+                        break;
+                    case DepthBits.Depth32:
+                        depthFormat = GraphicsFormat.D32_SFloat;
+                        break;
+                }
             }
-            else
+            // if (isShadowMap || depthBufferBits != DepthBits.None)
+            // {
+            //     RenderTextureFormat format = isShadowMap ? RenderTextureFormat.Shadowmap : RenderTextureFormat.Depth;
+            //     rt = new RenderTexture(width, height, (int)depthBufferBits, format, RenderTextureReadWrite.Linear)
+            //     {
+            //         hideFlags = HideFlags.HideAndDontSave,
+            //         volumeDepth = slices,
+            //         filterMode = filterMode,
+            //         wrapMode = wrapMode,
+            //         dimension = dimension,
+            //         enableRandomWrite = enableRandomWrite,
+            //         useMipMap = useMipMap,
+            //         autoGenerateMips = autoGenerateMips,
+            //         anisoLevel = anisoLevel,
+            //         mipMapBias = mipMapBias,
+            //         antiAliasing = (int)msaaSamples,
+            //         bindTextureMS = bindTextureMS,
+            //         useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
+            //         memorylessMode = memoryless,
+            //         vrUsage = vrUsage,
+            //         name = CoreUtils.GetRenderTargetAutoName(width, height, slices, format, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
+            //     };
+            // }
+            // else
             {
-                rt = new RenderTexture(width, height, (int)depthBufferBits, colorFormat)
+                rt = new RenderTexture(width, height, colorFormat, depthFormat)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
                     volumeDepth = slices,

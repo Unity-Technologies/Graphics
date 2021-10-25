@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
             descriptor.msaaSamples = 1;
 
-            var target = destinationnew RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, -1);
+            var target = destination;
 #if UNITY_EDITOR
             ConfigureTarget(destination, destination, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples);
 #else

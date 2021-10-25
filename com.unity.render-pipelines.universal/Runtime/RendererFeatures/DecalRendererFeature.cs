@@ -462,25 +462,6 @@ namespace UnityEngine.Rendering.Universal
                     renderer.EnqueuePass(m_GBufferRenderPass);
                     break;
                 case DecalTechnique.DBuffer:
-                    var universalRenderer = renderer as UniversalRenderer;
-                    if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
-                    {
-                        m_CopyDepthPass.Setup(
-                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthAttachmentIndentifier),
-                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthTextureIndentifier)
-                        );
-                    }
-                    else
-                    {
-                        m_CopyDepthPass.Setup(
-                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthTextureIndentifier),
-                            new RenderTargetHandle(m_DBufferRenderPass.dBufferDepthIndentifier)
-                        );
-
-                        m_CopyDepthPass.CopyToDepth = true;
-                    }
-                    m_CopyDepthPass.MssaSamples = 1;
-
                     renderer.EnqueuePass(m_CopyDepthPass);
                     renderer.EnqueuePass(m_DBufferRenderPass);
                     renderer.EnqueuePass(m_ForwardEmissivePass);
@@ -504,10 +485,14 @@ namespace UnityEngine.Rendering.Universal
                         universalRenderer.m_DepthTexture
                     );
                 else
+                {
                     m_CopyDepthPass.Setup(
                         universalRenderer.m_DepthTexture,
                         m_DBufferRenderPass.dBufferColorHandle
                     );
+                    m_CopyDepthPass.CopyToDepth = true;
+                }
+
                 m_CopyDepthPass.MssaSamples = 1;
             }
         }

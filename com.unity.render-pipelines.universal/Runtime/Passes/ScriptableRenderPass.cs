@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.Universal
             m_ColorAttachments = new RTHandle[] { k_CameraTarget, null, null, null, null, null, null, null };
             m_InputAttachments = new RTHandle[] { null, null, null, null, null, null, null, null };
             m_InputAttachmentIsTransient = new bool[] { false, false, false, false, false, false, false, false };
-            m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_DepthAttachment = k_CameraTarget;
             m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store, 0, 0, 0, 0, 0, 0, 0 };
             m_DepthStoreAction = RenderBufferStoreAction.Store;
             m_OverriddenColorStoreActions = new bool[] { false, false, false, false, false, false, false, false };
@@ -372,6 +372,12 @@ namespace UnityEngine.Rendering.Universal
         internal void ConfigureInputAttachments(RTHandle[] inputs)
         {
             m_InputAttachments = inputs;
+        }
+
+        internal void ConfigureInputAttachments(RTHandle[] inputs, bool[] isTransient)
+        {
+            m_InputAttachments = inputs;
+            m_InputAttachmentIsTransient = isTransient;
         }
 
         internal void ConfigureInputAttachments(RenderTargetIdentifier[] inputs, bool[] isTransient)
@@ -584,7 +590,7 @@ namespace UnityEngine.Rendering.Universal
             renderTargetFormat[0] = format;
         }
 
-        internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, GraphicsFormat format, int width, int height, int sampleCount)
+        internal void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment, GraphicsFormat format, int width, int height, int sampleCount)
         {
             m_DepthAttachment = depthAttachment;
             ConfigureTarget(colorAttachment, format, width, height, sampleCount);

@@ -38,11 +38,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTextureDescriptor baseDescriptor,
             RenderTargetHandle depthAttachmentHandle)
         {
-            this.depthAttachmentHandle = depthAttachmentHandle;
             this.depthStencilFormat = GraphicsFormat.R32_SFloat;
             // Even though this texture is going to be a color texture, we need depth buffer to correctly render it (ZTest and all)
-            baseDescriptor.depthBufferBits = k_DepthBufferBits;
-                        if (this.destination?.nameID != depthAttachmentHandle.Identifier())
+            if (this.destination?.nameID != depthAttachmentHandle.Identifier())
                 this.destination = RTHandles.Alloc(depthAttachmentHandle.Identifier());
             this.shaderTagId = k_ShaderTagId;
         }
@@ -74,7 +72,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
             {
                 useNativeRenderPass = true;
-                var target = new RenderTargetIdentifier(depthAttachmentHandle.Identifier(), 0, CubemapFace.Unknown, -1);
                 ConfigureTarget(destination, destination, GraphicsFormat.R32_SFloat, desc.width, desc.height, 1);
                 ConfigureClear(ClearFlag.All, Color.black);
             }

@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.Universal
                         m_DeferredLights.GbufferAttachmentIdentifiers[0], m_DeferredLights.GbufferAttachmentIdentifiers[1],
                         m_DeferredLights.GbufferAttachmentIdentifiers[2], m_DeferredLights.GbufferAttachmentIdentifiers[3]
                     };
-                ConfigureInputAttachments(m_DeferredLights.DepthCopyTextureIdentifier, false);
+                ConfigureInputAttachments(m_DeferredLights.DepthCopyTexture, false);
             }
             else
                 m_GbufferAttachments = m_DeferredLights.GbufferAttachmentIdentifiers;
