@@ -268,7 +268,9 @@ namespace UnityEngine.Rendering.HighDefinition
             deviceProj = GL.GetGPUProjectionMatrix(proj, false);
             deviceProjYFlip = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
-            return CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
+            Matrix4x4 matrix = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
+            splitData.cullingMatrix = matrix;
+            return matrix;
         }
 
         static Matrix4x4 ExtractPointLightMatrix(VisibleLight vl, uint faceIdx, float nearPlane, float guardAngle, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 deviceProjYFlip, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
@@ -307,6 +309,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < 6; i++)
                 splitData.SetCullingPlane(i, s_CachedPlanes[i]);
 
+            splitData.cullingMatrix = devProjView;
             return devProjView;
         }
 
