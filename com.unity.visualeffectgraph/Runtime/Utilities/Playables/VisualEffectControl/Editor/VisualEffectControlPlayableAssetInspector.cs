@@ -21,12 +21,7 @@ namespace UnityEditor.VFX
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            if (m_ReordableList == null)
-            {
-                var contentProperty = property.FindPropertyRelative(nameof(EventAttributes.content));
-                var baseHeight = base.GetPropertyHeight(property, label);
-                return baseHeight * (contentProperty.arraySize + 3);
-            }
+            BuildReordableList(property);
             return m_ReordableList.GetHeight();
         }
 
@@ -88,7 +83,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        void BuildReordableList(SerializedProperty property)
         {
             if (m_ReordableList == null)
             {
@@ -96,7 +91,6 @@ namespace UnityEditor.VFX
 
                 var contentProperty = property.FindPropertyRelative(nameof(EventAttributes.content));
                 m_ReordableList = new ReorderableList(property.serializedObject, contentProperty, true, true, true, true);
-
                 m_ReordableList.drawHeaderCallback += (Rect r) => { EditorGUI.LabelField(r, "Attributes"); };
                 m_ReordableList.onAddDropdownCallback += (Rect buttonRect, ReorderableList list) =>
                 {
@@ -155,6 +149,11 @@ namespace UnityEditor.VFX
                     }
                 };
             }
+        }
+
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            BuildReordableList(property);
 
             EditorGUI.BeginChangeCheck();
             m_ReordableList.DoList(position);
@@ -163,7 +162,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    //[CustomEditor(typeof(VisualEffectControlPlayableAsset))] //No need for now
+    [CustomEditor(typeof(VisualEffectControlPlayableAsset))]
     class VisualEffectControlPlayableAssetInspector : Editor
     {
         private SerializedProperty scrubbingProperty;
@@ -183,7 +182,8 @@ namespace UnityEditor.VFX
             serializedObject.Update();
 
             EditorGUILayout.PropertyField(scrubbingProperty);
-            EditorGUILayout.PropertyField(startSeedProperty);
+            if (scrubbingProperty.boolValue)
+                EditorGUILayout.PropertyField(startSeedProperty);
             EditorGUILayout.PropertyField(clipEventsProperty);
             EditorGUILayout.PropertyField(singleEventsProperty);
 

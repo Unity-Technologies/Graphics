@@ -9,7 +9,6 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-
     [CustomTimelineEditor(typeof(VisualEffectControlPlayableAsset))]
     class VisualEffectControlPlayableAssetEditor : ClipEditor
     {
