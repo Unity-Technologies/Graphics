@@ -649,7 +649,7 @@ namespace UnityEditor.VFX.UI
             if (playModeState == PlayModeStateChange.EnteredEditMode)
             {
                 m_VFXSettings.Load(true);
-                TryAttachTo(m_VFXSettings.AttachedVisualEffect);
+                TryAttachTo(m_VFXSettings.AttachedVisualEffect, false);
             }
         }
 
@@ -850,7 +850,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            m_VFXSettings.AttachedVisualEffect = attached ? selectedAsset : null;
+            m_VFXSettings.AttachedVisualEffect = attached ? visualEffect : null;
             UpdateToolbarButtons();
             return attached;
         }
@@ -1133,7 +1133,7 @@ namespace UnityEditor.VFX.UI
 
             if (m_VFXSettings.AttachedVisualEffect != null)
             {
-                TryAttachTo(m_VFXSettings.AttachedVisualEffect);
+                TryAttachTo(m_VFXSettings.AttachedVisualEffect, true);
             }
         }
 
