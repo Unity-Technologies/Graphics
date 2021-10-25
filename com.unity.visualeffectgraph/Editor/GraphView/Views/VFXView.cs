@@ -846,7 +846,7 @@ namespace UnityEditor.VFX.UI
                 if (vfxWindow != null)
                 {
                     string truncatedObjectName =
-                        TruncateName(Selection.activeObject.name, MaximumNameLengthInNotification);
+                        TruncateName(visualEffect.name, MaximumNameLengthInNotification);
                     vfxWindow.ShowNotification(new GUIContent($"Attached to {truncatedObjectName}"), 1.5);
                     vfxWindow.Repaint();
                 }
