@@ -108,27 +108,27 @@ platforms:
         type: Unity::VM::GPU
         image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
-        model: gtx1080
+        model: rtx2080
       editmode:
         type: Unity::VM::GPU
         image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
-        model: gtx1080
+        model: rtx2080
       standalone:
         type: Unity::VM::GPU
         image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
-        model: gtx1080
+        model: rtx2080
       standalone_cache:
         type: Unity::VM::GPU
         image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
-        model: gtx1080
+        model: rtx2080
       standalone_build:
         type: Unity::VM::GPU
         image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
-        model: gtx1080
+        model: rtx2080
   - name: OSX
     apis:
       - name: Metal
