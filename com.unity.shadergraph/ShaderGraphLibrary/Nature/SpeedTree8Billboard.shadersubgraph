@@ -17,7 +17,12 @@
         }
     ],
     "m_Keywords": [],
-    "m_CategoryData": [],
+    "m_Dropdowns": [],
+    "m_CategoryData": [
+        {
+            "m_Id": "081705fd59894b1e9b0f80f52ba23cdf"
+        }
+    ],
     "m_Nodes": [
         {
             "m_Id": "97529629eeb67083922a3aa87bf21b66"
@@ -1069,7 +1074,8 @@
         "serializedMesh": {
             "m_SerializedMesh": "{\"mesh\":{\"instanceID\":0}}",
             "m_Guid": ""
-        }
+        },
+        "preventRotation": false
     },
     "m_Path": "SpeedTree",
     "m_GraphPrecision": 0,
@@ -1117,6 +1123,8 @@
     "m_DefaultReferenceName": "Vector1_2E103E32",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -1216,6 +1224,27 @@
         "z": 0.0,
         "w": 0.0
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "081705fd59894b1e9b0f80f52ba23cdf",
+    "m_Name": "",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "cc88b4710cbfeb8ea3bb7bf9a07fbc12"
+        },
+        {
+            "m_Id": "25c34ca0a45daf8e8b1042f8ec1a30bb"
+        },
+        {
+            "m_Id": "038009d79142698bb76607e0466409a7"
+        },
+        {
+            "m_Id": "140e9fdcda3d1a82ad9a7337e1d5c8ec"
+        }
+    ]
 }
 
 {
@@ -1522,7 +1551,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "NormalTangentSpace",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
         "y": 0.0,
@@ -1645,6 +1674,8 @@
     "m_DefaultReferenceName": "Boolean_1A7045BA",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -2154,6 +2185,8 @@
     "m_DefaultReferenceName": "Vector3_F863C863",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -2562,7 +2595,7 @@
 }
 
 {
-    "m_SGVersion": 0,
+    "m_SGVersion": 1,
     "m_Type": "UnityEditor.ShaderGraph.TransformNode",
     "m_ObjectId": "3a5f67d6e979e88c908d521e864c0a7e",
     "m_Group": {
@@ -3301,7 +3334,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "NormalWorldSpace",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
         "y": 0.0,
@@ -3884,7 +3917,7 @@
 }
 
 {
-    "m_SGVersion": 0,
+    "m_SGVersion": 1,
     "m_Type": "UnityEditor.ShaderGraph.TransformNode",
     "m_ObjectId": "77d1caddbcfb888d91c90ef23934b7d7",
     "m_Group": {
@@ -5673,6 +5706,8 @@
     "m_DefaultReferenceName": "Vector1_B7478AA2",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
