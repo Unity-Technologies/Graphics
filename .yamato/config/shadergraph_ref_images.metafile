@@ -106,27 +106,27 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
       editmode:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
       standalone:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
       standalone_cache:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
       standalone_build:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
   - name: OSX

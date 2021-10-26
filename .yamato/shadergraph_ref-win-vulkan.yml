@@ -12,7 +12,7 @@ ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_trunk:
     name: ShaderGraph_ref on Win_Vulkan_Standalone_ref_images_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
     variables:
@@ -53,7 +53,7 @@ Build_ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_trunk:
     name: Build ShaderGraph_ref on Win_Vulkan_mono_Linear_Standalone_ref_images_build_Player on version trunk
     agent:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
     variables:
@@ -91,7 +91,7 @@ ShaderGraph_ref_Win_Vulkan_playmode_ref_images_mono_Linear_trunk:
     name: ShaderGraph_ref on Win_Vulkan_playmode_ref_images_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
     variables:
@@ -134,7 +134,7 @@ ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_trunk:
     name: ShaderGraph_ref on Win_Vulkan_Standalone_cache_ref_images_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
     variables:
@@ -176,7 +176,7 @@ Build_ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_trunk:
     name: Build ShaderGraph_ref on Win_Vulkan_mono_Linear_Standalone_cache_ref_images_build_Player on version trunk
     agent:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
     variables:
@@ -214,7 +214,7 @@ ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph_ref on Win_Vulkan_Standalone_ref_images_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
     variables:
@@ -255,7 +255,7 @@ Build_ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_CUSTOM-REVISI
     name: Build ShaderGraph_ref on Win_Vulkan_mono_Linear_Standalone_ref_images_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
     variables:
@@ -293,7 +293,7 @@ ShaderGraph_ref_Win_Vulkan_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph_ref on Win_Vulkan_playmode_ref_images_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
     variables:
@@ -336,7 +336,7 @@ ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISI
     name: ShaderGraph_ref on Win_Vulkan_Standalone_cache_ref_images_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
     variables:
@@ -378,7 +378,7 @@ Build_ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_CUSTOM-
     name: Build ShaderGraph_ref on Win_Vulkan_mono_Linear_Standalone_cache_ref_images_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: slough-ops/win10-base
+        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: gtx1080
     variables:
