@@ -219,16 +219,18 @@ namespace UnityEditor.ShaderGraph
                         GenerateSubShader(i, subShader, subShaderProperties);
                     }
 
+                    var customEditor = context.defaultShaderGUI;
+                    if (customEditor != null && m_Targets[i].WorksWithSRP(GraphicsSettings.currentRenderPipeline))
+                    {
+                        m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
+                    }
+
                     foreach (var rpCustomEditor in context.customEditorForRenderPipelines)
                     {
                         m_Builder.AppendLine($"CustomEditorForRenderPipeline \"{rpCustomEditor.shaderGUI}\" \"{rpCustomEditor.renderPipelineAssetType}\"");
                     }
 
-                    var customEditor = context.defaultShaderGUI;
-                    if (customEditor != null)
-                        m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
-                    else
-                        m_Builder.AppendLine("CustomEditor \"" + typeof(GenericShaderGraphMaterialGUI).FullName + "\"");
+                    m_Builder.AppendLine("CustomEditor \"" + typeof(GenericShaderGraphMaterialGUI).FullName + "\"");
                 }
 
                 m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");

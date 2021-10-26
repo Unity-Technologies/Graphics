@@ -3,7 +3,6 @@ namespace UnityEditor.ShaderGraph
     [GenerationAPI]
     internal struct StencilDescriptor
     {
-        public string ReadMask;
         public string WriteMask;
         public string Ref;
         public string Comp;
