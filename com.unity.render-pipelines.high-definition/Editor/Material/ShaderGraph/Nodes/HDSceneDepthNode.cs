@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Input", "High Definition Render Pipeline", "HD Scene Depth")]
-    sealed class HDSceneDepthNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireScreenPosition, IMayRequireDepthTexture
+    sealed class HDSceneDepthNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireScreenPosition, IMayRequireDepthTexture, IMayRequireNDCPosition
     {
         const string k_ScreenPositionSlotName = "UV";
         const string k_LodInputSlotName = "Lod";
@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         public bool RequiresDepthTexture(ShaderStageCapability stageCapability) => true;
-
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
     }
 }
