@@ -158,6 +158,11 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             string path = AssetDatabase.GUIDToAssetPath(m_GraphData.assetGuid);
+
+            // Send an action about our current variant usage. This will either add or clear a warning if it exists
+            var action = new ShaderVariantLimitAction(shaderKeywords.permutations.Count, ShaderGraphPreferences.variantLimit);
+            m_GraphData.owner?.graphDataStore?.Dispatch(action);
+
             if (shaderKeywords.permutations.Count > ShaderGraphPreferences.variantLimit)
             {
                 string graphName = "";
@@ -172,6 +177,8 @@ namespace UnityEditor.ShaderGraph
 
                 m_ConfiguredTextures = shaderProperties.GetConfiguredTextures();
                 m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader.Replace("Hidden/GraphErrorShader2", graphName));
+                // Don't continue building the shader, we've already built an error shader.
+                return;
             }
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
@@ -863,30 +870,6 @@ namespace UnityEditor.ShaderGraph
                 spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlock());
             }
             Profiler.EndSample();
-
-            // --------------------------------------------------
-            // Dots Instanced Graph Properties
-
-            bool hasDotsProperties = subShaderProperties.HasDotsProperties();
-
-            using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
-            {
-                if (hasDotsProperties)
-                    dotsInstancedPropertyBuilder.AppendLines(subShaderProperties.GetDotsInstancingPropertiesDeclaration(m_Mode));
-                else
-                    dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
-                spliceCommands.Add("HybridV1InjectedBuiltinProperties", dotsInstancedPropertyBuilder.ToCodeBlock());
-            }
-
-            // --------------------------------------------------
-            // Dots Instancing Options
-
-            using (var dotsInstancingOptionsBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
-            {
-                if (dotsInstancingOptionsBuilder.length == 0)
-                    dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");
-                spliceCommands.Add("DotsInstancingOptions", dotsInstancingOptionsBuilder.ToCodeBlock());
-            }
 
             // --------------------------------------------------
             // Graph Defines

@@ -20,6 +20,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent RenderingModeLabel = EditorGUIUtility.TrTextContent("Rendering Path", "Select a rendering path.");
             public static readonly GUIContent DepthPrimingModeLabel = EditorGUIUtility.TrTextContent("Depth Priming Mode", "With depth priming enabled, Unity uses the depth buffer generated in the depth prepass to determine if a fragment should be rendered or skipped during the Base Camera opaque pass. Disabled: Unity does not perform depth priming. Auto: If there is a Render Pass that requires a depth prepass, Unity performs the depth prepass and depth priming. Forced: Unity performs the depth prepass and depth priming.");
             public static readonly GUIContent DepthPrimingModeInfo = EditorGUIUtility.TrTextContent("On Android, iOS, and Apple TV, Unity performs depth priming only in the Forced mode. On tiled GPUs, which are common to those platforms, depth priming might reduce performance when combined with MSAA.");
+            public static readonly GUIContent CopyDepthModeLabel = EditorGUIUtility.TrTextContent("Copy Depth Mode", "Controls after which pass URP copies the scene depth. It has a significant impact on mobile devices bandwidth usage.");
             public static readonly GUIContent RenderPassLabel = EditorGUIUtility.TrTextContent("Native RenderPass", "Enables URP to use RenderPass API. Has no effect on OpenGLES2");
 
             public static readonly GUIContent RenderPassSectionLabel = EditorGUIUtility.TrTextContent("RenderPass", "This section contains properties related to render passes.");
@@ -40,6 +41,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_TransparentLayerMask;
         SerializedProperty m_RenderingMode;
         SerializedProperty m_DepthPrimingMode;
+        SerializedProperty m_CopyDepthMode;
         SerializedProperty m_AccurateGbufferNormals;
         SerializedProperty m_ClusteredRendering;
         SerializedProperty m_TileSize;
@@ -62,6 +64,7 @@ namespace UnityEditor.Rendering.Universal
             m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
             m_RenderingMode = serializedObject.FindProperty("m_RenderingMode");
             m_DepthPrimingMode = serializedObject.FindProperty("m_DepthPrimingMode");
+            m_CopyDepthMode = serializedObject.FindProperty("m_CopyDepthMode");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             m_ClusteredRendering = serializedObject.FindProperty("m_ClusteredRendering");
             m_TileSize = serializedObject.FindProperty("m_TileSize");
@@ -116,6 +119,8 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.indentLevel--;
             }
+
+            EditorGUILayout.PropertyField(m_CopyDepthMode, Styles.CopyDepthModeLabel);
 
 
             EditorGUI.indentLevel--;

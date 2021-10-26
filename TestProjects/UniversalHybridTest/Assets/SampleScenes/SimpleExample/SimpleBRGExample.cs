@@ -68,6 +68,17 @@ public class SimpleBRGExample : MonoBehaviour
         }
     }
 
+    // Raw buffers are allocated in ints, define an utility method to compute the required
+    // amount of ints for our data.
+    int BufferCountForInstances(int bytesPerInstance, int numInstances, int extraBytes = 0)
+    {
+        // Round byte counts to int multiples
+        bytesPerInstance = (bytesPerInstance + sizeof(int) - 1) / sizeof(int) * sizeof(int);
+        extraBytes = (extraBytes + sizeof(int) - 1) / sizeof(int) * sizeof(int);
+        int totalBytes = bytesPerInstance * numInstances + extraBytes;
+        return totalBytes / sizeof(int);
+    }
+
     // During initialization, we will allocate all required objects, and set up our custom instance data.
     void Start()
     {
@@ -78,7 +89,7 @@ public class SimpleBRGExample : MonoBehaviour
 
         // Create the buffer that holds our instance data
         m_InstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Raw,
-            (kExtraBytes + kBytesPerInstance * kNumInstances) / sizeof(int),
+            BufferCountForInstances(kBytesPerInstance, kNumInstances, kExtraBytes),
             sizeof(int));
 
         // Place one zero matrix at the start of the instance data buffer, so loads from address 0 will return zero

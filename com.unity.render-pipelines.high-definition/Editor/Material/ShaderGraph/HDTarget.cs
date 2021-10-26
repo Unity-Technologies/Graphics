@@ -848,21 +848,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // Here are the Pragma Collection we can add on top of the Basic one
         public static PragmaCollection DotsInstanced = new PragmaCollection
         {
-            { Basic },
-            { Pragma.MultiCompileInstancing },
             { Pragma.DOTSInstancing },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
         };
 
         public static PragmaCollection DotsInstancedEditorSync = new PragmaCollection
         {
-            { Basic },
-            { Pragma.MultiCompileInstancing },
             { Pragma.DOTSInstancing },
             { Pragma.EditorSyncCompilation },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
         };
     }
     #endregion

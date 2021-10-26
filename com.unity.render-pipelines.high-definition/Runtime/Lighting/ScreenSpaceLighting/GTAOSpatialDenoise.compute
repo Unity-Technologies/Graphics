@@ -3,6 +3,8 @@
 
 // TODO: This pass really could really use some quality improvement.
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 #pragma kernel SpatialDenoise
 
 #pragma multi_compile _ TO_TEMPORAL
