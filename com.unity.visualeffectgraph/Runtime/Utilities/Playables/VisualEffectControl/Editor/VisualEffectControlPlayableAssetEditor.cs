@@ -55,7 +55,7 @@ namespace UnityEditor.VFX
 
             var iconSize = new Vector2(8, 8);
 
-            var clipEvents = VisualEffectPlayableSerializedEvent.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable, true);
+            var clipEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable, true);
             using (var iterator = clipEvents.GetEnumerator())
             {
                 while (iterator.MoveNext())
@@ -83,7 +83,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            var singleEvents = VisualEffectPlayableSerializedEvent.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable, false);
+            var singleEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable, false);
             var allEvents = clipEvents.Concat(singleEvents);
             var clipEventsCount = clipEvents.Count();
             int index = 0;

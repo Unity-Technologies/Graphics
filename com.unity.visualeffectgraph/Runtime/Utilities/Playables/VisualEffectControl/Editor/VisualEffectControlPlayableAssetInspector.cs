@@ -35,7 +35,7 @@ namespace UnityEditor.VFX
                     throw new InvalidOperationException();
 
                 var oldTime = parentEventTime.doubleValue;
-                var newTime = VisualEffectPlayableSerializedEvent.GetTimeInSpace(previousTimeSpace, oldTime, newTimeSpace, parentPlayable.clipStart, parentPlayable.clipEnd);
+                var newTime = VFXTimeSpaceHelper.GetTimeInSpace(previousTimeSpace, oldTime, newTimeSpace, parentPlayable.clipStart, parentPlayable.clipEnd);
                 parentEventTime.doubleValue = newTime;
             }
         }

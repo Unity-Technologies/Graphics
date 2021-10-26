@@ -96,18 +96,15 @@ namespace UnityEngine.VFX
                     m_Target.SetUInt(scrubbingID, (uint)scrubbing);
             }
 
-            private double Min(double a, double b)
+            private static double Abs(double a)
             {
-                return a < b ? a : b;
-            }
-            private double Max(double a, double b)
-            {
-                return a < b ? a : b;
+                return a < 0.0 ? -a : a;
             }
 
-            private double Abs(double a)
+            bool IsTimeInChunk(double time, int index)
             {
-                return a < 0 ? -a : a;
+                var chunk = m_Chunks[index];
+                return chunk.begin <= time && time < chunk.end;
             }
 
             public void Update(double playableTime, float deltaTime)
@@ -116,15 +113,24 @@ namespace UnityEngine.VFX
                 var playingBackward = playableTime < m_LastPlayableTime;
                 var dbg = dbg_state.OutChunk;
 
-                //Find current chunk (TODOPAUL cache previous state to speed up)
                 var currentChunkIndex = kErrorIndex;
-                for (int i = 0; i < m_Chunks.Length; ++i)
+                if (m_LastChunk != currentChunkIndex)
                 {
-                    var chunk = m_Chunks[i];
-                    if (chunk.begin <= playableTime && playableTime <= chunk.end)
+                    if (IsTimeInChunk(playableTime, m_LastChunk))
+                        currentChunkIndex = m_LastChunk;
+                }
+
+                if (currentChunkIndex == kErrorIndex)
+                {
+                    var startIndex = m_LastChunk != kErrorIndex ? (uint)m_LastEvent : 0u;
+                    for (uint i = startIndex; i < startIndex + m_Chunks.Length; i++)
                     {
-                        currentChunkIndex = i;
-                        break;
+                        var actualIndex = (int)(i % m_Chunks.Length);
+                        if (IsTimeInChunk(playableTime, actualIndex))
+                        {
+                            currentChunkIndex = actualIndex;
+                            break;
+                        }
                     }
                 }
 
@@ -321,7 +327,7 @@ namespace UnityEngine.VFX
 
             static IEnumerable<Event> ComputeRuntimeEvent(VisualEffectControlPlayableBehaviour behavior, VisualEffect vfx)
             {
-                var events = VisualEffectPlayableSerializedEvent.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.Absolute, behavior);
+                var events = VFXTimeSpaceHelper.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.Absolute, behavior);
                 foreach (var itEvent in events)
                 {
                     //Apply clamping on the fly

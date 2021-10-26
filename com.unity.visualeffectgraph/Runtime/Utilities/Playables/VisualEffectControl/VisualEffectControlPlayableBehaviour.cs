@@ -108,10 +108,9 @@ namespace UnityEngine.VFX
         }
     }
 
-    [Serializable]
-    struct VisualEffectPlayableSerializedEvent
+    static class VFXTimeSpaceHelper
     {
-        public static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(TimeSpace space, VisualEffectControlPlayableBehaviour source)
+        public static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace space, VisualEffectControlPlayableBehaviour source)
         {
             return GetEventNormalizedSpace(space, source.events, source.clipStart, source.clipEnd);
         }
@@ -128,7 +127,7 @@ namespace UnityEngine.VFX
             }
         }
 
-        public static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(TimeSpace space, VisualEffectControlPlayableAsset source, bool clipEvents)
+        public static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace space, VisualEffectControlPlayableAsset source, bool clipEvents)
         {
             IEnumerable<VisualEffectPlayableSerializedEvent> sourceEvents;
             if (clipEvents)
@@ -138,7 +137,7 @@ namespace UnityEngine.VFX
             return GetEventNormalizedSpace(space, sourceEvents, source.clipStart, source.clipEnd);
         }
 
-        private static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(TimeSpace space, IEnumerable<VisualEffectPlayableSerializedEvent> events, double clipStart, double clipEnd)
+        private static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace space, IEnumerable<VisualEffectPlayableSerializedEvent> events, double clipStart, double clipEnd)
         {
             foreach (var itEvent in events)
             {
@@ -149,57 +148,57 @@ namespace UnityEngine.VFX
             }
         }
 
-        public static double GetTimeInSpace(TimeSpace srcSpace, double srcTime, TimeSpace dstSpace, double clipStart, double clipEnd)
+        public static double GetTimeInSpace(VisualEffectPlayableSerializedEvent.TimeSpace srcSpace, double srcTime, VisualEffectPlayableSerializedEvent.TimeSpace dstSpace, double clipStart, double clipEnd)
         {
             if (srcSpace == dstSpace)
                 return srcTime;
 
-            if (dstSpace == TimeSpace.AfterClipStart)
+            if (dstSpace == VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart)
             {
                 switch (srcSpace)
                 {
-                    case TimeSpace.BeforeClipEnd:
+                    case VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd:
                         return clipEnd - srcTime - clipStart;
-                    case TimeSpace.Percentage:
+                    case VisualEffectPlayableSerializedEvent.TimeSpace.Percentage:
                         return (clipEnd - clipStart) * (srcTime / 100.0);
-                    case TimeSpace.Absolute:
+                    case VisualEffectPlayableSerializedEvent.TimeSpace.Absolute:
                         return srcTime - clipStart;
                 }
             }
-            else if (dstSpace == TimeSpace.BeforeClipEnd)
+            else if (dstSpace == VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd)
             {
                 switch (srcSpace)
                 {
-                    case TimeSpace.AfterClipStart:
+                    case VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart:
                         return clipEnd - srcTime - clipStart;
-                    case TimeSpace.Percentage:
+                    case VisualEffectPlayableSerializedEvent.TimeSpace.Percentage:
                         //TODOPAUL: Can be simplified
                         return clipEnd - clipStart - (clipEnd - clipStart) * (srcTime / 100.0);
-                    case TimeSpace.Absolute:
+                    case VisualEffectPlayableSerializedEvent.TimeSpace.Absolute:
                         return clipEnd - srcTime;
                 }
             }
-            else if (dstSpace == TimeSpace.Percentage)
+            else if (dstSpace == VisualEffectPlayableSerializedEvent.TimeSpace.Percentage)
             {
                 switch (srcSpace)
                 {
-                    case TimeSpace.AfterClipStart:
+                    case VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart:
                         return 100.0 * (srcTime) / (clipEnd - clipStart);
-                    case TimeSpace.BeforeClipEnd:
+                    case VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd:
                         return 100.0 * (clipEnd - srcTime - clipStart) / (clipEnd - clipStart);
-                    case TimeSpace.Absolute:
+                    case VisualEffectPlayableSerializedEvent.TimeSpace.Absolute:
                         return 100.0 * (srcTime - clipStart) / (clipEnd - clipStart);
                 }
             }
-            else if (dstSpace == TimeSpace.Absolute)
+            else if (dstSpace == VisualEffectPlayableSerializedEvent.TimeSpace.Absolute)
             {
                 switch (srcSpace)
                 {
-                    case TimeSpace.AfterClipStart:
+                    case VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart:
                         return clipStart + srcTime;
-                    case TimeSpace.BeforeClipEnd:
+                    case VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd:
                         return clipEnd - srcTime;
-                    case TimeSpace.Percentage:
+                    case VisualEffectPlayableSerializedEvent.TimeSpace.Percentage:
                         return clipStart + (clipEnd - clipStart) * (srcTime / 100.0);
                 }
             }
@@ -207,7 +206,11 @@ namespace UnityEngine.VFX
             //Other conversion
             throw new NotImplementedException(srcSpace + " to " + dstSpace);
         }
+    }
 
+    [Serializable]
+    struct VisualEffectPlayableSerializedEvent
+    {
         public enum TimeSpace
         {
             AfterClipStart,
