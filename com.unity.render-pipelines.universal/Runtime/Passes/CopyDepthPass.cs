@@ -51,10 +51,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
 #if UNITY_EDITOR
             descriptor.depthBufferBits = 16;
-
 #else
             descriptor.depthBufferBits = 0;
-
 #endif
             descriptor.msaaSamples = 1;
 
@@ -122,7 +120,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         break;
                 }
 
-                if (CopyToDepth)
+                if (CopyToDepth || destination.rt.graphicsFormat == GraphicsFormat.None)
                     cmd.EnableShaderKeyword("_OUTPUT_DEPTH");
                 else
                     cmd.DisableShaderKeyword("_OUTPUT_DEPTH");

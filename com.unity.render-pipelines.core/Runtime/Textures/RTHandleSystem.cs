@@ -477,51 +477,26 @@ namespace UnityEngine.Rendering
                         break;
                 }
             }
-            // if (isShadowMap || depthBufferBits != DepthBits.None)
-            // {
-            //     RenderTextureFormat format = isShadowMap ? RenderTextureFormat.Shadowmap : RenderTextureFormat.Depth;
-            //     rt = new RenderTexture(width, height, (int)depthBufferBits, format, RenderTextureReadWrite.Linear)
-            //     {
-            //         hideFlags = HideFlags.HideAndDontSave,
-            //         volumeDepth = slices,
-            //         filterMode = filterMode,
-            //         wrapMode = wrapMode,
-            //         dimension = dimension,
-            //         enableRandomWrite = enableRandomWrite,
-            //         useMipMap = useMipMap,
-            //         autoGenerateMips = autoGenerateMips,
-            //         anisoLevel = anisoLevel,
-            //         mipMapBias = mipMapBias,
-            //         antiAliasing = (int)msaaSamples,
-            //         bindTextureMS = bindTextureMS,
-            //         useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
-            //         memorylessMode = memoryless,
-            //         vrUsage = vrUsage,
-            //         name = CoreUtils.GetRenderTargetAutoName(width, height, slices, format, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
-            //     };
-            // }
-            // else
+
+            rt = new RenderTexture(width, height, colorFormat, depthFormat)
             {
-                rt = new RenderTexture(width, height, colorFormat, depthFormat)
-                {
-                    hideFlags = HideFlags.HideAndDontSave,
-                    volumeDepth = slices,
-                    filterMode = filterMode,
-                    wrapMode = wrapMode,
-                    dimension = dimension,
-                    enableRandomWrite = enableRandomWrite,
-                    useMipMap = useMipMap,
-                    autoGenerateMips = autoGenerateMips,
-                    anisoLevel = anisoLevel,
-                    mipMapBias = mipMapBias,
-                    antiAliasing = (int)msaaSamples,
-                    bindTextureMS = bindTextureMS,
-                    useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
-                    memorylessMode = memoryless,
-                    vrUsage = vrUsage,
-                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, dimension, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples, dynamicRes: useDynamicScale)
-                };
-            }
+                hideFlags = HideFlags.HideAndDontSave,
+                volumeDepth = slices,
+                filterMode = filterMode,
+                wrapMode = wrapMode,
+                dimension = dimension,
+                enableRandomWrite = enableRandomWrite,
+                useMipMap = useMipMap,
+                autoGenerateMips = autoGenerateMips,
+                anisoLevel = anisoLevel,
+                mipMapBias = mipMapBias,
+                antiAliasing = (int)msaaSamples,
+                bindTextureMS = bindTextureMS,
+                useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
+                memorylessMode = memoryless,
+                vrUsage = vrUsage,
+                name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, dimension, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples, dynamicRes: useDynamicScale)
+            };
 
             rt.Create();
 
