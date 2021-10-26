@@ -161,6 +161,14 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             set => m_DepthWrite = value;
         }
 
+        [SerializeField]
+        FullscreenDepthWriteMode m_depthWriteMode = FullscreenDepthWriteMode.LinearEye;
+        public FullscreenDepthWriteMode depthWriteMode
+        {
+            get => m_depthWriteMode;
+            set => m_depthWriteMode = value;
+        }
+
         // When checked, allows the material to control ALL surface settings (uber shader style)
         [SerializeField]
         bool m_AllowMaterialOverride = false;

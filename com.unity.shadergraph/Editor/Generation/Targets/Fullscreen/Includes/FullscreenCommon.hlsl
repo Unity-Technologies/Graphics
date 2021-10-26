@@ -111,8 +111,27 @@ FragOutput DefaultFullscreenFragmentShader(PackedVaryings packedInput)
 
     output.color.rgb = surfaceDescription.BaseColor;
     output.color.a = surfaceDescription.Alpha;
-#ifdef DEPTH_WRITE
-    output.depth = surfaceDescription.FullscreenDepth;
+#if defined(DEPTH_WRITE)
+
+    float n = _ProjectionParams.y;
+    float f = _ProjectionParams.z;
+
+#if defined(DEPTH_WRITE_MODE_EYE)
+    // Reverse of LinearEyeDepth
+    float d = rcp(surfaceDescription.FullscreenEyeDepth);
+    output.depth = (d - _ZBufferParams.w) / _ZBufferParams.z;
+#endif
+
+#if defined(DEPTH_WRITE_MODE_LINEAR01)
+    // Reverse of Linear01Depth
+    float d = rcp(surfaceDescription.FullscreenLinear01Depth);
+    output.depth = (d - _ZBufferParams.y) / _ZBufferParams.x;
+#endif
+
+#if defined(DEPTH_WRITE_MODE_RAW)
+    output.depth = surfaceDescription.FullscreenRawDepth;
+#endif
+
 #endif
 
     return output;
