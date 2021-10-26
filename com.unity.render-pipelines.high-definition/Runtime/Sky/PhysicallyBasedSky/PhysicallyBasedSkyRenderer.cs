@@ -500,6 +500,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasSpaceEmissionTexture, hasSpaceEmissionTexture);
 
+            // Test
+            var lightData = builtinParams.sunLight.GetComponentInParent<HDAdditionalLightData>();
+            double radInner = 0.5 * (double)(lightData.angularDiameter) * Mathf.Deg2Rad;
+            double cosInner = Math.Cos(radInner);
+            double cosOuter = Math.Cos(radInner + lightData.flareSize);
+            s_PbrSkyMaterialProperties.SetVector("_TestCOS", new Vector4((float)cosInner, (float)cosOuter, 0, 0));
+
+            //float cosInner = builtinParams.sunLight
+
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._RenderSunDisk, renderSunDisk ? 1 : 0);
 
             int pass = (renderForCubemap ? 0 : 2);

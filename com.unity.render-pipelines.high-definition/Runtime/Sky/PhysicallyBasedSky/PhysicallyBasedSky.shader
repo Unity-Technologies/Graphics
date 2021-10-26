@@ -26,6 +26,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     float _GroundEmissionMultiplier;
     float _SpaceEmissionMultiplier;
 
+    float4 _TestCOS;
+
     // Sky framework does not set up global shader variables (even per-view ones),
     // so they can contain garbage. It's very difficult to not include them, however,
     // since the sky framework includes them internally in many header files.
@@ -111,12 +113,13 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     float LdotV    = -dot(L, V);
                     float rad      = acos(LdotV);
                     float radInner = 0.5 * light.angularDiameter;
-                    float cosInner = cos(radInner);
-                    float cosOuter = cos(radInner + light.flareSize);
+
+                    float cosInner = _TestCOS.x;// cos(radInner);
+                    float cosOuter = _TestCOS.y;// cos(radInner + light.flareSize);
 
                     float solidAngle = TWO_PI * (1 - cosInner);
 
-                    if (LdotV >= cosOuter && solidAngle > 0)
+                    if (LdotV >= cosOuter)
                     {
                         // Sun flare is visible. Sun disk may or may not be visible.
                         // Assume uniform emission.
