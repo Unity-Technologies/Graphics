@@ -307,6 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < 6; i++)
                 splitData.SetCullingPlane(i, s_CachedPlanes[i]);
 
+            splitData.CullingMatrix = devProjView;
             return devProjView;
         }
 
