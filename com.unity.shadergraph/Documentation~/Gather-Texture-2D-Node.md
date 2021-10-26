@@ -10,6 +10,14 @@ This node uses the [Gather](https://docs.microsoft.com/en-us/windows/win32/direc
 > When developing for platforms using the Metal graphics API, the `sample`, `sample_compare`, `gather`, and `gather_compare` intrinsics use an integer (int2) `offset` argument when sampling or gathering from a 2D texture. This value is applied to texture coordinates before looking up each pixel, and must be in the range of `-8` to `+7`. Otherwise, the Metal API clamps the `offset` value.
 
 
+## Create Node menu location
+
+The Gather Texture 2D node is under the **Input** &gt; **Texture** category in the Create Node menu.
+
+## Compatibility
+
+The Gather Texture 2D node is compatible with all render pipelines.
+
 ## Ports
 
 | **Name**     | **Direction** | **Type**      | **Binding** | **Description**  |
