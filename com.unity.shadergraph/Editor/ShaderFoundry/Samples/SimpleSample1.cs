@@ -20,14 +20,14 @@ namespace UnityEditor.ShaderFoundry
             DisplayTestResult(ShaderName, code);
         }
 
-        internal static void BuildSample(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointDescriptor vertexCPDesc, out CustomizationPointDescriptor surfaceCPDesc)
+        internal static void BuildSample(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPInst, out CustomizationPointInstance surfaceCPInst)
         {
             // This sample overrides only the SurfaceDescription customization point.
             // This CP is composed of three blocks for an example of how blocks can be composed and
             // how input/output names can be overridden. You can just as easily only create one block to start.
 
             // Currently don't provide any blocks for the vertex customization point.
-            vertexCPDesc = CustomizationPointDescriptor.Invalid;
+            vertexCPInst = CustomizationPointInstance.Invalid;
 
             // Build the blocks we're going to use.
 
@@ -41,17 +41,17 @@ namespace UnityEditor.ShaderFoundry
             // Now build the descriptors for each block. Blocks can be re-used multiple times within a shader.
             // The block descriptors add any unique data about the call. Currently there is no unique data,
             // but plans for manually re-mapping data between blocks is under way.
-            var globalsProviderBlockDesc = SimpleSampleBuilder.BuildSimpleBlockDescriptor(container, globalsProviderBlock);
-            var uvScrollBlockDesc = SimpleSampleBuilder.BuildSimpleBlockDescriptor(container, uvScrollBlock);
-            var albedoColorBlockDesc = SimpleSampleBuilder.BuildSimpleBlockDescriptor(container, albedoColorBlock);
+            var globalsProviderBlockDesc = SimpleSampleBuilder.BuildSimpleBlockInstance(container, globalsProviderBlock);
+            var uvScrollBlockDesc = SimpleSampleBuilder.BuildSimpleBlockInstance(container, uvScrollBlock);
+            var albedoColorBlockDesc = SimpleSampleBuilder.BuildSimpleBlockInstance(container, albedoColorBlock);
 
             // The order of these block is what determines how the inputs/outputs are resolved
-            var cpDescBuilder = new CustomizationPointDescriptor.Builder(container, surfaceCP);
-            cpDescBuilder.BlockDescriptors.Add(globalsProviderBlockDesc);
-            cpDescBuilder.BlockDescriptors.Add(uvScrollBlockDesc);
-            cpDescBuilder.BlockDescriptors.Add(albedoColorBlockDesc);
+            var cpDescBuilder = new CustomizationPointInstance.Builder(container, surfaceCP);
+            cpDescBuilder.BlockInstances.Add(globalsProviderBlockDesc);
+            cpDescBuilder.BlockInstances.Add(uvScrollBlockDesc);
+            cpDescBuilder.BlockInstances.Add(albedoColorBlockDesc);
 
-            surfaceCPDesc = cpDescBuilder.Build();
+            surfaceCPInst = cpDescBuilder.Build();
         }
 
         internal static Block BuildGlobalsProviderBlock(ShaderContainer container)

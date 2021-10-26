@@ -147,9 +147,9 @@ namespace UnityEditor.ShaderFoundry
             ExtractContext(targetActiveBlockContext, legacyPassDescriptor.validPixelBlocks, fragmentContext);
         }
 
-        BlockDescriptor BuildSimpleBlockDesc(Block block)
+        BlockInstance BuildSimpleBlockDesc(Block block)
         {
-            var builder = new BlockDescriptor.Builder(Container, block);
+            var builder = new BlockInstance.Builder(Container, block);
             return builder.Build();
         }
 

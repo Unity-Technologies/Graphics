@@ -7,12 +7,12 @@ namespace UnityEditor.ShaderFoundry
     internal class BlockLinkInstance
     {
         ShaderContainer container;
-        BlockDescriptor blockDescriptor;
+        BlockInstance blockInstance;
         Block block;
         List<BlockVariableLinkInstance> properties = new List<BlockVariableLinkInstance>();
 
         internal ShaderContainer Container => container;
-        internal BlockDescriptor BlockDescriptor => blockDescriptor;
+        internal BlockInstance BlockInstance => blockInstance;
         internal Block Block => block;
         internal BlockVariableLinkInstance InputInstance { get; set; } = new BlockVariableLinkInstance();
         internal BlockVariableLinkInstance OutputInstance { get; set; } = new BlockVariableLinkInstance();
@@ -23,16 +23,16 @@ namespace UnityEditor.ShaderFoundry
             this.container = container;
         }
 
-        internal BlockLinkInstance(ShaderContainer container, BlockDescriptor blockDescriptor)
+        internal BlockLinkInstance(ShaderContainer container, BlockInstance blockInstance)
         {
             this.container = container;
-            Build(blockDescriptor);
+            Build(blockInstance);
         }
 
-        internal void Build(BlockDescriptor blockDescriptor)
+        internal void Build(BlockInstance blockInstance)
         {
-            this.blockDescriptor = blockDescriptor;
-            this.block = blockDescriptor.Block;
+            this.blockInstance = blockInstance;
+            this.block = blockInstance.Block;
 
             if(!block.EntryPointFunction.GetInOutTypes(out var inType, out var outType))
             {

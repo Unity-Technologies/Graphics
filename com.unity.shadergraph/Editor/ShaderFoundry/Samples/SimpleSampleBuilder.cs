@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderFoundry
 {
     internal static class SimpleSampleBuilder
     {
-        internal delegate void BuildCallback(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointDescriptor vertexCPDesc, out CustomizationPointDescriptor surfaceCPDesc);
+        internal delegate void BuildCallback(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPInst, out CustomizationPointInstance surfaceCPInst);
 
         internal static void Build(ShaderContainer container, string shaderName, BuildCallback buildCallback, ShaderBuilder shaderBuilder)
         {
@@ -19,11 +19,11 @@ namespace UnityEditor.ShaderFoundry
         {
             ITemplateProvider provider = new LegacyTemplateProvider(target, new ShaderGraph.AssetCollection());
 
-            var shaderDescBuilder = new ShaderDescriptor.Builder(container, shaderName);
+            var shaderInstBuilder = new ShaderInstance.Builder(container, shaderName);
             
             foreach(var template in provider.GetTemplates(container))
             {
-                var templateDescriptorBuilder = new TemplateDescriptor.Builder(container, template);
+                var templateInstanceBuilder = new TemplateInstance.Builder(container, template);
 
                 // Hard-coded find the two customization points we know will exist. This really should discovered from iterating long-term
                 var customizationPoints = template.CustomizationPoints.ToList();
@@ -31,18 +31,18 @@ namespace UnityEditor.ShaderFoundry
                 var surfaceCP = customizationPoints.Find((cp) => (cp.Name == LegacyCustomizationPoints.SurfaceDescriptionCPName));
 
                 // Build the descriptors for the two customization points. These define the blocks we're adding
-                buildCallback(container, vertexCP, surfaceCP, out var vertexCPDesc, out var surfaceCPDesc);
+                buildCallback(container, vertexCP, surfaceCP, out var vertexCPInst, out var surfaceCPInst);
 
-                templateDescriptorBuilder.AddCustomizationPointDescriptor(vertexCPDesc);
-                templateDescriptorBuilder.AddCustomizationPointDescriptor(surfaceCPDesc);
+                templateInstanceBuilder.AddCustomizationPointInstance(vertexCPInst);
+                templateInstanceBuilder.AddCustomizationPointInstance(surfaceCPInst);
 
-                var templateDescriptor = templateDescriptorBuilder.Build();
-                shaderDescBuilder.TemplateDescriptors.Add(templateDescriptor);
+                var templateInstance = templateInstanceBuilder.Build();
+                shaderInstBuilder.TemplateInstances.Add(templateInstance);
             }
             
-            var shaderDesc = shaderDescBuilder.Build();
+            var shaderInst = shaderInstBuilder.Build();
             var generator = new ShaderGenerator();
-            generator.Generate(shaderBuilder, container, shaderDesc);
+            generator.Generate(shaderBuilder, container, shaderInst);
         }
 
         // Simple helper to make a type from a bunch of variables
@@ -62,10 +62,10 @@ namespace UnityEditor.ShaderFoundry
             variableBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PropertyType).Param(propertyType).Build());
         }
 
-        internal static BlockDescriptor BuildSimpleBlockDescriptor(ShaderContainer container, Block block)
+        internal static BlockInstance BuildSimpleBlockInstance(ShaderContainer container, Block block)
         {
-            var blockDescBuilder = new BlockDescriptor.Builder(container, block);
-            return blockDescBuilder.Build();
+            var blockInstBuilder = new BlockInstance.Builder(container, block);
+            return blockInstBuilder.Build();
         }
 
         internal static void BuildTexture2D(ShaderContainer container, string referenceName, string displayName, List<BlockVariable> inputs, List<BlockVariable> properties)
