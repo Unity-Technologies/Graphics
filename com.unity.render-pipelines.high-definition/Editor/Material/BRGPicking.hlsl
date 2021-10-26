@@ -29,7 +29,7 @@ float4x4 unity_BRGPickingProjMatrix;
 float4 unity_BRGPickingCameraWorldPos;
 
 #undef unity_ObjectToWorld
-float4x4 LoadObjectToWorldMatrixDOTSPicking()
+float4x4 LoadObjectToWorldMatrixBRGPicking()
 {
     float4x4 objectToWorld = LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld));
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
@@ -53,7 +53,7 @@ PickingVertexOutput Vert(PickingAttributesMesh input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-    float4x4 objectToWorld = LoadObjectToWorldMatrixDOTSPicking();
+    float4x4 objectToWorld = LoadObjectToWorldMatrixBRGPicking();
     float4 positionWS = mul(objectToWorld, float4(input.positionOS, 1.0));
 
 #ifdef TESSELLATION_ON
