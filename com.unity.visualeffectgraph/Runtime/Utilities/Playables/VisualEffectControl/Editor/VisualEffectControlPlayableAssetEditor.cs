@@ -50,15 +50,12 @@ namespace UnityEditor.VFX
         {
             base.DrawBackground(clip, region);
             var playable = clip.asset as VisualEffectControlPlayableAsset;
-
-            //TODOPAUL: can be handled safely
             if (playable.clipEvents == null || playable.singleEvents == null)
                 return;
 
             var iconSize = new Vector2(8, 8);
 
             var clipEvents = VisualEffectPlayableSerializedEvent.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable, true);
-
             using (var iterator = clipEvents.GetEnumerator())
             {
                 while (iterator.MoveNext())

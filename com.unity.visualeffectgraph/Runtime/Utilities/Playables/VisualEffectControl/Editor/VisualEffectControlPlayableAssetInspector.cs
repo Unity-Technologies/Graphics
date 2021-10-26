@@ -1,6 +1,7 @@
 #if VFX_HAS_TIMELINE
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Collections.Generic;
 using UnityEditorInternal;
 using UnityEngine;
@@ -40,7 +41,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    [CustomPropertyDrawer(typeof(EventAttributes))]
+    [CustomPropertyDrawer(typeof(UnityEngine.VFX.EventAttributes))]
     class EventAttributesDrawer : PropertyDrawer
     {
         private ReorderableList m_ReordableList;
@@ -63,12 +64,12 @@ namespace UnityEditor.VFX
             var subClasses = VFXLibrary.FindConcreteSubclasses(typeof(EventAttribute));
             foreach (var eventAttribute in subClasses)
             {
-                var valueType = eventAttribute.GetMember(nameof(EventAttributeValue<byte>.value));
-                yield return (eventAttribute, valueType[0].DeclaringType);
+                var valueType = eventAttribute.GetMember(nameof(EventAttributeValue<char>.value));
+                yield return (eventAttribute, ((FieldInfo)valueType[0]).FieldType);
             }
         }
 
-        private static IEnumerable<(string name, Type type)> GetAvailableAttribute()
+        private static IEnumerable<(string name, Type type)> GetAvailableAttributes()
         {
             foreach (var attributeName in VFXAttribute.AllIncludingVariadicReadWritable)
             {
@@ -80,23 +81,6 @@ namespace UnityEditor.VFX
                         yield return (attribute.name, typeof(EventAttributeColor));
                     else
                         yield return (attribute.name, typeof(EventAttributeVector3));
-                }
-                //TODOPAUL: Idk why it fails (probably wrong type comparison)
-                else if (type == typeof(float))
-                {
-                    yield return (attribute.name, typeof(EventAttributeFloat));
-                }
-                else if (type == typeof(uint))
-                {
-                    yield return (attribute.name, typeof(EventAttributeUInt));
-                }
-                else if (type == typeof(int))
-                {
-                    yield return (attribute.name, typeof(EventAttributeInt));
-                }
-                else if (type == typeof(bool))
-                {
-                    yield return (attribute.name, typeof(EventAttributeBool));
                 }
                 else
                 {
@@ -114,19 +98,21 @@ namespace UnityEditor.VFX
             }
         }
 
+        private static readonly (string name, Type type)[] kAvailableAttributes = GetAvailableAttributes().ToArray();
+
         void BuildReordableList(SerializedProperty property)
         {
             if (m_ReordableList == null)
             {
                 var emptyGUIContent = new GUIContent(string.Empty);
 
-                var contentProperty = property.FindPropertyRelative(nameof(EventAttributes.content));
+                var contentProperty = property.FindPropertyRelative(nameof(UnityEngine.VFX.EventAttributes.content));
                 m_ReordableList = new ReorderableList(property.serializedObject, contentProperty, true, true, true, true);
                 m_ReordableList.drawHeaderCallback += (Rect r) => { EditorGUI.LabelField(r, "Attributes"); };
                 m_ReordableList.onAddDropdownCallback += (Rect buttonRect, ReorderableList list) =>
                 {
                     var menu = new GenericMenu();
-                    foreach (var option in GetAvailableAttribute())
+                    foreach (var option in kAvailableAttributes)
                     {
                         menu.AddItem(new GUIContent(option.name), false, () =>
                         {
