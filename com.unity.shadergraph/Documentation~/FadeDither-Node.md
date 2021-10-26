@@ -22,7 +22,6 @@ This [Node](Node.md) is commonly used as an input to **Alpha** on a [Master Node
 The following example code represents one possible outcome of this node.
 
 ```
-
 float Unity_FadeDitherNode_ApplyFade_float(float noise, float fadeValue, float fadeSpeed)
 {
     float ret = saturate(fadeValue*(fadeSpeed+1)+(noise-1)*fadeSpeed);
