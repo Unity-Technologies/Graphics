@@ -68,6 +68,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix potential infinite compilation when using subgraphs [Case 1346576](https://issuetracker.unity3d.com/product/unity/issues/guid/1346576/)
 - Prevent out of sync serialization of VFX assets that could cause the asset to be dirtied without reason
 - Fix undetermitism in space with LocalToWorld and WorldToLocal operators [Case 1355820](https://issuetracker.unity3d.com/product/unity/issues/guid/1355820/)
+- No more performance drop when Windows screen DPI setting is set to custom values (like 125%)
 
 ## [10.2.0] - 2020-10-19
 ### Added
