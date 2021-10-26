@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.VFX;
 using UnityEditor.UIElements;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {

@@ -8,7 +8,7 @@ namespace UnityEngine.VFX
     [TrackColor(1.0f, 0.0f, 1.0f)]
     [TrackClipType(typeof(VisualEffectControlPlayableAsset))]
     [TrackBindingType(typeof(VisualEffect))]
-    public class VisualEffectControlTrack : TrackAsset
+    class VisualEffectControlTrack : TrackAsset
     {
         public override Playable CreateTrackMixer(PlayableGraph graph, GameObject go, int inputCount)
         {

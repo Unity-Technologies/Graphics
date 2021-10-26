@@ -7,7 +7,7 @@ using System;
 
 namespace UnityEngine.VFX
 {
-    public class VisualEffectControlTrackMixerBehaviour : PlayableBehaviour
+    class VisualEffectControlTrackMixerBehaviour : PlayableBehaviour
     {
         class ScrubbingCacheHelper
         {

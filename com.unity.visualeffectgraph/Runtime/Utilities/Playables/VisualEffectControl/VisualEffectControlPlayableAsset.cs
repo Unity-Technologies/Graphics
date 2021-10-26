@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("VisualEffect.Playable.Editor")]
 namespace UnityEngine.VFX
 {
-    //TODOPAUL: check public api
     [Serializable]
-    public class VisualEffectControlPlayableAsset : PlayableAsset, ITimelineClipAsset
+    class VisualEffectControlPlayableAsset : PlayableAsset, ITimelineClipAsset
     {
         public ClipCaps clipCaps
         {

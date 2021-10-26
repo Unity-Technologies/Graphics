@@ -9,27 +9,27 @@ using UnityEngine.VFX.Utility;
 namespace UnityEngine.VFX
 {
     [Serializable]
-    public struct EventAttributes //Using encapsulated structure to ease CustomPropertyDrawer
+    struct EventAttributes //Using encapsulated structure to ease CustomPropertyDrawer
     {
         [SerializeReference]
         public EventAttribute[] content;
     }
 
     [Serializable]
-    public abstract class EventAttribute
+    abstract class EventAttribute
     {
         public ExposedProperty id;
         public abstract void ApplyToVFX(VFXEventAttribute eventAttribute);
     }
 
     [Serializable]
-    public abstract class EventAttributeValue<T> : EventAttribute
+    abstract class EventAttributeValue<T> : EventAttribute
     {
         public T value;
     }
 
     [Serializable]
-    public class EventAttributeFloat : EventAttributeValue<float>
+    class EventAttributeFloat : EventAttributeValue<float>
     {
         public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
         {
@@ -37,7 +37,7 @@ namespace UnityEngine.VFX
         }
     }
     [Serializable]
-    public class EventAttributeVector2 : EventAttributeValue<Vector2>
+    class EventAttributeVector2 : EventAttributeValue<Vector2>
     {
         public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
         {
@@ -45,7 +45,7 @@ namespace UnityEngine.VFX
         }
     }
     [Serializable]
-    public class EventAttributeVector3 : EventAttributeValue<Vector3>
+    class EventAttributeVector3 : EventAttributeValue<Vector3>
     {
         public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
         {
@@ -53,9 +53,9 @@ namespace UnityEngine.VFX
         }
     }
     [Serializable]
-    public class EventAttributeColor : EventAttributeVector3 {}
+    class EventAttributeColor : EventAttributeVector3 {}
     [Serializable]
-    public class EventAttributeVector4 : EventAttributeValue<Vector4>
+    class EventAttributeVector4 : EventAttributeValue<Vector4>
     {
         public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
         {
@@ -63,7 +63,7 @@ namespace UnityEngine.VFX
         }
     }
     [Serializable]
-    public class EventAttributeInt : EventAttributeValue<int>
+    class EventAttributeInt : EventAttributeValue<int>
     {
         public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
         {
@@ -71,7 +71,7 @@ namespace UnityEngine.VFX
         }
     }
     [Serializable]
-    public class EventAttributeUInt : EventAttributeValue<uint>
+    class EventAttributeUInt : EventAttributeValue<uint>
     {
         public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
         {
@@ -79,7 +79,7 @@ namespace UnityEngine.VFX
         }
     }
     [Serializable]
-    public class EventAttributeBool : EventAttributeValue<bool>
+    class EventAttributeBool : EventAttributeValue<bool>
     {
         public sealed override void ApplyToVFX(VFXEventAttribute eventAttribute)
         {
@@ -88,7 +88,7 @@ namespace UnityEngine.VFX
     }
 
     [Serializable]
-    public struct VisualEffectPlayableSerializedEvent
+    struct VisualEffectPlayableSerializedEvent
     {
         public static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(TimeSpace space, VisualEffectControlPlayableBehaviour source)
         {
@@ -201,7 +201,7 @@ namespace UnityEngine.VFX
         public EventAttributes eventAttributes;
     }
 
-    public class VisualEffectControlPlayableBehaviour : PlayableBehaviour
+    class VisualEffectControlPlayableBehaviour : PlayableBehaviour
     {
         public double clipStart { get; set; }
         public double clipEnd { get; set; }
