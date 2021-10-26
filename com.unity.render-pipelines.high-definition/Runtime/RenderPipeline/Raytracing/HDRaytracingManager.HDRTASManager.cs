@@ -213,6 +213,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (parameters.shadows || parameters.pathTracing)
             {
+                // Objects that are not visible in path tracing should also not cast shadows (case 1375638)
+                ShO_CT.layerMask = (parameters.pathTracing) ? parameters.ptLayerMask : -1;
+                ShT_CT.layerMask = (parameters.pathTracing) ? parameters.ptLayerMask : -1;
+
                 instanceTestArray.Add(ShO_CT);
                 instanceTestArray.Add(ShT_CT);
             }

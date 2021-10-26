@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom pass injection point not visible in the UI when using the Camera mode.
 - Fixed film grain & dithering when using spatial upscaling methods for DRS.
 - Fixed a regression that was introduced in the diffuse denoiser in a previous PR.
+- Fixed issue with path traced shadows and layer masks (case 1375638).
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
