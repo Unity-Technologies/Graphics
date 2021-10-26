@@ -79,20 +79,19 @@ namespace UnityEditor.ShaderFoundry
             // Try matching all input fields
             foreach (var input in blockInputInstance.Fields)
             {
-                // Find if there's a backing property (always use the reference name, not the override name)
-                bool hasBackingProperty = propertyVariableMap.TryGetValue(input.ReferenceName, out var backingProperty);
-
-                // Find if there's an override. This also creates a default name override to use if there wasn't one.
                 var inputName = input.ReferenceName;
 
-                // Find if there's a matching field using the override name
+                // Find if there's a backing property (always use the reference name)
+                bool hasBackingProperty = propertyVariableMap.TryGetValue(input.ReferenceName, out var backingProperty);
+
+                // Find if there's a matching field using the input name
                 var matchingField = scopes.Find(input.Type, inputName, false);
 
                 // By default, always create a new variable if there is no matching field
                 bool createNewVariable = (matchingField == null);
                 
                 // However, if there's a backing property the rules change a bit.
-                // An input with a backing property is always a property unless:
+                // An input with a backing property is always a property.
                 if (hasBackingProperty)
                     createNewVariable = true;
 
@@ -112,7 +111,7 @@ namespace UnityEditor.ShaderFoundry
                     // Make sure a field exists on the merged input instance
                     matchingField = FindOrCreateVariableInstance(mergedInputInstance, input, referenceName, displayName);
 
-                    // Propagate the override up to the new variable. This override is used to know know how the linking is supposed to work at subsequent merges.
+                    // Propagate the alias up to the new variable. This alias is used to know know how the linking is supposed to work at subsequent merges.
                     // Note: Don't do this if there's a backing property as the override would provide no new information
                     if(!hasBackingProperty)
                         mergedInputInstance.AddAlias(matchingField.ReferenceName, inputName);
@@ -134,7 +133,9 @@ namespace UnityEditor.ShaderFoundry
                 matchingField.Owner.AddResolvedField(matchingField.ReferenceName, matchLink);
             }
 
-            // Try to promote all properties. Not all properties are promoted, depending on the input linking
+            // Try to promote all properties.
+            // Not all properties are promoted, depending on the input linking.
+            // Note: Currently all properties are indeed promoted, but long term this may not be true.
             foreach(var prop in block.Properties)
             {
                 propertyVariableMap.TryGetValue(prop.ReferenceName, out var trackedProperty);
