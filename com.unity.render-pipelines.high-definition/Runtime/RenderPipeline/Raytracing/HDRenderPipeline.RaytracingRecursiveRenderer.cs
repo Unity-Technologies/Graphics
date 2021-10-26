@@ -91,7 +91,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // If ray tracing is disabled in the frame settings or the effect is not enabled
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) || !recursiveSettings.enable.value)
+
+            // Make sure all the requirements are there to render the effect
+            bool validEffect = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                && recursiveSettings.enable.value
+                && GetRayTracingState() && GetRayTracingClusterState();
+            if (!validEffect)
                 return colorBuffer;
 
             using (var builder = renderGraph.AddRenderPass<RecursiveRenderingPassData>("Recursive Rendering Evaluation", out var passData, ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering)))
@@ -111,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lastBounceFallbackHiearchy = (int)recursiveSettings.lastBounce.value;
 
                 // Other data
-                passData.accelerationStructure = RequestAccelerationStructure();
+                passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
                 passData.recursiveRenderingRT = m_GlobalSettings.renderPipelineRayTracingResources.forwardRaytracing;
                 passData.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);

@@ -593,7 +593,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
-                    if ((m_Destination == RenderTargetHandle.CameraTarget && !m_UseSwapBuffer) || m_ResolveToScreen)
+                    if ((m_Destination == RenderTargetHandle.CameraTarget && !m_UseSwapBuffer) || (m_ResolveToScreen && m_UseSwapBuffer))
                         cmd.SetViewport(cameraData.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
