@@ -116,7 +116,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                     float solidAngle = TWO_PI * (1 - cosInner);
 
-                    if (LdotV >= cosOuter)
+                    if (LdotV >= cosOuter && solidAngle > 0)
                     {
                         // Sun flare is visible. Sun disk may or may not be visible.
                         // Assume uniform emission.
