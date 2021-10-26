@@ -232,8 +232,8 @@ namespace UnityEditor.ShaderFoundry
 
     internal class LegacyEntryPoints
     {
-        internal BlockDescriptor vertexDescBlockDesc;
-        internal BlockDescriptor fragmentDescBlockDesc;
+        internal BlockInstance vertexDescBlockInstance;
+        internal BlockInstance fragmentDescBlockInstance;
         internal List<VaryingVariable> customInterpolants = new List<VaryingVariable>();
     }
 

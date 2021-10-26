@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderFoundry
 {
     internal class MergeResult
     {
-        internal BlockDescriptor BlockDescriptor;
+        internal BlockInstance BlockInstance;
         internal List<FieldOverride> InputOverrides = new List<FieldOverride>();
         internal List<FieldOverride> OutputOverrides = new List<FieldOverride>();
     }
@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderFoundry
 
         internal class Context
         {
-            internal IEnumerable<BlockDescriptor> blockDescriptors = Enumerable.Empty<BlockDescriptor>();
+            internal IEnumerable<BlockInstance> blockInstances = Enumerable.Empty<BlockInstance>();
             internal IEnumerable<BlockVariable> Inputs = Enumerable.Empty<BlockVariable>();
             internal IEnumerable<BlockVariable> Outputs = Enumerable.Empty<BlockVariable>();
             internal string ScopeName;
@@ -55,9 +55,9 @@ namespace UnityEditor.ShaderFoundry
             return matchingField;
         }
 
-        internal void LinkBlock(BlockDescriptor blockDescriptor, NamespaceScopes scopes, BlockLinkInstance mergedBlockLinkInstance, BlockLinkInstance blockLinkInstance)
+        internal void LinkBlock(BlockInstance blockInstance, NamespaceScopes scopes, BlockLinkInstance mergedBlockLinkInstance, BlockLinkInstance blockLinkInstance)
         {
-            var block = blockDescriptor.Block;
+            var block = blockInstance.Block;
             var mergedInputInstance = mergedBlockLinkInstance.InputInstance;
             var mergedOutputInstance = mergedBlockLinkInstance.OutputInstance;
             var blockInputInstance = blockLinkInstance.InputInstance;
@@ -222,13 +222,13 @@ namespace UnityEditor.ShaderFoundry
             }
 
             // Link all of the blocks
-            foreach (var blockDesc in context.blockDescriptors)
+            foreach (var blockInst in context.blockInstances)
             {
-                var blockLinkInstance = new BlockLinkInstance(Container, blockDesc);
+                var blockLinkInstance = new BlockLinkInstance(Container, blockInst);
                 FixInstanceName(ref blockLinkInstance.InputInstance.ReferenceName);
                 FixInstanceName(ref blockLinkInstance.OutputInstance.ReferenceName);
                 blockLinkInstances.Add(blockLinkInstance);
-                LinkBlock(blockDesc, scopes, mergedBlockLinkInstance, blockLinkInstance);
+                LinkBlock(blockInst, scopes, mergedBlockLinkInstance, blockLinkInstance);
             }
 
             // For all available outputs, create the output field and find out who writes out to this last
@@ -333,8 +333,8 @@ namespace UnityEditor.ShaderFoundry
 
             var result = new MergeResult();
 
-            var blockDescBuilder = new BlockDescriptor.Builder(Container, mergedBlock);
-            result.BlockDescriptor = blockDescBuilder.Build();
+            var blockInstBuilder = new BlockInstance.Builder(Container, mergedBlock);
+            result.BlockInstance = blockInstBuilder.Build();
 
             // Create the input/output name overrides. These are used later to know how the sub-items were mapped originally
             foreach (var fieldOverride in mergedInputInstance.FieldOverrides)

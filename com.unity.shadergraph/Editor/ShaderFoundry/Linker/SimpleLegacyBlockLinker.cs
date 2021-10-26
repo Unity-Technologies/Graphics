@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderFoundry
         class BlockGroup
         {
             internal CustomizationPoint CustomizationPoint = CustomizationPoint.Invalid;
-            internal List<BlockDescriptor> BlockDescriptors = new List<BlockDescriptor>();
+            internal List<BlockInstance> BlockInstances = new List<BlockInstance>();
             internal BlockLinkInstance LinkingData;
             internal List<BlockLinkInstance> BlocksLinkingData = new List<BlockLinkInstance>();
             internal BlockMerger.Context Context;
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderFoundry
 
         class LegacyBlockBuildingContext
         {
-            internal BlockDescriptor BlockDescriptor;
+            internal BlockInstance BlockInstance;
             internal IEnumerable<BlockVariable> Inputs;
             internal IEnumerable<BlockVariable> Outputs;
             internal IEnumerable<FieldOverride> InputOverrides;
@@ -59,21 +59,21 @@ namespace UnityEditor.ShaderFoundry
             this.Container = container;
         }
 
-        internal LegacyEntryPoints GenerateLegacyEntryPoints(Template template, TemplatePass templatePass, List<CustomizationPointDescriptor> customizationPointDescriptors)
+        internal LegacyEntryPoints GenerateLegacyEntryPoints(Template template, TemplatePass templatePass, List<CustomizationPointInstance> customizationPointInstances)
         {
-            var vertexGroups = BuildBlockGroups(template, templatePass, templatePass.VertexBlocks, customizationPointDescriptors);
-            var fragmentGroups = BuildBlockGroups(template, templatePass, templatePass.FragmentBlocks, customizationPointDescriptors);
+            var vertexGroups = BuildBlockGroups(template, templatePass, templatePass.VertexBlocks, customizationPointInstances);
+            var fragmentGroups = BuildBlockGroups(template, templatePass, templatePass.FragmentBlocks, customizationPointInstances);
             return GenerateMergerLegacyEntryPoints(template, templatePass, vertexGroups, fragmentGroups);
         }
 
-        List<BlockGroup> BuildBlockGroups(Template template, TemplatePass templatePass, IEnumerable<BlockDescriptor> passBlocksDescriptors, IEnumerable<CustomizationPointDescriptor> customizationPointDescriptors)
+        List<BlockGroup> BuildBlockGroups(Template template, TemplatePass templatePass, IEnumerable<BlockInstance> passBlocksInstances, IEnumerable<CustomizationPointInstance> customizationPointInstances)
         {
             // The blocks for a pass are in two different places: the pass defaults and the
             // customization point descriptors. For block merging, we'll need to know what blocks to merge together.
             // To do this, first group neighboring blocks together if they share a customization point.
             var results = new List<BlockGroup>();
             BlockGroup currentGroup = null;
-            foreach (var templateBlockDesc in passBlocksDescriptors)
+            foreach (var templateBlockDesc in passBlocksInstances)
             {
                 var customizationPoint = templatePass.GetCustomizationPointForBlock(templateBlockDesc);
                 // If the customization point has changed then the group changes (or if we didn't already have a group)
@@ -82,24 +82,24 @@ namespace UnityEditor.ShaderFoundry
                     currentGroup = new BlockGroup { CustomizationPoint = customizationPoint };
                     results.Add(currentGroup);
                 }
-                currentGroup.BlockDescriptors.Add(templateBlockDesc);
+                currentGroup.BlockInstances.Add(templateBlockDesc);
             }
 
-            // Once pass blocks are merged, we can append each group with the CustomizationPointDescriptor's blocks
+            // Once pass blocks are merged, we can append each group with the CustomizationPointInstance's blocks
             foreach(var group in results)
             {
                 if (group.CustomizationPoint.IsValid == false)
                     continue;
 
-                // Find the CustomizationPointDescriptor matching the group's CustomizationPoint and append all of it's block descriptors
-                foreach(var cpDesc in customizationPointDescriptors)
+                // Find the CustomizationPointInstance matching the group's CustomizationPoint and append all of it's block descriptors
+                foreach(var cpDesc in customizationPointInstances)
                 {
                     if (cpDesc.CustomizationPoint != group.CustomizationPoint)
                         continue;
 
-                    foreach (var blockDesc in cpDesc.BlockDescriptors)
-                        group.BlockDescriptors.Add(blockDesc);
-                    // Should this break? Does it make sense for a user to have two CustomizationPointDescriptors with the same CustomizationPoint?
+                    foreach (var blockDesc in cpDesc.BlockInstances)
+                        group.BlockInstances.Add(blockDesc);
+                    // Should this break? Does it make sense for a user to have two CustomizationPointInstances with the same CustomizationPoint?
                     break;
                 }
             }
@@ -153,7 +153,7 @@ namespace UnityEditor.ShaderFoundry
             // Now build the actual legacy descriptor functions. These actually access the globals to feed into the merged blocks
             var vertexLegacyContext = new LegacyBlockBuildingContext
             {
-                BlockDescriptor = vertexMergeResult.BlockDescriptor,
+                BlockInstance = vertexMergeResult.BlockInstance,
                 Inputs = vertexGroup.Context.Inputs,
                 Outputs = vertexOutputs,
                 InputOverrides = vertexMergeResult.InputOverrides,
@@ -167,7 +167,7 @@ namespace UnityEditor.ShaderFoundry
             var vertexBlock = BuildLegacyBlock(vertexLegacyContext);
             var fragmentLegacyContext = new LegacyBlockBuildingContext
             {
-                BlockDescriptor = fragmentMergeResult.BlockDescriptor,
+                BlockInstance = fragmentMergeResult.BlockInstance,
                 Inputs = fragmentInputs,
                 Outputs = fragmentGroup.Context.Outputs,
                 InputOverrides = fragmentMergeResult.InputOverrides,
@@ -181,8 +181,8 @@ namespace UnityEditor.ShaderFoundry
             var fragmentBlock = BuildLegacyBlock(fragmentLegacyContext);
 
             var legacyEntryPoints = new LegacyEntryPoints();
-            legacyEntryPoints.vertexDescBlockDesc = BuildSimpleBlockDescriptor(vertexBlock);
-            legacyEntryPoints.fragmentDescBlockDesc = BuildSimpleBlockDescriptor(fragmentBlock);
+            legacyEntryPoints.vertexDescBlockInstance = BuildSimpleBlockInstance(vertexBlock);
+            legacyEntryPoints.fragmentDescBlockInstance = BuildSimpleBlockInstance(fragmentBlock);
             legacyEntryPoints.customInterpolants = customVaryings;
             return legacyEntryPoints;
         }
@@ -199,15 +199,15 @@ namespace UnityEditor.ShaderFoundry
                 OutputTypeName = $"{customizationPointName}CPOutput",
                 Inputs = customizationPoint.Inputs,
                 Outputs = customizationPoint.Outputs,
-                blockDescriptors = group.BlockDescriptors,
+                blockInstances = group.BlockInstances,
                 StageType = stageType,
             };
         }
 
         void FindVaryings(MergeResult block0Data, MergeResult block1Data, IEnumerable<BlockVariable> existingOutputs,  IEnumerable<BlockVariable> existingInputs, List<VaryingVariable> customInterpolants)
         {
-            var block0Desc = block0Data.BlockDescriptor;
-            var block1Desc = block1Data.BlockDescriptor;
+            var block0Inst = block0Data.BlockInstance;
+            var block1Inst = block1Data.BlockInstance;
 
             var existingOutputNames = new HashSet<string>();
             foreach (var output in existingOutputs)
@@ -226,7 +226,7 @@ namespace UnityEditor.ShaderFoundry
 
             var availableOutputs = new Dictionary<string, BlockVariable>();
             // Find if any input/output have matching names. If so then create a varying
-            foreach (var output in block0Desc.Block.Outputs)
+            foreach (var output in block0Inst.Block.Outputs)
             {
                 var fieldName = output.ReferenceName;
                 if (outputOverrides.TryGetValue(fieldName, out var alias))
@@ -236,7 +236,7 @@ namespace UnityEditor.ShaderFoundry
                 if (!existingOutputNames.Contains(fieldName))
                     availableOutputs[fieldName] = output;
             }
-            foreach (var input in block1Desc.Block.Inputs)
+            foreach (var input in block1Inst.Block.Inputs)
             {
                 string fieldName = input.ReferenceName;
                 if (inputOverrides.TryGetValue(fieldName, out var alias))
@@ -247,15 +247,15 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        BlockDescriptor BuildSimpleBlockDescriptor(Block block)
+        BlockInstance BuildSimpleBlockInstance(Block block)
         {
-            var builder = new BlockDescriptor.Builder(Container, block);
+            var builder = new BlockInstance.Builder(Container, block);
             return builder.Build();
         }
 
         Block BuildLegacyBlock(LegacyBlockBuildingContext buildingContext)
         {
-            var block = buildingContext.BlockDescriptor.Block;
+            var block = buildingContext.BlockInstance.Block;
             var entryPointFn = block.EntryPointFunction;
             entryPointFn.GetInOutTypes(out var subBlockInputType, out var subBlockOutputType);
             
@@ -271,8 +271,8 @@ namespace UnityEditor.ShaderFoundry
         void CollectLegacyVariables(LegacyBlockBuildingContext buildingContext, VariableInstanceWithFields inputsInstance, VariableInstanceWithFields outputsInstance,
             List<BlockVariable> properties, VariableInstance blockInputInstance, VariableInstance blockOutputInstance)
         {
-            var blockDescriptor = buildingContext.BlockDescriptor;
-            var block = blockDescriptor.Block;
+            var blockInstance = buildingContext.BlockInstance;
+            var block = blockInstance.Block;
 
             var allowedInputInstances = new Dictionary<string, VariableInstance>();
             var allowedOutputInstances = new Dictionary<string, VariableInstance>();
@@ -288,13 +288,13 @@ namespace UnityEditor.ShaderFoundry
             foreach (var fieldOverride in buildingContext.OutputOverrides)
                 outputOverrides.Add(fieldOverride.Name, fieldOverride.Alias);
 
-            var inputBlocks = new Dictionary<string, BlockDescriptor>();
+            var inputBlocks = new Dictionary<string, BlockInstance>();
             if (buildingContext.CPIndex != -1 && buildingContext.BlockGroups != null)
             {
                 for (var i = 0; i < buildingContext.CPIndex; ++i)
                 {
                     var group = buildingContext.BlockGroups[i];
-                    foreach (var blockDesc in group.BlockDescriptors)
+                    foreach (var blockDesc in group.BlockInstances)
                     {
                         inputBlocks.Add(blockDesc.Block.Name, blockDesc);
                     }
@@ -397,8 +397,8 @@ namespace UnityEditor.ShaderFoundry
         Block BuildBlock(LegacyBlockBuildingContext buildingContext, VariableInstanceWithFields inputsInstance, VariableInstanceWithFields outputsInstance,
             List<BlockVariable> properties, VariableInstance blockInputInstance, VariableInstance blockOutputInstance)
         {
-            var blockDescriptor = buildingContext.BlockDescriptor;
-            var block = blockDescriptor.Block;
+            var blockInstance = buildingContext.BlockInstance;
+            var block = blockInstance.Block;
             var subEntryPointFn = block.EntryPointFunction;
             subEntryPointFn.GetInOutTypes(out var subBlockInputType, out var subBlockOutputType);
 

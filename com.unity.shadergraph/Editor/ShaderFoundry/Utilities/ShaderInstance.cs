@@ -2,22 +2,22 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderFoundry
 {
-    internal readonly struct ShaderDescriptor
+    internal readonly struct ShaderInstance
     {
         readonly string m_Name;
-        readonly List<TemplateDescriptor> m_TemplateDescriptors;
+        readonly List<TemplateInstance> m_TemplateInstances;
         readonly string m_FallbackShader;
 
         public string Name => m_Name;
-        public IEnumerable<TemplateDescriptor> TemplateDescriptors => m_TemplateDescriptors;
+        public IEnumerable<TemplateInstance> TemplateInstances => m_TemplateInstances;
         public string FallbackShader => m_FallbackShader;
         public bool IsValid => !string.IsNullOrEmpty(m_Name);
-        public static ShaderDescriptor Invalid => new ShaderDescriptor(null, null, null);
+        public static ShaderInstance Invalid => new ShaderInstance(null, null, null);
 
-        internal ShaderDescriptor(string name, List<TemplateDescriptor> templateDescriptors, string fallbackShader)
+        internal ShaderInstance(string name, List<TemplateInstance> templateInstances, string fallbackShader)
         {
             m_Name = name;
-            m_TemplateDescriptors = templateDescriptors;
+            m_TemplateInstances = templateInstances;
             m_FallbackShader = fallbackShader;
         }
 
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderFoundry
         {
             ShaderContainer container;
             public string Name { get; set; }
-            public List<TemplateDescriptor> TemplateDescriptors { get; set; } = new List<TemplateDescriptor>();
+            public List<TemplateInstance> TemplateInstances { get; set; } = new List<TemplateInstance>();
             public string FallbackShader { get; set; } = @"FallBack ""Hidden/Shader Graph/FallbackError""";
 
             public Builder(ShaderContainer container, string name)
@@ -34,9 +34,9 @@ namespace UnityEditor.ShaderFoundry
                 Name = name;
             }
 
-            public ShaderDescriptor Build()
+            public ShaderInstance Build()
             {
-                return new ShaderDescriptor(Name, TemplateDescriptors, FallbackShader);
+                return new ShaderInstance(Name, TemplateInstances, FallbackShader);
             }
         }
     }
