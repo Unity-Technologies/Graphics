@@ -5,22 +5,62 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    struct HDEffectsParameters
+    /// <summary>
+    /// Structure that keeps track of the ray tracing and path tracing effects that are enabled for a given camera.
+    /// </summary>
+    public struct HDEffectsParameters
     {
+        /// <summary>
+        /// Specified if ray traced shadows are active.
+        /// </summary>
         public bool shadows;
+        /// <summary>
+        /// Specified if ray traced ambient occlusion is active.
+        /// </summary>
         public bool ambientOcclusion;
+        /// <summary>
+        /// Specified the layer mask that will be used to evaluate ray traced ambient occlusion.
+        /// </summary>
         public int aoLayerMask;
+        /// <summary>
+        /// Specified if ray traced reflections are active.
+        /// </summary>
         public bool reflections;
+        /// <summary>
+        /// Specified the layer mask that will be used to evaluate ray traced reflections.
+        /// </summary>
         public int reflLayerMask;
+        /// <summary>
+        /// Specified if ray traced global illumination is active.
+        /// </summary>
         public bool globalIllumination;
+        /// <summary>
+        /// Specified the layer mask that will be used to evaluate ray traced global illumination.
+        /// </summary>
         public int giLayerMask;
+        /// <summary>
+        /// Specified if recursive rendering is active.
+        /// </summary>
         public bool recursiveRendering;
+        /// <summary>
+        /// Specified the layer mask that will be used to evaluate recursive rendering.
+        /// </summary>
         public int recursiveLayerMask;
+        /// <summary>
+        /// Specified if ray traced sub-surface scattering is active.
+        /// </summary>
         public bool subSurface;
+        /// <summary>
+        /// Specified if path tracing is active.
+        /// </summary>
         public bool pathTracing;
+        /// <summary>
+        /// Specified the layer mask that will be used to evaluate path tracing.
+        /// </summary>
         public int ptLayerMask;
-
-        // Flag that tracks if at least one effect is enabled
+        /// <summary>
+        /// Specified if at least one ray tracing effect is enabled.
+        /// </summary>
         public bool rayTracingRequired;
     };
 
@@ -41,7 +81,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracingInstanceCullingTest PT_CT = new RayTracingInstanceCullingTest();
 
         // Path tracing dirtiness parameters
-        public bool transformDirty;
+        public bool transformsDirty;
         public bool materialsDirty;
 
         public void Initialize()

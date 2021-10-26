@@ -45,7 +45,6 @@ StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't support Buffer yet in unity
 #endif
 
-
 #ifdef PLATFORM_LANE_COUNT                                          // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
 #define NR_THREADS              PLATFORM_LANE_COUNT
 #else
@@ -71,6 +70,11 @@ groupshared uint lightOffs;
 
 groupshared int categoryListCountScratch[NR_THREADS * LIGHTCATEGORY_COUNT];
 groupshared int shiftIndexScratch[NR_THREADS * LIGHTCATEGORY_COUNT];
+
+uint PackClusterLayeredOffset(uint offset, uint count)
+{
+    return (offset & LIGHT_CLUSTER_PACKING_OFFSET_MASK) | (min(count, LIGHT_CLUSTER_PACKING_COUNT_MASK) << LIGHT_CLUSTER_PACKING_OFFSET_BITS);
+}
 
 void ZeroCategoryListCountAndShiftIndex(uint threadIdx)
 {
@@ -445,12 +449,12 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     offs = GenerateLayeredOffsetBufferIndex(0, tileIDX, i, nrTilesX, nrTilesY, nrClusters, eyeIndex);
     for(int category=0; category<LIGHTCATEGORY_COUNT; category++)
     {
-        int numLights = min(ReadCategoryListCount(t, category),31);        // only allow 5 bits
+        int numLights = ReadCategoryListCount(t, category);
         if(i<nrClusters)
         {
-            g_LayeredOffset[offs] = (start+localOffs) | (((uint) numLights)<<27);
+            g_LayeredOffset[offs] = PackClusterLayeredOffset((start+localOffs), (uint)numLights);
             offs += (nrClusters*nrTilesX*nrTilesY);
-            localOffs += ReadCategoryListCount(t, category);       // use unclamped count for localOffs
+            localOffs += numLights;// use unclamped count for localOffs
         }
     }
 
