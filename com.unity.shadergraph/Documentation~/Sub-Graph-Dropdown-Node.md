@@ -1,22 +1,26 @@
 # Sub Graph Dropdown Node
 
-The Subgraph Dropdown node is a node representation of a Dropdown property. It allows you to create a custom dropdown menu. You can specify the number of options that appear in the dropdown menu, and their names.
+The Sub Graph Dropdown node is a node representation of a Dropdown property. It allows you to create a custom dropdown menu. You can specify the number of options that appear in the dropdown menu, and their names.
 
-After you create a Dropdown property and add its Dropdown node to a Subgraph, the Subgraph's node in any parent Shader Graph displays with a dropdown control:
+After you create a Dropdown property and add its Dropdown node to a Sub Graph, the Sub Graph's node in any parent Shader Graph displays with a dropdown control:
 
-![An image of the Graph Editor, showing a parent Shader Graph with a Subgraph node. The Subgraph node has a dropdown menu because the Subgraph has a Dropdown property and Dropdown node.](images/sg-subgraph-dropdown-node-example.png)
+![An image of the Graph Editor, showing a parent Shader Graph with a Sub Graph node. The Sub Graph node has a dropdown menu because the Sub Graph has a Dropdown property and Dropdown node.](images/sg-Sub Graph-dropdown-node-example.png)
 
-The Subgraph Dropdown node is similar to the [Keyword node](Keyword-Node.md), and the Graph Inspector displays many of the same properties as an [enum Keyword](Keywords.md#enum-keywords).
+The Sub Graph Dropdown node is similar to the [Keyword node](Keyword-Node.md), and the Graph Inspector displays many of the same properties as an [enum Keyword](Keywords.md#enum-keywords).
 
-## Add a Sub Graph Dropdown node to a Subgraph
+## Create Node menu location
 
-1. In the Shader Graph window, open a Subgraph.
+The Sub Graph Dropdown node isn't accessible from the Create Node menu.
+
+To add a Sub Graph Dropdown node to a Sub Graph:
+
+1. In the Shader Graph window, open a Sub Graph.
 
 2. In the Blackboard, select **Add** (+) and select **Dropdown**.
 
 3. Enter a name for your new Dropdown property, and press Enter.
 
-4. Select your Dropdown property and drag it onto your graph to create a new Subgraph Dropdown node.
+4. Select your Dropdown property and drag it onto your graph to create a new Sub Graph Dropdown node.
 
 5. Select your new Dropdown node in your graph or the Dropdown property in the Blackboard and open the Graph Inspector.
 
@@ -27,8 +31,12 @@ The Subgraph Dropdown node is similar to the [Keyword node](Keyword-Node.md), an
 
 8. (Optional) In the **Default** list, select the default Entry that you want Shader Graph to select on your property.
 
-![](images/sg-subgraph-dropdown-node-example.png)
+![](images/sg-Sub Graph-dropdown-node-example.png)
 
+
+## Compatibility
+
+The Sub Graph Dropdown node is compatible with all render pipelines.
 
 ## Ports
 
@@ -39,4 +47,4 @@ You can change the input data type any input port receives by making a connectio
 
 | **Name**     | **Direction** | **Type** | **Description**  |
 | :---         | :---          | :------  |   :----------    |
-| Out          | Output        | Float    |  The option from the dropdown menu selection on the parent graph's Subgraph node. Can also be the specified **Default** for the property in the Graph Inspector's **Node Settings** tab.     |
+| Out          | Output        | Float    |  The option from the dropdown menu selection on the parent graph's Sub Graph node. Can also be the specified **Default** for the property in the Graph Inspector's **Node Settings** tab.     |
