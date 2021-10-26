@@ -26,7 +26,12 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     float _GroundEmissionMultiplier;
     float _SpaceEmissionMultiplier;
 
-    float4 _TestCOS;
+    // Inner and outer cosine computed as:
+    // float radInner = 0.5 * light.angularDiameter
+    // float cosInner = cos(radInner); // (In _SunDiskCosines.x)
+    // float cosOuter = cos(radInner + light.flareSize); // (In _SunDiskCosines.y)
+    // We need to pass it over instead of computing it here because on some vendors trigonometry has very bad precision, so we precompute what we can on CPU to have better precision.
+    float4 _SunDiskCosines;
 
     // Sky framework does not set up global shader variables (even per-view ones),
     // so they can contain garbage. It's very difficult to not include them, however,
@@ -114,8 +119,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     float rad      = acos(LdotV);
                     float radInner = 0.5 * light.angularDiameter;
 
-                    float cosInner = _TestCOS.x;// cos(radInner);
-                    float cosOuter = _TestCOS.y;// cos(radInner + light.flareSize);
+                    float cosInner = _SunDiskCosines.x;
+                    float cosOuter = _SunDiskCosines.y;
 
                     float solidAngle = TWO_PI * (1 - cosInner);
 
