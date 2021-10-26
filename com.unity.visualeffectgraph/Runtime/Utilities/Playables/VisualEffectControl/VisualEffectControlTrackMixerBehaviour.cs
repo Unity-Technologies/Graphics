@@ -315,9 +315,8 @@ namespace UnityEngine.VFX
                 var events = VisualEffectPlayableSerializedEvent.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.Absolute, behavior);
                 foreach (var itEvent in events)
                 {
-                    double absoluteTime = itEvent.time;
-
-                    //TODOPAUL: Should not be there but in UX, maybe ?
+                    //Apply clamping on the fly
+                    var absoluteTime = itEvent.time;
                     if (absoluteTime > behavior.clipEnd)
                         absoluteTime = behavior.clipEnd;
                     if (absoluteTime < behavior.clipStart)
