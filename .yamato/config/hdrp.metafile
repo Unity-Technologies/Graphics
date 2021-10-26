@@ -49,6 +49,7 @@ platforms:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
+        model: rtx2080
       standalone:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable

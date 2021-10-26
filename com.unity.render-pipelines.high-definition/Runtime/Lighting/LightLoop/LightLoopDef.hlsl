@@ -4,8 +4,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
 
-#define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
-
 // Some file may not required HD shadow context at all. In this case provide an empty one
 // Note: if a double defintion error occur it is likely have include HDShadow.hlsl (and so HDShadowContext.hlsl) after lightloopdef.hlsl
 #ifndef HAVE_HD_SHADOW_CONTEXT
@@ -192,7 +190,7 @@ void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint 
 #endif
 
     // The first entry inside a tile is the number of light for lightCategory (thus the +0)
-    lightCount = g_vLightListTile[DWORD_PER_TILE * tileOffset + 0] & 0xffff;
+    lightCount = g_vLightListTile[LIGHT_DWORD_PER_FPTL_TILE * tileOffset + 0] & 0xffff;
     start = tileOffset;
 }
 
@@ -212,7 +210,7 @@ uint FetchIndex(uint tileOffset, uint lightOffset)
 {
     const uint lightOffsetPlusOne = lightOffset + 1; // Add +1 as first slot is reserved to store number of light
     // Light index are store on 16bit
-    return (g_vLightListTile[DWORD_PER_TILE * tileOffset + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
+    return (g_vLightListTile[LIGHT_DWORD_PER_FPTL_TILE * tileOffset + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * 16)) & 0xffff;
 }
 
 #elif defined(USE_CLUSTERED_LIGHTLIST)
@@ -236,6 +234,12 @@ uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)
     return SnapToClusterIdxFlex(linearDepth, logBase, g_isLogBaseBufferEnabled != 0);
 }
 
+void UnpackClusterLayeredOffset(uint packedValue, out uint offset, out uint count)
+{
+    offset = packedValue & LIGHT_CLUSTER_PACKING_OFFSET_MASK;
+    count = packedValue >> LIGHT_CLUSTER_PACKING_OFFSET_BITS;
+}
+
 void GetCountAndStartCluster(uint2 tileIndex, uint clusterIndex, uint lightCategory, out uint start, out uint lightCount)
 {
     int nrClusters = (1 << g_iLog2NumClusters);
@@ -243,8 +247,7 @@ void GetCountAndStartCluster(uint2 tileIndex, uint clusterIndex, uint lightCateg
     const int idx = GenerateLayeredOffsetBufferIndex(lightCategory, tileIndex, clusterIndex, _NumTileClusteredX, _NumTileClusteredY, nrClusters, unity_StereoEyeIndex);
 
     uint dataPair = g_vLayeredOffsetsBuffer[idx];
-    start = dataPair & 0x7ffffff;
-    lightCount = (dataPair >> 27) & 31;
+    UnpackClusterLayeredOffset(dataPair, start, lightCount);
 }
 
 void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
@@ -346,16 +349,17 @@ EnvLightData FetchEnvLight(uint index)
     return _EnvLightDatas[index];
 }
 
-// In the first 8 bits of the target we store the max fade of the contact shadows as a byte
+// In the first bits of the target we store the max fade of the contact shadows as a byte.
+//By default its 8 bits for the fade and 24 for the mask, please check the LightLoop.cs definitions.
 void UnpackContactShadowData(uint contactShadowData, out float fade, out uint mask)
 {
-    fade = float(contactShadowData >> 24) / 255.0;
-    mask = contactShadowData & 0xFFFFFF; // store only the first 24 bits which represent
+    fade = float(contactShadowData >> CONTACT_SHADOW_MASK_BITS) / ((float)CONTACT_SHADOW_FADE_MASK);
+    mask = contactShadowData & CONTACT_SHADOW_MASK_MASK; // store only the first 24 bits which represent
 }
 
 uint PackContactShadowData(float fade, uint mask)
 {
-    uint fadeAsByte = (uint(saturate(fade) * 255) << 24);
+    uint fadeAsByte = (uint(saturate(fade) * CONTACT_SHADOW_FADE_MASK) << CONTACT_SHADOW_MASK_BITS);
 
     return fadeAsByte | mask;
 }
