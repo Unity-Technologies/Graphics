@@ -4079,7 +4079,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Returns color balance coefficients in the LMS space
-        public static Vector3 GetColorBalanceCoeffs(float temperature, float tint)
+        static Vector3 GetColorBalanceCoeffs(float temperature, float tint)
         {
             // Range ~[-1.5;1.5] works best
             float t1 = temperature / 65f;
