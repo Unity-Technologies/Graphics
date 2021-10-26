@@ -51,8 +51,9 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
     bsdfData.soFixupStrengthFactor = 0.0;
 #endif
 
-    // We restore the original coatIor (see StackLit.hlsl, l471)
-    bsdfData.coatIor = (bsdfData.coatIor + bsdfData.coatMask - 1.0) / bsdfData.coatMask;
+    // We restore the original coatIor by reverting the premultiplication, when possible (see StackLit.hlsl, l471)
+    if (bsdfData.coatMask > 0.001)
+        bsdfData.coatIor = (bsdfData.coatIor + bsdfData.coatMask - 1.0) / bsdfData.coatMask;
 
     // Override exctinction, that we won't need, with the transmission value for the incoming segment
     float sinThetaI = sqrt(1.0 - Sq(NdotV));
