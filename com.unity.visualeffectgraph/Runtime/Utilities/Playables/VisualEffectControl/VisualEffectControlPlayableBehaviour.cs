@@ -8,7 +8,6 @@ using UnityEngine.VFX.Utility;
 
 namespace UnityEngine.VFX
 {
-    //TODOPAUL try to remove it
     [Serializable]
     struct EventAttributes //Using encapsulated structure to ease CustomPropertyDrawer
     {
