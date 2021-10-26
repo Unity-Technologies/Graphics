@@ -461,8 +461,7 @@ namespace UnityEngine.VFX
 
         public override void PrepareFrame(Playable playable, FrameData data)
         {
-            //TODOPAUL we aren't detecting correctly the change of visualEffectAsset
-            if (m_Target == null || m_Target.visualEffectAsset == null)
+            if (m_Target == null)
                 return;
 
             if (m_ScrubbingCacheHelper == null)
@@ -478,7 +477,24 @@ namespace UnityEngine.VFX
 
         public override void ProcessFrame(Playable playable, FrameData data, object playerData)
         {
-            SetDefaults(playerData as VisualEffect);
+            var vfx = playerData as VisualEffect;
+            if (m_Target == vfx)
+                return;
+
+            if (vfx != null)
+            {
+                if (vfx.visualEffectAsset == null)
+                    vfx = null;
+
+                if (!vfx.isActiveAndEnabled)
+                    vfx = null;
+            }
+
+            m_Target = vfx;
+            if (m_Target)
+                m_Target.pause = true;
+
+            InvalidateScrubbingHelper();
         }
 
         public override void OnBehaviourPause(Playable playable, FrameData data)
@@ -487,7 +503,7 @@ namespace UnityEngine.VFX
             PrepareFrame(playable, data);
         }
 
-        private void InvalidateScrubbingHelper()
+        void InvalidateScrubbingHelper()
         {
             if (m_ScrubbingCacheHelper != null)
             {
@@ -505,17 +521,6 @@ namespace UnityEngine.VFX
         {
             InvalidateScrubbingHelper();
             m_Target = null;
-        }
-
-        void SetDefaults(VisualEffect vfx)
-        {
-            if (m_Target == vfx)
-                return;
-
-            m_Target = vfx;
-            if (m_Target)
-                m_Target.pause = true; //Awaiting for the first clip to call
-            InvalidateScrubbingHelper();
         }
     }
 }
