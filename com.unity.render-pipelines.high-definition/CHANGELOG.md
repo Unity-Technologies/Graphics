@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added public API to edit materials from script at runtime.
 - Added new functions that sample the custom buffer in custom passes (CustomPassSampleCustomColor and CustomPassLoadCustomColor) to handle the RTHandleScale automatically.
 - Added new panels to Rendering Debugger Display Stats panel, displaying improved CPU/GPU frame timings and bottlenecks.
+- Added minimal picking support for DOTS 1.0 (on parity with Hybrid Renderer V2)
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
@@ -63,9 +64,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
 
 ## [13.0.0] - 2021-09-01
-
-### Added
-- Added minimal picking support for DOTS 1.0 (on parity with Hybrid Renderer V2)
 
 ### Fixed
 - Fixed impossibility to release the cursor in the template.
