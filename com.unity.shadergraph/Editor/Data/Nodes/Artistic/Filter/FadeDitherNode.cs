@@ -59,7 +59,6 @@ namespace UnityEditor.ShaderGraph
                 using (s.BlockScope())
                 {
                     s.AppendLine($"$precision ret = saturate(fadeValue*(fadeSpeed+1)+(noise-1)*fadeSpeed);");
-                    //s.AppendLine($"$precision ret = noise;");
                     s.AppendLine("return ret;");
                 }
             });
