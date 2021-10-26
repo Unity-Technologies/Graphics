@@ -30,9 +30,29 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
 
 #ifdef _MATERIAL_AFFECTS_EMISSION
     surfaceData.emissive = _EmissiveColor.rgb * fadeFactor;
-    #ifdef _EMISSIVEMAP
+#ifdef _EMISSIVEMAP
+    #if (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
+    // Fogbugzz 1359282. With projector emissive we can have issue with mips evaluation at the silhouette
+    // so perform the processing ourselve. But not all paltform support GetDimensions() so in case it is not
+    // supported we just used lof 0
+    #if defined(MIP_COUNT_SUPPORTED)
+    float2 emissiveColorMapSize;
+    float emissiveColorMapLODs;
+    _EmissiveColorMap.GetDimensions(0, emissiveColorMapSize.x, emissiveColorMapSize.y, emissiveColorMapLODs);
+    float2 uvdx = ddx(texCoords * emissiveColorMapSize), uvdy = ddy(texCoords * emissiveColorMapSize);
+    // float lod = 0.5f * log2(dot(uvdx, uvdx) + dot(uvdy, uvdy)) - 1.0f;
+    float lod = 0.5f * log2(max(dot(uvdx, uvdx), dot(uvdy, uvdy))) - 1.0f;
+    float lddx = ddx(posInput.linearDepth), lddy  = ddy(posInput.linearDepth);
+    float ldd = max(dot(lddx, lddx), dot(lddy, lddy));
+    float maxlod = emissiveColorMapLODs * (1.0f - 4.0f * ldd);
+    surfaceData.emissive *= SAMPLE_TEXTURE2D_LOD(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords, min(lod, maxlod)).rgb;
+    #else
+    surfaceData.emissive *= SAMPLE_TEXTURE2D_LOD(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords, 0.0).rgb;
+    #endif // defined(MIP_COUNT_SUPPORTED)
+    #else
     surfaceData.emissive *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords).rgb;
-    #endif
+    #endif // (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
+#endif // _EMISSIVEMAP
 
     // Inverse pre-expose using _EmissiveExposureWeight weight
     float3 emissiveRcpExposure = surfaceData.emissive * GetInverseCurrentExposureMultiplier();
