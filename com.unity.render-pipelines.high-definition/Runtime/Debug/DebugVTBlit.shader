@@ -3,7 +3,6 @@ Shader "Hidden/DebugVTBlit"
     HLSLINCLUDE
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             struct Attributes
         {

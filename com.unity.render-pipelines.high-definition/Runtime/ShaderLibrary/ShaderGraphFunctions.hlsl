@@ -18,12 +18,6 @@ float3 shadergraph_HDSampleSceneColor(float2 uv)
     // We always remove the pre-exposure when we sample the scene color
     return SampleCameraColor(uv) * GetInverseCurrentExposureMultiplier();
 #endif
-
-// Special code for the Fullscreen target to be able to sample the color buffer at different places in the pipeline
-#if defined(REQUIRE_OPAQUE_TEXTURE) && defined(CUSTOM_PASS_SAMPLING_HLSL) && defined(SHADERPASS) && (SHADERPASS == SHADERPASS_DRAWPROCEDURAL || SHADERPASS == SHADERPASS_BLIT)
-    return CustomPassSampleCameraColor(uv, 0) * GetInverseCurrentExposureMultiplier();
-#endif
-
     return float3(0, 0, 0);
 }
 
