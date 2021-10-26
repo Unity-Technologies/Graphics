@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - URP global setting for stripping off shader variants.
 - Terrain grass shader alpha changed to always write 1 to alpha. Enabled alpha channel write mask.
 - Depth Texture setting for Overlay Camera.
+- Added minimal picking support for DOTS 1.0 (on parity with Hybrid Renderer V2)
 
 ### Changed
 - Removed experimental tile deferred code.
