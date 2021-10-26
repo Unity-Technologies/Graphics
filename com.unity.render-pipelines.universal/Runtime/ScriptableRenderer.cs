@@ -958,7 +958,7 @@ namespace UnityEngine.Rendering.Universal
             if (renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing)
             {
                 if (renderPass.renderPassEvent <= RenderPassEvent.BeforeRenderingGbuffer || renderPass.renderPassEvent >= RenderPassEvent.AfterRenderingDeferredLights)
-                    cmd.SetFoveatedRendering(FoveatedRenderingMode.EnableAndDistort);
+                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.EnableAndDistort);
             }
                 
 
@@ -972,7 +972,7 @@ namespace UnityEngine.Rendering.Universal
                 renderPass.Execute(context, ref renderingData);
 
             // FR
-            cmd.SetFoveatedRendering(FoveatedRenderingMode.Off);
+            cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Off);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled && cameraData.xr.hasMarkedLateLatch)
