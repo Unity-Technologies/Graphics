@@ -12,12 +12,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Shadows and Additional Lights off variants stripping.
 - Exposed public API for DebugDisplaySettings.
 - Added Display Stats panel to Rendering Debugger that displays CPU/GPU frame timings and bottlenecks.
+- Preserve Specular blend mode toggle for glass like materials where the specular reflection itself is not transparent.
+- Emulate alpha for multiply blend mode by whitening the base map colors using the alpha value. Keyword _ALPHAMODULATE_ON is set for multiply blend mode.
 
 ### Changed
 - Main light shadow, additional light shadow and additional light keywords are now enabled based on urp setting instead of existence in scene. This allows better variant stripping.
 - Now using the SpeedTree8 PBRLit shadergraph as the default SpeedTree8 shader for Universal.
+- Separated Premultiplied blend mode and Preserve Specular Lighting feature from each other. Premultiplied blend mode is now true straight premultiply mode. Preserve Specular Lighting, which applies alpha differently for diffuse and specular parts of lighting, is now a separate option for Alpha and Additive blend modes. The results of previous Premultiplied blend implementation can be achieved by using Alpha blend mode with Preserve Specular Lighting toggled on.
+- Multiply blend now keeps DstAlpha as it's RGB only.
+- Particle AlphaModulate() renamed to AlphaModulateAndPremultiply() as it does both. Moved separate AlphaModulate() and AlphaPremultiply() to URP shader library. Fix double alpha multiply for ParticleLit.
+- Improved blending modes trigger a material update which tries to keep the existing look intact. This is not always possible and manual blend mode changes might be required.
 
 ### Fixed
+- Fixed incorrect premultiply blend mode. case 1260085, case 1357703, [case 1347301](https://issuetracker.unity3d.com/product/unity/issues/guid/1347301/)
 - Fixed a regression where ShaderGraph screen position was not correct in game view and when using XR [1369450]
 - Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
 - Fixed ShadowCaster now requires varying normalWS to include changed normals from vertex shader in shader graph.
