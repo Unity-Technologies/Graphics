@@ -15,7 +15,6 @@ Shader "Hidden/HDRP/BRGPickingFallback"
             HLSLPROGRAM
 
             #pragma target 4.5
-            #pragma enable_d3d11_debug_symbols
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             //enable GPU instancing support
