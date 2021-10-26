@@ -226,24 +226,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal Matrix4x4 clusterDisplayParams
-        {
-            get
-            {
-                return m_AdditionalCameraData != null
-                    ? m_AdditionalCameraData.clusterDisplayParams
-                    : Matrix4x4.zero;
-            }
-
-            set
-            {
-                if (m_AdditionalCameraData == null)
-                    return;
-
-                m_AdditionalCameraData.clusterDisplayParams = value;
-            }
-        }
-
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
         internal bool isFirstFrame { get; private set; }
@@ -466,15 +448,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update viewport
             {
                 if (xr.enabled)
-                {
                     finalViewport = xr.GetViewport();
-                    clusterDisplayParams = xr.GetClusterDisplayParams();
-                }
-                else
-                {
-                    finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
-                    clusterDisplayParams = Matrix4x4.zero;
-                }
+                else finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
 
                 actualWidth = Math.Max((int)finalViewport.size.x, 1);
                 actualHeight = Math.Max((int)finalViewport.size.y, 1);
@@ -641,7 +616,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs._LastTimeParameters, new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f));
 
             if (xr.enabled)
-                cmd.SetGlobalMatrix(HDShaderIDs._ClusterDisplayParams, clusterDisplayParams);
+                cmd.SetGlobalMatrix(HDShaderIDs._ClusterDisplayParams, xr.GetClusterDisplayParams());
 
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeExposureScale, exposureMultiplierForProbes);
