@@ -6,6 +6,7 @@ using UnityEngine.InputSystem.EnhancedTouch;
 #endif
 using System;
 using System.Collections;
+using System.Diagnostics;
 using UnityEngine.EventSystems;
 
 namespace UnityEngine.Rendering
@@ -18,11 +19,9 @@ namespace UnityEngine.Rendering
         bool m_RuntimeUiWasVisibleLastFrame = false;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         static void RuntimeInit()
         {
-            if (!Debug.isDebugBuild)
-                return;
-
             if (DebugManager.instance.enableRuntimeUI)
                 EnableRuntime();
         }

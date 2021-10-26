@@ -13,28 +13,6 @@ namespace UnityEngine.Experimental.Rendering
     {
         internal static Vector3[] m_Axes = new Vector3[6];
 
-        // TODO: Take refvol translation and rotation into account
-        public static ProbeReferenceVolume.Volume CalculateBrickVolume(in RefTrans refTrans, Brick brick)
-        {
-            float scaledSize = Mathf.Pow(3, brick.subdivisionLevel);
-            Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position);
-
-            var bounds = new ProbeReferenceVolume.Volume(
-                scaledPos,
-                refTrans.refSpaceToWS.GetColumn(0) * scaledSize,
-                refTrans.refSpaceToWS.GetColumn(1) * scaledSize,
-                refTrans.refSpaceToWS.GetColumn(2) * scaledSize
-            );
-
-            return bounds;
-        }
-
-        public static bool OBBIntersect(in RefTrans refTrans, Brick brick, in ProbeReferenceVolume.Volume volume)
-        {
-            var transformed = CalculateBrickVolume(in refTrans, brick);
-            return OBBIntersect(in transformed, in volume);
-        }
-
         public static bool OBBIntersect(in ProbeReferenceVolume.Volume a, in ProbeReferenceVolume.Volume b)
         {
             // First we test if the bounding spheres intersects, in which case we case do the more complex OBB test
