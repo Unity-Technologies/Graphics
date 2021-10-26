@@ -1,3 +1,5 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 // Depth related kernels
 #pragma kernel ConvertObliqueDepth
 #pragma kernel DownscaleDepth

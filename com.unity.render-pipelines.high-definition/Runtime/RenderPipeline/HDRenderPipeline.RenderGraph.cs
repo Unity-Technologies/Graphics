@@ -36,15 +36,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool msaa = hdCamera.msaaEnabled;
                 var target = renderRequest.target;
 
-                m_RenderGraph.Begin(new RenderGraphParameters()
-                {
-                    executionName = hdCamera.name,
-                    currentFrameIndex = m_FrameCount,
-                    rendererListCulling = m_GlobalSettings.rendererListCulling,
-                    scriptableRenderContext = renderContext,
-                    commandBuffer = commandBuffer
-                });
-
                 // We need to initialize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
                 hdCamera.depthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize);
@@ -113,6 +104,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // For alpha output in AOVs or debug views, in case we have a shadow matte material, we need to render the shadow maps
                     if (m_CurrentDebugDisplaySettings.data.materialDebugSettings.debugViewMaterialCommonValue == Attributes.MaterialSharedProperty.Alpha)
                         RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
+                    else
+                        HDShadowManager.BindDefaultShadowGlobalResources(m_RenderGraph);
 
                     // Stop Single Pass is after post process.
                     StartXRSinglePass(m_RenderGraph, hdCamera);
@@ -120,9 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer, prepassOutput.depthBuffer);
                     colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
                 }
-                else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
-                         hdCamera.volumeStack.GetComponent<PathTracing>().enable.value &&
-                         hdCamera.camera.cameraType != CameraType.Preview)
+                else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdCamera.volumeStack.GetComponent<PathTracing>().enable.value && hdCamera.camera.cameraType != CameraType.Preview && GetRayTracingState() && GetRayTracingClusterState())
                 {
                     //// We only request the light cluster if we are gonna use it for debug mode
                     //if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
@@ -340,11 +331,20 @@ namespace UnityEngine.Rendering.HighDefinition
             ScriptableRenderContext renderContext,
             CommandBuffer commandBuffer)
         {
-            RecordRenderGraph(
-                renderRequest, aovRequest, aovBuffers,
-                aovCustomPassBuffers, renderContext, commandBuffer);
+            using (m_RenderGraph.RecordAndExecute(new RenderGraphParameters
+            {
+                executionName = renderRequest.hdCamera.name,
+                currentFrameIndex = m_FrameCount,
+                rendererListCulling = m_GlobalSettings.rendererListCulling,
+                scriptableRenderContext = renderContext,
+                commandBuffer = commandBuffer
+            }))
+            {
+                RecordRenderGraph(
+                    renderRequest, aovRequest, aovBuffers,
+                    aovCustomPassBuffers, renderContext, commandBuffer);
+            }
 
-            m_RenderGraph.Execute();
 
             if (aovRequest.isValid)
             {
@@ -1076,7 +1076,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return renderGraph.defaultResources.blackTextureXR;
 
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
-            if (!recursiveSettings.enable.value)
+            if (!(recursiveSettings.enable.value && GetRayTracingState() && GetRayTracingClusterState()))
                 return renderGraph.defaultResources.blackTextureXR;
 
             // This pass will fill the flag mask texture. This will only tag pixels for recursive rendering for now.
@@ -1142,7 +1142,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ResetCameraMipBias(hdCamera);
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled() || hdCamera.IsSSGIEnabled())
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled() || hdCamera.IsSSREnabled(true) || hdCamera.IsSSGIEnabled())
             {
                 var resolvedColorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
                 GenerateColorPyramid(renderGraph, hdCamera, resolvedColorBuffer, currentColorPyramid, FullScreenDebugMode.FinalColorPyramid);

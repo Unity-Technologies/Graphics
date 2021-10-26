@@ -111,8 +111,66 @@ namespace UnityEditor.VFX.UI
         }
     }
 
+    struct VFXViewSettings
+    {
+        private bool m_IsAttachedLocked;
+        private VisualEffect m_AttachedVisualEffect;
 
-    class VFXView : GraphView, IControlledElement<VFXViewController>, IControllerListener
+        public void Load(bool force = false)
+        {
+            m_IsAttachedLocked = EditorPrefs.GetBool(nameof(m_IsAttachedLocked));
+            if (EditorApplication.isPlaying || force)
+            {
+                var attachedVisualEffectPath = EditorPrefs.GetString(nameof(m_AttachedVisualEffect));
+                if (!string.IsNullOrEmpty(attachedVisualEffectPath))
+                {
+                    var go = GameObject.Find(attachedVisualEffectPath);
+                    if (go != null)
+                    {
+                        m_AttachedVisualEffect = go.GetComponent<VisualEffect>();
+                    }
+                }
+            }
+        }
+
+        public VisualEffect AttachedVisualEffect
+        {
+            get => m_AttachedVisualEffect;
+            set
+            {
+                m_AttachedVisualEffect = value;
+                if (!EditorApplication.isPlaying)
+                {
+                    if (m_AttachedVisualEffect != null)
+                    {
+                        var go = m_AttachedVisualEffect.gameObject;
+                        var path = go.GetComponentsInParent<UnityEngine.Transform>()
+                            .Select(x => x.name)
+                            .Reverse()
+                            .ToArray();
+
+                        EditorPrefs.SetString(nameof(m_AttachedVisualEffect), "/" + string.Join('/', path));
+                    }
+                    else
+                    {
+                        EditorPrefs.SetString(nameof(m_AttachedVisualEffect), null);
+                    }
+                }
+            }
+        }
+
+        public bool AttachedLocked
+        {
+            get => m_IsAttachedLocked;
+            set
+            {
+                m_IsAttachedLocked = value;
+                EditorPrefs.SetBool(nameof(m_IsAttachedLocked), m_IsAttachedLocked);
+            }
+        }
+    }
+
+    class VFXView : GraphView, IControlledElement<VFXViewController>, IControllerListener, IDisposable
     {
         private const int MaximumNameLengthInNotification = 128;
 
@@ -129,7 +187,7 @@ namespace UnityEditor.VFX.UI
 
         public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
 
-        public bool locked { get; private set; }
+        public bool locked => m_VFXSettings.AttachedLocked;
 
         void IControllerListener.OnControllerEvent(ControllerEvent e)
         {
@@ -143,6 +201,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        VFXViewSettings m_VFXSettings;
         VisualElement m_NoAssetLabel;
         VisualElement m_LockedElement;
         Button m_BackButton;
@@ -427,6 +486,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXView()
         {
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
             SetupZoom(0.125f, 8);
 
             this.AddManipulator(new ContentDragger());
@@ -544,6 +604,10 @@ namespace UnityEditor.VFX.UI
             Add(m_Toolbar);
             SetToolbarEnabled(false);
 
+            m_VFXSettings = new VFXViewSettings();
+            m_VFXSettings.Load();
+            m_LockToggle.value = m_VFXSettings.AttachedLocked;
+
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
             RegisterCallback<ValidateCommandEvent>(ValidateCommand);
@@ -563,7 +627,29 @@ namespace UnityEditor.VFX.UI
 
         internal bool GetIsRuntimeMode() => m_IsRuntimeMode;
 
-        private void OnOpenAttachMenu()
+        public void Dispose()
+        {
+            UnregisterCallback<DragUpdatedEvent>(OnDragUpdated);
+            UnregisterCallback<DragPerformEvent>(OnDragPerform);
+            UnregisterCallback<ValidateCommandEvent>(ValidateCommand);
+            UnregisterCallback<ExecuteCommandEvent>(ExecuteCommand);
+            UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
+            UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
+            UnregisterCallback<KeyDownEvent>(OnKeyDownEvent);
+            UnregisterCallback<GeometryChangedEvent>(OnFirstResize);
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        }
+
+        void OnPlayModeStateChanged(PlayModeStateChange playModeState)
+        {
+            if (playModeState == PlayModeStateChange.EnteredEditMode)
+            {
+                m_VFXSettings.Load(true);
+                TryAttachTo(m_VFXSettings.AttachedVisualEffect);
+            }
+        }
+
+        void OnOpenAttachMenu()
         {
             var attachPanel = ScriptableObject.CreateInstance<VFXAttachPanel>();
             var bounds = new Rect(ViewToScreenPosition(m_AttachDropDownButton.worldBound.position), m_AttachDropDownButton.worldBound.size);
@@ -751,6 +837,7 @@ namespace UnityEditor.VFX.UI
                 attached = m_ComponentBoard.Attach(selectedAsset);
             }
 
+            m_VFXSettings.AttachedVisualEffect = attached ? selectedAsset : null;
             UpdateToolbarButtons();
             return attached;
         }
@@ -813,7 +900,7 @@ namespace UnityEditor.VFX.UI
 
         void OnToggleLock(ChangeEvent<bool> evt)
         {
-            locked = !locked;
+            m_VFXSettings.AttachedLocked = !locked;
             if (!locked)
             {
                 AttachToSelection();
@@ -1031,6 +1118,11 @@ namespace UnityEditor.VFX.UI
                     Add(m_NoAssetLabel);
                     SetToolbarEnabled(false);
                 }
+            }
+
+            if (m_VFXSettings.AttachedVisualEffect != null)
+            {
+                TryAttachTo(m_VFXSettings.AttachedVisualEffect);
             }
         }
 
