@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderFoundry
                     // Otherwise check if there's a matching pass identifier
                     foreach (var passIdentifier in cpInst.PassIdentifiers)
                     {
-                        if (passIdentifier.m_SubShaderIndex == pass.PassIdentifier.m_SubShaderIndex && passIdentifier.m_PassIndex == pass.PassIdentifier.m_PassIndex)
+                        if (passIdentifier == pass.PassIdentifier)
                             passCustomizationPointInstances.Add(cpInst);
                     }
                 }
