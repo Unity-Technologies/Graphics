@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Depth Texture setting for Overlay Camera.
 - Added Depth Priming support for Vulkan with MSAA.
 - Added Shadows and Additional Lights off variants stripping.
+- Added Adaptive Performance Decals scaler.
 - Exposed public API for DebugDisplaySettings.
 - Added Display Stats panel to Rendering Debugger that displays CPU/GPU frame timings and bottlenecks.
 - Preserve Specular blend mode toggle for glass like materials where the specular reflection itself is not transparent.
