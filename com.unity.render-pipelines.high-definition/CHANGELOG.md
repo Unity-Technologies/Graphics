@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - HD's SpeedTree 8 upgrader now sets up CullModeForward as well.
 - Restructured data under Display Stats panel to use column layout.
 - Added controls for the users to manually feed the ray tracing acceleration structure that should be used for a given camera (case 1370678).
+- Depth of Field is now disabled in orthographic cameras - it was using the hidden perspective settings (case 1372582).
 
 ## [13.1.0] - 2021-09-24
 
