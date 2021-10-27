@@ -722,9 +722,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 onChange();
             });
 
-            if (fullscreenData.depthTestMode != CompareFunction.Disabled)
-                DrawDepthWriteMode(ref context);
-
             context.AddProperty("Depth Write", new Toggle { value = fullscreenData.depthWrite }, (evt) =>
             {
                 if (Equals(fullscreenData.depthWrite, evt.newValue))
@@ -735,13 +732,9 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 onChange();
             });
 
-            if (fullscreenData.depthWrite)
-                DrawDepthWriteMode(ref context);
-
-            void DrawDepthWriteMode(ref TargetPropertyGUIContext context)
+            if (fullscreenData.depthWrite || fullscreenData.depthTestMode != CompareFunction.Disabled)
             {
-                context.globalIndentLevel++;
-                context.AddProperty("Mode", new EnumField(fullscreenData.depthWriteMode) { value = fullscreenData.depthWriteMode }, (evt) =>
+                context.AddProperty("Depth Write Mode", new EnumField(fullscreenData.depthWriteMode) { value = fullscreenData.depthWriteMode }, (evt) =>
                 {
                     if (Equals(fullscreenData.depthWriteMode, evt.newValue))
                         return;
@@ -750,7 +743,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     fullscreenData.depthWriteMode = (FullscreenDepthWriteMode)evt.newValue;
                     onChange();
                 });
-                context.globalIndentLevel--;
             }
         }
     }
