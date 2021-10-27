@@ -44,8 +44,11 @@ Pass
 
 		// ShaderGraph accessors:
 		float3 WorldSpaceViewDirection;
+		float3 ObjectSpaceViewDirection;
+		float3 ObjectSpacePosition;
 		float3 TimeParameters;
 		float3 WorldSpaceNormal;
+		float3 ObjectSpaceNormal;
 		float2 NDCPosition;
 		float4 ScreenPosition;
 	};
@@ -61,10 +64,43 @@ Pass
 
 		// other space of view direction are not supported
 		$SurfaceDescriptionInputs.WorldSpaceViewDirection:					o.WorldSpaceViewDirection = o.direction;
+		$SurfaceDescriptionInputs.ObjectSpaceViewDirection: 				o.ObjectSpaceViewDirection = o.direction;
+		$SurfaceDescriptionInputs.ObjectSpacePosition:						o.ObjectSpacePosition = o.direction;
 		$SurfaceDescriptionInputs.TimeParameters:							o.TimeParameters = float3(_Time.y, _SinTime.x, _CosTime.y);
 		$SurfaceDescriptionInputs.WorldSpaceNormal:                         o.WorldSpaceNormal = o.direction;
+		$SurfaceDescriptionInputs.ObjectSpaceNormal							o.ObjectSpaceNormal = o.direction;
 		$SurfaceDescriptionInputs.NDCPosition:                              o.NDCPosition = o.uv0.xy;
 		$SurfaceDescriptionInputs.ScreenPosition:                           o.ScreenPosition = float4(o.uv0.xy, 0, 1);
+
+		// Unsupported properties:
+		$SurfaceDescriptionInputs.WorldSpaceBiTangent: #error 'WorldSpaceBiTangent' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.ViewSpaceNormal: #error 'ViewSpaceNormal' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.TangentSpaceNormal: #error 'TangentSpaceNormal' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.WorldSpaceTangent: #error 'WorldSpaceTangent' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.WorldSpaceBiTangent: #error 'WorldSpaceBiTangent' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.ObjectSpaceTangent: #error 'ObjectSpaceTangent' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.ViewSpaceTangent: #error 'ViewSpaceTangent' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.TangentSpaceTangent: #error 'TangentSpaceTangent' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.ObjectSpaceBiTangent: #error 'ObjectSpaceBiTangent' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.ViewSpaceBiTangent: #error 'ViewSpaceBiTangent' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.TangentSpaceBiTangent: #error 'TangentSpaceBiTangent' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.ViewSpaceViewDirection: #error 'ViewSpaceViewDirection' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.TangentSpaceViewDirection: #error 'TangentSpaceViewDirection' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.ViewSpacePosition: #error ViewSpacePosition'' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.TangentSpacePosition: #error 'TangentSpacePosition' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.WorldSpacePositionPredisplacement: #error 'WorldSpacePositionPredisplacement' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.ObjectSpacePositionPredisplacement: #error 'ObjectSpacePositionPredisplacement' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.ViewSpacePositionPredisplacement: #error 'ViewSpacePositionPredisplacement' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.TangentSpacePositionPredisplacement: #error 'TangentSpacePositionPredisplacement' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement: #error 'AbsoluteWorldSpacePositionPredisplacement' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.uv2: #error 'uv2' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.uv3: #error 'uv3' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.VertexColor: #error 'VertexColor' is not available in Custom Render Textures.
+
+		// We can't fake the positions because we can't differentiate Cube and 2D custom render textures
+		$SurfaceDescriptionInputs.WorldSpacePosition: #error 'WorldSpacePosition' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.ObjectSpacePosition: #error 'ObjectSpacePosition' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.AbsoluteWorldSpacePosition: #error 'AbsoluteWorldSpacePosition' is not available in Custom Render Textures.
 
 		return o;
 	}
