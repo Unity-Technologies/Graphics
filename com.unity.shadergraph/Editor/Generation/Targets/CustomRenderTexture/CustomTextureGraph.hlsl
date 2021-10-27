@@ -21,13 +21,14 @@ bool IsGammaSpace()
 float3 UnpackNormalmapRGorAG(float4 packednormal)
 {
     // This do the trick
-   packednormal.x *= packednormal.w;
+    packednormal.x *= packednormal.w;
 
     float3 normal;
     normal.xy = packednormal.xy * 2 - 1;
     normal.z = sqrt(1 - saturate(dot(normal.xy, normal.xy)));
     return normal;
 }
+
 inline float3 UnpackNormal(float4 packednormal)
 {
 #if defined(UNITY_NO_DXT5nm)

@@ -25,7 +25,7 @@ Pass
 	#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/CustomRenderTexture/CustomTextureGraph.hlsl"
 	#pragma vertex CustomRenderTextureVertexShader
 	#pragma fragment frag
-	#pragma target 4.5
+	#pragma target 3.0
 
     // Pragmas
     $splice(PassPragmas)
