@@ -49,13 +49,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             //Stencil Settings
             public static GUIContent overrideStencil = new GUIContent("Override Stencil", "Override stencil state of the objects rendered.");
-            public static GUIContent stencilReferenceValue = new GUIContent("Reference", ".");
-            public static GUIContent stencilWriteMask = new GUIContent("Write Mask", ".");
-            public static GUIContent stencilReadMask = new GUIContent("Read Mask", ".");
-            public static GUIContent stencilCompareFunction = new GUIContent("Compare Function", ".");
-            public static GUIContent stencilPassOperation = new GUIContent("Pass", ".");
-            public static GUIContent stencilFailOperation = new GUIContent("Fail", ".");
-            public static GUIContent stencilDepthFailOperation = new GUIContent("Depth Fail", ".");
+            public static GUIContent stencilReferenceValue = new GUIContent("Reference", "Reference value used for stencil comparison and operations.");
+            public static GUIContent stencilWriteMask = new GUIContent("Write Mask", "Tells which bit are allowed to be read during the stencil test.");
+            public static GUIContent stencilReadMask = new GUIContent("Read Mask", "Tells which bit are allowed to be written during the stencil test.");
+            public static GUIContent stencilCompareFunction = new GUIContent("Comparison", "Tells which function to use when doing the stencil test.");
+            public static GUIContent stencilPassOperation = new GUIContent("Pass", "Tells what to do when the stencil test succeed.");
+            public static GUIContent stencilFailOperation = new GUIContent("Fail", "Tells what to do when the stencil test fai1ls.");
+            public static GUIContent stencilDepthFailOperation = new GUIContent("Depth Fail", "Tells what to do when the depth test fails.");
 
             //Camera Settings
             public static GUIContent overrideCamera = new GUIContent("Camera", "Override camera projections.");
@@ -132,6 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_StencilReferenceValue;
         SerializedProperty m_StencilWriteMask;
         SerializedProperty m_StencilReadMask;
+        SerializedProperty m_StencilComparison;
         SerializedProperty m_StencilPassOperation;
         SerializedProperty m_StencilFailOperation;
         SerializedProperty m_StencilDepthFailOperation;
@@ -174,6 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_StencilReferenceValue = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilReferenceValue));
             m_StencilWriteMask = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilWriteMask));
             m_StencilReadMask = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilReadMask));
+            m_StencilComparison = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilCompareFunction));
             m_StencilPassOperation = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilPassOperation));
             m_StencilFailOperation = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilFailOperation));
             m_StencilDepthFailOperation = customPass.FindPropertyRelative(nameof(DrawRenderersCustomPass.stencilDepthFailOperation));
@@ -378,6 +380,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 DrawStencilIntField(ref rect, m_StencilReadMask, Styles.stencilReadMask);
                 DrawStencilIntField(ref rect, m_StencilWriteMask, Styles.stencilWriteMask);
                 rect.y += Styles.defaultLineSpace;
+                EditorGUI.PropertyField(rect, m_StencilComparison, Styles.stencilCompareFunction);
+                rect.y += Styles.defaultLineSpace;
                 EditorGUI.PropertyField(rect, m_StencilPassOperation, Styles.stencilPassOperation);
                 rect.y += Styles.defaultLineSpace;
                 EditorGUI.PropertyField(rect, m_StencilFailOperation, Styles.stencilFailOperation);
@@ -466,7 +470,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (showMaterialOverride)
                     height += Styles.defaultLineSpace * m_MaterialLines;
                 height += Styles.defaultLineSpace * (m_OverrideDepthState.boolValue && !customDepthIsNone ? 3 : 1);
-                height += Styles.defaultLineSpace * (m_OverrideStencilState.boolValue && !customDepthIsNone ? 7 : 1);
+                height += Styles.defaultLineSpace * (m_OverrideStencilState.boolValue && !customDepthIsNone ? 8 : 1);
                 var mat = m_OverrideMaterial.objectReferenceValue as Material;
 
 #if SHOW_PASS_NAMES
