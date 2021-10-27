@@ -66,12 +66,22 @@ namespace UnityEditor.ShaderGraph
                 string path = String.Format("Temp/GeneratedFromGraph-{0}.shader", assetName.Replace(" ", ""));
                 bool alreadyExists = File.Exists(path);
                 bool update = false;
+                bool updateOld = false;
                 bool open = false;
 
                 if (GUILayout.Button("View Generated Shader"))
                 {
                     update = true;
                     open = true;
+                    updateOld = true;
+                }
+
+                if (GUILayout.Button("View Generated Shader New"))
+                {
+                    update = true;
+                    open = true;
+                    updateOld = false;
+                    path = String.Format("Temp/GeneratedFromGraph-{0}-New.shader", assetName.Replace(" ", ""));
                 }
 
                 if (alreadyExists && GUILayout.Button("Regenerate"))
@@ -80,7 +90,7 @@ namespace UnityEditor.ShaderGraph
                 if (update)
                 {
                     var graphData = GetGraphData(importer);
-                    var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null);
+                    var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null, !updateOld);
                     if (!GraphUtil.WriteToFile(path, generator.generatedShader))
                         open = false;
                 }

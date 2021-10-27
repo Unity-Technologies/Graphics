@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph
         public List<BlockNode> m_TemporaryBlocks;
         public GenerationMode m_Mode;
         public string m_Name;
+        public bool m_UseNew = true;
 
         ShaderStringBuilder m_Builder;
         List<PropertyCollector.TextureInfo> m_ConfiguredTextures;
@@ -35,10 +36,11 @@ namespace UnityEditor.ShaderGraph
         public delegate string GeneratorCallback(Generator generator);
         public static GeneratorCallback Callback = null;
 
-        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection)
+        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, bool useNew = true)
         {
             m_GraphData  = graphData;
             m_OutputNode = outputNode;
+            m_UseNew = useNew;
             Generate(mode, name, assetCollection, GetTargetImplementations());
         }
 
@@ -120,7 +122,7 @@ namespace UnityEditor.ShaderGraph
 
         void BuildShader()
         {
-            if(Callback != null)
+            if(m_UseNew && m_OutputNode == null && Callback != null && m_Mode != GenerationMode.Preview)
             {
                 m_Builder.Append(Callback(this));
                 return;

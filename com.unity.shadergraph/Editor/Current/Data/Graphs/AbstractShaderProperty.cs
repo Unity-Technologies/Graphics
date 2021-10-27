@@ -278,6 +278,13 @@ namespace UnityEditor.ShaderGraph.Internal
             return null;
         }
 
+        public string GetTypeName()
+        {
+            if (type < HLSLType.FirstObjectType)
+                return kValueTypeStrings[(int)type, (int)precision];
+            return kObjectTypeStrings[(int)type];
+        }
+
         public void AppendTo(ShaderStringBuilder ssb, Func<string, string> nameModifier = null)
         {
             var mName = nameModifier?.Invoke(name) ?? name;

@@ -89,8 +89,8 @@ namespace UnityEditor.ShaderGraph
         }
         #endregion
 
-        private List<BlockNode> customBlockNodes;
-        private List<FieldDescriptor> customFieldDescriptors;
+        public List<BlockNode> customBlockNodes;
+        public List<FieldDescriptor> customFieldDescriptors;
         private bool isNodePreview;
         private Dictionary<string, ShaderStringBuilder> spliceCommandBuffer;
 
