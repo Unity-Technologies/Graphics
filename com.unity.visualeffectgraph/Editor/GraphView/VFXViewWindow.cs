@@ -230,6 +230,8 @@ namespace UnityEditor.VFX.UI
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
                 graphView.controller = null;
+                graphView.Dispose();
+                graphView = null;
             }
         }
 
