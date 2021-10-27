@@ -954,159 +954,6 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 }
 
 //-----------------------------------------------------------------------------
-// EvaluateBSDF_Line - Reference
-//-----------------------------------------------------------------------------
-
-void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
-                           PreLightData preLightData, LightData lightData, BSDFData bsdfData,
-                           out float3 diffuseLighting, out float3 specularLighting,
-                           int sampleCount = 128)
-{
-    diffuseLighting  = float3(0.0, 0.0, 0.0);
-    specularLighting = float3(0.0, 0.0, 0.0);
-
-    const float  len = lightData.size.x;
-    const float3 T   = lightData.right;
-    const float3 P1  = lightData.positionRWS - T * (0.5 * len);
-    const float  dt  = len * rcp(sampleCount);
-    const float  off = 0.5 * dt;
-
-    // Uniformly sample the line segment with the Pdf = 1 / len.
-    const float invPdf = len;
-
-    for (int i = 0; i < sampleCount; ++i)
-    {
-        // Place the sample in the middle of the interval.
-        float  t     = off + i * dt;
-        float3 sPos  = P1 + t * T;
-        float3 unL   = sPos - positionWS;
-        float  dist2 = dot(unL, unL);
-        float3 L     = normalize(unL);
-        float  sinLT = length(cross(L, T));
-        float  NdotL = saturate(dot(bsdfData.normalWS, L));
-
-        if (NdotL > 0)
-        {
-            CBSDF cbsdf = EvaluateBSDF(V, L, preLightData, bsdfData);
-
-            diffuseLighting  += cbsdf.diffR * (sinLT / dist2);
-            specularLighting += cbsdf.specR * (sinLT / dist2);
-        }
-    }
-
-    // The factor of 2 is due to the fact: Integral{0, 2 PI}{max(0, cos(x))dx} = 2.
-    float normFactor = 2.0 * invPdf * rcp(sampleCount);
-
-    diffuseLighting  *= normFactor * lightData.diffuseDimmer  * lightData.color;
-    specularLighting *= normFactor * lightData.specularDimmer * lightData.color;
-}
-
-//-----------------------------------------------------------------------------
-// EvaluateBSDF_Line - Approximation with Most Representative Point
-//-----------------------------------------------------------------------------
-
-DirectLighting EvaluateBSDF_Line_MRP(LightLoopContext lightLoopContext,
-                                     float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
-{
-    DirectLighting lighting;
-    ZERO_INITIALIZE(DirectLighting, lighting);
-
-#if 0
-        // Ref: Moving Frostbite to PBR (Appendix E)
-        // Solve the line lighting using the Most Representative Point detection method.
-        // This is a stop-gap solution until further research is given to LTC support for anisotropic BSDFs.
-        // In the future, when strand-space shading is added, it might be doable to take a "structured sampling" approach.
-        const float3 positionWS = posInput.positionWS;
-
-    #if SHADEROPTIONS_BARN_DOOR
-        // Apply the barn door modification to the light data
-        RectangularLightApplyBarnDoor(lightData, positionWS);
-    #endif
-
-        float3 unL = lightData.positionRWS - positionWS;
-
-        const float lightWidth = lightData.size.x;
-
-        // Define the line vertices
-        const float3 p0 = lightData.positionRWS - 0.5 * lightWidth;
-        const float3 p1 = lightData.positionRWS + 0.5 * lightWidth;
-
-        // Construct the rectangle plane.
-        const float3 forward = normalize(ClosestPointOnLine(p0, p1, positionWS) - positionWS);
-        const float3 right   = lightData.right;
-        const float3 up      = cross(right, forward);
-
-        // Construct the vertices of an extremely thin rect to resemble a line light.
-        float4x3 lightVerts;
-        lightVerts[0] = lightData.positionRWS + right * -(0.5 * lightWidth) + up * -0.001; // LL
-        lightVerts[1] = lightData.positionRWS + right * -(0.5 * lightWidth) + up *  0.001; // UL
-        lightVerts[2] = lightData.positionRWS + right *  (0.5 * lightWidth) + up *  0.001; // UR
-        lightVerts[3] = lightData.positionRWS + right *  (0.5 * lightWidth) + up * -0.001; // LR
-
-        float solidAngle = RectangleSolidAngle(positionWS, lightVerts);
-
-    #if 0
-        const float3 dh = ComputeViewFacingNormal(V, bsdfData.hairStrandDirectionWS);
-
-        // Intersect the dominant specular direction with the light plane.
-        float3 ph = RayPlaneIntersect(positionWS, dh, lightData.positionRWS, lightData.forward);
-
-        // Compute the closest position on the rectangle.
-        ph = RectangleClosestPoint(ph, lightData.positionRWS, -lightData.right, lightData.up, halfWidth, halfHeight);
-
-        // Determine the dominant hemisphere direction based on the camera-light plane angle.
-        const float LdotV = max(dot(-lightData.forward, V), 0);
-
-        // Construct the most representative direction.
-        // We must consider multiple specular lobes, on the backward (R, TRT) and forward (TT) scattering hemisphere.
-        // For the backward hemisphere we handle R and TRT similarly, and use the MRP result (based on the "fake" normal just like how we use it for IBL).
-        // For the forward hemisphere we need to approximate harsher. We can get away with falling back to the light center and modifying the roughness.
-        const float3 LBHemisphere = ph - positionWS;
-        const float3 LFHemisphere = unL;
-        const float3 L = SafeNormalize(lerp(LFHemisphere, LBHemisphere, LdotV));
-
-        // Modify the roughness for the forward hemisphere scattering.
-        // Slight hack as we weight the solid angle contribution by a fudge factor term to match the reference.
-        const float backwardHemisphereRoughnessFactor = 0.1;
-        const float roughnessTTPrime = saturate(bsdfData.roughnessTT + backwardHemisphereRoughnessFactor * solidAngle);
-        bsdfData.roughnessTT = lerp(roughnessTTPrime, bsdfData.roughnessTT, LdotV);
-
-        // Attempt at energy normalization for rectangular lights.
-        const float3 alpha = float3(
-            bsdfData.roughnessR,
-            bsdfData.roughnessTT,
-            bsdfData.roughnessTRT
-        );
-
-        const float3 alphaPrime = saturate(alpha + solidAngle);
-
-        bsdfData.distributionNormalizationFactor = sqrt(alpha / alphaPrime);
-    #else
-        // For small area lights, this will visually match the reference exactly (as it is almost essentially a point light).
-        const float3 L = normalize(lightData.positionRWS - positionWS);
-    #endif
-
-        // Configure a theoretically placed point light at the most important position contributing the area light irradiance.
-        float3 lightColor = lightData.color * solidAngle;
-
-        // Simulate a sphere/disk light with this hack.
-        // Note that it is not correct with our precomputation of PartLambdaV
-        // (means if we disable the optimization it will not have the
-        // same result) but we don't care as it is a hack anyway.
-        ClampRoughness(preLightData, bsdfData, lightData.minRoughness);
-
-        lighting = ShadeSurface_Infinitesimal(preLightData, bsdfData, V, L, lightColor.rgb,
-                                              lightData.diffuseDimmer, lightData.specularDimmer);
-    #else
-        IntegrateBSDF_LineRef(V, posInput.positionWS, preLightData, lightData, bsdfData,
-                              lighting.diffuse, lighting.specular);
-    #endif
-
-    return lighting;
-}
-
-//-----------------------------------------------------------------------------
 // EvaluateBSDF_Rect
 //-----------------------------------------------------------------------------
 
@@ -1440,7 +1287,7 @@ DirectLighting EvaluateBSDF_Rect_MRP(LightLoopContext lightLoopContext,
             }
             else
             {
-                // For Kajiya instead of MRP we just try to modulate the roughnesses by the solid angle.
+                // For Kajiya instead of MRP, fall back to the light center and modulate the roughnesses by the solid angle.
                 // This isn't perfect for respecting the shape's orientation but generally good enough at widening the distribution for rects of varying size.
                 L = normalize(lightData.positionRWS - positionWS);
 
@@ -1512,19 +1359,14 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 {
     if (lightData.lightType == GPULIGHTTYPE_TUBE)
     {
-        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
-            return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
-        else
-            return EvaluateBSDF_Line_MRP(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+        return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
     }
     else
     {
-            // TODO: Decide whether we would like to have an "improved area light" option that allows users to choose between the LTC and MRP evaluation.
-            //       (delete this comment before PR is merged).
 #if 0
-            return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+        return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
 #else
-            return EvaluateBSDF_Rect_MRP(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+        return EvaluateBSDF_Rect_MRP(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
 #endif
     }
 }
