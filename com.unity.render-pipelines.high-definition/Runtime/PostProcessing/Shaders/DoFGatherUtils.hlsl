@@ -364,7 +364,7 @@ int GetTileClass(float2 sampleTC)
 void DebugTiles(float2 sampleTC, inout float3 output)
 {
     // Debug the tile type
-    switch (GetTileClass(sampleTC)) 
+    switch (GetTileClass(sampleTC))
     {
     case SLOW_INFOCUS_TILE:
         // in focus pixels, but also covered by out-of-focus stuff
