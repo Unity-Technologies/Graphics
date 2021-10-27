@@ -152,7 +152,16 @@ namespace UnityEngine.Rendering.Universal
                     throw new NotImplementedException("Only 1 XR display is supported.");
 
                 XRDisplaySubsystem display = xrDisplayList[0];
-                if(display.GetRenderPassCount() == 0)
+                // case 1074030 is having issues of flood wanrings complaining about cinemachine brain conflicting with xr camera.
+                // This is due to ShouldUseVRFieldOfView() returning true in Camera::SetVerticalFieldOfView because we have a vr device.
+                // URP 10.0.0 fixed this using https://github.com/Unity-Technologies/Graphics/pull/22 by setting disableLegacyRenderer to true
+                // to force a VRDeviceToXRDisplaySetup::TeardownShimFuncs(*this);. This is so there's no function override left in
+                // the shim table when calling UninstallVRDeviceShims from ProcessPendingTextureRequestsSynchronized which will finally
+                // call ShimTeardownIfActive(); to finally reset completely the legacy render device s_LegacyDevice = NULL;.which allows
+                // ShouldUseVRFieldOfView() to return false and therefore not throw a warning in Camera::SetVerticalFieldOfView.
+                display.disableLegacyRenderer = true;
+                
+                if (display.GetRenderPassCount() == 0)
                 {
                     // Disable XR rendering if display contains 0 renderpass
                     if(!xrSkipRender)
