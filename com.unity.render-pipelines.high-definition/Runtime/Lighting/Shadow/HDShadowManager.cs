@@ -923,19 +923,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (cachedShadowManager.DirectionalHasCachedAtlas())
                 {
-                    var directionalMixedCachedShadowRequests = cachedShadowManager.directionalLightAtlas.GetShadowRequestList();
 
-                    if (directionalMixedCachedShadowRequests.Count > 0)
+                    if (cachedShadowManager.directionalLightAtlas.HasShadowRequests())
                     {
                         cachedShadowManager.UpdateDirectionalCacheTexture(renderGraph);
                         cachedShadowManager.directionalLightAtlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Cached Directional Lights Shadows rendering");
 
-                        // This is doing stuff slightly differently as we don't have a full cached shadow atlas for directional light (we don't need the overhead)
-                        foreach (var request in directionalMixedCachedShadowRequests)
-                        {
-                            if (request.shouldRenderCachedComponent) // means is updated this frame.
-                                m_CascadeAtlas.AddRequestToPendingBlitFromCache(request);
-                        }
+                        cachedShadowManager.directionalLightAtlas.AddBlitRequestsForUpdatedShadows(m_CascadeAtlas);
                     }
                     BlitCachedShadows(renderGraph, ShadowMapType.CascadedDirectional);
                 }

@@ -58,9 +58,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         protected List<HDShadowRequest> m_ShadowRequests = new List<HDShadowRequest>();
-        internal IList<HDShadowRequest> GetShadowRequestList()
+        internal bool HasShadowRequests()
         {
-            return m_ShadowRequests.AsReadOnly();
+            return m_ShadowRequests.Count > 0;
         }
 
         public int width { get; private set; }
@@ -602,6 +602,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public void AddBlitRequestsForUpdatedShadows(HDDynamicShadowAtlas dynamicAtlas)
+        {
+            if (m_IsACacheForShadows)
+            {
+                foreach (var request in m_ShadowRequests)
+                {
+                    if (request.shouldRenderCachedComponent) // meaning it has been updated this time frame
+                    {
+                        dynamicAtlas.AddRequestToPendingBlitFromCache(request);
+                    }
+                }
+            }
+        }
         public virtual void DisplayAtlas(RTHandle atlasTexture, CommandBuffer cmd, Material debugMaterial, Rect atlasViewport, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, MaterialPropertyBlock mpb, float scaleFactor = 1)
         {
             if (atlasTexture == null)
