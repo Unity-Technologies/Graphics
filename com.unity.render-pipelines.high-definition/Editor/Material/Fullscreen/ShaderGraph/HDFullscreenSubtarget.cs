@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     class HDFullscreenSubTarget : FullscreenSubTarget<HDTarget>, IHasMetadata
     {
-        static readonly GUID kSourceCodeGuid = new GUID("657f6eb2bee4e2f4985ec1ac58eb04cb");  // HDFullscreenSubTarget.cs // TODO
+        static readonly GUID kSourceCodeGuid = new GUID("657f6eb2bee4e2f4985ec1ac58eb04cb");  // HDFullscreenSubTarget.cs
 
         public override void Setup(ref TargetSetupContext context)
         {
