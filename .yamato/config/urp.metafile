@@ -35,4 +35,10 @@ jobs:
 #     - .yamato/all-urpupdate_boatattack.yml#URPUpdate_BoatAttack_<TRACK>
       - .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_<TRACK>
       - .yamato/urp_upgrade.yml#URP_Upgrade_test_win_<TRACK>
-
+  - name: All <PROJECT_NAME> on Win DX11 playmode
+    dependencies:
+      - .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_<TRACK>
+      - .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_mono_Linear_<TRACK>
+      - .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_mono_Linear_<TRACK>
+      - .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_mono_Linear_<TRACK>
+      - .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_mono_Linear_<TRACK>
