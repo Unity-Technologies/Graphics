@@ -1,0 +1,95 @@
+<#@ template language="C#"
+#><#@ import namespace="System.Text"
+#><#@ import namespace="System.Collections.Generic"
+#>
+using System;
+using FsCheck;
+using NUnit.Framework;
+
+namespace UnityEngine.Rendering.Tests
+{
+    partial class EqualityTests
+    {
+        [OneTimeSetUp]
+        public static void SetupFixture()
+        {
+            ArbX.Register();
+        }
+
+<# foreach (var test in equalityTests) Write(test); #>
+    }
+}
+
+<#+
+    public struct EqualityTest
+    {
+        public string testName;
+        public string type;
+        public string constructor;
+        public string expectsAreEqual;
+
+        public EqualityTest(string testName, string type, string constructor, string expectsAreEqual)
+        {
+            this.testName = testName;
+            this.type = type;
+            this.constructor = constructor;
+            this.expectsAreEqual = expectsAreEqual;
+        }
+    }
+
+    public void Write(EqualityTest test)
+    {
+        #>
+        [Test]
+        public void <#= test.testName #>()
+        {
+            bool Property(<#= test.type #> l, <#= test.type #> r)
+            {
+                var l2 = <#= string.Format(test.constructor, "l") #>;
+                var r2 = <#= string.Format(test.constructor, "r") #>;
+
+                var expectsAreEquals = <#= test.expectsAreEqual #>;
+                var areEquals = l2 == r2;
+                var areEquals2 = l2.Equals(r2);
+                var areEquals3 = l2.Equals((object)r2);
+                var areNotEquals4 = l2 != r2;
+
+                // The hashcode must be the same for identical values
+                var hashCodeEquals = expectsAreEquals && l2.GetHashCode() == r2.GetHashCode()
+                    || !expectsAreEquals;
+
+                return areEquals == areEquals2
+                    && areEquals == areEquals3
+                    && areEquals != areNotEquals4
+                    && hashCodeEquals
+                    && areEquals == expectsAreEquals;
+            }
+
+            Prop.ForAll<<#= test.type #>, <#= test.type #>>(Property).QuickCheckThrowOnFailure();
+
+            // Enforce testing equality
+            var value = Arb.Generate<<#= test.type #>>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
+            Assert.IsTrue(Property(value, value));
+        }
+<#+
+    }
+
+    public static class Tests
+    {
+        public const string fromTypeConstructor = "{0}.FromType({{0}}.AsType())";
+        public static EqualityTest VolumeComponentFilter(string className, string constructor)
+            => new EqualityTest($"" +
+                $"{className}Equality",
+                "VolumeComponentType", $"" +
+                    string.Format(constructor, className),
+                "l.AsType() == r.AsType()");
+    }
+
+    EqualityTest[] equalityTests = new[]
+    {
+        Tests.VolumeComponentFilter("IsSupportedVolumeComponentFilter", Tests.fromTypeConstructor),
+        Tests.VolumeComponentFilter("IsExplicitlySupportedVolumeComponentFilter", Tests.fromTypeConstructor),
+        Tests.VolumeComponentFilter("EverythingVolumeComponentFilter", "new EverythingVolumeComponentFilter()"),
+        new EqualityTest("VolumeComponentTypeEquality", "VolumeComponentType", "{0}", "l.AsType() == r.AsType()")
+    };
+#>

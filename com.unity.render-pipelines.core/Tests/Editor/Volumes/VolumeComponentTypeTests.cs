@@ -27,20 +27,7 @@ namespace UnityEngine.Rendering.Tests
                 return mustBeValid && isValid || !mustBeValid && isInvalid;
             }
 
-            Prop.ForAll(new ArbX.ArbitraryType(), Property).QuickCheckThrowOnFailure();
-        }
-
-        [Test]
-        public void Equality()
-        {
-            bool Property(VolumeComponentType l, VolumeComponentType r)
-            {
-                var expectsAreEqual = l.AsType() == r.AsType();
-                var areEqual = l == r;
-                return expectsAreEqual && areEqual || !expectsAreEqual && !areEqual;
-            }
-
-            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).QuickCheckThrowOnFailure();
+            Prop.ForAll(ArbX.CreateTypeArbitrary(), Property).QuickCheckThrowOnFailure();
         }
     }
 }

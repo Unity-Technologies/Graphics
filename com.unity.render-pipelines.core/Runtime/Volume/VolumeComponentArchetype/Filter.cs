@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
         [NotNull]
         Type targetType { get; }
 
-        public IsSupportedVolumeComponentFilter([DisallowNull] Type targetType)
+        IsSupportedVolumeComponentFilter([DisallowNull] Type targetType)
         {
             this.targetType = targetType;
         }
@@ -40,6 +40,14 @@ namespace UnityEngine.Rendering
         {
             return (targetType != null ? targetType.GetHashCode() : 0);
         }
+
+        public static IsSupportedVolumeComponentFilter FromType([DisallowNull] Type targetType)
+            => new IsSupportedVolumeComponentFilter(targetType);
+
+        public static bool operator ==(IsSupportedVolumeComponentFilter l, IsSupportedVolumeComponentFilter r)
+            => !ReferenceEquals(null, l) && l.Equals(r) || ReferenceEquals(null, r);
+        public static bool operator !=(IsSupportedVolumeComponentFilter l, IsSupportedVolumeComponentFilter r)
+            => !(l == r);
     }
 
     public sealed class IsExplicitlySupportedVolumeComponentFilter : IFilter<VolumeComponentType>
@@ -47,7 +55,7 @@ namespace UnityEngine.Rendering
         [NotNull]
         Type targetType { get; }
 
-        public IsExplicitlySupportedVolumeComponentFilter([DisallowNull] Type targetType)
+        IsExplicitlySupportedVolumeComponentFilter([DisallowNull] Type targetType)
         {
             this.targetType = targetType;
         }
@@ -79,5 +87,13 @@ namespace UnityEngine.Rendering
         {
             return (targetType != null ? targetType.GetHashCode() : 0);
         }
+
+        public static IsExplicitlySupportedVolumeComponentFilter FromType([DisallowNull] Type targetType)
+            => new IsExplicitlySupportedVolumeComponentFilter(targetType);
+
+        public static bool operator ==(IsExplicitlySupportedVolumeComponentFilter l, IsExplicitlySupportedVolumeComponentFilter r)
+            => !ReferenceEquals(null, l) && l.Equals(r) || ReferenceEquals(null, r);
+        public static bool operator !=(IsExplicitlySupportedVolumeComponentFilter l, IsExplicitlySupportedVolumeComponentFilter r)
+            => !(l == r);
     }
 }

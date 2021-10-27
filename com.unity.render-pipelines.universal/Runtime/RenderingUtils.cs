@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal
     public static class RenderingUtils
     {
         internal static VolumeComponentArchetype volumeArchetype { get; }
-            = VolumeComponentArchetype.FromFilter(new IsExplicitlySupportedVolumeComponentFilter(typeof(UniversalRenderPipeline)));
+            = VolumeComponentArchetype.FromFilter(IsExplicitlySupportedVolumeComponentFilter.FromType(typeof(UniversalRenderPipeline)));
 
         static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>
         {

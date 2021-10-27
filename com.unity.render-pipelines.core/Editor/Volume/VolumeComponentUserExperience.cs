@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering
                     s_PreviousArchetype = null;
                 }
 
-                s_PreviousArchetype = VolumeComponentArchetype.FromFilter(new IsExplicitlySupportedVolumeComponentFilter(renderPipeline));
+                s_PreviousArchetype = VolumeComponentArchetype.FromFilter(IsExplicitlySupportedVolumeComponentFilter.FromType(renderPipeline));
                 k_DisplayedContext.AddIncludeArchetype(s_PreviousArchetype);
                 s_LastPipelineType = renderPipeline;
             }

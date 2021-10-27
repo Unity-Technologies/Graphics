@@ -22,5 +22,10 @@ namespace UnityEngine.Rendering
         }
 
         public override int GetHashCode() => 0;
+
+        public static bool operator ==(EverythingVolumeComponentFilter l, EverythingVolumeComponentFilter r)
+            => !ReferenceEquals(null, l) && l.Equals(r) || ReferenceEquals(null, r);
+        public static bool operator !=(EverythingVolumeComponentFilter l, EverythingVolumeComponentFilter r)
+            => !(l == r);
     }
 }

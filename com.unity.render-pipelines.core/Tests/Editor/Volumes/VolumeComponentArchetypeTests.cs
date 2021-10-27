@@ -72,7 +72,8 @@ namespace UnityEngine.Rendering.Tests
             bool Property(VolumeComponentType supportTarget, VolumeComponentType[] types)
             {
                 var database = VolumeComponentDatabase.FromTypes(types);
-                var archetype = VolumeComponentArchetype.FromFilter(new IsExplicitlySupportedVolumeComponentFilter(supportTarget.AsType()), database);
+                var archetype = VolumeComponentArchetype.FromFilter(
+                    IsExplicitlySupportedVolumeComponentFilter.FromType(supportTarget.AsType()), database);
 
                 using (HashSetPool<VolumeComponentType>.Get(out var expectedTypes))
                 {
