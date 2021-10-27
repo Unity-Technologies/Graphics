@@ -20,12 +20,12 @@ public class Editmode_PowerSampling_Tests
 
     void makeTextureReadable(string assetPath)
     {
-        var tImporter = AssetImporter.GetAtPath( assetPath ) as TextureImporter;
-        if ( tImporter != null )
+        var tImporter = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+        if (tImporter != null)
         {
             tImporter.textureCompression = TextureImporterCompression.Uncompressed;
             tImporter.isReadable = true;
-            AssetDatabase.ImportAsset( assetPath );
+            AssetDatabase.ImportAsset(assetPath);
             AssetDatabase.Refresh();
         }
     }
@@ -41,7 +41,7 @@ public class Editmode_PowerSampling_Tests
         TextureFormat tFormat;
         tFormat = TextureFormat.RGB24;
 
-        Texture2D screenShot = new Texture2D(resWidthN, resHeightN, tFormat,false);
+        Texture2D screenShot = new Texture2D(resWidthN, resHeightN, tFormat, false);
         camera.Render();
         RenderTexture.active = rt;
         screenShot.ReadPixels(new Rect(0, 0, resWidthN, resHeightN), 0, 0);
@@ -77,7 +77,7 @@ public class Editmode_PowerSampling_Tests
         int spp = startSPP;
 
         lightingSettings.prioritizeView = true;
-        for(int i=0;i<nbIteration;i++)
+        for (int i = 0; i < nbIteration; i++)
         {
             lightingSettings.directSampleCount = spp;
             lightingSettings.indirectSampleCount = spp;
@@ -88,7 +88,7 @@ public class Editmode_PowerSampling_Tests
 
             Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU, "Using GPU Lightmapper after initial bake.");
 
-            takeScreenshot("on_"+spp+".png");
+            takeScreenshot("on_" + spp + ".png");
 
             spp = spp * 2;
             clearAll();
@@ -96,7 +96,7 @@ public class Editmode_PowerSampling_Tests
 
         lightingSettings.prioritizeView = false;
         spp = startSPP;
-        for(int i=0;i<nbIteration;i++)
+        for (int i = 0; i < nbIteration; i++)
         {
             lightingSettings.directSampleCount = spp;
             lightingSettings.indirectSampleCount = spp;
@@ -107,7 +107,7 @@ public class Editmode_PowerSampling_Tests
 
             Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU, "Using GPU Lightmapper after initial bake.");
 
-            takeScreenshot("off_"+spp+".png");
+            takeScreenshot("off_" + spp + ".png");
 
             spp = spp * 2;
             clearAll();
@@ -120,16 +120,16 @@ public class Editmode_PowerSampling_Tests
         AssetDatabase.Refresh();
 
         spp = startSPP;
-        for(int i=0;i<nbIteration;i++)
+        for (int i = 0; i < nbIteration; i++)
         {
-            string offImagePath = sceneOutputPath + "/off_"+spp+".png";
-            string onImagePath = sceneOutputPath + "/on_"+spp+".png";
-            var offImage = AssetDatabase.LoadAssetAtPath<Texture2D>( offImagePath );
-            var onImage = AssetDatabase.LoadAssetAtPath<Texture2D>( onImagePath );
+            string offImagePath = sceneOutputPath + "/off_" + spp + ".png";
+            string onImagePath = sceneOutputPath + "/on_" + spp + ".png";
+            var offImage = AssetDatabase.LoadAssetAtPath<Texture2D>(offImagePath);
+            var onImage = AssetDatabase.LoadAssetAtPath<Texture2D>(onImagePath);
             makeTextureReadable(offImagePath);
             makeTextureReadable(onImagePath);
 
-            Debug.Log("Compare "+spp);
+            Debug.Log("Compare " + spp);
             ImageAssert.AreEqual(offImage, onImage, graphicsTestSettingsCustom.ImageComparisonSettings);
             spp = spp * 2;
         }
