@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("m_LightVolumeOpacity")]
         [SerializeField] float m_LightVolumeIntensity = 1.0f;
         [SerializeField] bool m_LightVolumeIntensityEnabled = false;
-        [SerializeField] List<int> m_ApplyToSortingLayers;  // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
+        [SerializeField] int[] m_ApplyToSortingLayers;  // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
         [Reload("Textures/2D/Sparkle.png")]
         [SerializeField] Sprite m_LightCookieSprite;
@@ -166,7 +166,7 @@ namespace UnityEngine.Rendering.Universal
         int m_PreviousLightCookieSprite;
         internal Vector3 m_CachedPosition;
 
-        internal List<int> affectedSortingLayers => m_ApplyToSortingLayers;
+        internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
 
@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering.Universal
             var largestLayer = 0;
 
             var layers = Light2DManager.GetCachedSortingLayer();
-            for (var i = 0; i < m_ApplyToSortingLayers.Count; ++i)
+            for (var i = 0; i < m_ApplyToSortingLayers.Length; ++i)
             {
                 for (var layer = layers.Length - 1; layer >= largestLayer; --layer)
                 {
@@ -381,7 +381,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_ApplyToSortingLayers == null)
                 return false;
 
-            for (var i = 0; i < m_ApplyToSortingLayers.Count; i++)
+            for (var i = 0; i < m_ApplyToSortingLayers.Length; i++)
                 if (m_ApplyToSortingLayers[i] == layer)
                     return true;
 
@@ -392,7 +392,7 @@ namespace UnityEngine.Rendering.Universal
         {
         	// Default target sorting layers to "All"
             if (m_ApplyToSortingLayers == null)
-                m_ApplyToSortingLayers = SortingLayer.layers.Select(x => x.id).ToList();
+                m_ApplyToSortingLayers = SortingLayer.layers.Select(x => x.id).ToArray();
                 
             if (m_LightCookieSprite != null)
             {
@@ -420,6 +420,10 @@ namespace UnityEngine.Rendering.Universal
 
         private void LateUpdate()
         {
+#if UNITY_EDITOR
+            Light2DManager.UpdateSortingLayers(ref m_ApplyToSortingLayers);
+#endif
+
             if (m_LightType == LightType.Global)
                 return;
 
@@ -450,17 +454,5 @@ namespace UnityEngine.Rendering.Universal
                 m_ComponentVersion = ComponentVersions.Version_1;
             }
         }
-
-#if UNITY_EDITOR
-        // Handles adding of new layers and removing of invalid layers
-        public void UpdateTargetSortingLayer(SortingLayer layer)
-        {
-            m_ApplyToSortingLayers.RemoveAll(id => !SortingLayer.IsValid(id));
-
-            if (m_ApplyToSortingLayers.Count + 1 == SortingLayer.layers.Length && !m_ApplyToSortingLayers.Contains(layer.id))
-                m_ApplyToSortingLayers.Add(layer.id);
-        }
-
-#endif
     }
 }

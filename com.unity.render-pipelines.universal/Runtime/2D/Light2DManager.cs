@@ -110,23 +110,31 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_EDITOR
-        // Gets called on the start of the lighting pass
-        public static void InitializeFrame()
+        static int s_NumLight = 0;
+        public static void UpdateSortingLayers(ref int[] targetSortingLayers)
         {
-            UpdateLightsTargetSortingLayer();
-        }
-
-        private static void UpdateLightsTargetSortingLayer()
-        {
+            ++s_NumLight;
             var layers = SortingLayer.layers;
             if (GetCachedSortingLayer().Length + 1 == layers.Length)
             {
+                var sortingLayerList = targetSortingLayers.ToList();
+
+                // Remove any invalid layers
+                sortingLayerList.RemoveAll(id => !SortingLayer.IsValid(id));
+
+                // Add any new layers
                 var layer = layers.Except(s_SortingLayers).FirstOrDefault();
-                foreach (var light in lights)
-                    light.UpdateTargetSortingLayer(layer);
+                if (sortingLayerList.Count + 1 == layers.Length && !sortingLayerList.Contains(layer.id))
+                    sortingLayerList.Add(layer.id);
+
+                targetSortingLayers = sortingLayerList.ToArray();
             }
 
-            s_SortingLayers = layers;
+            if(s_NumLight == lights.Count)
+            {
+                s_SortingLayers = layers;
+                s_NumLight = 0;
+            }
         }
 
 #endif
