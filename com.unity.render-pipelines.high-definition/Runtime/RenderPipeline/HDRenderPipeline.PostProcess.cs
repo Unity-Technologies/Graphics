@@ -2168,7 +2168,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 parameters.dofCoCReprojectCS.EnableKeyword("ENABLE_MAX_BLENDING");
                 parameters.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
-                // Fix the resolution to half. This only affects the out-of-cocus regions (and there is no visible benefit at computing those at higher res). Tiles with pixels near the focus plane always run at full res.
+                // Fix the resolution to half. This only affects the out-of-focus regions (and there is no visible benefit at computing those at higher res). Tiles with pixels near the focus plane always run at full res.
                 parameters.resolution = DepthOfFieldResolution.Half;
             }
 
@@ -2704,11 +2704,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float farMaxBlur = resolutionScale * dofParameters.farMaxBlur;
             float nearMaxBlur = resolutionScale * dofParameters.nearMaxBlur;
+            bool usePhysicalCamera = dofParameters.focusMode == DepthOfFieldMode.UsePhysicalCamera;
 
-            // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes, [0, 16] --> [0, 64]
+            // Map the old "max radius" parameters to a bigger range when driving the dof from physical camera settings, so we can work on more challenging scenes, [0, 16] --> [0, 64]
+            float radiusMultiplier = usePhysicalCamera ? 4.0f : 1.0f;
             Vector2 cocLimit = new Vector2(
-                Mathf.Max(4 * farMaxBlur, 0.01f),
-                Mathf.Max(4 * nearMaxBlur, 0.01f));
+                Mathf.Max(radiusMultiplier * farMaxBlur, 0.01f),
+                Mathf.Max(radiusMultiplier * nearMaxBlur, 0.01f));
             float maxCoc = Mathf.Max(cocLimit.x, cocLimit.y);
 
             ComputeShader cs;
@@ -2719,7 +2721,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cs = dofParameters.dofCircleOfConfusionCS;
                 kernel = dofParameters.dofCircleOfConfusionKernel;
 
-                if (dofParameters.focusMode == DepthOfFieldMode.UsePhysicalCamera)
+                if (usePhysicalCamera)
                 {
                     // The sensor scale is used to convert the CoC size from mm to screen pixels
                     float sensorScale;
@@ -2817,7 +2819,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            bool isScaled = dofParameters.resolution != DepthOfFieldResolution.Full;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldGatherNear)))
             {
                 cs = dofParameters.pbDoFGatherCS;
@@ -2827,10 +2828,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, isScaled ? 3 : 0, 1.0f / (float)dofParameters.resolution, (float)dofParameters.resolution));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, 3 , 1.0f / (float)dofParameters.resolution, (float)dofParameters.resolution));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourcePyramid != null ? sourcePyramid : source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, isScaled ? scaledDof : destination);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, scaledDof);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileList, minMaxCoCPing, 0);
                 BlueNoise.BindDitheredTextureSet(cmd, dofParameters.ditheredTextureSet);
                 int scaledWidth = (dofParameters.viewportSize.x / (int)dofParameters.resolution + 7) / 8;
@@ -2839,25 +2840,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(cs, kernel, scaledWidth, scaledHeight, dofParameters.camera.viewCount);
             }
 
-            if (isScaled)
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
             {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
-                {
-                    cs = dofParameters.pbDoFCombineCS;
-                    kernel = dofParameters.pbDoFCombineKernel;
-                    float sampleCount = Mathf.Max(dofParameters.nearSampleCount, dofParameters.farSampleCount);
-                    float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
+                cs = dofParameters.pbDoFCombineCS;
+                kernel = dofParameters.pbDoFCombineKernel;
+                float sampleCount = Mathf.Max(dofParameters.nearSampleCount, dofParameters.farSampleCount);
+                float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
 
-                    float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputNearTexture, scaledDof);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileList, minMaxCoCPing, 0);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+                float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputNearTexture, scaledDof);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileList, minMaxCoCPing, 0);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
 
-                    cmd.DispatchCompute(cs, kernel, (dofParameters.viewportSize.x + 7) / 8, (dofParameters.viewportSize.y + 7) / 8, dofParameters.camera.viewCount);
-                }
+                cmd.DispatchCompute(cs, kernel, (dofParameters.viewportSize.x + 7) / 8, (dofParameters.viewportSize.y + 7) / 8, dofParameters.camera.viewCount);
             }
         }
 

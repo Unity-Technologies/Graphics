@@ -1,6 +1,8 @@
 #ifndef DOF_GATHER_UTILS
 #define DOF_GATHER_UTILS
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
+
 // Input textures
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_InputCoCTexture);
@@ -23,102 +25,32 @@ TEXTURE2D_X(_TileList);
 
 // ============== RNG Utils ==================== //
 
-#define WANG_HASH   1
-#define XOR_SHIFT   2
-#define PCG_4D      3
+#define XOR_SHIFT   1
 
 #define RNG_METHOD XOR_SHIFT
 
 #define BN_RAND_BOUNCE 4
 #define BN_RAND_OFFSET 5
 
-#if (RNG_METHOD == PCG_4D)
-#define RngStateType uint4
-#else
 #define RngStateType uint
-#endif
-
-// 32-bit Xorshift random number generator
-uint xorshift(inout uint rngState)
-{
-    rngState ^= rngState << 13;
-    rngState ^= rngState >> 17;
-    rngState ^= rngState << 5;
-    return rngState;
-}
-
-// Jenkins's "one at a time" hash function
-uint jenkinsHash(uint x) {
-    x += x << 10;
-    x ^= x >> 6;
-    x += x << 3;
-    x ^= x >> 11;
-    x += x << 15;
-    return x;
-}
-
-// PCG random numbers generator
-// Source: "Hash Functions for GPU Rendering" by Jarzynski & Olano
-uint4 pcg4d(uint4 v)
-{
-    v = v * 1664525u + 1013904223u;
-
-    v.x += v.y * v.w;
-    v.y += v.z * v.x;
-    v.z += v.x * v.y;
-    v.w += v.y * v.z;
-
-    v = v ^ (v >> 16u);
-
-    v.x += v.y * v.w;
-    v.y += v.z * v.x;
-    v.z += v.x * v.y;
-    v.w += v.y * v.z;
-
-    return v;
-}
 
 // Converts unsigned integer into float int range <0; 1) by using 23 most significant bits for mantissa
-float uintToFloat(uint x) {
-    return asfloat(0x3f800000 | (x >> 9)) - 1.0f;
-}
-
-uint WangHash(inout uint seed)
+float UintToFloat(uint x)
 {
-    seed = (seed ^ 61) ^ (seed >> 16);
-    seed *= 9;
-    seed = seed ^ (seed >> 4);
-    seed *= 0x27d4eb2d;
-    seed = seed ^ (seed >> 15);
-    return seed;
+    return asfloat(0x3f800000 | (x >> 9)) - 1.0f;
 }
 
 RngStateType InitRNG(uint2 launchIndex, uint frameIndex, uint sampleIndex, uint sampleCount)
 {
     frameIndex = frameIndex * sampleCount + sampleIndex;
 
-#if (RNG_METHOD == WANG_HASH)
-    // Initial random number generator seed for this pixel. The rngState will change every time we draw a random number.
-    return uint(uint(launchIndex.x) * uint(1973) + uint(launchIndex.y) * uint(9277) + uint(frameIndex) * uint(26699)) | uint(1);
-#elif (RNG_METHOD == XOR_SHIFT)
-    RngStateType seed = dot(launchIndex, uint2(1, 1280)) ^ jenkinsHash(frameIndex);
-    return jenkinsHash(seed);
-#elif (RNG_METHOD == PCG_4D)
-    //< Seed for PCG uses a sequential sample number in 4th channel, which increments on every RNG call and starts from 0
-    return RngStateType(launchIndex, frameIndex, 0);
-#endif
+    RngStateType seed = dot(launchIndex, uint2(1, 1280)) ^ JenkinsHash(frameIndex);
+    return JenkinsHash(seed);
 }
 
 float RandomFloat01(inout RngStateType state, uint dimension)
 {
-#if (RNG_METHOD == WANG_HASH)
-    return float(WangHash(state)) / float(0xFFFFFFFF);
-#elif (RNG_METHOD == XOR_SHIFT)
-    return uintToFloat(xorshift(state));
-#elif (RNG_METHOD == PCG_4D)
-    state.w++; //< Increment sample index
-    return uintToFloat(pcg4d(state).x);
-#endif
+    return UintToFloat(XorShift(state));
 }
 
 // ================ DoF Sampling Utils =================== //
@@ -341,14 +273,14 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
     const bool isBgLayerInNearField = tileData.layerBorder < 0;
 
     float dR = rcp((float)tileData.numSamples);
-    int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
+    int noiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
     int halfSamples = tileData.numSamples >> 1;
     float dAng = PI * rcp(halfSamples);
 
     // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
     float lod = min(MaxColorMip, log2(2 * PI * tileData.maxRadius * rcp(tileData.numSamples)));
 
-    RngStateType rngState = InitRNG(posInputs.positionSS.xy, blueNoiseOffset, 0, tileData.numSamples);
+    RngStateType rngState = InitRNG(posInputs.positionSS.xy, noiseOffset, 0, tileData.numSamples);
 
     // Gather the DoF samples
     for (int ring = tileData.numSamples - 1; ring >= 0; ring--)
@@ -360,8 +292,8 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
         for (int i = 0; i < halfSamples; i++)
         {
 #ifdef USE_BLUE_NOISE
-            float r1 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * tileData.numSamples + i + blueNoiseOffset, 0);
-            float r2 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * tileData.numSamples + i + blueNoiseOffset, 1);
+            float r1 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * tileData.numSamples + i + noiseOffset, 0);
+            float r2 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * tileData.numSamples + i + noiseOffset, 1);
 #else
             float r1 = RandomFloat01(rngState, ring * tileData.numSamples * 2 + 2 * i);
             float r2 = RandomFloat01(rngState, ring * tileData.numSamples * 2 + 2 * i + 1);
@@ -416,7 +348,7 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
     alpha = bgAccumData.alpha * (1.0 - fgAlpha) + fgAlpha * fgAccumData.alpha;
 }
 
-int GetTileClass(float2 sampleTC, float centerCoC)
+int GetTileClass(float2 sampleTC)
 {
     float4 cocRanges = LOAD_TEXTURE2D_X(_TileList, ResScale * sampleTC / TILE_RES);
     float minRadius = min(abs(cocRanges.x), -cocRanges.z);
@@ -429,10 +361,10 @@ int GetTileClass(float2 sampleTC, float centerCoC)
     return SLOW_INFOCUS_TILE;
 }
 
-void DebugTiles(float2 sampleTC, float CoC, inout float3 output)
+void DebugTiles(float2 sampleTC, inout float3 output)
 {
     // Debug the tile type
-    switch (GetTileClass(sampleTC, CoC))
+    switch (GetTileClass(sampleTC)) 
     {
     case SLOW_INFOCUS_TILE:
         // in focus pixels, but also covered by out-of-focus stuff

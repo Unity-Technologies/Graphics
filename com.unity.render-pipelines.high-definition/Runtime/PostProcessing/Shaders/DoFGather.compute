@@ -42,7 +42,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     centerSample.color = GetColorSample(posInputs.positionSS, 0);
     centerSample.CoC = GetCoCRadius(posInputs.positionSS);
 
-    int tileClass = GetTileClass(posInputs.positionSS, centerSample.CoC);
+    int tileClass = GetTileClass(posInputs.positionSS);
     if (ResScale != 1.0 && tileClass != FAST_DEFOCUS_TILE)
     {
         // Early exit: these tiles will be computed at full res in the combine pass
