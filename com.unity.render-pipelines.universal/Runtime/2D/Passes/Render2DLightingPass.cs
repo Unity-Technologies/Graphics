@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmd.Clear();
                         if (lightStats.totalLights > 0)
                         {
-                            this.RenderLights(renderingData, cmd, upperLayerInBatch, lightStats.blendStylesUsed);
+                            this.RenderLights(renderingData, cmd, layerToRender, lightStats.blendStylesUsed);
                         }
                         else
                         {

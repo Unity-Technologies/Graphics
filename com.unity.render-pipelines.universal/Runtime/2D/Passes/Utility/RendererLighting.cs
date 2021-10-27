@@ -213,7 +213,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     var light = lights[i];
 
-                    var topMostLayer = light.GetTopMostLitLayer();
+                    var topMostLayer = light.GetTopMostLitLayerIndex();
                     if (layerToRender >= topMostLayer)
                     {
                         if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex)

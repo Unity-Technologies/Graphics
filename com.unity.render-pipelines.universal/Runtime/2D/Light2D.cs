@@ -138,6 +138,30 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
             }
 
+            if (largestIndex >= 0)
+                return m_ApplyToSortingLayers[largestIndex];
+            else
+                return -1;
+        }
+
+        internal int GetTopMostLitLayerIndex()
+        {
+            var largestIndex = -1;
+            var largestLayer = 0;
+
+            var layers = Light2DManager.GetCachedSortingLayer();
+            for (var i = 0; i < m_ApplyToSortingLayers.Length; ++i)
+            {
+                for (var layer = layers.Length - 1; layer >= largestLayer; --layer)
+                {
+                    if (layers[layer].id == m_ApplyToSortingLayers[i])
+                    {
+                        largestIndex = i;
+                        largestLayer = layer;
+                    }
+                }
+            }
+
             return largestIndex;
         }
 
