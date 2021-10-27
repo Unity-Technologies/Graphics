@@ -107,11 +107,6 @@ VFXEditableDataAnchor.activationslot
     margin-right: 24px;
 }
 
-/*VFXEditableDataAnchor.activationslot > BoolPropertyRM
-{
-    justify-content: center;
-}*/
-
 VFXEditableDataAnchor.activationslot > BoolPropertyRM > Label
 {
     display: none;
@@ -137,7 +132,17 @@ VFXBlockUI.activationslot.collapsed.VFXNodeUI.node #contents > #top > #input
     padding: 0px;
 }
 
+VFXBlockUI.activationslot.collapsed.VFXNodeUI.node #contents > #divider
+{
+    display: none;
+}
+
 VFXBlockUI.nosettings.VFXNodeUI.node #contents > #settings-divider
 {
     display: none;
+}
+
+VFXBlockUI.collapsed.VFXNodeUI.node #contents > #top > #input > VFXEditableDataAnchor.activationslot
+{
+    margin-top: 1;
 }
