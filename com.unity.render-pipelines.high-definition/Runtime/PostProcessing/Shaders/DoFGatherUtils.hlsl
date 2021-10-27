@@ -35,7 +35,7 @@ TEXTURE2D_X(_TileList);
 #define RngStateType uint
 
 // Converts unsigned integer into float int range <0; 1) by using 23 most significant bits for mantissa
-float UintToFloat(uint x)
+float UintToNormalizedFloat(uint x)
 {
     return asfloat(0x3f800000 | (x >> 9)) - 1.0f;
 }
@@ -50,7 +50,7 @@ RngStateType InitRNG(uint2 launchIndex, uint frameIndex, uint sampleIndex, uint 
 
 float RandomFloat01(inout RngStateType state, uint dimension)
 {
-    return UintToFloat(XorShift(state));
+    return UintToNormalizedFloat(XorShift(state));
 }
 
 // ================ DoF Sampling Utils =================== //
