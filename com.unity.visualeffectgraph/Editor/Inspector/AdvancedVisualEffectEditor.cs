@@ -753,7 +753,7 @@ namespace UnityEditor.VFX
         {
             if ((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>() is VisualEffect visualEffect)
             {
-                foreach (var window in VFXViewWindow.GetAllWindows().Where(x => x.graphView != null && !x.graphView.locked))
+                foreach (var window in VFXViewWindow.GetAllWindows())
                 {
                     window.AttachTo(visualEffect);
                 }

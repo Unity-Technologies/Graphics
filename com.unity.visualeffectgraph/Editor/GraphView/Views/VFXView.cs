@@ -836,21 +836,18 @@ namespace UnityEditor.VFX.UI
                 attached = m_ComponentBoard.Attach(visualEffect);
             }
 
-            UpdateToolbarButtons();
-
             if (attached && showNotification)
             {
-                var vfxWindow = VFXViewWindow.GetWindow(this);
+                var vfxWindow = VFXViewWindow.GetWindowNoShow(this);
                 if (vfxWindow != null)
                 {
-                    string truncatedObjectName =
-                        TruncateName(visualEffect.name, MaximumNameLengthInNotification);
+                    string truncatedObjectName = TruncateName(visualEffect.name, MaximumNameLengthInNotification);
                     vfxWindow.ShowNotification(new GUIContent($"Attached to {truncatedObjectName}"), 1.5);
                     vfxWindow.Repaint();
                 }
             }
 
-            m_VFXSettings.AttachedVisualEffect = attached ? visualEffect : null;
+            m_VFXSettings.AttachedVisualEffect = attachedComponent;
             UpdateToolbarButtons();
             return attached;
         }

@@ -18,6 +18,7 @@ namespace UnityEditor.VFX.UI
         static List<VFXViewWindow> s_VFXWindows = new();
 
         ShortcutHandler m_ShortcutHandler;
+        VisualEffect m_pendingAttachment;
 
         public VFXViewWindow()
         {
@@ -56,36 +57,38 @@ namespace UnityEditor.VFX.UI
 
         public static VFXViewWindow GetWindow(VisualEffectAsset vfxAsset, bool createIfNeeded = false)
         {
-            return GetWindowLambda(x => x.graphView?.controller?.graph.visualEffectResource.asset == vfxAsset,
-                createIfNeeded);
+            return GetWindowLambda(x => x.graphView?.controller?.graph.visualEffectResource.asset == vfxAsset, createIfNeeded, true);
         }
 
-        public static VFXViewWindow GetWindow(VFXGraph vfxGraph, bool createIfNeeded = false)
+        public static VFXViewWindow GetWindow(VFXGraph vfxGraph, bool createIfNeeded = false, bool show = true)
         {
             return GetWindowLambda(
                 x => x.graphView?.controller?.graph.visualEffectResource == vfxGraph?.visualEffectResource,
-                createIfNeeded);
+                createIfNeeded,
+                show);
         }
 
         public static VFXViewWindow GetWindow(VisualEffectResource resource, bool createIfNeeded = false)
         {
-            return GetWindowLambda(x => x.graphView?.controller?.graph.visualEffectResource == resource, createIfNeeded);
+            return GetWindowLambda(x => x.graphView?.controller?.graph.visualEffectResource == resource, createIfNeeded, true);
         }
 
         public static VFXViewWindow GetWindow(VFXParameter vfxParameter, bool createIfNeeded = false)
         {
             return GetWindowLambda(
                 x => x.graphView?.controller?.parameterControllers.Any(y => y.model == vfxParameter) == true,
-                createIfNeeded);
+                createIfNeeded,
+                true);
         }
 
-        static VFXViewWindow GetWindowLambda(Func<VFXViewWindow, bool> func, bool createIfNeeded)
+        static VFXViewWindow GetWindowLambda(Func<VFXViewWindow, bool> func, bool createIfNeeded, bool show)
         {
             var windows = GetAllWindows();
             var window = windows.SingleOrDefault(func);
             if (window == null)
             {
-                window = windows.SingleOrDefault(x => x.graphView?.controller == null);
+                // Get the empty VFX window if it's opened
+                window = windows.SingleOrDefault(x => x.m_DisplayedResource == null);
             }
 
             if (window == null && createIfNeeded)
@@ -93,7 +96,7 @@ namespace UnityEditor.VFX.UI
                 window = CreateWindow();
             }
 
-            if (window != null)
+            if (window != null && show)
             {
                 window.Show(true);
                 window.Focus();
@@ -102,6 +105,7 @@ namespace UnityEditor.VFX.UI
             return window;
         }
 
+        public static VFXViewWindow GetWindowNoShow(VFXView vfxView) => GetWindow(vfxView.controller?.graph, false, false);
         public static VFXViewWindow GetWindow(VFXView vfxView) => GetWindow(vfxView.controller?.graph);
         public static IEnumerable<VFXViewWindow> GetAllWindows() => s_VFXWindows.ToArray();
 
@@ -134,21 +138,22 @@ namespace UnityEditor.VFX.UI
 
             }
 
-            var asset = effectToAttach == null ? m_LastAttachedComponent : effectToAttach;
-            m_LastAttachedComponent = graphView?.TryAttachTo(asset, true) == true
-                ? asset
-                : null;
-            this.SaveChanges();
+            var asset = effectToAttach == null ? m_pendingAttachment : effectToAttach;
+            graphView?.TryAttachTo(asset, true);
         }
 
         VisualEffect GetVisualEffectFromID(int id) => EditorUtility.InstanceIDToObject(id) as VisualEffect;
 
         internal void AttachTo(VisualEffect visualEffect)
         {
-            if (graphView?.TryAttachTo(visualEffect, true) == true)
+            if (graphView != null && !graphView.locked)
             {
-                m_LastAttachedComponent = visualEffect;
+                graphView.TryAttachTo(visualEffect, true);
                 SaveChanges();
+            }
+            else if (visualEffect.visualEffectAsset == m_DisplayedResource.asset)
+            {
+                m_pendingAttachment = visualEffect;
             }
         }
 
@@ -383,7 +388,5 @@ namespace UnityEditor.VFX.UI
         }
 
         [SerializeField] private VisualEffectResource m_DisplayedResource;
-
-        [SerializeField] private VisualEffect m_LastAttachedComponent;
     }
 }
