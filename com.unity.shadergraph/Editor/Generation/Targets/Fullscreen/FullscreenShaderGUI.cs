@@ -26,31 +26,30 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             public static readonly GUIContent blendingMode = EditorGUIUtility.TrTextContent("Blending Mode",
                 "Controls how the color of the Transparent surface blends with the Material color in the background.");
             public static readonly GUIContent srcColorBlendMode = EditorGUIUtility.TrTextContent("Src Color",
-                "TODO");
+                "Describes how the input color will be blended.");
             public static readonly GUIContent dstColorBlendMode = EditorGUIUtility.TrTextContent("Dst Color",
-                "TODO");
+                "Describes how the destination color will be blended.");
             public static readonly GUIContent colorBlendOperation = EditorGUIUtility.TrTextContent("Color Blend Op",
-                "TODO");
+                "Tell which operation to use when blending the colors. Default is Add.");
             public static readonly GUIContent srcAlphaBlendMode = EditorGUIUtility.TrTextContent("Src Alpha",
-                "TODO");
+                "Describes how the input alpha will be blended.");
             public static readonly GUIContent dstAlphaBlendMode = EditorGUIUtility.TrTextContent("Dst Alpha",
-                "TODO");
+                "Describes how the input alpha will be blended.");
             public static readonly GUIContent alphaBlendOperation = EditorGUIUtility.TrTextContent("Alpha Blend Op",
-                "TODO");
+                "Tell which operation to use when blending the alpha channel. Default is Add.");
             public static readonly GUIContent depthWrite = EditorGUIUtility.TrTextContent("Depth Write",
                 "Controls whether the shader writes depth.");
             public static readonly GUIContent depthTest = EditorGUIUtility.TrTextContent("Depth Test",
                 "Specifies the depth test mode. The default is Always.");
 
-            public static readonly GUIContent stencil = EditorGUIUtility.TrTextContent("Stencil Override", "TODO");
-            public static readonly GUIContent stencilRef = EditorGUIUtility.TrTextContent("Reference", "TODO");
-            public static readonly GUIContent stencilReadMask = EditorGUIUtility.TrTextContent("Read Mask", "TODO");
-            public static readonly GUIContent stencilWriteMask = EditorGUIUtility.TrTextContent("Write Mask", "TODO");
-            public static readonly GUIContent stencilComparison = EditorGUIUtility.TrTextContent("Comparison", "TODO");
-            public static readonly GUIContent stencilPass = EditorGUIUtility.TrTextContent("Pass", "TODO");
-            public static readonly GUIContent stencilFail = EditorGUIUtility.TrTextContent("Fail", "TODO");
-            public static readonly GUIContent stencilDepthFail = EditorGUIUtility.TrTextContent("Depth Fail", "TODO");
-
+            public static readonly GUIContent stencil = EditorGUIUtility.TrTextContent("Stencil Override", "Enable the stencil block in the shader.");
+            public static readonly GUIContent stencilRef = EditorGUIUtility.TrTextContent("Reference", "Reference value use for comparison and operations.");
+            public static readonly GUIContent stencilReadMask = EditorGUIUtility.TrTextContent("Read Mask", "Tells which bit are allowed to be read during the stencil test.");
+            public static readonly GUIContent stencilWriteMask = EditorGUIUtility.TrTextContent("Write Mask", "Tells which bit are allowed to be written during the stencil test.");
+            public static readonly GUIContent stencilComparison = EditorGUIUtility.TrTextContent("Comparison", "Tells which function to use when doing the stencil test.");
+            public static readonly GUIContent stencilPass = EditorGUIUtility.TrTextContent("Pass", "Tells what to do when the stencil test succeed.");
+            public static readonly GUIContent stencilFail = EditorGUIUtility.TrTextContent("Fail", "Tells what to do when the stencil test fails.");
+            public static readonly GUIContent stencilDepthFail = EditorGUIUtility.TrTextContent("Depth Fail", "Tells what to do when the depth test fails.");
         }
 
         public bool m_FirstTimeApply = true;
