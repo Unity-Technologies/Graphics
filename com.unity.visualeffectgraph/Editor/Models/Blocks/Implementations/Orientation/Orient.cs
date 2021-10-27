@@ -8,19 +8,13 @@ namespace UnityEditor.VFX.Block
 {
     class OrientationModeProvider : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
         {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "mode", Enum.GetValues(typeof(Orient.Mode)).Cast<object>().ToArray() }
-                };
-            }
-        }
+            {"mode", Enum.GetValues(typeof(Orient.Mode)).Cast<object>().ToArray()}
+        };
     }
 
-    [VFXInfo(category = "Orientation", variantProvider = typeof(OrientationModeProvider))]
+    [VFXInfo(category = "Attribute/orientation", variantProvider = typeof(OrientationModeProvider))]
     class Orient : VFXBlock
     {
         public enum Mode
@@ -321,9 +315,10 @@ axisY = cross(axisZ, axisX);
                 /* Slot of type position has changed from undefined VFXSlot to VFXSlotPosition*/
                 if (GetNbInputSlots() > 0 && !(GetInputSlot(0) is VFXSlotPosition))
                 {
-                    var oldValue = GetInputSlot(0).value;
-                    RemoveSlot(GetInputSlot(0));
-                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(Position), "Position"), VFXSlot.Direction.kInput, oldValue));
+                    VFXSlot oldSlot = GetInputSlot(0);
+                    var oldValue = oldSlot.value;
+                    VFXSlot newSlot = VFXSlot.Create(new VFXProperty(typeof(Position), "Position"), VFXSlot.Direction.kInput, oldValue);
+                    ReplaceSlot(oldSlot, newSlot);
                 }
             }
             base.Sanitize(version);
