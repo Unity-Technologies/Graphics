@@ -11,9 +11,10 @@ namespace UnityEngine.Rendering.UI
         public Text nameLabel;
         /// <summary>Value of the value field.</summary>
         public Text valueLabel;
-        DebugUI.Value m_Field;
 
-        float m_Timer;
+        DebugUI.Value m_Field;
+        protected internal float m_Timer;
+        static readonly Color k_ZeroColor = Color.gray;
 
         /// <summary>
         /// OnEnable implementation.
@@ -56,7 +57,11 @@ namespace UnityEngine.Rendering.UI
         {
             if (m_Timer >= m_Field.refreshRate)
             {
-                valueLabel.text = m_Field.GetValue().ToString();
+                var value = m_Field.GetValue();
+                valueLabel.text = m_Field.FormatString(value);
+                // De-emphasize zero values by switching to dark gray color
+                if (value is float)
+                    valueLabel.color = (float)value == 0f ? k_ZeroColor : colorDefault;
                 m_Timer -= m_Field.refreshRate;
             }
 
