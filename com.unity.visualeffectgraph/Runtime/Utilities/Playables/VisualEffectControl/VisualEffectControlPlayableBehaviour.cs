@@ -9,7 +9,7 @@ using UnityEngine.VFX.Utility;
 namespace UnityEngine.VFX
 {
     [Serializable]
-    struct EventAttributes //Using encapsulated structure to ease CustomPropertyDrawer
+    struct EventAttributes
     {
         [SerializeReference]
         public EventAttribute[] content;

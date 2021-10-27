@@ -9,7 +9,7 @@ namespace UnityEngine.VFX
 {
     class VisualEffectControlTrackMixerBehaviour : PlayableBehaviour
     {
-        class ScrubbingCacheHelper
+        public class ScrubbingCacheHelper
         {
             struct Event
             {
@@ -52,10 +52,33 @@ namespace UnityEngine.VFX
             double m_LastPlayableTime = double.MinValue;
 
             VisualEffect m_Target;
-            public bool m_BackupReseedOnPlay;
-            public uint m_BackupStartSeed;
+            bool m_BackupReseedOnPlay;
+            uint m_BackupStartSeed;
 
             Chunk[] m_Chunks;
+
+            public struct Debug
+            {
+                public enum State
+                {
+                    Playing,
+                    ScrubbingForward,
+                    ScrubbingBackward,
+                    OutChunk
+                }
+
+                public State state;
+                public int lastChunk;
+                public int lastEvent;
+                public double lastPlayableTime;
+                public double lastDeltaTime;
+                public float vfxTime;
+                public bool[] clipState;
+            }
+
+            //TODOPAUL if right thing todo => store it in VFXManager
+            public static float s_MaximumScrubbingTime = 30.0f;
+            public Queue<Debug> m_DebugFrame = new Queue<Debug>();
 
             private void OnEnterChunk(int currentChunk)
             {
@@ -81,19 +104,24 @@ namespace UnityEngine.VFX
                 m_ClipState = null;
             }
 
-            //TODOPAUL Debug only, will be removed int the end
-            enum dbg_state
+            private void PushDebugState(Debug.State scrubbing, double deltaTime)
             {
-                Playing,
-                ScrubbingForward,
-                ScrubbingBackward,
-                OutChunk
-            }
-            private int scrubbingID = Shader.PropertyToID("scrubbing");
-            private void UpdateScrubbingState(dbg_state scrubbing)
-            {
-                if (m_Target.HasUInt(scrubbingID))
-                    m_Target.SetUInt(scrubbingID, (uint)scrubbing);
+                var current = new Debug()
+                {
+                    state = scrubbing,
+                    lastChunk = m_LastChunk,
+                    lastEvent = m_LastEvent,
+                    lastPlayableTime = m_LastPlayableTime,
+                    lastDeltaTime = deltaTime,
+                    vfxTime = m_Target.time,
+                    clipState = m_ClipState?.ToArray(),
+                };
+
+                if (m_DebugFrame.Count > 5)
+                {
+                    m_DebugFrame.Dequeue();
+                }
+                m_DebugFrame.Enqueue(current);
             }
 
             private static double Abs(double a)
@@ -111,7 +139,7 @@ namespace UnityEngine.VFX
             {
                 var paused = deltaTime == 0.0;
                 var playingBackward = playableTime < m_LastPlayableTime;
-                var dbg = dbg_state.OutChunk;
+                var dbg = Debug.State.OutChunk;
 
                 var currentChunkIndex = kErrorIndex;
                 if (m_LastChunk != currentChunkIndex)
@@ -147,7 +175,7 @@ namespace UnityEngine.VFX
 
                 if (currentChunkIndex != kErrorIndex)
                 {
-                    dbg = dbg_state.Playing;
+                    dbg = Debug.State.Playing;
 
                     var chunk = m_Chunks[currentChunkIndex];
                     if (chunk.scrubbing)
@@ -171,7 +199,7 @@ namespace UnityEngine.VFX
                         }
                         else
                         {
-                            dbg = dbg_state.ScrubbingBackward;
+                            dbg = Debug.State.ScrubbingBackward;
                             actualCurrentTime = chunk.begin;
                             m_LastEvent = kErrorIndex;
                             OnEnterChunk(m_LastChunk);
@@ -212,8 +240,8 @@ namespace UnityEngine.VFX
 
                                 if (currentStepCount != 0)
                                 {
-                                    if (dbg != dbg_state.ScrubbingBackward)
-                                        dbg = dbg_state.ScrubbingForward;
+                                    if (dbg != Debug.State.ScrubbingBackward)
+                                        dbg = Debug.State.ScrubbingForward;
 
                                     m_Target.Simulate((float)fixedStep, currentStepCount);
                                     actualCurrentTime += fixedStep * currentStepCount;
@@ -241,14 +269,14 @@ namespace UnityEngine.VFX
                                 if (currentEvent.clipType == Event.ClipType.Enter)
                                 {
                                     ProcessEvent(chunk.clips[currentEvent.clipIndex].exit, chunk);
-                                    dbg = dbg_state.ScrubbingBackward;
+                                    dbg = Debug.State.ScrubbingBackward;
                                 }
                                 else if (currentEvent.clipType == Event.ClipType.Exit)
                                 {
                                     ProcessEvent(chunk.clips[currentEvent.clipIndex].enter, chunk);
-                                    dbg = dbg_state.ScrubbingBackward;
+                                    dbg = Debug.State.ScrubbingBackward;
                                 }
-                                //Else: Ignore, we aren't playing single event backward
+                                //else: Ignore, we aren't playing single event backward
                             }
                             m_LastEvent = kErrorIndex; //TODOPAUL: Think twice, could it be an issue ?
                         }
@@ -256,11 +284,10 @@ namespace UnityEngine.VFX
                         var eventList = GetEventsIndex(chunk, m_LastPlayableTime, playableTime, m_LastEvent);
                         foreach (var itEvent in eventList)
                             ProcessEvent(itEvent, chunk);
-                        UpdateScrubbingState(dbg);
                     }
                 }
-                UpdateScrubbingState(dbg);
                 m_LastPlayableTime = playableTime;
+                PushDebugState(dbg, deltaTime);
             }
 
             void ProcessEvent(int eventIndex, Chunk currentChunk)
@@ -472,6 +499,11 @@ namespace UnityEngine.VFX
 
         ScrubbingCacheHelper m_ScrubbingCacheHelper;
         VisualEffect m_Target;
+
+        public Queue<ScrubbingCacheHelper.Debug> GetDebugInfo()
+        {
+            return m_ScrubbingCacheHelper?.m_DebugFrame;
+        }
 
         public override void PrepareFrame(Playable playable, FrameData data)
         {

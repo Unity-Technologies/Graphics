@@ -10,6 +10,9 @@ namespace UnityEngine.VFX
     [TrackBindingType(typeof(VisualEffect))]
     class VisualEffectControlTrack : TrackAsset
     {
+        //Only for debug purpose
+        public VisualEffectControlTrackMixerBehaviour lastCreatedMixer { get; private set; }
+
         public override Playable CreateTrackMixer(PlayableGraph graph, GameObject go, int inputCount)
         {
             foreach (var clip in GetClips())
@@ -22,7 +25,9 @@ namespace UnityEngine.VFX
                 }
             }
 
-            return ScriptPlayable<VisualEffectControlTrackMixerBehaviour>.Create(graph, inputCount);
+            var mixer = ScriptPlayable<VisualEffectControlTrackMixerBehaviour>.Create(graph, inputCount);
+            lastCreatedMixer = mixer.GetBehaviour();
+            return mixer;
         }
 
         public override void GatherProperties(PlayableDirector director, IPropertyCollector driver)

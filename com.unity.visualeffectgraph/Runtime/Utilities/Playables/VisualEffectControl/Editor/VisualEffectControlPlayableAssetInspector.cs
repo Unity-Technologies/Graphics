@@ -11,6 +11,82 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    [CustomEditor(typeof(VisualEffectControlTrack))]
+    class VisualEffectControlTrackInspector : Editor //TODOPAUL: Remove this
+    {
+        bool showDebugInformation;
+
+        GUIStyle GetGUIStyleFromState(VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.Debug.State debug)
+        {
+            GUIStyle style = new GUIStyle(EditorStyles.textField);
+
+            switch (debug)
+            {
+                case VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.Debug.State.OutChunk:
+                    style.normal.textColor = Color.white;
+                    break;
+                case VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.Debug.State.Playing:
+                    style.normal.textColor = Color.green;
+                    break;
+                case VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.Debug.State.ScrubbingBackward:
+                    style.normal.textColor = Color.red;
+                    break;
+                case VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.Debug.State.ScrubbingForward:
+                    style.normal.textColor = new Color(1.0f, 0.5f, 0.0f);
+                    break;
+            }
+
+            return style;
+        }
+
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+
+            VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.s_MaximumScrubbingTime
+                = EditorGUILayout.FloatField("Maximum Scrubbing Time", VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.s_MaximumScrubbingTime);
+
+            var track = target as VisualEffectControlTrack;
+            if (track == null)
+                return;
+
+            var mixer = track.lastCreatedMixer;
+            if (mixer == null)
+                return;
+
+            var debugFrames = mixer.GetDebugInfo();
+            if (debugFrames == null)
+                return;
+
+            showDebugInformation = EditorGUILayout.Foldout(showDebugInformation, "Debug Infos");
+            if (showDebugInformation)
+            {
+                var stringBuilder = new System.Text.StringBuilder();
+                foreach (var debug in debugFrames.Reverse())
+                {
+                    EditorGUILayout.LabelField(debug.state.ToString(), GetGUIStyleFromState(debug.state));
+                    stringBuilder.Clear();
+                    stringBuilder.AppendFormat("Chunk: {0}", debug.lastChunk);
+                    stringBuilder.AppendLine();
+                    stringBuilder.AppendFormat("Event: {0}", debug.lastEvent);
+                    stringBuilder.AppendLine();
+                    stringBuilder.AppendFormat("Playable Time: {0}", debug.lastPlayableTime);
+                    stringBuilder.AppendLine();
+                    stringBuilder.AppendFormat("VFX Time: {0}", debug.vfxTime);
+                    stringBuilder.AppendLine();
+                    stringBuilder.AppendFormat("Delta Time: {0}", debug.vfxTime);
+                    if (debug.clipState != null)
+                    {
+                        var clipStateString = debug.clipState.Select(o => o.ToString()).Aggregate((a, b) => a + ", " + b);
+                        stringBuilder.AppendFormat("Clip State: {0}", clipStateString);
+                    }
+
+                    EditorGUILayout.TextArea(stringBuilder.ToString());
+                }
+            }
+        }
+    }
+
     [CustomPropertyDrawer(typeof(VisualEffectPlayableSerializedEvent.TimeSpace))]
     class VisualEffectPlayableSerializedEventTimeSpaceDrawer : PropertyDrawer
     {
@@ -315,7 +391,6 @@ namespace UnityEditor.VFX
                         content = DeepClone(last.eventAttributes.content)
                     };
                 }
-
                 playable.singleEvents.Add(newSingleEvent);
                 singleEventsProperty.serializedObject.Update();
             };
@@ -325,11 +400,12 @@ namespace UnityEditor.VFX
         {
             serializedObject.Update();
 
+            EditorGUI.BeginChangeCheck();
+
             EditorGUILayout.PropertyField(scrubbingProperty);
             if (scrubbingProperty.boolValue)
                 EditorGUILayout.PropertyField(startSeedProperty);
 
-            EditorGUI.BeginChangeCheck();
             m_ReoderableClipEvents.DoLayoutList();
             m_ReoderableSingleEvents.DoLayoutList();
             if (EditorGUI.EndChangeCheck())
