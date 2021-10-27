@@ -157,7 +157,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_UseFullACES);
             }
 
-            if (hdrInPlayerSettings)
+            if (hdrInPlayerSettings && m_Mode.value.intValue != (int)TonemappingMode.None)
             {
                 EditorGUILayout.LabelField("HDR Output");
                 int hdrTonemapMode = m_Mode.value.intValue;
