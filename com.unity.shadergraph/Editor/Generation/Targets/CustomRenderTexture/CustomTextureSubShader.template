@@ -45,6 +45,9 @@ Pass
 		// ShaderGraph accessors:
 		float3 WorldSpaceViewDirection;
 		float3 TimeParameters;
+		float3 WorldSpaceNormal;
+		float2 NDCPosition;
+		float4 ScreenPosition;
 	};
 
 	SurfaceDescriptionInputs ConvertV2FToSurfaceInputs( v2f_customrendertexture IN )
@@ -54,11 +57,14 @@ Pass
 		o.uv0 = float4(IN.localTexcoord, 0);
 		o.uv1 = float4(IN.globalTexcoord, 0);
 		o.primitiveID = IN.primitiveID;
-		o.direction = IN.direction;
+		o.direction = normalize(IN.direction);
 
 		// other space of view direction are not supported
-		o.WorldSpaceViewDirection = o.direction;
-		o.TimeParameters = float3(_Time.y, _SinTime.x, _CosTime.y);
+		$SurfaceDescriptionInputs.WorldSpaceViewDirection:					o.WorldSpaceViewDirection = o.direction;
+		$SurfaceDescriptionInputs.TimeParameters:							o.TimeParameters = float3(_Time.y, _SinTime.x, _CosTime.y);
+		$SurfaceDescriptionInputs.WorldSpaceNormal:                         o.WorldSpaceNormal = o.direction;
+		$SurfaceDescriptionInputs.NDCPosition:                              o.NDCPosition = o.uv0.xy;
+		$SurfaceDescriptionInputs.ScreenPosition:                           o.ScreenPosition = float4(o.uv0.xy, 0, 1);
 
 		return o;
 	}

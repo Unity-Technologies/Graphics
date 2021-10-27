@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
 {
     sealed class CustomTextureSubTarget : SubTarget<CustomRenderTextureTarget>
     {
-        const string kAssetGuid = "5b2d4724a38a5485ba5e7dc2f7d86f1a"; // CustomTextureSubShader.cs
+        const string kAssetGuid = "5b2d4724a38a5485ba5e7dc2f7d86f1a"; // CustomTextureSubTarget.cs
 
         internal static FieldDescriptor colorField = new FieldDescriptor(String.Empty, "Color", string.Empty);
 
