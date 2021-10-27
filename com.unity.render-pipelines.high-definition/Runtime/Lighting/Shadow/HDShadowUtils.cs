@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deviceProjYFlip = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
             Matrix4x4 matrix = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
-            splitData.CullingMatrix = matrix;
+            splitData.cullingMatrix = matrix;
             return matrix;
         }
 
@@ -307,7 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < 6; i++)
                 splitData.SetCullingPlane(i, s_CachedPlanes[i]);
 
-            splitData.CullingMatrix = devProjView;
+            splitData.cullingMatrix = devProjView;
             return devProjView;
         }
 
