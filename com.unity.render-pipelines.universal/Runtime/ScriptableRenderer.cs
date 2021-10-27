@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (!(m_IsPipelineExecuting || isCameraColorTargetValid))
+                if (!m_IsPipelineExecuting)
                 {
                     Debug.LogError("You can only call cameraColorTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
                     return BuiltinRenderTextureType.None;
@@ -354,7 +354,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (!(m_IsPipelineExecuting || isCameraColorTargetValid))
+                if (!m_IsPipelineExecuting)
                 {
                     Debug.LogError("You can only call cameraColorTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
                     return null;
@@ -501,8 +501,6 @@ namespace UnityEngine.Rendering.Universal
         // The pipeline can only guarantee the camera target texture are valid when the pipeline is executing.
         // Trying to access the camera target before or after might be that the pipeline texture have already been disposed.
         bool m_IsPipelineExecuting = false;
-        // This should be removed when early camera color target assignment is removed.
-        internal bool isCameraColorTargetValid = false;
 
         // Temporary variable to disable custom passes using render pass ( due to it potentially breaking projects with custom render features )
         // To enable it - override SupportsNativeRenderPass method in the feature and return true
@@ -701,6 +699,10 @@ namespace UnityEngine.Rendering.Universal
             m_IsPipelineExecuting = true;
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
+
+            // Let renderer features call their own setup functions when targets are valid
+            if (rendererFeatures.Count != 0 && !renderingData.cameraData.isPreviewCamera)
+                SetupRenderPasses(in renderingData);
 
             CommandBuffer cmd = CommandBufferPool.Get();
 
@@ -932,7 +934,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRendererFeature.AddRenderPasses(ScriptableRenderer, ref RenderingData)"/>
         /// </summary>
         /// <param name="renderingData"></param>
-        protected void AddRenderPasses(ref RenderingData renderingData)
+        internal void AddRenderPasses(ref RenderingData renderingData)
         {
             using var profScope = new ProfilingScope(null, Profiling.addRenderPasses);
 

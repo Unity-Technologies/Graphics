@@ -376,7 +376,6 @@ namespace UnityEngine.Rendering.Universal
             if (isOffscreenDepthTexture)
             {
                 ConfigureCameraTarget(k_CameraTarget, k_CameraTarget);
-                AddRenderPasses(ref renderingData);
                 SetupRenderPasses(in renderingData);
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
@@ -400,8 +399,7 @@ namespace UnityEngine.Rendering.Universal
             bool isPreviewCamera = cameraData.isPreviewCamera;
             var createColorTexture = m_IntermediateTextureMode == IntermediateTextureMode.Always && !isPreviewCamera;
 
-            // Add render passes and gather the input requirements
-            AddRenderPasses(ref renderingData);
+            // Gather render passe input requirements
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
             // Should apply post-processing after rendering this camera?
@@ -922,9 +920,6 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_FinalDepthCopyPass);
             }
 #endif
-
-            if (rendererFeatures.Count != 0 && !isPreviewCamera)
-                SetupRenderPasses(in renderingData);
         }
 
         /// <inheritdoc />

@@ -415,10 +415,10 @@ namespace UnityEngine.Rendering.Universal
 
                 RTHandles.SetReferenceSize(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
 
+                renderer.AddRenderPasses(ref renderingData);
+
                 using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setup))
-                {
                     renderer.Setup(context, ref renderingData);
-                }
 
                 // Timing scope inside
                 renderer.Execute(context, ref renderingData);
