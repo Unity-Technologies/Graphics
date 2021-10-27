@@ -1012,7 +1012,7 @@ DirectLighting EvaluateBSDF_Line_MRP(LightLoopContext lightLoopContext,
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-#if 1
+#if 0
         // Ref: Moving Frostbite to PBR (Appendix E)
         // Solve the line lighting using the Most Representative Point detection method.
         // This is a stop-gap solution until further research is given to LTC support for anisotropic BSDFs.
@@ -1438,7 +1438,19 @@ DirectLighting EvaluateBSDF_Rect_MRP(LightLoopContext lightLoopContext,
             // Configure a theoretically placed point light at the most important position contributing the area light irradiance.
             float3 lightColor = lightData.color * solidAngle;
 
-            // TODO: Cookie
+            // Only apply cookie if there is one
+            if ( lightData.cookieMode != COOKIEMODE_NONE )
+            {
+                // Compute cookie's mip count.
+                const float cookieWidth = lightData.cookieScaleOffset.x * _CookieAtlasSize.x; // Guaranteed power of two.
+                const float cookieMips  = round(log2(cookieWidth));
+
+                // Get the 4x4 mip level.
+                const float cookieMip = cookieMips - 2;
+
+                // Sample the cookie as if it were a typical punctual light.
+                lightColor *= EvaluateCookie_Punctual(lightLoopContext, lightData, -unL, cookieMip).rgb;
+            }
 
             // Shadows
         #ifndef SKIP_RASTERIZED_AREA_SHADOWS

@@ -327,7 +327,7 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl"
 
 float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData light,
-                               float3 lightToSample)
+                               float3 lightToSample, float lod = 0)
 {
 #ifndef LIGHT_EVALUATION_NO_COOKIE
     int lightType = light.lightType;
@@ -363,7 +363,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         float2 positionNDC = positionCS * 0.5 + 0.5;
 
         // Manually clamp to border (black).
-        cookie.rgb = SampleCookie2D(positionNDC, light.cookieScaleOffset);
+        cookie.rgb = SampleCookie2D(positionNDC, light.cookieScaleOffset, lod);
         cookie.a   = isInBounds ? 1.0 : 0.0;
     }
 
