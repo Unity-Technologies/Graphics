@@ -1394,46 +1394,65 @@ DirectLighting EvaluateBSDF_Rect_MRP(LightLoopContext lightLoopContext,
             float solidAngle = RightPyramidSolidAngle(positionWS, lightData.positionRWS, halfWidth, halfHeight);
         #endif
 
-        #if 1
-            const float3 dh = ComputeViewFacingNormal(V, bsdfData.hairStrandDirectionWS);
+            float3 L;
 
-            // Intersect the dominant specular direction with the light plane.
-            float3 ph = RayPlaneIntersect(positionWS, dh, lightData.positionRWS, lightData.forward);
+            if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+            {
+                // Let's choose a dominant direction with the same philosophy as we have for marschner IBL, using the the vector in the
+                // tangent-camera plane that is orthogonal to the tangent. This provides well-behaved results (though not perfect)
+                // with respect to the reference, instead of the classic reflection vector.
+                const float3 dh = ComputeViewFacingNormal(V, bsdfData.hairStrandDirectionWS);
 
-            // Compute the closest position on the rectangle.
-            ph = RectangleClosestPoint(ph, lightData.positionRWS, -lightData.right, lightData.up, halfWidth, halfHeight);
+                // Intersect the dominant specular direction with the light plane.
+                float3 ph = RayPlaneIntersect(positionWS, dh, lightData.positionRWS, lightData.forward);
 
-            // Determine the dominant hemisphere direction based on the camera-light plane angle.
-            const float LdotV = max(dot(-lightData.forward, V), 0);
+                // Compute the closest position on the rectangle.
+                ph = RectangleClosestPoint(ph, lightData.positionRWS, -lightData.right, lightData.up, halfWidth, halfHeight);
 
-            // Construct the most representative direction.
-            // We must consider multiple specular lobes, on the backward (R, TRT) and forward (TT) scattering hemisphere.
-            // For the backward hemisphere we handle R and TRT similarly, and use the MRP result (based on the "fake" normal just like how we use it for IBL).
-            // For the forward hemisphere we need to approximate harsher. We can get away with falling back to the light center and modifying the roughness.
-            const float3 LBHemisphere = ph - positionWS;
-            const float3 LFHemisphere = unL;
-            const float3 L = SafeNormalize(lerp(LFHemisphere, LBHemisphere, LdotV));
+                // Determine the dominant hemisphere direction based on the camera-light plane angle.
+                const float LdotV = max(dot(-lightData.forward, V), 0);
 
-            // Modify the roughness for the forward hemisphere scattering.
-            // Slight hack as we weight the solid angle contribution by a fudge factor term to match the reference.
-            const float backwardHemisphereRoughnessFactor = 0.1;
-            const float roughnessTTPrime = saturate(bsdfData.roughnessTT + backwardHemisphereRoughnessFactor * solidAngle);
-            bsdfData.roughnessTT = lerp(roughnessTTPrime, bsdfData.roughnessTT, LdotV);
+                // Construct the most representative direction.
+                // We must consider multiple specular lobes, on the backward (R, TRT) and forward (TT) scattering hemisphere.
+                // For the backward hemisphere we handle R and TRT similarly, and use the MRP result (based on the "fake" normal just like how we use it for IBL).
+                // For the forward hemisphere we need to approximate harsher. We can get away with falling back to the light center and modifying the roughness.
+                const float3 LBHemisphere = ph - positionWS;
+                const float3 LFHemisphere = unL;
+                L = SafeNormalize(lerp(LFHemisphere, LBHemisphere, LdotV));
 
-            // Attempt at energy normalization for rectangular lights.
-            const float3 alpha = float3(
-                bsdfData.roughnessR,
-                bsdfData.roughnessTT,
-                bsdfData.roughnessTRT
-            );
+                // Define a factor here to weight the solid angle contribution term to match the reference as close as possible for varying sizes.
+                const float solidAngleFactor = 0.1;
+                const float roughnessTTPrime = saturate(bsdfData.roughnessTT + solidAngleFactor * solidAngle);
 
-            const float3 alphaPrime = saturate(alpha + solidAngle);
+                // Modify the roughness for the forward hemisphere scattering.
+                bsdfData.roughnessTT = lerp(roughnessTTPrime, bsdfData.roughnessTT, LdotV);
 
-            bsdfData.distributionNormalizationFactor = sqrt(alpha / alphaPrime);
-        #else
-            // For small area lights, this will visually match the reference exactly (as it is almost essentially a point light).
-            const float3 L = normalize(lightData.positionRWS - positionWS);
-        #endif
+                // Attempt at energy normalization for rectangular lights.
+                const float3 alpha = float3(
+                    bsdfData.roughnessR,
+                    bsdfData.roughnessTT,
+                    bsdfData.roughnessTRT
+                );
+
+                const float3 alphaPrime = saturate(alpha + solidAngle);
+
+                bsdfData.distributionNormalizationFactor = sqrt(alpha / alphaPrime);
+            }
+            else
+            {
+                // For Kajiya instead of MRP we just try to modulate the roughnesses by the solid angle.
+                // This isn't perfect for respecting the shape's orientation but generally good enough at widening the distribution for rects of varying size.
+                L = normalize(lightData.positionRWS - positionWS);
+
+                const float roughness1 = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+                const float roughness2 = PerceptualRoughnessToRoughness(bsdfData.secondaryPerceptualRoughness);
+
+                // Again, define a factor to fudge the solid angle to closely match the reference.
+                const float solidAngleFactor = 0.05;
+
+                bsdfData.specularExponent          = RoughnessToBlinnPhongSpecularExponent(saturate(roughness1 + solidAngleFactor * solidAngle));
+                bsdfData.secondarySpecularExponent = RoughnessToBlinnPhongSpecularExponent(saturate(roughness2 + solidAngleFactor * solidAngle));
+            }
 
             // Configure a theoretically placed point light at the most important position contributing the area light irradiance.
             float3 lightColor = lightData.color * solidAngle;
@@ -1500,11 +1519,13 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     }
     else
     {
-        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
-            // Falls back to the GGX LTC for Kajiya.
+            // TODO: Decide whether we would like to have an "improved area light" option that allows users to choose between the LTC and MRP evaluation.
+            //       (delete this comment before PR is merged).
+#if 0
             return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
-        else
+#else
             return EvaluateBSDF_Rect_MRP(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+#endif
     }
 }
 
