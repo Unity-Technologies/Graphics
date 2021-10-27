@@ -103,7 +103,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
-            GUI.changed = true;
         }
 
         bool DoesWriteMaskContainsReservedBits(Material material)
