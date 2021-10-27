@@ -153,7 +153,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             if (material.HasProperty(FullscreenUniforms.stencilEnableProperty))
             {
                 EditorGUI.BeginChangeCheck();
-                EditorGUI.BeginChangeCheck();
                 m_MaterialEditor.ShaderProperty(stencilEnable, Styles.stencil);
                 bool stencilEnableValue = stencilEnable.floatValue > 0.5f;
                 if (EditorGUI.EndChangeCheck())

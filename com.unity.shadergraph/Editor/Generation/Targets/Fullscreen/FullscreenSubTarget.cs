@@ -163,8 +163,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 {
                     result.Add(RenderState.Stencil(new StencilDescriptor { Ref = FullscreenUniforms.stencilReference, ReadMask = FullscreenUniforms.stencilReadMask, WriteMask = FullscreenUniforms.stencilWriteMask, Comp = FullscreenUniforms.stencilComparison, ZFail = FullscreenUniforms.stencilDepthFail, Fail = FullscreenUniforms.stencilFail, Pass = FullscreenUniforms.stencilPass }));
                 }
-
-                return result;
             }
             else
             {

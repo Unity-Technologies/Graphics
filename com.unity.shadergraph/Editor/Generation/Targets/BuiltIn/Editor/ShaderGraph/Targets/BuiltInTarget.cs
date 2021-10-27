@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         // Subtarget Data
         [SerializeField]
-        List<JsonData<JsonObject>> m_Datas = new List<JsonData<JsonObject>>();
+        List<JsonData<JsonObject>> m_SubTargetData = new List<JsonData<JsonObject>>();
 
         // View
         PopupField<string> m_SubTargetField;
@@ -458,9 +458,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         void ClearUnusedData()
         {
-            for (int i = 0; i < m_Datas.Count; i++)
+            for (int i = 0; i < m_SubTargetData.Count; i++)
             {
-                var data = m_Datas[i];
+                var data = m_SubTargetData[i];
                 var type = data.value.GetType();
 
                 // Data requirement interfaces need generic type arguments
@@ -477,11 +477,11 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 return;
 
             // Ensure data object exists in list
-            var data = m_Datas.SelectValue().FirstOrDefault(x => x.GetType().Equals(typeof(T))) as T;
+            var data = m_SubTargetData.SelectValue().FirstOrDefault(x => x.GetType().Equals(typeof(T))) as T;
             if (data == null)
             {
                 data = Activator.CreateInstance(typeof(T)) as T;
-                m_Datas.Add(data);
+                m_SubTargetData.Add(data);
             }
 
             // Apply data object to SubTarget
@@ -492,7 +492,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             if (!(subTarget is IRequiresData<T> requiresData))
             {
-                m_Datas.Remove(data);
+                m_SubTargetData.Remove(data);
             }
         }
 

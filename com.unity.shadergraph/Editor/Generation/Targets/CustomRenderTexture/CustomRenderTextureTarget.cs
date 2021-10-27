@@ -205,7 +205,7 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
 
             // Port Mask
             validVertexBlocks = new BlockFieldDescriptor[]
-        {
+            {
                 BlockFields.VertexDescription.Position,
                 BlockFields.VertexDescription.Normal,
                 BlockFields.VertexDescription.Tangent,
