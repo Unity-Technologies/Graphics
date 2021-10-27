@@ -156,7 +156,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     if (layers[layer].id == m_ApplyToSortingLayers[i])
                     {
-                        largestIndex = i;
+                        largestIndex = layers[layer].value;
                         largestLayer = layer;
                     }
                 }
