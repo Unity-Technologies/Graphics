@@ -214,9 +214,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     var light = lights[i];
 
                     var topMostLayer = light.GetTopMostLitLayer();
-                    if (layerToRender == topMostLayer)
+                    if (layerToRender >= topMostLayer)
                     {
-                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender))
+                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex)
                         {
                             var lightVolumeMaterial = pass.rendererData.GetLightMaterial(light, true);
                             if (lightVolumeMaterial != null)

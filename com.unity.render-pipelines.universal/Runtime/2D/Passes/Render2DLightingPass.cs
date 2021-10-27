@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmd.Clear();
                         if (lightStats.totalLights > 0)
                         {
-                            this.RenderLights(renderingData, cmd, layerToRender, lightStats.blendStylesUsed);
+                            this.RenderLights(renderingData, cmd, upperLayerInBatch, lightStats.blendStylesUsed);
                         }
                         else
                         {
@@ -183,7 +183,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         if (lightStats.totalVolumetricUsage > 0)
                         {
                             cmd.Clear();
-                            this.RenderLightVolumes(renderingData, cmd, layerToRender, colorAttachment, depthAttachment, lightStats.blendStylesUsed);
+                            this.RenderLightVolumes(renderingData, cmd, upperLayerInBatch, colorAttachment, depthAttachment, lightStats.blendStylesUsed);
                             context.ExecuteCommandBuffer(cmd);
                             cmd.Clear();
                         }

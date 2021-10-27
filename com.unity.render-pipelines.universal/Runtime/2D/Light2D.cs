@@ -138,10 +138,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
             }
 
-            if (largestIndex >= 0)
-                return m_ApplyToSortingLayers[largestIndex];
-            else
-                return -1;
+            return largestIndex;
         }
 
         internal void UpdateMesh()
