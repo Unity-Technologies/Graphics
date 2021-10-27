@@ -686,15 +686,27 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             });
 
             context.AddProperty("Depth Write", new Toggle { value = fullscreenData.depthWrite }, (evt) =>
-             {
-                 if (Equals(fullscreenData.depthWrite, evt.newValue))
-                     return;
+            {
+                if (Equals(fullscreenData.depthWrite, evt.newValue))
+                    return;
 
-                 registerUndo("Change Depth Test");
-                 fullscreenData.depthWrite = evt.newValue;
-                 onChange();
-             });
+                registerUndo("Change Depth Write");
+                fullscreenData.depthWrite = evt.newValue;
+                onChange();
+            });
 
+            if (fullscreenData.depthWrite || fullscreenData.depthTestMode != CompareFunction.Disabled)
+            {
+                context.AddProperty("Depth Write Mode", new EnumField(fullscreenData.depthWriteMode) { value = fullscreenData.depthWriteMode }, (evt) =>
+                {
+                    if (Equals(fullscreenData.depthWriteMode, evt.newValue))
+                        return;
+
+                    registerUndo("Change Depth Write Mode");
+                    fullscreenData.depthWriteMode = (FullscreenDepthWriteMode)evt.newValue;
+                    onChange();
+                });
+            }
         }
     }
 
