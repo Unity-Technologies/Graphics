@@ -218,6 +218,13 @@ namespace UnityEngine.VFX
                             var nextEvent = 0;
 
                             var fixedStep = VFXManager.maxDeltaTime;
+                            if (actualCurrentTime < expectedCurrentTime
+                                && expectedCurrentTime - actualCurrentTime > s_MaximumScrubbingTime)
+                            {
+                                //Choose a bigger time step to reach the actual expected time
+                                fixedStep = (float)((expectedCurrentTime - actualCurrentTime) * (double)VFXManager.maxDeltaTime / (double)s_MaximumScrubbingTime);
+                            }
+
                             while (actualCurrentTime < expectedCurrentTime)
                             {
                                 var currentEventIndex = kErrorIndex;

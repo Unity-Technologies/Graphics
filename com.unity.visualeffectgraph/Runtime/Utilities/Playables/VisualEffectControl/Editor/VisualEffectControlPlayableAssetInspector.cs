@@ -45,6 +45,8 @@ namespace UnityEditor.VFX
 
             VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.s_MaximumScrubbingTime
                 = EditorGUILayout.FloatField("Maximum Scrubbing Time", VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.s_MaximumScrubbingTime);
+            if (VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.s_MaximumScrubbingTime < VFXManager.fixedTimeStep * 10)
+                VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.s_MaximumScrubbingTime = VFXManager.fixedTimeStep * 10;
 
             var track = target as VisualEffectControlTrack;
             if (track == null)
