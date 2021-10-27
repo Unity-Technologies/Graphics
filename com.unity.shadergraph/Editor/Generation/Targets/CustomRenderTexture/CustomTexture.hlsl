@@ -73,7 +73,7 @@ float       CustomRenderTexturePrimitiveIDs[kCustomTextureBatchSize];
 float4      CustomRenderTextureParameters;
 #define     CustomRenderTextureUpdateSpace  CustomRenderTextureParameters.x // Normalized(0)/PixelSpace(1)
 #define     CustomRenderTexture3DTexcoordW  CustomRenderTextureParameters.y
-#define     CustomRenderTextureIs3D         CustomRenderTextureParameters.z == CRT_DIMENSION_3D
+#define     CustomRenderTextureIs3D         (CustomRenderTextureParameters.z == CRT_DIMENSION_3D)
 #define     CustomRenderTextureDimension    CustomRenderTextureParameters.z
 
 // User facing uniform variables
