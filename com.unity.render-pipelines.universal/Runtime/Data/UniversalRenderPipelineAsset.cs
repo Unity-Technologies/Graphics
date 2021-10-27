@@ -220,6 +220,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_ColorGradingLutSize = 32;
         [SerializeField] bool m_UseFastSRGBLinearConversion = false;
 
+        // Override Resource Settings
+        [SerializeField] UniversalRenderPipelineEditorResources m_CustomEditorResourcesAsset;
+
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
         [SerializeField] bool m_LocalShadowsSupported = false;
@@ -244,11 +247,10 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
 
 #if UNITY_EDITOR
-        [NonSerialized]
-        internal UniversalRenderPipelineEditorResources m_EditorResourcesAsset;
+        [NonSerialized] internal UniversalRenderPipelineEditorResources m_EditorResourcesAsset;
 
         public static readonly string packagePath = "Packages/com.unity.render-pipelines.universal";
-        public static readonly string editorResourcesGUID = "a3d8d823eedde654bb4c11a1cfaf1abb";
+        public static readonly string defaultEditorResourcesGUID = "a3d8d823eedde654bb4c11a1cfaf1abb";
 
         public static UniversalRenderPipelineAsset Create(ScriptableRendererData rendererData = null)
         {
@@ -322,7 +324,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Hide: User aren't suppose to have to create it.
-        //[MenuItem("Assets/Create/Rendering/URP Editor Resources", priority = CoreUtils.Sections.section8 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
+        [MenuItem("Assets/Create/Rendering/URP Editor Resources", priority = CoreUtils.Sections.section8 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateUniversalPipelineEditorResources()
         {
             var instance = CreateInstance<UniversalRenderPipelineEditorResources>();
@@ -334,10 +336,13 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
+                if (m_CustomEditorResourcesAsset != null && !m_CustomEditorResourcesAsset.Equals(null))
+                    return m_CustomEditorResourcesAsset;
+
                 if (m_EditorResourcesAsset != null && !m_EditorResourcesAsset.Equals(null))
                     return m_EditorResourcesAsset;
 
-                string resourcePath = AssetDatabase.GUIDToAssetPath(editorResourcesGUID);
+                string resourcePath = AssetDatabase.GUIDToAssetPath(defaultEditorResourcesGUID);
                 var objs = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
                 m_EditorResourcesAsset = objs != null && objs.Length > 0 ? objs.First() as UniversalRenderPipelineEditorResources : null;
                 return m_EditorResourcesAsset;
