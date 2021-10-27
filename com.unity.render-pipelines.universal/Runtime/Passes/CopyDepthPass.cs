@@ -53,8 +53,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (this.AllocateRT)
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
-            // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), descriptor.depthStencilFormat, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
+            // CopyDepth pass in XR targets XR eyeTexture for both color surface and depth surface
+            if(renderingData.cameraData.xr.enabled)
+            {
+                ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1));
+                renderTargetSampleCount = 1; // This hack is needed becasue current renderpass assumes sample count is always equal to camera target descriptor's msaa. This is not true for XR where eye texture msaa is 1 and intermedaite camera texture msaa could be 4
+            }
+            else
+            {
+                // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
+                ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), descriptor.depthStencilFormat, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
+            }            
             ConfigureClear(ClearFlag.None, Color.black);
         }
 

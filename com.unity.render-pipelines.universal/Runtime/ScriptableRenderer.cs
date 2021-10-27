@@ -167,7 +167,8 @@ namespace UnityEngine.Rendering.Universal
                 cameraWidth = (float)cameraData.cameraTargetDescriptor.width;
                 cameraHeight = (float)cameraData.cameraTargetDescriptor.height;
 
-                useRenderPassEnabled = false;
+                // Singlepass is required for renderpass API because skybox mutlipass is not compatible with renderpass API. See skybox pass for details.
+                useRenderPassEnabled = cameraData.xr.singlePassEnabled;
             }
 
             if (camera.allowDynamicResolution)

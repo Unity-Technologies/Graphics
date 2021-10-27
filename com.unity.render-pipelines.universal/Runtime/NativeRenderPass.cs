@@ -158,6 +158,7 @@ namespace UnityEngine.Rendering.Universal
 
                 ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
 
+                // does not work for XR
                 var samples = pass.renderTargetSampleCount != -1
                     ? pass.renderTargetSampleCount
                     : cameraData.cameraTargetDescriptor.msaaSamples;

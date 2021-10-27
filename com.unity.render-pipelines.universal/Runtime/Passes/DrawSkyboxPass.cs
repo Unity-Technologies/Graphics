@@ -72,6 +72,7 @@ namespace UnityEngine.Rendering.Universal
                     context.DrawSkybox(camera);
 
                     // XRTODO: remove this call because it creates issues with nested profiling scopes
+                    // XRTODO: remove this call because it creates isseus with renderpass API causing endpass call not matching beginpass
                     // See examples in UniversalRenderPipeline.RenderSingleCamera() and in ScriptableRenderer.Execute()
                     context.Submit(); // Submit and execute the skybox pass before resetting the matrices
 
