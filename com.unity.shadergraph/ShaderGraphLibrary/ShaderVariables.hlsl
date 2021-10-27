@@ -23,6 +23,7 @@
     #define unity_MatrixV unity_StereoMatrixV[unity_StereoEyeIndex]
     #define unity_MatrixInvV unity_StereoMatrixInvV[unity_StereoEyeIndex]
     #define unity_MatrixVP unity_StereoMatrixVP[unity_StereoEyeIndex]
+    #define unity_MatrixPrevVP unity_StereoMatrixPrevVP[unity_StereoEyeIndex]
 
     #define unity_CameraProjection unity_StereoCameraProjection[unity_StereoEyeIndex]
     #define unity_CameraInvProjection unity_StereoCameraInvProjection[unity_StereoEyeIndex]
@@ -141,6 +142,7 @@ CBUFFER_START(UnityStereoGlobals)
     float4x4 unity_StereoMatrixV[2];
     float4x4 unity_StereoMatrixInvV[2];
     float4x4 unity_StereoMatrixVP[2];
+    float4x4 unity_StereoMatrixPrevVP[2];
 
     float4x4 unity_StereoCameraProjection[2];
     float4x4 unity_StereoCameraInvProjection[2];

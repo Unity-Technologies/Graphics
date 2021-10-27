@@ -44,6 +44,7 @@ namespace UnityEngine.Rendering.Universal
         TileDepthRangePass m_TileDepthRangePass;
         TileDepthRangePass m_TileDepthRangeExtraPass; // TODO use subpass API to hide this pass
         DeferredPass m_DeferredPass;
+        OculusMotionVectorPass m_OculusMotionVecPass;
         DrawObjectsPass m_RenderOpaqueForwardOnlyPass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawSkyboxPass m_DrawSkyboxPass;
@@ -162,6 +163,8 @@ namespace UnityEngine.Rendering.Universal
                 m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 4, m_DeferredLights, 1);
                 m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 5, m_DeferredLights);
             }
+
+            m_OculusMotionVecPass = new OculusMotionVectorPass(URPProfileId.DrawMVOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
 
             // Always create this pass even in deferred because we use it for wireframe rendering in the Editor or offscreen depth texture rendering.
             m_RenderOpaqueForwardPass = new DrawObjectsPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
@@ -424,6 +427,19 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.hasValidOcclusionMesh)
                 EnqueuePass(m_XROcclusionMeshPass);
+#endif
+
+#if !UNITY_EDITOR
+            if (cameraData.xr.motionVectorRenderTargetValid)
+            {
+                RenderTargetHandle motionVecHandle = new RenderTargetHandle(cameraData.xr.motionVectorRenderTarget);
+                var rtMotionId = motionVecHandle.Identifier();
+                rtMotionId = new RenderTargetIdentifier(rtMotionId, 0, CubemapFace.Unknown, -1);
+
+                // ID is the same since a RenderTexture encapsulates all the attachments, including both color+depth.
+                m_OculusMotionVecPass.Setup(rtMotionId, rtMotionId);
+                EnqueuePass(m_OculusMotionVecPass);
+            }
 #endif
 
             if (this.actualRenderingMode == RenderingMode.Deferred)

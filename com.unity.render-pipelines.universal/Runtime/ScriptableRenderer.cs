@@ -918,10 +918,13 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                     if (cameraData.xr.enabled)
                     {
+                        bool isOculusMotionVec = renderPass is Internal.OculusMotionVectorPass;
+
                         // SetRenderTarget might alter the internal device state(winding order).
                         // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                        bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
-                        cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
+                        bool isRenderToBackBufferTarget = ((passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture) ||
+                                ((passColorAttachment == cameraData.xr.motionVectorRenderTarget) && !cameraData.xr.motionVectorRenderTargetIsRenderTexture);
+                        cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget, isOculusMotionVec);
                     }
 #endif
                 }

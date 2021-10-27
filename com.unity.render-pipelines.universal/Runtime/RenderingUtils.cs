@@ -132,6 +132,7 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int UNITY_STEREO_MATRIX_P = Shader.PropertyToID("unity_StereoMatrixP");
         internal static readonly int UNITY_STEREO_MATRIX_IP = Shader.PropertyToID("unity_StereoMatrixInvP");
         internal static readonly int UNITY_STEREO_MATRIX_VP = Shader.PropertyToID("unity_StereoMatrixVP");
+        internal static readonly int UNITY_STEREO_MATRIX_PREV_VP = Shader.PropertyToID("unity_StereoMatrixPrevVP");
         internal static readonly int UNITY_STEREO_MATRIX_IVP = Shader.PropertyToID("unity_StereoMatrixInvVP");
         internal static readonly int UNITY_STEREO_CAMERA_PROJECTION = Shader.PropertyToID("unity_StereoCameraProjection");
         internal static readonly int UNITY_STEREO_CAMERA_INV_PROJECTION = Shader.PropertyToID("unity_StereoCameraInvProjection");
@@ -141,6 +142,8 @@ namespace UnityEngine.Rendering.Universal
         internal class StereoConstants
         {
             public Matrix4x4[] viewProjMatrix = new Matrix4x4[2];
+            public Matrix4x4[] mvViewProjMatrix = new Matrix4x4[2];
+            public Matrix4x4[] prevMVViewProjMatrix = new Matrix4x4[2];
             public Matrix4x4[] invViewMatrix = new Matrix4x4[2];
             public Matrix4x4[] invProjMatrix = new Matrix4x4[2];
             public Matrix4x4[] invViewProjMatrix = new Matrix4x4[2];
@@ -161,11 +164,18 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraProjectionMatrix">Camera projection matrix to be set.Array size is 2. Does not include platform specific transformations such as depth-reverse, depth range in post-projective space and y-flip. </param>
         /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
         /// <returns>Void</c></returns>
-        internal static void SetStereoViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4[] viewMatrix, Matrix4x4[] projMatrix, Matrix4x4[] cameraProjMatrix, bool setInverseMatrices)
+        internal static void SetStereoViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4[] viewMatrix, Matrix4x4[] projMatrix, Matrix4x4[] cameraProjMatrix, bool setInverseMatrices, bool prevViewValid, Matrix4x4[] prevViewMatrix, bool isOculusMotionVec = false)
         {
+            if (isOculusMotionVec)
+                stereoConstants.mvViewProjMatrix.CopyTo(stereoConstants.prevMVViewProjMatrix, 0);
+
             for (int i = 0; i < 2; i++)
             {
                 stereoConstants.viewProjMatrix[i] = projMatrix[i] * viewMatrix[i];
+                if (prevViewValid)
+                    stereoConstants.prevMVViewProjMatrix[i] = projMatrix[i] * prevViewMatrix[i];
+                if (isOculusMotionVec)
+                    stereoConstants.mvViewProjMatrix[i] = projMatrix[i] * viewMatrix[i];
                 stereoConstants.invViewMatrix[i] = Matrix4x4.Inverse(viewMatrix[i]);
                 stereoConstants.invProjMatrix[i] = Matrix4x4.Inverse(projMatrix[i]);
                 stereoConstants.invViewProjMatrix[i] = Matrix4x4.Inverse(stereoConstants.viewProjMatrix[i]);
@@ -176,6 +186,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_V, viewMatrix);
             cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_P, projMatrix);
             cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_VP, stereoConstants.viewProjMatrix);
+            if (isOculusMotionVec)
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_PREV_VP, stereoConstants.prevMVViewProjMatrix);
 
             cmd.SetGlobalMatrixArray(UNITY_STEREO_CAMERA_PROJECTION, cameraProjMatrix);
             
