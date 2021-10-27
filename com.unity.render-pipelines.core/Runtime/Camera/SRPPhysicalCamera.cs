@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering
     /// Holds the physical settings set on cameras.
     /// </summary>
     [Serializable]
-    public struct SRPPhysicalCamera
+    public class SRPPhysicalCamera
     {
         /// <summary>
         /// The minimum allowed aperture.
@@ -134,15 +134,17 @@ namespace UnityEngine.Rendering
         /// <returns>Returns a set of default physical camera parameters.</returns>
         public static SRPPhysicalCamera GetDefaults()
         {
-            SRPPhysicalCamera val = new SRPPhysicalCamera();
-            val.iso = 200;
-            val.shutterSpeed = 1f / 200f;
-            val.aperture = 16;
-            val.focusDistance = 10;
-            val.bladeCount = 5;
-            val.curvature = new Vector2(2f, 11f);
-            val.barrelClipping = 0.25f;
-            val.anamorphism = 0;
+            SRPPhysicalCamera val = new SRPPhysicalCamera
+            {
+                iso = 200,
+                shutterSpeed = 1f / 200f,
+                aperture = 16,
+                focusDistance = 10,
+                bladeCount = 5,
+                curvature = new Vector2(2f, 11f),
+                barrelClipping = 0.25f,
+                anamorphism = 0
+            };
 
             return val;
         }

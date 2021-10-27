@@ -5,6 +5,31 @@ using UnityEngine.Serialization;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
+    /// Holds the physical settings set on cameras.
+    /// </summary>
+    [Serializable]
+    [Obsolete("Use SRPPhysicalCamera instead", false)]
+    public class HDPhysicalCamera : SRPPhysicalCamera
+    {
+        public static HDPhysicalCamera GetDefaults()
+        {
+            HDPhysicalCamera val = new HDPhysicalCamera
+            {
+                iso = 200,
+                shutterSpeed = 1f / 200f,
+                aperture = 16,
+                focusDistance = 10,
+                bladeCount = 5,
+                curvature = new Vector2(2f, 11f),
+                barrelClipping = 0.25f,
+                anamorphism = 0
+            };
+
+            return val;
+        }
+    }
+
+    /// <summary>
     /// Additional component that holds HDRP specific parameters for Cameras.
     /// </summary>
     [HDRPHelpURLAttribute("HDRP-Camera")]
@@ -184,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Physical camera parameters.</summary>
         [ValueCopy] // reference should not be same. only content.
-        public SRPPhysicalCamera physicalParameters = SRPPhysicalCamera.GetDefaults();
+        public HDPhysicalCamera physicalParameters = HDPhysicalCamera.GetDefaults();
 
         /// <summary>Vertical flip mode.</summary>
         public FlipYMode flipYMode;
