@@ -44,8 +44,6 @@ namespace UnityEditor.VFX
     [CustomPropertyDrawer(typeof(UnityEngine.VFX.EventAttributes))]
     class EventAttributesDrawer : PropertyDrawer
     {
-        private ReorderableList m_ReordableList;
-
         public override bool CanCacheInspectorGUI(SerializedProperty property)
         {
             return false;
@@ -53,9 +51,38 @@ namespace UnityEditor.VFX
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            BuildReordableList(property);
-            return m_ReordableList.GetHeight();
+            var reordableList = VisualEffectControlPlayableAssetInspector.GetOrBuildEventAttributeList(property.serializedObject.targetObject as VisualEffectControlPlayableAsset, property);
+
+            if (reordableList != null)
+                return reordableList.GetHeight();
+
+            return 0.0f;
         }
+
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            var reordableList = VisualEffectControlPlayableAssetInspector.GetOrBuildEventAttributeList(property.serializedObject.targetObject as VisualEffectControlPlayableAsset, property);
+            if (reordableList != null)
+            {
+                EditorGUI.BeginChangeCheck();
+                reordableList.DoList(position);
+                if (EditorGUI.EndChangeCheck())
+                    property.serializedObject.ApplyModifiedProperties();
+            }
+        }
+    }
+
+    [CustomEditor(typeof(VisualEffectControlPlayableAsset))]
+    class VisualEffectControlPlayableAssetInspector : Editor
+    {
+        SerializedProperty scrubbingProperty;
+        SerializedProperty startSeedProperty;
+
+        ReorderableList m_ReoderableClipEvents;
+        ReorderableList m_ReoderableSingleEvents;
+
+        static private List<(VisualEffectControlPlayableAsset asset, VisualEffectControlPlayableAssetInspector inspector)> s_RegisteredInspector = new List<(VisualEffectControlPlayableAsset asset, VisualEffectControlPlayableAssetInspector inspector)>();
+        Dictionary<string, ReorderableList> m_CacheEventAttributes = new Dictionary<string, ReorderableList>();
 
         private static readonly (Type type, Type valueType)[] kEventAttributeSpecialization = GetEventAttributeSpecialization().ToArray();
 
@@ -100,16 +127,21 @@ namespace UnityEditor.VFX
 
         private static readonly (string name, Type type)[] kAvailableAttributes = GetAvailableAttributes().ToArray();
 
-        void BuildReordableList(SerializedProperty property)
+        public static ReorderableList GetOrBuildEventAttributeList(VisualEffectControlPlayableAsset asset, SerializedProperty property)
         {
-            if (m_ReordableList == null)
+            var inspector = s_RegisteredInspector.FirstOrDefault(o => o.asset == asset).inspector;
+            if (inspector == null)
+                return null;
+
+            var path = property.propertyPath;
+            if (!inspector.m_CacheEventAttributes.TryGetValue(path, out var reorderableList))
             {
                 var emptyGUIContent = new GUIContent(string.Empty);
 
                 var contentProperty = property.FindPropertyRelative(nameof(UnityEngine.VFX.EventAttributes.content));
-                m_ReordableList = new ReorderableList(property.serializedObject, contentProperty, true, true, true, true);
-                m_ReordableList.drawHeaderCallback += (Rect r) => { EditorGUI.LabelField(r, "Attributes"); };
-                m_ReordableList.onAddDropdownCallback += (Rect buttonRect, ReorderableList list) =>
+                reorderableList = new ReorderableList(property.serializedObject, contentProperty, true, true, true, true);
+                reorderableList.drawHeaderCallback += (Rect r) => { EditorGUI.LabelField(r, "Attributes"); };
+                reorderableList.onAddDropdownCallback += (Rect buttonRect, ReorderableList list) =>
                 {
                     var menu = new GenericMenu();
                     foreach (var option in kAvailableAttributes)
@@ -128,7 +160,7 @@ namespace UnityEditor.VFX
                     menu.ShowAsContext();
                 };
 
-                m_ReordableList.drawElementCallback += (Rect rect, int index, bool isActive, bool isFocused) =>
+                reorderableList.drawElementCallback += (Rect rect, int index, bool isActive, bool isFocused) =>
                 {
                     SerializedProperty attributeProperty = contentProperty.GetArrayElementAtIndex(index);
                     SerializedProperty attributeName = null, attributeValue = null;
@@ -165,33 +197,128 @@ namespace UnityEditor.VFX
                         EditorGUI.PropertyField(valueRect, attributeValue, emptyGUIContent);
                     }
                 };
+
+                inspector.m_CacheEventAttributes.Add(path, reorderableList);
             }
+            return reorderableList;
         }
 
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        private void OnDisable()
         {
-            BuildReordableList(property);
-
-            EditorGUI.BeginChangeCheck();
-            m_ReordableList.DoList(position);
-            if (EditorGUI.EndChangeCheck())
-                property.serializedObject.ApplyModifiedProperties();
+            s_RegisteredInspector.RemoveAll(o => o.inspector == this);
         }
-    }
 
-    [CustomEditor(typeof(VisualEffectControlPlayableAsset))]
-    class VisualEffectControlPlayableAssetInspector : Editor
-    {
-        private SerializedProperty scrubbingProperty;
-        private SerializedProperty startSeedProperty;
-        private SerializedProperty clipEventsProperty;
-        private SerializedProperty singleEventsProperty;
+        ReorderableList BuildEventReordableList(SerializedObject serializedObject, SerializedProperty property)
+        {
+            var reordableList = new ReorderableList(serializedObject, property, true, true, true, true);
+            reordableList.elementHeightCallback += (int index) =>
+            {
+                var clipEvent = property.GetArrayElementAtIndex(index);
+                return EditorGUI.GetPropertyHeight(clipEvent, true);
+            };
+
+            reordableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+            {
+                var clipEvent = property.GetArrayElementAtIndex(index);
+                var newRect = rect;
+                newRect.x += 8;
+                EditorGUI.PropertyField(newRect, clipEvent, true);
+            };
+            return reordableList;
+        }
+
+        private static EventAttribute[] DeepClone(EventAttribute[] source)
+        {
+            if (source == null)
+                return new EventAttribute[0];
+
+            var newEventAttributeArray = new EventAttribute[source.Length];
+            for (int i = 0; i < newEventAttributeArray.Length; ++i)
+            {
+                var reference = source[i];
+                if (reference != null)
+                {
+                    var referenceType = reference.GetType();
+                    var copy = (EventAttribute)Activator.CreateInstance(referenceType);
+                    copy.id = reference.id;
+                    var valueField = referenceType.GetField(nameof(EventAttributeValue<byte>.value));
+                    valueField.SetValue(copy, valueField.GetValue(reference));
+                    newEventAttributeArray[i] = copy;
+                }
+            }
+            return newEventAttributeArray;
+        }
+
         private void OnEnable()
         {
+            s_RegisteredInspector.Add((target as VisualEffectControlPlayableAsset, this));
+
             scrubbingProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.scrubbing));
             startSeedProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.startSeed));
-            clipEventsProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.clipEvents));
-            singleEventsProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.singleEvents));
+
+            var clipEventsProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.clipEvents));
+            var singleEventsProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.singleEvents));
+
+            m_ReoderableClipEvents = BuildEventReordableList(serializedObject, clipEventsProperty);
+            m_ReoderableClipEvents.drawHeaderCallback += (Rect r) => { EditorGUI.LabelField(r, "Clip Events"); };
+            m_ReoderableClipEvents.onAddCallback = (ReorderableList list) =>
+            {
+                var playable = clipEventsProperty.serializedObject.targetObject as VisualEffectControlPlayableAsset;
+                Undo.RegisterCompleteObjectUndo(playable, "Add new clip event");
+                clipEventsProperty.serializedObject.ApplyModifiedProperties();
+
+                var newClipEvent = new VisualEffectControlPlayableAsset.ClipEvent();
+                if (playable.clipEvents.Any())
+                {
+                    var last = playable.clipEvents.Last();
+                    newClipEvent = last;
+                    newClipEvent.enter.eventAttributes = new UnityEngine.VFX.EventAttributes()
+                    {
+                        content = DeepClone(last.enter.eventAttributes.content)
+                    };
+                    newClipEvent.exit.eventAttributes = new UnityEngine.VFX.EventAttributes()
+                    {
+                        content = DeepClone(last.exit.eventAttributes.content)
+                    };
+                }
+                else
+                {
+                    newClipEvent.enter.eventAttributes = new UnityEngine.VFX.EventAttributes();
+                    newClipEvent.enter.name = VisualEffectAsset.PlayEventName;
+                    newClipEvent.enter.time = 0.0;
+                    newClipEvent.enter.timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart;
+
+                    newClipEvent.exit.eventAttributes = new UnityEngine.VFX.EventAttributes();
+                    newClipEvent.exit.name = VisualEffectAsset.StopEventName;
+                    newClipEvent.exit.time = 0.0;
+                    newClipEvent.exit.timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd;
+                }
+                playable.clipEvents.Add(newClipEvent);
+                clipEventsProperty.serializedObject.Update();
+            };
+
+            m_ReoderableSingleEvents = BuildEventReordableList(serializedObject, singleEventsProperty);
+            m_ReoderableSingleEvents.drawHeaderCallback += (Rect r) => { EditorGUI.LabelField(r, "Single Events"); };
+            m_ReoderableSingleEvents.onAddCallback = (ReorderableList list) =>
+            {
+                var playable = singleEventsProperty.serializedObject.targetObject as VisualEffectControlPlayableAsset;
+                Undo.RegisterCompleteObjectUndo(playable, "Add new single event");
+                singleEventsProperty.serializedObject.ApplyModifiedProperties();
+
+                var newSingleEvent = new VisualEffectPlayableSerializedEvent();
+                if (playable.singleEvents.Any())
+                {
+                    var last = playable.singleEvents.Last();
+                    newSingleEvent = last;
+                    newSingleEvent.eventAttributes = new UnityEngine.VFX.EventAttributes()
+                    {
+                        content = DeepClone(last.eventAttributes.content)
+                    };
+                }
+
+                playable.singleEvents.Add(newSingleEvent);
+                singleEventsProperty.serializedObject.Update();
+            };
         }
 
         public override void OnInspectorGUI()
@@ -201,10 +328,14 @@ namespace UnityEditor.VFX
             EditorGUILayout.PropertyField(scrubbingProperty);
             if (scrubbingProperty.boolValue)
                 EditorGUILayout.PropertyField(startSeedProperty);
-            EditorGUILayout.PropertyField(clipEventsProperty);
-            EditorGUILayout.PropertyField(singleEventsProperty);
 
-            serializedObject.ApplyModifiedProperties();
+            EditorGUI.BeginChangeCheck();
+            m_ReoderableClipEvents.DoLayoutList();
+            m_ReoderableSingleEvents.DoLayoutList();
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+            }
         }
     }
 }
