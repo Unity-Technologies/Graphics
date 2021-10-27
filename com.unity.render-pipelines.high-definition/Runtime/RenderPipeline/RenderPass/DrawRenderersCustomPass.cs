@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Comparison operation between the stencil buffer and the reference value.
         /// </summary>
-        public CompareFunction stencilCompareFunction;
+        public CompareFunction stencilCompareFunction = CompareFunction.Always;
 
         /// <summary>
         /// Operation to execute if the stencil test passes.
@@ -194,6 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 depthState = new DepthState(depthWrite, depthCompareFunction),
                 // We disable the stencil when the depth is overwritten but we don't write to it, to prevent writing to the stencil.
                 stencilState = new StencilState(overrideStencil, (byte)stencilReadMask, (byte)stencilWriteMask, stencilCompareFunction, stencilPassOperation, stencilFailOperation, stencilDepthFailOperation),
+                stencilReference = overrideStencil ? stencilReferenceValue : 0,
             };
 
             PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.GetBakedLightingWithShadowMaskRenderConfig() : HDUtils.GetBakedLightingRenderConfig();
