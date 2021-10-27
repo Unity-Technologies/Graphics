@@ -189,7 +189,7 @@ namespace UnityEngine.VFX
                             var eventCount = eventList.Count();
                             var nextEvent = 0;
 
-                            var fixedStep = VFXManager.maxDeltaTime; //TODOPAUL, reduce the interval in case of paused ?
+                            var fixedStep = VFXManager.maxDeltaTime;
                             while (actualCurrentTime < expectedCurrentTime)
                             {
                                 var currentEventIndex = kErrorIndex;
