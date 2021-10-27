@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Collections.Generic;
 using UnityEngine.Serialization;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
@@ -390,10 +389,12 @@ namespace UnityEngine.Rendering.Universal
 
         private void Awake()
         {
-        	// Default target sorting layers to "All"
+#if UNITY_EDITOR
+            // Default target sorting layers to "All"
             if (m_ApplyToSortingLayers == null)
                 m_ApplyToSortingLayers = SortingLayer.layers.Select(x => x.id).ToArray();
-                
+#endif
+
             if (m_LightCookieSprite != null)
             {
                 bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
