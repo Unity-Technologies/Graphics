@@ -1,25 +1,35 @@
-namespace UnityEditor.Rendering
+namespace UnityEditor.Experimental.Rendering
 {
     internal class SerializedProbeVolume
     {
         internal SerializedProperty probeVolumeParams;
 
+        internal SerializedProperty globalVolume;
         internal SerializedProperty size;
+        internal SerializedProperty overridesSubdivision;
+        internal SerializedProperty highestSubdivisionLevelOverride;
+        internal SerializedProperty lowestSubdivisionLevelOverride;
+        internal SerializedProperty objectLayerMask;
+        internal SerializedProperty geometryDistanceOffset;
 
-        SerializedObject m_SerializedObject;
+        internal SerializedObject serializedObject;
 
-        internal SerializedProbeVolume(SerializedObject serializedObject)
+        internal SerializedProbeVolume(SerializedObject obj)
         {
-            m_SerializedObject = serializedObject;
+            serializedObject = obj;
 
-            probeVolumeParams = m_SerializedObject.FindProperty("parameters");
-
-            size = probeVolumeParams.FindPropertyRelative("size");
+            globalVolume = serializedObject.FindProperty("globalVolume");
+            size = serializedObject.FindProperty("size");
+            objectLayerMask = serializedObject.FindProperty("objectLayerMask");
+            geometryDistanceOffset = serializedObject.FindProperty("geometryDistanceOffset");
+            highestSubdivisionLevelOverride = serializedObject.FindProperty("highestSubdivLevelOverride");
+            lowestSubdivisionLevelOverride = serializedObject.FindProperty("lowestSubdivLevelOverride");
+            overridesSubdivision = serializedObject.FindProperty("overridesSubdivLevels");
         }
 
         internal void Apply()
         {
-            m_SerializedObject.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }

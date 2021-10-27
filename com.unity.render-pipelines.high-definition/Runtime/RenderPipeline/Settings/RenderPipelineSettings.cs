@@ -94,9 +94,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
                 supportDecals = true,
                 supportDecalLayers = false,
+                supportSurfaceGradient = true,
+                decalNormalBufferHP = false,
                 msaaSampleCount = MSAASamples.None,
                 supportMotionVectors = true,
-                supportRuntimeDebugDisplay = false,
                 supportRuntimeAOVAPI = false,
                 supportDitheringCrossFade = true,
                 supportTerrainHole = false,
@@ -121,6 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
                 supportProbeVolume = false,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
+                supportProbeVolumeStreaming = false,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
             return settings;
@@ -251,6 +253,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportDecals;
         /// <summary>Support decal Layers.</summary>
         public bool supportDecalLayers;
+        /// <summary>Support surface gradient for decal normal blending.</summary>
+        public bool supportSurfaceGradient;
+        /// <summary>High precision normal buffer.</summary>
+        public bool decalNormalBufferHP;
         /// <summary>Name for decal layer 0.</summary>
         public string decalLayerName0
         {
@@ -300,9 +306,10 @@ namespace UnityEngine.Rendering.HighDefinition
             set { HDRenderPipelineGlobalSettings.instance.decalLayerName7 = value; }
         }
 
-        /// <summary>Number of samples when using MSAA.</summary>
+        /// <summary>Default Number of samples when using MSAA.</summary>
         public MSAASamples msaaSampleCount;
         /// <summary>Support MSAA.</summary>
+        [Obsolete]
         public bool supportMSAA => msaaSampleCount != MSAASamples.None;
 
         // Returns true if the output of the rendering passes support an alpha channel
@@ -313,8 +320,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Support motion vectors.</summary>
         public bool supportMotionVectors;
+
         /// <summary>Support runtime debug display.</summary>
-        public bool supportRuntimeDebugDisplay;
+        public bool supportRuntimeDebugDisplay
+        {
+            get => HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
+            set => HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay = value;
+        }
         /// <summary>Support runtime AOV API.</summary>
         public bool supportRuntimeAOVAPI;
         /// <summary>Support dithered cross-fade.</summary>
@@ -325,6 +337,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportProbeVolume;
         /// <summary>Support Probe Volumes.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+        /// <summary>Support Streaming for Probe Volumes.</summary>
+        public bool supportProbeVolumeStreaming;
         /// <summary>Probe Volumes SH Bands.</summary>
         public ProbeVolumeSHBands probeVolumeSHBands;
 
@@ -360,7 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Global lighting quality settings.</summary>
         public GlobalLightingQualitySettings lightingQualitySettings;
 
-    #pragma warning disable 618 // Type or member is obsolete
+#pragma warning disable 618 // Type or member is obsolete
         [Obsolete("For data migration")]
         internal bool m_ObsoleteincreaseSssSampleCount;
 
@@ -413,6 +427,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         [FormerlySerializedAs("decalLayerName7"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteDecalLayerName7;
-    #pragma warning restore 618
+
+        [SerializeField]
+        [FormerlySerializedAs("supportRuntimeDebugDisplay"), Obsolete("Moved to HDGlobal Settings")]
+        internal bool m_ObsoleteSupportRuntimeDebugDisplay;
+#pragma warning restore 618
     }
 }

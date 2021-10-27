@@ -4,22 +4,42 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [12.0.0] - 2021-01-11
+## [13.1.1] - 2021-10-04
 
-### Changed
-- ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
+### Added
+- Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
+- Added DebugFrameTiming class that can be used by render pipelines to display CPU/GPU frame timings and bottlenecks in Rendering Debugger.
+- Added new DebugUI widget types: ProgressBarValue and ValueTuple
+
+## [13.1.0] - 2021-09-24
+
+### Added
+- Debug Panels Framework See `IDebugDisplaySettingsQuery`.
 
 ### Fixed
-- Fixed missing warning UI about Projector component being unsupported (case 1300327).
-- Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
-- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
-- Problem on domain reload of Volume Parameter Ranges and UI values
-- Fixed Right Align of additional properties on Volume Components Editors
-- Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
+- Fixed keyword and float property upgrading in SpeedTree8MaterialUpgrader
+
+## [13.0.0] - 2021-09-01
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+### Added
+- New `IVolumeDebugSettings` interface and `VolumeDebugSettings<T>` class that stores the information for the Volumes Debug Panel.
+- Added AMD FidelityFX shaders which were originally in HDRP
+- Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
+
+### Fixed
+- Fixed black pixel issue in AMD FidelityFX RCAS implementation
+- Fixed a critical issue on android devices & lens flares. Accidentally creating a 16 bit texture was causing gpus not supporting them to fail.
+- Fixed serialization of DebugStateFlags, the internal Enum was not being serialized.
+
+## [12.0.0] - 2021-01-11
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
 - Support for additional properties for Volume Components without custom editor
+- Added VolumeComponentMenuForRenderPipelineAttribute to specify a volume component only for certain RenderPipelines.
 - Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
 - Support for the PlayStation 5 platform has been added.
 - Support for the XboxSeries platform has been added.
@@ -27,15 +47,75 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New method DrawHeaders for VolumeComponentsEditors
 - Unification of Material Editor Headers Scopes
 - New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
-- Added a blitter for the SRPs.
-- Added 2D texture atlases.
+- Added helper for Volumes (Enable All Overrides, Disable All Overrides, Remove All Overrides).
+- Added a blitter utility class. Moved from HDRP to RP core.
+- Added a realtime 2D texture atlas utility classes. Moved from HDRP to RP core.
 - New methods on CoreEditorDrawers, to allow adding a label on a group before rendering the internal drawers
 - Method to generate a Texture2D of 1x1 with a plain color
 - Red, Green, Blue Texture2D on CoreEditorStyles
 - New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
+- Added SpeedTree8MaterialUpgrader, which provides utilities for upgrading and importing SpeedTree 8 assets to scriptable render pipelines.
+- Adding documentation links to Light Sections
+- Support for Lens Flare Data Driven (from images and Procedural shapes), on HDRP
+- New SRPLensFlareData Asset
+- Adding documentation links to Light Sections.
+- Added sampling noise to probe volume sampling position to hide seams between subdivision levels.
+- Added DebugUI.Foldout.isHeader property to allow creating full-width header foldouts in Rendering Debugger.
+- Added DebugUI.Flags.IsHidden to allow conditional display of widgets in Rendering Debugger.
+- Added "Expand/Collapse All" buttons to Rendering Debugger window menu.
+- Added mouse & touch input support for Rendering Debugger runtime UI, and fix problems when InputSystem package is used.
+- Add automatic spaces to enum display names used in Rendering Debugger and add support for InspectorNameAttribute.
+- Adding new API functions inside DynamicResolutionHandler to get mip bias. This allows dynamic resolution scaling applying a bias on the frame to improve on texture sampling detail.
+- Added a reminder if the data of probe volume might be obsolete.
+- Added new API function inside DynamicResolutionHandler and new settings in GlobalDynamicResolutionSettings to control low res transparency thresholds. This should help visuals when the screen percentage is too low.
+- Added common include file for meta pass functionality (case 1211436)
+- Added OverridablePropertyScope (for VolumeComponentEditor child class only) to handle the Additional Property, the override checkbox and disable display and decorator attributes in one scope.
+- Added IndentLevelScope (for VolumeComponentEditor child class only) to handle indentation of the field and the checkbox.
+- Added an option to change the visibilty of the Volumes Gizmos (Solid, Wireframe, Everything), available at Preferences > Core Render Pipeline
+- Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
+- Added UNITY_PREV_MATRIX_M and UNITY_PREV_MATRIX_I_M shader macros to support instanced motion vector rendering
+- Added new API to customize the rtHandleProperties of a particular RTHandle. This is a temporary work around to assist with viewport setup of Custom post process when dealing with DLSS or TAAU
+- Added `IAdditionalData` interface to identify the additional datas on the core package.
+- Added new API to draw color temperature for Lights.
+
+### Fixed
+- Help boxes with fix buttons do not crop the label.
+- Fixed missing warning UI about Projector component being unsupported (case 1300327).
+- Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
+- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
+- Problem on domain reload of Volume Parameter Ranges and UI values
+- Fixed Right Align of additional properties on Volume Components Editors
+- Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
+- Fixed L2 for Probe Volumes.
+- When adding Overrides to the Volume Profile, only show Volume Components from the current Pipeline.
+- Fixed assertion on compression of L1 coefficients for Probe Volume.
+- Explicit half precision not working even when Unified Shader Precision Model is enabled.
+- Fixed ACES filter artefact due to half float error on some mobile platforms.
+- Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
+- Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
+- Fixed IES Importer related to new API on core.
+- Fixed a large, visible stretch ratio in a LensFlare Image thumbnail.
+- Fixed Undo from script refreshing thumbnail.
+- Fixed cropped thumbnail for Image with non-uniform scale and rotation
+- Skip wind calculations for Speed Tree 8 when wind vector is zero (case 1343002)
+- Fixed memory leak when changing SRP pipeline settings, and having the player in pause mode.
+- Fixed alignment in Volume Components
+- Virtual Texturing fallback texture sampling code correctly honors the enableGlobalMipBias when virtual texturing is disabled.
+- Fixed LightAnchor too much error message, became a HelpBox on the Inspector.
+- Fixed library function SurfaceGradientFromTriplanarProjection to match the mapping convention used in SampleUVMappingNormalInternal.hlsl and fix its description.
+- Fixed Volume Gizmo size when rescaling parent GameObject
+- Fixed rotation issue now all flare rotate on positive direction (1348570)
+- Fixed error when change Lens Flare Element Count followed by undo (1346894)
+- Fixed Lens Flare Thumbnails
+- Fixed Lens Flare 'radialScreenAttenuationCurve invisible'
+- Fixed Lens Flare rotation for Curve Distribution
+- Fixed potentially conflicting runtime Rendering Debugger UI command by adding an option to disable runtime UI altogether (1345783).
+- Fixed Lens Flare position for celestial at very far camera distances. It now locks correctly into the celestial position regardless of camera distance (1363291)
+- Fixed issues caused by automatically added EventSystem component, required to support Rendering Debugger Runtime UI input. (1361901)
 
 ### Changed
-- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
+- Improved the warning messages for Volumes and their Colliders.
+- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
 - Changed Window/Render Pipeline/Look Dev to Window/Analysis/Look Dev
 - Changed Window/Render Pipeline/Render Graph Viewer to Window/Analysis/Render Graph Viewer
 - Changed Window/Render Pipeline/Graphics Compositor to Window/Rendering/Graphics Compositor
@@ -44,9 +124,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved Edit/Render Pipeline/Generate Shader Includes to Edit/Rendering/Generate Shader Includes
 - Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
 - Changed Nintendo Switch specific half float fixes in color conversion routines to all platforms.
-
-### Added
-- Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
+- Improved load asset time for probe volumes.
+- ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
+- The RTHandleSystem no longer requires a specific number of sample for MSAA textures. Number of samples can be chosen independently for all textures.
+- Platform ShaderLibrary API headers now have a new macro layer for 2d texture sampling macros. This layer starts with PLATFORM_SAMPLE2D definition, and it gives the possibility of injecting sampling behavior on a render pipeline level. For example: being able to a global mip bias for temporal upscalers.
+- Update icon for IES, LightAnchor and LensFlare
+- LensFlare (SRP) can be now disabled per element
+- LensFlare (SRP) tooltips now refer to meters.
+- Serialize the Probe Volume asset as binary to improve footprint on disk and loading speed.
+- LensFlare Element editor now have Thumbnail preview
+- Improved IntegrateLDCharlie() to use uniform stratified sampling for faster convergence towards the ground truth
+- DynamicResolutionHandler.GetScaledSize function now clamps, and never allows to return a size greater than its input.
+- Removed DYNAMIC_RESOLUTION snippet on lens flare common shader. Its not necessary any more on HDRP, which simplifies the shader.
+- Made occlusion Radius for lens flares in directional lights, be independant of the camera's far plane.
 
 ## [11.0.0] - 2020-10-21
 

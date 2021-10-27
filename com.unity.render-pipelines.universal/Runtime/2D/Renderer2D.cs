@@ -1,3 +1,4 @@
+using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -6,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     {
         Render2DLightingPass m_Render2DLightingPass;
         PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
+        UpscalePass m_UpscalePass;
         FinalBlitPass m_FinalBlitPass;
         Light2DCullResult m_LightCullResult;
 
@@ -41,7 +43,9 @@ namespace UnityEngine.Rendering.Universal
             m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
             // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
             m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRenderingTransparents);
+            m_UpscalePass = new UpscalePass(RenderPassEvent.AfterRenderingPostProcessing);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
+
 
             m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
 
@@ -140,6 +144,21 @@ namespace UnityEngine.Rendering.Universal
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
 
+            bool savedIsOrthographic = renderingData.cameraData.camera.orthographic;
+            float savedOrthographicSize = renderingData.cameraData.camera.orthographicSize;
+
+            if (DebugHandler != null)
+            {
+#if UNITY_EDITOR
+                UnityEditorInternal.SpriteMaskUtility.EnableDebugMode(DebugHandler.DebugDisplaySettings.materialSettings.materialDebugMode == DebugMaterialMode.SpriteMask);
+#endif
+                if (DebugHandler.AreAnySettingsActive)
+                {
+                    stackHasPostProcess = stackHasPostProcess && DebugHandler.IsPostProcessingAllowed;
+                }
+                DebugHandler.Setup(context, ref cameraData);
+            }
+
 #if UNITY_EDITOR
             // The scene view camera cannot be uninitialized or skybox when using the 2D renderer.
             if (cameraData.cameraType == CameraType.SceneView)
@@ -152,7 +171,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.renderType == CameraRenderType.Base && lastCameraInStack)
             {
                 cameraData.camera.TryGetComponent(out ppc);
-                if (ppc != null)
+                if (ppc != null && ppc.enabled)
                 {
                     if (ppc.offscreenRTSize != Vector2Int.zero)
                     {
@@ -164,8 +183,11 @@ namespace UnityEngine.Rendering.Universal
                         cameraTargetDescriptor.height = ppc.offscreenRTSize.y;
                     }
 
-                    colorTextureFilterMode = ppc.finalBlitFilterMode;
-                    ppcUpscaleRT = ppc.upscaleRT && ppc.isRunning;
+                    renderingData.cameraData.camera.orthographic = true;
+                    renderingData.cameraData.camera.orthographicSize = ppc.orthographicSize;
+
+                    colorTextureFilterMode = FilterMode.Point;
+                    ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture || ppc.requiresUpscalePass;
                 }
             }
 
@@ -224,17 +246,32 @@ namespace UnityEngine.Rendering.Universal
                 colorTargetHandle = postProcessDestHandle;
             }
 
-            if (ppc != null && ppc.isRunning && (ppc.cropFrameX || ppc.cropFrameY))
+            RenderTargetHandle finalTargetHandle = colorTargetHandle;
+
+            if (ppc != null && ppc.enabled && ppc.cropFrame != PixelPerfectCamera.CropFrame.None)
+            {
+                m_PixelPerfectBackgroundPass.Setup(savedIsOrthographic, savedOrthographicSize);
                 EnqueuePass(m_PixelPerfectBackgroundPass);
+
+                // Queue PixelPerfect UpscalePass. Only used when using the Stretch Fill option
+                if (ppc.requiresUpscalePass)
+                {
+                    int upscaleWidth = ppc.refResolutionX * ppc.pixelRatio;
+                    int upscaleHeight = ppc.refResolutionY * ppc.pixelRatio;
+
+                    m_UpscalePass.Setup(colorTargetHandle, upscaleWidth, upscaleHeight, ppc.finalBlitFilterMode, out finalTargetHandle);
+                    EnqueuePass(m_UpscalePass);
+                }
+            }
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {
-                finalPostProcessPass.SetupFinalPass(colorTargetHandle);
+                finalPostProcessPass.SetupFinalPass(finalTargetHandle);
                 EnqueuePass(finalPostProcessPass);
             }
-            else if (lastCameraInStack && colorTargetHandle != RenderTargetHandle.CameraTarget)
+            else if (lastCameraInStack && finalTargetHandle != RenderTargetHandle.CameraTarget)
             {
-                m_FinalBlitPass.Setup(cameraTargetDescriptor, colorTargetHandle);
+                m_FinalBlitPass.Setup(cameraTargetDescriptor, finalTargetHandle);
                 EnqueuePass(m_FinalBlitPass);
             }
         }

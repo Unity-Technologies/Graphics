@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -17,16 +17,16 @@ public class ReplaceObjects : EditorWindow
     {
         newObject = EditorGUILayout.ObjectField("New Object", newObject, typeof(GameObject), false) as GameObject;
 
-        if(GUILayout.Button("Replace selection with object")) ReplaceSelectionWithPrefab();
+        if (GUILayout.Button("Replace selection with object")) ReplaceSelectionWithPrefab();
     }
 
     void ReplaceSelectionWithPrefab()
     {
-        List<GameObject> selected = new List<GameObject>( Selection.gameObjects );
+        List<GameObject> selected = new List<GameObject>(Selection.gameObjects);
 
         if (selected.Count == 0 || newObject == null) return;
 
-        for (int i=0 ; i<selected.Count ; ++i)
+        for (int i = 0; i < selected.Count; ++i)
         {
             GameObject go = selected[i];
             GameObject newGo = PrefabUtility.InstantiatePrefab(newObject) as GameObject;

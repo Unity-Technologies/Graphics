@@ -89,8 +89,8 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField, Tooltip("When enabled, transparent particles fade out when near the surface of objects writing into the depth buffer (e.g. when intersecting with solid objects in the level).")]
         protected bool useSoftParticle = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Header("Rendering Options"), Tooltip("")]
-        protected int sortPriority = 0;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), FormerlySerializedAs("sortPriority"), SerializeField, Header("Rendering Options"), Tooltip("")]
+        protected int vfxSystemSortPriority = 0;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies whether to use GPU sorting for transparent particles.")]
         protected SortMode sort = SortMode.Auto;
@@ -123,8 +123,10 @@ namespace UnityEditor.VFX
 
         private bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
 
-        public bool HasIndirectDraw()   { return (indirectDraw || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)) && !HasStrips(true); }
-        public bool HasSorting()        { return (sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied))) && !HasStrips(true); }
+        public virtual void SetupMaterial(Material material) { }
+
+        public bool HasIndirectDraw() { return (indirectDraw || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)) && !HasStrips(true); }
+        public virtual bool HasSorting() { return (sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied))) && !HasStrips(true); }
         public bool HasComputeCulling() { return computeCulling && !HasStrips(true); }
         public bool HasFrustumCulling() { return frustumCulling && !HasStrips(true); }
         public bool NeedsOutputUpdate() { return outputUpdateFeatures != VFXOutputUpdate.Features.None; }
@@ -146,17 +148,17 @@ namespace UnityEditor.VFX
             }
         }
 
-        int IVFXSubRenderer.sortPriority
+        int IVFXSubRenderer.vfxSystemSortPriority
         {
             get
             {
-                return sortPriority;
+                return vfxSystemSortPriority;
             }
             set
             {
-                if (sortPriority != value)
+                if (vfxSystemSortPriority != value)
                 {
-                    sortPriority = value;
+                    vfxSystemSortPriority = value;
                     Invalidate(InvalidationCause.kSettingChanged);
                 }
             }
@@ -165,7 +167,7 @@ namespace UnityEditor.VFX
 
         public bool HasStrips(bool data = false) { return (data ? GetData().type : ownedType) == VFXDataType.ParticleStrip; }
 
-        protected VFXAbstractParticleOutput(bool strip = false) : base(strip ? VFXDataType.ParticleStrip : VFXDataType.Particle) {}
+        protected VFXAbstractParticleOutput(bool strip = false) : base(strip ? VFXDataType.ParticleStrip : VFXDataType.Particle) { }
 
         public override bool codeGeneratorCompute { get { return false; } }
 
@@ -254,11 +256,11 @@ namespace UnityEditor.VFX
                             VFXNamedExpression mainTextureExp;
                             try
                             {
-                                mainTextureExp = slotExpressions.First(o => (o.name == "mainTexture") | (o.name == "baseColorMap") | (o.name == "distortionBlurMap") |  (o.name == "normalMap"));
+                                mainTextureExp = slotExpressions.First(o => (o.name == "mainTexture") | (o.name == "baseColorMap") | (o.name == "distortionBlurMap") | (o.name == "normalMap"));
                             }
                             catch (InvalidOperationException)
                             {
-                                throw  new NotImplementedException("Trying to fetch an inexistent slot Main Texture or Base Color Map or Distortion Blur Map or Normal Map. ");
+                                throw new NotImplementedException("Trying to fetch an inexistent slot Main Texture or Base Color Map or Distortion Blur Map or Normal Map. ");
                             }
                             yield return new VFXNamedExpression(new VFXExpressionCastUintToFloat(new VFXExpressionTextureDepth(mainTextureExp.exp)), "flipBookSize");
                         }
@@ -571,7 +573,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                yield return new VFXMapping("sortPriority", sortPriority);
+                yield return new VFXMapping("sortPriority", vfxSystemSortPriority);
                 if (HasIndirectDraw())
                 {
                     yield return new VFXMapping("indirectDraw", 1);
@@ -603,8 +605,33 @@ namespace UnityEditor.VFX
                     vertsCount = 0;
                     break;
             }
-            // TODO: @gabriel.delacruz - Temporarily disable per vertex optimization
-            return false; //vertsCount != 0;
+            if (HasStrips(false))
+            {
+                vertsCount /= 2;
+            }
+            return vertsCount != 0;
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+            var dataParticle = GetData() as VFXDataParticle;
+
+            if (dataParticle != null && dataParticle.boundsSettingMode != BoundsSettingMode.Manual)
+            {
+                var modifiedBounds = children
+                    .SelectMany(b =>
+                    b.attributes)
+                    .Any(attr => attr.mode.HasFlag(VFXAttributeMode.Write) &&
+                        (attr.attrib.name.Contains("size")
+                            || attr.attrib.name.Contains("position")
+                            || attr.attrib.name.Contains("scale")
+                            || attr.attrib.name.Contains("pivot")));
+                if (modifiedBounds && CanBeCompiled())
+                    manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning, $"Bounds computation during recording is based on Position and Size in the Update Context." +
+                        $" Changing these properties now could lead to incorrect bounds." +
+                        $" Use padding to mitigate this discrepancy.");
+            }
         }
     }
 }

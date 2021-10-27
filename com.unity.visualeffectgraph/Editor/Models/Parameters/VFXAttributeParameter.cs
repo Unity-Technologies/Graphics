@@ -24,44 +24,10 @@ namespace UnityEditor.VFX
 
     class AttributeVariant : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
         {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "attribute", VFXAttribute.AllIncludingVariadicExceptWriteOnly.Cast<object>().ToArray() }
-                };
-            }
-        }
-    }
-
-    class AttributeVariantReadWritable : VariantProvider
-    {
-        protected override Dictionary<string, object[]> variants
-        {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "attribute", VFXAttribute.AllIncludingVariadicReadWritable.Cast<object>().ToArray() }
-                };
-            }
-        }
-    }
-
-    class AttributeVariantReadWritableNoVariadic : VariantProvider
-    {
-        protected override sealed Dictionary<string, object[]> variants
-        {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "attribute", VFXAttribute.AllReadWritable.Cast<object>().ToArray() }
-                };
-            }
-        }
+            {"attribute", VFXAttribute.AllIncludingVariadicExceptWriteOnly.Cast<object>().ToArray()}
+        };
     }
 
     [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariant))]
@@ -139,7 +105,7 @@ namespace UnityEditor.VFX
                     if (attrib.variadic == VFXVariadic.True)
                         result += "." + mask;
                 }
-                catch {} // Must not throw in name getter
+                catch { } // Must not throw in name getter
 
                 return result;
             }

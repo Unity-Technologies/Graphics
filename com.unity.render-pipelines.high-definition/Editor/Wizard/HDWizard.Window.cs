@@ -9,7 +9,8 @@ using UnityEngine.UIElements;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [InitializeOnLoad]
-    partial class HDWizard : EditorWindow
+    [HDRPHelpURL("Render-Pipeline-Wizard")]
+    partial class HDWizard : EditorWindowWithHelpButton
     {
         static class Style
         {
@@ -111,6 +112,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle hdrpLookDevVolumeProfile = new ConfigStyle(
                 label: L10n.Tr("Default Look Dev volume profile"),
                 error: L10n.Tr("Default Look Dev volume profile must be assigned in the HDRP Settings! Also, for it to be editable, it should be outside of package."));
+            public static readonly ConfigStyle hdrpMigratableAssets = new ConfigStyle(
+                label: L10n.Tr("Assets Migration"),
+                error: L10n.Tr("At least one of the HDRP assets used in quality or the current HDRenderPipelineGlobalSettings have not been migrated to last version."));
 
             public static readonly ConfigStyle vrLegacyVRSystem = new ConfigStyle(
                 label: L10n.Tr("Legacy VR System"),
@@ -136,16 +140,28 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle dxrAutoGraphicsAPI = new ConfigStyle(
                 label: L10n.Tr("Auto graphics API"),
                 error: L10n.Tr("Auto Graphics API is not supported!"));
+
+            public static readonly ConfigStyle dxrAutoGraphicsAPIWarning_WindowsOnly = new ConfigStyle(
+                label: L10n.Tr("Auto graphics API"),
+                error: L10n.Tr("Auto Graphics API is not supported on Windows!"),
+                messageType: MessageType.Warning);
+
             public static readonly ConfigStyle dxrD3D12 = new ConfigStyle(
                 label: L10n.Tr("Direct3D 12"),
                 error: L10n.Tr("Direct3D 12 needs to be the active device! (Editor restart is required). If an API different than D3D12 is forced via command line argument, clicking Fix won't change it, so please consider removing it if wanting to run DXR."));
+
+            public static readonly ConfigStyle dxrD3D12Warning_WindowsOnly = new ConfigStyle(
+                label: L10n.Tr("Direct3D 12"),
+                error: L10n.Tr("Direct3D 12 needs to be the active device on windows! (Editor restart is required). If an API different than D3D12 is forced via command line argument, clicking Fix won't change it, so please consider removing it if wanting to run DXR."),
+                messageType: MessageType.Warning);
+
             public static readonly ConfigStyle dxrScreenSpaceShadow = new ConfigStyle(
                 label: L10n.Tr("Screen Space Shadows (Asset)"),
                 error: L10n.Tr("Screen Space Shadows are disabled in the current HDRP Asset which means you cannot enable ray-traced shadows for lights in your scene. To enable this feature, open your HDRP Asset, go to Lighting > Shadows, and enable Screen Space Shadows."),
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrScreenSpaceShadowFS = new ConfigStyle(
                 label: L10n.Tr("Screen Space Shadows (HDRP Default Settings)"),
-                error: L10n.Tr($"Screen Space Shadows are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced shadows. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Shadows. This configuration depends on {dxrScreenSpaceShadow.label}. This means, before you fix this, you must fix {dxrScreenSpaceShadow.label} first."),
+                error: L10n.Tr($"Screen Space Shadows are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced shadows. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Shadows. This configuration depends on {dxrScreenSpaceShadow.label}. This means, before you fix this, you must fix {dxrScreenSpaceShadow.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrReflections = new ConfigStyle(
                 label: L10n.Tr("Screan Space Reflection (Asset)"),
@@ -153,7 +169,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrReflectionsFS = new ConfigStyle(
                 label: L10n.Tr("Screan Space Reflection (HDRP Default Settings)"),
-                error: L10n.Tr($"Screen Space Reflection is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Reflections. This configuration depends on {dxrReflections.label}. This means, before you fix this, you must fix {dxrReflections.label} first."),
+                error: L10n.Tr($"Screen Space Reflection is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Reflections. This configuration depends on {dxrReflections.label}. This means, before you fix this, you must fix {dxrReflections.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrTransparentReflections = new ConfigStyle(
                 label: L10n.Tr("Screen Space Reflection - Transparent (Asset)"),
@@ -161,7 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrTransparentReflectionsFS = new ConfigStyle(
                 label: L10n.Tr("Screen Space Reflection - Transparent (HDRP Default Settings)"),
-                error: L10n.Tr($"Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections on transparent GameObjects. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Transparents. This configuration depends on {dxrTransparentReflections.label}. This means, before you fix this, you must fix {dxrTransparentReflections.label} first."),
+                error: L10n.Tr($"Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections on transparent GameObjects. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings (Default Values) > Camera > Lighting and enable Transparents. This configuration depends on {dxrTransparentReflections.label}. This means, before you fix this, you must fix {dxrTransparentReflections.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrGI = new ConfigStyle(
                 label: L10n.Tr("Screen Space Global Illumination (Asset)"),
@@ -169,11 +185,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrGIFS = new ConfigStyle(
                 label: L10n.Tr("Screen Space Global Illumination (HDRP Default Settings)"),
-                error: L10n.Tr($"Screen Space Global Illumination is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced global illumination. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Global Illumination. This configuration depends on {dxrGI.label}. This means, before you fix this, you must fix {dxrGI.label} first."),
+                error: L10n.Tr($"Screen Space Global Illumination is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced global illumination. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Global Illumination. This configuration depends on {dxrGI.label}. This means, before you fix this, you must fix {dxrGI.label} first."),
                 messageType: MessageType.Info);
-            public static readonly ConfigStyle dxr64bits = new ConfigStyle(
-                label: L10n.Tr("Architecture 64 bits"),
-                error: L10n.Tr("To build your Project to a Unity Player, ray tracing requires that the build uses 64 bit architecture."));
+            public static readonly ConfigStyle dxrBuildTarget = new ConfigStyle(
+                label: L10n.Tr("Build Target"),
+                error: L10n.Tr("To build your Project as a Unity Player your build target must be StandaloneWindows64 or Playstation5."));
             public static readonly ConfigStyle dxrStaticBatching = new ConfigStyle(
                 label: L10n.Tr("Static Batching"),
                 error: L10n.Tr("Static Batching is not supported!"));
@@ -217,7 +233,14 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var window = GetWindow<HDWizard>(Style.title.text);
             window.minSize = new Vector2(500, 450);
-            HDProjectSettings.wizardPopupAlreadyShownOnce = true;
+            HDUserSettings.wizardPopupAlreadyShownOnce = true;
+        }
+
+        [MenuItem("Window/Rendering/HDRP Wizard", priority = 10000, validate = true)]
+        static bool CanShowWizard()
+        {
+            // If the user has more than one SRP installed, only show the Wizard if the pipeline is HDRP
+            return HDRenderPipeline.isReady || RenderPipelineManager.currentPipeline == null;
         }
 
         void OnGUI()
@@ -242,22 +265,45 @@ namespace UnityEditor.Rendering.HighDefinition
         static void WizardBehaviourDelayed()
         {
             if (frameToWait > 0)
-                --frameToWait;
-            else
             {
-                EditorApplication.update -= WizardBehaviourDelayed;
-
-                if (HDProjectSettings.wizardIsStartPopup && !HDProjectSettings.wizardPopupAlreadyShownOnce)
-                {
-                    //Application.isPlaying cannot be called in constructor. Do it here
-                    if (Application.isPlaying)
-                        return;
-
-                    OpenWindow();
-                }
-
-                EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
+                --frameToWait;
+                return;
             }
+
+            // No need to update this method, unsubscribe from the application update
+            EditorApplication.update -= WizardBehaviourDelayed;
+
+            // If the wizard does not need to be shown at start up, do nothing.
+            if (!HDProjectSettings.wizardIsStartPopup)
+                return;
+
+            //Application.isPlaying cannot be called in constructor. Do it here
+            if (Application.isPlaying)
+                return;
+
+            EditorApplication.quitting += () => HDUserSettings.wizardPopupAlreadyShownOnce = false;
+
+            ShowWizardFirstTime();
+        }
+
+        static void ShowWizardFirstTime()
+        {
+            // Unsubscribe from possible events
+            // If the event has not been registered the unsubscribe will do nothing
+            RenderPipelineManager.activeRenderPipelineTypeChanged -= ShowWizardFirstTime;
+
+            if (!CanShowWizard())
+            {
+                // Delay the show of the wizard for the first time that the user is using HDRP
+                RenderPipelineManager.activeRenderPipelineTypeChanged += ShowWizardFirstTime;
+                return;
+            }
+
+            // If we reach this point can be because
+            // - That the user started Unity with HDRP in use
+            // - That the SRP has changed to HDRP for the first time in the session
+            if (!HDUserSettings.wizardPopupAlreadyShownOnce)
+                OpenWindow();
         }
 
         [Callbacks.DidReloadScripts]
@@ -265,14 +311,19 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorApplication.delayCall += () =>
             {
-                if (HDProjectSettings.wizardPopupAlreadyShownOnce)
-                    EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
+                if (HDUserSettings.wizardPopupAlreadyShownOnce)
+                    EditorApplication.quitting += () => HDUserSettings.wizardPopupAlreadyShownOnce = false;
             };
         }
 
         [Callbacks.DidReloadScripts]
         static void WizardBehaviour()
         {
+            // We should call HDProjectSettings.wizardIsStartPopup to check here.
+            // But if the Wizard is opened while a domain reload occurs, we end up calling
+            // LoadSerializedFileAndForget at a time Unity associate with Constructor. This is not allowed.
+            // As we should wait some frame for everything to be correctly loaded anyway, we do that in WizardBehaviourDelayed.
+
             //We need to wait at least one frame or the popup will not show up
             frameToWait = 10;
             EditorApplication.update += WizardBehaviourDelayed;
@@ -418,14 +469,14 @@ namespace UnityEditor.Rendering.HighDefinition
             var toolbar = new ToolbarRadio();
             toolbar.AddRadios(tabs);
             //make sure when we open the same project on different platforms the saved active tab is not out of range
-            int tabIndex = toolbar.radioLength > HDProjectSettings.wizardActiveTab ? HDProjectSettings.wizardActiveTab : 0;
+            int tabIndex = toolbar.radioLength > HDUserSettings.wizardActiveTab ? HDUserSettings.wizardActiveTab : 0;
             toolbar.SetValueWithoutNotify(tabIndex);
             m_Configuration = (Configuration)tabIndex;
             toolbar.RegisterValueChangedCallback(evt =>
             {
                 int index = evt.newValue;
                 m_Configuration = (Configuration)index;
-                HDProjectSettings.wizardActiveTab = index;
+                HDUserSettings.wizardActiveTab = index;
             });
 
             var outerBox = new VisualElement() { name = "OuterBox" };

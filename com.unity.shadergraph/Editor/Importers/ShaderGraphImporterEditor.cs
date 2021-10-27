@@ -18,6 +18,7 @@ namespace UnityEditor.ShaderGraph
     class ShaderGraphImporterEditor : ScriptedImporterEditor
     {
         protected override bool needsApplyRevert => false;
+        MaterialEditor materialEditor = null;
 
         public override void OnInspectorGUI()
         {
@@ -45,7 +46,9 @@ namespace UnityEditor.ShaderGraph
                 var assetGuid = AssetDatabase.AssetPathToGUID(importer.assetPath);
                 graphObject.graph = new GraphData
                 {
-                    assetGuid = assetGuid, isSubGraph = isSubGraph, messageManager = null
+                    assetGuid = assetGuid,
+                    isSubGraph = isSubGraph,
+                    messageManager = null
                 };
                 MultiJson.Deserialize(graphObject.graph, textGraph);
                 graphObject.graph.OnEnable();
@@ -80,7 +83,7 @@ namespace UnityEditor.ShaderGraph
                 if (update)
                 {
                     var graphData = GetGraphData(importer);
-                    var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null);
+                    var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null, true);
                     if (!GraphUtil.WriteToFile(path, generator.generatedShader))
                         open = false;
                 }
@@ -97,7 +100,7 @@ namespace UnityEditor.ShaderGraph
                     string path = String.Format("Temp/GeneratedFromGraph-{0}-Preview.shader", assetName.Replace(" ", ""));
 
                     var graphData = GetGraphData(importer);
-                    var generator = new Generator(graphData, null, GenerationMode.Preview, $"{assetName}-Preview", null);
+                    var generator = new Generator(graphData, null, GenerationMode.Preview, $"{assetName}-Preview", null, true);
                     if (GraphUtil.WriteToFile(path, generator.generatedShader))
                         GraphUtil.OpenFile(path);
                 }
@@ -108,11 +111,35 @@ namespace UnityEditor.ShaderGraph
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
 
                 var graphData = GetGraphData(importer);
-                var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null);
+                var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null, true);
                 GUIUtility.systemCopyBuffer = generator.generatedShader;
             }
 
             ApplyRevertGUI();
+
+            if (materialEditor)
+            {
+                EditorGUILayout.Space();
+                materialEditor.DrawHeader();
+                using (new EditorGUI.DisabledGroupScope(true))
+                    materialEditor.OnInspectorGUI();
+            }
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            AssetImporter importer = target as AssetImporter;
+            var material = AssetDatabase.LoadAssetAtPath<Material>(importer.assetPath);
+            if (material)
+                materialEditor = (MaterialEditor)CreateEditor(material);
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            if (materialEditor != null)
+                DestroyImmediate(materialEditor);
         }
 
         internal static bool ShowGraphEditWindow(string path)

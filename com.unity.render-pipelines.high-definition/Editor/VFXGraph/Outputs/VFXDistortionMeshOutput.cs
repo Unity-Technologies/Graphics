@@ -2,17 +2,19 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     [VFXInfo]
     class VFXDistortionMeshOutput : VFXAbstractDistortionOutput
     {
-        public override string name { get { return "Output Particle Distortion Mesh"; } }
+        public override string name { get { return "Output Particle HDRP Distortion Mesh"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDistortionMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return true; } }
-        public override CullMode defaultCullMode { get { return CullMode.Back;  } }
+        public override CullMode defaultCullMode { get { return CullMode.Back; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

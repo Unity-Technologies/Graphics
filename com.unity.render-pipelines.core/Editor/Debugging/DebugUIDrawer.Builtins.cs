@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -20,7 +21,70 @@ namespace UnityEditor.Rendering
         {
             var w = Cast<DebugUI.Value>(widget);
             var rect = PrepareControlRect();
-            EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent(w.displayName), EditorGUIUtility.TrTextContent(w.GetValue().ToString()));
+            var value = w.GetValue();
+            EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent(w.displayName), EditorGUIUtility.TrTextContent(w.FormatString(value)));
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Builtin Drawer for ValueTuple Debug Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.ValueTuple))]
+    public sealed class DebugUIDrawerValueTuple : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for ValueTuple DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.ValueTuple>(widget);
+
+            var labelRect = PrepareControlRect();
+            EditorGUI.PrefixLabel(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
+
+            // Following layout should match DebugUIDrawerFoldout to make column labels align
+            Rect drawRect = GUILayoutUtility.GetLastRect();
+            int indent = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0; //be at left of rects
+            for (int i = 0; i < w.numElements; i++)
+            {
+                var columnRect = drawRect;
+                columnRect.x += EditorGUIUtility.labelWidth + i * DebugWindow.Styles.foldoutColumnWidth;
+                columnRect.width = DebugWindow.Styles.foldoutColumnWidth;
+                var value = w.values[i].GetValue();
+                EditorGUI.LabelField(columnRect, w.values[i].FormatString(value));
+            }
+            EditorGUI.indentLevel = indent;
+
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Builtin Drawer for ProgressBarValue Debug Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.ProgressBarValue))]
+    public sealed class DebugUIDrawerProgressBarValue : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for Value DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.ProgressBarValue>(widget);
+
+            var labelRect = PrepareControlRect();
+            var progressBarRect = EditorGUI.PrefixLabel(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
+            float value = (float)w.GetValue();
+            EditorGUI.ProgressBar(progressBarRect, value, w.FormatString(value));
+
             return true;
         }
     }
@@ -42,7 +106,7 @@ namespace UnityEditor.Rendering
             var w = Cast<DebugUI.Button>(widget);
 
             var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect());
-            if (GUI.Button(rect, w.displayName, EditorStyles.miniButton))
+            if (GUI.Button(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), EditorStyles.miniButton))
             {
                 if (w.action != null)
                     w.action();
@@ -72,7 +136,7 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
 
             var rect = PrepareControlRect();
-            bool value = EditorGUI.Toggle(rect, EditorGUIUtility.TrTextContent(w.displayName), w.GetValue());
+            bool value = EditorGUI.Toggle(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue());
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
@@ -111,7 +175,7 @@ namespace UnityEditor.Rendering
                 valueRects[i].x += EditorGUIUtility.labelWidth + i * oneValueWidth;
                 valueRects[i].width = oneValueWidth;
             }
-            EditorGUI.LabelField(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
+            EditorGUI.LabelField(labelRect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip));
             int indent = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0; //be at left of rects
             bool value = EditorGUI.Toggle(valueRects[0], w.GetValue());
@@ -150,8 +214,8 @@ namespace UnityEditor.Rendering
 
             var rect = PrepareControlRect();
             int value = w.min != null && w.max != null
-                ? EditorGUI.IntSlider(rect, EditorGUIUtility.TrTextContent(w.displayName), w.GetValue(), w.min(), w.max())
-                : EditorGUI.IntField(rect, EditorGUIUtility.TrTextContent(w.displayName), w.GetValue());
+                ? EditorGUI.IntSlider(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue(), w.min(), w.max())
+                : EditorGUI.IntField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue());
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
@@ -182,8 +246,8 @@ namespace UnityEditor.Rendering
             // No UIntField so we need to max to 0 ourselves or the value will wrap around
             var rect = PrepareControlRect();
             int tmp = w.min != null && w.max != null
-                ? EditorGUI.IntSlider(rect, EditorGUIUtility.TrTextContent(w.displayName), Mathf.Max(0, (int)w.GetValue()), Mathf.Max(0, (int)w.min()), Mathf.Max(0, (int)w.max()))
-                : EditorGUI.IntField(rect, EditorGUIUtility.TrTextContent(w.displayName), Mathf.Max(0, (int)w.GetValue()));
+                ? EditorGUI.IntSlider(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), Mathf.Max(0, (int)w.GetValue()), Mathf.Max(0, (int)w.min()), Mathf.Max(0, (int)w.max()))
+                : EditorGUI.IntField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), Mathf.Max(0, (int)w.GetValue()));
 
             uint value = (uint)Mathf.Max(0, tmp);
 
@@ -215,8 +279,8 @@ namespace UnityEditor.Rendering
 
             var rect = PrepareControlRect();
             float value = w.min != null && w.max != null
-                ? EditorGUI.Slider(rect, EditorGUIUtility.TrTextContent(w.displayName), w.GetValue(), w.min(), w.max())
-                : EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent(w.displayName), w.GetValue());
+                ? EditorGUI.Slider(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue(), w.min(), w.max())
+                : EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue());
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
@@ -263,7 +327,7 @@ namespace UnityEditor.Rendering
                 if (index < 0)
                     index = 0;
 
-                index = EditorGUI.IntPopup(rect, EditorGUIUtility.TrTextContent(w.displayName), index, w.enumNames, w.indexes);
+                index = EditorGUI.IntPopup(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), index, w.enumNames, w.indexes);
                 value = w.enumValues[index];
             }
 
@@ -325,7 +389,7 @@ namespace UnityEditor.Rendering
                     valueRects[i].x += EditorGUIUtility.labelWidth + i * oneValueWidth;
                     valueRects[i].width = oneValueWidth;
                 }
-                EditorGUI.LabelField(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
+                EditorGUI.LabelField(labelRect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip));
                 int indent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = 0; //be at left of rects
                 index = EditorGUI.IntPopup(valueRects[0], index, w.enumNames, w.indexes);
@@ -374,7 +438,7 @@ namespace UnityEditor.Rendering
             var enumNames = new string[w.enumNames.Length - 1];
             for (int i = 0; i < enumNames.Length; i++)
                 enumNames[i] = w.enumNames[i + 1].text;
-            var index = EditorGUI.MaskField(rect, EditorGUIUtility.TrTextContent(w.displayName), (int)Convert.ToInt32(value), enumNames);
+            var index = EditorGUI.MaskField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), (int)Convert.ToInt32(value), enumNames);
             value = Enum.Parse(value.GetType(), index.ToString()) as Enum;
 
             if (EditorGUI.EndChangeCheck())
@@ -390,6 +454,8 @@ namespace UnityEditor.Rendering
     [DebugUIDrawer(typeof(DebugUI.Foldout))]
     public sealed class DebugUIDrawerFoldout : DebugUIDrawer
     {
+        const int k_HeaderVerticalMargin = 2;
+
         /// <summary>
         /// Begin implementation for Foldout DebugUIDrawer.
         /// </summary>
@@ -401,28 +467,50 @@ namespace UnityEditor.Rendering
             var s = Cast<DebugStateBool>(state);
 
             EditorGUI.BeginChangeCheck();
+            GUIStyle style = w.isHeader ? DebugWindow.Styles.foldoutHeaderStyle : EditorStyles.foldout;
+            Rect rect = PrepareControlRect(w.isHeader ? style.fixedHeight : -1, w.isHeader);
 
-            Rect rect = PrepareControlRect();
-            bool value = EditorGUI.Foldout(rect, w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName), true);
+            if (w.isHeader)
+                GUILayout.Space(k_HeaderVerticalMargin);
+
+            bool value = EditorGUI.Foldout(rect, w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), false, style);
+
+            if (EditorGUI.EndChangeCheck())
+                Apply(w, s, value);
+
+            if (w.contextMenuItems != null)
+            {
+                float contextMenuButtonSize = style.fixedHeight;
+                var labelRect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(0f, /*17f*/ 0f));
+                labelRect.xMax -= 20f + 16 + 5;
+                var contextMenuRect = new Rect(labelRect.xMax + 3f + 16, labelRect.y - contextMenuButtonSize, contextMenuButtonSize, contextMenuButtonSize);
+                if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
+                {
+                    var menu = new GenericMenu();
+                    foreach (var item in w.contextMenuItems)
+                    {
+                        menu.AddItem(EditorGUIUtility.TrTextContent(item.displayName), false, () => item.action.Invoke());
+                    }
+                    menu.DropDown(new Rect(new Vector2(contextMenuRect.x, contextMenuRect.yMax), Vector2.zero));
+                }
+            }
 
             Rect drawRect = GUILayoutUtility.GetLastRect();
             if (w.columnLabels != null && value)
             {
-                const int oneColumnWidth = 70;
                 int indent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = 0; //be at left of rects
                 for (int i = 0; i < w.columnLabels.Length; i++)
                 {
                     var columnRect = drawRect;
-                    columnRect.x += EditorGUIUtility.labelWidth + i * oneColumnWidth;
-                    columnRect.width = oneColumnWidth;
-                    EditorGUI.LabelField(columnRect, w.columnLabels[i] ?? "", EditorStyles.miniBoldLabel);
+                    columnRect.x += EditorGUIUtility.labelWidth + i * DebugWindow.Styles.foldoutColumnWidth;
+                    columnRect.width = DebugWindow.Styles.foldoutColumnWidth;
+                    string label = w.columnLabels[i] ?? "";
+                    string tooltip = w.columnTooltips?.ElementAtOrDefault(i) ?? "";
+                    EditorGUI.LabelField(columnRect, EditorGUIUtility.TrTextContent(label, tooltip), EditorStyles.miniBoldLabel);
                 }
                 EditorGUI.indentLevel = indent;
             }
-
-            if (EditorGUI.EndChangeCheck())
-                Apply(w, s, value);
 
             EditorGUI.indentLevel++;
         }
@@ -435,8 +523,8 @@ namespace UnityEditor.Rendering
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
-            var s = Cast<DebugStateBool>(state);
-            return s.value;
+            var w = Cast<DebugUI.Foldout>(widget);
+            return w.opened;
         }
 
         /// <summary>
@@ -447,6 +535,9 @@ namespace UnityEditor.Rendering
         public override void End(DebugUI.Widget widget, DebugState state)
         {
             EditorGUI.indentLevel--;
+            var w = Cast<DebugUI.Foldout>(widget);
+            if (w.isHeader)
+                GUILayout.Space(k_HeaderVerticalMargin);
         }
     }
 
@@ -470,7 +561,7 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
 
             var rect = PrepareControlRect();
-            var value = EditorGUI.ColorField(rect, EditorGUIUtility.TrTextContent(w.displayName), w.GetValue(), w.showPicker, w.showAlpha, w.hdr);
+            var value = EditorGUI.ColorField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue(), w.showPicker, w.showAlpha, w.hdr);
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
@@ -498,7 +589,7 @@ namespace UnityEditor.Rendering
 
             EditorGUI.BeginChangeCheck();
 
-            var value = EditorGUILayout.Vector2Field(w.displayName, w.GetValue());
+            var value = EditorGUILayout.Vector2Field(EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue());
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
@@ -526,7 +617,7 @@ namespace UnityEditor.Rendering
 
             EditorGUI.BeginChangeCheck();
 
-            var value = EditorGUILayout.Vector3Field(w.displayName, w.GetValue());
+            var value = EditorGUILayout.Vector3Field(EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue());
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
@@ -554,10 +645,40 @@ namespace UnityEditor.Rendering
 
             EditorGUI.BeginChangeCheck();
 
-            var value = EditorGUILayout.Vector4Field(w.displayName, w.GetValue());
+            var value = EditorGUILayout.Vector4Field(EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), w.GetValue());
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
+
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Builtin Drawer for MessageBox Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.MessageBox))]
+    public sealed class DebugUIDrawerMessageBox : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for TextLabel DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.MessageBox>(widget);
+
+            var type = w.style switch
+            {
+                DebugUI.MessageBox.Style.Info => MessageType.Info,
+                DebugUI.MessageBox.Style.Warning => MessageType.Warning,
+                DebugUI.MessageBox.Style.Error => MessageType.Error,
+                _ => MessageType.None
+            };
+
+            EditorGUILayout.HelpBox(w.displayName, type);
 
             return true;
         }
@@ -577,7 +698,7 @@ namespace UnityEditor.Rendering
         public override void Begin(DebugUI.Widget widget, DebugState state)
         {
             if (!string.IsNullOrEmpty(widget.displayName))
-                EditorGUILayout.LabelField(widget.displayName, EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent(widget.displayName, widget.tooltip), EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
         }

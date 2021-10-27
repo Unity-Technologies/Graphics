@@ -108,6 +108,8 @@ VisualEffectResource:
         [MenuItem("Assets/Create/Visual Effects/Visual Effect Graph", false, 306)]
         public static void CreateVisualEffectAsset()
         {
+            VFXLibrary.LogUnsupportedSRP();
+
             string templateString = "";
             try
             {

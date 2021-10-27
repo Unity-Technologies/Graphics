@@ -1,21 +1,17 @@
 #Rendering in the Universal Render Pipeline
 
-The Universal Render Pipeline (URP) renders Scenes using the:
+The Universal Render Pipeline (URP) renders Scenes using the following components:
 
-- Renderer. URP contains the following Renderers:
-    - [Forward Renderer](urp-forward-renderer.md).
+- URP Renderer. URP contains the following Renderers:
+    - [Universal Renderer](urp-universal-renderer.md).
     - [2D Renderer](Setup.md#2d-renderer-setup).
 - [Shading models](shading-model.md) for shaders shipped with URP
 - Camera
-- [UniversalRP Asset](universalrp-asset.md)
+- [URP Asset](universalrp-asset.md)
 
-In the Forward renderer, URP implements a rendering loop that tells Unity how to render a frame.
+The following illustration shows the frame rendering loop of the URP Universal Renderer.
 
-
-
-![The UniversalRP Forward rendering loop](Images/Graphics/Rendering_Flowchart.png)
-
-
+![URP Universal Renderer, Forward Rendering Path](Images/Graphics/Rendering_Flowchart.png)
 
 When the [render pipeline is active in Graphics Settings](configuring-universalrp-for-use.md), Unity uses URP to render all Cameras in your Project, including game and Scene view cameras, Reflection Probes, and the preview windows in your Inspectors.
 

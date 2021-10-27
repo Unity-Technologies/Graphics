@@ -150,43 +150,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 return float4(lerp(c0.rgb, c1.rgb, c1.a), c0.a + c1.a - c0.a * c1.a);
             }
 
-            float4 OverlayHeatMap(uint2 pixCoord, uint n)
-            {
-                const float4 kRadarColors[12] =
-                {
-                    float4(0.0, 0.0, 0.0, 0.0),   // black
-                    float4(0.0, 0.0, 0.6, 0.5),   // dark blue
-                    float4(0.0, 0.0, 0.9, 0.5),   // blue
-                    float4(0.0, 0.6, 0.9, 0.5),   // light blue
-                    float4(0.0, 0.9, 0.9, 0.5),   // cyan
-                    float4(0.0, 0.9, 0.6, 0.5),   // blueish green
-                    float4(0.0, 0.9, 0.0, 0.5),   // green
-                    float4(0.6, 0.9, 0.0, 0.5),   // yellowish green
-                    float4(0.9, 0.9, 0.0, 0.5),   // yellow
-                    float4(0.9, 0.6, 0.0, 0.5),   // orange
-                    float4(0.9, 0.0, 0.0, 0.5),   // red
-                    float4(1.0, 0.0, 0.0, 0.9)    // strong red
-                };
-
-                float maxNrLightsPerTile = 31; // TODO: setup a constant for that
-
-                int colorIndex = n == 0 ? 0 : (1 + (int)floor(10 * (log2((float)n) / log2(maxNrLightsPerTile))));
-                colorIndex = colorIndex < 0 ? 0 : colorIndex;
-                float4 col = colorIndex > 11 ? float4(1.0, 1.0, 1.0, 1.0) : kRadarColors[colorIndex];
-
-                int2 coord = pixCoord - int2(1, 1);
-
-                float4 color = float4(PositivePow(col.xyz, 2.2), 0.3 * col.w);
-                if (n >= 0)
-                {
-                    if (SampleDebugFontNumber(coord, n))        // Shadow
-                        color = float4(0, 0, 0, 1);
-                    if (SampleDebugFontNumber(coord + 1, n))    // Text
-                        color = float4(1, 1, 1, 1);
-                }
-                return color;
-            }
-
             float4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -227,7 +190,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
 #ifdef DISABLE_TILE_MODE
                 // Tile debug mode is not supported in MSAA (only cluster)
-                int maxLights = 32;
+                int maxLights = (LIGHT_CLUSTER_PACKING_COUNT_MASK + 1);
                 const int textSize = 23;
                 const int text[textSize] = {'N', 'o', 't', ' ', 's', 'u', 'p', 'p', 'o', 'r', 't', 'e', 'd', ' ', 'w', 'i', 't', 'h', ' ', 'M', 'S', 'A', 'A'};
                 if (input.positionCS.y < DEBUG_FONT_TEXT_HEIGHT)
@@ -246,7 +209,9 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 // Tile overlap counter
                 if (n >= 0)
                 {
-                    result = OverlayHeatMap(int2(posInput.positionSS.xy) & (GetTileSize() - 1), n);
+                    const uint maxLightsPerTile = SHADEROPTIONS_FPTLMAX_LIGHT_COUNT;
+                    const float opacity = 0.3f;
+                    result = OverlayHeatMap(int2(posInput.positionSS.xy), GetTileSize(), n, maxLightsPerTile, opacity);
                 }
 
 #if defined(SHOW_LIGHT_CATEGORIES) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
@@ -259,8 +224,8 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 }
 
                 // Print light lists for selected tile at the bottom of the screen
-                int maxLights = 32;
-                if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
+                int maxAreaWidth = SHADEROPTIONS_FPTLMAX_LIGHT_COUNT + 4;
+                if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxAreaWidth)
                 {
                     float depthMouse = GetTileDepth(_MousePixelCoord.xy);
 

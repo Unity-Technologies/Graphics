@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     mat.shader = litShader;
                     // We remove all keyword already present
                     CoreEditorUtils.RemoveMaterialKeywords(mat);
-                    LitGUI.SetupLitKeywordsAndPass(mat);
+                    LitAPI.ValidateMaterial(mat);
                     EditorUtility.SetDirty(mat);
                 }
                 else if (mat.shader.name == "HDRP/LayeredLitTessellation")
@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     mat.shader = layeredLitShader;
                     // We remove all keyword already present
                     CoreEditorUtils.RemoveMaterialKeywords(mat);
-                    LayeredLitGUI.SetupLayeredLitKeywordsAndPass(mat);
+                    LayeredLitAPI.ValidateMaterial(mat);
                     EditorUtility.SetDirty(mat);
                 }
             }
@@ -91,54 +91,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var volume = settings.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.sharedProfile = profile;
-        }
-
-        [MenuItem("Edit/Rendering/Materials/Enable HDRP Force Forward Emissive on Selected Materials")]
-        internal static void ForceForwardEmissiveOnMaterialEnableInSelection()
-        {
-            var selection = UnityEditor.Selection.objects;
-
-            foreach (var obj in selection)
-            {
-                if (obj is Material material)
-                {
-                    if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
-                    {
-                        material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
-                        HDShaderUtils.ResetMaterialKeywords(material);
-                    }
-                }
-            }
-        }
-
-        [MenuItem("Edit/Rendering/Materials/Enable HDRP Force Forward Emissive on Scene Materials")]
-        internal static void ForceForwardEmissiveOnMaterialEnableInScene()
-        {
-            var materials = Resources.FindObjectsOfTypeAll<Material>();
-
-            foreach (var material in materials)
-            {
-                if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
-                {
-                    material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
-                    HDShaderUtils.ResetMaterialKeywords(material);
-                }
-            }
-        }
-
-        [MenuItem("Edit/Rendering/Materials/Disable HDRP Force Forward Emissive on Scene Materials")]
-        internal static void ForceForwardEmissiveOnMaterialDisableInScene()
-        {
-            var materials = Resources.FindObjectsOfTypeAll<Material>();
-
-            foreach (var material in materials)
-            {
-                if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
-                {
-                    material.SetInt(HDMaterialProperties.kForceForwardEmissive, 0);
-                    HDShaderUtils.ResetMaterialKeywords(material);
-                }
-            }
         }
 
         [MenuItem("Edit/Rendering/Materials/Upgrade HDRP Materials to Latest Version", priority = CoreUtils.Priorities.editMenuPriority)]
@@ -210,7 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PostCreateAssetWork(newAsset);
             }
 
-            protected virtual void PostCreateAssetWork(TAssetType asset) {}
+            protected virtual void PostCreateAssetWork(TAssetType asset) { }
         }
 
         class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings>
@@ -261,7 +213,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void MenuCreatePostProcessShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingShader.template";
-            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Shader.shader");
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Volume.shader");
         }
 
         //[MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
@@ -476,6 +428,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Flag that holds
             bool generalErrorFlag = false;
             var rendererArray = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
+            var lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();
             List<Material> materialArray = new List<Material>(32);
             ReflectionProbe reflectionProbe = new ReflectionProbe();
 
@@ -573,8 +526,28 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (!singleSided && hasSingleSided)
                 {
-                    Debug.LogWarning("The object " + currentRenderer.name + " has both double sided and single sided sub-meshes. The double sided flag will be ignored.");
+                    Debug.LogWarning("The object " + currentRenderer.name + " has both double sided and single sided sub-meshes. All materials will be considered double-sided for ray-traced effects.");
                     generalErrorFlag = true;
+                }
+            }
+
+            //Check if one LOD is missing a renderer
+            for (var i = 0; i < lodGroupArray.Length; i++)
+            {
+                // Grab the current LOD group
+                LODGroup lodGroup = lodGroupArray[i];
+                LOD[] lodArray = lodGroup.GetLODs();
+                for (int lodIdx = 0; lodIdx < lodArray.Length; ++lodIdx)
+                {
+                    LOD currentLOD = lodArray[lodIdx];
+                    for (int rendererIdx = 0; rendererIdx < currentLOD.renderers.Length; ++rendererIdx)
+                    {
+                        if (currentLOD.renderers[rendererIdx] == null)
+                        {
+                            Debug.LogWarning("The LOD Group " + lodGroup.gameObject.name + " has at least one missing renderer in its children.");
+                            generalErrorFlag = true;
+                        }
+                    }
                 }
             }
 

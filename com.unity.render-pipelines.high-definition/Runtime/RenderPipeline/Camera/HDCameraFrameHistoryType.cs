@@ -47,10 +47,9 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricClouds0,
         /// <summary>Volumetric clouds buffer 1.</summary>
         VolumetricClouds1,
-        /// <summary>Number of history buffers.</summary>
-        Count, // TODO: Obsolete
-        // TODO: Move before count for 11.0
         /// <summary>Screen Space Reflection Accumulation.</summary>
-        ScreenSpaceReflectionAccumulation
+        ScreenSpaceReflectionAccumulation,
+        /// <summary>Number of history buffers.</summary>
+        Count // TODO: Obsolete
     }
 }

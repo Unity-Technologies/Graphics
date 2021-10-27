@@ -21,6 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             upgraders.Add(new StandardsTerrainToHDTerrainLitUpgrader("Nature/Terrain/Standard", "HDRP/TerrainLit"));
 
+            upgraders.Add(new HDSpeedTree8MaterialUpgrader("Nature/SpeedTree8", "HDRP/Nature/SpeedTree8"));
+
             return upgraders;
         }
 
@@ -40,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void UpgradeSceneTerrainsToHighDefinitionTerrains(MenuCommand menuCommand)
         {
             var LegacyDefaultTerrainMat = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Terrain-Standard.mat");
-            var HDRPTerrainMat =  AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat");
+            var HDRPTerrainMat = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat");
             var terrainArray = UnityEngine.GameObject.FindObjectsOfType<Terrain>();
 
             if (terrainArray.Length == 0)

@@ -16,12 +16,13 @@ public class AOVOutputCustomPass : MonoBehaviour
     {
         return _rt ?? (_rt = RTHandles.Alloc(_outputTexture.width, _outputTexture.height));
     }
+
     void AovCallbackEx(
         CommandBuffer cmd,
         List<RTHandle> buffers,
         List<RTHandle> customBuffers,
         RenderOutputProperties outProps
-        )
+    )
     {
         if (buffers.Count > 0)
         {
@@ -50,7 +51,7 @@ public class AOVOutputCustomPass : MonoBehaviour
             customPassAovBuffers,
             bufferId => bufAlloc,
             AovCallbackEx
-        ).Build();
+            ).Build();
     }
 
     // Start is called before the first frame update
@@ -62,6 +63,5 @@ public class AOVOutputCustomPass : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
     }
 }

@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
         }
 
         protected VFXBaseSliderField<U> m_Slider;
-        protected TextValueField<U>     m_TextField;
+        protected TextValueField<U> m_TextField;
 
         protected abstract INotifyValueChanged<U> CreateSimpleField(out TextValueField<U> textField);
         protected abstract INotifyValueChanged<U> CreateSliderField(out VFXBaseSliderField<U> slider);
@@ -236,7 +236,7 @@ namespace UnityEditor.VFX.UI
                 textField = null;
                 return bitfield;
             }
-            var field =  new VFXLabeledField<LongField, long>(m_Label);
+            var field = new VFXLabeledField<LongField, long>(m_Label);
 
             field.onValueDragFinished = t => ValueDragFinished();
             field.onValueDragStarted = t => ValueDragStarted();

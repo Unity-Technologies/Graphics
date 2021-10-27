@@ -1,18 +1,8 @@
 using System;
-using UnityEngine.Scripting.APIUpdating;
-
-namespace UnityEngine.Rendering.LWRP
-{
-    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalRenderPipelineEditorResources", true)]
-    public class LightweightRenderPipelineEditorResources
-    {
-    }
-}
-
 
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public class UniversalRenderPipelineEditorResources : ScriptableObject
+    public class UniversalRenderPipelineEditorResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
@@ -38,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Nature/SpeedTree7.shader")]
             public Shader defaultSpeedTree7PS;
 
-            [Reload("Shaders/Nature/SpeedTree8.shader")]
+            [Reload("Shaders/Nature/SpeedTree8_PBRLit.shadergraph")]
             public Shader defaultSpeedTree8PS;
         }
 
@@ -53,6 +43,9 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Runtime/Materials/TerrainLit.mat")]
             public Material terrainLit;
+
+            [Reload("Runtime/Materials/Decal.mat")]
+            public Material decal;
         }
 
         public ShaderResources shaders;

@@ -10,7 +10,7 @@ using UnityEditor.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 
-namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
+namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     internal interface IGetNodePropertyDrawerPropertyData
     {
@@ -31,6 +31,10 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             m_updateNodeViewsCallback = updateNodeViewsCallback;
         }
 
+        internal virtual void AddCustomNodeProperties(VisualElement parentElement, AbstractMaterialNode node, Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)
+        {
+        }
+
         VisualElement CreateGUI(AbstractMaterialNode node, InspectableAttribute attribute, out VisualElement propertyVisualElement)
         {
             VisualElement nodeSettings = new VisualElement();
@@ -47,15 +51,33 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     nodeWithCustomDeprecationSettings.GetCustomDeprecationMessage(out deprecationText, out buttonText, out labelText, out messageType);
                 }
 
-                var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{node.name} Node", () =>
+                Action dismissAction = null;
+                if (node.dismissedUpdateVersion < node.latestVersion)
                 {
-                    m_setNodesAsDirtyCallback?.Invoke();
-                    node.owner.owner.RegisterCompleteObjectUndo($"Update {node.name} Node");
-                    node.ChangeVersion(node.latestVersion);
-                    inspectorUpdateDelegate?.Invoke();
-                    m_updateNodeViewsCallback?.Invoke();
-                    node.Dirty(ModificationScope.Graph);
-                }, deprecationText, buttonText, labelText, messageType);
+                    dismissAction = () =>
+                    {   // dismiss
+                        m_setNodesAsDirtyCallback?.Invoke();
+                        node.owner.owner.RegisterCompleteObjectUndo($"Dismiss {node.name} Node Upgrade Flag");
+                        node.dismissedUpdateVersion = node.latestVersion;
+                        node.owner.messageManager.ClearNodesFromProvider(node.owner, new AbstractMaterialNode[] { node });
+                        node.Dirty(ModificationScope.Graph);
+                        inspectorUpdateDelegate?.Invoke();
+                        m_updateNodeViewsCallback?.Invoke();
+                    };
+                }
+
+                var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{node.name} Node",
+                    () =>
+                    {   // upgrade
+                        m_setNodesAsDirtyCallback?.Invoke();
+                        node.owner.owner.RegisterCompleteObjectUndo($"Update {node.name} Node");
+                        node.ChangeVersion(node.latestVersion);
+                        node.owner.messageManager.ClearNodesFromProvider(node.owner, new AbstractMaterialNode[] { node });
+                        node.Dirty(ModificationScope.Graph);
+                        inspectorUpdateDelegate?.Invoke();
+                        m_updateNodeViewsCallback?.Invoke();
+                    },
+                    dismissAction, deprecationText, buttonText, labelText, messageType);
 
                 if (help != null)
                 {
@@ -64,6 +86,7 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             }
 
             PropertyDrawerUtils.AddDefaultNodeProperties(nodeSettings, node, m_setNodesAsDirtyCallback, m_updateNodeViewsCallback);
+            AddCustomNodeProperties(nodeSettings, node, m_setNodesAsDirtyCallback, m_updateNodeViewsCallback);
 
             propertyVisualElement = null;
 
@@ -77,5 +100,11 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 attribute,
                 out var propertyVisualElement);
         }
+
+        internal virtual void DisposePropertyDrawer()
+        {
+        }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { DisposePropertyDrawer(); }
     }
 }

@@ -22,7 +22,7 @@ VaryingsParticle vertParticleEditor(AttributesParticle input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
 
     output.clipPos = vertexInput.positionCS;
     output.color = GetParticleColor(input.color);

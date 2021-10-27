@@ -7,8 +7,9 @@ namespace  UnityEngine.Rendering.HighDefinition
 {
     class VTBufferManager
     {
-        public static TextureHandle CreateVTFeedbackBuffer(RenderGraph renderGraph, bool msaa)
+        public static TextureHandle CreateVTFeedbackBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
+            bool msaa = msaaSamples != MSAASamples.None;
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc colorFastMemDesc;
             colorFastMemDesc.inFastMemory = true;
@@ -19,7 +20,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
                 {
-                    colorFormat = GetFeedbackBufferFormat(), enableRandomWrite = !msaa, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, clearColor = Color.white, name = msaa ? "VTFeedbackMSAA" : "VTFeedback", fallBackToBlackTexture = true
+                    colorFormat = GetFeedbackBufferFormat(), enableRandomWrite = !msaa, bindTextureMS = msaa, msaaSamples = msaa ? msaaSamples : MSAASamples.None, clearBuffer = true, clearColor = Color.white, name = msaa ? "VTFeedbackMSAA" : "VTFeedback", fallBackToBlackTexture = true
 #if UNITY_2020_2_OR_NEWER
                     ,
                     fastMemoryDesc = colorFastMemDesc
@@ -38,16 +39,12 @@ namespace  UnityEngine.Rendering.HighDefinition
         VirtualTexturing.Resolver   m_ResolverMsaa = new VirtualTexturing.Resolver();
         Vector2                     m_ResolverScale = new Vector2(1.0f / (float)kResolveScaleFactor, 1.0f / (float)kResolveScaleFactor);
         RTHandle                    m_LowresResolver;
-        ComputeShader               m_DownSampleCS;
+        ComputeShader               m_DownSampleCS = null;
         int                         m_DownsampleKernel;
         int                         m_DownsampleKernelMSAA;
 
-        public VTBufferManager(HDRenderPipelineAsset asset)
+        public VTBufferManager()
         {
-            m_DownSampleCS = asset.renderPipelineResources.shaders.VTFeedbackDownsample;
-            m_DownsampleKernel = m_DownSampleCS.FindKernel("KMain");
-            m_DownsampleKernelMSAA = m_DownSampleCS.FindKernel("KMainMSAA");
-
             // This texture needs to be persistent because we do async gpu readback on it.
             m_LowresResolver = RTHandles.Alloc(m_ResolverScale, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
         }
@@ -67,7 +64,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             {
                 int width = hdCamera.actualWidth;
                 int height = hdCamera.actualHeight;
-                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                bool msaa = hdCamera.msaaEnabled;
                 GetResolveDimensions(ref width, ref height);
 
                 if (msaa)
@@ -99,12 +96,19 @@ namespace  UnityEngine.Rendering.HighDefinition
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
             {
+                if (m_DownSampleCS == null)
+                {
+                    m_DownSampleCS = HDRenderPipeline.currentAsset.renderPipelineResources.shaders.VTFeedbackDownsample;
+                    m_DownsampleKernel = m_DownSampleCS.FindKernel("KMain");
+                    m_DownsampleKernelMSAA = m_DownSampleCS.FindKernel("KMainMSAA");
+                }
+
                 using (var builder = renderGraph.AddRenderPass<ResolveVTData>("Resolve VT", out var passData, ProfilingSampler.Get(HDProfileId.VTFeedbackDownsample)))
                 {
                     // The output is never read outside the pass but is still useful for the VT system so we can't cull this pass.
                     builder.AllowPassCulling(false);
 
-                    bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                    bool msaa = hdCamera.msaaEnabled;
                     passData.width = hdCamera.actualWidth;
                     passData.height = hdCamera.actualHeight;
                     passData.lowresWidth = passData.width;

@@ -1,0 +1,11 @@
+{
+	SubShader
+	{	
+		${VFXInclude("Shaders/VFXParticleHeader.template")}
+		${VFXInclude("Shaders/ParticleLinesSW/PassSelection.template")}
+		${VFXInclude("Shaders/ParticleLinesSW/PassDepth.template"),IS_OPAQUE_PARTICLE}
+		${VFXInclude("Shaders/ParticleLinesSW/PassForward.template")}
+		${VFXInclude("Shaders/ParticleLinesSW/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
+		${VFXIncludeRP("Templates/ParticleLinesSW/PassForward2D.template")}
+	}
+}

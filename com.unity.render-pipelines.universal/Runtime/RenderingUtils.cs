@@ -1,17 +1,15 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Contains properties and helper functions that you can use when rendering.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public static class RenderingUtils
+    public static class RenderingUtils
     {
-        static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
+        static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>
         {
             new ShaderTagId("Always"),
             new ShaderTagId("ForwardBase"),
@@ -87,6 +85,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal static bool SupportsLightLayers(GraphicsDeviceType type)
+        {
+            // GLES2 does not support bitwise operations.
+            return type != GraphicsDeviceType.OpenGLES2;
+        }
+
         static Material s_ErrorMaterial;
         static Material errorMaterial
         {
@@ -101,7 +105,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         s_ErrorMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/FallbackError"));
                     }
-                    catch {}
+                    catch { }
                 }
 
                 return s_ErrorMaterial;
@@ -345,20 +349,6 @@ namespace UnityEngine.Rendering.Universal
             return nonNullColorBuffers;
         }
 
-        internal static uint GetValidColorAttachmentCount(AttachmentDescriptor[] colorAttachments)
-        {
-            uint nonNullColorBuffers = 0;
-            if (colorAttachments != null)
-            {
-                foreach (var attachment in colorAttachments)
-                {
-                    if (attachment != RenderingUtils.emptyAttachment)
-                        ++nonNullColorBuffers;
-                }
-            }
-            return nonNullColorBuffers;
-        }
-
         /// <summary>
         /// Return true if colorBuffers is an actual MRT setup
         /// </summary>
@@ -460,6 +450,16 @@ namespace UnityEngine.Rendering.Universal
                     return false;
 
             return true;
+        }
+
+        // TODO: remove useRenderPassEnabled parameter when depth resolve support is added to RenderPass (URP-1009)
+        internal static bool MultisampleDepthResolveSupported(bool useRenderPassEnabled)
+        {
+            if (useRenderPassEnabled)
+                return false;
+
+            // Should we also check if the format has stencil and check stencil resolve capability only in that case?
+            return SystemInfo.supportsMultisampleResolveDepth && SystemInfo.supportsMultisampleResolveStencil;
         }
     }
 }

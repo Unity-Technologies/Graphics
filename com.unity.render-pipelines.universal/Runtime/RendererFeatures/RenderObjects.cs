@@ -1,18 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public enum RenderQueueType
+    public enum RenderQueueType
     {
         Opaque,
         Transparent,
     }
 
     [ExcludeFromPreset]
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public class RenderObjects : ScriptableRendererFeature
+    [Tooltip("Render Objects simplifies the injection of additional render passes by exposing a selection of commonly used settings.")]
+    public class RenderObjects : ScriptableRendererFeature
     {
         [System.Serializable]
         public class RenderObjectsSettings
@@ -92,6 +92,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             renderer.EnqueuePass(renderObjectsPass);
+        }
+
+        internal override bool SupportsNativeRenderPass()
+        {
+            return true;
         }
     }
 }

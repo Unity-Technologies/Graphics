@@ -21,7 +21,8 @@ namespace UnityEditor.Rendering.Universal
                 cameraMode.drawMode == DrawCameraMode.DeferredSmoothness ||
                 cameraMode.drawMode == DrawCameraMode.DeferredNormal ||
                 cameraMode.drawMode == DrawCameraMode.ValidateAlbedo ||
-                cameraMode.drawMode == DrawCameraMode.ValidateMetalSpecular
+                cameraMode.drawMode == DrawCameraMode.ValidateMetalSpecular ||
+                cameraMode.drawMode == DrawCameraMode.TextureStreaming
             )
                 return false;
 

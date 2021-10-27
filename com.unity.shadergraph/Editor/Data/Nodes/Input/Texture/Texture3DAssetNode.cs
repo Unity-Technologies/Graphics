@@ -17,6 +17,7 @@ namespace UnityEditor.ShaderGraph
         public Texture3DAssetNode()
         {
             name = "Texture 3D Asset";
+            synonyms = new string[] { "volume" };
             UpdateNodeAfterDeserialization();
         }
 

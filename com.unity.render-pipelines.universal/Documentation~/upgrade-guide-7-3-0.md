@@ -8,6 +8,6 @@ This page describes how to upgrade from an older version of the Universal Render
 
 ## Upgrading from URP 7.0.x-7.1.x
 
-1. Upgrade to URP 7.2.0 first. Refer to [Upgrading to version 7.2.0 of the Universal Render Pipeline](upgrade-guide-7-2-0).
+1. Upgrade to URP 7.2.0 first. Refer to [Upgrading to version 7.2.0 of the Universal Render Pipeline](upgrade-guide-7-2-0.md).
 
 2. Perform the procedure **Upgrading from URP 7.2.x**.

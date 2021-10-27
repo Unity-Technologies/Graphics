@@ -147,7 +147,7 @@ namespace UnityEngine.VFX.Utility
             component.SetFloat(m_FarPlane, m_Camera.farClipPlane);
 
             component.SetFloat(m_AspectRatio, m_Camera.aspect);
-            component.SetVector2(m_Dimensions, new Vector2(m_Camera.pixelWidth * depth.rtHandleProperties.rtHandleScale.x, m_Camera.pixelHeight * depth.rtHandleProperties.rtHandleScale.y));
+            component.SetVector2(m_Dimensions, new Vector2(m_Camera.pixelWidth, m_Camera.pixelHeight));
 
             if (depth != null)
                 component.SetTexture(m_DepthBuffer, depth.rt);
@@ -162,7 +162,7 @@ namespace UnityEngine.VFX.Utility
         /// <returns>String containing the binder information.</returns>
         public override string ToString()
         {
-            return string.Format($"HDRP Camera : '{(AdditionalData == null? "null" : AdditionalData.gameObject.name)}' -> {CameraProperty}");
+            return string.Format($"HDRP Camera : '{(AdditionalData == null ? "null" : AdditionalData.gameObject.name)}' -> {CameraProperty}");
         }
     }
 }

@@ -98,7 +98,7 @@ namespace UnityEditor.VFX.UI
         public abstract void ApplyChanges();
 
 
-        public virtual  IEnumerable<Controller> allChildren
+        public virtual IEnumerable<Controller> allChildren
         {
             get { return Enumerable.Empty<Controller>(); }
         }
@@ -141,7 +141,7 @@ namespace UnityEditor.VFX.UI
             m_ViewController.RegisterNotification(model, OnModelChanged);
         }
 
-        public VFXViewController viewController {get {return m_ViewController; }}
+        public VFXViewController viewController { get { return m_ViewController; } }
 
         public override void OnDisable()
         {

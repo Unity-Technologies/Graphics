@@ -40,6 +40,8 @@ namespace UnityEditor.ShaderGraph
                     return SlotValueType.Boolean;
                 case ConcreteSlotValueType.VirtualTexture:
                     return SlotValueType.VirtualTexture;
+                case ConcreteSlotValueType.PropertyConnectionState:
+                    return SlotValueType.PropertyConnectionState;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -79,6 +81,8 @@ namespace UnityEditor.ShaderGraph
                     return ConcreteSlotValueType.Boolean;
                 case SlotValueType.VirtualTexture:
                     return ConcreteSlotValueType.VirtualTexture;
+                case SlotValueType.PropertyConnectionState:
+                    return ConcreteSlotValueType.PropertyConnectionState;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -118,6 +122,8 @@ namespace UnityEditor.ShaderGraph
                     return PropertyType.Boolean;
                 case ConcreteSlotValueType.VirtualTexture:
                     return PropertyType.VirtualTexture;
+                case ConcreteSlotValueType.PropertyConnectionState:
+                    return PropertyType.PropertyConnectionState;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -161,6 +167,8 @@ namespace UnityEditor.ShaderGraph
                     return precisionToken;
                 case ConcreteSlotValueType.Boolean:
                     return precisionToken;
+                case ConcreteSlotValueType.PropertyConnectionState:
+                    return "bool";
                 default:
                     return "Error";
             }
@@ -187,7 +195,8 @@ namespace UnityEditor.ShaderGraph
             "typeFloat2",
             "typeFloat1",
             "typeBoolean",
-            "typeVirtualTexture"
+            "typeVirtualTexture",
+            "typePropertyConnectionState"
         };
     }
 }

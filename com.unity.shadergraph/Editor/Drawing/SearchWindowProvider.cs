@@ -110,11 +110,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
+
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateKnowNodes");
             foreach (var type in NodeClassCache.knownNodeTypes)
             {
                 if ((!type.IsClass || type.IsAbstract)
                     || type == typeof(PropertyNode)
                     || type == typeof(KeywordNode)
+                    || type == typeof(DropdownNode)
                     || type == typeof(SubGraphNode))
                     continue;
 
@@ -134,7 +137,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             var depNode = (AbstractMaterialNode)Activator.CreateInstance(type);
                             depNode.ChangeVersion(i);
                             if (multiple)
-                                AddEntries(depNode, titleAttribute.title.Append($"V{i}").ToArray(), nodeEntries);
+                                AddEntries(depNode, titleAttribute.title.Append($"v{i}").ToArray(), nodeEntries);
                             else
                                 AddEntries(depNode, titleAttribute.title, nodeEntries);
                         }
@@ -145,10 +148,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+            Profiler.EndSample();
 
-            foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(SubGraphAsset))))
+
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateSubgraphAssets");
+            foreach (var asset in NodeClassCache.knownSubGraphAssets)
             {
-                var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                if (asset == null)
+                    continue;
+
                 var node = new SubGraphNode { asset = asset };
                 var title = asset.path.Split('/').ToList();
 
@@ -167,7 +175,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     AddEntries(node, title.ToArray(), nodeEntries);
                 }
             }
+            Profiler.EndSample();
 
+
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateGraphInputs");
             foreach (var property in m_Graph.properties)
             {
                 if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
@@ -183,6 +194,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.keyword = keyword;
                 AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
             }
+            foreach (var dropdown in m_Graph.dropdowns)
+            {
+                var node = new DropdownNode();
+                node.dropdown = dropdown;
+                AddEntries(node, new[] { "Dropdowns", "dropdown: " + dropdown.displayName }, nodeEntries);
+            }
             if (!hideCustomInterpolators)
             {
                 foreach (var cibnode in m_Graph.vertexContext.blocks.Where(b => b.value.isCustomBlock))
@@ -192,6 +209,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     AddEntries(node, new[] { "Custom Interpolator", cibnode.value.customName }, nodeEntries);
                 }
             }
+            Profiler.EndSample();
 
             SortEntries(nodeEntries);
             currentNodeEntries = nodeEntries;
@@ -426,6 +444,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 keywordNode.owner = m_Graph;
                 keywordNode.keyword = ((KeywordNode)oldNode).keyword;
                 keywordNode.owner = null;
+            }
+            else if (newNode is DropdownNode dropdownNode)
+            {
+                dropdownNode.owner = m_Graph;
+                dropdownNode.dropdown = ((DropdownNode)oldNode).dropdown;
+                dropdownNode.owner = null;
             }
             else if (newNode is BlockNode blockNode)
             {

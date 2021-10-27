@@ -2,7 +2,7 @@
 
 Menu Path : **Position > Set Position (Shape : Line)**
 
-The **Set Position (Shape : Line)** block calculates a position based on an input Line and stores the result in the [position attribute](Reference-Attributes.md), based on composition.
+The **Set Position (Shape : Line)** Block calculates a position based on an input Line and stores the result in the [position attribute](Reference-Attributes.md), based on composition.
 
 
 This Block also calculates a direction vector based on the calculated position on the shape, and stores it to the [direction attribute](Reference-Attributes.md), based on composition. This direction is equal to the normalized vector that goes from the start point of the line to its end point.

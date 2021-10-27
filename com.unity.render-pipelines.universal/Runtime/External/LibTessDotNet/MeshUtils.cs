@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.Universal
                     if (index == 0) X = value;
                     else if (index == 1) Y = value;
                     else if (index == 2) Z = value;
-                    else  throw new IndexOutOfRangeException();
+                    else throw new IndexOutOfRangeException();
                 }
             }
 
@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 private static Stack<T> _stack;
                 public abstract void Reset();
-                public virtual void OnFree() {}
+                public virtual void OnFree() { }
 
                 public static T Create()
                 {
@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.Universal
                 internal int _winding;
 
                 internal Face _Rface { get { return _Sym._Lface; } set { _Sym._Lface = value; } }
-                internal Vertex _Dst { get { return _Sym._Org; }  set { _Sym._Org = value; } }
+                internal Vertex _Dst { get { return _Sym._Org; } set { _Sym._Org = value; } }
 
                 internal Edge _Oprev { get { return _Sym._Lnext; } set { _Sym._Lnext = value; } }
                 internal Edge _Lprev { get { return _Onext._Sym; } set { _Onext._Sym = value; } }

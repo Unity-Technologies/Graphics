@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         partial class Output
         {
             public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
-                Styles.header,
+                CameraUI.Output.Styles.header,
                 Expandable.Output,
                 k_ExpandedState,
                 FoldoutOption.Indent,
@@ -23,34 +23,12 @@ namespace UnityEditor.Rendering.HighDefinition
 #if ENABLE_MULTIPLE_DISPLAYS
                     Drawer_Output_MultiDisplay,
 #endif
-                    Drawer_Output_RenderTarget,
+                    CameraUI.Output.Drawer_Output_RenderTarget,
                     Drawer_Output_MSAA_Warning,
-                    Drawer_Output_AllowDynamicResolution,
-                    Drawer_Output_Depth,
-                    Drawer_Output_NormalizedViewPort
+                    CameraUI.Output.Drawer_Output_Depth,
+                    CameraUI.Output.Drawer_Output_NormalizedViewPort
                 )
             );
-
-            static void Drawer_Output_AllowDynamicResolution(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.allowDynamicResolution, Styles.allowDynamicResolution);
-                p.baseCameraSettings.allowDynamicResolution.boolValue = p.allowDynamicResolution.boolValue;
-            }
-
-            static void Drawer_Output_NormalizedViewPort(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.baseCameraSettings.normalizedViewPortRect, Styles.viewport);
-            }
-
-            static void Drawer_Output_Depth(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.baseCameraSettings.depth, Styles.depth);
-            }
-
-            static void Drawer_Output_RenderTarget(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.baseCameraSettings.targetTexture);
-            }
 
             static void Drawer_Output_MSAA_Warning(SerializedHDCamera p, Editor owner)
             {

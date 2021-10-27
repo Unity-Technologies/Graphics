@@ -148,7 +148,7 @@ namespace UnityEditor.Rendering.PostProcessing
 
         public CurveEditor()
             : this(Settings.defaultSettings)
-        {}
+        { }
 
         public CurveEditor(Settings settings)
         {

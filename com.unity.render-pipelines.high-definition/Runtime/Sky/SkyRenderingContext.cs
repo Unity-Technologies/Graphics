@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     internal class SkyRenderingContext
     {
-        SphericalHarmonicsL2    m_AmbientProbe;
+        SphericalHarmonicsL2 m_AmbientProbe;
 
         public SphericalHarmonicsL2 ambientProbe => m_AmbientProbe;
 

@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// High Definition Render Pipeline asset.
     /// </summary>
     [HDRPHelpURLAttribute("HDRP-Asset")]
-    public partial class HDRenderPipelineAsset : RenderPipelineAsset, IVirtualTexturingEnabledRenderPipeline, IOverrideCoreEditorResources
+    public partial class HDRenderPipelineAsset : RenderPipelineAsset, IVirtualTexturingEnabledRenderPipeline
     {
         [System.NonSerialized]
         internal bool isInOnValidateCall = false;
@@ -53,10 +53,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineGlobalSettings globalSettings => HDRenderPipelineGlobalSettings.instance;
 
-        internal RenderPipelineResources renderPipelineResources
+        internal HDRenderPipelineRuntimeResources renderPipelineResources
         {
             get { return globalSettings.renderPipelineResources; }
-            set { globalSettings.renderPipelineResources = value; }
         }
 
         internal bool frameSettingsHistory { get; set; } = false;
@@ -110,6 +109,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames
             => globalSettings.renderingLayerMaskNames;
+
+        /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
+        public override string[] prefixedRenderingLayerMaskNames
+            => globalSettings.prefixedRenderingLayerMaskNames;
 
         /// <summary>
         /// Names used for display of light layers.
@@ -167,6 +170,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public override Shader terrainDetailGrassBillboardShader
             => globalSettings?.renderPipelineEditorResources?.shaders.terrainDetailGrassBillboardShader;
 
+        public override Shader defaultSpeedTree8Shader
+            => globalSettings?.renderPipelineEditorResources?.shaderGraphs.defaultSpeedTree8Shader;
+
         // Note: This function is HD specific
         /// <summary>HDRP default Decal material.</summary>
         public Material GetDefaultDecalMaterial()
@@ -184,9 +190,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>HDRP default terrain material.</summary>
         public override Material defaultTerrainMaterial
             => globalSettings?.renderPipelineEditorResources?.materials.defaultTerrainMat;
-
-        /// <summary>HDRP Probe Volume shader.</summary>
-        public Shader GetProbeVolumeProbeShader() => globalSettings?.renderPipelineEditorResources.shaders.probeVolumeGizmoShader;
 
         // Array structure that allow us to manipulate the set of defines that the HD render pipeline needs
         List<string> defineArray = new List<string>();
@@ -211,25 +214,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
             return false;
-        }
-
-        // This function allows us to raise or remove some preprocessing defines based on the render pipeline settings
-        internal void EvaluateSettings()
-        {
-            // Grab the current set of defines and split them
-            string currentDefineList = UnityEditor.PlayerSettings.GetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone);
-            defineArray.Clear();
-            defineArray.AddRange(currentDefineList.Split(';'));
-
-            // Update all the individual defines
-            bool needUpdate = false;
-            needUpdate |= UpdateDefineList(HDRenderPipeline.GatherRayTracingSupport(currentPlatformRenderPipelineSettings), "ENABLE_RAYTRACING");
-
-            // Only set if it changed
-            if (needUpdate)
-            {
-                UnityEditor.PlayerSettings.SetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone, string.Join(";", defineArray.ToArray()));
-            }
         }
 
 #endif

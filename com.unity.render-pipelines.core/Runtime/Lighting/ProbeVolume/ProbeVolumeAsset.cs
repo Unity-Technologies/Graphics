@@ -3,8 +3,9 @@ using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
+    [PreferBinarySerialization]
     internal class ProbeVolumeAsset : ScriptableObject
     {
         [Serializable]
@@ -13,6 +14,7 @@ namespace UnityEngine.Rendering
             First,
             AddProbeVolumesAtlasEncodingModes,
             PV2,
+            ChunkBasedIndex,
             Max,
             Current = Max - 1
         }
@@ -22,12 +24,27 @@ namespace UnityEngine.Rendering
 
         [SerializeField] internal List<ProbeReferenceVolume.Cell> cells = new List<ProbeReferenceVolume.Cell>();
 
-        [SerializeField] internal Vector3Int maxCellIndex;
+        [SerializeField] internal Vector3Int maxCellPosition;
+        [SerializeField] internal Vector3Int minCellPosition;
+        [SerializeField] internal Bounds globalBounds;
+
 
         [SerializeField] internal ProbeVolumeSHBands bands;
 
-        [SerializeField] private string m_AssetFullPath = "UNINITIALIZED!";
+        [SerializeField] string m_AssetFullPath = "UNINITIALIZED!";
 
+        // Profile info
+        [SerializeField] internal int cellSizeInBricks;
+        [SerializeField] internal float minDistanceBetweenProbes;
+        [SerializeField] internal int simplificationLevels;
+
+        internal int maxSubdivision => simplificationLevels + 1; // we add one for the top subdiv level which is the same size as a cell
+        internal float minBrickSize => Mathf.Max(0.01f, minDistanceBetweenProbes * 3.0f);
+
+        internal bool CompatibleWith(ProbeVolumeAsset otherAsset)
+        {
+            return (maxSubdivision == otherAsset.maxSubdivision) && (minBrickSize == otherAsset.minBrickSize) && (cellSizeInBricks == otherAsset.cellSizeInBricks);
+        }
         public string GetSerializedFullPath()
         {
             return m_AssetFullPath;
@@ -66,6 +83,12 @@ namespace UnityEngine.Rendering
             return asset;
         }
 
+        internal void StoreProfileData(ProbeReferenceVolumeProfile profile)
+        {
+            cellSizeInBricks = profile.cellSizeInBricks;
+            simplificationLevels = profile.simplificationLevels;
+            minDistanceBetweenProbes = profile.minDistanceBetweenProbes;
+        }
 #endif
     }
 

@@ -25,13 +25,26 @@ namespace UnityEngine.Rendering
         ReturnsMinMaxLerpFactor
     }
 
+    /// <summary>
+    /// The source slots for dynamic resolution scaler. Defines registers were the scalers assigned are stored. By default the User one is always used
+    /// </summary>
+    public enum DynamicResScalerSlot
+    {
+        /// <summary> Scaler slot set by the function SetDynamicResScaler</summary>
+        User,
+        /// <summary> Scaler slot set by the function SetSystemDynamicResScaler</summary>
+        System,
+        /// <summary> total number of scaler slots </summary>
+        Count
+    }
 
     /// <summary>
     /// The class responsible to handle dynamic resolution.
     /// </summary>
     public class DynamicResolutionHandler
     {
-        private bool  m_Enabled;
+        private bool m_Enabled;
+        private bool m_UseMipBias;
         private float m_MinScreenFraction;
         private float m_MaxScreenFraction;
         private float m_CurrentFraction;
@@ -39,6 +52,7 @@ namespace UnityEngine.Rendering
         private bool m_CurrentCameraRequest;
         private float m_PrevFraction;
         private bool m_ForceSoftwareFallback;
+        private bool m_RunUpscalerFilterOnFullResolution;
 
         private float m_PrevHWScaleWidth;
         private float m_PrevHWScaleHeight;
@@ -47,6 +61,7 @@ namespace UnityEngine.Rendering
         private void Reset()
         {
             m_Enabled = false;
+            m_UseMipBias = false;
             m_MinScreenFraction = 1.0f;
             m_MaxScreenFraction = 1.0f;
             m_CurrentFraction = 1.0f;
@@ -54,15 +69,26 @@ namespace UnityEngine.Rendering
             m_CurrentCameraRequest = true;
             m_PrevFraction = -1.0f;
             m_ForceSoftwareFallback = false;
+            m_RunUpscalerFilterOnFullResolution = false;
 
             m_PrevHWScaleWidth = 1.0f;
             m_PrevHWScaleHeight = 1.0f;
             m_LastScaledSize = new Vector2Int(0, 0);
-            filter = DynamicResUpscaleFilter.Bilinear;
+            filter = DynamicResUpscaleFilter.CatmullRom;
         }
 
-        private static DynamicResScalePolicyType s_ScalerType = DynamicResScalePolicyType.ReturnsMinMaxLerpFactor;
-        private static PerformDynamicRes s_DynamicResMethod = DefaultDynamicResMethod;
+        private struct ScalerContainer
+        {
+            public DynamicResScalePolicyType type;
+            public PerformDynamicRes method;
+        }
+
+        private static DynamicResScalerSlot s_ActiveScalerSlot = DynamicResScalerSlot.User;
+        private static ScalerContainer[] s_ScalerContainers = new ScalerContainer[(int)DynamicResScalerSlot.Count]
+        {
+            new ScalerContainer() { type = DynamicResScalePolicyType.ReturnsMinMaxLerpFactor, method = DefaultDynamicResMethod },
+            new ScalerContainer() { type = DynamicResScalePolicyType.ReturnsMinMaxLerpFactor, method = DefaultDynamicResMethod }
+        };
 
         // Debug
         private Vector2Int cachedOriginalSize;
@@ -70,13 +96,29 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The filter that is used to upscale the rendering result to the native resolution.
         /// </summary>
-        public DynamicResUpscaleFilter filter { get; set; }
+        public DynamicResUpscaleFilter filter { get; private set; }
+
+        // Used to detect the filters set via user API
+        static Dictionary<int, DynamicResUpscaleFilter> s_CameraUpscaleFilters = new Dictionary<int, DynamicResUpscaleFilter>();
 
         /// <summary>
         /// The viewport of the final buffer. This is likely the resolution the dynamic resolution starts from before any scaling. Note this is NOT the target resolution the rendering will happen in
         /// but the resolution the scaled rendered result will be upscaled to.
         /// </summary>
         public Vector2Int finalViewport { get; set; }
+
+        /// <summary>
+        /// By default, dynamic resolution scaling is turned off automatically when the source matches the final viewport (100% scale).
+        /// That is, DynamicResolutionEnabled and SoftwareDynamicResIsEnabled will return false if the scale is 100%.
+        /// For certain upscalers, we dont want this behavior since they could possibly include anti aliasing and other quality improving post processes.
+        /// Setting this to true will eliminate this behavior.
+        /// Note: when the EdgeAdaptiveScalingUpres (FSR 1.0) filter is set, this will cause this parameter to always be true.
+        /// </summary>
+        public bool runUpscalerFilterOnFullResolution
+        {
+            set { m_RunUpscalerFilterOnFullResolution = value; }
+            get { return m_RunUpscalerFilterOnFullResolution || filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres; }
+        }
 
         private DynamicResolutionType type;
 
@@ -137,6 +179,7 @@ namespace UnityEngine.Rendering
                     {
                         instance = recycledInstance;
                         s_CameraInstances.Remove(recycledInstanceKey);
+                        s_CameraUpscaleFilters.Remove(recycledInstanceKey);
                     }
                 }
 
@@ -160,6 +203,35 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// The scheduling mechanism to apply upscaling.
+        /// </summary>
+        public enum UpsamplerScheduleType
+        {
+            /// <summary>
+            /// Indicates that upscaling must happen before post processing.
+            /// This means that everything runs at the source resolution during rasterization, and post processes will
+            /// run at full resolution. Ideal for temporal upscalers.
+            /// </summary>
+            BeforePost,
+
+            /// <summary>
+            /// Indicates that upscaling must happen after post processing.
+            /// This means that everything in the frame runs at the source resolution, and upscaling happens after
+            /// the final pass. This is ideal for spatial upscalers.
+            /// </summary>
+            AfterPost
+        }
+
+        private UpsamplerScheduleType m_UpsamplerSchedule = UpsamplerScheduleType.AfterPost;
+
+        /// <summary>
+        /// Property that sets / gets the state of the upscaling schedule.
+        /// This must be set at the beginning of the frame, once per camera.
+        /// </summary>
+        public UpsamplerScheduleType upsamplerSchedule { set { m_UpsamplerSchedule = value; } get { return m_UpsamplerSchedule; } }
+
+
+        /// <summary>
         /// Get the instance of the global dynamic resolution handler.
         /// </summary>
         public static DynamicResolutionHandler instance { get { return s_ActiveInstance; } }
@@ -179,6 +251,7 @@ namespace UnityEngine.Rendering
         private void ProcessSettings(GlobalDynamicResolutionSettings settings)
         {
             m_Enabled = settings.enabled && (Application.isPlaying || settings.forceResolution);
+
             if (!m_Enabled)
             {
                 m_CurrentFraction = 1.0f;
@@ -186,12 +259,16 @@ namespace UnityEngine.Rendering
             else
             {
                 type = settings.dynResType;
+                m_UseMipBias = settings.useMipBias;
                 float minScreenFrac = Mathf.Clamp(settings.minPercentage / 100.0f, 0.1f, 1.0f);
                 m_MinScreenFraction = minScreenFrac;
                 float maxScreenFrac = Mathf.Clamp(settings.maxPercentage / 100.0f, m_MinScreenFraction, 3.0f);
                 m_MaxScreenFraction = maxScreenFrac;
 
-                filter = settings.upsampleFilter;
+                // Check if a filter has been set via user API, if so we use that, otherwise we use the default from the GlobalDynamicResolutionSettings
+                bool hasUserRequestedFilter = s_CameraUpscaleFilters.TryGetValue(s_ActiveCameraId, out DynamicResUpscaleFilter requestedFilter);
+
+                filter = hasUserRequestedFilter ? requestedFilter : settings.upsampleFilter;
                 m_ForcingRes = settings.forceResolution;
 
                 if (m_ForcingRes)
@@ -222,14 +299,47 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Set the scaler method used to drive dynamic resolution.
+        /// Returns the mip bias to apply in the rendering pipeline. This mip bias helps bring detail since sampling of textures occurs at the target rate.
+        /// </summary>
+        /// <param name="inputResolution">The input width x height resolution in pixels.</param>
+        /// <param name="outputResolution">The output width x height resolution in pixels.</param>
+        /// <param name="forceApply">False by default. If true, we ignore the useMipBias setting and return a mip bias regardless.</param>
+        public float CalculateMipBias(Vector2Int inputResolution, Vector2Int outputResolution, bool forceApply = false)
+        {
+            if (!m_UseMipBias && !forceApply)
+                return 0.0f;
+
+            return (float)Math.Log((double)inputResolution.x / (double)outputResolution.x, 2.0);
+        }
+
+        /// <summary>
+        /// Set the scaler method used to drive dynamic resolution by the user.
         /// </summary>
         /// <param name="scaler">The delegate used to determine the resolution percentage used by the dynamic resolution system.</param>
         /// <param name="scalerType">The type of scaler that is used, this is used to indicate the return type of the scaler to the dynamic resolution system.</param>
         static public void SetDynamicResScaler(PerformDynamicRes scaler, DynamicResScalePolicyType scalerType = DynamicResScalePolicyType.ReturnsMinMaxLerpFactor)
         {
-            s_ScalerType = scalerType;
-            s_DynamicResMethod = scaler;
+            s_ScalerContainers[(int)DynamicResScalerSlot.User] = new ScalerContainer() { type = scalerType, method = scaler };
+        }
+
+        /// <summary>
+        /// Set the scaler method used to drive dynamic resolution internally from the Scriptable Rendering Pipeline. This function should only be called by Scriptable Rendering Pipeline.
+        /// </summary>
+        /// <param name="scaler">The delegate used to determine the resolution percentage used by the dynamic resolution system.</param>
+        /// <param name="scalerType">The type of scaler that is used, this is used to indicate the return type of the scaler to the dynamic resolution system.</param>
+        static public void SetSystemDynamicResScaler(PerformDynamicRes scaler, DynamicResScalePolicyType scalerType = DynamicResScalePolicyType.ReturnsMinMaxLerpFactor)
+        {
+            s_ScalerContainers[(int)DynamicResScalerSlot.System] = new ScalerContainer() { type = scalerType, method = scaler };
+        }
+
+        /// <summary>
+        /// Sets the active dynamic scaler slot to be used by the runtime when calculating frame resolutions.
+        /// See DynamicResScalerSlot for more information.
+        /// </summary>
+        /// <param name="slot">The scaler to be selected and used by the runtime.</param>
+        static public void SetActiveDynamicScalerSlot(DynamicResScalerSlot slot)
+        {
+            s_ActiveScalerSlot = slot;
         }
 
         /// <summary>
@@ -240,6 +350,24 @@ namespace UnityEngine.Rendering
             s_ActiveInstance = s_DefaultInstance;
             s_ActiveCameraId = 0;
             s_ActiveInstanceDirty = true;
+        }
+
+        /// <summary>
+        /// Set the Upscale filter used by the camera when dynamic resolution is run.
+        /// </summary>
+        /// <param name="camera">The camera for which the upscale filter is set.</param>
+        /// <param name="filter">The filter to be used by the camera to upscale to final resolution.</param>
+        static public void SetUpscaleFilter(Camera camera, DynamicResUpscaleFilter filter)
+        {
+            var cameraID = camera.GetInstanceID();
+            if (s_CameraUpscaleFilters.ContainsKey(cameraID))
+            {
+                s_CameraUpscaleFilters[cameraID] = filter;
+            }
+            else
+            {
+                s_CameraUpscaleFilters.Add(cameraID, filter);
+            }
         }
 
         /// <summary>
@@ -288,7 +416,7 @@ namespace UnityEngine.Rendering
         {
             ProcessSettings(settings);
 
-            if (!m_Enabled && !s_ActiveInstanceDirty)
+            if (!m_Enabled || !s_ActiveInstanceDirty)
             {
                 s_ActiveInstanceDirty = false;
                 return;
@@ -296,15 +424,16 @@ namespace UnityEngine.Rendering
 
             if (!m_ForcingRes)
             {
-                if (s_ScalerType == DynamicResScalePolicyType.ReturnsMinMaxLerpFactor)
+                ref ScalerContainer scaler = ref s_ScalerContainers[(int)s_ActiveScalerSlot];
+                if (scaler.type == DynamicResScalePolicyType.ReturnsMinMaxLerpFactor)
                 {
-                    float currLerp = s_DynamicResMethod();
+                    float currLerp = scaler.method();
                     float lerpFactor = Mathf.Clamp(currLerp, 0.0f, 1.0f);
                     m_CurrentFraction = Mathf.Lerp(m_MinScreenFraction, m_MaxScreenFraction, lerpFactor);
                 }
-                else if (s_ScalerType == DynamicResScalePolicyType.ReturnsPercentage)
+                else if (scaler.type == DynamicResScalePolicyType.ReturnsPercentage)
                 {
-                    float percentageRequested = Mathf.Max(s_DynamicResMethod(), 5.0f);
+                    float percentageRequested = Mathf.Max(scaler.method(), 5.0f);
                     m_CurrentFraction = Mathf.Clamp(percentageRequested / 100.0f, m_MinScreenFraction, m_MaxScreenFraction);
                 }
             }
@@ -339,7 +468,7 @@ namespace UnityEngine.Rendering
         /// <returns>True: Software dynamic resolution is enabled</returns>
         public bool SoftwareDynamicResIsEnabled()
         {
-            return m_CurrentCameraRequest && m_Enabled && m_CurrentFraction != 1.0f && (m_ForceSoftwareFallback || type == DynamicResolutionType.Software);
+            return m_CurrentCameraRequest && m_Enabled && (m_CurrentFraction != 1.0f || runUpscalerFilterOnFullResolution) && (m_ForceSoftwareFallback || type == DynamicResolutionType.Software);
         }
 
         /// <summary>
@@ -348,7 +477,7 @@ namespace UnityEngine.Rendering
         /// <returns>True: Hardware dynamic resolution is enabled</returns>
         public bool HardwareDynamicResIsEnabled()
         {
-            return !m_ForceSoftwareFallback && m_CurrentCameraRequest && m_Enabled &&  type == DynamicResolutionType.Hardware;
+            return !m_ForceSoftwareFallback && m_CurrentCameraRequest && m_Enabled && type == DynamicResolutionType.Hardware;
         }
 
         /// <summary>
@@ -369,7 +498,8 @@ namespace UnityEngine.Rendering
         /// <returns>True: Dynamic resolution is enabled.</returns>
         public bool DynamicResolutionEnabled()
         {
-            return m_CurrentCameraRequest && m_Enabled && m_CurrentFraction != 1.0f;
+            //we assume that the DRS schedule takes care of anti aliasing. Thus we dont care if the fraction requested is 1.0
+            return m_CurrentCameraRequest && m_Enabled && (m_CurrentFraction != 1.0f || runUpscalerFilterOnFullResolution);
         }
 
         /// <summary>
@@ -382,7 +512,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Applies to the passed size the scale imposed by the dynamic resolution system.
-        /// Note: this function has the side effect of caching the last scale size.
+        /// Note: this function has the side effect of caching the last scale size, and the output is always smaller or equal then the input.
         /// </summary>
         /// <param name="size">The starting size of the render target that will be scaled by dynamic resolution.</param>
         /// <returns>The parameter size scaled by the dynamic resolution system.</returns>
@@ -396,25 +526,34 @@ namespace UnityEngine.Rendering
             }
 
             Vector2Int scaledSize = ApplyScalesOnSize(size);
+
             m_LastScaledSize = scaledSize;
             return scaledSize;
         }
 
         /// <summary>
         /// Applies to the passed size the scale imposed by the dynamic resolution system.
+        /// This function uses the internal resolved scale from the dynamic resolution system.
         /// Note: this function is pure (has no side effects), this function does not cache the pre-scale size
         /// </summary>
         /// <param name="size">The size to apply the scaling</param>
         /// <returns>The parameter size scaled by the dynamic resolution system.</returns>
         public Vector2Int ApplyScalesOnSize(Vector2Int size)
         {
-            Vector2 resolvedScales = GetResolvedScale();
-            Vector2Int scaledSize = new Vector2Int(Mathf.CeilToInt(size.x * resolvedScales.x), Mathf.CeilToInt(size.y * resolvedScales.y));
+            return ApplyScalesOnSize(size, GetResolvedScale());
+        }
+
+        internal Vector2Int ApplyScalesOnSize(Vector2Int size, Vector2 scales)
+        {
+            Vector2Int scaledSize = new Vector2Int(Mathf.CeilToInt(size.x * scales.x), Mathf.CeilToInt(size.y * scales.y));
             if (m_ForceSoftwareFallback || type != DynamicResolutionType.Hardware)
             {
                 scaledSize.x += (1 & scaledSize.x);
                 scaledSize.y += (1 & scaledSize.y);
             }
+
+            scaledSize.x = Math.Min(scaledSize.x, size.x);
+            scaledSize.y = Math.Min(scaledSize.y, size.y);
 
             return scaledSize;
         }
@@ -435,6 +574,28 @@ namespace UnityEngine.Rendering
         public Vector2Int GetLastScaledSize()
         {
             return m_LastScaledSize;
+        }
+
+        /// <summary>
+        /// Returns the resolved low res multiplier based on the low res transparency threshold settings.
+        /// Note: The pipeline can use this to drive the scale for low res transparency if available.
+        /// </summary>
+        /// <param name="targetLowRes"> the target low resolution.
+        ///     If by any chance thresholding is disabled or clamped, the exact same resolution is returned.
+        ///     This allows the caller to directly compare the float result safely with the floating point target resolution.
+        /// </param>
+        /// <returns>Returns the resolved low res multiplier based on the low transparency threshold settings.</returns>
+        public float GetLowResMultiplier(float targetLowRes)
+        {
+            if (!m_Enabled)
+                return targetLowRes;
+
+            float thresholdPercentage = Math.Min(m_CachedSettings.lowResTransparencyMinimumThreshold / 100.0f, targetLowRes);
+            float targetPercentage = targetLowRes * m_CurrentFraction;
+            if (targetPercentage >= thresholdPercentage)
+                return targetLowRes;
+
+            return Mathf.Clamp(thresholdPercentage / m_CurrentFraction, 0.0f, 1.0f);
         }
     }
 }

@@ -1,0 +1,653 @@
+#pragma kernel InBucketSum
+#pragma kernel BlockSums
+#pragma kernel FinalSum
+#pragma kernel ToTextureNormalized
+#pragma kernel CopyTextures
+#pragma kernel JFA
+#pragma kernel DistanceTransform
+#pragma kernel CopyBuffers
+#pragma kernel GenerateRayMapLocal
+#pragma kernel RayMapScanX
+#pragma kernel RayMapScanY
+#pragma kernel RayMapScanZ
+#pragma kernel SignPass6Rays
+#pragma kernel SignPassNeighbors
+#pragma kernel ToBlockSumBuffer
+#pragma kernel ClearTexturesAndBuffers
+#pragma kernel CopyToBuffer
+#pragma kernel GenerateTrianglesUV
+#pragma kernel ConservativeRasterization
+#pragma kernel ChooseDirectionTriangleOnly
+#pragma kernel SurfaceClosing
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl
+
+#include "Packages/com.unity.visualeffectgraph/Shaders/SDFBaker/SdfUtils.hlsl"
+
+StructuredBuffer<uint> indices;
+StructuredBuffer<float3> vertices;
+RWStructuredBuffer<uint> coordFlip;
+RWStructuredBuffer<float4> verticesOut;
+RWStructuredBuffer<float4> aabb;
+float4x4 worldToClip;
+uint currentAxis;
+RWStructuredBuffer<float4> voxelsBuffer;
+
+
+RWStructuredBuffer<Tri> rw_trianglesUV;
+StructuredBuffer<Tri> trianglesUV;
+RWTexture3D<float4> voxels, voxelsTmp;
+RWTexture3D<float4> rayMap;
+
+CBUFFER_START(VoxelParams)
+uint nTriangles;
+float3 minBoundsExtended;
+float3 maxBoundsExtended;
+float maxExtent;
+uint3 size;
+uint upperBoundCount;
+CBUFFER_END
+
+
+
+uint id3(uint i, uint j, uint k)
+{
+    return (uint)(i + size.x * j + size.x * size.y * k);
+}
+uint id3(int3 coord)
+{
+    return id3(coord.x, coord.y, coord.z);
+}
+
+float3 GetVertexObj(uint idThread, uint idVertex)
+{
+    return vertices[indices[3 * idThread + idVertex]];
+}
+
+[numthreads(64, 1, 1)]
+void GenerateTrianglesUV(uint3 id: SV_DispatchThreadID)
+{
+    if (id.x >= nTriangles)
+        return;
+
+    float3 half_extents = 0.5f * (maxBoundsExtended - minBoundsExtended) / maxExtent;
+    float3 center = 0.5f * (maxBoundsExtended + minBoundsExtended);
+    Tri triUV;
+    triUV.a = (GetVertexObj(id.x, 0) - center) / maxExtent + half_extents;
+    triUV.b = (GetVertexObj(id.x, 1) - center) / maxExtent + half_extents;
+    triUV.c = (GetVertexObj(id.x, 2) - center) / maxExtent + half_extents;
+
+    rw_trianglesUV[id.x] = triUV;
+}
+
+[numthreads(64,1,1)]
+void ConservativeRasterization(uint3 id: SV_DispatchThreadID)
+{
+    if (id.x >= nTriangles)
+        return;
+    if(coordFlip[id.x] != currentAxis)
+        return;
+
+    uint i;
+
+    float4 vertex[3];
+    for ( i = 0; i < 3; i++)
+    {
+        vertex[i] = mul(worldToClip, float4(GetVertexObj(id.x, i), 1.0f));
+    }
+    float3 triangleNormal = normalize(cross(vertex[1].xyz - vertex[0].xyz, vertex[2].xyz - vertex[0].xyz));
+
+    if (dot(triangleNormal, float3(0.0, 0.0, 1.0)) < 0.0)
+    {
+        float4 vertexTemp = vertex[2];
+        vertex[2] = vertex[1];
+        vertex[1] = vertexTemp;
+    }
+    float4 trianglePlane;
+    trianglePlane.xyz = normalize(cross(vertex[1].xyz - vertex[0].xyz, vertex[2].xyz - vertex[0].xyz));
+    trianglePlane.w = -dot(vertex[0].xyz, trianglePlane.xyz);
+
+    float2 hPixel;
+    if(currentAxis == 0)
+    {
+        hPixel = float2(1.0f/size.x, 1.0f/size.y);
+    }
+    else if (currentAxis == 1)
+    {
+        hPixel = float2(1.0f/size.z, 1.0f/size.x);
+    }
+    else
+    {
+        hPixel = float2(1.0f/size.y, 1.0f/size.z);
+    }
+    float4 _aabb = float4(1.0, 1.0, -1.0, -1.0);
+    // Get AABB of the triangle.
+    _aabb.xy = min(_aabb.xy, min(vertex[0].xy, min(vertex[1].xy, vertex[2].xy)));
+    _aabb.zw = max(_aabb.xy, max(vertex[0].xy, max(vertex[1].xy, vertex[2].xy)));
+
+    // Add offset of half pixel size to AABB.
+    aabb[id.x] = _aabb + float4(-hPixel.x, -hPixel.y, hPixel.x, hPixel.y);
+
+    // //conservative rast
+    float4 vertexCons[3];
+    float3 plane[3];
+    for ( i = 0; i < 3; i++)
+    {
+        plane[i] = cross(vertex[i].xyw, vertex[(i + 2) % 3].xyw);
+        plane[i].z -= dot(hPixel, abs(plane[i].xy));
+    }
+    for ( i = 0; i < 3; i++)
+    {
+        vertexCons[i].xyw = cross(plane[i], plane[(i + 1) % 3]);
+        if (vertexCons[i].w == 0.0)
+        {
+            return;
+        }
+        vertexCons[i] /= vertexCons[i].w;
+    }
+
+    for ( i = 0; i < 3; i++)
+    {
+        // Calculate the new z-Coordinate derived from a point on a plane.
+        vertexCons[i].z = -(trianglePlane.x * vertexCons[i].x + trianglePlane.y * vertexCons[i].y + trianglePlane.w) / trianglePlane.z;
+    }
+    for ( i = 0; i < 3; i++)
+    {
+        verticesOut[3 * id.x + i] = vertexCons[i];
+    }
+}
+
+[numthreads(64, 1, 1)]
+void ChooseDirectionTriangleOnly(uint3 id: SV_DispatchThreadID)
+{
+    if (id.x >= nTriangles)
+        return;
+
+    float3 n = computeNormalUnnormalized(GetVertexObj(id.x, 0), GetVertexObj(id.x, 1), GetVertexObj(id.x, 2));
+    n = abs(n);
+    float3 temp;
+    if (n.x > max(n.y, n.z))
+    {
+        coordFlip[id.x] = 2;
+    }
+    else if (n.y > max(n.x, n.z))
+    {
+        coordFlip[id.x] = 1;
+    }
+    else
+    {
+        coordFlip[id.x] = 0;
+    }
+
+}
+
+
+RWStructuredBuffer<uint> Input;
+StructuredBuffer<uint> inputCounter;
+StructuredBuffer<uint> auxBuffer;
+RWStructuredBuffer<uint> Result ;
+
+#define groupthreads 512
+groupshared uint2 bucket[groupthreads];
+
+void PrefixSum(uint3 id, uint gid, uint x) // Change the type of x here if scan other types
+{
+    uint thid = id.x;
+    //load input into shared memory
+    bucket[gid].x = x;
+    bucket[gid].y = 0;
+
+    uint stride;
+    for (stride = 2; stride <= groupthreads; stride <<= 1)
+    {
+        GroupMemoryBarrierWithGroupSync();
+
+        if ((gid & (stride - 1)) == (stride - 1))
+        {
+            bucket[gid].x += bucket[gid - stride / 2].x;
+        }
+        // clear the last element
+        if (gid == (groupthreads - 1))
+        {
+            bucket[gid].x = 0;
+        }
+    }
+
+    // Down sweep
+    bool n = true;
+    [unroll] for (stride = groupthreads / 2; stride >= 1; stride >>= 1)
+    {
+        GroupMemoryBarrierWithGroupSync();
+
+        uint a = stride - 1;
+        uint b = stride | a;
+
+        if (n) // ping-pong between passes
+        {
+            if ((gid & b) == b)
+            {
+                bucket[gid].y = bucket[gid - stride].x + bucket[gid].x;
+            }
+            else if ((gid & a) == a)
+            {
+                bucket[gid].y = bucket[gid + stride].x;
+            }
+            else
+            {
+                bucket[gid].y = bucket[gid].x;
+            }
+        }
+        else
+        {
+            if ((gid & b) == b)
+            {
+                bucket[gid].x = bucket[gid - stride].y + bucket[gid].y;
+            }
+            else if ((gid & a) == a)
+            {
+                bucket[gid].x = bucket[gid + stride].y;
+            }
+            else
+            {
+                bucket[gid].x = bucket[gid].y;
+            }
+        }
+        n = !n;
+    }
+    Result[thid] = bucket[gid].y; //Careful, works for groupthreads = 512 (2^(2n+1))
+}
+uint numElem;
+[numthreads(groupthreads, 1, 1)]
+void InBucketSum(uint3 DTid: SV_DispatchThreadID, uint3 GTid: SV_GroupThreadID, uint GI: SV_GroupIndex) {
+    uint x ;
+    if(DTid.x >= numElem)
+    {
+        x = 0u;
+    }
+    else{
+        x = Input[DTid.x];
+    }
+    PrefixSum(DTid, GI, x);
+}
+
+[numthreads(groupthreads, 1, 1)]
+void BlockSums(uint3 DTid: SV_DispatchThreadID, uint3 GTid: SV_GroupThreadID, uint GI: SV_GroupIndex)
+{
+    uint x ;
+    if(((DTid.x + 1) * groupthreads -1 ) >= numElem )
+    {
+        x = 0u;
+    }
+    else
+    {
+        uint id = (DTid.x + 1) * groupthreads - 1;
+        x = Input[id] + inputCounter[id]; // Change the type of x here if scan other types
+    }
+    PrefixSum(DTid, GI, x);
+}
+
+bool exclusive;
+// add the bucket scanned result to each bucket to get the final result
+[numthreads(groupthreads, 1, 1)]
+void FinalSum(uint3 Gid: SV_GroupID, uint3 DTid: SV_DispatchThreadID) {
+    if(DTid.x >= numElem)
+        return;
+    if(exclusive)
+        Result[DTid.x] = Input[DTid.x] + auxBuffer[Gid.x] - inputCounter[DTid.x]; //Exclusive prefix sum by subtracting the initial value of the counter
+    else
+    {
+        Result[DTid.x] = Input[DTid.x] + auxBuffer[Gid.x];
+    }
+
+}
+
+[numthreads(groupthreads, 1, 1)]
+void ToBlockSumBuffer(uint3 DTid : SV_DispatchThreadID)
+{
+    if (((DTid.x + 1) * groupthreads - 1) >= numElem)
+        return;
+    uint id = (DTid.x + 1) * groupthreads - 1;
+    Result[DTid.x] = Input[id] + inputCounter[id];
+}
+
+[numthreads(4, 4, 4)]
+void ToTextureNormalized(uint3 id: SV_DispatchThreadID)
+{
+    if (id.x >= (uint)size.x || id.y >= (uint)size.y || id.z >= (uint)size.z)
+        return;
+    if (voxelsBuffer[id3(id.xyz)].x != 0.0f || voxelsBuffer[id3(id.xyz)].y != 0.0f || voxelsBuffer[id3(id.xyz)].z != 0.0f)
+    {
+        voxels[id.xyz] = voxelsBuffer[id3(id.xyz)];
+    }
+}
+
+
+
+
+StructuredBuffer<float4> src;
+RWStructuredBuffer<float4> dest;
+[numthreads(64, 1, 1)]
+void CopyBuffers(uint3 id: SV_DispatchThreadID) {
+    if (id.x >= size.x * size.y * size.z)
+        return;
+    dest[id.x] = src[id.x];
+}
+
+[numthreads(4, 4, 4)]
+void CopyTextures(uint3 id: SV_DispatchThreadID)
+{
+    if (id.x >= (uint)size.x || id.y >= (uint)size.y || id.z >= (uint)size.z)
+        return;
+    voxels[int3(id.x, id.y, id.z)] = voxelsTmp[int3(id.x, id.y, id.z)];
+}
+
+
+ RWTexture3D<float> signMap;
+ float threshold;
+
+[numthreads(4, 4, 4)]
+void SurfaceClosing(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)size.x-1 || id.y >= (uint)size.y-1 || id.z >= (uint)size.z-1)
+        return;
+    uint size_max = Max3(size.x, size.y, size.z);
+    if(  (signMap[id.xyz]-threshold)*(signMap[id.xyz + uint3(1,0,0)] - threshold) < 0
+        || (signMap[id.xyz] - threshold) * (signMap[id.xyz + uint3(0, 1, 0)] - threshold) < 0
+        || (signMap[id.xyz] - threshold) * (signMap[id.xyz + uint3(0, 0, 1)] - threshold) < 0)
+    {
+        voxels[id.xyz] = float4 ((float3(id.xyz) + float3(0.5f, 0.5f, 0.5f)) / size_max, 1.0f);
+    }
+}
+
+
+uint offset;
+[numthreads(4,4,4)]
+void JFA(uint3 id: SV_DispatchThreadID)
+{
+    if (id.x >= (uint)size.x || id.y >= (uint)size.y || id.z >= (uint)size.z)
+        return;
+    uint size_max = Max3(size.x, size.y, size.z);
+    float bestDistance = 9999.0f;
+    float3 bestCoord = float3(0.0f, 0.0f, 0.0f);
+    [unroll(3)]
+    for (int z = -1; z <= 1; z++)
+    {
+        [unroll(3)]
+        for (int y = -1; y <= 1; y++)
+        {
+            [unroll(3)]
+            for (int x = -1; x <= 1; x++)
+            {
+                int3 sampleCoord;
+                sampleCoord.x = min((int)(size.x-1), max(0, (int)id.x + x * (int)offset));
+                sampleCoord.y = min((int)(size.y-1), max(0, (int)id.y + y * (int)offset));
+                sampleCoord.z = min((int)(size.z-1), max(0, (int)id.z + z * (int)offset));
+
+                float3 seedCoord = voxels[sampleCoord].xyz;
+                float dist = length(seedCoord - (float3(id.xyz) + float3(0.5f, 0.5f, 0.5f)) / size_max);
+                if ((seedCoord.x != 0.0f || seedCoord.y != 0.0f || seedCoord.z != 0.0f) && dist < bestDistance)
+                {
+                    bestCoord = seedCoord;
+                    bestDistance = dist;
+                }
+            }
+        }
+    }
+    voxelsTmp[id.xyz] = float4(bestCoord, bestDistance);
+}
+
+
+void TestIntersection6Rays(in Tri tri, in int3 voxelId, out float3 intersectForward, out float3 intersectBackward)
+{
+    Tri tri_ccw;
+    tri_ccw.a = tri.c;
+    tri_ccw.b = tri.b;
+    tri_ccw.c = tri.a;
+
+    uint size_max = Max3(size.x, size.y, size.z);
+    intersectForward = float3(0.0f, 0.0f, 0.0f);
+    intersectBackward = float3(0.0f, 0.0f, 0.0f);
+    //check x direction
+    float3 p = (float3(voxelId) + float3(0.0f, 0.5f, 0.5f)) / size_max;
+    float3 q = (float3(voxelId) + float3(1.0f, 0.5f, 0.5f)) / size_max;
+    float t1 = 1, t2 = -1, t3 = -1, t1ccw = -1, t2ccw = -1, t3ccw = -1;
+    float intersect = -1.0f * IntersectSegmentTriangle(p, q, tri, t1);
+    intersect += IntersectSegmentTriangle(p, q, tri_ccw, t1ccw);
+    t1 = min(t1,t1ccw);
+    if (t1 < 0.5f)
+    {
+        intersectBackward.x += float(intersect);
+    }
+    else
+    {
+        intersectForward.x += float(intersect);
+    }
+    // y direction
+    p = (float3(voxelId) + float3(0.5f, 0.0f, 0.5f)) / size_max;
+    q = (float3(voxelId) + float3(0.5f, 1.0f, 0.5f)) / size_max;
+    intersect = -1.0f * IntersectSegmentTriangle(p, q, tri, t2);
+    intersect += IntersectSegmentTriangle(p, q, tri_ccw, t2ccw);
+    t2 = min(t2,t2ccw);
+
+    if (t2 < 0.5f)
+    {
+        intersectBackward.y += float(intersect);
+    }
+    else
+    {
+        intersectForward.y += float(intersect);
+    }
+
+    // z direction
+    p = (float3(voxelId) + float3(0.5f, 0.5f, 0.0f)) / size_max;
+    q = (float3(voxelId) + float3(0.5f, 0.5f, 1.0f)) / size_max;
+    intersect = -1.0f * IntersectSegmentTriangle(p, q, tri, t3);
+    intersect += IntersectSegmentTriangle(p, q, tri_ccw, t3ccw);
+    t3 = min(t3,t3ccw);
+    if (t3 < 0.5f)
+    {
+        intersectBackward.z += float(intersect);
+    }
+    else
+    {
+        intersectForward.z += float(intersect);
+    }
+}
+
+int3 offsetRayMap; //(0,0,0), (0,0,1),(0,1,0), etc...
+
+RWStructuredBuffer<uint> triangleIDs, accumCounter;
+
+[numthreads(8, 8, 8)]
+void GenerateRayMapLocal(uint3 id: SV_DispatchThreadID) {
+    id = 2 * id + offsetRayMap;
+    if (id.x >= (uint)size.x || id.y >= (uint)size.y || id.z >= (uint)size.z)
+        return;
+
+    uint startId = id3(id) > 0 ? accumCounter[id3(id) - 1] : 0;
+    uint endId = accumCounter[id3(id)];
+    for (uint i = startId; i < endId && (i < upperBoundCount - 1); i++)
+    {
+        uint idTri = triangleIDs[i];
+        Tri tri = trianglesUV[idTri];
+        float3 intersectForward, intersectBackward;
+        TestIntersection6Rays(tri, int3(id.xyz), intersectForward, intersectBackward);
+
+
+
+        rayMap[id.xyz] += float4(intersectForward, 1.0f);
+
+        if (id.x > 0)
+        {
+            rayMap[int3(id.x - 1, id.y, id.z)] += float4(intersectBackward.x, 0.0f, 0.0f, 1.0f);
+        }
+        if (id.y > 0)
+        {
+            rayMap[int3(id.x, id.y - 1, id.z)] += float4(0.0f, intersectBackward.y, 0.0f, 1.0f);
+        }
+        if (id.z > 0)
+        {
+            rayMap[int3(id.x, id.y, id.z - 1)] += float4(0.0f, 0.0f, intersectBackward.z, 1.0f);
+        }
+    }
+}
+
+[numthreads(1, 8, 8)]
+void RayMapScanX(uint3 id: SV_DispatchThreadID)
+{
+    if (id.y >= (uint)size.y || id.z >= (uint)size.z)
+        return;
+    for (int t = size.x - 2; t >= 0; t--)
+    {
+        rayMap[int3(t, id.y, id.z)] += float4(rayMap[int3(t + 1, id.y, id.z)].x, 0, 0, 1.0f);
+    }
+}
+
+[numthreads(8, 1, 8)]
+void RayMapScanY(uint3 id: SV_DispatchThreadID) {
+    if (id.x >= (uint)size.x || id.z >= (uint)size.z)
+        return;
+    for (int t = size.y - 2; t >= 0; t--)
+    {
+        rayMap[int3(id.x, t, id.z)] += float4(0, rayMap[int3(id.x, t + 1, id.z)].y, 0, 1.0f);
+    }
+}
+
+[numthreads(8, 8, 1)]
+void RayMapScanZ(uint3 id: SV_DispatchThreadID)
+{
+    if (id.x >= (uint)size.x || id.y >= (uint)size.y)
+        return;
+    for (int t = size.z - 2; t >= 0; t--)
+    {
+        rayMap[int3(id.x, id.y, t)] += float4(0, 0, rayMap[int3(id.x, id.y, t + 1)].z, 1.0f);
+    }
+}
+
+RWTexture3D<float> signMapTmp;
+
+[numthreads(4, 4, 4)]
+void SignPass6Rays(uint3 id: SV_DispatchThreadID) {
+    if (id.x >= (uint)size.x || id.y >= (uint)size.y || id.z >= (uint)size.z)
+        return;
+    signMap[id.xyz] = (rayMap[id.xyz].x +
+                       rayMap[id.xyz].y +
+                       rayMap[id.xyz].z +
+                       (rayMap[id.xyz].x - rayMap[int3(0, id.y, id.z)].x) +
+                       (rayMap[id.xyz].y - rayMap[int3(id.x, 0, id.z)].y) +
+                       (rayMap[id.xyz].z - rayMap[int3(id.x, id.y, 0)].z));
+}
+
+
+bool needNormalize;
+float normalizeFactor;
+uint numNeighbours;
+uint passId;
+[numthreads(4, 4, 4)]
+void SignPassNeighbors(uint3 id: SV_DispatchThreadID) {
+    if (id.x >= (uint)size.x || id.y >= (uint)size.y || id.z >= (uint)size.z)
+        return;
+    uint maxSize = Max3(size.x, size.y, size.z);
+    float4 selfRayMap = rayMap[id.xyz];
+    for (uint i = 0; i < numNeighbours; i++)
+    {
+
+        int3 neighborsOffset = GenerateNeighborOffset( (i * numNeighbours) + passId, maxSize,   0.05f);
+        int3 neighborsIndex;
+        neighborsIndex.x = min((int)(size.x - 1), max(0, (int)id.x + neighborsOffset.x));
+        neighborsIndex.y = min((int)(size.y - 1), max(0, (int)id.y + neighborsOffset.y));
+        neighborsIndex.z = min((int)(size.z - 1), max(0, (int)id.z + neighborsOffset.z));
+
+        float accumSign = 0.0f;
+        //////xyz,
+        accumSign += (selfRayMap.x - rayMap[int3(neighborsIndex.x, id.y, id.z)].x);
+        accumSign += (rayMap[int3(neighborsIndex.x, id.y, id.z)].y - rayMap[int3(neighborsIndex.x, neighborsIndex.y, id.z)].y);
+        accumSign += (rayMap[int3(neighborsIndex.x, neighborsIndex.y, id.z)].z - rayMap[neighborsIndex].z);
+
+
+        ////// xzy
+        accumSign += (selfRayMap.x - rayMap[int3(neighborsIndex.x, id.y, id.z)].x);
+        accumSign += (rayMap[int3(neighborsIndex.x, id.y, id.z)].z - rayMap[int3(neighborsIndex.x, id.y, neighborsIndex.z)].z);
+        accumSign += (rayMap[int3(neighborsIndex.x, id.y, neighborsIndex.z)].y - rayMap[neighborsIndex].y);
+
+        //////yxz,
+        accumSign += (selfRayMap.y - rayMap[int3(id.x, neighborsIndex.y, id.z)].y);
+        accumSign += (rayMap[int3(id.x, neighborsIndex.y, id.z)].x - rayMap[int3(neighborsIndex.x, neighborsIndex.y, id.z)].x);
+        accumSign += (rayMap[int3(neighborsIndex.x, neighborsIndex.y, id.z)].z - rayMap[neighborsIndex].z);
+
+        ////yzx,
+        accumSign += (selfRayMap.y - rayMap[int3(id.x, neighborsIndex.y, id.z)].y);
+        accumSign += (rayMap[int3(id.x, neighborsIndex.y, id.z)].z - rayMap[int3(id.x, neighborsIndex.y, neighborsIndex.z)].z);
+        accumSign += (rayMap[int3(id.x, neighborsIndex.y, neighborsIndex.z)].x - rayMap[neighborsIndex].x);
+
+        ////zyx
+        accumSign += (selfRayMap.z - rayMap[int3(id.x, id.y, neighborsIndex.z)].z);
+        accumSign += (rayMap[int3(id.x, id.y, neighborsIndex.z)].y - rayMap[int3(id.x, neighborsIndex.y, neighborsIndex.z)].y);
+        accumSign += (rayMap[int3(id.x, neighborsIndex.y, neighborsIndex.z)].x - rayMap[neighborsIndex].x);
+
+        //zxy
+        accumSign += (selfRayMap.z - rayMap[int3(id.x, id.y, neighborsIndex.z)].z);
+        accumSign += (rayMap[int3(id.x, id.y, neighborsIndex.z)].x - rayMap[int3(neighborsIndex.x, id.y, neighborsIndex.z)].x);
+        accumSign += (rayMap[int3(neighborsIndex.x, id.y, neighborsIndex.z)].y - rayMap[neighborsIndex].y);
+
+        signMap[id.xyz] += normalizeFactor * accumSign + 6 * signMapTmp[neighborsIndex];
+
+    }
+    if (needNormalize)
+    {
+        int normalizeFactorFinal = normalizeFactor + numNeighbours * 6 * normalizeFactor;
+        signMap[id.xyz] /= normalizeFactorFinal;
+
+    }
+}
+
+RWTexture3D<float> distanceTexture;
+float sdfOffset;
+[numthreads(8, 8, 8)]
+void DistanceTransform(uint3 id: SV_DispatchThreadID) {
+    if (id.x >= size.x || id.y >= size.y || id.z >= size.z)
+        return;
+    uint size_max = Max3(size.x, size.y, size.z);
+    float3 seedCoord = voxels[int3(id.x, id.y, id.z)].xyz;
+    float3 voxelCoord = (float3(id.xyz) + float3(0.5f, 0.5f, 0.5f)) / size_max;
+    float signD = signMap[id.xyz] > threshold ? -1 : 1;
+    // float signD = 1;
+    int3 idSeed = int3(seedCoord * size_max);
+    uint startId = id3(idSeed) > 0 ? accumCounter[id3(idSeed) - 1] : 0;
+    uint endId = accumCounter[id3(idSeed)];
+    float dist = 9999;
+    for (uint i = startId; (i < endId) && (i < upperBoundCount-1); i++)
+    {
+        uint idTri = triangleIDs[i];
+        Tri tri = trianglesUV[idTri];
+        dist = min(dist,ComputeDistancePointTri(voxelCoord, tri));
+    }
+    if(dist == 9999)
+    {
+        dist = length(seedCoord - voxelCoord);
+    }
+    distanceTexture[id.xyz] = signD * dist - sdfOffset;
+}
+
+RWStructuredBuffer<uint> counter;
+[numthreads(8, 8, 8)]
+void ClearTexturesAndBuffers(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)size.x || id.y >= (uint)size.y || id.z >= (uint)size.z) return;
+    voxels[int3(id.x, id.y, id.z)] = float4(0.0f,0.0f,0.0f,1.0f);
+    voxelsTmp[int3(id.x, id.y, id.z)] = float4(0.0f,0.0f,0.0f,0.0f);
+    rayMap[int3(id.x, id.y, id.z)]= float4(0.0f,0.0f,0.0f,0.0f);
+    signMap[int3(id.x, id.y, id.z)] = 0.0f;
+    signMapTmp[int3(id.x, id.y, id.z)] = 0.0f;
+    accumCounter[id3(id.xyz)] = 0u;
+    counter[id3(id.xyz)] = 0u;
+    voxelsBuffer[id3(id.xyz)] = float4(0.0f,0.0f,0.0f,0.0f);
+}
+
+
+[numthreads(8, 8, 8)]
+void CopyToBuffer(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)size.x || id.y >= (uint)size.y || id.z >= (uint)size.z) return;
+    voxelsBuffer[id3(id.x, id.y, id.z)] = voxels[int3(id.x, id.y, id.z)];
+}
