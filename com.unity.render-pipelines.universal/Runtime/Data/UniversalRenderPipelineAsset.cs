@@ -328,9 +328,20 @@ namespace UnityEngine.Rendering.Universal
         [MenuItem("Assets/Create/Rendering/URP Editor Resources", priority = CoreUtils.Sections.section8 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateUniversalPipelineEditorResources()
         {
-            var instance = CreateInstance<UniversalRenderPipelineEditorResources>();
-            ResourceReloader.ReloadAllNullIn(instance, packagePath);
-            AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(UniversalRenderPipelineEditorResources).Name));
+            var defaultResourcePath = AssetDatabase.GUIDToAssetPath(defaultEditorResourcesGUID);
+            var defaultResourceResults = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
+            var defaultResourceFound = objs != null && objs.Length > 0;
+            if (defaultResourceFound)
+            {
+                var defaultResourceCopy = objs.First() as UniversalRenderPipelineEditorResources;
+                AssetDatabase.CreateAsset(defaultResourceCopy, string.Format("Assets/{0}.asset", typeof(UniversalRenderPipelineEditorResources).Name));
+            }
+            else
+            {
+                var blankInstance = CreateInstance<UniversalRenderPipelineEditorResources>();
+                ResourceReloader.ReloadAllNullIn(blankInstance, packagePath);
+                AssetDatabase.CreateAsset(blankInstance, string.Format("Assets/{0}.asset", typeof(UniversalRenderPipelineEditorResources).Name));
+            }
         }
 
         UniversalRenderPipelineEditorResources editorResources
