@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        string GetFunctionName() => "Unity_HDRP_SampleBuffer_$precision";
+        string GetFunctionName() => $"Unity_HDRP_SampleBuffer_{bufferType}_$precision";
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {

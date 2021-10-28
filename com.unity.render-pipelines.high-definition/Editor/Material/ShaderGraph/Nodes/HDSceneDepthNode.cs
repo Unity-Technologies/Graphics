@@ -71,11 +71,11 @@ namespace UnityEditor.Rendering.HighDefinition
             // Preview SG doesn't have access to HDRP depth buffer
             if (!generationMode.IsPreview())
             {
-                registry.builder.AppendLine("StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;");
-                registry.builder.AppendLine("float4  _DepthPyramidBufferSize;");
 
                 registry.ProvideFunction(GetFunctionName(), s =>
                 {
+                    registry.builder.AppendLine("StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;");
+                    registry.builder.AppendLine("float4  _DepthPyramidBufferSize;");
                     s.AppendLine("$precision {0}($precision2 uv, $precision lod)", GetFunctionName());
                     using (s.BlockScope())
                     {
