@@ -12,8 +12,8 @@ ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_trunk:
     name: ShaderGraph_ref on Win_Vulkan_Standalone_ref_images_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -54,8 +54,8 @@ Build_ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_trunk:
     name: Build ShaderGraph_ref on Win_Vulkan_mono_Linear_Standalone_ref_images_build_Player on version trunk
     agent:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -92,8 +92,8 @@ ShaderGraph_ref_Win_Vulkan_playmode_ref_images_mono_Linear_trunk:
     name: ShaderGraph_ref on Win_Vulkan_playmode_ref_images_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -136,8 +136,8 @@ ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_trunk:
     name: ShaderGraph_ref on Win_Vulkan_Standalone_cache_ref_images_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -179,8 +179,8 @@ Build_ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_trunk:
     name: Build ShaderGraph_ref on Win_Vulkan_mono_Linear_Standalone_cache_ref_images_build_Player on version trunk
     agent:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -217,8 +217,8 @@ ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph_ref on Win_Vulkan_Standalone_ref_images_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -259,8 +259,8 @@ Build_ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_CUSTOM-REVISI
     name: Build ShaderGraph_ref on Win_Vulkan_mono_Linear_Standalone_ref_images_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -297,8 +297,8 @@ ShaderGraph_ref_Win_Vulkan_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph_ref on Win_Vulkan_playmode_ref_images_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -341,8 +341,8 @@ ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISI
     name: ShaderGraph_ref on Win_Vulkan_Standalone_cache_ref_images_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -384,8 +384,8 @@ Build_ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_CUSTOM-
     name: Build ShaderGraph_ref on Win_Vulkan_mono_Linear_Standalone_cache_ref_images_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates

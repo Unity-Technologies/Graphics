@@ -109,28 +109,28 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
       editmode:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
       standalone:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
       standalone_cache:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
       standalone_build:
         type: Unity::VM::GPU
-        image: dots-player/windows10:v0.0.43
-        flavor: b1.large
+        image: sdet/gamecode-win10-1909:stable
+        flavor: b1.xlarge
         model: rtx2080
   - name: OSX
     apis:
