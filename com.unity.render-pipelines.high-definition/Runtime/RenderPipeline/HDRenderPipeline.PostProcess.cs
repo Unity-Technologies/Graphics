@@ -2864,6 +2864,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool postDoFTAAEnabled = false;
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
             bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+            bool isOrtho = hdCamera.camera.orthographic;
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
             bool isDoFPathTraced = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -2873,7 +2874,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Depth of Field is done right after TAA as it's easier to just re-project the CoC
             // map rather than having to deal with all the implications of doing it before TAA
-            if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS && !isDoFPathTraced)
+            if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS && !isDoFPathTraced && !isOrtho)
             {
                 // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
                 // Note: for Rendergraph the m_IsDoFHisotoryValid perhaps should be moved to the "pass data" struct
@@ -4079,7 +4080,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Returns color balance coefficients in the LMS space
-        public static Vector3 GetColorBalanceCoeffs(float temperature, float tint)
+        static Vector3 GetColorBalanceCoeffs(float temperature, float tint)
         {
             // Range ~[-1.5;1.5] works best
             float t1 = temperature / 65f;
