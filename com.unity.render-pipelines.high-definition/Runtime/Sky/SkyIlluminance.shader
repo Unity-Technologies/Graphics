@@ -45,8 +45,10 @@ Shader "Hidden/HDRP/SkyIlluminance"
         float3 dir = -GetSkyViewDirWS(input.positionCS.xy);
 
         float luminance = Luminance(SAMPLE_TEXTURECUBE_ARRAY_LOD(_Cubemap, sampler_Cubemap, dir, 0, 0).rgb);
-        // illuminance is divided by PI in the end so premultiply here
-        return luminance * PI * GetCurrentExposureMultiplier();
+        // During exposition, illuminance is converted to luminance by assuming a lambertian material of 14% grey
+        // So we must counter it for sky, which we assume contains raw illuminance
+        const float inv_brightness = 100.0f / 40.5f; // sRGB brightness for a 14% grey card
+        return luminance * inv_brightness * PI * GetCurrentExposureMultiplier();
     }
 
     ENDHLSL

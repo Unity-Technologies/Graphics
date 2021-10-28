@@ -122,9 +122,11 @@ void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinD
     // (This is also why GetScreenSpaceAmbientOcclusion*() is effectively called with AOFromData = 1.0 in Lit:PostEvaluateBSDF() in the
     // deferred case since DecodeFromGBuffer will init bsdfData.ambientOcclusion to 1.0 and we will only have SSAO in the aoFactor here)
     builtinData.bakeDiffuseLighting *= aoFactor.indirectAmbientOcclusion;
+    builtinData.bakeIlluminance *= Luminance(aoFactor.indirectAmbientOcclusion);
     lighting.indirect.specularReflected *= aoFactor.indirectSpecularOcclusion;
     lighting.direct.diffuse *= aoFactor.directAmbientOcclusion;
     lighting.direct.specular *= aoFactor.directSpecularOcclusion;
+    lighting.direct.illuminance *= aoFactor.directAmbientOcclusion.x;
 }
 
 #if defined(DEBUG_DISPLAY) && defined(HAS_LIGHTLOOP) && !defined(_ENABLE_SHADOW_MATTE)
