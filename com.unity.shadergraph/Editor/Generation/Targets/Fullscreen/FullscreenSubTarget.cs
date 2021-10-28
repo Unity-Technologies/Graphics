@@ -588,16 +588,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 context.globalIndentLevel--;
             }
 
-            context.AddProperty("Enable Stencil", new Toggle { value = fullscreenData.enableStencil }, (evt) =>
-             {
-                 if (Equals(fullscreenData.enableStencil, evt.newValue))
-                     return;
-
-                 registerUndo("Change Enable Stencil");
-                 fullscreenData.enableStencil = evt.newValue;
-                 onChange();
-             });
-
             context.AddProperty("Depth Test", new EnumField(fullscreenData.depthTestMode) { value = fullscreenData.depthTestMode }, (evt) =>
             {
                 if (Equals(fullscreenData.depthTestMode, evt.newValue))
@@ -630,6 +620,16 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     onChange();
                 });
             }
+
+            context.AddProperty("Enable Stencil", new Toggle { value = fullscreenData.enableStencil }, (evt) =>
+            {
+                if (Equals(fullscreenData.enableStencil, evt.newValue))
+                    return;
+
+                registerUndo("Change Enable Stencil");
+                fullscreenData.enableStencil = evt.newValue;
+                onChange();
+            });
 
             if (fullscreenData.enableStencil)
             {
