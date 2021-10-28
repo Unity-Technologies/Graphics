@@ -227,6 +227,14 @@ namespace UnityEngine.Experimental.Rendering
         /// The shader used to visualize the probes in the debug view.
         /// </summary>
         public Shader probeDebugShader;
+        /// <summary>
+        /// The debug mesh used to visualize probes virtual offset in the debug view.
+        /// </summary>
+        public Mesh offsetDebugMesh;
+        /// <summary>
+        /// The shader used to visualize probes virtual offset in the debug view.
+        /// </summary>
+        public Shader offsetDebugShader;
         public ProbeVolumeSceneData sceneData;
         public ProbeVolumeSHBands shBands;
         /// <summary>True if APV should support streaming of cell data.</summary>
@@ -293,6 +301,7 @@ namespace UnityEngine.Experimental.Rendering
             public Vector3Int position;
             public List<Brick> bricks;
             public Vector3[] probePositions;
+            public Vector3[] offsetVectors;
             public SphericalHarmonicsL2[] sh;
             public float[] validity;
             public int minSubdiv;
@@ -590,7 +599,7 @@ namespace UnityEngine.Experimental.Rendering
 
             m_MemoryBudget = parameters.memoryBudget;
             m_SHBands = parameters.shBands;
-            InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
+            InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader, parameters.offsetDebugMesh, parameters.offsetDebugShader);
             InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
             m_NeedsIndexRebuild = true;
