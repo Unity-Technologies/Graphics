@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a regression that was introduced in the diffuse denoiser in a previous PR.
 - Fixed a memory leak in the template tutorial (1374640).
 - Fixed a build-time warning regarding light loop variants (case 1372256).
+- Fixed an issue where Virtual Texturing would not function properly in debug modes.
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
