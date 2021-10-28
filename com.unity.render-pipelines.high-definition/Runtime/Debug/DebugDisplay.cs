@@ -481,7 +481,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// <summary>
         /// Returns true if camera visibility is frozen.
         /// </summary>
         /// <returns>True if camera visibility is frozen</returns>
