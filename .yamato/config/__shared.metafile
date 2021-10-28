@@ -357,21 +357,13 @@ platforms:
       type: Unity::VM::osx
       image: package-ci/mac:stable
       flavor: m1.mac
-    copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-    editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
     commands:
       [Metal]:
         setup_utr:
-          - git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-          - git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
           - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
           - chmod +x ./utr
-        copy_images_build:
-          - cp -rf TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_Intel
-        copy_images_run:
-          - cp -rf TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_Intel
         call_utr:
-          - cp -rf TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_Intel
+          - cp -rf TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer
           - |5-
                     export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                     ./utr <UTR_FLAGS>
@@ -381,7 +373,7 @@ platforms:
           - brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
           - brew install unity/unity/unity-downloader-cli
           - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
-          - uname -m
+
 
   Linux:
     name: Linux
