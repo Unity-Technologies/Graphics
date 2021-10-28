@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent shaderVariantLogLevel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information will appear in the Unity console when the build finishes.");
 
             // Overrides
-            public static GUIContent customEditorResourcesAssetText = EditorGUIUtility.TrTextContent("Custom URP Editor Resources", "Use a set of custom URP editor resources instead of the default ones.");
+            public static GUIContent customEditorResourcesAssetText = EditorGUIUtility.TrTextContent("Custom Editor Resources", "Use a set of custom URP editor resources instead of the default ones.");
 
             // Quality
             public static GUIContent hdrText = EditorGUIUtility.TrTextContent("HDR", "Controls the global HDR settings.");
