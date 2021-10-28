@@ -29,6 +29,8 @@ namespace UnityEngine.Experimental.Rendering
             internal Texture3D TexL2_2;
             internal Texture3D TexL2_3;
 
+            internal Texture3D TexValidity;
+
             internal int width;
             internal int height;
             internal int depth;
@@ -45,6 +47,8 @@ namespace UnityEngine.Experimental.Rendering
                 CoreUtils.Destroy(TexL2_2);
                 CoreUtils.Destroy(TexL2_3);
 
+                CoreUtils.Destroy(TexValidity);
+
                 TexL0_L1rx = null;
 
                 TexL1_G_ry = null;
@@ -54,6 +58,8 @@ namespace UnityEngine.Experimental.Rendering
                 TexL2_1 = null;
                 TexL2_2 = null;
                 TexL2_3 = null;
+
+                TexValidity = null;
             }
         }
 
@@ -77,6 +83,7 @@ namespace UnityEngine.Experimental.Rendering
         static DynamicArray<Color> s_L0L1Rx_locData = new DynamicArray<Color>();
         static DynamicArray<Color> s_L1GL1Ry_locData = new DynamicArray<Color>();
         static DynamicArray<Color> s_L1BL1Rz_locData = new DynamicArray<Color>();
+        static DynamicArray<float> s_Validity_locData = new DynamicArray<float>();
 
         static DynamicArray<Color> s_L2_0_locData = null;
         static DynamicArray<Color> s_L2_1_locData = null;
@@ -139,6 +146,7 @@ namespace UnityEngine.Experimental.Rendering
             rr.L2_1 = m_Pool.TexL2_1;
             rr.L2_2 = m_Pool.TexL2_2;
             rr.L2_3 = m_Pool.TexL2_3;
+            rr.Validity = m_Pool.TexValidity;
         }
 
         internal void Clear()
@@ -211,6 +219,7 @@ namespace UnityEngine.Experimental.Rendering
 
                     Graphics.CopyTexture(source.TexL1_G_ry, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_G_ry, dst.z + j, 0, dst.x, dst.y);
                     Graphics.CopyTexture(source.TexL1_B_rz, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_B_rz, dst.z + j, 0, dst.x, dst.y);
+                    Graphics.CopyTexture(source.TexValidity, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexValidity, dst.z + j, 0, dst.x, dst.y);
 
                     if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {
@@ -267,6 +276,12 @@ namespace UnityEngine.Experimental.Rendering
             loc.TexL0_L1rx.hideFlags = HideFlags.HideAndDontSave;
             loc.TexL0_L1rx.name = $"{name}_TexL0_L1rx";
             allocatedBytes += texelCount * 8;
+
+            loc.TexValidity = new Texture3D(width, height, depth, GraphicsFormat.R8_UNorm, TextureCreationFlags.None, 1);
+            loc.TexValidity.hideFlags = HideFlags.HideAndDontSave;
+            loc.TexValidity.name = $"{name}_Validity";
+            allocatedBytes += texelCount * 1;
+
 
             loc.TexL1_G_ry = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
             loc.TexL1_G_ry.hideFlags = HideFlags.HideAndDontSave;
@@ -354,7 +369,7 @@ namespace UnityEngine.Experimental.Rendering
             data[index] = value;
         }
 
-        public static void FillDataLocation(ref DataLocation loc, SphericalHarmonicsL2[] shl2, int startIndex, int count, ProbeVolumeSHBands bands)
+        public static void FillDataLocation(ref DataLocation loc, float[] validity, SphericalHarmonicsL2[] shl2, int startIndex, int count, ProbeVolumeSHBands bands)
         {
             int shidx = startIndex;
             int bx = 0, by = 0, bz = 0;
@@ -374,6 +389,9 @@ namespace UnityEngine.Experimental.Rendering
                             int iy = by + y;
                             int iz = bz + z;
 
+                            // TODO_FCC: TMP change.
+                            int index = ix + loc.width * (iy + loc.height * iz);
+
                             // We are processing chunks at a time.
                             // So in practice we can go over the number of SH we have in the input list.
                             // We fill with black to avoid copying garbage in the final atlas.
@@ -382,6 +400,7 @@ namespace UnityEngine.Experimental.Rendering
                                 SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, Color.black);
                                 SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, Color.black);
                                 SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, Color.black);
+                                s_Validity_locData[index] = 0.0f;
 
                                 if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                 {
@@ -393,6 +412,8 @@ namespace UnityEngine.Experimental.Rendering
                             }
                             else
                             {
+                                s_Validity_locData[index] = validity[shidx];
+
                                 c.r = shl2[shidx][0, 0]; // L0.r
                                 c.g = shl2[shidx][1, 0]; // L0.g
                                 c.b = shl2[shidx][2, 0]; // L0.b

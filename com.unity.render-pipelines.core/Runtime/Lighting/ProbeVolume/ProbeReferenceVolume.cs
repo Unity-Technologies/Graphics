@@ -480,6 +480,11 @@ namespace UnityEngine.Experimental.Rendering
             /// Texture containing the fourth coefficient of Spherical Harmonics L2 band data.
             /// </summary>
             public Texture3D L2_3;
+
+            /// <summary>
+            /// TODO DOCS
+            /// </summary>
+            public Texture3D Validity;
         }
 
         bool m_IsInitialized = false;
@@ -1165,7 +1170,7 @@ namespace UnityEngine.Experimental.Rendering
             while (chunkIndex < cellInfo.chunkList.Count)
             {
                 int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.sh, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.validity, cell.sh, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
 
                 // copy chunks into pool
                 m_TmpSrcChunks.Clear();
