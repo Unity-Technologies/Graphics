@@ -14,14 +14,11 @@ namespace UnityEditor.ShaderFoundry
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void OnBeforeSceneLoadRuntimeMethod()
         {
-            //var generator = new Generator();
             ShaderGraph.Generator.Callback = Generator.BuildTemplateShader;
-            Debug.Log("Before scene loaded");
         }
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnScriptsReloaded()
         {
-            //var generator = new Generator();
             ShaderGraph.Generator.Callback = Generator.BuildTemplateShader;
         }
     }
@@ -35,8 +32,8 @@ namespace UnityEditor.ShaderFoundry
             ShaderBuilder builder = new ShaderBuilder();
 
             var sandboxGenerator = new ShaderFoundry.ShaderGenerator();
-            var sandboxShaderDescBuilder = new ShaderFoundry.ShaderDescriptor.Builder(container, generator.m_Name);
-            sandboxShaderDescBuilder.FallbackShader = @"FallBack ""Hidden/Shader Graph/FallbackError""";
+            var sandboxShaderInstBuilder = new ShaderFoundry.ShaderInstance.Builder(container, generator.m_Name);
+            sandboxShaderInstBuilder.FallbackShader = @"FallBack ""Hidden/Shader Graph/FallbackError""";
 
             foreach (var target in generator.m_Targets)
             {
@@ -48,9 +45,9 @@ namespace UnityEditor.ShaderFoundry
 
                 foreach (var template in templates)
                 {
-                    var templateDescBuilder = new ShaderFoundry.TemplateDescriptor.Builder(container, template);
+                    var templateDescBuilder = new ShaderFoundry.TemplateInstance.Builder(container, template);
                     var linker = template.Linker;
-                    var legacyLinker = linker as ShaderFoundry.SandboxLegacyTemplateLinker;
+                    var legacyLinker = linker as ShaderFoundry.LegacyTemplateLinker;
 
                     foreach (var pass in template.Passes)
                     {
@@ -59,15 +56,15 @@ namespace UnityEditor.ShaderFoundry
 
                         BuildTemplateGraph(container, generator, templateDescBuilder, template, pass, legacyPass);
                     }
-                    sandboxShaderDescBuilder.TemplateDescriptors.Add(templateDescBuilder.Build());
+                    sandboxShaderInstBuilder.TemplateInstances.Add(templateDescBuilder.Build());
                 }
             }
-            sandboxGenerator.Generate(builder, container, sandboxShaderDescBuilder.Build());
+            sandboxGenerator.Generate(builder, container, sandboxShaderInstBuilder.Build());
 
             return builder.ToString();
         }
 
-        static void BuildTemplateGraph(ShaderFoundry.ShaderContainer container, ShaderGraph.Generator generator, ShaderFoundry.TemplateDescriptor.Builder templateDescBuilder, ShaderFoundry.Template template, ShaderFoundry.TemplatePass passDesc, PassDescriptor legacyPassDescriptor)
+        static void BuildTemplateGraph(ShaderFoundry.ShaderContainer container, ShaderGraph.Generator generator, ShaderFoundry.TemplateInstance.Builder templateInstBuilder, ShaderFoundry.Template template, ShaderFoundry.TemplatePass passDesc, PassDescriptor legacyPassDescriptor)
         {
             var path = AssetDatabase.GUIDToAssetPath(generator.m_GraphData.assetGuid);
             var sharedDirectory = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path) + "Shared");
@@ -82,8 +79,8 @@ namespace UnityEditor.ShaderFoundry
             const string pixelGraphInputName = "FSInput";
             const string pixelGraphOutputName = "FSOutput";
             const string pixelGraphFunctionName = "applyFragment";
-            const string vertexEntryPointName = "VertexDescriptionFunction";
-            const string pixelEntryPointName = "SurfaceDescriptionFunction";
+            const string vertexEntryPointName = "VertexDescriptionFunctionSG";
+            const string pixelEntryPointName = "SurfaceDescriptionFunctionSG";
 
             // Function Registry
             var functionBuilder = new ShaderStringBuilder();
@@ -99,6 +96,11 @@ namespace UnityEditor.ShaderFoundry
             KeywordCollector keywordCollector = new KeywordCollector();
             ExtractNodesNew(generator, passDesc, pass, activeFields, propertyCollector, out vertexNodes, out pixelNodes, out pixelSlots, out vertexSlots);
 
+            // Initialize custom interpolator sub generator
+            CustomInterpSubGen customInterpSubGen = new CustomInterpSubGen(generator.m_OutputNode != null);
+            // Inject custom interpolator antecedents where appropriate
+            customInterpSubGen.ProcessExistingStackData(vertexNodes, vertexSlots, pixelNodes, activeFields.baseInstance);
+
             // Track permutation indices for all nodes
             ShaderGraphRequirementsPerKeyword graphRequirements;
             List<int>[] vertexNodePermutations, pixelNodePermutations;
@@ -107,9 +109,11 @@ namespace UnityEditor.ShaderFoundry
             GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes,
                 vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
 
-            ShaderFoundry.BlockDescriptor BuildSimpleBlockDescriptor(ShaderFoundry.ShaderContainer container, ShaderFoundry.Block block)
+
+
+            ShaderFoundry.BlockInstance BuildSimpleBlockInstance(ShaderFoundry.ShaderContainer container, ShaderFoundry.Block block)
             {
-                var builder = new ShaderFoundry.BlockDescriptor.Builder(container, block);
+                var builder = new ShaderFoundry.BlockInstance.Builder(container, block);
                 return builder.Build();
             }
 
@@ -119,16 +123,16 @@ namespace UnityEditor.ShaderFoundry
             var vertexCP = passDesc.FindCustomizationPoint(template, LegacyCustomizationPoints.VertexDescriptionCPName);
             var surfaceCP = passDesc.FindCustomizationPoint(template, LegacyCustomizationPoints.SurfaceDescriptionCPName);
 
-            var vertexCPDesc = new ShaderFoundry.CustomizationPointDescriptor.Builder(container, vertexCP);
-            var fragmentCPDesc = new ShaderFoundry.CustomizationPointDescriptor.Builder(container, surfaceCP);
-            vertexCPDesc.PassIdentifiers.Add(passDesc.PassIdentifier);
-            fragmentCPDesc.PassIdentifiers.Add(passDesc.PassIdentifier);
+            var vertexCPInst = new ShaderFoundry.CustomizationPointInstance.Builder(container, vertexCP);
+            var fragmentCPInst = new ShaderFoundry.CustomizationPointInstance.Builder(container, surfaceCP);
+            vertexCPInst.PassIdentifiers.Add(passDesc.PassIdentifier);
+            fragmentCPInst.PassIdentifiers.Add(passDesc.PassIdentifier);
 
             // If vertex modification enabled
             if (vertexSlots != null)
             {
                 // Build the basic block with it's inputs/outputs
-                var vertexBlockBuilder = BuildBlockForStage(generator, vertexNodes, vertexSlots, ShaderStageCapability.Vertex, container, vertexEntryPointName, vertexGraphFunctionName, vertexGraphInputName, vertexGraphOutputName);
+                var vertexBlockBuilder = BuildBlockForStage(generator, vertexNodes, vertexSlots, customInterpSubGen, false, ShaderStageCapability.Vertex, container, vertexEntryPointName, vertexGraphFunctionName, vertexGraphInputName, vertexGraphOutputName);
 
                 // Build vertex graph functions from ShaderPass vertex port mask
                 var vertexDescriptionFunction = GenerateVertexDescriptionFunctionSandbox(
@@ -148,14 +152,14 @@ namespace UnityEditor.ShaderFoundry
                     vertexGraphOutputName);
 
                 vertexBlockBuilder.SetEntryPointFunction(vertexDescriptionFunction);
-                vertexCPDesc.BlockDescriptors.Add(BuildSimpleBlockDescriptor(container, vertexBlockBuilder.Build()));
+                vertexCPInst.BlockInstances.Add(BuildSimpleBlockInstance(container, vertexBlockBuilder.Build()));
             }
 
             // --------------------------------------------------
             // Graph Pixel
 
             // Build the basic block with it's inputs/outputs
-            var fragmentBlockBuilder = BuildBlockForStage(generator, pixelNodes, pixelSlots, ShaderStageCapability.Fragment, container, pixelEntryPointName, pixelGraphFunctionName, pixelGraphInputName, pixelGraphOutputName);
+            var fragmentBlockBuilder = BuildBlockForStage(generator, pixelNodes, pixelSlots, customInterpSubGen, true, ShaderStageCapability.Fragment, container, pixelEntryPointName, pixelGraphFunctionName, pixelGraphInputName, pixelGraphOutputName);
 
             // Build pixel graph functions from ShaderPass pixel port mask
             var surfaceDescriptionFunction = GenerateSurfaceDescriptionFunctionSandbox(
@@ -179,10 +183,21 @@ namespace UnityEditor.ShaderFoundry
             fragmentBlockBuilder.SetEntryPointFunction(surfaceDescriptionFunction);
             var sharedIncludeDesc = new IncludeDescriptor.Builder(container, $"\"{sharedPath}\"");
             fragmentBlockBuilder.AddInclude(sharedIncludeDesc.Build());
-            fragmentCPDesc.BlockDescriptors.Add(BuildSimpleBlockDescriptor(container, fragmentBlockBuilder.Build()));
+            foreach (var include in graphIncludes)
+                fragmentBlockBuilder.AddInclude(new IncludeDescriptor.Builder(container, $"\"{include.path}\"").Build());
 
-            templateDescBuilder.AddCustomizationPointDescriptor(vertexCPDesc.Build());
-            templateDescBuilder.AddCustomizationPointDescriptor(fragmentCPDesc.Build());
+            // Depth Texture
+            if (graphRequirements.baseInstance.requirements.requiresDepthTexture)
+                fragmentBlockBuilder.AddDefine(new DefineDescriptor.Builder(container, "REQUIRE_DEPTH_TEXTURE", null).Build());
+
+            // Opaque Texture
+            if (graphRequirements.baseInstance.requirements.requiresCameraOpaqueTexture)
+                fragmentBlockBuilder.AddDefine(new DefineDescriptor.Builder(container, "REQUIRE_OPAQUE_TEXTURE", null).Build());
+
+            fragmentCPInst.BlockInstances.Add(BuildSimpleBlockInstance(container, fragmentBlockBuilder.Build()));
+
+            templateInstBuilder.AddCustomizationPointInstance(vertexCPInst.Build());
+            templateInstBuilder.AddCustomizationPointInstance(fragmentCPInst.Build());
 
             string existingShared = null;
             if (File.Exists(sharedPath))
@@ -194,73 +209,146 @@ namespace UnityEditor.ShaderFoundry
             //    generator.m_assetCollection.AddAssetDependency(AssetDatabase.GUIDFromAssetPath(sharedPath), AssetCollection.Flags.IncludeInExportPackage);
         }
 
-        static ShaderFoundry.Block.Builder BuildBlockForStage(ShaderGraph.Generator generator, List<AbstractMaterialNode> nodes, List<MaterialSlot> slots, ShaderStageCapability stageCapability, ShaderFoundry.ShaderContainer container, string blockName, string customizationPointName, string inputsTypeName, string outputsTypeName)
+        private static ShaderValueType ShaderValueTypeFrom(int width)
+        {
+            switch (width)
+            {
+                case 1:
+                    return ShaderValueType.Float;
+                case 2:
+                    return ShaderValueType.Float2;
+                case 3:
+                    return ShaderValueType.Float3;
+                default:
+                    return ShaderValueType.Float4;
+            }
+        }
+
+        static ShaderFoundry.Block.Builder BuildBlockForStage(ShaderGraph.Generator generator, List<AbstractMaterialNode> nodes, List<MaterialSlot> slots,
+            CustomInterpSubGen customInterpSubGen, bool customInterpIsInput, ShaderStageCapability stageCapability,
+            ShaderFoundry.ShaderContainer container, string blockName, string customizationPointName, string inputsTypeName, string outputsTypeName)
         {
             var blockBuilder = new ShaderFoundry.Block.Builder(container, blockName);
 
-            var inputsStruct = BuildInputsType(generator, nodes, inputsTypeName, stageCapability, container, blockBuilder);
-            var outputsStruct = BuildOutputsType(slots, outputsTypeName, container, blockBuilder);
+            void AddCustomInterpolantVariables(List<BlockVariable> variables)
+            {
+                foreach (var blockNode in customInterpSubGen.customBlockNodes)
+                {
+                    var valueType = ShaderValueTypeFrom((int)blockNode.customWidth);
+                    var typeName =  valueType.ToShaderString().Replace("$precision", generator.m_GraphData.graphDefaultConcretePrecision.ToShaderString());
+                    variables.Add(BuildSimpleVariable(container, blockBuilder, typeName, blockNode.customName));
+                }
+            }
+
+            var blockInputs = BuildInputs(generator, nodes, stageCapability, container, blockBuilder).ToList();
+            var blockOutputs = BuildOutputs(slots, container, blockBuilder);
+            var blockProperties = new List<BlockVariable>();
+            if (customInterpIsInput)
+                AddCustomInterpolantVariables(blockInputs);
 
             // Have to collect properties somehow? This doesn't work but I don't care right now...
             PropertyCollector propCollector = new PropertyCollector();
             foreach (var node in nodes)
             {
+                if(node is PropertyNode propNode)
+                {
+                    propCollector.AddShaderProperty(propNode.property);
+                }
                 node.CollectShaderProperties(propCollector, GenerationMode.ForReals);
             }
             foreach (var prop in propCollector.properties)
             {
-                var concretizedTypeName = prop.concreteShaderValueType.ToShaderString();//.ToConcreteShaderValueType();//.type.Replace("$precision", m_GraphData.graphDefaultConcretePrecision.ToShaderString());
-                var fieldType = container.GetType(concretizedTypeName);
-
-                var propBuilder = new ShaderFoundry.BlockVariable.Builder(container);
-                propBuilder.ReferenceName = prop.referenceName;
-                propBuilder.DisplayName = prop.displayName;
-                propBuilder.Type = fieldType;
-                blockBuilder.AddProperty(propBuilder.Build());
-                //block.AddProperty(new BlockProperty { ReferenceName = prop.referenceName, DisplayName = prop.displayName, Type = fieldType });
+                PropertyUtils.BuildProperties(container, blockBuilder, blockProperties, blockInputs, prop, generator.m_GraphData.graphDefaultConcretePrecision);
             }
 
+            var inputsStruct = BuildTypeBuilder(container, blockBuilder, inputsTypeName, blockInputs).Build();
+            var outputsStruct = BuildTypeBuilder(container, blockBuilder, outputsTypeName, blockOutputs).Build();
             blockBuilder.AddType(inputsStruct);
             blockBuilder.AddType(outputsStruct);
 
-            {
-                foreach (var field in inputsStruct.StructFields)
-                {
-                    var varBuilder = new ShaderFoundry.BlockVariable.Builder(container);
-                    varBuilder.DisplayName = field.Name;
-                    varBuilder.ReferenceName = field.Name;
-                    varBuilder.Type = field.Type;
-                    blockBuilder.AddInput(varBuilder.Build());
-                }
-            }
-            {
-                foreach (var field in outputsStruct.StructFields)
-                {
-                    var varBuilder = new ShaderFoundry.BlockVariable.Builder(container);
-                    varBuilder.DisplayName = field.Name;
-                    varBuilder.ReferenceName = field.Name;
-                    varBuilder.Type = field.Type;
-                    blockBuilder.AddOutput(varBuilder.Build());
-                }
-            }
+            foreach (var variable in blockInputs)
+                blockBuilder.AddInput(variable);
+            foreach (var variable in blockOutputs)
+                blockBuilder.AddOutput(variable);
+            foreach (var variable in blockProperties)
+                blockBuilder.AddProperty(variable);
             return blockBuilder;
         }
 
-        static ShaderFoundry.ShaderType BuildInputsType(ShaderGraph.Generator generator, List<AbstractMaterialNode> nodes, string typeName, ShaderStageCapability stageCapability, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
+        static BlockVariable.Builder BuildSimpleVariableBuilder(ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder, string typeName, string referenceName, string displayName = null)
+        {
+            var builder = new BlockVariable.Builder(container);
+            builder.ReferenceName = referenceName;
+            builder.DisplayName = displayName ?? referenceName;
+            builder.Type = container.GetType(blockBuilder, typeName);
+            return builder;
+        }
+
+        static BlockVariable BuildSimpleVariable(ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder, string typeName, string referenceName, string displayName = null)
+        {
+            return BuildSimpleVariableBuilder(container, blockBuilder, typeName, referenceName, displayName).Build();
+        }
+
+        static ShaderType.StructBuilder BuildTypeBuilder(ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder, string typeName, IEnumerable<BlockVariable> variables)
+        {
+            var builder = new ShaderFoundry.ShaderType.StructBuilder(blockBuilder, typeName);
+            // Add active fields
+            foreach (var variable in variables)
+            {
+                builder.AddField(variable.Type, variable.ReferenceName);
+            }
+            return builder;
+        }
+
+        static IEnumerable<BlockVariable> BuildInputs(ShaderGraph.Generator generator, List<AbstractMaterialNode> nodes, ShaderStageCapability stageCapability, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
+        {
+            List<BlockVariable> results = new List<BlockVariable>();
+            // Add active fields
+            var activeFields = GetActiveFieldsFor(nodes, stageCapability);
+            foreach (var field in activeFields)
+            {
+                if (field.type == null)
+                    continue;
+                var concretizedTypeName = field.type.Replace("$precision", generator.m_GraphData.graphDefaultConcretePrecision.ToShaderString());
+                results.Add(BuildSimpleVariable(container, blockBuilder, concretizedTypeName, field.name, field.name));
+            }
+            return results;
+        }
+
+        static ShaderFoundry.ShaderType.StructBuilder BuildInputsTypeBuilder(ShaderGraph.Generator generator, List<AbstractMaterialNode> nodes, string typeName, ShaderStageCapability stageCapability, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
         {
             var builder = new ShaderFoundry.ShaderType.StructBuilder(blockBuilder, typeName);
             // Add active fields
             var activeFields = GetActiveFieldsFor(nodes, stageCapability);
             foreach (var field in activeFields)
             {
+                if (field.type == null)
+                    continue;
                 var concretizedTypeName = field.type.Replace("$precision", generator.m_GraphData.graphDefaultConcretePrecision.ToShaderString());
                 var fieldType = container.GetType(blockBuilder, concretizedTypeName);
                 builder.AddField(fieldType, field.name);
             }
-            return builder.Build();
+            return builder;
         }
 
-        static ShaderFoundry.ShaderType BuildOutputsType(List<MaterialSlot> slots, string typeName, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
+        static ShaderFoundry.ShaderType BuildInputsType(ShaderGraph.Generator generator, List<AbstractMaterialNode> nodes, string typeName, ShaderStageCapability stageCapability, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
+        {
+            return BuildInputsTypeBuilder(generator, nodes, typeName, stageCapability, container, blockBuilder).Build();
+        }
+
+        static IEnumerable<BlockVariable> BuildOutputs(List<MaterialSlot> slots, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
+        {
+            List<BlockVariable> results = new List<BlockVariable>();
+            foreach (var slot in slots)
+            {
+                string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                var fieldTypeName = slot.concreteValueType.ToShaderString(slot.owner.concretePrecision);
+                results.Add(BuildSimpleVariable(container, blockBuilder, fieldTypeName, hlslName));
+            }
+            return results;
+        }
+
+        static ShaderFoundry.ShaderType.StructBuilder BuildOutputsTypeBuilder(List<MaterialSlot> slots, string typeName, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
         {
             var builder = new ShaderFoundry.ShaderType.StructBuilder(blockBuilder, typeName);
             foreach (var slot in slots)
@@ -269,7 +357,12 @@ namespace UnityEditor.ShaderFoundry
                 var fieldType = container.GetType(blockBuilder, slot.concreteValueType.ToShaderString(slot.owner.concretePrecision));
                 builder.AddField(fieldType, hlslName);
             }
-            return builder.Build();
+            return builder;
+        }
+
+        static ShaderFoundry.ShaderType BuildOutputsType(List<MaterialSlot> slots, string typeName, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
+        {
+            return BuildOutputsTypeBuilder(slots, typeName, container, blockBuilder).Build();
         }
 
         static private void ExtractNodesNew(ShaderGraph.Generator generator, ShaderFoundry.TemplatePass passDesc, PassDescriptor pass, ActiveFields activeFields, PropertyCollector propertyCollector, out List<AbstractMaterialNode> vertexNodes, out List<AbstractMaterialNode> pixelNodes, out List<MaterialSlot> pixelSlots, out List<MaterialSlot> vertexSlots)
@@ -279,14 +372,14 @@ namespace UnityEditor.ShaderFoundry
             vertexSlots = new List<MaterialSlot>();
             if (generator.m_OutputNode == null)
             {
-                void ProcessStackForPass(ContextData contextData, IEnumerable<ShaderFoundry.BlockDescriptor> blockDescriptors, BlockFieldDescriptor[] passBlockMask,
+                void ProcessStackForPass(ContextData contextData, IEnumerable<ShaderFoundry.BlockInstance> blockInstances, BlockFieldDescriptor[] passBlockMask,
                     List<AbstractMaterialNode> nodeList, List<MaterialSlot> slotList)
                 {
                     if (passBlockMask == null)
                         return;
 
-                    var preBlock = blockDescriptors.ElementAtOrDefault(0).Block;
-                    var postBlock = blockDescriptors.ElementAtOrDefault(2).Block;
+                    var preBlock = blockInstances.ElementAtOrDefault(0).Block;
+                    var postBlock = blockInstances.ElementAtOrDefault(2).Block;
 
                     foreach (var blockFieldDescriptor in passBlockMask)
                     {
@@ -383,13 +476,13 @@ namespace UnityEditor.ShaderFoundry
                 var nodesBuilder = new ShaderStringBuilder();
                 for (int i = 0; i < nodes.Count; i++)
                 {
-                    if (!nodes[i].isActive)
-                        continue;
-                    bool active = true;
-                    foreach (var slot in nodes[i].GetInputSlots<MaterialSlot>())
-                        active &= slot.isConnected;
-                    if (!active)
-                        continue;
+                    //if (!nodes[i].isActive)
+                    //    continue;
+                    //bool active = true;
+                    //foreach (var slot in nodes[i].GetInputSlots<MaterialSlot>())
+                    //    active &= slot.isConnected;
+                    //if (!active)
+                    //    continue;
 
                     GenerationUtils.GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, nodesBuilder,
                         shaderProperties, shaderKeywords,
