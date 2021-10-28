@@ -108,29 +108,29 @@ platforms:
       - Linear
     agents_project:
       default:
-        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        flavor: b1.xlarge
+        image: dots-player/windows10:v0.0.43
+        flavor: b1.large
         model: rtx2080
       editmode:
-        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        flavor: b1.xlarge
+        image: dots-player/windows10:v0.0.43
+        flavor: b1.large
         model: rtx2080
       standalone:
-        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        flavor: b1.xlarge
+        image: dots-player/windows10:v0.0.43
+        flavor: b1.large
         model: rtx2080
       standalone_cache:
-        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        flavor: b1.xlarge
+        image: dots-player/windows10:v0.0.43
+        flavor: b1.large
         model: rtx2080
       standalone_build:
-        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        flavor: b1.xlarge
+        image: dots-player/windows10:v0.0.43
+        flavor: b1.large
         model: rtx2080
   - name: OSX
     apis:
