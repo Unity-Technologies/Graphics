@@ -10,12 +10,12 @@ namespace UnityEditor.ShaderGraph
     class FadeTransitionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public const int OutputSlotFadeId = 0;
-        public const int SrcAlpha = 1;
+        public const int NoiseValue = 1;
         public const int FadeValue = 2;
         public const int FadeContrast = 3;
 
         const string kOutputSlotFadeName = "Fade";
-        const string kSrcAlphaInputName = "SrcAlpha";
+        const string kNoiseValueInputName = "NoiseValue";
         const string kFadeValueInputName = "FadeValue";
         const string kFadeContrastInputName = "FadeContrast";
 
@@ -31,11 +31,11 @@ namespace UnityEditor.ShaderGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector1MaterialSlot(OutputSlotFadeId, kOutputSlotFadeName, kOutputSlotFadeName, SlotType.Output, 0.0f, ShaderStageCapability.Fragment));
-            AddSlot(new Vector1MaterialSlot(SrcAlpha, kSrcAlphaInputName, kSrcAlphaInputName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(NoiseValue, kNoiseValueInputName, kNoiseValueInputName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(FadeValue, kFadeValueInputName, kFadeValueInputName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(FadeContrast, kFadeContrastInputName, kFadeContrastInputName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
 
-            RemoveSlotsNameNotMatching(new[] { OutputSlotFadeId, SrcAlpha, FadeValue, FadeContrast});
+            RemoveSlotsNameNotMatching(new[] { OutputSlotFadeId, NoiseValue, FadeValue, FadeContrast});
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
@@ -54,14 +54,14 @@ namespace UnityEditor.ShaderGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            var srcAlphaName = GetSlotValue(SrcAlpha, generationMode);
+            var noiseValueName = GetSlotValue(NoiseValue, generationMode);
 
             var fadeValueName = GetSlotValue(FadeValue, generationMode);
             var fadeContrastName = GetSlotValue(FadeContrast, generationMode);
 
             var result = string.Format("$precision {0} = Unity_FadeTransitionNode_ApplyFade_$precision({1}, {2}, {3});"
                 , GetVariableNameForSlot(OutputSlotFadeId)
-                , srcAlphaName
+                , noiseValueName
                 , fadeValueName
                 , fadeContrastName
                 );
