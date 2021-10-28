@@ -997,6 +997,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _APVResL0_L1Rx = Shader.PropertyToID("_APVResL0_L1Rx");
         public static readonly int _APVResL1G_L1Ry = Shader.PropertyToID("_APVResL1G_L1Ry");
         public static readonly int _APVResL1B_L1Rz = Shader.PropertyToID("_APVResL1B_L1Rz");
+        public static readonly int _APVResValidity = Shader.PropertyToID("_APVResValidity");
 
 
         public static readonly int _APVResL2_0 = Shader.PropertyToID("_APVResL2_0");

@@ -24,6 +24,7 @@ struct APVResources
     Texture3D L2_1;
     Texture3D L2_2;
     Texture3D L2_3;
+    Texture3D Validity;
 };
 
 struct APVSample
@@ -78,6 +79,7 @@ TEXTURE3D(_APVResL2_0);
 TEXTURE3D(_APVResL2_1);
 TEXTURE3D(_APVResL2_2);
 TEXTURE3D(_APVResL2_3);
+TEXTURE3D(_APVResValidity);
 
 
 // -------------------------------------------------------------
@@ -173,6 +175,7 @@ APVResources FillAPVResources()
     apvRes.L2_1 = _APVResL2_1;
     apvRes.L2_2 = _APVResL2_2;
     apvRes.L2_3 = _APVResL2_3;
+    apvRes.Validity = _APVResValidity;
 
     return apvRes;
 }
@@ -248,6 +251,11 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw)
 #endif
 
     apvSample.status = APV_SAMPLE_STATUS_ENCODED;
+
+
+    // TODO_FCC: TMP STUFF
+    float validity = SAMPLE_TEXTURE3D_LOD(apvRes.Validity, s_linear_clamp_sampler, uvw, 0).r;
+    apvSample.L0 += validity * 0.0001f;
 
     return apvSample;
 }

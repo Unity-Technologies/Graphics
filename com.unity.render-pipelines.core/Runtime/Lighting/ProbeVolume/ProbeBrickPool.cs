@@ -338,6 +338,7 @@ namespace UnityEngine.Experimental.Rendering
             s_L0L1Rx_locData.Resize(size);
             s_L1GL1Ry_locData.Resize(size);
             s_L1BL1Rz_locData.Resize(size);
+            s_Validity_locData.Resize(size);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
@@ -484,6 +485,8 @@ namespace UnityEngine.Experimental.Rendering
             loc.TexL1_G_ry.Apply(false);
             loc.TexL1_B_rz.SetPixels(s_L1BL1Rz_locData);
             loc.TexL1_B_rz.Apply(false);
+            loc.TexValidity.SetPixelData<float>(s_Validity_locData, 0);
+            loc.TexValidity.Apply(false);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
