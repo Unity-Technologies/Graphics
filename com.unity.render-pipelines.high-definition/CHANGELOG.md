@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom pass injection point not visible in the UI when using the Camera mode.
 - Fixed film grain & dithering when using spatial upscaling methods for DRS.
 - Fixed a regression that was introduced in the diffuse denoiser in a previous PR.
+- Fixed sky override layer mask having no effect.
 - Fixed a memory leak in the template tutorial (1374640).
 - Fixed a build-time warning regarding light loop variants (case 1372256).
 
