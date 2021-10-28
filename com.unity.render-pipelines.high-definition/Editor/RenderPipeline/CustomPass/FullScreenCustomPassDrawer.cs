@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public readonly static string writeAndFetchColorBufferWarning = "Fetching and Writing to the camera color buffer at the same time is not supported on most platforms.";
             public readonly static string stencilWriteOverReservedBits = "The Stencil Write Mask of your material overwrites the bits reserved by HDRP. To avoid rendering errors, set the Write Mask to " + (int)(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1);
+            public readonly static string stencilHelpInfo = $"Stencil is enabled on the material. To help you configure the stencil operations, use these values for the bits available in HDRP: User Bit 0: {(int)UserStencilUsage.UserBit0} User Bit 1: {(int)UserStencilUsage.UserBit1}";
         }
 
         // Fullscreen pass
@@ -83,7 +84,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.EndProperty();
                     rect.y += Styles.defaultLineSpace;
 
-                    if (DoesWriteMaskContainsReservedBits(mat))
+                    GetStencilInfo(mat, out bool stencilEnabled, out int writeMask);
+
+                    if (stencilEnabled)
+                    {
+                        Rect helpBoxRect = rect;
+                        helpBoxRect.height = Styles.helpBoxHeight;
+                        helpBoxRect.xMin += Styles.indentPadding;
+                        EditorGUI.HelpBox(helpBoxRect, Styles.stencilHelpInfo, MessageType.Info);
+                        rect.y += Styles.helpBoxHeight;
+                    }
+
+                    if (DoesWriteMaskContainsReservedBits(writeMask))
                     {
                         if (!m_ShowStencilWriteWarning)
                         {
@@ -105,19 +117,23 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        bool DoesWriteMaskContainsReservedBits(Material material)
+
+
+        bool DoesWriteMaskContainsReservedBits(int writeMask)
         {
             if (targetDepthBuffer == CustomPass.TargetBuffer.Custom)
                 return false;
 
-            int writeMask = GetStencilWriteMask(material);
             return ((writeMask & (int)~(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1)) != 0);
         }
 
-        int GetStencilWriteMask(Material material)
+        void GetStencilInfo(Material material, out bool stencilEnabled, out int writeMaskValue)
         {
+            writeMaskValue = 0;
+            stencilEnabled = false;
+
             if (material.shader == null)
-                return 0;
+                return;
 
             try
             {
@@ -165,18 +181,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // First check if the stencil is enabled in the shader:
                 // We can do this by checking if there are any non-default values in the stencil state
-                if (!IsStencilEnabled())
-                    return 0;
+                stencilEnabled = IsStencilEnabled();
+                if (!stencilEnabled)
+                    return;
 
                 if (material.HasProperty(writeMaskPropertyName.stringValue))
-                    return (int)material.GetFloat(writeMaskPropertyName.stringValue);
+                    writeMaskValue = (int)material.GetFloat(writeMaskPropertyName.stringValue);
                 else
-                    return (int)writeMaskFloatValue.floatValue;
+                    writeMaskValue = (int)writeMaskFloatValue.floatValue;
             }
-            catch
-            {
-                return 0;
-            }
+            catch { }
         }
 
         protected override float GetPassHeight(SerializedProperty customPass)
@@ -186,7 +200,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             height += (m_FetchColorBuffer.boolValue && targetColorBuffer == CustomPass.TargetBuffer.Camera) ? (int)Styles.helpBoxHeight : 0;
             if (m_FullScreenPassMaterial.objectReferenceValue is Material mat)
-                height += (DoesWriteMaskContainsReservedBits(mat)) ? (int)Styles.helpBoxHeight : 0;
+            {
+                if (targetDepthBuffer == CustomPass.TargetBuffer.Camera)
+                {
+                    GetStencilInfo(mat, out bool stencilEnabled, out int writeMask);
+                    height += stencilEnabled ? (int)Styles.helpBoxHeight : 0;
+                    height += (DoesWriteMaskContainsReservedBits(writeMask)) ? (int)Styles.helpBoxHeight : 0;
+                }
+            }
 
             return height;
         }
