@@ -511,10 +511,10 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                     collector.AddEnumProperty(FullscreenUniforms.colorBlendOperationProperty, fullscreenData.colorBlendOperation);
                     collector.AddEnumProperty(FullscreenUniforms.alphaBlendOperationProperty, fullscreenData.alphaBlendOperation);
                 }
-                collector.AddFloatProperty(FullscreenUniforms.depthWriteProperty, fullscreenData.depthWrite ? 1 : 0);
+                collector.AddBoolProperty(FullscreenUniforms.depthWriteProperty, fullscreenData.depthWrite);
 
                 if (fullscreenData.depthTestMode != CompareFunction.Disabled)
-                    collector.AddFloatProperty(FullscreenUniforms.depthTestProperty, (float)fullscreenData.depthTestMode);
+                    collector.AddEnumProperty(FullscreenUniforms.depthTestProperty, fullscreenData.depthTestMode);
 
                 // When stencil is disabled, we can't override
                 if (fullscreenData.enableStencil)
@@ -635,6 +635,39 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                  onChange();
              });
 
+            context.AddProperty("Depth Test", new EnumField(fullscreenData.depthTestMode) { value = fullscreenData.depthTestMode }, (evt) =>
+            {
+                if (Equals(fullscreenData.depthTestMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Depth Test");
+                fullscreenData.depthTestMode = (CompareFunction)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Depth Write", new Toggle { value = fullscreenData.depthWrite }, (evt) =>
+            {
+                if (Equals(fullscreenData.depthWrite, evt.newValue))
+                    return;
+
+                registerUndo("Change Depth Write");
+                fullscreenData.depthWrite = evt.newValue;
+                onChange();
+            });
+
+            if (fullscreenData.depthWrite || fullscreenData.depthTestMode != CompareFunction.Disabled)
+            {
+                context.AddProperty("Depth Write Mode", new EnumField(fullscreenData.depthWriteMode) { value = fullscreenData.depthWriteMode }, (evt) =>
+                {
+                    if (Equals(fullscreenData.depthWriteMode, evt.newValue))
+                        return;
+
+                    registerUndo("Change Depth Write Mode");
+                    fullscreenData.depthWriteMode = (FullscreenDepthWriteMode)evt.newValue;
+                    onChange();
+                });
+            }
+
             if (fullscreenData.enableStencil)
             {
                 context.globalIndentLevel++;
@@ -710,39 +743,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 });
 
                 context.globalIndentLevel--;
-            }
-
-            context.AddProperty("Depth Test", new EnumField(fullscreenData.depthTestMode) { value = fullscreenData.depthTestMode }, (evt) =>
-            {
-                if (Equals(fullscreenData.depthTestMode, evt.newValue))
-                    return;
-
-                registerUndo("Change Depth Test");
-                fullscreenData.depthTestMode = (CompareFunction)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Depth Write", new Toggle { value = fullscreenData.depthWrite }, (evt) =>
-            {
-                if (Equals(fullscreenData.depthWrite, evt.newValue))
-                    return;
-
-                registerUndo("Change Depth Write");
-                fullscreenData.depthWrite = evt.newValue;
-                onChange();
-            });
-
-            if (fullscreenData.depthWrite || fullscreenData.depthTestMode != CompareFunction.Disabled)
-            {
-                context.AddProperty("Depth Write Mode", new EnumField(fullscreenData.depthWriteMode) { value = fullscreenData.depthWriteMode }, (evt) =>
-                {
-                    if (Equals(fullscreenData.depthWriteMode, evt.newValue))
-                        return;
-
-                    registerUndo("Change Depth Write Mode");
-                    fullscreenData.depthWriteMode = (FullscreenDepthWriteMode)evt.newValue;
-                    onChange();
-                });
             }
         }
     }

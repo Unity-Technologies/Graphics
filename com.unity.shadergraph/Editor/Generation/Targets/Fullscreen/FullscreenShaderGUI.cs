@@ -175,6 +175,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 {
                     stencilComp.floatValue = (float)CompareFunction.Always;
                     stencilPass.floatValue = (float)StencilOp.Keep;
+                    stencilFail.floatValue = (float)StencilOp.Keep;
+                    stencilDepthFail.floatValue = (float)StencilOp.Keep;
                 }
             }
 
