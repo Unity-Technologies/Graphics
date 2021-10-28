@@ -122,8 +122,11 @@ namespace UnityEditor.ShaderFoundry
                 {
                     var info = new PassPropertyInfo();
                     info.uniformDeclaration = $"{propType.Name} {referenceName}";
-                    info.assignmentExpression = $"# = {referenceName}";
                     info.declarationType = attributes.GetDeclaration();
+                    if (info.declarationType == HLSLDeclaration.HybridPerInstance)
+                        info.assignmentExpression = $"# = UNITY_ACCESS_HYBRID_INSTANCED_PROP({referenceName}, {propType.Name})";
+                    else
+                        info.assignmentExpression = $"# = {referenceName}";
                     info.variable = propertyInstance;
                     results.Add(info);
                 }
@@ -143,7 +146,11 @@ namespace UnityEditor.ShaderFoundry
 
                 info.uniformDeclaration = propVariableAtt.BuildDeclarationString(variableType, propReferenceName);
                 var rhsVariableName = propVariableAtt.BuildVariableNameString(propReferenceName);
-                info.assignmentExpression = $"# = {rhsVariableName}";
+                var declarationType =  propInstanceAttributes.GetDeclaration();
+                if (declarationType == HLSLDeclaration.HybridPerInstance)
+                    info.assignmentExpression = $"# = UNITY_ACCESS_HYBRID_INSTANCED_PROP({rhsVariableName}, {variableType.Name})";
+                else
+                    info.assignmentExpression = $"# = {rhsVariableName}";
             }
 
             var uniformDeclAttribute = UniformDeclarationAttribute.Find(variableAttributes);
@@ -154,7 +161,12 @@ namespace UnityEditor.ShaderFoundry
 
                 info.uniformDeclaration = uniformDeclAttribute.BuildDeclarationString(variableType, propReferenceName);
                 var rhsVariableName = uniformDeclAttribute.BuildVariableNameString(propReferenceName);
-                info.assignmentExpression = $"# = {rhsVariableName}";
+
+                var declarationType =  propInstanceAttributes.GetDeclaration();
+                if (declarationType == HLSLDeclaration.HybridPerInstance)
+                    info.assignmentExpression = $"# = UNITY_ACCESS_HYBRID_INSTANCED_PROP({rhsVariableName}, {variableType.Name})";
+                else
+                    info.assignmentExpression = $"# = {rhsVariableName}";
             }
 
             var defaultValueAtt = DefaultValueAttribute.Find(propInstanceAttributes, variableName);
@@ -205,7 +217,16 @@ namespace UnityEditor.ShaderFoundry
             if (declarationType == HLSLDeclaration.Global)
                 builder = context.GlobalBuilder;
 
-            builder.AddLine($"{uniformDeclaration};");
+            if(declarationType == HLSLDeclaration.HybridPerInstance)
+            {
+                builder.AppendLine("#ifdef UNITY_HYBRID_V1_INSTANCING_ENABLED");
+                builder.AddLine($"{uniformDeclaration}_dummy;");
+                builder.AppendLine("#else // V2");
+                builder.AddLine($"{uniformDeclaration};");
+                builder.AppendLine("#endif");
+            }
+            else
+                builder.AddLine($"{uniformDeclaration};");
         }
     }
 

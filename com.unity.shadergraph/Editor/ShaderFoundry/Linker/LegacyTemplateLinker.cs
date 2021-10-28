@@ -780,12 +780,52 @@ namespace UnityEditor.ShaderFoundry
             // --------------------------------------------------
             // Dots Instanced Graph Properties
 
-            bool hasDotsProperties = subShaderProperties.HasDotsProperties();
+            bool hasDotsProperties = false;
+            {
+                foreach (var h in shaderProperties)
+                {
+                    if (h.Attributes.GetDeclaration() == HLSLDeclaration.HybridPerInstance)
+                        hasDotsProperties = true;
+                }
+            }
+            //subShaderProperties.HasDotsProperties();
 
             using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
             {
                 if (hasDotsProperties)
-                    dotsInstancedPropertyBuilder.AppendLines(subShaderProperties.GetDotsInstancingPropertiesDeclaration(m_Mode));
+                {
+                    if (hasDotsProperties)
+                    {
+                        dotsInstancedPropertyBuilder.AppendLine("#if defined(UNITY_HYBRID_V1_INSTANCING_ENABLED)");
+                        dotsInstancedPropertyBuilder.AppendLine("#define HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS \\");
+
+                        int count = 0;
+                        foreach (var prop in shaderProperties)
+                        {
+                            if (prop.Attributes.GetDeclaration() != HLSLDeclaration.HybridPerInstance)
+                                continue;
+
+                            // Combine multiple UNITY_DEFINE_INSTANCED_PROP lines with \ so the generated
+                            // macro expands into multiple definitions if there are more than one.
+                            if (count > 0)
+                            {
+                                dotsInstancedPropertyBuilder.Append("\\");
+                                dotsInstancedPropertyBuilder.AppendNewLine();
+                            }
+                            dotsInstancedPropertyBuilder.Append("UNITY_DEFINE_INSTANCED_PROP(");
+                            dotsInstancedPropertyBuilder.Append(prop.Type.Name);
+                            dotsInstancedPropertyBuilder.Append(", ");
+                            dotsInstancedPropertyBuilder.Append(prop.ReferenceName);
+                            dotsInstancedPropertyBuilder.Append(")");
+                            count++;
+                        }
+                        dotsInstancedPropertyBuilder.AppendNewLine();
+                    }
+                    dotsInstancedPropertyBuilder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, var)");
+                    dotsInstancedPropertyBuilder.AppendLine("#else");
+                    dotsInstancedPropertyBuilder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
+                    dotsInstancedPropertyBuilder.AppendLine("#endif");
+                }
                 else
                     dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
                 spliceCommands.Add("HybridV1InjectedBuiltinProperties", dotsInstancedPropertyBuilder.ToCodeBlock());
