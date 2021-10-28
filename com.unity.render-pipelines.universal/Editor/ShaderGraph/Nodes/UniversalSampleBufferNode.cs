@@ -123,7 +123,7 @@ namespace UnityEditor.Rendering.Universal
             // }
         }
 
-        string GetFunctionName() => "Unity_Universal_SampleBuffer_$precision";
+        string GetFunctionName() => $"Unity_Universal_SampleBuffer_{bufferType}_$precision";
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
