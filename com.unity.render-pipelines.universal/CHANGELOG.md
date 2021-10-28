@@ -5,7 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [13.1.1] - 2021-10-27
+
+### Added
 - Added optional assignment of custom URP Editor Resources.  This allows users to supply things like custom terrain shaders with minimal effort.
+
+### Changed
+- Re-enabled MenuItem creation for URP Editor Resources.
+
+### Fixed
+- Fixed default URP editor resouce paths being incorrect relative to their actual location (e.g., "Autodesk Interactive" -> "AutodeskInteractive")
 
 ## [13.1.1] - 2021-10-04
 
