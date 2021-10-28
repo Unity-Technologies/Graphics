@@ -464,6 +464,7 @@ namespace UnityEngine.Rendering
             var depthFormat = GraphicsFormat.None;
             if (depthBufferBits > 0)
             {
+                colorFormat = GraphicsFormat.None;
                 switch (depthBufferBits)
                 {
                     case DepthBits.Depth16:
