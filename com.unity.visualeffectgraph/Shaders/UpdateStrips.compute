@@ -1,5 +1,7 @@
 #pragma kernel UpdateParticleStrip
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl
+
 #include "HLSLSupport.cginc"
 
 #define NB_THREADS_PER_GROUP 64

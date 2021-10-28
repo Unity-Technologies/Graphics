@@ -277,7 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.worldToLocalMatrix = m_WorldToLocalArea.inverse;
                 passData.historyValidity = EvaluateHistoryValidity(hdCamera);
                 passData.filterTracedShadow = additionalLightData.filterTracedShadow;
-                passData.areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
+                passData.areaShadowSlot = m_GpuLightsBuilder.lights[lightIndex].screenSpaceShadowIndex;
                 passData.filterSize = additionalLightData.filterSizeTraced;
 
                 // Kernels
@@ -293,7 +293,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Other parameters
                 // Grab the acceleration structure for the target camera
-                passData.accelerationStructure = RequestAccelerationStructure();
+                passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
                 passData.screenSpaceShadowsCS = m_ScreenSpaceShadowsCS;
                 passData.screenSpaceShadowsRT = m_ScreenSpaceShadowsRT;
@@ -343,7 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 areaShadow = passData.outputShadowTexture;
             }
 
-            int areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
+            int areaShadowSlot = m_GpuLightsBuilder.lights[lightIndex].screenSpaceShadowIndex;
             WriteScreenSpaceShadow(renderGraph, hdCamera, areaShadow, screenSpaceShadowArray, areaShadowSlot, ScreenSpaceShadowType.Area);
 
             if (additionalLightData.filterTracedShadow)

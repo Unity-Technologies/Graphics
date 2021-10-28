@@ -271,8 +271,8 @@ Material:
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _Smoothness: 0.5
-    - _SmoothnessRemapMax: 0.89
-    - _SmoothnessRemapMin: 0.547
+    - _SmoothnessRemapMax: 0.903
+    - _SmoothnessRemapMin: 0.553
     - _SpecularAAScreenSpaceVariance: 0.1
     - _SpecularAAThreshold: 0.2
     - _SpecularMultiplier: 0.348
@@ -318,10 +318,10 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - Color_6FC6C3A4: {r: 0.29999998, g: 0.19499996, b: 0.089999996, a: 1}
-    - _BaseColor: {r: 0.5, g: 0.34403664, b: 0.24770638, a: 1}
+    - _BaseColor: {r: 0.8207547, g: 0.6714855, b: 0.32907617, a: 1}
     - _Base_UV_Mask: {r: 1, g: 0, b: 0, a: 0}
     - _Base_UV_Tiling_and_Offset: {r: 1, g: 1, b: 0, a: 0}
-    - _Color: {r: 0.5, g: 0.3440366, b: 0.24770635, a: 1}
+    - _Color: {r: 0.8207547, g: 0.6714855, b: 0.32907614, a: 1}
     - _Diffuse_Color: {r: 0.643, g: 0.47758824, b: 0.35943696, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: 1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
@@ -329,6 +329,7 @@ Material:
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 0.8679245, g: 0.559068, b: 0.2251691, a: 1}
+    - _Strand_Probe: {r: 0.98, g: -1.46, b: 0.13, a: 0}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}

@@ -1,0 +1,111 @@
+#pragma kernel FurnaceTest
+#pragma kernel FurnaceTestSampled
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+// #pragma enable_d3d11_debug_symbols
+
+// HDRP generic includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Hammersley.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Reference/HairReference.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
+
+RWStructuredBuffer<float> _TestResult;
+
+float3 _OutgoingDirection;
+float  _BetaM;
+float  _BetaN;
+
+#define SAMPLE_COUNT 10000000
+#define GROUP_SIZE   512
+
+// Local memory for parallel reduction.
+groupshared float gs_F[GROUP_SIZE];
+
+float SampleHair(uint2 seed)
+{
+    // Configure the theoretical fiber
+    BSDFData bsdfData;
+    ZERO_INITIALIZE(BSDFData, bsdfData);
+
+    // Randomize H for this sample.
+    bsdfData.h = -1 + 2 * GenerateHashedRandomFloat(seed.y);
+
+    // Override the absorption. (All light should reflect or transmit as no absorption occur).
+    bsdfData.absorption = 0;
+
+    // Configure the roughnesses for the current test.
+    bsdfData.perceptualRoughness       = _BetaM;
+    bsdfData.perceptualRoughnessRadial = _BetaN;
+
+    float2 U  = Hammersley2d(seed.x, SAMPLE_COUNT);
+    float3 wi = SampleSphereUniform(U.x, U.y);
+    float3 wo = _OutgoingDirection;
+
+    // Invoke the reference fiber scattering function.
+    CBSDF cbsdf = EvaluateHairReference(wo, wi, bsdfData);
+
+    return Luminance(cbsdf.specR) * abs(wi.z);
+}
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void FurnaceTest(uint dispatchThreadId : SV_DispatchThreadID,
+                 uint groupThreadId    : SV_GroupThreadID,
+                 uint groupId          : SV_GroupID)
+{
+    // Sample the hair for this thread, generating a unique incident direction and H value.
+    gs_F[groupThreadId] = SampleHair(uint2(dispatchThreadId, groupThreadId));
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Simple parallel reduction on the group.
+    for (uint i = GROUP_SIZE / 2; i > 0; i >>= 1)
+    {
+        if (groupThreadId < i)
+        {
+            gs_F[groupThreadId] += gs_F[groupThreadId + i];
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    if (groupThreadId == 0)
+    {
+        _TestResult[groupId] = gs_F[0];
+    }
+}
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void FurnaceTestSampled(uint dispatchThreadId : SV_DispatchThreadID,
+                        uint groupThreadId    : SV_GroupThreadID,
+                        uint groupId          : SV_GroupID)
+{
+    // Sample the hair for this thread, generating a unique incident direction and H value.
+    gs_F[groupThreadId] = SampleHair(uint2(dispatchThreadId, groupThreadId));
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Simple parallel reduction on the group.
+    for (uint i = GROUP_SIZE / 2; i > 0; i >>= 1)
+    {
+        if (groupThreadId < i)
+        {
+            gs_F[groupThreadId] += gs_F[groupThreadId + i];
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    if (groupThreadId == 0)
+    {
+        _TestResult[groupId] = gs_F[0];
+    }
+}
