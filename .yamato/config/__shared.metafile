@@ -374,6 +374,7 @@ platforms:
           - brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
           - brew install unity/unity/unity-downloader-cli
           - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+          - uname -m
 
   Linux:
     name: Linux
