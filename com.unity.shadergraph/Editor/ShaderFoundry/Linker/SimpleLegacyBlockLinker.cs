@@ -284,9 +284,15 @@ namespace UnityEditor.ShaderFoundry
             var inputOverrides = new Dictionary<string, string>();
             var outputOverrides = new Dictionary<string, string>();
             foreach (var fieldOverride in buildingContext.InputOverrides)
-                inputOverrides.Add(fieldOverride.Name, fieldOverride.Alias);
+            {
+                if (!inputOverrides.ContainsKey(fieldOverride.Name))
+                    inputOverrides.Add(fieldOverride.Name, fieldOverride.Alias);
+            }
             foreach (var fieldOverride in buildingContext.OutputOverrides)
-                outputOverrides.Add(fieldOverride.Name, fieldOverride.Alias);
+            {
+                if(!outputOverrides.ContainsKey(fieldOverride.Name))
+                    outputOverrides.Add(fieldOverride.Name, fieldOverride.Alias);
+            }
 
             var inputBlocks = new Dictionary<string, BlockInstance>();
             if (buildingContext.CPIndex != -1 && buildingContext.BlockGroups != null)
