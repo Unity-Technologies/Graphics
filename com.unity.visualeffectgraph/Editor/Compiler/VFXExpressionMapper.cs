@@ -57,7 +57,7 @@ namespace UnityEditor.VFX
             int cpt = 0;
             foreach (var block in blocks)
             {
-                mapper.AddExpression(block.activationExpression, "_vfx_enabled", cpt);
+                mapper.AddExpression(block.activationExpression, VFXBlock.activationSlotName, cpt);
                 mapper.AddExpressions(block.parameters, cpt++);
             }
             return mapper;

@@ -8,6 +8,8 @@ namespace UnityEditor.VFX
 {
     abstract class VFXBlock : VFXSlotContainerModel<VFXContext, VFXModel>, IVFXDataGetter
     {
+        public readonly static string activationSlotName = "_vfx_enabled";
+
         public VFXBlock()
         {
             m_UICollapsed = false;
@@ -74,11 +76,11 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
 
-            if (m_ActivationSlot == null || m_ActivationSlot.name != "_vfx_enabled")
+            if (m_ActivationSlot == null || m_ActivationSlot.name != activationSlotName)
             {
                 var oldSlot = m_ActivationSlot;
 
-                var prop = new VFXPropertyWithValue(new VFXProperty(typeof(bool), "_vfx_enabled"), !m_Disabled);
+                var prop = new VFXPropertyWithValue(new VFXProperty(typeof(bool), activationSlotName), !m_Disabled);
                 m_ActivationSlot = VFXSlot.Create(prop, VFXSlot.Direction.kInput);
                 m_ActivationSlot.SetOwner(this);
 

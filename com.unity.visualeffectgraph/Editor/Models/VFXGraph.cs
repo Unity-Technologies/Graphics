@@ -265,7 +265,15 @@ namespace UnityEditor.VFX
                 if (vfxResource != null)
                 {
                     vfxResource.GetOrCreateGraph().UpdateSubAssets();
-                    vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
+                    try
+                    {
+                        VFXGraph.currentlySavingEditedGraph = vfxResource.GetOrCreateGraph().m_CompilationMode == VFXCompilationMode.Edition; // if graph is being edited
+                        vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
+                    }
+                    finally
+                    {
+                        VFXGraph.currentlySavingEditedGraph = false;
+                    }
                 }
             }
             Profiler.EndSample();
@@ -934,6 +942,11 @@ namespace UnityEditor.VFX
 
         public void CompileForImport()
         {
+            // As this can be triggered from WriteAsset which will reload the graph and therefore lost the transient m_CompilationMode
+            // We make sure, currently edited graph is recompile in edit mode via a static 
+            if (VFXGraph.currentlySavingEditedGraph)
+                m_CompilationMode = VFXCompilationMode.Edition;
+
             if (!GetResource().isSubgraph)
             {
                 // Don't pursue the compile if one of the dependency is not yet loaded
@@ -1046,8 +1059,10 @@ namespace UnityEditor.VFX
 
         [NonSerialized]
         private VFXGraphCompiledData m_CompiledData;
-        private VFXCompilationMode m_CompilationMode = VFXCompilationMode.Runtime;
+        public VFXCompilationMode m_CompilationMode = VFXCompilationMode.Runtime;
         private bool m_ForceShaderValidation = false;
+
+        public static bool currentlySavingEditedGraph = false;
 
         [NonSerialized]
         public Action<VFXGraph> onRuntimeDataChanged;
