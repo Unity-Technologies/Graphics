@@ -55,6 +55,16 @@ namespace UnityEditor.VFX
 
             var iconSize = new Vector2(8, 8);
 
+            if (playable.scrubbing)
+            {
+                var scrubbingRect = new Rect(
+                    region.position.x + region.position.width * 0.5f,
+                    region.position.y,
+                    iconSize.x,
+                    iconSize.y);
+                EditorGUI.DrawRect(scrubbingRect, Color.red);
+            }
+
             var clipEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable, true);
             using (var iterator = clipEvents.GetEnumerator())
             {
