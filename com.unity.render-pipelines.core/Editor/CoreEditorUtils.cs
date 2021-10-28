@@ -89,45 +89,158 @@ namespace UnityEditor.Rendering
             return tex2;
         }
 
-        /// <summary>Draw a help box with the Fix button.</summary>
-        /// <param name="text">The message text.</param>
-        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
-        public static void DrawFixMeBox(string text, Action action)
+        const float k_IndentMargin = 15.0f;
+        const float k_HighlightDuration = 2.0f;
+
+        static float s_HighlightStart = -1.0f;
+        static Texture2D s_HighlightBackground;
+        static object s_View;
+
+        static readonly FieldInfo k_ViewInfo = typeof(Highlighter).GetField("s_View", BindingFlags.Static | BindingFlags.NonPublic);
+        static readonly FieldInfo k_HighlightStyleInfo = typeof(Highlighter).GetField("s_HighlightStyle", BindingFlags.Static | BindingFlags.NonPublic);
+        static readonly FieldInfo k_WindowBackendInfo = Type.GetType("UnityEditor.GUIView,UnityEditor").GetField("m_WindowBackend", BindingFlags.NonPublic | BindingFlags.Instance);
+        static readonly EventInfo k_GUIHandlerInfo = Type.GetType("UnityEditor.UIElements.DefaultEditorWindowBackend,UnityEditor").GetEvent("overlayGUIHandler", (BindingFlags)(-1));
+        static readonly MethodInfo k_Repaint = Type.GetType("UnityEditor.GUIView,UnityEditor").GetMethod("Repaint", (BindingFlags)(-1));
+
+        static void HighlightTimeout()
         {
-            DrawFixMeBox(text, MessageType.Warning, action);
+            if (!Highlighter.active)
+            {
+                if (s_HighlightBackground != null)
+                    (k_HighlightStyleInfo.GetValue(null) as GUIStyle).normal.background = s_HighlightBackground;
+                s_HighlightBackground = null;
+
+                EditorApplication.update -= HighlightTimeout;
+                s_HighlightStart = -1.0f;
+                return;
+            }
+
+            // Item is in view for the first time, register highlight drawer delegate
+            if (Highlighter.activeVisible && s_HighlightStart <= 0.0f)
+            {
+                s_HighlightStart = Time.realtimeSinceStartup;
+
+                s_View = k_ViewInfo.GetValue(null);
+                if (s_View != null)
+                {
+                    var windowBackend = k_WindowBackendInfo.GetValue(s_View);
+                    k_GUIHandlerInfo.AddEventHandler(windowBackend, (Action)ControlHighlightGUI);
+                    var style = k_HighlightStyleInfo.GetValue(null) as GUIStyle;
+                    s_HighlightBackground = style.normal.background;
+                    style.normal.background = null;
+                }
+                else
+                {
+                    Highlighter.Stop();
+                }
+            }
+
+            if (s_HighlightStart > 0.0f)
+            {
+                if (Time.realtimeSinceStartup - s_HighlightStart > k_HighlightDuration)
+                {
+                    Highlighter.Stop();
+
+                    var windowBackend = k_WindowBackendInfo.GetValue(s_View);
+                    k_GUIHandlerInfo.RemoveEventHandler(windowBackend, (Action)ControlHighlightGUI);
+                }
+            }
         }
 
-        // UI Helpers
+        static void ControlHighlightGUI()
+        {
+            if (Event.current.type != EventType.Repaint)
+                return;
+
+            var color = CoreEditorStyles.backgroundHighlightColor;
+            color.a = Mathf.Min(1.0f - (Time.realtimeSinceStartup - s_HighlightStart) / k_HighlightDuration, 0.8f);
+
+            EditorGUI.DrawRect(GUIUtility.ScreenToGUIRect(Highlighter.activeRect), color);
+        }
+
+        /// <summary>Highlights an element in the editor for a short period of time.</summary>
+        /// <param name="windowTitle">The title of the window the element is inside.</param>
+        /// <param name="text">The text to identify the element with.</param>
+        /// <param name="mode">Optional mode to specify how to search for the element.</param>
+        public static void Highlight(string windowTitle, string text, HighlightSearchMode mode = HighlightSearchMode.Auto)
+        {
+            if (s_HighlightStart >= 0.0f)
+                return;
+
+            s_HighlightStart = 0.0f;
+            Highlighter.Highlight(windowTitle, text, mode);
+            EditorApplication.update += HighlightTimeout;
+        }
+
         /// <summary>Draw a help box with the Fix button.</summary>
-        /// <param name="message">The message with icon if need.</param>
+        /// <param name="message">The message text.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
+        public static void DrawFixMeBox(string message, Action action)
+        {
+            DrawFixMeBox(message, MessageType.Warning, "Fix", action);
+        }
+
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="message">The message text.</param>
+        /// <param name="messageType">The type of the message.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
+        public static void DrawFixMeBox(string message, MessageType messageType, Action action)
+        {
+            DrawFixMeBox(EditorGUIUtility.TrTextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(messageType)), "Fix", action);
+        }
+
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="message">The message text.</param>
+        /// <param name="messageType">The type of the message.</param>
+        /// <param name="buttonLabel">The button text.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
+        public static void DrawFixMeBox(string message, MessageType messageType, string buttonLabel, Action action)
+        {
+            DrawFixMeBox(EditorGUIUtility.TrTextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(messageType)), buttonLabel, action);
+        }
+
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="message">The message with icon if needed.</param>
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(GUIContent message, Action action)
         {
-            GUILayout.Space(2);
-            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
-            {
-                EditorGUILayout.LabelField(message, CoreEditorStyles.helpBoxLabelStyle);
-                GUILayout.FlexibleSpace();
-                using (new EditorGUILayout.VerticalScope())
-                {
-                    GUILayout.FlexibleSpace();
-
-                    if (GUILayout.Button("Fix", GUILayout.Width(60)))
-                        action();
-
-                    GUILayout.FlexibleSpace();
-                }
-            }
-            GUILayout.Space(5);
+            DrawFixMeBox(message, "Fix", action);
         }
 
         /// <summary>Draw a help box with the Fix button.</summary>
-        /// <param name="text">The message text.</param>
-        /// <param name="messageType">The type of the message.</param>
+        /// <param name="message">The message with icon if needed.</param>
+        /// <param name="buttonLabel">The button text.</param>
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
-        public static void DrawFixMeBox(string text, MessageType messageType, Action action)
+        public static void DrawFixMeBox(GUIContent message, string buttonLabel, Action action)
         {
-            DrawFixMeBox(EditorGUIUtility.TrTextContentWithIcon(text, CoreEditorStyles.GetMessageTypeIcon(messageType)), action);
+            EditorGUILayout.BeginHorizontal();
+
+            float indent = EditorGUI.indentLevel * k_IndentMargin - EditorStyles.helpBox.margin.left;
+            GUILayoutUtility.GetRect(indent, EditorGUIUtility.singleLineHeight, EditorStyles.helpBox, GUILayout.ExpandWidth(false));
+
+            Rect leftRect = GUILayoutUtility.GetRect(new GUIContent(buttonLabel), EditorStyles.miniButton, GUILayout.MinWidth(60));
+            Rect rect = GUILayoutUtility.GetRect(message, EditorStyles.helpBox);
+            Rect boxRect = new Rect(leftRect.x, rect.y, rect.xMax - leftRect.xMin, rect.height);
+
+            int oldIndent = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+
+            if (Event.current.type == EventType.Repaint)
+                EditorStyles.helpBox.Draw(boxRect, false, false, false, false);
+
+            Rect labelRect = new Rect(boxRect.x + 4, boxRect.y + 3, rect.width - 8, rect.height);
+            EditorGUI.LabelField(labelRect, message, CoreEditorStyles.helpBox);
+
+            var buttonRect = leftRect;
+            buttonRect.x += rect.width - 2;
+            buttonRect.y = rect.yMin + (rect.height - EditorGUIUtility.singleLineHeight) / 2;
+            bool clicked = GUI.Button(buttonRect, buttonLabel);
+
+            EditorGUI.indentLevel = oldIndent;
+            EditorGUILayout.EndHorizontal();
+
+            if (clicked)
+                action();
         }
 
         /// <summary>
@@ -323,7 +436,7 @@ namespace UnityEditor.Rendering
             foldoutRect.y += 1f;
             foldoutRect.width = 13f;
             foldoutRect.height = 13f;
-            foldoutRect.x = labelRect.xMin + 15 * (EditorGUI.indentLevel - 1); //fix for presset
+            foldoutRect.x = labelRect.xMin + k_IndentMargin * (EditorGUI.indentLevel - 1); //fix for presset
 
             // Background rect should be full-width
             backgroundRect.xMin = 0f;
@@ -437,7 +550,7 @@ namespace UnityEditor.Rendering
 
             var foldoutRect = backgroundRect;
             foldoutRect.y += 1f;
-            foldoutRect.x += 15 * EditorGUI.indentLevel; //GUI do not handle indent. Handle it here
+            foldoutRect.x += k_IndentMargin * EditorGUI.indentLevel; //GUI do not handle indent. Handle it here
             foldoutRect.width = 13f;
             foldoutRect.height = 13f;
 
@@ -846,7 +959,7 @@ namespace UnityEditor.Rendering
             //Suffix is a hack as sublabel only work with 1 character
             if (addMinusPrefix)
             {
-                Rect suffixRect = new Rect(rect.x - 4 - 15 * EditorGUI.indentLevel, rect.y, 100, rect.height);
+                Rect suffixRect = new Rect(rect.x - 4 - k_IndentMargin * EditorGUI.indentLevel, rect.y, 100, rect.height);
                 for (int i = 0; i < 3; ++i)
                 {
                     EditorGUI.LabelField(suffixRect, "-");
@@ -860,7 +973,7 @@ namespace UnityEditor.Rendering
                 if (colors.Length != 3)
                     throw new System.ArgumentException("colors must have 3 elements.");
 
-                Rect suffixRect = new Rect(rect.x + 7 - 15 * EditorGUI.indentLevel, rect.y, 100, rect.height);
+                Rect suffixRect = new Rect(rect.x + 7 - k_IndentMargin * EditorGUI.indentLevel, rect.y, 100, rect.height);
                 GUIStyle colorMark = new GUIStyle(EditorStyles.label);
                 colorMark.normal.textColor = colors[0];
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
