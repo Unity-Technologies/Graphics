@@ -44,12 +44,11 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_DeferredLights.UseRenderPass)
             {
-                if (m_GbufferAttachments == null)
-                    m_GbufferAttachments = new RTHandle[]
-                    {
-                        m_DeferredLights.GbufferAttachments[0], m_DeferredLights.GbufferAttachments[1],
-                        m_DeferredLights.GbufferAttachments[2], m_DeferredLights.GbufferAttachments[3]
-                    };
+                m_GbufferAttachments = new RTHandle[]
+                {
+                    m_DeferredLights.GbufferAttachments[0], m_DeferredLights.GbufferAttachments[1],
+                    m_DeferredLights.GbufferAttachments[2], m_DeferredLights.GbufferAttachments[3]
+                };
                 ConfigureInputAttachments(m_DeferredLights.DepthCopyTexture, false);
             }
             else

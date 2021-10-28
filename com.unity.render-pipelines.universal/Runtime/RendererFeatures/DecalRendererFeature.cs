@@ -495,6 +495,11 @@ namespace UnityEngine.Rendering.Universal
 
                 m_CopyDepthPass.MssaSamples = 1;
             }
+            else if (m_Technique == DecalTechnique.GBuffer && m_DeferredLights.UseRenderPass)
+            {
+                // Need to call Configure for both of these passes to setup input attachments as first frame otherwise will raise errors
+                m_GBufferRenderPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
+            }
         }
 
         protected override void Dispose(bool disposing)
