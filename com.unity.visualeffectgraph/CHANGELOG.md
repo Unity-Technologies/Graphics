@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [12.1.4] - 2021-12-07
 ### Fixed
 - Unexpected possible connection between GPUEvent and Spawn context [Case 1362739](https://issuetracker.unity3d.com/product/unity/issues/guid/1362739/)
+- Fixed Collision with Depth when using a physical camera. [Case 1344733](https://issuetracker.unity3d.com/product/unity/issues/guid/1344733/)
+
 
 ## [12.1.3] - 2021-11-17
 ### Fixed
