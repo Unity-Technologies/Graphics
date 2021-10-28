@@ -12,7 +12,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     [CustomEditor(typeof(VisualEffectControlTrack))]
-    class VisualEffectControlTrackInspector : Editor //TODOPAUL: Remove this
+    class VisualEffectControlTrackInspector : Editor //TODOPAUL: Remove this, only for debug
     {
         bool showDebugInformation;
 
@@ -155,6 +155,10 @@ namespace UnityEditor.VFX
     {
         SerializedProperty scrubbingProperty;
         SerializedProperty startSeedProperty;
+        SerializedProperty prewarmEnable;
+        SerializedProperty prewarmStepCount;
+        SerializedProperty prewarmDeltaTime;
+        SerializedProperty prewarmEvent;
 
         ReorderableList m_ReoderableClipEvents;
         ReorderableList m_ReoderableSingleEvents;
@@ -334,6 +338,12 @@ namespace UnityEditor.VFX
             scrubbingProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.scrubbing));
             startSeedProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.startSeed));
 
+            var prewarmSettings = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.prewarm));
+            prewarmEnable = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlPlayableAsset.PrewarmClipSettings.enable));
+            prewarmStepCount = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlPlayableAsset.PrewarmClipSettings.stepCount));
+            prewarmDeltaTime = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlPlayableAsset.PrewarmClipSettings.deltaTime));
+            prewarmEvent = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlPlayableAsset.PrewarmClipSettings.eventName) + ".m_Name");
+
             var clipEventsProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.clipEvents));
             var singleEventsProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.singleEvents));
 
@@ -406,7 +416,15 @@ namespace UnityEditor.VFX
 
             EditorGUILayout.PropertyField(scrubbingProperty);
             if (scrubbingProperty.boolValue)
+            {
                 EditorGUILayout.PropertyField(startSeedProperty);
+                EditorGUILayout.PropertyField(prewarmEnable, EditorGUIUtility.TrTextContent("Enable PreWarm"));
+                if (prewarmEnable.boolValue)
+                {
+                    VisualEffectAssetEditor.PrewarmGenericInspector(serializedObject, prewarmDeltaTime, prewarmStepCount);
+                    EditorGUILayout.PropertyField(prewarmEvent, EditorGUIUtility.TrTextContent("PreWarm Event Name"));
+                }
+            }
 
             m_ReoderableClipEvents.DoLayoutList();
             m_ReoderableSingleEvents.DoLayoutList();

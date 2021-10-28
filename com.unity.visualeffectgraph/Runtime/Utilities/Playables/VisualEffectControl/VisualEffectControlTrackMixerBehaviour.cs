@@ -41,6 +41,11 @@ namespace UnityEngine.VFX
                 public double begin;
                 public double end;
 
+                public uint prewarmCount;
+                public float prewarmDeltaTime;
+                public double prewarmOffset;
+                public int prewarmEvent;
+
                 public Event[] events;
                 public Clip[] clips;
             }
@@ -82,15 +87,22 @@ namespace UnityEngine.VFX
 
             private void OnEnterChunk(int currentChunk)
             {
-                if (!m_Chunks[currentChunk].scrubbing)
+                var chunk = m_Chunks[currentChunk];
+
+                if (!chunk.scrubbing)
                 {
-                    m_ClipState = new bool[m_Chunks[currentChunk].clips.Length];
+                    m_ClipState = new bool[chunk.clips.Length];
                 }
                 else
                 {
                     m_Target.resetSeedOnPlay = false;
-                    m_Target.startSeed = m_Chunks[currentChunk].startSeed;
+                    m_Target.startSeed = chunk.startSeed;
                     m_Target.Reinit(false);
+                    if (chunk.prewarmCount != 0u)
+                    {
+                        m_Target.SendEvent(chunk.prewarmEvent);
+                        m_Target.Simulate(chunk.prewarmDeltaTime, chunk.prewarmCount);
+                    }
                 }
             }
 
@@ -162,12 +174,19 @@ namespace UnityEngine.VFX
                     }
                 }
 
+                var firstFrameOfChunk = false;
+
                 if (m_LastChunk != currentChunkIndex)
                 {
                     if (m_LastChunk != kErrorIndex)
+                    {
                         OnLeaveChunk(m_LastChunk);
+                    }
                     if (currentChunkIndex != kErrorIndex)
+                    {
                         OnEnterChunk(currentChunkIndex);
+                        firstFrameOfChunk = true;
+                    }
 
                     m_LastChunk = currentChunkIndex;
                     m_LastEvent = kErrorIndex;
@@ -182,6 +201,8 @@ namespace UnityEngine.VFX
                     {
                         m_Target.pause = paused;
                         var actualCurrentTime = chunk.begin + m_Target.time;
+                        if (!firstFrameOfChunk)
+                            actualCurrentTime -= chunk.prewarmOffset;
 
                         if (!playingBackward)
                         {
@@ -425,7 +446,8 @@ namespace UnityEngine.VFX
                     if (   !chunks.Any()
                         || inputBehavior.clipStart > chunks.Peek().end
                         || inputBehavior.scrubbing != chunks.Peek().scrubbing
-                        || inputBehavior.startSeed != chunks.Peek().startSeed)
+                        || inputBehavior.startSeed != chunks.Peek().startSeed
+                        || inputBehavior.prewarmStepCount != 0u)
                     {
                         chunks.Push(new Chunk()
                         {
@@ -433,7 +455,12 @@ namespace UnityEngine.VFX
                             events = new Event[0],
                             clips = new Clip[0],
                             scrubbing = inputBehavior.scrubbing,
-                            startSeed = inputBehavior.startSeed
+                            startSeed = inputBehavior.startSeed,
+
+                            prewarmCount = inputBehavior.prewarmStepCount,
+                            prewarmDeltaTime = inputBehavior.prewarmDeltaTime,
+                            prewarmEvent = inputBehavior.prewarmEvent != null ? inputBehavior.prewarmEvent : 0,
+                            prewarmOffset = (double)inputBehavior.prewarmStepCount * inputBehavior.prewarmDeltaTime
                         });
                     }
 

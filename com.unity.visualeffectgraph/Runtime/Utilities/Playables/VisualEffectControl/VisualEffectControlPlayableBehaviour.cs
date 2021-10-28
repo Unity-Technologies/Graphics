@@ -234,6 +234,10 @@ namespace UnityEngine.VFX
 
         public VisualEffectPlayableSerializedEvent[] events { get; set; }
         public uint clipEventsCount { get; set; }
+
+        public uint prewarmStepCount { get; set; }
+        public float prewarmDeltaTime { get; set; }
+        public ExposedProperty prewarmEvent { get; set; }
     }
 }
 #endif
