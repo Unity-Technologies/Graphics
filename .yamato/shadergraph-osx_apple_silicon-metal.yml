@@ -25,6 +25,7 @@ ShaderGraph_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
       -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
+      -  cp TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
@@ -60,6 +61,7 @@ Build_ShaderGraph_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
+      -  cp TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
@@ -96,6 +98,7 @@ ShaderGraph_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
+      -  cp TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
@@ -125,6 +128,7 @@ ShaderGraph_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
+      -  cp TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
@@ -160,6 +164,7 @@ Build_ShaderGraph_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
+      -  cp TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
@@ -196,6 +201,7 @@ ShaderGraph_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
+      -  cp TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
