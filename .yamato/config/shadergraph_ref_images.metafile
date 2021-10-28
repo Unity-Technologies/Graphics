@@ -6,6 +6,7 @@ test_platforms:
     name: Standalone_ref_images
     commands:
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: set UTR_VERSION=0.14.1-rc1
     - [OSX_OpenGLCore, OSX_Metal, Linux_OpenGLCore]: UTR_VERSION=0.14.1-rc1
     - [all]: <shared.platform.commands.setup_utr>
@@ -35,6 +36,7 @@ test_platforms:
     name: playmode_ref_images
     commands:
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: set UTR_VERSION=0.14.1-rc1
     - [OSX_OpenGLCore, OSX_Metal, Linux_OpenGLCore]: UTR_VERSION=0.14.1-rc1
     - [all]: <shared.platform.commands.setup_utr>
@@ -62,6 +64,7 @@ test_platforms:
     name: Standalone_cache_ref_images
     commands:
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: set UTR_VERSION=0.14.1-rc1
     - [OSX_OpenGLCore, OSX_Metal, Linux_OpenGLCore]: UTR_VERSION=0.14.1-rc1
     - [all]: <shared.platform.commands.setup_utr>
@@ -105,28 +108,28 @@ platforms:
       - Linear
     agents_project:
       default:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
       editmode:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
       standalone:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
       standalone_cache:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
       standalone_build:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
   - name: OSX

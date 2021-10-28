@@ -44,9 +44,11 @@ if __name__ == "__main__":
                                                 colorspace, editor, test_platform, vr, test_name + ".png")
                     reference_img_path = path.join(getcwd(), args.root, "Assets", "ReferenceImages",
                                                    colorspace, editor, test_platform, vr, test_name + ".png")
+                    test_asset_path = path.join(getcwd(), args.root, "Assets", "Testing", "IntegrationTests",
+                                                "ShaderGraphTestAssets", test_name + ".asset")
                     if extra_logs:
                         print("Adding " + test_name)
-                    z.write(actual_img_path, reference_img_path)
+                    z.write(actual_img_path, reference_img_path)  # Write ActualImage to zip
                     if path.exists(actual_img_path + ".meta"):
                         z.write(actual_img_path + ".meta", reference_img_path + ".meta")
                 elif extra_logs:

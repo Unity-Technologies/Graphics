@@ -11,8 +11,8 @@
 ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
     name: ShaderGraph_ref on Win_DX11_Standalone_ref_images_mono_Linear on version trunk
     agent:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -22,6 +22,7 @@ ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -52,8 +53,8 @@ ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
 Build_ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
     name: Build ShaderGraph_ref on Win_DX11_mono_Linear_Standalone_ref_images_build_Player on version trunk
     agent:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -90,8 +91,8 @@ Build_ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
 ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_trunk:
     name: ShaderGraph_ref on Win_DX11_playmode_ref_images_mono_Linear on version trunk
     agent:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -101,6 +102,7 @@ ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -133,8 +135,8 @@ ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_trunk:
 ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_trunk:
     name: ShaderGraph_ref on Win_DX11_Standalone_cache_ref_images_mono_Linear on version trunk
     agent:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -144,6 +146,7 @@ ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -175,8 +178,8 @@ ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_trunk:
 Build_ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_trunk:
     name: Build ShaderGraph_ref on Win_DX11_mono_Linear_Standalone_cache_ref_images_build_Player on version trunk
     agent:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -213,8 +216,8 @@ Build_ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_trunk:
 ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph_ref on Win_DX11_Standalone_ref_images_mono_Linear on version CUSTOM-REVISION
     agent:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -224,6 +227,7 @@ ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -254,8 +258,8 @@ ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
 Build_ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
     name: Build ShaderGraph_ref on Win_DX11_mono_Linear_Standalone_ref_images_build_Player on version CUSTOM-REVISION
     agent:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -292,8 +296,8 @@ Build_ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_CUSTOM-REVISION
 ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph_ref on Win_DX11_playmode_ref_images_mono_Linear on version CUSTOM-REVISION
     agent:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -303,6 +307,7 @@ ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -335,8 +340,8 @@ ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
 ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph_ref on Win_DX11_Standalone_cache_ref_images_mono_Linear on version CUSTOM-REVISION
     agent:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -346,6 +351,7 @@ ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISION
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  command: gsudo NetSh Advfirewall set allprofiles state off
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -377,8 +383,8 @@ ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISION
 Build_ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISION:
     name: Build ShaderGraph_ref on Win_DX11_mono_Linear_Standalone_cache_ref_images_build_Player on version CUSTOM-REVISION
     agent:
+        image: package-ci/win10:stable
         type: Unity::VM::GPU
-        image: sdet/gamecode-win10-1909:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
