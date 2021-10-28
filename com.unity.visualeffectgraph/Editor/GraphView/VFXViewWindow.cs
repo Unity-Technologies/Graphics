@@ -140,6 +140,8 @@ namespace UnityEditor.VFX.UI
 
             var asset = effectToAttach == null ? m_pendingAttachment : effectToAttach;
             graphView?.TryAttachTo(asset, true);
+
+            titleContent.text = resource.name;
         }
 
         VisualEffect GetVisualEffectFromID(int id) => EditorUtility.InstanceIDToObject(id) as VisualEffect;
@@ -230,10 +232,13 @@ namespace UnityEditor.VFX.UI
             EditorApplication.wantsToQuit += Quitting_Workaround;
 #endif
 
-            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath +
-                                                                "/VFX/" + (EditorGUIUtility.isProSkin
-                                                                    ? "vfx_graph_icon_gray_dark.png"
-                                                                    : "vfx_graph_icon_gray_light.png"));
+            if (graphView?.controller == null && m_DisplayedResource != null)
+            {
+                LoadResource(m_DisplayedResource);
+            }
+
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + "/VFX/"
+                + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
             titleContent.image = icon;
         }
 
@@ -321,12 +326,6 @@ namespace UnityEditor.VFX.UI
         {
             if (graphView == null && m_DisplayedResource == null)
                 return;
-
-            if (graphView?.controller == null && m_DisplayedResource != null)
-            {
-                LoadResource(m_DisplayedResource);
-                return;
-            }
 
             VFXViewController controller = graphView.controller;
             var filename = "No Asset";
