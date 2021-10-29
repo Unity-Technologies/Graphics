@@ -137,6 +137,17 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings = 2,
     }
 
+    /// <summary>
+    /// Defines the upscaling filter used by the universal render pipeline.
+    /// </summary>
+    public enum UpscalingFilter
+    {
+        [InspectorName("Bilinear")]
+        Linear,
+        [InspectorName("Nearest-Neighbor")]
+        Point
+    }
+
     [ExcludeFromPreset]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
@@ -166,6 +177,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsHDR = true;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
+        [SerializeField] UpscalingFilter m_UpscalingFilter = UpscalingFilter.Linear;
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings
@@ -670,6 +682,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_RenderScale; }
             set { m_RenderScale = ValidateRenderScale(value); }
+        }
+
+        public UpscalingFilter upscalingFilter
+        {
+            get { return m_UpscalingFilter; }
+            set { m_UpscalingFilter = value; }
         }
 
         public LightRenderingMode mainLightRenderingMode

@@ -1370,10 +1370,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             var material = m_Materials.finalPass;
             material.shaderKeywords = null;
 
-            // FXAA setup
-            if (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
-                material.EnableKeyword(ShaderKeywordStrings.Fxaa);
-
             PostProcessUtils.SetSourceSize(cmd, cameraData.cameraTargetDescriptor);
 
             SetupGrain(cameraData, material);
@@ -1391,6 +1387,62 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
+            bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
+            bool isUpscaleSetupTextureUsed = false;
+
+            if (cameraData.isScaledRender)
+            {
+                // Make sure to remove any MSAA and attached depth buffers from the temporary render targets
+                var tempRtDesc = cameraData.cameraTargetDescriptor;
+                tempRtDesc.msaaSamples = 1;
+                tempRtDesc.depthBufferBits = 0;
+
+                m_Materials.upscaleSetup.shaderKeywords = null;
+
+                // When FXAA is enabled in scaled renders, we execute it in a separate blit since it's not designed to be used in
+                // situations where the input and output resolutions do not match.
+                if (isFxaaEnabled)
+                {
+                    m_Materials.upscaleSetup.EnableKeyword(ShaderKeywordStrings.Fxaa);
+
+                    isUpscaleSetupTextureUsed = true;
+
+                    cmd.GetTemporaryRT(ShaderConstants._UpscaleSetupTexture, tempRtDesc, FilterMode.Point);
+                    var tempSetupRtId = new RenderTargetIdentifier(ShaderConstants._UpscaleSetupTexture);
+                    Blit(cmd, m_Source, tempSetupRtId, m_Materials.upscaleSetup);
+
+                    cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, tempSetupRtId);
+                }
+
+                if (cameraData.renderScale < 1.0f)
+                {
+                    // In the upscaling case, set material keywords based on the selected upscaling filter
+                    switch (cameraData.upscalingFilter)
+                    {
+                        case UpscalingFilter.Point:
+                        {
+                            material.EnableKeyword(ShaderKeywordStrings.FilterPoint);
+                            break;
+                        }
+
+                        case UpscalingFilter.Linear:
+                        {
+                            // Do nothing as linear is the default filter in the shader
+                            break;
+                        }
+                    }
+                }
+                else if (cameraData.renderScale > 1.0f)
+                {
+                    // In the downscaling case, we don't perform any sort of filter override logic since we always want linear filtering
+                    // and it's already the default option in the shader.
+                }
+            }
+            else if (isFxaaEnabled)
+            {
+                // In unscaled renders, FXAA can be safely performed in the FinalPost shader
+                material.EnableKeyword(ShaderKeywordStrings.Fxaa);
+            }
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
@@ -1427,6 +1479,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
 #pragma warning restore 0618
             }
+
+            if (isUpscaleSetupTextureUsed)
+            {
+                cmd.ReleaseTemporaryRT(ShaderConstants._UpscaleSetupTexture);
+            }
         }
 
         #endregion
@@ -1442,6 +1499,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public readonly Material cameraMotionBlur;
             public readonly Material paniniProjection;
             public readonly Material bloom;
+            public readonly Material upscaleSetup;
             public readonly Material uber;
             public readonly Material finalPass;
             public readonly Material lensFlareDataDriven;
@@ -1455,6 +1513,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cameraMotionBlur = Load(data.shaders.cameraMotionBlurPS);
                 paniniProjection = Load(data.shaders.paniniProjectionPS);
                 bloom = Load(data.shaders.bloomPS);
+                upscaleSetup = Load(data.shaders.upscaleSetupPs);
                 uber = Load(data.shaders.uberPostPS);
                 finalPass = Load(data.shaders.finalPostPassPS);
                 lensFlareDataDriven = Load(data.shaders.LensFlareDataDrivenPS);
@@ -1484,6 +1543,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.Destroy(cameraMotionBlur);
                 CoreUtils.Destroy(paniniProjection);
                 CoreUtils.Destroy(bloom);
+                CoreUtils.Destroy(upscaleSetup);
                 CoreUtils.Destroy(uber);
                 CoreUtils.Destroy(finalPass);
             }
@@ -1546,6 +1606,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _FlareData5 = Shader.PropertyToID("_FlareData5");
 
             public static readonly int _FullscreenProjMat = Shader.PropertyToID("_FullscreenProjMat");
+
+            public static readonly int _UpscaleSetupTexture = Shader.PropertyToID("_UpscaleSetupTexture");
 
             public static int[] _BloomMipUp;
             public static int[] _BloomMipDown;
