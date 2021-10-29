@@ -196,7 +196,7 @@ MonoBehaviour:
   stripCapacity: 1
   particlePerStripCount: 1024
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &114512514798047786
 MonoBehaviour:
