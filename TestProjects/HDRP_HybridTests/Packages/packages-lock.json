@@ -156,7 +156,7 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.searcher": {
-      "version": "4.8.0",
+      "version": "4.9.1",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -168,7 +168,7 @@
       "source": "local",
       "dependencies": {
         "com.unity.render-pipelines.core": "13.1.1",
-        "com.unity.searcher": "4.8.0"
+        "com.unity.searcher": "4.9.1"
       }
     },
     "com.unity.subsystemregistration": {
