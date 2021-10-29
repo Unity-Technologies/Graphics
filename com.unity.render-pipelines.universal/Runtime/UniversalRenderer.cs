@@ -606,8 +606,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var depthDescriptor = cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = requiresDepthPrepass ? GraphicsFormat.None : GraphicsFormat.R32_SFloat;
-                depthDescriptor.depthBufferBits = requiresDepthPrepass ? 32 : 0;
-                depthDescriptor.depthStencilFormat = requiresDepthPrepass ? k_DepthStencilFormat : GraphicsFormat.None;
+                depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
                 depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
                 RenderingUtils.ReAllocateIfNeeded(ref m_DepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
 
