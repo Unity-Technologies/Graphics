@@ -74,20 +74,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 registry.ProvideFunction(GetFunctionName(), s =>
                 {
-                    registry.builder.AppendLine("StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;");
-                    registry.builder.AppendLine("float4  _DepthPyramidBufferSize;");
+                    registry.builder.AppendLine("StructuredBuffer<int2> _DepthPyramidMipLevelOffsets;");
                     s.AppendLine("$precision {0}($precision2 uv, $precision lod)", GetFunctionName());
                     using (s.BlockScope())
                     {
                         s.AppendLine("#if defined(REQUIRE_DEPTH_TEXTURE) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)");
-                        s.AppendLine("float2 uvOffset = _DepthPyramidMipLevelOffsets[int(lod)] * _DepthPyramidBufferSize.zw;");
-                        s.AppendLine("$precision2 UVScale = _RTHandleScale.xy * (_ScreenSize.xy / _DepthPyramidBufferSize.xy);");
-                        s.AppendLine("$precision lodScale = exp2(uint(lod));");
-                        s.AppendLine("$precision2 lodUV = (uv * UVScale) / lodScale;");
-                        s.AppendLine("$precision2 halfTextel = _DepthPyramidBufferSize.zw * 0.5;");
-                        s.AppendLine("$precision2 lodSize = _DepthPyramidBufferSize.zw * _ScreenSize.xy / lodScale;");
-                        s.AppendLine("$precision2 clampedUV = clamp(uvOffset + lodUV, uvOffset + halfTextel, uvOffset + lodSize - halfTextel);");
-                        s.AppendLine("return SAMPLE_TEXTURE2D_X(_CameraDepthTexture, s_linear_clamp_sampler, clampedUV).r;");
+                        s.AppendLine("int2 coord = int2(uv * _ScreenSize.xy);");
+                        s.AppendLine("int2 mipCoord  = coord.xy >> int(lod);");
+                        s.AppendLine("int2 mipOffset = _DepthPyramidMipLevelOffsets[int(lod)];");
+                        s.AppendLine("return LOAD_TEXTURE2D_X(_CameraDepthTexture, mipOffset + mipCoord).r;");
                         s.AppendLine("#endif");
 
                         s.AppendLine("return 0.0;");
