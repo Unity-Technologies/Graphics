@@ -412,6 +412,18 @@ namespace UnityEditor.ShaderFoundry
             // Copy over all of the base block data
             blockBuilder.MergeTypesFunctionsDescriptors(block);
 
+            // The private blocks currently don't get merged in because they don't really exist (they're basically stub for generation currently),
+            // however these blocks may contain descriptors for defines, includes, etc... that need to be included.
+            // Note: This probably needs to handle properties eventually too.
+            foreach (var group in buildingContext.BlockGroups)
+            {
+                if (!group.CustomizationPoint.IsValid)
+                {
+                    foreach (var groupBlockInstance in group.BlockInstances)
+                        blockBuilder.MergeDescriptors(groupBlockInstance.Block);
+                }
+            }
+
             // Build the input/output types from the collected inputs and outputs.
             // Do not put these types in the block's context, these need to be in the global namespace due to legacy reasons.
             var inputBuilder = new ShaderType.StructBuilder(Container, buildingContext.InputTypeName);
