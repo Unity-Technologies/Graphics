@@ -957,8 +957,7 @@ namespace UnityEngine.Rendering.Universal
             // FR
             if (renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing)
             {
-                if (renderPass.renderPassEvent <= RenderPassEvent.BeforeRenderingGbuffer || renderPass.renderPassEvent >= RenderPassEvent.AfterRenderingDeferredLights)
-                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.EnableAndDistort);
+                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.EnableAndDistort);
             }
                 
 

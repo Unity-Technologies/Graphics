@@ -242,6 +242,12 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
         float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
+
+#if defined(PLATFORM_SUPPORT_FOVEATED_RENDERING) && defined(_USE_FOVEATED_RENDERING)
+        float2 undistorted_screen_uv = screen_uv;
+        screen_uv = input.positionCS.xy * _ScreenSize.zw;
+#endif
+
         #if _RENDER_PASS_ENABLED
         float d        = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
         half4 gbuffer0 = LOAD_FRAMEBUFFER_INPUT(GBUFFER0, input.positionCS.xy);
@@ -281,7 +287,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         #endif
 
         #if defined(PLATFORM_SUPPORT_FOVEATED_RENDERING) && defined(_USE_FOVEATED_RENDERING)
-        input.positionCS.xy = ApplyFoveatedRenderingDistort(screen_uv) * _ScreenSize.xy;
+        input.positionCS.xy = undistorted_screen_uv * _ScreenSize.xy;
         #endif
 
         #if defined(USING_STEREO_MATRICES)
