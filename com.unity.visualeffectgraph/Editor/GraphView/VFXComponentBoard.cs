@@ -958,7 +958,7 @@ namespace UnityEditor.VFX.UI
             Add(m_BoundsMode);
         }
 
-        private List<string> m_BoundsModes = new List<string> {"Manual", "Recorded", "Automatic"};
+        private List<string> m_BoundsModes = new List<string> { "Manual", "Recorded", "Automatic" };
 
         public void UpdateLabel()
         {

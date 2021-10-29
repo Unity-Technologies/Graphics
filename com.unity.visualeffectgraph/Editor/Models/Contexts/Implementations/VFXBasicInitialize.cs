@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
 
         public class InputPropertiesPadding
         {
-            [Range(Single.MinValue * 0.5f, Single.MaxValue * 0.5f ), /*Avoids overflow when converting from size to extents*/
+            [Range(Single.MinValue * 0.5f, Single.MaxValue * 0.5f), /*Avoids overflow when converting from size to extents*/
              Tooltip(
                 "Some additional padding to add the culling bounds set above. It can be helpful when using recorded bounds.")]
             public Vector3 boundsPadding = Vector3.zero;
