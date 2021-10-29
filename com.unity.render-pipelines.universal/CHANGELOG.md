@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Shadows and Additional Lights off variants stripping.
 - Exposed public API for DebugDisplaySettings.
 - Added Display Stats panel to Rendering Debugger that displays CPU/GPU frame timings and bottlenecks.
+- Shader Stripping is exported in a JSON file under `Temp/shader-strip.json` when the Variant Log Level is not disabled.
 
 ### Changed
 - Main light shadow, additional light shadow and additional light keywords are now enabled based on urp setting instead of existence in scene. This allows better variant stripping.

@@ -11,8 +11,12 @@ namespace UnityEditor.Rendering
         private const string k_ProcessShaderTag = "OnProcessShader";
 #endif
 
-        // Event callback to report shader stripping info. Form:
-        // ReportShaderStrippingData(Shader shader, ShaderSnippetData data, int currentVariantCount, double strippingTime)
+        /// <summary>
+        /// Event callback to report the shader stripping info
+        /// </summary>
+        /// <example>
+        /// ReportShaderStrippingData(Shader shader, ShaderSnippetData data, int currentVariantCount, double strippingTime)
+        /// </example>
         public static event Action<Shader, ShaderSnippetData, int, double> shaderPreprocessed;
 
         private static readonly System.Diagnostics.Stopwatch m_StripTimer = new();
