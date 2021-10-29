@@ -466,13 +466,56 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 // When blend mode is disabled, we can't override
                 if (fullscreenData.blendMode != FullscreenBlendMode.Disabled)
                 {
+                    BlendMode srcColorBlend = fullscreenData.srcColorBlendMode;
+                    BlendMode srcAlphaBlend = fullscreenData.srcAlphaBlendMode;
+                    BlendMode dstColorBlend = fullscreenData.dstColorBlendMode;
+                    BlendMode dstAlphaBlend = fullscreenData.dstAlphaBlendMode;
+                    BlendOp colorBlendOp = fullscreenData.colorBlendOperation;
+                    BlendOp alphaBlendOp = fullscreenData.alphaBlendOperation;
+
+                    // Patch the default blend values depending on the Blend Mode:
+                    if (fullscreenData.blendMode != FullscreenBlendMode.Custom)
+                    {
+                        colorBlendOp = BlendOp.Add;
+                        alphaBlendOp = BlendOp.Add;
+                    }
+
+                    if (fullscreenData.blendMode == FullscreenBlendMode.Alpha)
+                    {
+                        srcColorBlend = BlendMode.SrcAlpha;
+                        dstColorBlend = BlendMode.OneMinusSrcAlpha;
+                        srcAlphaBlend = BlendMode.One;
+                        dstAlphaBlend = BlendMode.OneMinusSrcAlpha;
+                    }
+                    else if (fullscreenData.blendMode == FullscreenBlendMode.Premultiply)
+                    {
+                        srcColorBlend = BlendMode.One;
+                        dstColorBlend = BlendMode.OneMinusSrcAlpha;
+                        srcAlphaBlend = BlendMode.One;
+                        dstAlphaBlend = BlendMode.OneMinusSrcAlpha;
+                    }
+                    else if (fullscreenData.blendMode == FullscreenBlendMode.Additive)
+                    {
+                        srcColorBlend = BlendMode.SrcAlpha;
+                        dstColorBlend = BlendMode.One;
+                        srcAlphaBlend = BlendMode.One;
+                        dstAlphaBlend = BlendMode.One;
+                    }
+                    else if (fullscreenData.blendMode == FullscreenBlendMode.Multiply)
+                    {
+                        srcColorBlend = BlendMode.DstColor;
+                        dstColorBlend = BlendMode.Zero;
+                        srcAlphaBlend = BlendMode.One;
+                        dstAlphaBlend = BlendMode.OneMinusSrcAlpha;
+                    }
+
                     collector.AddEnumProperty(FullscreenUniforms.blendModeProperty, fullscreenData.blendMode);
-                    collector.AddEnumProperty(FullscreenUniforms.srcColorBlendProperty, fullscreenData.srcColorBlendMode);
-                    collector.AddEnumProperty(FullscreenUniforms.dstColorBlendProperty, fullscreenData.dstColorBlendMode);
-                    collector.AddEnumProperty(FullscreenUniforms.srcAlphaBlendProperty, fullscreenData.srcAlphaBlendMode);
-                    collector.AddEnumProperty(FullscreenUniforms.dstAlphaBlendProperty, fullscreenData.dstAlphaBlendMode);
-                    collector.AddEnumProperty(FullscreenUniforms.colorBlendOperationProperty, fullscreenData.colorBlendOperation);
-                    collector.AddEnumProperty(FullscreenUniforms.alphaBlendOperationProperty, fullscreenData.alphaBlendOperation);
+                    collector.AddEnumProperty(FullscreenUniforms.srcColorBlendProperty, srcColorBlend);
+                    collector.AddEnumProperty(FullscreenUniforms.dstColorBlendProperty, dstColorBlend);
+                    collector.AddEnumProperty(FullscreenUniforms.srcAlphaBlendProperty, srcAlphaBlend);
+                    collector.AddEnumProperty(FullscreenUniforms.dstAlphaBlendProperty, dstAlphaBlend);
+                    collector.AddEnumProperty(FullscreenUniforms.colorBlendOperationProperty, colorBlendOp);
+                    collector.AddEnumProperty(FullscreenUniforms.alphaBlendOperationProperty, alphaBlendOp);
                 }
                 collector.AddBoolProperty(FullscreenUniforms.depthWriteProperty, fullscreenData.depthWrite);
 
