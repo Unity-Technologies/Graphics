@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering
         public int maxSubdivToVisualize = ProbeBrickIndex.kMaxSubdivisionLevels;
         public float exposureCompensation;
         public bool drawVirtualOffsetPush;
-        public float offsetSize = 0.1f;
+        public float offsetSize = 0.025f;
         public bool freezeStreaming;
     }
 
@@ -324,7 +324,7 @@ namespace UnityEngine.Experimental.Rendering
                     relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
                     if (offsets != null)
                     {
-                        const float kOffsetThresholdSqr = 1e-5f;
+                        const float kOffsetThresholdSqr = 1e-6f;
 
                         var offset = cell.offsetVectors[i];
                         offsets[idxInBatch] = offset;

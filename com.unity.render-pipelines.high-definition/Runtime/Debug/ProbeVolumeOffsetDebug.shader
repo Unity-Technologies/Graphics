@@ -22,7 +22,7 @@ Shader "Hidden/HDRP/ProbeVolumeOffsetDebug"
 
             float3 offset = UNITY_ACCESS_INSTANCED_PROP(Props, _Offset).xyz;
             float offsetLenSqr = dot(offset, offset);
-            if(offsetLenSqr <= 1e-8f)
+            if(offsetLenSqr <= 1e-6f)
             {
                 DoCull(o);
             }
