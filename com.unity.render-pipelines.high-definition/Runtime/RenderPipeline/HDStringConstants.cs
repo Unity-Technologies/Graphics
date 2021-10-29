@@ -391,7 +391,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SsrClearCoatMaskTexture = Shader.PropertyToID("_SsrClearCoatMaskTexture");
         public static readonly int _DepthPyramidMipLevelOffsets = Shader.PropertyToID("_DepthPyramidMipLevelOffsets");
         public static readonly int _DepthPyramidFirstMipLevelOffset = Shader.PropertyToID("_DepthPyramidFirstMipLevelOffset");
-        public static readonly int _DepthPyramidBufferSize = Shader.PropertyToID("_DepthPyramidBufferSize");
 
 
         // Still used by ray tracing.
