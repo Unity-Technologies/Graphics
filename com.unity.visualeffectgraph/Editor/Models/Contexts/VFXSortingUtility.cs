@@ -74,7 +74,8 @@ namespace UnityEditor.VFX
             SortingCriterion globalSortCriterion, bool hasMainUpdate)
         {
             var outputSortingCriteria = new SortingCriterion(abstractParticleOutput);
-            return !hasMainUpdate || abstractParticleOutput.HasSorting() &&
+            return (!hasMainUpdate && abstractParticleOutput.HasSorting()) ||
+                   abstractParticleOutput.HasSorting() &&
                    !s_SortingCriteriaComparer.Equals(outputSortingCriteria, globalSortCriterion);
         }
         public static void SetContextSortCriteria(ref VFXGlobalSort globalSort, SortingCriterion globalSortCriterion)
