@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 781cc897cf8675041a751163b51f97dd, type: 3}
   m_Name: HDRenderPipelineGlobalSettings
   m_EditorClassIdentifier: 
-  m_DefaultVolumeProfile: {fileID: 11400000, guid: 6da6f79984c6a5e40ae22ead3a2ecfec,
+  m_DefaultVolumeProfile: {fileID: 11400000, guid: 582adbd84082fdb4faf7cd4beb1ccd14,
     type: 2}
   m_LookDevVolumeProfile: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 87872878411613
-      data2: 4539628438348038168
+      data1: 140649441525597
+      data2: 4539628434053070872
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -32,8 +32,8 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
-      data1: 87872878411613
-      data2: 4539628425463136280
+      data1: 135310787769117
+      data2: 4539628424389459992
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -47,7 +47,7 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 87288601124637
+      data1: 140060864290589
       data2: 4539628424389459992
     lodBias: 1
     lodBiasMode: 0
@@ -68,7 +68,7 @@ MonoBehaviour:
   afterPostProcessBlursCustomPostProcesses: []
   afterPostProcessCustomPostProcesses: []
   beforeTAACustomPostProcesses: []
-  lightLayerName0: 
+  lightLayerName0: Light Layer default
   lightLayerName1: Light Layer 1
   lightLayerName2: Light Layer 2
   lightLayerName3: Light Layer 3
@@ -80,21 +80,19 @@ MonoBehaviour:
   decalLayerName1: Decal Layer 1
   decalLayerName2: Decal Layer 2
   decalLayerName3: Decal Layer 3
-  decalLayerName4: 
+  decalLayerName4: Decal Layer 4
   decalLayerName5: Decal Layer 5
   decalLayerName6: Decal Layer 6
   decalLayerName7: Decal Layer 7
   shaderVariantLogLevel: 0
   lensAttenuationMode: 0
   colorGradingSpace: 1
-  diffusionProfileSettingsList:
-  - {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff, type: 2}
-  - {fileID: 11400000, guid: 38c0905fbe269274782e939ce4393d85, type: 2}
+  diffusionProfileSettingsList: []
   rendererListCulling: 0
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
   supportProbeVolumes: 0
-  supportRuntimeDebugDisplay: 1
+  supportRuntimeDebugDisplay: 0
   apvScenesData:
     serializedBounds: []
     serializedHasVolumes: []
