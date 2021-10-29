@@ -4,10 +4,39 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
+using Object = System.Object;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute/Map", variantProvider = typeof(AttributeVariantReadWritable))]
+    class AttributeFromMapProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> ComputeVariants()
+        {
+            var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
+            var attributes = VFXAttribute.AllIncludingVariadicReadWritable.Except(new[] { VFXAttribute.Alive.name }).ToArray();
+            var sampleModes = Enum.GetValues(typeof(AttributeFromMap.AttributeMapSampleMode)).OfType<AttributeFromMap.AttributeMapSampleMode>().ToArray();
+
+            foreach (var attribute in attributes)
+            {
+                foreach (var composition in compositions)
+                {
+                    foreach (var sampleMode in sampleModes)
+                    {
+                        yield return new Variant(
+                            new[]
+                            {
+                                new KeyValuePair<string, object>("attribute", attribute),
+                                new KeyValuePair<string, object>("Composition", composition),
+                                new KeyValuePair<string, object>("SampleMode", sampleMode)
+                            },
+                            new[] { attribute, VFXBlockUtility.GetNameString(composition) });
+                    }
+                }
+            }
+        }
+    }
+
+    [VFXInfo(category = "Attribute/{0}/Map/{1}", variantProvider = typeof(AttributeFromMapProvider))]
     class AttributeFromMap : VFXBlock
     {
         // TODO: Let's factorize this this into a utility class
@@ -35,25 +64,20 @@ namespace UnityEditor.VFX.Block
         public VariadicChannelOptions channels = VariadicChannelOptions.XYZ;
         private static readonly char[] channelNames = new char[] { 'x', 'y', 'z' };
 
-        public override string libraryName
-        {
-            get
-            {
-                return string.Format("{0} {1} from Map", VFXBlockUtility.GetNameString(Composition), ObjectNames.NicifyVariableName(attribute));
-            }
-        }
+        public override string libraryName => $"{VFXBlockUtility.GetNameString(Composition)} {ObjectNames.NicifyVariableName(attribute)} from Map ({ObjectNames.NicifyVariableName(SampleMode.ToString())})";
 
         public override string name
         {
             get
             {
-                string variadicName = (currentAttribute.variadic == VFXVariadic.True) ? "." + channels.ToString() : "";
-                return string.Format("{0} {1} from Map", VFXBlockUtility.GetNameString(Composition), ObjectNames.NicifyVariableName(attribute) + variadicName);
+                string variadicName = (currentAttribute.variadic == VFXVariadic.True) ? "." + channels : "";
+                return $"{VFXBlockUtility.GetNameString(Composition)} {ObjectNames.NicifyVariableName(attribute) + variadicName} from Map";
             }
         }
 
-        public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
+        public override VFXContextType compatibleContexts { get; } = VFXContextType.InitAndUpdateAndOutput;
+        public override VFXDataType compatibleData { get; } = VFXDataType.Particle;
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get

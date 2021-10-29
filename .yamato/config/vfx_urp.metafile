@@ -129,6 +129,12 @@ jobs:
           - editmode_PerformanceTests
           - playmode_PerformanceTests
           - Standalone_PerformanceTests
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
       - platform: OSX
         api: Metal
         build_config: mono

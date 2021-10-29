@@ -3,7 +3,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
     Properties
     {
         [MainTexture] _BaseMap("Base Map", 2D) = "white" {}
-        [MainColor][HDR] _BaseColor("Base Color", Color) = (1,1,1,1)
+        [MainColor] _BaseColor("Base Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         _BumpMap("Normal Map", 2D) = "bump" {}
         [HDR] _EmissionColor("Color", Color) = (0,0,0)
@@ -70,7 +70,6 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_Cull]
-            ColorMask RGB
 
             HLSLPROGRAM
             #pragma target 2.0
@@ -116,7 +115,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
             Cull[_Cull]
 
             HLSLPROGRAM

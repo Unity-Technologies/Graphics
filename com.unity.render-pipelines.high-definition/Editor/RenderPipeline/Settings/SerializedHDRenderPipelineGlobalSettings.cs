@@ -43,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty shaderVariantLogLevel;
         public SerializedProperty lensAttenuation;
+        public SerializedProperty colorGradingSpace;
         public SerializedProperty diffusionProfileSettingsList;
         public SerializedProperty supportProbeVolumes;
         public SerializedProperty supportRuntimeDebugDisplay;
@@ -52,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty DLSSProjectId;
         public SerializedProperty useDLSSCustomProjectId;
 
-        public SerializedProperty apvSceneBounds;
+        public SerializedProperty apvScenesData;
 
         internal ReorderableList uiBeforeTransparentCustomPostProcesses;
         internal ReorderableList uiBeforeTAACustomPostProcesses;
@@ -132,6 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
             shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.shaderVariantLogLevel);
 
             lensAttenuation = serializedObject.FindProperty("lensAttenuationMode");
+            colorGradingSpace = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.colorGradingSpace);
             diffusionProfileSettingsList = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.diffusionProfileSettingsList);
             m_DiffusionProfileUI = new DiffusionProfileSettingsListUI()
             {
@@ -145,7 +147,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DLSSProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.DLSSProjectId);
             useDLSSCustomProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.useDLSSCustomProjectId);
 
-            apvSceneBounds = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.apvScenesBounds);
+            apvScenesData = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.apvScenesData);
         }
 
         void InitializeCustomPostProcessesLists()

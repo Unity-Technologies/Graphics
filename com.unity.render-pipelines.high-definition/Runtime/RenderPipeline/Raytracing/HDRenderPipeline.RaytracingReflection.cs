@@ -341,9 +341,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Compute buffers
             deferredParameters.rayBinResult = m_RayBinResult;
             deferredParameters.rayBinSizeResult = m_RayBinSizeResult;
-            deferredParameters.accelerationStructure = RequestAccelerationStructure();
+            deferredParameters.accelerationStructure = RequestAccelerationStructure(hdCamera);
             deferredParameters.lightCluster = RequestLightCluster();
-            deferredParameters.mipChainBuffer = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+            deferredParameters.mipChainBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
             // Shaders
             deferredParameters.rayMarchingCS = m_GlobalSettings.renderPipelineRayTracingResources.rayMarchingCS;
@@ -464,7 +464,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lastBouncefallbackHierarchy = (int)settings.lastBounceFallbackHierarchy.value;
 
                 // Other parameters
-                passData.accelerationStructure = RequestAccelerationStructure();
+                passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
@@ -494,7 +494,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RaytracingRayMaxLength = data.rayLength;
                         data.shaderVariablesRayTracingCB._RaytracingNumSamples = data.sampleCount;
                         // Set the number of bounces for reflections
+#if NO_RAY_RECURSION
+                        data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = 1;
+#else
                         data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = data.bounceCount;
+#endif
                         data.shaderVariablesRayTracingCB._RayTracingDiffuseLightingOnly = 0;
                         // Bind all the required scalars to the CB
                         data.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = data.minSmoothness;

@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph
         public ColorNode()
         {
             name = "Color";
+            synonyms = new string[] { "rgba" };
             UpdateNodeAfterDeserialization();
         }
 

@@ -40,6 +40,9 @@
 // which might be lower than the max number of lights that might be in the big tile.
 #define PRE_FILTER_LIGHT_LIST   1 && defined(USE_BIG_TILE_LIGHTLIST)
 
+
+#define SHADOW_DATA_NOT_GUARANTEED_SCALAR // We are not looping over shadows in a scalarized fashion. If we will at some point, remove this define.
+
 //--------------------------------------------------------------------------------------------------
 // Included headers
 //--------------------------------------------------------------------------------------------------
@@ -58,7 +61,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_VOLUMETRIC_LIGHTING
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricLighting.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/HDRenderPipeline.VolumetricLighting.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VBuffer.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
@@ -479,6 +482,9 @@ float3 EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0
     // Note here we don't need undo the convolution by the cosine kernel as we only sample L0 and don't support anisotropy yet, so undoing cosine and convolve with phase function
     // for L0 term it'd just cancel out as both are just constant factors.
     EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS), posInput.positionSS, apvDiffuseGI);
+
+    const float cornetteShanksZonalHarmonicL0 = sqrt(4.0f * PI);
+    weight *= PI * cornetteShanksZonalHarmonicL0;
 
     // It is possible that some invalid probes are sampled due to how APV is laying the probes
     // For now the safest way is to ignore the NaN data when sampled.

@@ -15,11 +15,24 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 6cf5bcccabd797d4db3c44a0d4ac7389, type: 3}
-    - {fileID: 102900000, guid: 7f721cad21da2c24aacb73377ebec462, type: 3}
+    - {fileID: 102900000, guid: ebaa785ec5cfd50448e6b1fca17c280f, type: 3}
+    - {fileID: 102900000, guid: 0379b72b85eee8045afdaec3b1362957, type: 3}
+    - {fileID: 102900000, guid: 2744a8931e888734bae7f74874fefdf5, type: 3}
+    - {fileID: 102900000, guid: 04855e9751809c7488746e5e54ae0cfa, type: 3}
     ColorSpace: -1
-    BuildPlatform: 33
-    GraphicsDevice: 23
+    BuildPlatform: 42
+    GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
-    Reason: See https://jira.unity3d.com/browse/URP-723
+    Reason: See https://fogbugz.unity3d.com/f/cases/1353315/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 0379b72b85eee8045afdaec3b1362957, type: 3}
+    - {fileID: 102900000, guid: 2744a8931e888734bae7f74874fefdf5, type: 3}
+    - {fileID: 102900000, guid: 04855e9751809c7488746e5e54ae0cfa, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 43
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: See https://fogbugz.unity3d.com/f/cases/1353315/

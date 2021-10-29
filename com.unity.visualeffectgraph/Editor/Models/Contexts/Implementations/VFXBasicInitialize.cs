@@ -9,16 +9,10 @@ namespace UnityEditor.VFX
 {
     class InitializeVariantProvider : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
         {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "dataType", Enum.GetValues(typeof(VFXDataParticle.DataType)).Cast<object>().ToArray() }
-                };
-            }
-        }
+            {"dataType", Enum.GetValues(typeof(VFXDataParticle.DataType)).Cast<object>().ToArray()}
+        };
     }
 
     [VFXInfo(variantProvider = typeof(InitializeVariantProvider))]
@@ -93,7 +87,7 @@ namespace UnityEditor.VFX
             if (data != null && data.boundsSettingMode == BoundsSettingMode.Recorded
                 && CanBeCompiled())
             {
-                if (VFXViewWindow.currentWindow?.graphView?.attachedComponent == null ||
+                if (VFXViewWindow.GetWindow(GetGraph())?.graphView?.attachedComponent == null ||
                     !BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false))
                 {
                     manager.RegisterError("NeedsRecording", VFXErrorType.Warning,

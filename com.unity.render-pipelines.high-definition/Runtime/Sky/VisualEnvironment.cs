@@ -17,13 +17,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Type of clouds that should be used for rendering.</summary>
         public NoInterpIntParameter cloudType = new NoInterpIntParameter(0);
         /// <summary>Defines the way the ambient probe should be computed.</summary>
-        public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Static);
+        public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Dynamic);
 
         /// <summary>Controls the global orientation of the wind relative to the X world vector.</summary>
         [Header("Wind")]
         public ClampedFloatParameter windOrientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         /// <summary>Controls the global wind speed in kilometers per hour.</summary>
-        public MinFloatParameter windSpeed = new MinFloatParameter(100.0f, 0.0f);
+        public FloatParameter windSpeed = new FloatParameter(100.0f);
 
         // Deprecated, kept for migration
         [SerializeField]

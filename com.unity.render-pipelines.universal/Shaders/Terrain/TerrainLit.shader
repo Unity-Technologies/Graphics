@@ -86,7 +86,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             #pragma multi_compile_fog
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer assumeuniformscaling nomatrices nolightprobe nolightmap
+            #pragma instancing_options norenderinglayer assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #pragma shader_feature_local_fragment _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature_local _NORMALMAP
@@ -162,7 +162,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
 
             //#pragma multi_compile_fog
             #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer assumeuniformscaling nomatrices nolightprobe nolightmap
+            #pragma instancing_options norenderinglayer assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature_local _NORMALMAP
@@ -182,7 +182,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
             #pragma target 2.0

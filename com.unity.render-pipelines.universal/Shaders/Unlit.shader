@@ -3,7 +3,7 @@ Shader "Universal Render Pipeline/Unlit"
     Properties
     {
         [MainTexture] _BaseMap("Texture", 2D) = "white" {}
-        [MainColor][HDR] _BaseColor("Color", Color) = (1, 1, 1, 1)
+        [MainColor] _BaseColor("Color", Color) = (1, 1, 1, 1)
         _Cutoff("AlphaCutout", Range(0.0, 1.0)) = 0.5
 
         // BlendMode
@@ -69,7 +69,7 @@ Shader "Universal Render Pipeline/Unlit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
@@ -188,7 +188,7 @@ Shader "Universal Render Pipeline/Unlit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11

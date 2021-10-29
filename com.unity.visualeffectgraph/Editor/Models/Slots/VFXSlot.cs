@@ -606,9 +606,7 @@ namespace UnityEditor.VFX
                 var owner = this.owner;
                 if (owner != null)
                 {
-                    int index = owner.GetSlotIndex(this);
-                    owner.RemoveSlot(this);
-                    owner.AddSlot(newSlot, index);
+                    owner.ReplaceSlot(this, newSlot);
                 }
             }
             else
@@ -871,13 +869,27 @@ namespace UnityEditor.VFX
             PropagateToChildren(func);
         }
 
+        virtual protected void ConvertExpressionsFromLink(VFXSlot fromSlot)
+        {
+            throw new NotImplementedException(string.Format("Missing slot conversion implementation from {0} to {1}", fromSlot.property.type, property.type));
+        }
+
+        protected static void UpdateLinkedInExpression(VFXSlot destSlot, VFXExpression expression, VFXSlot refSlot)
+        {
+            if (expression == null)
+                throw new NullReferenceException("Unexpected null expression");
+
+            destSlot.m_LinkedInExpression = expression;
+            //refSlot can be null if it corresponds to a compute expression (see VFXSlotSphere.UpdateLinkSlotManualConversion)
+            destSlot.m_LinkedInSlot = refSlot;
+        }
+
         private static void UpdateLinkedInExpression(VFXSlot destSlot, VFXSlot refSlot)
         {
             var expression = refSlot.GetExpression();
             if (expression != null)
             {
-                destSlot.m_LinkedInExpression = expression;
-                destSlot.m_LinkedInSlot = refSlot;
+                UpdateLinkedInExpression(destSlot, expression, refSlot);
             }
             else if (destSlot.GetType() == refSlot.GetType())
             {
@@ -885,6 +897,10 @@ namespace UnityEditor.VFX
                 {
                     UpdateLinkedInExpression(destSlot.children.ElementAt(i), refSlot.children.ElementAt(i));
                 }
+            }
+            else
+            {
+                destSlot.ConvertExpressionsFromLink(refSlot);
             }
         }
 
