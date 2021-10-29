@@ -400,10 +400,8 @@ namespace UnityEngine.Rendering
 
             BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
             drawCommands.drawRanges = Malloc<BatchDrawRange>(m_drawRanges.Length);
-            drawCommands.drawCommands =
-                Malloc<BatchDrawCommand>(m_drawBatches.Length *
-                                         splitCounts
-                                             .Length); // TODO: Multiplying the DrawCommand count by splitCount is NOT an conservative upper bound. But in practice is enough...
+            drawCommands.drawCommands = Malloc<BatchDrawCommand>(m_drawBatches.Length * 10 * 
+                splitCounts.Length); // TODO: Multiplying the DrawCommand count by splitCount is NOT an conservative upper bound. But in practice is enough...
             drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
 
             // Zero init: Culling job sets the values!
