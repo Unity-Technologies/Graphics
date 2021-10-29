@@ -169,15 +169,35 @@ namespace UnityEditor.ShaderFoundry
             var builder = new Block.Builder(Container, $"Post{LegacyCustomizationPoints.VertexDescriptionCPName}");
             foreach (var input in ExtractFields(fields))
                 builder.AddInput(input);
+            foreach(var field in fields)
+            {
+                if (field.name == "Normal")
+                    builder.AddDefine(new DefineDescriptor.Builder(Container, "_NORMALMAP", "1").Build());
+            }
             return builder.Build();
         }
 
         Block BuildFragmentPreBlock()
         {
             var builder = new Block.Builder(Container, $"Pre{LegacyCustomizationPoints.SurfaceDescriptionCPName}");
+
             var outputs = ExtractFields(UnityEditor.ShaderGraph.Structs.SurfaceDescriptionInputs.fields);
             foreach (var output in outputs)
                 builder.AddOutput(output);
+
+            var shaderProperties = new PropertyCollector();
+            m_Target.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
+            foreach(var shaderProp in shaderProperties.properties)
+            {
+                var inputs = new List<BlockVariable>();
+                var properties = new List<BlockVariable>();
+                PropertyUtils.BuildProperties(Container, builder, inputs, properties, shaderProp, ShaderGraph.Internal.ConcretePrecision.Single);
+                foreach (var variable in inputs)
+                    builder.AddInput(variable);
+                foreach (var variable in properties)
+                    builder.AddProperty(variable);
+            }
+
             return builder.Build();
         }
 
@@ -186,6 +206,15 @@ namespace UnityEditor.ShaderFoundry
             var builder = new Block.Builder(Container, $"Post{LegacyCustomizationPoints.SurfaceDescriptionCPName}");
             foreach (var input in ExtractFields(fields))
                 builder.AddInput(input);
+            foreach (var field in fields)
+            {
+                if (field.name == "NormalTS")
+                    builder.AddDefine(new DefineDescriptor.Builder(Container, "_NORMAL_DROPOFF_TS", "1").Build());
+                else if (field.name == "NormalWS")
+                    builder.AddDefine(new DefineDescriptor.Builder(Container, "_NORMAL_DROPOFF_WS", "1").Build());
+                else if (field.name == "NormalOS")
+                    builder.AddDefine(new DefineDescriptor.Builder(Container, "_NORMAL_DROPOFF_OS", "1").Build());
+            }
             return builder.Build();
         }
 
