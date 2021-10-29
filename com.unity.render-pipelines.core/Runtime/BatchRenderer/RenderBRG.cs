@@ -795,6 +795,7 @@ namespace UnityEngine.Rendering
 
     public class RenderBRG : MonoBehaviour
     {
+        private static bool s_QueryLoadedScenes = true;
         private Dictionary<Scene, SceneBRG> m_Scenes = new();
 
         private void OnEnable()
@@ -803,6 +804,17 @@ namespace UnityEngine.Rendering
             SceneManager.sceneUnloaded += OnSceneUnloaded;
 
             List<Scene> toAdd = new List<Scene>();
+
+            //During play mode, if we reload the render pipeline, this will help during restart to reparse any previously loaded scenes.
+            if (s_QueryLoadedScenes)
+            {
+                for (int s = 0; s < SceneManager.sceneCount; ++s)
+                {
+                    toAdd.Add(SceneManager.GetSceneAt(s));
+                }
+                s_QueryLoadedScenes = false;
+            }
+
             foreach (var sceneBrg in m_Scenes)
             {
                 if (sceneBrg.Value == null)
@@ -849,6 +861,9 @@ namespace UnityEngine.Rendering
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            if (m_Scenes.TryGetValue(scene, out var existingBRG) && existingBRG != null)
+                return;
+
             var renderers = new List<MeshRenderer>();
             foreach (var go in scene.GetRootGameObjects())
                 GetValidChildRenderers(go, renderers);
