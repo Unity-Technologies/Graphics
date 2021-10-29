@@ -106,6 +106,18 @@ namespace UnityEditor.ShaderFoundry
             BuildLegacyActiveFields(legacyPass, legacyEntryPoints, out targetActiveFields, out shaderGraphActiveFields, customInterpolatorFields);
 
             GenerateShaderPass(builder, pass, legacyPass, targetActiveFields, shaderGraphActiveFields, legacyEntryPoints, customInterpolatorFields, new PropertyCollector());
+
+            var debugBuilder = new ShaderBuilder();
+            var disassembler = new BlockDisassembler();
+            foreach(var passCustomizationPointInstance in passCustomizationPointInstances)
+            {
+                foreach (var blockInstance in passCustomizationPointInstance.BlockInstances)
+                    disassembler.Generate(debugBuilder, blockInstance.Block);
+            }
+            disassembler.Generate(debugBuilder, legacyEntryPoints.vertexDescBlockInstance.Block);
+            disassembler.Generate(debugBuilder, legacyEntryPoints.fragmentDescBlockInstance.Block);
+            var disassembly = debugBuilder.ToString();
+            
         }
 
         List<CustomizationPointInstance> FindCustomizationPointsForPass(TemplatePass pass, IEnumerable<CustomizationPointInstance> customizationPointInstances)
