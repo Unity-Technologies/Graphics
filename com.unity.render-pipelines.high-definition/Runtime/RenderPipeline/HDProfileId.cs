@@ -182,6 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Misc
         VolumeUpdate,
         CustomPassVolumeUpdate,
+        OffscreenUIRendering,
 
         // XR
         XRMirrorView,
@@ -232,6 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SetResolutionGroup,
         FinalPost,
         FinalImageHistogram,
+        HDRDebugData,
         CustomPostProcessBeforeTAA,
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPPBlurs,

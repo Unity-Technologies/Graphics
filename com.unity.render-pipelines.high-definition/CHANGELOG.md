@@ -37,6 +37,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom pass injection point not visible in the UI when using the Camera mode.
 - Fixed film grain & dithering when using spatial upscaling methods for DRS.
 - Fixed a regression that was introduced in the diffuse denoiser in a previous PR.
+- Fixed sky override layer mask having no effect.
+- Fixed a memory leak in the template tutorial (1374640).
+- Fixed a build-time warning regarding light loop variants (case 1372256).
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
@@ -46,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - HD's SpeedTree 8 upgrader now sets up CullModeForward as well.
 - Restructured data under Display Stats panel to use column layout.
 - Added controls for the users to manually feed the ray tracing acceleration structure that should be used for a given camera (case 1370678).
+- Depth of Field is now disabled in orthographic cameras - it was using the hidden perspective settings (case 1372582).
 
 ## [13.1.0] - 2021-09-24
 
@@ -70,7 +74,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.0.0] - 2021-09-01
 
+### Added
+
+- Added support for HDR output devices.
+- Added option to use full ACES tonemap instead of the approximation.
+
 ### Fixed
+
 - Fixed impossibility to release the cursor in the template.
 - Fixed assert failure when enabling the probe volume system for the first time.
 - Significantly improved performance of APV probe debug.
@@ -127,6 +137,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved sampling of overlapping point/area lights in path-traced volumetric scattering (case 1358777).
 - Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1346105, 1358783).
 - Fixed minor readability issues in the ray tracing code.
+- Optimized color grading LUT building.
+- Made ACEScg the default color space for color grading.
 
 
 ## [12.0.0] - 2021-01-11
@@ -602,6 +614,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hair uses GGX LTC for area light specular.
 - Moved invariants outside of loop for a minor CPU speedup in the light loop code.
 - Various improvements to the volumetric clouds.
+- Moved area light's shadow frustum: light's surface no longer passes through the apex, and instead aligns with the 0-offset near plane.
 - Restore old version of the RendererList structs/api for compatibility.
 - Various improvements to SSGI (case 1340851, case 1339297, case 1327919).
 - Changed the NVIDIA install button to the standard FixMeButton.
