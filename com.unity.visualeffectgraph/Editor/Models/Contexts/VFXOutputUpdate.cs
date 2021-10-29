@@ -135,16 +135,8 @@ namespace UnityEditor.VFX
                 expressionMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "unity_WorldToObject", -1);
                 if (m_Output.HasCustomSortingCriterion())
                 {
-                    try
-                    {
-                        var sortKeyExp = m_Output.inputSlots.First(s => s.name == "sortKey").GetExpression();
-                        expressionMapper.AddExpression(sortKeyExp, "sortKey", -1);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                        throw;
-                    }
+                    var sortKeyExp = m_Output.inputSlots.First(s => s.name == "sortKey").GetExpression();
+                    expressionMapper.AddExpression(sortKeyExp, "sortKey", -1);
                 }
 
 
