@@ -169,11 +169,6 @@ namespace UnityEditor.ShaderFoundry
             var builder = new Block.Builder(Container, $"Post{LegacyCustomizationPoints.VertexDescriptionCPName}");
             foreach (var input in ExtractFields(fields))
                 builder.AddInput(input);
-            foreach(var field in fields)
-            {
-                if (field.name == "Normal")
-                    builder.AddDefine(new DefineDescriptor.Builder(Container, "_NORMALMAP", "1").Build());
-            }
             return builder.Build();
         }
 
@@ -206,15 +201,6 @@ namespace UnityEditor.ShaderFoundry
             var builder = new Block.Builder(Container, $"Post{LegacyCustomizationPoints.SurfaceDescriptionCPName}");
             foreach (var input in ExtractFields(fields))
                 builder.AddInput(input);
-            foreach (var field in fields)
-            {
-                if (field.name == "NormalTS")
-                    builder.AddDefine(new DefineDescriptor.Builder(Container, "_NORMAL_DROPOFF_TS", "1").Build());
-                else if (field.name == "NormalWS")
-                    builder.AddDefine(new DefineDescriptor.Builder(Container, "_NORMAL_DROPOFF_WS", "1").Build());
-                else if (field.name == "NormalOS")
-                    builder.AddDefine(new DefineDescriptor.Builder(Container, "_NORMAL_DROPOFF_OS", "1").Build());
-            }
             return builder.Build();
         }
 
