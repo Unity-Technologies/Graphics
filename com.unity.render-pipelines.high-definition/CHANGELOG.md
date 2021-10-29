@@ -56,8 +56,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added a SG node to get the main directional light direction.
+- Added support for orthographic camera in path tracing.
 - Added public API to edit materials from script at runtime.
 - Added new configuration ShderOptions.FPTLMaxLightCount in ShaderConfig.cs for maximum light count per fine pruned tile.
+- Added support for orthographic camera in path tracing.
+- Support for "Always Draw Dynamic" option for directional light cached shadows.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.

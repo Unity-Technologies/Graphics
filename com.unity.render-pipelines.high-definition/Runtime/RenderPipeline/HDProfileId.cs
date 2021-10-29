@@ -167,6 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderEVSMShadowMaps,
         RenderEVSMShadowMapsBlur,
         RenderEVSMShadowMapsCopyToAtlas,
+        BlitDirectionalMixedCachedShadowMaps,
         BlitPunctualMixedCachedShadowMaps,
         BlitAreaMixedCachedShadowMaps,
 
