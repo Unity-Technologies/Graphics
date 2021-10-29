@@ -118,6 +118,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // State needed to handle TAAU.
         internal bool previousFrameWasTAAUpsampled = false;
 
+        /// <summary>Ray tracing acceleration structure that is used in case the user specified the build mode as manual for the RTAS.</summary>
+        public RayTracingAccelerationStructure rayTracingAccelerationStructure = null;
+        /// <summary>Flag that tracks if one of the objects that is included into the RTAS had its transform changed.</summary>
+        public bool transformsDirty = false;
+        /// <summary>Flag that tracks if one of the objects that is included into the RTAS had its material changed.</summary>
+        public bool materialsDirty = false;
+
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
         /// <summary>
@@ -830,7 +837,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDRenderPipeline.ReinitializeVolumetricBufferParams(this);
 
                 bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
-                bool isHistoryColorPyramidRequired = IsSSREnabled() || IsSSGIEnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
+                bool isHistoryColorPyramidRequired = IsSSREnabled() || IsSSREnabled(true) || IsSSGIEnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired = IsVolumetricReprojectionEnabled();
 
                 // If we have a mismatch with color buffer format we need to reallocate the pyramid
@@ -1318,12 +1325,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
                             // Resetting the visual sky hash will ensure that.
                             visualSky.skyParametersHash = -1;
-
-                            m_LightingOverrideSky.skySettings = newSkyOverride;
-                            m_LightingOverrideSky.cloudSettings = newCloudOverride;
-                            m_LightingOverrideSky.volumetricClouds = newVolumetricCloudsOverride;
-                            lightingSky = m_LightingOverrideSky;
                         }
+
+                        m_LightingOverrideSky.skySettings = newSkyOverride;
+                        m_LightingOverrideSky.cloudSettings = newCloudOverride;
+                        m_LightingOverrideSky.volumetricClouds = newVolumetricCloudsOverride;
+                        lightingSky = m_LightingOverrideSky;
                     }
                 }
             }
@@ -1643,6 +1650,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal static int GetSceneViewLayerMaskFallback()
+        {
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
+            // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
+            if (hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
+                return -1;
+
+            // Remove lighting override mask and layer 31 which is used by preview/lookdev
+            return (-1 & ~(hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask | (1 << 31)));
+
+        }
+
         void UpdateVolumeAndPhysicalParameters()
         {
             volumeAnchor = null;
@@ -1677,15 +1697,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (needFallback)
                     {
-                        HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-                        // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
-                        // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
-                        if (hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
-                            volumeLayerMask = -1;
-                        else
-                            // Remove lighting override mask and layer 31 which is used by preview/lookdev
-                            volumeLayerMask = (-1 & ~(hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask | (1 << 31)));
-
+                        volumeLayerMask = GetSceneViewLayerMaskFallback();
                         // Use the default physical camera values so the exposure will look reasonable
                         physicalParameters = HDPhysicalCamera.GetDefaults();
                     }

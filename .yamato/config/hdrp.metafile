@@ -46,9 +46,10 @@ platforms:
         flavor: b1.xlarge
         model: rtx2080
       editmode:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
+        model: rtx2080
       standalone:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -83,7 +84,7 @@ platforms:
         image: package-ci/ubuntu:stable
         flavor: b1.large
       editmode:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
         flavor: b1.large
       standalone_build:
