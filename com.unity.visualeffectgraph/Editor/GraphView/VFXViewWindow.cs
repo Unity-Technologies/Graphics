@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-
+using System.Collections.ObjectModel;
 using UnityEditor.Experimental.GraphView;
 
 using UnityEngine;
@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
         ShortcutHandler m_ShortcutHandler;
         VisualEffect m_pendingAttachment;
 
-        public VFXViewWindow()
+        void OnEnable()
         {
             s_VFXWindows.Add(this);
         }
@@ -107,7 +107,7 @@ namespace UnityEditor.VFX.UI
 
         public static VFXViewWindow GetWindowNoShow(VFXView vfxView) => GetWindow(vfxView.controller?.graph, false, false);
         public static VFXViewWindow GetWindow(VFXView vfxView) => GetWindow(vfxView.controller?.graph);
-        public static IEnumerable<VFXViewWindow> GetAllWindows() => s_VFXWindows.ToArray();
+        public static ReadOnlyCollection<VFXViewWindow> GetAllWindows() => s_VFXWindows.AsReadOnly();
 
         public VFXView graphView { get; private set; }
 
@@ -261,7 +261,6 @@ namespace UnityEditor.VFX.UI
 
             if (graphView != null)
             {
-                //m_LastAttachedComponent = graphView.attachedComponent;
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
                 graphView.controller = null;
@@ -272,8 +271,7 @@ namespace UnityEditor.VFX.UI
 
         static VFXViewWindow CreateWindow()
         {
-            var allWindows = GetAllWindows().ToArray();
-            var lastVFXWindow = allWindows.LastOrDefault();
+            var lastVFXWindow = GetAllWindows().LastOrDefault();
 
             var window = CreateInstance<VFXViewWindow>();
 
@@ -386,6 +384,7 @@ namespace UnityEditor.VFX.UI
             titleContent.text = filename;
         }
 
-        [SerializeField] private VisualEffectResource m_DisplayedResource;
+        [SerializeField]
+        VisualEffectResource m_DisplayedResource;
     }
 }

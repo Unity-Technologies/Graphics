@@ -1594,16 +1594,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnToggleCompile(ChangeEvent<bool> e)
-        {
-            VFXViewWindow.GetWindow(this).autoCompile = !VFXViewWindow.GetWindow(this).autoCompile;
-        }
-
-        void OnResyncMaterial()
-        {
-            controller.graph.Invalidate(VFXModel.InvalidationCause.kMaterialChanged);
-        }
-
         internal void Compile()
         {
             VFXLibrary.LogUnsupportedSRP();
