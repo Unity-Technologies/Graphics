@@ -21,7 +21,70 @@ namespace UnityEditor.Rendering
         {
             var w = Cast<DebugUI.Value>(widget);
             var rect = PrepareControlRect();
-            EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent(w.displayName), EditorGUIUtility.TrTextContent(w.GetValue().ToString()));
+            var value = w.GetValue();
+            EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent(w.displayName), EditorGUIUtility.TrTextContent(w.FormatString(value)));
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Builtin Drawer for ValueTuple Debug Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.ValueTuple))]
+    public sealed class DebugUIDrawerValueTuple : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for ValueTuple DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.ValueTuple>(widget);
+
+            var labelRect = PrepareControlRect();
+            EditorGUI.PrefixLabel(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
+
+            // Following layout should match DebugUIDrawerFoldout to make column labels align
+            Rect drawRect = GUILayoutUtility.GetLastRect();
+            int indent = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0; //be at left of rects
+            for (int i = 0; i < w.numElements; i++)
+            {
+                var columnRect = drawRect;
+                columnRect.x += EditorGUIUtility.labelWidth + i * DebugWindow.Styles.foldoutColumnWidth;
+                columnRect.width = DebugWindow.Styles.foldoutColumnWidth;
+                var value = w.values[i].GetValue();
+                EditorGUI.LabelField(columnRect, w.values[i].FormatString(value));
+            }
+            EditorGUI.indentLevel = indent;
+
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Builtin Drawer for ProgressBarValue Debug Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.ProgressBarValue))]
+    public sealed class DebugUIDrawerProgressBarValue : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for Value DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.ProgressBarValue>(widget);
+
+            var labelRect = PrepareControlRect();
+            var progressBarRect = EditorGUI.PrefixLabel(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
+            float value = (float)w.GetValue();
+            EditorGUI.ProgressBar(progressBarRect, value, w.FormatString(value));
+
             return true;
         }
     }
@@ -435,14 +498,13 @@ namespace UnityEditor.Rendering
             Rect drawRect = GUILayoutUtility.GetLastRect();
             if (w.columnLabels != null && value)
             {
-                const int oneColumnWidth = 70;
                 int indent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = 0; //be at left of rects
                 for (int i = 0; i < w.columnLabels.Length; i++)
                 {
                     var columnRect = drawRect;
-                    columnRect.x += EditorGUIUtility.labelWidth + i * oneColumnWidth;
-                    columnRect.width = oneColumnWidth;
+                    columnRect.x += EditorGUIUtility.labelWidth + i * DebugWindow.Styles.foldoutColumnWidth;
+                    columnRect.width = DebugWindow.Styles.foldoutColumnWidth;
                     string label = w.columnLabels[i] ?? "";
                     string tooltip = w.columnTooltips?.ElementAtOrDefault(i) ?? "";
                     EditorGUI.LabelField(columnRect, EditorGUIUtility.TrTextContent(label, tooltip), EditorStyles.miniBoldLabel);
@@ -461,8 +523,8 @@ namespace UnityEditor.Rendering
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
-            var s = Cast<DebugStateBool>(state);
-            return s.value;
+            var w = Cast<DebugUI.Foldout>(widget);
+            return w.opened;
         }
 
         /// <summary>

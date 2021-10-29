@@ -589,8 +589,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string _RaytracingAccelerationStructureName = "_RaytracingAccelerationStructure";
 
         // Path tracing variables
-        public static readonly int _PathTracedDoFConstants = Shader.PropertyToID("_PathTracedDoFConstants");
         public static readonly int _InvViewportScaleBias = Shader.PropertyToID("_InvViewportScaleBias");
+        public static readonly int _PathTracingDoFParameters = Shader.PropertyToID("_PathTracingDoFParameters");
+        public static readonly int _PathTracingTilingParameters = Shader.PropertyToID("_PathTracingTilingParameters");
 
         // Light Cluster
         public static readonly int _LightDatasRT = Shader.PropertyToID("_LightDatasRT");
@@ -782,6 +783,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _HistogramExposureParams = Shader.PropertyToID("_HistogramExposureParams");
         public static readonly int _HistogramBuffer = Shader.PropertyToID("_HistogramBuffer");
         public static readonly int _FullImageHistogram = Shader.PropertyToID("_FullImageHistogram");
+        public static readonly int _xyBuffer = Shader.PropertyToID("_xyBuffer");
+        public static readonly int _HDRxyBufferDebugParams = Shader.PropertyToID("_HDRxyBufferDebugParams");
+        public static readonly int _HDRDebugParams = Shader.PropertyToID("_HDRDebugParams");
         public static readonly int _AdaptationParams = Shader.PropertyToID("_AdaptationParams");
         public static readonly int _ExposureCurveTexture = Shader.PropertyToID("_ExposureCurveTexture");
         public static readonly int _ExposureWeightMask = Shader.PropertyToID("_ExposureWeightMask");
@@ -939,6 +943,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DitherParams = Shader.PropertyToID("_DitherParams");
         public static readonly int _KeepAlpha = Shader.PropertyToID("_KeepAlpha");
         public static readonly int _UVTransform = Shader.PropertyToID("_UVTransform");
+        public static readonly int _UITexture = Shader.PropertyToID("_UITexture");
+        public static readonly int _HDROutputParams = Shader.PropertyToID("_HDROutputParams");
+        public static readonly int _HDROutputParams2 = Shader.PropertyToID("_HDROutputParams2");
+        public static readonly int _NeedsFlip = Shader.PropertyToID("_NeedsFlip");
 
         public static readonly int _MotionVecAndDepth = Shader.PropertyToID("_MotionVecAndDepth");
         public static readonly int _TileMinMaxMotionVec = Shader.PropertyToID("_TileMinMaxMotionVec");
