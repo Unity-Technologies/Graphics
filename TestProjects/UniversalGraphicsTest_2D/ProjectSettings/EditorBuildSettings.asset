@@ -57,6 +57,9 @@ EditorBuildSettings:
     path: Assets/Scenes/003_PixelPerfect_StretchFill_UpscaleRT_Point.unity
     guid: dc2319f8cc6ad4e458a9554e4647c0dd
   - enabled: 1
+    path: Assets/Scenes/003_PixelPerfect_PostProcessing.unity
+    guid: 9f750aafa54d07a43b7601615bb2c7ea
+  - enabled: 1
     path: Assets/Scenes/004_Shadows_Caster_Ortho_000.unity
     guid: 304cf4847cf9c824a914e06835197176
   - enabled: 1
