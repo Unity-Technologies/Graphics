@@ -62,10 +62,21 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                // adds properties in this format so: [ProceduralTextureStack.MyStack(0)] [NoScaleOffset] MyStack_0("Procedural Stack Placeholder", 2D) = "white" {}
-                for (int layer = 0; layer < value.layers.Count; layer++)
+                if(value.bindPerMaterial)
                 {
-                    builder.AppendLine($"{hideTagString}[ProceduralTextureStack.{referenceName}({layer})][NoScaleOffset]{referenceName}_{layer}(\"{"Procedural Stack Placeholder"}\", 2D) = \"white\" {{}}");
+                    // adds properties in this format so: [ProceduralTextureStack.MyStack(0)] [NoScaleOffset] MyStack_0("Procedural Stack Placeholder", 2D) = "white" {}
+                    for (int layer = 0; layer < value.layers.Count; layer++)
+                    {
+                        builder.AppendLine($"{hideTagString}[ProceduralTextureStack.{referenceName}({layer})][NoScaleOffset]{referenceName}_{layer}(\"{"Procedural Stack Placeholder"}\", 2D) = \"white\" {{}}");
+                    }
+                }
+                else
+                {
+                    // adds properties in this format so: [GlobalProceduralTextureStack.MyStack(0)] [NoScaleOffset] MyStack_0("Global Procedural Stack Placeholder", 2D) = "white" {}
+                    for (int layer = 0; layer < value.layers.Count; layer++)
+                    {
+                        builder.AppendLine($"{hideTagString}[GlobalProceduralTextureStack.{referenceName}({layer})][NoScaleOffset]{referenceName}_{layer}(\"{"Global Procedural Stack Placeholder"}\", 2D) = \"white\" {{}}");
+                    }
                 }
             }
         }
@@ -83,8 +94,7 @@ namespace UnityEditor.ShaderGraph
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
-                // PVT should always be Global to be compatible with SRP batcher
-                HLSLDeclaration decl = (value.procedural) ? HLSLDeclaration.Global : HLSLDeclaration.UnityPerMaterial;
+                HLSLDeclaration decl = (value.procedural && !value.bindPerMaterial) ? HLSLDeclaration.Global : HLSLDeclaration.UnityPerMaterial;
 
                 action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_CBDecl", decl, concretePrecision)
                 {
