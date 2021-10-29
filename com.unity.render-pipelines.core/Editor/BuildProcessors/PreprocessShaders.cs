@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// Implements common functionality for SRP for the <see cref="IPreprocessShaders"/>
+    /// </summary>
     public abstract class PreprocessShaders : IPreprocessShaders
     {
 #if PROFILE_BUILD
