@@ -321,11 +321,13 @@ namespace UnityEditor.ShaderFoundry
             var fragmentPostBlock = BuildFragmentPostBlock(fragmentFields);
 
             var nameMappings = new List<NameOverride>();
+            nameMappings.Add(new NameOverride { Source = "ObjectSpaceNormal", Destination = "NormalOS" });
+            nameMappings.Add(new NameOverride { Source = "WorldSpaceNormal", Destination = "NormalWS" });
+            nameMappings.Add(new NameOverride { Source = "TangentSpaceNormal", Destination = "NormalTS" });
             // Need to create the default outputs for the fragment output. This isn't currently part of the field descriptors.
             var defaultVariableValues = new Dictionary<string, string>
             {
                 { "BaseColor", "float3(0, 0, 0)" },
-                { "NormalTS", "float3(0, 0, 0)" },
                 { "Smoothness", "0.5f" },
                 { "Occlusion", "1" },
                 { "Emission", "float3(0, 0, 0)" },
