@@ -127,27 +127,43 @@ namespace UnityEditor.ShaderFoundry
                 }
             }
             return passCustomizationPointInstances;
-        }        
+        }
+
+        void GetTargetActiveFields(UnityEditor.ShaderGraph.PassDescriptor legacyPass, ActiveFields targetActiveFields)
+        {
+            // Try to get the active fields from the target. This requires getting the blocks currently.
+            var targetActiveBlockContext = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), legacyPass);
+            m_LegacyTarget.GetActiveBlocks(ref targetActiveBlockContext);
+            var activeBlocks = new List<(BlockFieldDescriptor descriptor, bool isDefaultValue)>();
+            foreach (var b in targetActiveBlockContext.activeBlocks)
+                activeBlocks.Add((b, true));
+            var context = new TargetFieldContext(legacyPass, activeBlocks, null, false);
+            m_LegacyTarget.GetFields(ref context);
+
+            var fields = GenerationUtils.GetActiveFieldsFromConditionals(context.conditionalFields.ToArray());
+            foreach (var field in fields)
+                targetActiveFields.baseInstance.Add(field);
+        }
 
         void BuildLegacyActiveFields(UnityEditor.ShaderGraph.PassDescriptor legacyPass, LegacyEntryPoints legacyEntryPoints, out ActiveFields targetActiveFields, out ActiveFields shaderGraphActiveFields, List<FieldDescriptor> customInterpolatorFields)
         {
-            Dictionary<string, FieldDescriptor> vertexInLookup, vertexOutLookup, fragmentInLookup, fragmentOutLookup;
+            FieldDescriptorLookupMap vertexInLookup, vertexOutLookup, fragmentInLookup, fragmentOutLookup;
             BuildLookups(legacyPass, out vertexInLookup, out vertexOutLookup, out fragmentInLookup, out fragmentOutLookup);
 
             targetActiveFields = new ActiveFields();
             if(legacyEntryPoints.vertexDescBlockInstance.IsValid)
                 targetActiveFields.baseInstance.Add(Fields.GraphVertex);
             targetActiveFields.baseInstance.Add(Fields.GraphPixel);
+            GetTargetActiveFields(legacyPass, targetActiveFields);
             GenerationUtils.AddRequiredFields(legacyPass.requiredFields, targetActiveFields.baseInstance);
 
-            void AddFieldFromProperty(ActiveFields activeFields, BlockVariable prop, Dictionary<string, FieldDescriptor> lookups)
+            void AddFieldFromProperty(ActiveFields activeFields, BlockVariable prop, FieldDescriptorLookupMap lookups)
             {
-                FieldDescriptor activeField;
-                if (lookups.TryGetValue(prop.ReferenceName, out activeField))
-                    activeFields.baseInstance.Add(activeField);
+                foreach(var descriptor in lookups.Find(prop.ReferenceName))
+                    activeFields.baseInstance.Add(descriptor);
             }
 
-            void AddFieldProperties(BlockInstance blockInst, ActiveFields activeFields, Dictionary<string, FieldDescriptor> inputLookups, Dictionary<string, FieldDescriptor> outputLookups)
+            void AddFieldProperties(BlockInstance blockInst, ActiveFields activeFields, FieldDescriptorLookupMap inputLookups, FieldDescriptorLookupMap outputLookups)
             {
                 if (!blockInst.IsValid)
                     return;
@@ -170,7 +186,29 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void BuildLookups(UnityEditor.ShaderGraph.PassDescriptor legacyPass, out Dictionary<string, FieldDescriptor> vertexInLookups, out Dictionary<string, FieldDescriptor> vertexOutLookups, out Dictionary<string, FieldDescriptor> fragmentInLookups, out Dictionary<string, FieldDescriptor> fragmentOutLookups)
+        internal class FieldDescriptorLookupMap
+        {
+            Dictionary<string, List<FieldDescriptor>> Lookups = new Dictionary<string, List<FieldDescriptor>>();
+            internal void Add(string name, FieldDescriptor descriptor)
+            {
+                if(!Lookups.TryGetValue(name, out var descriptors))
+                {
+                    descriptors = new List<FieldDescriptor>();
+                    Lookups.Add(name, descriptors);
+                }
+                descriptors.Add(descriptor);
+            }
+
+            internal IEnumerable<FieldDescriptor> Find(string name)
+            {
+                if (Lookups.TryGetValue(name, out var descriptors))
+                    return descriptors;
+
+                return Enumerable.Empty<FieldDescriptor>();
+            }
+        }
+
+        void BuildLookups(UnityEditor.ShaderGraph.PassDescriptor legacyPass, out FieldDescriptorLookupMap vertexInLookups, out FieldDescriptorLookupMap vertexOutLookups, out FieldDescriptorLookupMap fragmentInLookups, out FieldDescriptorLookupMap fragmentOutLookups)
         {
             List<FieldDescriptor> preVertexFields = new List<FieldDescriptor>();
             preVertexFields.AddRange(UnityEditor.ShaderGraph.Structs.VertexDescriptionInputs.fields);
@@ -194,14 +232,11 @@ namespace UnityEditor.ShaderFoundry
             fragmentOutLookups = BuildLookup(fragmentOutFields);
         }
 
-        Dictionary<string, FieldDescriptor> BuildLookup(IEnumerable<FieldDescriptor> fields)
+        FieldDescriptorLookupMap BuildLookup(IEnumerable<FieldDescriptor> fields)
         {
-            var result = new Dictionary<string, FieldDescriptor>();
+            var result = new FieldDescriptorLookupMap();
             foreach (var field in fields)
-            {
-                if (!result.ContainsKey(field.name))
-                    result.Add(field.name, field);
-            }
+                result.Add(field.name, field);
             return result;
         }
 
