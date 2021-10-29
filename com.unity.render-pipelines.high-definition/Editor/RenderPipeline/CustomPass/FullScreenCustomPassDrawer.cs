@@ -38,6 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_TargetDepthBuffer;
 
         bool m_ShowStencilWriteWarning = false;
+        bool m_ShowStencilInfoBox = false;
 
         CustomPass.TargetBuffer targetColorBuffer => (CustomPass.TargetBuffer)m_TargetColorBuffer.intValue;
         CustomPass.TargetBuffer targetDepthBuffer => (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue;
@@ -88,11 +89,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if (stencilEnabled)
                     {
+                        if (!m_ShowStencilInfoBox)
+                        {
+                            m_ShowStencilInfoBox = true;
+                            GUI.changed = true;
+                        }
                         Rect helpBoxRect = rect;
                         helpBoxRect.height = Styles.helpBoxHeight;
                         helpBoxRect.xMin += Styles.indentPadding;
                         EditorGUI.HelpBox(helpBoxRect, Styles.stencilHelpInfo, MessageType.Info);
                         rect.y += Styles.helpBoxHeight;
+                    }
+                    else if (m_ShowStencilInfoBox)
+                    {
+                        m_ShowStencilInfoBox = false;
+                        GUI.changed = true; // Workaround to update the internal state of the ReorderableList and update the height of the element.
                     }
 
                     if (DoesWriteMaskContainsReservedBits(writeMask))
