@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
 
     class ShowAsColorAttribute : Attribute
     { }
-    public class MinMaxAttribute : PropertyAttribute
+    class MinMaxAttribute : PropertyAttribute
     {
         public readonly float min;
         public readonly float max;
