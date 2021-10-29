@@ -53,6 +53,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool afterOpaque => m_Settings.AfterOpaque;
 
+        internal override IntermediateTextureMode GetIntermediateTextureMode()
+        {
+            // Wokaround: Rendering SSAO after opque does not work correctly when rendering directly to back buffer
+            return afterOpaque ? IntermediateTextureMode.Always : IntermediateTextureMode.Auto;
+        }
+
         /// <inheritdoc/>
         public override void Create()
         {

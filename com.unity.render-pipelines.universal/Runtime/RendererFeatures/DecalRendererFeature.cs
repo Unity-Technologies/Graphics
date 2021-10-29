@@ -202,6 +202,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool intermediateRendering => m_Technique == DecalTechnique.DBuffer;
 
+        internal override IntermediateTextureMode GetIntermediateTextureMode()
+        {
+            // Wokaround: Decal does not work correctly when rendering to back buffer
+            return IntermediateTextureMode.Always;
+        }
+
         public override void Create()
         {
 #if UNITY_EDITOR

@@ -55,6 +55,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Override this method to change if with this feature URP renderer should render through intermediate texture.
+        /// </summary>
+        /// <returns></returns>
+        internal virtual IntermediateTextureMode GetIntermediateTextureMode()
+        {
+            return IntermediateTextureMode.Auto;
+        }
+
+        /// <summary>
         /// Sets the state of ScriptableRenderFeature (true: the feature is active, false: the feature is inactive).
         /// If the feature is active, it is added to the renderer it is attached to, otherwise the feature is skipped while rendering.
         /// </summary>

@@ -387,9 +387,22 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.IsOverlay = cameraData.renderType == CameraRenderType.Overlay;
             }
 
+            var intermediateTextureMode = m_IntermediateTextureMode;
+            if (intermediateTextureMode == IntermediateTextureMode.Auto)
+            {
+                foreach (var rendererFeature in rendererFeatures)
+                {
+                    if (rendererFeature.isActive && rendererFeature.GetIntermediateTextureMode() == IntermediateTextureMode.Always)
+                    {
+                        intermediateTextureMode = IntermediateTextureMode.Always;
+                        break;
+                    }
+                }
+            }
+
             // Assign the camera color target early in case it is needed during AddRenderPasses.
             bool isPreviewCamera = cameraData.isPreviewCamera;
-            var createColorTexture = m_IntermediateTextureMode == IntermediateTextureMode.Always && !isPreviewCamera;
+            var createColorTexture = intermediateTextureMode == IntermediateTextureMode.Always && !isPreviewCamera;
             if (createColorTexture)
             {
                 m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
