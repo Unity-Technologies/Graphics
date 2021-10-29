@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decals to work with native render pass [case 1353141](https://issuetracker.unity3d.com/issues/urp-decals-are-not-visible-in-game-view-after-modifying-urp-asset-properties)
 - Fixed decals to work with render scale [1353885](https://issuetracker.unity3d.com/issues/urp-builtin-to-urp-render-pipeline-converter-freezes-the-editor-when-converting-rendering-settings)
 - Fixed incorrect behavior of Reflections with Smoothness lighting debug mode. [case 1374181]
+- Fixed decal and ssao after opaque not working with intermediate texture mode with workaround. [case 1374815](https://issuetracker.unity3d.com/issues/urp-decals-decals-are-not-rendered-properly-with-some-renderer-settings)
 
 ## [13.1.0] - 2021-09-24
 ### Added
