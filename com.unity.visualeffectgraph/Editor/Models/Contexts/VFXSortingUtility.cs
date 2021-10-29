@@ -55,7 +55,7 @@ namespace UnityEditor.VFX
         {
             return criteria is SortCriteria.CameraDepth or SortCriteria.DistanceToCamera;
         }
-        public static TResult MajorityVote<TResult, TVoter>(IEnumerable<TVoter> voterContainer, Func<TVoter, TResult> getVoteFunc, IEqualityComparer<TResult> comparer = null)
+        public static KeyValuePair<TResult, int> MajorityVote<TResult, TVoter>(IEnumerable<TVoter> voterContainer, Func<TVoter, TResult> getVoteFunc, IEqualityComparer<TResult> comparer = null)
         {
             Dictionary<TResult, int> voteCounts = comparer == null ? new Dictionary<TResult, int>() : new Dictionary<TResult, int>(comparer);
             foreach (var voter in voterContainer)
@@ -65,7 +65,8 @@ namespace UnityEditor.VFX
                 voteCounts[vote] = currentCount + 1;
             }
             //Return result with the most votes
-            return voteCounts.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
+            var voteResult = voteCounts.Aggregate((l, r) => l.Value > r.Value ? l : r);
+            return voteResult;
         }
 
         private static readonly SortingCriteriaComparer s_SortingCriteriaComparer = new SortingCriteriaComparer();
@@ -128,6 +129,8 @@ namespace UnityEditor.VFX
         {
             public override bool Equals(SortingCriterion x, SortingCriterion y)
             {
+                if (x == null || y == null)
+                    return false;
                 if (x.sortCriterion != y.sortCriterion)
                     return false;
                 if (x.revertSorting != y.revertSorting)

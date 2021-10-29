@@ -538,15 +538,14 @@ namespace UnityEditor.VFX
             }
 
             var implicitContext = new List<VFXContext>();
-            bool needsGlobalSort = NeedsGlobalSort();
-            //Issues a global sort, when it affects at least one output.
+
+            bool needsGlobalSort = NeedsGlobalSort(out var globalSortCriterion);
+            //Issues a global sort when at least two outputs have the same criterion.
             //If others don't match the criterion, or have a compute cull pass, they need a per output sort.
-            SortingCriterion globalSortCriterion = new SortingCriterion();
             if (needsGlobalSort)
             {
                 // Then the camera sort
                 var globalSort = VFXContext.CreateImplicitContext<VFXGlobalSort>(this);
-                GetGlobalSortCriterionAndSlotIfCustom(out globalSortCriterion);
                 SetContextSortCriteria(ref globalSort, globalSortCriterion);
                 implicitContext.Add(globalSort);
                 m_Contexts.Add(globalSort);
@@ -588,20 +587,37 @@ namespace UnityEditor.VFX
 
         public bool NeedsGlobalSort()
         {
-            var sortedOutputs = compilableOwners.OfType<VFXAbstractParticleOutput>()
-                .Where(o => o.CanBeCompiled() && o.HasSorting());
             bool hasMainUpdate = compilableOwners.OfType<VFXBasicUpdate>().Any();
-
-            return hasMainUpdate && sortedOutputs.Any(o =>
-                    !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
+            int sharedCriterionCount = GetGlobalSortingCriterionAndVoteCount(out var globalSortCriterion);
+            return hasMainUpdate && sharedCriterionCount >= 2;
         }
 
-        void GetGlobalSortCriterionAndSlotIfCustom(out SortingCriterion globalSortCriterion)
+        public bool NeedsGlobalSort(out SortingCriterion globalSortCriterion)
+        {
+            bool hasMainUpdate = compilableOwners.OfType<VFXBasicUpdate>().Any();
+            if (!hasMainUpdate)
+            {
+                globalSortCriterion = null;
+                return false;
+            }
+            int sharedCriterionCount = GetGlobalSortingCriterionAndVoteCount(out globalSortCriterion);
+            return sharedCriterionCount >= 2;
+        }
+
+        int GetGlobalSortingCriterionAndVoteCount(out SortingCriterion globalSortCriterion)
         {
             var globalSortedCandidates = compilableOwners.OfType<VFXAbstractParticleOutput>()
-                .Where(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
+                .Where(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)).ToArray();
+            if (!globalSortedCandidates.Any())
+            {
+                globalSortCriterion = null;
+                return 0;
+            }
+
             Func<VFXAbstractParticleOutput, SortingCriterion> getVoteFunc = VFXSortingUtility.GetVoteFunc;
-            globalSortCriterion = MajorityVote(globalSortedCandidates, getVoteFunc, SortingCriteriaComparer.Default);
+            var voteResult = MajorityVote(globalSortedCandidates, getVoteFunc, SortingCriteriaComparer.Default);
+            globalSortCriterion = voteResult.Key;
+            return voteResult.Value;
         }
 
         public override void FillDescs(
