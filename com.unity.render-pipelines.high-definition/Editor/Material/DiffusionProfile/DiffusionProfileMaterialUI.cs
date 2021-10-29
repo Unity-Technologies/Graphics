@@ -58,18 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static void DrawDiffusionProfileWarning(DiffusionProfileSettings materialProfile)
         {
             if (materialProfile != null && !HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == materialProfile))
-            {
-                using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
-                {
-                    GUIStyle wordWrap = new GUIStyle(EditorStyles.label);
-                    wordWrap.wordWrap = true;
-                    EditorGUILayout.LabelField(diffusionProfileNotInHDRPAsset, wordWrap);
-                    if (GUILayout.Button("Fix", GUILayout.ExpandHeight(true)))
-                    {
-                        HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(materialProfile);
-                    }
-                }
-            }
+                CoreEditorUtils.DrawFixMeBox(diffusionProfileNotInHDRPAsset, "Fix", () => HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(materialProfile));
         }
     }
 }

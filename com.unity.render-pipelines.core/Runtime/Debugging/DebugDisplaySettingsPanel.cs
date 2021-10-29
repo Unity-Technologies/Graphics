@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering
 
         public abstract string PanelName { get; }
         public DebugUI.Widget[] Widgets => m_Widgets.ToArray();
+        public virtual DebugUI.Flags Flags => DebugUI.Flags.None;
 
         protected void AddWidget(DebugUI.Widget widget)
         {
