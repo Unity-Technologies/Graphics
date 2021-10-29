@@ -254,6 +254,10 @@ namespace UnityEngine.Experimental.Rendering
                     useVirtualOffset = true,
                     outOfGeoOffset = 0.01f,
                     searchMultiplier = 0.2f,
+                    rayOriginBias = -0.001f,
+                    maxHitsPerRay = 10,
+                    collisionMask = Physics.DefaultRaycastLayers,
+                    useMultiThreadedOffset = true,
                 }
             };
         }

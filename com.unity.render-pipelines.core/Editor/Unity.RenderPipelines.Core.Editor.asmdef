@@ -1,7 +1,9 @@
 {
     "name": "Unity.RenderPipelines.Core.Editor",
+    "rootNamespace": "",
     "references": [
-        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:2665a8d13d1b3f18800f46e256720795"
     ],
     "includePlatforms": [
         "Editor"
@@ -12,5 +14,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": []
+    "versionDefines": [
+        {
+            "name": "com.unity.burst",
+            "expression": "1.5.0",
+            "define": "HAS_BURST"
+        }
+    ],
+    "noEngineReferences": false
 }
