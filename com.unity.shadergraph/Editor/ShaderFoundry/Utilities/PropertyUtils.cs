@@ -171,30 +171,60 @@ namespace UnityEditor.ShaderFoundry
                     }
                 default:
                     {
+                        string typeName = shaderProp.GetPropertyTypeString();
+                        var propType = container.GetType(typeName);
+                        var propBuilder = new ShaderFoundry.BlockVariable.Builder(container);
+                        propBuilder.ReferenceName = shaderProp.referenceName;
+                        propBuilder.DisplayName = shaderProp.displayName;
+                        propBuilder.Type = propType;
+                        switch (shaderProp)
+                        {
+                            case Texture2DShaderProperty tex2DProp:
+                                var normalTagString = (tex2DProp.defaultType == Texture2DShaderProperty.DefaultType.NormalMap) ? "[Normal]" : "";
+                                string attributesString = $"{tex2DProp.hideTagString}{tex2DProp.modifiableTagString}{normalTagString}{tex2DProp.mainTextureString}{tex2DProp.useSTString}";
+                                AddMaterialProperty(container, propBuilder, shaderProp, "2D", attributesString);
+                                string defaultValue = $"\"{Texture2DShaderProperty.ToShaderLabString(tex2DProp.defaultType)}\" {{}}";
+                                AddMaterialPropertyDefault(container, propBuilder, defaultValue);
+                                break;
+                            case Texture3DShaderProperty tex3DProp:
+                                AddMaterialProperty(container, propBuilder, shaderProp, "3D");
+                                AddMaterialPropertyDefault(container, propBuilder, "\"\" {}");
+                                break;
+                            case CubemapShaderProperty cubeProp:
+                                AddMaterialProperty(container, propBuilder, shaderProp, "CUBE");
+                                AddMaterialPropertyDefault(container, propBuilder, "\"\" {}");
+                                break;
+                            case Texture2DArrayShaderProperty tex2DArrayProp:
+                                AddMaterialProperty(container, propBuilder, shaderProp, "2DArray");
+                                AddMaterialPropertyDefault(container, propBuilder, "\"\" {}");
+                                break;
+                        }
+                        properties.Add(propBuilder.Build());
+
                         shaderProp.ForeachHLSLProperty((HLSLProperty hlslProp) =>
                             {
                                 string typeName = GetHlslType(hlslProp);
 
                                 var fieldType = container.GetType(typeName);
-                                var propBuilder = new ShaderFoundry.BlockVariable.Builder(container);
-                                propBuilder.ReferenceName = hlslProp.name;
-                                propBuilder.DisplayName = shaderProp.displayName;
-                                propBuilder.Type = fieldType;
+                                var inputBuilder = new ShaderFoundry.BlockVariable.Builder(container);
+                                inputBuilder.ReferenceName = hlslProp.name;
+                                inputBuilder.DisplayName = shaderProp.displayName;
+                                inputBuilder.Type = fieldType;
 
                                 if (hlslProp.declaration == HLSLDeclaration.DoNotDeclare)
                                 {
 
                                 }
                                 else if (hlslProp.declaration == HLSLDeclaration.Global)
-                                    propBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Global).Build());
+                                    inputBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Global).Build());
                                 else if (hlslProp.declaration == HLSLDeclaration.UnityPerMaterial)
-                                    propBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PerMaterial).Build());
+                                    inputBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PerMaterial).Build());
                                 else if (shaderProp.GetDefaultHLSLDeclaration() == HLSLDeclaration.HybridPerInstance)
-                                    propBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Hybrid).Build());
+                                    inputBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Hybrid).Build());
                                 else
-                                    AddPropertyDeclaration(container, propBuilder);
+                                    AddPropertyDeclaration(container, inputBuilder);
 
-                                DeclareBasicUniform(container, propBuilder, hlslProp);
+                                DeclareBasicUniform(container, inputBuilder, hlslProp);
                                 if (shaderProp.referenceName == hlslProp.name)
                                 {
                                     switch (shaderProp)
@@ -202,26 +232,26 @@ namespace UnityEditor.ShaderFoundry
                                         case Texture2DShaderProperty tex2DProp:
                                             var normalTagString = (tex2DProp.defaultType == Texture2DShaderProperty.DefaultType.NormalMap) ? "[Normal]" : "";
                                             string attributesString = $"{tex2DProp.hideTagString}{tex2DProp.modifiableTagString}{normalTagString}{tex2DProp.mainTextureString}{tex2DProp.useSTString}";
-                                            AddMaterialProperty(container, propBuilder, shaderProp, "2D", attributesString);
+                                            AddMaterialProperty(container, inputBuilder, shaderProp, "2D", attributesString);
                                             string defaultValue = $"\"{Texture2DShaderProperty.ToShaderLabString(tex2DProp.defaultType)}\" {{}}";
-                                            AddMaterialPropertyDefault(container, propBuilder, defaultValue);
+                                            AddMaterialPropertyDefault(container, inputBuilder, defaultValue);
                                             break;
                                         case Texture3DShaderProperty tex3DProp:
-                                            AddMaterialProperty(container, propBuilder, shaderProp, "3D");
-                                            AddMaterialPropertyDefault(container, propBuilder, "\"\" {}");
+                                            AddMaterialProperty(container, inputBuilder, shaderProp, "3D");
+                                            AddMaterialPropertyDefault(container, inputBuilder, "\"\" {}");
                                             break;
                                         case CubemapShaderProperty cubeProp:
-                                            AddMaterialProperty(container, propBuilder, shaderProp, "CUBE");
-                                            AddMaterialPropertyDefault(container, propBuilder, "\"\" {}");
+                                            AddMaterialProperty(container, inputBuilder, shaderProp, "CUBE");
+                                            AddMaterialPropertyDefault(container, inputBuilder, "\"\" {}");
                                             break;
                                         case Texture2DArrayShaderProperty tex2DArrayProp:
-                                            AddMaterialProperty(container, propBuilder, shaderProp, "2DArray");
-                                            AddMaterialPropertyDefault(container, propBuilder, "\"\" {}");
+                                            AddMaterialProperty(container, inputBuilder, shaderProp, "2DArray");
+                                            AddMaterialPropertyDefault(container, inputBuilder, "\"\" {}");
                                             break;
                                     }
                                 }
-                                properties.Add(propBuilder.Build());
-                                inputs.Add(propBuilder.Build());
+
+                                inputs.Add(inputBuilder.Build());
                             });
                         break;
                     }
