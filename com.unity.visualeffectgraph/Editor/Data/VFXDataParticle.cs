@@ -615,8 +615,8 @@ namespace UnityEditor.VFX
             }
 
             Func<VFXAbstractParticleOutput, SortingCriterion> getVoteFunc = VFXSortingUtility.GetVoteFunc;
-            var voteResult = MajorityVote(globalSortedCandidates, getVoteFunc, SortingCriteriaComparer.Default);
-            globalSortCriterion = voteResult.Key;
+            var voteResult = MajorityVote(globalSortedCandidates, getVoteFunc, new SortingCriteriaComparer());
+            globalSortCriterion = voteResult.Value >= 2 ? voteResult.Key : null;
             return voteResult.Value;
         }
 
