@@ -118,13 +118,13 @@ FragOutput DefaultFullscreenFragmentShader(PackedVaryings packedInput)
 
 #if defined(DEPTH_WRITE_MODE_EYE)
     // Reverse of LinearEyeDepth
-    float d = rcp(surfaceDescription.FullscreenEyeDepth);
+    float d = rcp(surfaceDescription.FullscreenEyeDepth + surfaceDescription.FullscreenEyeDepth == 0); // Safe div 0
     output.depth = (d - _ZBufferParams.w) / _ZBufferParams.z;
 #endif
 
 #if defined(DEPTH_WRITE_MODE_LINEAR01)
     // Reverse of Linear01Depth
-    float d = rcp(surfaceDescription.FullscreenLinear01Depth);
+    float d = rcp(surfaceDescription.FullscreenLinear01Depth + surfaceDescription.FullscreenLinear01Depth == 0); // Safe div 0
     output.depth = (d - _ZBufferParams.y) / _ZBufferParams.x;
 #endif
 
