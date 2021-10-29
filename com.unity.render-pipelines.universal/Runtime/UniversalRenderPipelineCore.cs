@@ -110,6 +110,8 @@ namespace UnityEngine.Rendering.Universal
         internal int pixelHeight;
         internal float aspectRatio;
         public float renderScale;
+        public bool isScaledRender;
+        public UpscalingFilter upscalingFilter;
         public bool clearDepth;
         public CameraType cameraType;
         public bool isDefaultViewport;
@@ -398,6 +400,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string Fxaa = "_FXAA";
         public static readonly string Dithering = "_DITHERING";
         public static readonly string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
+        public static readonly string FilterPoint = "_FILTER_POINT";
 
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 
