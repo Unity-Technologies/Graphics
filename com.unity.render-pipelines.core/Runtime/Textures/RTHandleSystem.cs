@@ -462,8 +462,9 @@ namespace UnityEngine.Rendering
             // We need to handle this in an explicit way since GraphicsFormat does not expose depth formats. TODO: Get rid of this branch once GraphicsFormat'll expose depth related formats
             RenderTexture rt;
             var depthFormat = GraphicsFormat.None;
-            if (depthBufferBits > 0)
+            if (!isShadowMap && depthBufferBits > 0)
             {
+                colorFormat = GraphicsFormat.None;
                 switch (depthBufferBits)
                 {
                     case DepthBits.Depth16:
@@ -478,7 +479,15 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            rt = new RenderTexture(width, height, colorFormat, depthFormat)
+            var descriptor = new RenderTextureDescriptor(width, height, colorFormat, depthFormat);
+
+            if (isShadowMap)
+            {
+                descriptor.depthStencilFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.Shadow);
+                descriptor.shadowSamplingMode = ShadowSamplingMode.CompareDepths;
+            };
+
+            rt = new RenderTexture(descriptor)
             {
                 hideFlags = HideFlags.HideAndDontSave,
                 volumeDepth = slices,
