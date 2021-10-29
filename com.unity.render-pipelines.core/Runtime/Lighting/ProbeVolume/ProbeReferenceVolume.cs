@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
 using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
 using Unity.Collections;
+using Unity.Profiling;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -25,6 +26,7 @@ namespace UnityEngine.Experimental.Rendering
         internal static readonly int s_BakingID = 912345678;
 
         private static AdditionalGIBakeRequestsManager s_Instance = new AdditionalGIBakeRequestsManager();
+
         /// <summary>
         /// Get the manager that governs the additional light probe rendering requests.
         /// </summary>
@@ -482,6 +484,10 @@ namespace UnityEngine.Experimental.Rendering
             public Texture3D L2_3;
         }
 
+        ProfilerMarker sPMPerformPendingOperations = new("PerformPendingOperations");
+        ProfilerMarker sPMPerformPendingIndexChangeAndInit = new("PerformPendingIndexChangeAndInit");
+        ProfilerMarker sPMPerformPendingLoading = new("PerformPendingLoading");
+
         bool m_IsInitialized = false;
         bool m_SupportStreaming = false;
         RefVolTransform m_Transform;
@@ -901,6 +907,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (m_NeedsIndexRebuild)
             {
+                using var pmPerformPendingIndexChangeAndInit = sPMPerformPendingIndexChangeAndInit.Auto();
+
                 CleanupLoadedData();
                 InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
                 m_HasChangedIndex = true;
@@ -945,6 +953,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             if ((m_PendingAssetsToBeLoaded.Count == 0 && m_ActiveAssets.Count == 0) || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
+
+            using var pmPerformPendingLoading = sPMPerformPendingLoading.Auto();
 
             m_Pool.EnsureTextureValidity();
 
@@ -1038,6 +1048,8 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public void PerformPendingOperations()
         {
+            using var pmPMPerformPendingOperations = sPMPerformPendingOperations.Auto();
+
             PerformPendingDeletion();
             PerformPendingIndexChangeAndInit();
             PerformPendingLoading();

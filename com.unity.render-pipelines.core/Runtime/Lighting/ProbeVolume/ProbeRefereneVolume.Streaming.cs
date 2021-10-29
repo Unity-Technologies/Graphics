@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using Unity.Profiling;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
     public partial class ProbeReferenceVolume
     {
+        ProfilerMarker sPMUpdateCellStreaming = new("UpdateCellStreaming");
+
         DynamicArray<CellInfo> m_LoadedCells = new DynamicArray<CellInfo>();
         DynamicArray<CellInfo> m_ToBeLoadedCells = new DynamicArray<CellInfo>();
         DynamicArray<CellInfo> m_TempCellToLoadList = new DynamicArray<CellInfo>();
@@ -52,6 +55,8 @@ namespace UnityEngine.Experimental.Rendering
 
         public void UpdateCellStreaming(Camera camera)
         {
+            using var pmUpdateCellStreaming = sPMUpdateCellStreaming.Auto();
+
             var cameraPosition = camera.transform.position;
             if (!debugDisplay.freezeStreaming)
             {
