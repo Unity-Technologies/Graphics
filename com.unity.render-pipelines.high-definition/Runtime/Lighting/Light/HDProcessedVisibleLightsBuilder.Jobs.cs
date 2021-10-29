@@ -315,6 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void StartProcessVisibleLightJob(
             HDCamera hdCamera,
+            bool rayTracingState,
             NativeArray<VisibleLight> visibleLights,
             in GlobalLightLoopSettings lightLoopSettings,
             DebugDisplaySettings debugDisplaySettings)
@@ -330,7 +331,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cameraPosition = hdCamera.camera.transform.position,
                 pixelCount = hdCamera.actualWidth * hdCamera.actualHeight,
                 enableAreaLights = ShaderConfig.s_AreaLights != 0,
-                enableRayTracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing),
+                enableRayTracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && rayTracingState,
                 showDirectionalLight = debugDisplaySettings.data.lightingDebugSettings.showDirectionalLight,
                 showPunctualLight = debugDisplaySettings.data.lightingDebugSettings.showPunctualLight,
                 showAreaLight = debugDisplaySettings.data.lightingDebugSettings.showAreaLight,
