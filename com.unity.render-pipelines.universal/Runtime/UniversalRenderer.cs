@@ -36,6 +36,8 @@ namespace UnityEngine.Rendering.Universal
     public sealed class UniversalRenderer : ScriptableRenderer
     {
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
+        const int k_DepthBufferBits = 32;
+
         static readonly List<ShaderTagId> k_DepthNormalsOnly = new List<ShaderTagId> { new ShaderTagId("DepthNormalsOnly") };
 
         private static class Profiling
@@ -604,9 +606,19 @@ namespace UnityEngine.Rendering.Universal
             if ((this.actualRenderingMode == RenderingMode.Deferred && !this.useRenderPassEnabled)|| requiresDepthPrepass || requiresDepthCopyPass)
             {
                 var depthDescriptor = cameraTargetDescriptor;
-                depthDescriptor.graphicsFormat = requiresDepthPrepass ? GraphicsFormat.None : GraphicsFormat.R32_SFloat;
-                depthDescriptor.depthBufferBits = requiresDepthPrepass ? 32 : 0;
-                depthDescriptor.depthStencilFormat = requiresDepthPrepass ? k_DepthStencilFormat : GraphicsFormat.None;
+                if (requiresDepthPrepass)
+                {
+                    depthDescriptor.graphicsFormat = GraphicsFormat.None;
+                    depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+                    depthDescriptor.depthBufferBits = k_DepthBufferBits;
+                }
+                else
+                {
+                    depthDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
+                    depthDescriptor.depthStencilFormat = GraphicsFormat.None;
+                    depthDescriptor.depthBufferBits = 0;
+                }
+
                 depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
                 RenderingUtils.ReAllocateIfNeeded(ref m_DepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
 
