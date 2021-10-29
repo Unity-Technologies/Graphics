@@ -1,6 +1,9 @@
+using System.Diagnostics;
+
 namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
+    [DebuggerDisplay("{tag + name}")]
     internal class FieldDescriptor
     {
         // Default

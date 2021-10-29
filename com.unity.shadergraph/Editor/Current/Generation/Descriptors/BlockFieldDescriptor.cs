@@ -1,6 +1,9 @@
 using System;
+using System.Diagnostics;
+
 namespace UnityEditor.ShaderGraph
 {
+    [DebuggerDisplay("{tag + name}")]
     internal class BlockFieldDescriptor : FieldDescriptor
     {
         public string displayName { get; }
