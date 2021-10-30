@@ -369,3 +369,7 @@ This version of HDRP introduces multiple fixes to **Dynamic Resolution Scaling**
 - Fixed an issue that caused corrupted scaling on Dx12 hardware mode when a planar reflection probe or a secondary Camera is present.
 
 For a full list of changes and updates in version 12 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/changelog/CHANGELOG.html).
+
+### CPU Optimizations
+
+* PrepareLightsForGPU CPU light loop has been optimized and parallelized with Burst. Gains are around 2x in performance for CPU.
