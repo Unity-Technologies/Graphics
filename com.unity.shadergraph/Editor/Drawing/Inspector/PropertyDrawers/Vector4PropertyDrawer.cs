@@ -66,8 +66,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             var inputFields = vector4Field.Query("unity-text-input").ToList();
             foreach (var inputField in inputFields)
             {
-                inputField.RegisterCallback<KeyDownEvent>(m_KeyDownCallback);
-                inputField.RegisterCallback<FocusOutEvent>(m_FocusOutCallback);
+                inputField.RegisterCallback<KeyDownEvent>(m_KeyDownCallback, TrickleDown.TrickleDown);
+                inputField.RegisterCallback<FocusOutEvent>(m_FocusOutCallback, TrickleDown.TrickleDown);
             }
 
             vector4Field.RegisterValueChangedCallback(evt =>

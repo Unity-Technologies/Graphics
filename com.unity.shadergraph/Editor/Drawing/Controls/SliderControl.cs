@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 UpdateSlider();
                 m_PropertyInfo.SetValue(m_Node, m_Value, null);
                 this.MarkDirtyRepaint();
-            });
+            }, TrickleDown.TrickleDown);
 
             m_SliderPanel = new VisualElement { name = "SliderPanel" };
             if (!string.IsNullOrEmpty(label))
@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 UpdateSlider();
                 m_PropertyInfo.SetValue(m_Node, m_Value, null);
                 this.MarkDirtyRepaint();
-            });
+            }, TrickleDown.TrickleDown);
 
             panel.Add(floatField);
             return floatField;

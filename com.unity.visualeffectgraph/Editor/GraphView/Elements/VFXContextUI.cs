@@ -294,7 +294,7 @@ namespace UnityEditor.VFX.UI
 
             m_Label.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
             m_TextField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
-            m_TextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(OnTitleBlur);
+            m_TextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(OnTitleBlur, TrickleDown.TrickleDown);
             m_Label.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
