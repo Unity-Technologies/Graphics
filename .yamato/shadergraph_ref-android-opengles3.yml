@@ -28,7 +28,6 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_trunk:
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  gsudo choco install python3 --version=3.8.0 -y --timeout 0 --Source https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local/
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
@@ -113,7 +112,6 @@ ShaderGraph_ref_Android_OpenGLES3_playmode_ref_images_il2cpp_Linear_trunk:
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
-      -  gsudo choco install python3 --version=3.8.0 -y --timeout 0 --Source https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local/
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
@@ -156,7 +154,6 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linear_trun
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  python --version
-      -  gsudo choco install python3 --version=3.8.0 -y --timeout 0 --Source https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local/
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
@@ -239,7 +236,6 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_CUSTOM-REV
       -  set UTR_VERSION=0.14.1-rc1
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  gsudo choco install python3 --version=3.8.0 -y --timeout 0 --Source https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local/
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
@@ -324,7 +320,6 @@ ShaderGraph_ref_Android_OpenGLES3_playmode_ref_images_il2cpp_Linear_CUSTOM-REVIS
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
-      -  gsudo choco install python3 --version=3.8.0 -y --timeout 0 --Source https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local/
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
@@ -367,7 +362,6 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linear_CUST
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  python --version
-      -  gsudo choco install python3 --version=3.8.0 -y --timeout 0 --Source https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local/
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
