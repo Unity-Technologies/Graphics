@@ -111,8 +111,8 @@ namespace UnityEditor.VFX.UI
             m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownSubTitle);
 
             m_PathTextField = new TextField { visible = false };
-            m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
-            m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
+            m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); }, TrickleDown.TrickleDown);
+            m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed, TrickleDown.TrickleDown);
             hierarchy.Add(m_PathTextField);
 
             resizer.RemoveFromHierarchy();
