@@ -217,18 +217,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="targetRTAS">Ray Tracing Acceleration structure the renderer should be added to.</param>
         /// <param name="currentRenderer">The renderer that should be added to the RTAS.</param>
-        /// <param name="rayTracedShadow">Flag that defines if at least one light has ray traced shadows.</param>
-        /// <param name="aoEnabled">Flag that defines if ray traced ambient occlusion will be evaluated using this RTAS.</param>
-        /// <param name="aoLayerValue">Layer mask to include objects into the ray traced ambient occlusion.</param>
-        /// <param name="reflEnabled">Flag that defines if ray traced reflections will be evaluated using this RTAS.</param>
-        /// <param name="reflLayerValue">Layer mask to include objects into the ray traced reflections.</param>
-        /// <param name="giEnabled">Flag that defines if ray traced global illumination will be evaluated using this RTAS.</param>
-        /// <param name="giLayerValue">Layer mask to include objects into the ray traced global illumination.</param>
-        /// <param name="recursiveEnabled">Flag that defines if recursive rendering will be evaluated using this RTAS.</param>
-        /// <param name="rrLayerValue">Layer mask to include objects into the recursive rendering.</param>
-        /// <param name="pathTracingEnabled">Flag that defines if path tracing will be evaluated using this RTAS.</param>
-        /// <param name="ptLayerValue">Layer mask to include objects into the path tracing.</param>
-        /// <returns>AccelerationStructureStatus type.</returns>
+        /// <param name="effectsParameters">Structure defining the enabled ray tracing and path tracing effects for a camera.</param>
+        /// <param name="transformDirty">Flag that indicates if the renderer's transform has changed.</param>
+        /// <param name="materialsDirty">Flag that indicates if any of the renderer's materials have changed.</param>
+        /// <returns></returns>
         public static AccelerationStructureStatus AddInstanceToRAS(RayTracingAccelerationStructure targetRTAS, Renderer currentRenderer, HDEffectsParameters effectsParameters, ref bool transformDirty, ref bool materialsDirty)
         {
             // Get all the materials of the mesh renderer
@@ -463,7 +455,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 + m_RayTracingLights.reflectionProbeArray.Count;
         }
 
-        static public HDEffectsParameters EvaluateEffectsParameters(HDCamera hdCamera, bool rayTracedShadows, bool rayTracedContactShadows)
+        /// <summary>
+        /// Function that returns the ray tracing and path tracing effects that are enabled for a given camera.
+        /// </summary>
+        /// <param name="hdCamera">The input camera</param>
+        /// <param name="rayTracedShadows">Flag that defines if at least one light has ray traced shadows.</param>
+        /// <param name="rayTracedContactShadows">Flag that defines if at least one light has ray traced contact shadows</param>
+        /// <returns>HDEffectsParameters type.</returns>
+        public static HDEffectsParameters EvaluateEffectsParameters(HDCamera hdCamera, bool rayTracedShadows, bool rayTracedContactShadows)
         {
             HDEffectsParameters parameters = new HDEffectsParameters();
 

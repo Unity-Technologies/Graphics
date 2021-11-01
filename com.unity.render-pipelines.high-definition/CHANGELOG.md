@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added public API to edit materials from script at runtime.
 - Added new functions that sample the custom buffer in custom passes (CustomPassSampleCustomColor and CustomPassLoadCustomColor) to handle the RTHandleScale automatically.
 - Added new panels to Rendering Debugger Display Stats panel, displaying improved CPU/GPU frame timings and bottlenecks.
+- Added API to edit diffusion profiles and set IES on lights.
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
@@ -37,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom pass injection point not visible in the UI when using the Camera mode.
 - Fixed film grain & dithering when using spatial upscaling methods for DRS.
 - Fixed a regression that was introduced in the diffuse denoiser in a previous PR.
+- Fixed sky override layer mask having no effect.
 - Fixed a memory leak in the template tutorial (1374640).
 - Fixed a build-time warning regarding light loop variants (case 1372256).
 
@@ -54,8 +56,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added a SG node to get the main directional light direction.
+- Added support for orthographic camera in path tracing.
 - Added public API to edit materials from script at runtime.
 - Added new configuration ShderOptions.FPTLMaxLightCount in ShaderConfig.cs for maximum light count per fine pruned tile.
+- Added support for orthographic camera in path tracing.
+- Support for "Always Draw Dynamic" option for directional light cached shadows.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
@@ -73,7 +78,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.0.0] - 2021-09-01
 
+### Added
+
+- Added support for HDR output devices.
+- Added option to use full ACES tonemap instead of the approximation.
+
 ### Fixed
+
 - Fixed impossibility to release the cursor in the template.
 - Fixed assert failure when enabling the probe volume system for the first time.
 - Significantly improved performance of APV probe debug.
@@ -130,6 +141,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved sampling of overlapping point/area lights in path-traced volumetric scattering (case 1358777).
 - Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1346105, 1358783).
 - Fixed minor readability issues in the ray tracing code.
+- Optimized color grading LUT building.
+- Made ACEScg the default color space for color grading.
 
 
 ## [12.0.0] - 2021-01-11

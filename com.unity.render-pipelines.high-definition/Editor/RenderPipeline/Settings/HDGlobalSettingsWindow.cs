@@ -482,6 +482,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevelLabel);
                 EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.lensAttenuationModeContentLabel);
+                EditorGUILayout.PropertyField(serialized.colorGradingSpace, Styles.colorGradingSpaceContentLabel);
                 EditorGUILayout.PropertyField(serialized.rendererListCulling, Styles.rendererListCulling);
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
