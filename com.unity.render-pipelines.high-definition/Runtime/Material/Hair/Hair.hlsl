@@ -93,6 +93,8 @@ float3 ReflectanceFromMelanin(float eumelanin, float pheomelanin, float azimutha
 
 real3 D_LongitudinalScatteringGaussian(real3 thetaH, real3 beta)
 {
+    beta = max(beta, 1e-5); // zero-div guard
+
     const real sqrtTwoPi = 2.50662827463100050241;
     return rcp(beta * sqrtTwoPi) * exp(-Sq(thetaH) / (2 * Sq(beta)));
 }
