@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If contact shadows are not enabled or we already reached the manimal number of contact shadows
             // or this is not rasterization
             if ((!hdAdditionalLightData.useContactShadow.Value(contactShadowEnabled))
-                || m_ContactShadowIndex >= LightDefinitions.s_LightListMaxPrunedEntries)
+                || m_ContactShadowIndex >= LightDefinitions.s_ContactShadowMaskMask)
                 return;
 
             // Evaluate the contact shadow index of this light

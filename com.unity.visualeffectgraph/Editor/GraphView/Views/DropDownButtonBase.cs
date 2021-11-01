@@ -9,6 +9,8 @@ namespace UnityEditor.VFX.UI
 {
     abstract class DropDownButtonBase : VisualElement
     {
+        protected readonly VFXView m_VFXView;
+
         private class NotifyEditorWindow : EditorWindow
         {
             public event Action Destroyed;
@@ -26,10 +28,9 @@ namespace UnityEditor.VFX.UI
         DateTime m_PopupClosedTimestamp;
 
         protected readonly VisualElement m_PopupContent;
-        protected readonly VFXViewWindow m_ParentWindow;
 
         protected DropDownButtonBase(
-            VFXViewWindow parentWindow,
+            VFXView view,
             string uxmlSource,
             string mainButtonLabel,
             string mainButtonName,
@@ -37,7 +38,7 @@ namespace UnityEditor.VFX.UI
             bool hasSeparatorBefore = false,
             bool hasSeparatorAfter = false)
         {
-            m_ParentWindow = parentWindow;
+            m_VFXView = view;
             style.flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row);
 
             if (hasSeparatorBefore)
@@ -95,7 +96,7 @@ namespace UnityEditor.VFX.UI
             m_CurrentPopup?.Close();
         }
 
-        private Vector2 GetPopupPosition() => m_ParentWindow.graphView.ViewToScreenPosition(worldBound.position);
+        private Vector2 GetPopupPosition() => m_VFXView.ViewToScreenPosition(worldBound.position);
 
         private void OnTogglePopup()
         {

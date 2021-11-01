@@ -107,6 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_SsrAccumulateKernel = -1;
 
         Material m_ApplyDistortionMaterial;
+        Material m_FinalBlitWithOETF;
 
         Material m_ClearStencilBufferMaterial;
 
@@ -196,6 +197,31 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int GetMaxScreenSpaceShadows()
         {
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
+        }
+
+        static bool HDROutputIsActive()
+        {
+            // TODO: Until we can test it, disable on Mac.
+            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal && HDROutputSettings.main.active;
+        }
+
+        void SetHDRState(HDCamera camera)
+        {
+#if UNITY_EDITOR
+            bool hdrInPlayerSettings = UnityEditor.PlayerSettings.useHDRDisplay;
+            if (hdrInPlayerSettings && HDROutputSettings.main.available)
+            {
+                if (camera.camera.cameraType != CameraType.Game)
+                    HDROutputSettings.main.RequestHDRModeChange(false);
+                else
+                    HDROutputSettings.main.RequestHDRModeChange(true);
+            }
+#endif
+            // Make sure HDR auto tonemap is off
+            if (HDROutputSettings.main.active)
+            {
+                HDROutputSettings.main.automaticHDRTonemapping = false;
+            }
         }
 
         readonly SkyManager m_SkyManager = new SkyManager();
@@ -348,6 +374,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
 
             m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.applyDistortionPS);
+            m_FinalBlitWithOETF = CoreUtils.CreateEngineMaterial(defaultResources.shaders.compositeUIAndOETFApplyPS);
+
 
             m_ClearStencilBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.clearStencilBufferPS);
 
@@ -382,7 +410,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeDebugMesh = defaultResources.assets.probeDebugSphere,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
-                    shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands
+                    shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
+                    supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
             }
@@ -497,7 +526,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseColorTemperature = true;
             m_PreviousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
-#if  UNITY_2020_2_OR_NEWER
+#if UNITY_2020_2_OR_NEWER
             m_PreviousDefaultRenderingLayerMask = GraphicsSettings.defaultRenderingLayerMask;
             GraphicsSettings.defaultRenderingLayerMask = ShaderVariablesGlobal.DefaultRenderingLayerMask;
 #endif
@@ -538,6 +567,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 autoDefaultReflectionProbeBaking = false
                 ,
                 enlightenLightmapper = false
+                ,
+                rendersUIOverlay = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -714,6 +745,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_UpsampleTransparency);
             CoreUtils.Destroy(m_ApplyDistortionMaterial);
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
+            CoreUtils.Destroy(m_FinalBlitWithOETF);
 
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
@@ -892,7 +924,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool enableRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ScreenSpaceReflection.RayTracingActive(settings);
                 m_ShaderVariablesGlobalCB._EnableRayTracedReflections = enableRaytracedReflections ? 1 : 0;
                 RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
-                m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = recursiveSettings.enable.value ? 1u : 0u;
+                // Here we cannot test against the light cluster as it is not build yet but for now there is no case where it shouldnt be valid
+                m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = recursiveSettings.enable.value && GetRayTracingState() ? 1u : 0u;
 
                 m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = EvaluateSpecularOcclusionFlag(hdCamera);
             }
@@ -1022,6 +1055,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct HDCullingResults
         {
             public CullingResults cullingResults;
+            public CullingResults uiCullingResults;
             public CullingResults? customPassCullingResults;
             public HDProbeCullingResults hdProbeCullingResults;
             public DecalSystem.CullResult decalCullResults;
@@ -1139,6 +1173,12 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Update();
 #endif
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (DebugManager.instance.isAnyDebugUIActive)
+                m_DebugDisplaySettings.debugFrameTiming.UpdateFrameTiming();
+#endif
+
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 
             // This syntax is awful and hostile to debugging, please don't use it...
@@ -1265,7 +1305,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         if (needCulling)
+                        {
                             skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, ref cullingResults);
+                        }
                     }
 
                     if (additionalCameraData.hasCustomRender && additionalCameraData.fullscreenPassthrough)
@@ -1942,12 +1984,15 @@ namespace UnityEngine.Rendering.HighDefinition
             var camera = hdCamera.camera;
             var cullingResults = renderRequest.cullingResults.cullingResults;
             var customPassCullingResults = renderRequest.cullingResults.customPassCullingResults ?? cullingResults;
+            var uiCullingResults = renderRequest.cullingResults.uiCullingResults;
             var hdProbeCullingResults = renderRequest.cullingResults.hdProbeCullingResults;
             var decalCullingResults = renderRequest.cullingResults.decalCullResults;
             var target = renderRequest.target;
 
             // Updates RTHandle
             hdCamera.BeginRender(cmd);
+
+            SetHDRState(hdCamera);
 
             if (m_RayTracingSupported)
             {
@@ -2013,11 +2058,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ApplyDebugDisplaySettings(hdCamera, cmd, aovRequest.isValid);
 
-                if (DebugManager.instance.displayRuntimeUI
-#if UNITY_EDITOR
-                    || DebugManager.instance.displayEditorUI
-#endif
-                )
+                if (DebugManager.instance.isAnyDebugUIActive)
                     m_CurrentDebugDisplaySettings.UpdateAveragedProfilerTimings();
 
                 SetupCameraProperties(hdCamera, renderContext, cmd);
@@ -2046,6 +2087,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do the same for ray tracing if allowed
                 if (m_RayTracingSupported)
                 {
+                    m_RayCountManager.SetRayCountEnabled(m_CurrentDebugDisplaySettings.data.countRays);
                     BuildRayTracingLightData(cmd, hdCamera, m_CurrentDebugDisplaySettings);
                 }
 

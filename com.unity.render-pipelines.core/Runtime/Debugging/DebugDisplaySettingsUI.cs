@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering
                 DebugUI.Panel panel = debugManager.GetPanel(panelId, true);
                 ObservableList<DebugUI.Widget> panelChildren = panel.children;
 
+                panel.flags = disposableSettingsPanel.Flags;
                 panels.Add(disposableSettingsPanel);
                 panelChildren.Add(panelWidgets);
             };

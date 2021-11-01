@@ -31,6 +31,26 @@ test_platforms:
           - [all]: --timeout=7200
           - [all]: --platform=StandaloneWindows64
           - [all]: --loglevel=verbose
+  - type: playmode
+    name: performance_counters
+    add_artifacts:
+      - artifacts.logs.paths: "PrebuildLog/**"
+    commands:
+      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
+      - [Win_DX11, Win_DX12, Win_Vulkan]:
+        - command: git checkout %GIT_BRANCH%
+      - [Linux_Vulkan]:
+        - command: git checkout $GIT_BRANCH
+      - [all]: <shared.platform.commands.call_utr_without_git>
+        flags:
+          - [all]: --testfilter=Counters
+          - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
+          - [all]: --timeout=7200
+          - [Win]: --platform=StandaloneWindows64
+          - [Linux]: --platform=StandaloneLinux64
+          - [all]: --loglevel=verbose
   - type: editmode
     name: performance_run_build
     allow_cache: True
@@ -71,6 +91,13 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
+  - name: Linux
+    apis:
+      - name: Vulkan
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
 
 jobs:
   - name: <PROJECT_NAME>
@@ -82,3 +109,10 @@ jobs:
         test_platforms:
           - performance_memory
           - performance_run_build
+          - performance_counters
+      - platform: Linux
+        api: Vulkan
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_counters
