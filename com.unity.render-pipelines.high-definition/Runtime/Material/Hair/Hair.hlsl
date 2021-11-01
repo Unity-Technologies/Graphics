@@ -1277,6 +1277,8 @@ DirectLighting EvaluateBSDF_Rect_MRP(LightLoopContext lightLoopContext,
                 bsdfData.roughnessTT = lerp(roughnessTTPrime, bsdfData.roughnessTT, LdotV);
 
                 // Attempt at energy normalization for rectangular lights.
+                // Similar in spirit to the "Specular D Normalization" heuristic (eq. 10 Real Shading in Unreal Engine 4)
+                // Choose this solid angle-based heuristic to attempt to normalize the longitudinal distribution.
                 const float3 alpha = float3(
                     bsdfData.roughnessR,
                     bsdfData.roughnessTT,
