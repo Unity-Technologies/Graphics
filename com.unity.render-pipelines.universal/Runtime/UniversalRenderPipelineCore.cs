@@ -572,6 +572,13 @@ namespace UnityEngine.Rendering.Universal
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
 
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+            {
+                int requestedMsaaSamples = desc.msaaSamples;
+                if (requestedMsaaSamples == 2 && SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc) == 1)
+                    desc.msaaSamples = 4;
+            }
+
             // check that the requested MSAA samples count is supported by the current platform. If it's not supported,
             // replace the requested desc.msaaSamples value with the actual value the engine falls back to
             desc.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc);
