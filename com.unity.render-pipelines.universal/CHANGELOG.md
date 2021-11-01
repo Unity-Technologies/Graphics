@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a regression where ShaderGraph screen position was not correct in game view and when using XR [1369450]
 - Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
 - Fixed ShadowCaster now requires varying normalWS to include changed normals from vertex shader in shader graph.
+- Fixed an issue where 2D global lights with shadows enabled could break light layer batching [case 1376487](https://issuetracker.unity3d.com/issues/2d-urp-upgrading-global-light-sets-shadow-settings-to-enabled)
 - Fixed typo in numIterationsEnclosingSphere api name
 - Fix for rendering thumbnails. [case 1348209](https://issuetracker.unity3d.com/issues/preview-of-assets-do-not-show-in-the-project-window)
 - Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]
