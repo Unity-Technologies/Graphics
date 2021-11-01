@@ -34,8 +34,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_tru
              export GIT_REVISION="$GIT_REVISION"
              export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
              EOF
-             echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
-             ssh bokken@$BOKKEN_DEVICE_IP `bash -s` < export_env.sh
+      -  command: echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
+      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
@@ -138,8 +138,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_trun
              export GIT_REVISION="$GIT_REVISION"
              export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
              EOF
-             echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
-             ssh bokken@$BOKKEN_DEVICE_IP `bash -s` < export_env.sh
+      -  command: echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
+      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
@@ -236,8 +236,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk
              export GIT_REVISION="$GIT_REVISION"
              export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
              EOF
-             echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
-             ssh bokken@$BOKKEN_DEVICE_IP `bash -s` < export_env.sh
+      -  command: echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
+      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
@@ -334,8 +334,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_CUS
              export GIT_REVISION="$GIT_REVISION"
              export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
              EOF
-             echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
-             ssh bokken@$BOKKEN_DEVICE_IP `bash -s` < export_env.sh
+      -  command: echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
+      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
@@ -438,8 +438,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_CUST
              export GIT_REVISION="$GIT_REVISION"
              export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
              EOF
-             echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
-             ssh bokken@$BOKKEN_DEVICE_IP `bash -s` < export_env.sh
+      -  command: echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
+      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
@@ -536,8 +536,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_CUSTO
              export GIT_REVISION="$GIT_REVISION"
              export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
              EOF
-             echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
-             ssh bokken@$BOKKEN_DEVICE_IP `bash -s` < export_env.sh
+      -  command: echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
+      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
