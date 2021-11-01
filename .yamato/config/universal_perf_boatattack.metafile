@@ -68,8 +68,8 @@ test_platforms:
     name: performance_playmode_runtime
     allow_cache: False
     commands:
-      - [OSX_Metal]: <shared.platform.commands.export_environement>
       - [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
+      - [OSX_Metal]: <shared.platform.commands.export_environement>
       - [OSX_Metal]: <reuse_blocks.unity_config>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken_hikey>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
@@ -162,8 +162,8 @@ test_platforms:
     name: performance_playmode_editor
     allow_cache: False
     commands:
-      - [OSX_Metal]: <shared.platform.commands.export_environement>
       - [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
+      - [OSX_Metal]: <shared.platform.commands.export_environement>
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
@@ -203,8 +203,8 @@ test_platforms:
     name: performance_build_editmode
     allow_cache: False
     commands:
-      - [OSX_Metal]: <shared.platform.commands.export_environement>
       - [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
+      - [OSX_Metal]: <shared.platform.commands.export_environement>
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>

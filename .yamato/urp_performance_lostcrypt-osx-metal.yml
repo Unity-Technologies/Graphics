@@ -22,20 +22,6 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_tru
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: |
-             cat << EOF > export_env.sh
-             export YAMATO_JOBDEFINITION_FRIENDLY_NAME="$YAMATO_JOBDEFINITION_FRIENDLY_NAME"
-             export YAMATO_JOBDEFINITION_NAME="$YAMATO_JOBDEFINITION_NAME"
-             export YAMATO_JOB_ID="$YAMATO_JOB_ID"
-             export YAMATO_PROJECT_NAME="$YAMATO_PROJECT_NAME"
-             export YAMATO_PROJECT_ID="$YAMATO_PROJECT_ID"
-             export GIT_REPOSITORY_URL="$GIT_REPOSITORY_URL"
-             export GIT_BRANCH="$GIT_BRANCH"
-             export GIT_REVISION="$GIT_REVISION"
-             export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
-             EOF
-      -  command: echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
-      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
@@ -48,6 +34,20 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_tru
       -  command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
       -  command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
+      -  command: |
+             cat << EOF > export_env.sh
+             export YAMATO_JOBDEFINITION_FRIENDLY_NAME="$YAMATO_JOBDEFINITION_FRIENDLY_NAME"
+             export YAMATO_JOBDEFINITION_NAME="$YAMATO_JOBDEFINITION_NAME"
+             export YAMATO_JOB_ID="$YAMATO_JOB_ID"
+             export YAMATO_PROJECT_NAME="$YAMATO_PROJECT_NAME"
+             export YAMATO_PROJECT_ID="$YAMATO_PROJECT_ID"
+             export GIT_REPOSITORY_URL="$GIT_REPOSITORY_URL"
+             export GIT_BRANCH="$GIT_BRANCH"
+             export GIT_REVISION="$GIT_REVISION"
+             export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
+             EOF
+      -  command: cat export_env.sh
+      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
          retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
@@ -126,20 +126,6 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_trun
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: |
-             cat << EOF > export_env.sh
-             export YAMATO_JOBDEFINITION_FRIENDLY_NAME="$YAMATO_JOBDEFINITION_FRIENDLY_NAME"
-             export YAMATO_JOBDEFINITION_NAME="$YAMATO_JOBDEFINITION_NAME"
-             export YAMATO_JOB_ID="$YAMATO_JOB_ID"
-             export YAMATO_PROJECT_NAME="$YAMATO_PROJECT_NAME"
-             export YAMATO_PROJECT_ID="$YAMATO_PROJECT_ID"
-             export GIT_REPOSITORY_URL="$GIT_REPOSITORY_URL"
-             export GIT_BRANCH="$GIT_BRANCH"
-             export GIT_REVISION="$GIT_REVISION"
-             export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
-             EOF
-      -  command: echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
-      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
@@ -152,6 +138,20 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_trun
       -  command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
       -  command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
+      -  command: |
+             cat << EOF > export_env.sh
+             export YAMATO_JOBDEFINITION_FRIENDLY_NAME="$YAMATO_JOBDEFINITION_FRIENDLY_NAME"
+             export YAMATO_JOBDEFINITION_NAME="$YAMATO_JOBDEFINITION_NAME"
+             export YAMATO_JOB_ID="$YAMATO_JOB_ID"
+             export YAMATO_PROJECT_NAME="$YAMATO_PROJECT_NAME"
+             export YAMATO_PROJECT_ID="$YAMATO_PROJECT_ID"
+             export GIT_REPOSITORY_URL="$GIT_REPOSITORY_URL"
+             export GIT_BRANCH="$GIT_BRANCH"
+             export GIT_REVISION="$GIT_REVISION"
+             export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
+             EOF
+      -  command: cat export_env.sh
+      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
          retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
@@ -224,20 +224,6 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: |
-             cat << EOF > export_env.sh
-             export YAMATO_JOBDEFINITION_FRIENDLY_NAME="$YAMATO_JOBDEFINITION_FRIENDLY_NAME"
-             export YAMATO_JOBDEFINITION_NAME="$YAMATO_JOBDEFINITION_NAME"
-             export YAMATO_JOB_ID="$YAMATO_JOB_ID"
-             export YAMATO_PROJECT_NAME="$YAMATO_PROJECT_NAME"
-             export YAMATO_PROJECT_ID="$YAMATO_PROJECT_ID"
-             export GIT_REPOSITORY_URL="$GIT_REPOSITORY_URL"
-             export GIT_BRANCH="$GIT_BRANCH"
-             export GIT_REVISION="$GIT_REVISION"
-             export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
-             EOF
-      -  command: echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
-      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
@@ -250,6 +236,20 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk
       -  command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
       -  command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
+      -  command: |
+             cat << EOF > export_env.sh
+             export YAMATO_JOBDEFINITION_FRIENDLY_NAME="$YAMATO_JOBDEFINITION_FRIENDLY_NAME"
+             export YAMATO_JOBDEFINITION_NAME="$YAMATO_JOBDEFINITION_NAME"
+             export YAMATO_JOB_ID="$YAMATO_JOB_ID"
+             export YAMATO_PROJECT_NAME="$YAMATO_PROJECT_NAME"
+             export YAMATO_PROJECT_ID="$YAMATO_PROJECT_ID"
+             export GIT_REPOSITORY_URL="$GIT_REPOSITORY_URL"
+             export GIT_BRANCH="$GIT_BRANCH"
+             export GIT_REVISION="$GIT_REVISION"
+             export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
+             EOF
+      -  command: cat export_env.sh
+      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
          retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
@@ -322,20 +322,6 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_CUS
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: |
-             cat << EOF > export_env.sh
-             export YAMATO_JOBDEFINITION_FRIENDLY_NAME="$YAMATO_JOBDEFINITION_FRIENDLY_NAME"
-             export YAMATO_JOBDEFINITION_NAME="$YAMATO_JOBDEFINITION_NAME"
-             export YAMATO_JOB_ID="$YAMATO_JOB_ID"
-             export YAMATO_PROJECT_NAME="$YAMATO_PROJECT_NAME"
-             export YAMATO_PROJECT_ID="$YAMATO_PROJECT_ID"
-             export GIT_REPOSITORY_URL="$GIT_REPOSITORY_URL"
-             export GIT_BRANCH="$GIT_BRANCH"
-             export GIT_REVISION="$GIT_REVISION"
-             export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
-             EOF
-      -  command: echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
-      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
@@ -348,6 +334,20 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_CUS
       -  command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
       -  command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
+      -  command: |
+             cat << EOF > export_env.sh
+             export YAMATO_JOBDEFINITION_FRIENDLY_NAME="$YAMATO_JOBDEFINITION_FRIENDLY_NAME"
+             export YAMATO_JOBDEFINITION_NAME="$YAMATO_JOBDEFINITION_NAME"
+             export YAMATO_JOB_ID="$YAMATO_JOB_ID"
+             export YAMATO_PROJECT_NAME="$YAMATO_PROJECT_NAME"
+             export YAMATO_PROJECT_ID="$YAMATO_PROJECT_ID"
+             export GIT_REPOSITORY_URL="$GIT_REPOSITORY_URL"
+             export GIT_BRANCH="$GIT_BRANCH"
+             export GIT_REVISION="$GIT_REVISION"
+             export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
+             EOF
+      -  command: cat export_env.sh
+      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
          retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
@@ -426,20 +426,6 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_CUST
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: |
-             cat << EOF > export_env.sh
-             export YAMATO_JOBDEFINITION_FRIENDLY_NAME="$YAMATO_JOBDEFINITION_FRIENDLY_NAME"
-             export YAMATO_JOBDEFINITION_NAME="$YAMATO_JOBDEFINITION_NAME"
-             export YAMATO_JOB_ID="$YAMATO_JOB_ID"
-             export YAMATO_PROJECT_NAME="$YAMATO_PROJECT_NAME"
-             export YAMATO_PROJECT_ID="$YAMATO_PROJECT_ID"
-             export GIT_REPOSITORY_URL="$GIT_REPOSITORY_URL"
-             export GIT_BRANCH="$GIT_BRANCH"
-             export GIT_REVISION="$GIT_REVISION"
-             export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
-             EOF
-      -  command: echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
-      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
@@ -452,6 +438,20 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_CUST
       -  command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
       -  command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
+      -  command: |
+             cat << EOF > export_env.sh
+             export YAMATO_JOBDEFINITION_FRIENDLY_NAME="$YAMATO_JOBDEFINITION_FRIENDLY_NAME"
+             export YAMATO_JOBDEFINITION_NAME="$YAMATO_JOBDEFINITION_NAME"
+             export YAMATO_JOB_ID="$YAMATO_JOB_ID"
+             export YAMATO_PROJECT_NAME="$YAMATO_PROJECT_NAME"
+             export YAMATO_PROJECT_ID="$YAMATO_PROJECT_ID"
+             export GIT_REPOSITORY_URL="$GIT_REPOSITORY_URL"
+             export GIT_BRANCH="$GIT_BRANCH"
+             export GIT_REVISION="$GIT_REVISION"
+             export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
+             EOF
+      -  command: cat export_env.sh
+      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
          retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
@@ -524,20 +524,6 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_CUSTO
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: |
-             cat << EOF > export_env.sh
-             export YAMATO_JOBDEFINITION_FRIENDLY_NAME="$YAMATO_JOBDEFINITION_FRIENDLY_NAME"
-             export YAMATO_JOBDEFINITION_NAME="$YAMATO_JOBDEFINITION_NAME"
-             export YAMATO_JOB_ID="$YAMATO_JOB_ID"
-             export YAMATO_PROJECT_NAME="$YAMATO_PROJECT_NAME"
-             export YAMATO_PROJECT_ID="$YAMATO_PROJECT_ID"
-             export GIT_REPOSITORY_URL="$GIT_REPOSITORY_URL"
-             export GIT_BRANCH="$GIT_BRANCH"
-             export GIT_REVISION="$GIT_REVISION"
-             export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
-             EOF
-      -  command: echo "applying environement on device using:\n---\n$(cat export_env.sh)\n---"
-      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
       -  command: |
@@ -550,6 +536,20 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_CUSTO
       -  command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
       -  command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
+      -  command: |
+             cat << EOF > export_env.sh
+             export YAMATO_JOBDEFINITION_FRIENDLY_NAME="$YAMATO_JOBDEFINITION_FRIENDLY_NAME"
+             export YAMATO_JOBDEFINITION_NAME="$YAMATO_JOBDEFINITION_NAME"
+             export YAMATO_JOB_ID="$YAMATO_JOB_ID"
+             export YAMATO_PROJECT_NAME="$YAMATO_PROJECT_NAME"
+             export YAMATO_PROJECT_ID="$YAMATO_PROJECT_ID"
+             export GIT_REPOSITORY_URL="$GIT_REPOSITORY_URL"
+             export GIT_BRANCH="$GIT_BRANCH"
+             export GIT_REVISION="$GIT_REVISION"
+             export GIT_COMMIT_TIME="$GIT_COMMIT_TIME"
+             EOF
+      -  command: cat export_env.sh
+      -  command: ssh bokken@$BOKKEN_DEVICE_IP 'bash -s' < export_env.sh
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
          retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
