@@ -163,8 +163,10 @@ float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3
     sigmaB  = Sq(sigmaB);
 
     // Resolve the overall local scattering term ( Eq. 19 & 20 Disney ).
-    // Note, for now remove the square, there seems to be a discrepancy in the gaussian used in the paper (ours takes std. dev)
-    float3 fsBack = db * 2 * Ab * D_LongitudinalScatteringGaussian(thetaH - deltaB, sqrt(sigmaB + sigmaF)) / 1;
+    // Note, for now remove the square, there seems to be a discrepancy in the gaussian used in the paper (ours takes std. dev while paper uses variance)
+    // Additionally, we should be dividing by PI here, but doing this causes another discrepancy with the multiple scattering that is observed in the
+    // the path traced reference. It is possible again, that this is due to the gaussian distribution that we use.
+    float3 fsBack = db * 2 * Ab * D_LongitudinalScatteringGaussian(thetaH - deltaB, sqrt(sigmaB + sigmaF));
 
     // Resolve the approximated multiple scattering. (Approximate Eq. 22)
     // ------------------------------------------------------------------------------------
