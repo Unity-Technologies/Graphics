@@ -1,6 +1,7 @@
+import os
 from zipfile import ZipFile
 import argparse
-from os import path, getcwd
+from os import path, getcwd, listdir
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -12,6 +13,11 @@ if __name__ == "__main__":
     extra_logs = True
 
     print("Working directory of zip_to_artifact: " + getcwd())
+    print("Contents of Graphics dir: ")
+    print(os.listdir(getcwd()))
+    print("\n\nContents of SG base: ")
+    print(os.listdir(path.join(getcwd(), "TestProjects\\ShaderGraph")))
+
 
     # Should live at the execution root
     update_tests_file_path = "UpdateTests.txt"
