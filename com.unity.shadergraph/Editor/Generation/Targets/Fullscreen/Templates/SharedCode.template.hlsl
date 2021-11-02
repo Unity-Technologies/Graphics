@@ -3,6 +3,7 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     SurfaceDescriptionInputs output;
     ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
+    // Normal is not available yet through ShaderGraph inputs. It needs to be sampled in RenderPipeline specific nodes
     float3 normalWS = float3(0, 0, 1);
     float4 tangentWS = float4(0, 1, 0, 0); // We can't access the tangent in screen space
 
