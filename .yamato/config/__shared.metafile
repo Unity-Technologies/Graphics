@@ -373,8 +373,12 @@ platforms:
                     scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>
                     exit $UTR_RESULT
         unity_downloader_cli:
-          - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-          - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only'
+          - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'mkdir homebrew && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C homebrew'"
+          - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc './homebrew/bin/brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git'"
+          - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc './homebrew/bin/brew install unity/unity/unity-downloader-cli'"
+          - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc './homebrew/bin/unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only'"
+         #- ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
+         #- ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only'
 
   Linux:
     name: Linux
