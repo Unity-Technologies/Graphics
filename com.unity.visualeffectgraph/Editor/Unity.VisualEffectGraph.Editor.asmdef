@@ -3,6 +3,7 @@
     "references": [
         "Unity.VisualEffectGraph.Runtime",
         "Unity.Timeline",
+        "Unity.Timeline.Editor",
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.ShaderGraph.Editor"
     ],
