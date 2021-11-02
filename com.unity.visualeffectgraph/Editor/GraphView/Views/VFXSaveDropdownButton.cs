@@ -10,12 +10,11 @@ namespace UnityEditor.VFX.UI
 {
     class VFXSaveDropdownButton : DropDownButtonBase
     {
-        private readonly VFXView m_VFXView;
         private readonly Button m_CheckoutButton;
 
-        public VFXSaveDropdownButton(VFXView vfxView, VFXViewWindow parentWindow)
+        public VFXSaveDropdownButton(VFXView vfxView)
             : base(
-                parentWindow,
+                vfxView,
                 "VFXSaveDropDownPanel",
                 "Save",
                 "save-button",
@@ -23,8 +22,6 @@ namespace UnityEditor.VFX.UI
                 false,
                 true)
         {
-            m_VFXView = vfxView;
-
             var saveAsButton = m_PopupContent.Q<Button>("saveAs");
             saveAsButton.clicked += OnSaveAs;
 
