@@ -214,8 +214,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // If we have path tracing, the shadow inclusion constraints must be aggregated with the layer masks of the path tracing.
             if (parameters.pathTracing)
             {
-                ShO_CT.layerMask = parameters.pathTracing;
-                ShT_CT.layerMask = parameters.pathTracing;
+                ShO_CT.layerMask = parameters.ptLayerMask;
+                ShT_CT.layerMask = parameters.ptLayerMask;
             }
 
             if (parameters.shadows || parameters.pathTracing)
