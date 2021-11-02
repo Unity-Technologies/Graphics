@@ -16,7 +16,6 @@ namespace UnityEngine.VFX
     {
         public ClipCaps clipCaps
         {
-            //TODOPAUL: If speed available, enable here
             get { return ClipCaps.None; }
         }
 
