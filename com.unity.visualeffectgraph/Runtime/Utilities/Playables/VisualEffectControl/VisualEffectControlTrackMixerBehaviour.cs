@@ -350,22 +350,27 @@ namespace UnityEngine.VFX
                         if (playingBackward)
                         {
                             var eventBehind = GetEventsIndex(chunk, playableTime, m_LastPlayableTime, kErrorIndex);
-                            foreach (var itEvent in eventBehind)
+                            if (eventBehind.Any())
                             {
-                                var currentEvent = chunk.events[itEvent];
-                                if (currentEvent.clipType == Event.ClipType.Enter)
+                                foreach (var itEvent in eventBehind)
                                 {
-                                    ProcessEvent(chunk.clips[currentEvent.clipIndex].exit, chunk);
-                                    dbg = Debug.State.ScrubbingBackward;
+                                    var currentEvent = chunk.events[itEvent];
+                                    if (currentEvent.clipType == Event.ClipType.Enter)
+                                    {
+                                        ProcessEvent(chunk.clips[currentEvent.clipIndex].exit, chunk);
+                                        dbg = Debug.State.ScrubbingBackward;
+                                    }
+                                    else if (currentEvent.clipType == Event.ClipType.Exit)
+                                    {
+                                        ProcessEvent(chunk.clips[currentEvent.clipIndex].enter, chunk);
+                                        dbg = Debug.State.ScrubbingBackward;
+                                    }
+                                    //else: Ignore, we aren't playing single event backward
                                 }
-                                else if (currentEvent.clipType == Event.ClipType.Exit)
-                                {
-                                    ProcessEvent(chunk.clips[currentEvent.clipIndex].enter, chunk);
-                                    dbg = Debug.State.ScrubbingBackward;
-                                }
-                                //else: Ignore, we aren't playing single event backward
+
+                                //The last event will be always invalid in case of scrubbing backward
+                                m_LastEvent = kErrorIndex;
                             }
-                            m_LastEvent = kErrorIndex; //TODOPAUL: Think twice, could it be an issue ?
                         }
 
                         var eventList = GetEventsIndex(chunk, m_LastPlayableTime, playableTime, m_LastEvent);
