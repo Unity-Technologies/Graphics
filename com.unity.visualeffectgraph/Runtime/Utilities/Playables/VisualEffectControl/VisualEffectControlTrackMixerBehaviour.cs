@@ -532,28 +532,28 @@ namespace UnityEngine.VFX
 
                     if (!currentChunk.scrubbing)
                     {
-                        //TODOPAUL: Not optimal due O² search (+ lot of garbage)
-                        var eventsWithIndex = currentsEvents.Select((e, i) =>
+                        var sortedEventWithSourceIndex = currentsEvents.Select((e, i) =>
                         {
                             return new
                             {
                                 evt = e,
-                                index = i
+                                sourceIndex = i
                             };
                         }).OrderBy(o => o.evt.time)
                         .ToList();
 
                         var newClips = new Clip[inputBehavior.clipEventsCount];
                         var newEvents = new List<Event>();
-                        foreach (var itEvent in eventsWithIndex)
+                        for (int actualIndex = 0; actualIndex < sortedEventWithSourceIndex.Count; actualIndex++)
                         {
-                            var newEvent = itEvent.evt;
-                            if (itEvent.index < inputBehavior.clipEventsCount * 2)
+                            var newEvent = sortedEventWithSourceIndex[actualIndex].evt;
+                            var sourceIndex = sortedEventWithSourceIndex[actualIndex].sourceIndex;
+                            if (sourceIndex < inputBehavior.clipEventsCount * 2)
                             {
-                                var actualSortedClipIndex = currentChunk.events.Length + eventsWithIndex.FindIndex(o => o.index == itEvent.index);
-                                var localClipIndex = itEvent.index / 2;
+                                var actualSortedClipIndex = currentChunk.events.Length + actualIndex;
+                                var localClipIndex = sourceIndex / 2;
                                 newEvent.clipIndex = localClipIndex + currentChunk.clips.Length;
-                                if (itEvent.index % 2 == 0)
+                                if (sourceIndex % 2 == 0)
                                 {
                                     newEvent.clipType = Event.ClipType.Enter;
                                     newClips[localClipIndex].enter = actualSortedClipIndex;
