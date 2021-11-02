@@ -835,21 +835,24 @@ namespace UnityEngine.Rendering.Universal
             const float kRenderScaleThreshold = 0.05f;
             cameraData.renderScale = (Mathf.Abs(1.0f - settings.renderScale) < kRenderScaleThreshold) ? 1.0f : settings.renderScale;
 
-            if (cameraData.renderScale == 1.0f)
-            {
-                cameraData.imageScaling = ImageScaling.None;
-            }
-            else if (cameraData.renderScale < 1.0f)
-            {
-                cameraData.imageScaling = ImageScaling.Upscaling;
-            }
-            else if (cameraData.renderScale > 1.0f)
+            // Convert the upscaling filter selection from the pipeline asset into an image upscaling filter
+            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter);
+
+            if (cameraData.renderScale > 1.0f)
             {
                 cameraData.imageScaling = ImageScaling.Downscaling;
             }
+            else if ((cameraData.renderScale < 1.0f) || (cameraData.upscalingFilter == ImageUpscalingFilter.FSR))
+            {
+                // When FSR is enabled, we still consider 100% render scale an upscaling operation.
+                // This allows us to run the FSR shader passes all the time since they improve visual quality even at 100% scale.
 
-            // Convert the upscaling filter selection from the pipeline asset into an image upscaling filter
-            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter);
+                cameraData.imageScaling = ImageScaling.Upscaling;
+            }
+            else
+            {
+                cameraData.imageScaling = ImageScaling.None;
+            }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             cameraData.xr = m_XRSystem.emptyPass;
@@ -1286,6 +1289,12 @@ namespace UnityEngine.Rendering.Universal
             // By default we just use linear filtering since it's the most compatible choice
             ImageUpscalingFilter filter = ImageUpscalingFilter.Linear;
 
+            // Fall back to the automatic filter if FSR was selected, but isn't supported on the current platform
+            if ((selection == UpscalingFilterSelection.FSR) && !FSRUtils.IsSupported())
+            {
+                selection = UpscalingFilterSelection.Auto;
+            }
+
             switch (selection)
             {
                 case UpscalingFilterSelection.Auto:
@@ -1323,6 +1332,13 @@ namespace UnityEngine.Rendering.Universal
                 case UpscalingFilterSelection.Point:
                 {
                     filter = ImageUpscalingFilter.Point;
+
+                    break;
+                }
+
+                case UpscalingFilterSelection.FSR:
+                {
+                    filter = ImageUpscalingFilter.FSR;
 
                     break;
                 }
