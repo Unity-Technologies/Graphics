@@ -129,10 +129,10 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kSmoothnessRemapMin = "_SmoothnessRemapMin";
         MaterialProperty[] smoothnessRemapMax = new MaterialProperty[kMaxLayerCount];
         const string kSmoothnessRemapMax = "_SmoothnessRemapMax";
-        MaterialProperty[] transparencyRemapMin = new MaterialProperty[kMaxLayerCount];
-        const string kTransparencyRemapMin = "_TransparencyRemapMin";
-        MaterialProperty[] transparencyRemapMax = new MaterialProperty[kMaxLayerCount];
-        const string kTransparencyRemapMax = "_TransparencyRemapMax";
+        MaterialProperty[] alphaRemapMin = new MaterialProperty[kMaxLayerCount];
+        const string kAlphaRemapMin = "_AlphaRemapMin";
+        MaterialProperty[] alphaRemapMax = new MaterialProperty[kMaxLayerCount];
+        const string kAlphaRemapMax = "_AlphaRemapMax";
         MaterialProperty[] aoRemapMin = new MaterialProperty[kMaxLayerCount];
         const string kAORemapMin = "_AORemapMin";
         MaterialProperty[] aoRemapMax = new MaterialProperty[kMaxLayerCount];
@@ -275,8 +275,8 @@ namespace UnityEditor.Rendering.HighDefinition
             smoothness = FindPropertyLayered(kSmoothness, m_LayerCount);
             smoothnessRemapMin = FindPropertyLayered(kSmoothnessRemapMin, m_LayerCount);
             smoothnessRemapMax = FindPropertyLayered(kSmoothnessRemapMax, m_LayerCount);
-            transparencyRemapMin = FindPropertyLayered(kTransparencyRemapMin, m_LayerCount);
-            transparencyRemapMax = FindPropertyLayered(kTransparencyRemapMax, m_LayerCount);
+            alphaRemapMin = FindPropertyLayered(kAlphaRemapMin, m_LayerCount);
+            alphaRemapMax = FindPropertyLayered(kAlphaRemapMax, m_LayerCount);
             aoRemapMin = FindPropertyLayered(kAORemapMin, m_LayerCount);
             aoRemapMax = FindPropertyLayered(kAORemapMax, m_LayerCount);
 
@@ -395,9 +395,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.MinMaxShaderProperty(aoRemapMin[m_LayerIndex], aoRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.aoRemappingText);
             }
 
-            if (baseColorMap[m_LayerIndex].textureValue != null && materials.All(m => m.GetSurfaceType() != SurfaceType.Transparent))
+            if (baseColorMap[m_LayerIndex].textureValue != null && materials.All(m => m.GetSurfaceType() == SurfaceType.Transparent))
             {
-                materialEditor.MinMaxShaderProperty(transparencyRemapMin[m_LayerIndex], transparencyRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.transparencyRemappingText);
+                materialEditor.MinMaxShaderProperty(alphaRemapMin[m_LayerIndex], alphaRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.transparencyRemappingText);
             }
 
             materialEditor.TexturePropertySingleLine((materials.All(m => m.GetMaterialId() == MaterialId.LitSpecular)) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);

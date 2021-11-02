@@ -49,15 +49,15 @@ Shader "HDRP/LayeredLitTessellation"
         _SmoothnessRemapMax2("SmoothnessRemapMax2", Range(0.0, 1.0)) = 1.0
         _SmoothnessRemapMax3("SmoothnessRemapMax3", Range(0.0, 1.0)) = 1.0
 
-        _TransparencyRemapMin0("TransparencyRemapMin0", Range(0.0, 1.0)) = 0.0
-        _TransparencyRemapMin1("TransparencyRemapMin1", Range(0.0, 1.0)) = 0.0
-        _TransparencyRemapMin2("TransparencyRemapMin2", Range(0.0, 1.0)) = 0.0
-        _TransparencyRemapMin3("TransparencyRemapMin3", Range(0.0, 1.0)) = 0.0
+        _AlphaRemapMin0("AlphaRemapMin0", Range(0.0, 1.0)) = 0.0
+        _AlphaRemapMin1("AlphaRemapMin1", Range(0.0, 1.0)) = 0.0
+        _AlphaRemapMin2("AlphaRemapMin2", Range(0.0, 1.0)) = 0.0
+        _AlphaRemapMin3("AlphaRemapMin3", Range(0.0, 1.0)) = 0.0
 
-        _TransparencyRemapMax0("TransparencyRemapMax0", Range(0.0, 1.0)) = 1.0
-        _TransparencyRemapMax1("TransparencyRemapMax1", Range(0.0, 1.0)) = 1.0
-        _TransparencyRemapMax2("TransparencyRemapMax2", Range(0.0, 1.0)) = 1.0
-        _TransparencyRemapMax3("TransparencyRemapMax3", Range(0.0, 1.0)) = 1.0
+        _AlphaRemapMax0("AlphaRemapMax0", Range(0.0, 1.0)) = 1.0
+        _AlphaRemapMax1("AlphaRemapMax1", Range(0.0, 1.0)) = 1.0
+        _AlphaRemapMax2("AlphaRemapMax2", Range(0.0, 1.0)) = 1.0
+        _AlphaRemapMax3("AlphaRemapMax3", Range(0.0, 1.0)) = 1.0
 
         _AORemapMin0("AORemapMin0", Range(0.0, 1.0)) = 0.0
         _AORemapMin1("AORemapMin1", Range(0.0, 1.0)) = 0.0

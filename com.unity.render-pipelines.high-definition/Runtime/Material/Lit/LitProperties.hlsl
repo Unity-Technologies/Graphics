@@ -156,8 +156,8 @@ float _MetallicRemapMax;
 float _Smoothness;
 float _SmoothnessRemapMin;
 float _SmoothnessRemapMax;
-float _TransparencyRemapMin;
-float _TransparencyRemapMax;
+float _AlphaRemapMin;
+float _AlphaRemapMax;
 float _AORemapMin;
 float _AORemapMax;
 
@@ -214,8 +214,8 @@ PROP_DECL(float, _MetallicRemapMax);
 PROP_DECL(float, _Smoothness);
 PROP_DECL(float, _SmoothnessRemapMin);
 PROP_DECL(float, _SmoothnessRemapMax);
-PROP_DECL(float, _TransparencyRemapMin);
-PROP_DECL(float, _TransparencyRemapMax);
+PROP_DECL(float, _AlphaRemapMin);
+PROP_DECL(float, _AlphaRemapMax);
 PROP_DECL(float, _AORemapMin);
 PROP_DECL(float, _AORemapMax);
 
@@ -333,6 +333,14 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float , _SmoothnessRemapMax1)
     UNITY_DOTS_INSTANCED_PROP(float , _SmoothnessRemapMax2)
     UNITY_DOTS_INSTANCED_PROP(float , _SmoothnessRemapMax3)
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaRemapMin0)
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaRemapMin1)
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaRemapMin2)
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaRemapMin3)
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaRemapMax0)
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaRemapMax1)
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaRemapMax2)
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaRemapMax3)
     UNITY_DOTS_INSTANCED_PROP(float , _AORemapMin0)
     UNITY_DOTS_INSTANCED_PROP(float , _AORemapMin1)
     UNITY_DOTS_INSTANCED_PROP(float , _AORemapMin2)
@@ -407,14 +415,14 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _SmoothnessRemapMax1     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _SmoothnessRemapMax1)
 #define _SmoothnessRemapMax2     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _SmoothnessRemapMax2)
 #define _SmoothnessRemapMax3     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _SmoothnessRemapMax3)
-#define _TransparencyRemapMin0   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _TransparencyRemapMin0)
-#define _TransparencyRemapMin1   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _TransparencyRemapMin1)
-#define _TransparencyRemapMin2   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _TransparencyRemapMin2)
-#define _TransparencyRemapMin3   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _TransparencyRemapMin3)
-#define _TransparencyRemapMax0   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _TransparencyRemapMax0)
-#define _TransparencyRemapMax1   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _TransparencyRemapMax1)
-#define _TransparencyRemapMax2   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _TransparencyRemapMax2)
-#define _TransparencyRemapMax3   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _TransparencyRemapMax3)
+#define _AlphaRemapMin0          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AlphaRemapMin0)
+#define _AlphaRemapMin1          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AlphaRemapMin1)
+#define _AlphaRemapMin2          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AlphaRemapMin2)
+#define _AlphaRemapMin3          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AlphaRemapMin3)
+#define _AlphaRemapMax0          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AlphaRemapMax0)
+#define _AlphaRemapMax1          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AlphaRemapMax1)
+#define _AlphaRemapMax2          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AlphaRemapMax2)
+#define _AlphaRemapMax3          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AlphaRemapMax3)
 #define _AORemapMin0             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AORemapMin0)
 #define _AORemapMin1             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AORemapMin1)
 #define _AORemapMin2             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AORemapMin2)
@@ -461,6 +469,8 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float , _Smoothness)
     UNITY_DOTS_INSTANCED_PROP(float , _SmoothnessRemapMin)
     UNITY_DOTS_INSTANCED_PROP(float , _SmoothnessRemapMax)
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaRemapMin)
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaRemapMax)
     UNITY_DOTS_INSTANCED_PROP(float , _AORemapMin)
     UNITY_DOTS_INSTANCED_PROP(float , _AORemapMax)
     UNITY_DOTS_INSTANCED_PROP(float , _DetailAlbedoScale)
@@ -482,8 +492,8 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _Smoothness             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _Smoothness)
 #define _SmoothnessRemapMin     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _SmoothnessRemapMin)
 #define _SmoothnessRemapMax     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _SmoothnessRemapMax)
-#define _TransparencyRemapMin   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _TransparencyRemapMin)
-#define _TransparencyRemapMax   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _TransparencyRemapMax)
+#define _AlphaRemapMin          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AlphaRemapMin)
+#define _AlphaRemapMax          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AlphaRemapMax)
 #define _AORemapMin             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AORemapMin)
 #define _AORemapMax             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AORemapMax)
 #define _DetailAlbedoScale      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _DetailAlbedoScale)
