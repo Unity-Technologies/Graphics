@@ -172,7 +172,6 @@ namespace UnityEngine.VFX
                     case VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart:
                         return clipEnd - srcTime - clipStart;
                     case VisualEffectPlayableSerializedEvent.TimeSpace.Percentage:
-                        //TODOPAUL: Can be simplified
                         return clipEnd - clipStart - (clipEnd - clipStart) * (srcTime / 100.0);
                     case VisualEffectPlayableSerializedEvent.TimeSpace.Absolute:
                         return clipEnd - srcTime;
