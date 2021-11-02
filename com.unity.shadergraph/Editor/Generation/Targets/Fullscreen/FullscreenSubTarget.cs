@@ -353,6 +353,20 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         protected virtual KeywordCollection GetPassKeywords(FullscreenCompatibility compatibility)
             => new KeywordCollection();
 
+        static StructDescriptor GetFullscreenAttributes()
+        {
+            return new StructDescriptor()
+            {
+                name = "Attributes",
+                packFields = false,
+                fields = new FieldDescriptor[]
+                {
+                    StructFields.Attributes.instanceID,
+                    StructFields.Attributes.vertexID,
+                }
+            };
+        }
+
         public virtual PassDescriptor GenerateFullscreenPass(FullscreenCompatibility compatibility)
         {
             var fullscreenPass = new PassDescriptor
@@ -383,7 +397,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 // Fields
                 structs = new StructCollection
                 {
-                    { Structs.Attributes },
+                    { GetFullscreenAttributes() },
                     { Structs.SurfaceDescriptionInputs },
                     { Varyings },
                     { Structs.VertexDescriptionInputs },
@@ -391,9 +405,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 fieldDependencies = FieldDependencies.Default,
                 requiredFields = new FieldCollection
                 {
-                    StructFields.Attributes.uv0, // Always need uv0 to calculate the other properties in fullscreen node code
-                    StructFields.Attributes.positionOS,
-                    StructFields.Varyings.texCoord0,
+                    StructFields.Varyings.texCoord0, // Always need texCoord0 to calculate the other properties in fullscreen node code
                     StructFields.Varyings.texCoord1, // We store the view direction computed in the vertex in the texCoord1
                     StructFields.Attributes.vertexID, // Need the vertex Id for the DrawProcedural case
                 },
