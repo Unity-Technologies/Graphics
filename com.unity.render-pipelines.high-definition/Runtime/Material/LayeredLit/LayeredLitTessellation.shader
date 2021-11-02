@@ -49,6 +49,16 @@ Shader "HDRP/LayeredLitTessellation"
         _SmoothnessRemapMax2("SmoothnessRemapMax2", Range(0.0, 1.0)) = 1.0
         _SmoothnessRemapMax3("SmoothnessRemapMax3", Range(0.0, 1.0)) = 1.0
 
+        _TransparencyRemapMin0("TransparencyRemapMin0", Range(0.0, 1.0)) = 0.0
+        _TransparencyRemapMin1("TransparencyRemapMin1", Range(0.0, 1.0)) = 0.0
+        _TransparencyRemapMin2("TransparencyRemapMin2", Range(0.0, 1.0)) = 0.0
+        _TransparencyRemapMin3("TransparencyRemapMin3", Range(0.0, 1.0)) = 0.0
+
+        _TransparencyRemapMax0("TransparencyRemapMax0", Range(0.0, 1.0)) = 1.0
+        _TransparencyRemapMax1("TransparencyRemapMax1", Range(0.0, 1.0)) = 1.0
+        _TransparencyRemapMax2("TransparencyRemapMax2", Range(0.0, 1.0)) = 1.0
+        _TransparencyRemapMax3("TransparencyRemapMax3", Range(0.0, 1.0)) = 1.0
+
         _AORemapMin0("AORemapMin0", Range(0.0, 1.0)) = 0.0
         _AORemapMin1("AORemapMin1", Range(0.0, 1.0)) = 0.0
         _AORemapMin2("AORemapMin2", Range(0.0, 1.0)) = 0.0

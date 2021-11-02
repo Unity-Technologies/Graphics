@@ -17,6 +17,8 @@ Shader "HDRP/Lit"
         _MetallicRemapMax("MetallicRemapMax", Float) = 1.0
         _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
         _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
+        _TransparencyRemapMin("TransparencyRemapMin", Float) = 0.0
+        _TransparencyRemapMax("TransparencyRemapMax", Float) = 1.0
         _AORemapMin("AORemapMin", Float) = 0.0
         _AORemapMax("AORemapMax", Float) = 1.0
 
