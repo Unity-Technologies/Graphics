@@ -126,12 +126,14 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
+      #- [OSX_Apple_Silicon_Metal]: <shared.platform.commands.copy_images_run>
       - [all]: <shared.platform.commands.call_utr>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
+      #- [OSX_Apple_Silicon_Metal]: <shared.platform.commands.copy_images_build>
       - [all]: <shared.platform.commands.call_utr>
     after:
       - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
@@ -358,20 +360,19 @@ platforms:
     commands:
       [Metal]:
         setup_utr:
-          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-          - command: chmod +x ./utr
+          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+          - chmod +x ./utr
         call_utr:
-          - command: cp -rf TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer
-          - command: |5-
+          - cp -rf TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer
+          - |5-
                     export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                     ./utr <UTR_FLAGS>
         call_utr_without_git:
-          - command: cp -rf TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer
-          - command: ./utr <UTR_FLAGS>
+          - ./utr <UTR_FLAGS>
         unity_downloader_cli:
-          - command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-          - command: brew install unity/unity/unity-downloader-cli
-          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+          - brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+          - brew install unity/unity/unity-downloader-cli
+          - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
 
 
   Linux:
