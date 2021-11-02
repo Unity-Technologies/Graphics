@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
             if (mixer == null)
                 return;
 
-            var debugFrames = mixer.GetDebugInfo();
+            var debugFrames = mixer.GetDebugFrames();
             if (debugFrames == null)
                 return;
 

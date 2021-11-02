@@ -83,11 +83,16 @@ namespace UnityEngine.VFX
             const int kErrorIndex = int.MinValue;
             int m_LastChunk = kErrorIndex;
             int m_LastEvent = kErrorIndex;
-            bool[] m_ClipState; //TODOPAUL: Actually, it's only useful for debug move behind
             double m_LastPlayableTime = double.MinValue;
 
 #if UNITY_EDITOR
             uint m_LastErrorID = uint.MaxValue;
+            bool[] m_ClipState;
+            Queue<Debug> m_DebugFrame = new Queue<Debug>(); //TODOPAUL: can be cleaned after QA verification
+            public IEnumerable<Debug> GetDebugFrames()
+            {
+                return m_DebugFrame;
+            }
 #endif
             VisualEffect m_Target;
             bool m_BackupReseedOnPlay;
@@ -114,9 +119,8 @@ namespace UnityEngine.VFX
                 public bool[] clipState;
             }
 
-            //TODOPAUL if right thing todo => store it in VFXManager
+            //TODOPAUL if right thing todo => store it in VFXManager & use reflection in VFXSettings UX
             public static float s_MaximumScrubbingTime = 30.0f;
-            public Queue<Debug> m_DebugFrame = new Queue<Debug>();
 
             private void OnEnterChunk(int currentChunk)
             {
@@ -124,7 +128,9 @@ namespace UnityEngine.VFX
 
                 if (!chunk.scrubbing)
                 {
+#if UNITY_EDITOR
                     m_ClipState = new bool[chunk.clips.Length];
+#endif
                 }
                 else
                 {
@@ -146,9 +152,12 @@ namespace UnityEngine.VFX
                     m_Target.Reinit(false);
                     RestoreVFXState();
                 }
+#if UNITY_EDITOR
                 m_ClipState = null;
+#endif
             }
 
+#if UNITY_EDITOR
             private void PushDebugState(Debug.State scrubbing, double deltaTime)
             {
                 var current = new Debug()
@@ -168,6 +177,7 @@ namespace UnityEngine.VFX
                 }
                 m_DebugFrame.Enqueue(current);
             }
+#endif
 
             private static double Abs(double a)
             {
@@ -364,7 +374,9 @@ namespace UnityEngine.VFX
                     }
                 }
                 m_LastPlayableTime = playableTime;
+#if UNITY_EDITOR
                 PushDebugState(dbg, deltaTime);
+#endif
             }
 
             void ProcessEvent(int eventIndex, Chunk currentChunk)
@@ -375,21 +387,22 @@ namespace UnityEngine.VFX
                 m_LastEvent = eventIndex;
                 var currentEvent = currentChunk.events[eventIndex];
 
-                //TODOPAUL, these update are only debug code
+#if UNITY_EDITOR
                 if (currentEvent.clipType == Event.ClipType.Enter)
                 {
                     if (m_ClipState[currentEvent.clipIndex])
-                        throw new InvalidOperationException(); //TODOPAUL remove exception here
+                        throw new InvalidOperationException();
 
                     m_ClipState[currentEvent.clipIndex] = true;
                 }
                 else if (currentEvent.clipType == Event.ClipType.Exit)
                 {
                     if (!m_ClipState[currentEvent.clipIndex])
-                        throw new InvalidOperationException(); //TODOPAUL remove exception here
+                        throw new InvalidOperationException();
 
                     m_ClipState[currentEvent.clipIndex] = false;
                 }
+#endif
 
                 m_Target.SendEvent(currentEvent.nameId, currentEvent.attribute);
             }
@@ -587,10 +600,12 @@ namespace UnityEngine.VFX
         ScrubbingCacheHelper m_ScrubbingCacheHelper;
         VisualEffect m_Target;
 
-        public Queue<ScrubbingCacheHelper.Debug> GetDebugInfo()
+#if UNITY_EDITOR
+        public IEnumerable<ScrubbingCacheHelper.Debug> GetDebugFrames()
         {
-            return m_ScrubbingCacheHelper?.m_DebugFrame;
+            return m_ScrubbingCacheHelper?.GetDebugFrames();
         }
+#endif
 
         public override void PrepareFrame(Playable playable, FrameData data)
         {
