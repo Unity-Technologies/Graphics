@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
+  m_Name: MathNodes-Vector
+  m_EditorClassIdentifier: 
+  testMaterial:
+  - hash: 848901644
+    material: {fileID: 2100000, guid: 93964021c07102948b1aa28092d7e0a3, type: 2}
+    enabled: 1
+  - hash: 721213902
+    material: {fileID: 2100000, guid: d62037332fea37c41a6d79b48dcfbcb7, type: 2}
+    enabled: 1
+  - hash: 112606368
+    material: {fileID: 2100000, guid: eaa8cf9dd0d9a03438577f73efd27074, type: 2}
+    enabled: 1
+  - hash: 1535652370
+    material: {fileID: 2100000, guid: 7bc31f183227fa542861d4fdd6b23e14, type: 2}
+    enabled: 1
+  - hash: 1748794516
+    material: {fileID: 2100000, guid: 70ad7127b70e82c48a00612e5b1a5472, type: 2}
+    enabled: 1
+  - hash: 523284438
+    material: {fileID: 2100000, guid: a606bd6c8d2d8a84e93cc264a76d3388, type: 2}
+    enabled: 1
+  - hash: 1621358488
+    material: {fileID: 2100000, guid: 0617cd09eeaa1b948b23240da9afeefc, type: 2}
+    enabled: 1
+  - hash: 1531418650
+    material: {fileID: 2100000, guid: ee1164acc9b01f34caad2071b6dcd055, type: 2}
+    enabled: 1
+  - hash: 1315515676
+    material: {fileID: 2100000, guid: bbb4150cb66d31946a1a6ef354672b8c, type: 2}
+    enabled: 1
+  - hash: 456633822
+    material: {fileID: 2100000, guid: cc30e9f0dde814b4b9e3d1a7cac4b041, type: 2}
+    enabled: 1
+  customMesh: {fileID: 0}
+  isCameraPerspective: 0
+  settings:
+    TargetWidth: 32
+    TargetHeight: 32
+    PerPixelCorrectnessThreshold: 0
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
+    AverageCorrectnessThreshold: 0
+    IncorrectPixelsThreshold: 0.0000038146973
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 4
+    ActiveImageTests: 1
+    ActivePixelTests: 7

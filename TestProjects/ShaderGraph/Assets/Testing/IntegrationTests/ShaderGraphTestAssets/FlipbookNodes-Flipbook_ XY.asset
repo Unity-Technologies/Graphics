@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
+  m_Name: FlipbookNodes-Flipbook_ XY
+  m_EditorClassIdentifier: 
+  testMaterial:
+  - hash: 1635454326
+    material: {fileID: 2100000, guid: ef19574b556679d4e8a91222bd6cfc72, type: 2}
+    enabled: 1
+  - hash: 231362712
+    material: {fileID: 2100000, guid: b9129fd2bb1dca044a093195e3f73932, type: 2}
+    enabled: 1
+  - hash: 166861706
+    material: {fileID: 2100000, guid: 795eedb8572e6974ba0c4422a445b230, type: 2}
+    enabled: 1
+  - hash: 17613438
+    material: {fileID: 2100000, guid: 916b1ae6bd5ad2744b946b48bb69f487, type: 2}
+    enabled: 1
+  - hash: 549731774
+    material: {fileID: 2100000, guid: bdfaca693487c054f85de27756a3382e, type: 2}
+    enabled: 1
+  - hash: 1823823488
+    material: {fileID: 2100000, guid: adc2dfec0c488d64ab2d3d6a47b17a63, type: 2}
+    enabled: 1
+  - hash: 1499310594
+    material: {fileID: 2100000, guid: 50a72e2955f76d04288590ea200a9397, type: 2}
+    enabled: 1
+  - hash: 1822520452
+    material: {fileID: 2100000, guid: 6a93a37fce728614e8ae0f9ea3ac8d77, type: 2}
+    enabled: 1
+  - hash: 2120877190
+    material: {fileID: 2100000, guid: 47c781af7cc1b854aa23ff49a823598b, type: 2}
+    enabled: 1
+  - hash: 2057613704
+    material: {fileID: 2100000, guid: 45229a305f732804ea3202a5ba32f4e0, type: 2}
+    enabled: 1
+  customMesh: {fileID: 0}
+  isCameraPerspective: 0
+  settings:
+    TargetWidth: 512
+    TargetHeight: 512
+    PerPixelCorrectnessThreshold: 0.00075
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
+    AverageCorrectnessThreshold: 0.0001
+    IncorrectPixelsThreshold: 0.0000038146973
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 3
+    ActiveImageTests: 1
+    ActivePixelTests: 7

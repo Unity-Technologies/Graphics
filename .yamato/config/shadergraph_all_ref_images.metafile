@@ -1,0 +1,43 @@
+project:
+  name: ShaderGraph_ref
+
+jobs:
+  - name: All Ref Images for <PROJECT_NAME>
+    triggers:
+      expression: pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+    dependencies:
+      - .yamato/shadergraph_ref-android-opengles3.yml#ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_<TRACK>
+      - .yamato/shadergraph_ref-android-opengles3.yml#ShaderGraph_ref_Android_OpenGLES3_playmode_ref_images_il2cpp_Linear_<TRACK>
+      - .yamato/shadergraph_ref-android-opengles3.yml#ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linear_<TRACK>
+
+      - .yamato/shadergraph_ref-android-vulkan.yml#ShaderGraph_ref_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_<TRACK>
+      - .yamato/shadergraph_ref-android-vulkan.yml#ShaderGraph_ref_Android_Vulkan_playmode_ref_images_il2cpp_Linear_<TRACK>
+      - .yamato/shadergraph_ref-android-vulkan.yml#ShaderGraph_ref_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_<TRACK>
+
+      - .yamato/shadergraph_ref-iphone-metal.yml#ShaderGraph_ref_iPhone_Metal_Standalone_ref_images_il2cpp_Linear_<TRACK>
+      - .yamato/shadergraph_ref-iphone-metal.yml#ShaderGraph_ref_iPhone_Metal_playmode_ref_images_il2cpp_Linear_<TRACK>
+      - .yamato/shadergraph_ref-iphone-metal.yml#ShaderGraph_ref_iPhone_Metal_Standalone_cache_ref_images_il2cpp_Linear_<TRACK>
+
+      - .yamato/shadergraph_ref-linux-openglcore.yml#ShaderGraph_ref_Linux_OpenGLCore_Standalone_ref_images_mono_Linear_<TRACK>
+      - .yamato/shadergraph_ref-linux-openglcore.yml#ShaderGraph_ref_Linux_OpenGLCore_playmode_ref_images_mono_Linear_<TRACK>
+      - .yamato/shadergraph_ref-linux-openglcore.yml#ShaderGraph_ref_Linux_OpenGLCore_Standalone_cache_ref_images_mono_Linear_<TRACK>
+
+      - .yamato/shadergraph_ref-linux-vulkan.yml#ShaderGraph_ref_Linux_Vulkan_Standalone_ref_images_mono_Linear_<TRACK>
+      - .yamato/shadergraph_ref-linux-vulkan.yml#ShaderGraph_ref_Linux_Vulkan_playmode_ref_images_mono_Linear_<TRACK>
+      - .yamato/shadergraph_ref-linux-vulkan.yml#ShaderGraph_ref_Linux_Vulkan_Standalone_cache_ref_images_mono_Linear_<TRACK>
+
+      - .yamato/shadergraph_ref-osx-metal.yml#ShaderGraph_ref_OSX_Metal_Standalone_ref_images_mono_Linear_<TRACK>
+      - .yamato/shadergraph_ref-osx-metal.yml#ShaderGraph_ref_OSX_Metal_playmode_ref_images_mono_Linear_<TRACK>
+      - .yamato/shadergraph_ref-osx-metal.yml#ShaderGraph_ref_OSX_Metal_Standalone_cache_ref_images_mono_Linear_<TRACK>
+
+      - .yamato/shadergraph_ref-osx-openglcore.yml#ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_<TRACK>
+      - .yamato/shadergraph_ref-osx-openglcore.yml#ShaderGraph_ref_OSX_OpenGLCore_playmode_ref_images_mono_Linear_<TRACK>
+      - .yamato/shadergraph_ref-osx-openglcore.yml#ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_<TRACK>
+
+      - .yamato/shadergraph_ref-win-dx11.yml#ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_<TRACK>
+      - .yamato/shadergraph_ref-win-dx11.yml#ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_<TRACK>
+      - .yamato/shadergraph_ref-win-dx11.yml#ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_<TRACK>
+
+      - .yamato/shadergraph_ref-win-vulkan.yml#ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_<TRACK>
+      - .yamato/shadergraph_ref-win-vulkan.yml#ShaderGraph_ref_Win_Vulkan_playmode_ref_images_mono_Linear_<TRACK>
+      - .yamato/shadergraph_ref-win-vulkan.yml#ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_<TRACK>

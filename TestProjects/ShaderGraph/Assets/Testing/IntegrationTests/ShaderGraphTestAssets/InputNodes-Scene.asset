@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
+  m_Name: InputNodes-Scene
+  m_EditorClassIdentifier: 
+  testMaterial:
+  - hash: 381011170
+    material: {fileID: 2100000, guid: e30559285a4234e4e81e035cbb16bcb9, type: 2}
+    enabled: 1
+  - hash: 2093929668
+    material: {fileID: 2100000, guid: 0fcc00f289f7726468d0e88dfac0a9bc, type: 2}
+    enabled: 1
+  - hash: 1782133190
+    material: {fileID: 2100000, guid: 09771628e290eed4fa83e170d5e3e75c, type: 2}
+    enabled: 1
+  - hash: 598065672
+    material: {fileID: 2100000, guid: 7d3c2e7ba51aa9e43b34c479f46f24a2, type: 2}
+    enabled: 1
+  - hash: 426766346
+    material: {fileID: 2100000, guid: 4bb8b3d72d46f2842b32ad58faf95307, type: 2}
+    enabled: 1
+  - hash: 1143109708
+    material: {fileID: 2100000, guid: ac7a77c7b377aaa499f92cfa91d935d6, type: 2}
+    enabled: 1
+  - hash: 1525212750
+    material: {fileID: 2100000, guid: 9bcfd44441e542b489be906f77778383, type: 2}
+    enabled: 1
+  - hash: 854459984
+    material: {fileID: 2100000, guid: ee2c6436cc738df448e0534ed0b41877, type: 2}
+    enabled: 1
+  - hash: 1324532306
+    material: {fileID: 2100000, guid: 25cda9676f16b8348b2438581adda2e9, type: 2}
+    enabled: 1
+  - hash: 963055956
+    material: {fileID: 2100000, guid: de46ac3b945364d419b0153b97d0ec9a, type: 2}
+    enabled: 1
+  - hash: 519262230
+    material: {fileID: 2100000, guid: 9da8946dc508d8042bd54484406fb55d, type: 2}
+    enabled: 1
+  - hash: 1209545816
+    material: {fileID: 2100000, guid: 70fc3f58e75e6d44cbde88f0191f35b8, type: 2}
+    enabled: 1
+  - hash: 1823076570
+    material: {fileID: 2100000, guid: 3db73423bc3149545820d071cb80f46b, type: 2}
+    enabled: 1
+  - hash: 260942588
+    material: {fileID: 2100000, guid: aedce5966cf2d0248abb389dee616f57, type: 2}
+    enabled: 1
+  customMesh: {fileID: 0}
+  isCameraPerspective: 0
+  settings:
+    TargetWidth: 32
+    TargetHeight: 32
+    PerPixelCorrectnessThreshold: 0.00075
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
+    AverageCorrectnessThreshold: 0.0001
+    IncorrectPixelsThreshold: 0.0000038146973
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 4
+    ActiveImageTests: 1
+    ActivePixelTests: 7

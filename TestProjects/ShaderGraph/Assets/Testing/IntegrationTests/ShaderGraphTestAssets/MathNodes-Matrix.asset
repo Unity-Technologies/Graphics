@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
+  m_Name: MathNodes-Matrix
+  m_EditorClassIdentifier: 
+  testMaterial:
+  - hash: 760376200
+    material: {fileID: 2100000, guid: c6c18e70a58f0cb49993aa90d5b4ad78, type: 2}
+    enabled: 1
+  - hash: 1777080394
+    material: {fileID: 2100000, guid: 6fac4456b948a614da8ae3c7bd22c2a7, type: 2}
+    enabled: 1
+  - hash: 791601548
+    material: {fileID: 2100000, guid: 76655143116a3d6438a43b6dd1900752, type: 2}
+    enabled: 1
+  - hash: 529261710
+    material: {fileID: 2100000, guid: 38dbc1218db9e1c4d977848e5a41d7fd, type: 2}
+    enabled: 1
+  customMesh: {fileID: 0}
+  isCameraPerspective: 0
+  settings:
+    TargetWidth: 32
+    TargetHeight: 32
+    PerPixelCorrectnessThreshold: 0
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
+    AverageCorrectnessThreshold: 0
+    IncorrectPixelsThreshold: 0.0000038146973
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 4
+    ActiveImageTests: 1
+    ActivePixelTests: 7

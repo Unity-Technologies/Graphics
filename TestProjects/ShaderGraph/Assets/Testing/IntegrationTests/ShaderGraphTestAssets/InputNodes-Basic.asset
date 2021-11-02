@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
+  m_Name: InputNodes-Basic
+  m_EditorClassIdentifier: 
+  testMaterial:
+  - hash: 1944479750
+    material: {fileID: 2100000, guid: d814d95bc4ec85c46a02c230bf1e5f4d, type: 2}
+    enabled: 1
+  - hash: 1673668104
+    material: {fileID: 2100000, guid: 0268a4fc6907b8240b3fb64222baaa69, type: 2}
+    enabled: 1
+  - hash: 747778634
+    material: {fileID: 2100000, guid: 1e453216886c1bf4688b96116f86b777, type: 2}
+    enabled: 1
+  - hash: 1493897868
+    material: {fileID: 2100000, guid: b04b49814613c854387c416b1f67acdf, type: 2}
+    enabled: 1
+  - hash: 2139790862
+    material: {fileID: 2100000, guid: 15da69e975e2de64eb273074d3e1080c, type: 2}
+    enabled: 1
+  - hash: 58702872
+    material: {fileID: 2100000, guid: 529002b2ac92aad4498264473a59c646, type: 2}
+    enabled: 1
+  - hash: 345802290
+    material: {fileID: 2100000, guid: c4c6caf8e677bfb45ba60c2a9beb6381, type: 2}
+    enabled: 1
+  - hash: 1483731860
+    material: {fileID: 2100000, guid: 0d6f91bee2362d04fbf428b8390ace03, type: 2}
+    enabled: 1
+  - hash: 1641183510
+    material: {fileID: 2100000, guid: 682c5d1ca0ec7ed4f85138654233b83e, type: 2}
+    enabled: 1
+  - hash: 1155457944
+    material: {fileID: 2100000, guid: ec4b5c5ef5c00ce4ba9774a53eb12d44, type: 2}
+    enabled: 1
+  - hash: 1385953434
+    material: {fileID: 2100000, guid: 8df342b7d21a07b4bbf7ba878998560f, type: 2}
+    enabled: 1
+  - hash: 1119380124
+    material: {fileID: 2100000, guid: 75da7a16e3b8ca44999294c38c0083f9, type: 2}
+    enabled: 0
+  - hash: 1019661214
+    material: {fileID: 2100000, guid: 6bead1a7a4e2aa14f937d20af41c7a05, type: 2}
+    enabled: 0
+  - hash: 956720800
+    material: {fileID: 2100000, guid: 9a95303f9b531834a905897b7b83d0dc, type: 2}
+    enabled: 0
+  - hash: 618331490
+    material: {fileID: 2100000, guid: 9570bcaad6dcc6c48bbf4cb19973365a, type: 2}
+    enabled: 0
+  - hash: 1561086372
+    material: {fileID: 2100000, guid: b81eb0386c267d3469b7a09bd0b5e597, type: 2}
+    enabled: 0
+  - hash: 180699446
+    material: {fileID: 2100000, guid: 4796c8cbaf4da5946a8a77c643d9b202, type: 2}
+    enabled: 1
+  - hash: 1940800808
+    material: {fileID: 2100000, guid: 9daae4234eeaab5499473f662fd9a30b, type: 2}
+    enabled: 1
+  - hash: 969823402
+    material: {fileID: 2100000, guid: 3e4f3144a2a3f504c8cb8366e973f39a, type: 2}
+    enabled: 1
+  - hash: 1816761900
+    material: {fileID: 2100000, guid: 450b69a7c10f0f340a4a87c1bd303a74, type: 2}
+    enabled: 1
+  customMesh: {fileID: 0}
+  isCameraPerspective: 0
+  settings:
+    TargetWidth: 32
+    TargetHeight: 32
+    PerPixelCorrectnessThreshold: 0.00075
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
+    AverageCorrectnessThreshold: 0.0001
+    IncorrectPixelsThreshold: 0.0000038146973
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 4
+    ActiveImageTests: 1
+    ActivePixelTests: 7

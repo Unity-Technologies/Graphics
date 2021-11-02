@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
+  m_Name: MathNodes-Trigonometry
+  m_EditorClassIdentifier: 
+  testMaterial:
+  - hash: 345479826
+    material: {fileID: 2100000, guid: 4559b64ab29976940846cafed6a93577, type: 2}
+    enabled: 1
+  - hash: 2114692212
+    material: {fileID: 2100000, guid: 92865e6166939614c87e90bd12a3c784, type: 2}
+    enabled: 1
+  - hash: 754750646
+    material: {fileID: 2100000, guid: 591d77b2053fef743b3fd88e96df036d, type: 2}
+    enabled: 1
+  - hash: 1400419320
+    material: {fileID: 2100000, guid: e5076f2fbcadf564a96a2d07c495de04, type: 2}
+    enabled: 1
+  - hash: 906525434
+    material: {fileID: 2100000, guid: 835a2c443a1a6a24b9eb658fdeb6e0f0, type: 2}
+    enabled: 1
+  - hash: 305944476
+    material: {fileID: 2100000, guid: 379ea1381ca8e6b458b92c0c7d9647d9, type: 2}
+    enabled: 1
+  - hash: 1012230142
+    material: {fileID: 2100000, guid: 8c8acdbed8abc834f994fcd565170360, type: 2}
+    enabled: 1
+  - hash: 1429283072
+    material: {fileID: 2100000, guid: a5d16011b121e8744964da4a45c1f6ac, type: 2}
+    enabled: 1
+  - hash: 357891746
+    material: {fileID: 2100000, guid: 812ef3a3532a75e49859b4e01048a2c6, type: 2}
+    enabled: 1
+  - hash: 1851255940
+    material: {fileID: 2100000, guid: c0cba21347e03c34488addd37bc17173, type: 2}
+    enabled: 1
+  - hash: 2114982278
+    material: {fileID: 2100000, guid: 1b7a171961a1dff4eac2b823dd23ec64, type: 2}
+    enabled: 1
+  - hash: 539620296
+    material: {fileID: 2100000, guid: d8b2e3069204e5549923a7ab92f8f8c4, type: 2}
+    enabled: 1
+  customMesh: {fileID: 0}
+  isCameraPerspective: 0
+  settings:
+    TargetWidth: 32
+    TargetHeight: 32
+    PerPixelCorrectnessThreshold: 0
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
+    AverageCorrectnessThreshold: 0
+    IncorrectPixelsThreshold: 0.0000038146973
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 4
+    ActiveImageTests: 1
+    ActivePixelTests: 7

@@ -1,7 +1,19 @@
 {
   "dependencies": {
+    "com.unity.addressables": {
+      "version": "1.16.16",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.scriptablebuildpipeline": "1.15.2",
+        "com.unity.modules.assetbundle": "1.0.0",
+        "com.unity.modules.unitywebrequest": "1.0.0",
+        "com.unity.modules.unitywebrequestassetbundle": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.ext.nunit": {
-      "version": "1.0.5",
+      "version": "1.0.6",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -14,6 +26,13 @@
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "2.0.0-preview"
       },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.ide.visualstudio": {
+      "version": "2.0.5",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.vscode": {
@@ -42,7 +61,8 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.ugui": "1.0.0"
+        "com.unity.ugui": "1.0.0",
+        "com.unity.modules.physics": "1.0.0"
       }
     },
     "com.unity.render-pipelines.universal": {
@@ -51,9 +71,16 @@
       "source": "local",
       "dependencies": {
         "com.unity.mathematics": "1.1.0",
-        "com.unity.render-pipelines.core": "11.0.0",
-        "com.unity.shadergraph": "11.0.0"
+        "com.unity.render-pipelines.core": "12.0.0",
+        "com.unity.shadergraph": "12.0.0"
       }
+    },
+    "com.unity.scriptablebuildpipeline": {
+      "version": "1.16.1",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
     },
     "com.unity.searcher": {
       "version": "4.3.1",
@@ -67,7 +94,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "11.0.0",
+        "com.unity.render-pipelines.core": "12.0.0",
         "com.unity.searcher": "4.3.1"
       }
     },
@@ -111,15 +138,27 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.testframework.graphics": {
-      "version": "7.7.1-preview",
+      "version": "ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testframework.graphics.git#ShaderGraph-changes",
       "depth": 0,
-      "source": "registry",
+      "source": "git",
       "dependencies": {
         "com.unity.xr.management": "3.2.15",
         "com.unity.external.test-protocol": "1.0.0-preview",
-        "com.unity.nuget.newtonsoft-json": "2.0.0-preview"
+        "com.unity.nuget.newtonsoft-json": "2.0.0-preview",
+        "com.unity.subsystemregistration": "1.0.6",
+        "com.unity.xr.legacyinputhelpers": "2.1.6",
+        "com.unity.modules.xr": "1.0.0",
+        "com.unity.modules.vr": "1.0.0",
+        "com.unity.addressables": "1.16.15",
+        "com.unity.modules.imageconversion": "1.0.0"
       },
-      "url": "https://packages.unity.com"
+      "hash": "83f51b281e5537360fbbdec3a74b5ee004b14858"
+    },
+    "com.unity.testing.xr": {
+      "version": "file:../../../com.unity.testing.xr",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
     },
     "com.unity.testtools.codecoverage": {
       "version": "1.1.0",
@@ -144,7 +183,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.shadergraph": "11.0.0"
+        "com.unity.shadergraph": "12.0.0"
       }
     },
     "com.unity.xr.interactionsubsystems": {
@@ -157,14 +196,17 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.xr.legacyinputhelpers": {
-      "version": "2.1.6",
-      "depth": 2,
+      "version": "2.1.7",
+      "depth": 1,
       "source": "registry",
-      "dependencies": {},
+      "dependencies": {
+        "com.unity.modules.vr": "1.0.0",
+        "com.unity.modules.xr": "1.0.0"
+      },
       "url": "https://packages.unity.com"
     },
     "com.unity.xr.management": {
-      "version": "3.2.16",
+      "version": "3.2.17",
       "depth": 1,
       "source": "registry",
       "dependencies": {

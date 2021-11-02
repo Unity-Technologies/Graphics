@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
+  m_Name: InputNodes-Lighting
+  m_EditorClassIdentifier: 
+  testMaterial:
+  - hash: 350115228
+    material: {fileID: 2100000, guid: 4724c71a98b1d364c93b296b04c07ff1, type: 2}
+    enabled: 1
+  - hash: 1478126590
+    material: {fileID: 2100000, guid: 25935d4365f93d44aa36a93f04adb7ef, type: 2}
+    enabled: 1
+  - hash: 927641088
+    material: {fileID: 2100000, guid: e9f05bea2f29da746adeecf46c8dc343, type: 2}
+    enabled: 1
+  - hash: 2093222786
+    material: {fileID: 2100000, guid: dc8b575825450dc4b98186313a8c0d30, type: 2}
+    enabled: 1
+  - hash: 1530791684
+    material: {fileID: 2100000, guid: a59924d7b11bf1e41a88cf8abda7d247, type: 2}
+    enabled: 1
+  customMesh: {fileID: 0}
+  isCameraPerspective: 0
+  settings:
+    TargetWidth: 32
+    TargetHeight: 32
+    PerPixelCorrectnessThreshold: 0.00075
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
+    AverageCorrectnessThreshold: 0.0001
+    IncorrectPixelsThreshold: 0.0000038146973
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 4
+    ActiveImageTests: 1
+    ActivePixelTests: 7

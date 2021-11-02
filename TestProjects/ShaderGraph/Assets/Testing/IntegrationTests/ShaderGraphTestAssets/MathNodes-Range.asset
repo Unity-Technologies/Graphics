@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
+  m_Name: MathNodes-Range
+  m_EditorClassIdentifier: 
+  testMaterial:
+  - hash: 978445266
+    material: {fileID: 2100000, guid: 95e670e2d0032a648ab3155116fcbae2, type: 2}
+    enabled: 1
+  - hash: 1240849876
+    material: {fileID: 2100000, guid: 5ef854dd968a34848a4d1b235a9789a4, type: 2}
+    enabled: 1
+  - hash: 1359459798
+    material: {fileID: 2100000, guid: 05c50cfdf88d4c84d9751c52eae2f501, type: 2}
+    enabled: 1
+  - hash: 1688008536
+    material: {fileID: 2100000, guid: cfa4391e2ad41c3499174f80c9652498, type: 2}
+    enabled: 1
+  - hash: 784954010
+    material: {fileID: 2100000, guid: 5906729b2061d214e8104dae8c5e9818, type: 2}
+    enabled: 1
+  - hash: 2145558620
+    material: {fileID: 2100000, guid: 2e05f0e630a73784380afcbb489d0ee4, type: 2}
+    enabled: 1
+  - hash: 1597584350
+    material: {fileID: 2100000, guid: 30d632e33534c754dbf39aeddfadb79a, type: 2}
+    enabled: 1
+  - hash: 910677984
+    material: {fileID: 2100000, guid: 46694dd177026014398bc62339b44207, type: 2}
+    enabled: 1
+  customMesh: {fileID: 0}
+  isCameraPerspective: 0
+  settings:
+    TargetWidth: 32
+    TargetHeight: 32
+    PerPixelCorrectnessThreshold: 0
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
+    AverageCorrectnessThreshold: 0
+    IncorrectPixelsThreshold: 0.0000038146973
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 4
+    ActiveImageTests: 1
+    ActivePixelTests: 7

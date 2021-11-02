@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
+  m_Name: InputNodes-Gradient
+  m_EditorClassIdentifier: 
+  testMaterial:
+  - hash: 1682425712
+    material: {fileID: 2100000, guid: 926e0d4b739a9404bba0d7a39f2b6cbc, type: 2}
+    enabled: 1
+  - hash: 1715031922
+    material: {fileID: 2100000, guid: 48efbae969fbcc4449e681032cc712e3, type: 2}
+    enabled: 1
+  - hash: 1747267956
+    material: {fileID: 2100000, guid: 10fab06966d1aa34fbe3eaa323f5d56c, type: 2}
+    enabled: 1
+  - hash: 1747503982
+    material: {fileID: 2100000, guid: 371e6315996922048b6fe61c752b9eef, type: 2}
+    enabled: 1
+  - hash: 1265177590
+    material: {fileID: 2100000, guid: acfaf5a269468ff49b0e1a2ef6e1745c, type: 2}
+    enabled: 1
+  - hash: 481881016
+    material: {fileID: 2100000, guid: ba2b2652d185cf944a076dc8eb1663e1, type: 2}
+    enabled: 1
+  customMesh: {fileID: 0}
+  isCameraPerspective: 0
+  settings:
+    TargetWidth: 32
+    TargetHeight: 32
+    PerPixelCorrectnessThreshold: 0.00075
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
+    AverageCorrectnessThreshold: 0.0001
+    IncorrectPixelsThreshold: 0.0000038146973
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 4
+    ActiveImageTests: 1
+    ActivePixelTests: 7

@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
+  m_Name: MathNodes-Wave
+  m_EditorClassIdentifier: 
+  testMaterial:
+  - hash: 1599254818
+    material: {fileID: 2100000, guid: 325e8d09c24983f4d9ec6f1ddab869cc, type: 2}
+    enabled: 1
+  - hash: 2001611940
+    material: {fileID: 2100000, guid: fff2ca661094ce64d94f843e27d7c38d, type: 2}
+    enabled: 1
+  - hash: 1382959910
+    material: {fileID: 2100000, guid: f7aeae77bef23a644a0c1568f036db6e, type: 2}
+    enabled: 1
+  - hash: 532312552
+    material: {fileID: 2100000, guid: dbf7c8a78533ed648b5632b97834c43d, type: 2}
+    enabled: 1
+  customMesh: {fileID: 0}
+  isCameraPerspective: 0
+  settings:
+    TargetWidth: 32
+    TargetHeight: 32
+    PerPixelCorrectnessThreshold: 0
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
+    AverageCorrectnessThreshold: 0
+    IncorrectPixelsThreshold: 0.0000038146973
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 4
+    ActiveImageTests: 1
+    ActivePixelTests: 7

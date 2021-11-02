@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
+  m_Name: InputNodes-Matrix
+  m_EditorClassIdentifier: 
+  testMaterial:
+  - hash: 1945751944
+    material: {fileID: 2100000, guid: 208f0aebba2206a47bbf4864a122a78a, type: 2}
+    enabled: 1
+  - hash: 587149514
+    material: {fileID: 2100000, guid: 65f6cd56537ae364d87ad2f9b9132b72, type: 2}
+    enabled: 1
+  - hash: 1092561932
+    material: {fileID: 2100000, guid: d758782b22ba1b349ace90f1587221e3, type: 2}
+    enabled: 1
+  - hash: 872103438
+    material: {fileID: 2100000, guid: dcfb14a537463ed4b98e5baa10568016, type: 2}
+    enabled: 1
+  - hash: 128268704
+    material: {fileID: 2100000, guid: bd23bc79fb5787b48bfd4ce08bfe3905, type: 2}
+    enabled: 1
+  - hash: 1032219154
+    material: {fileID: 2100000, guid: d757e0d67613ff24fb1ec121562bddf4, type: 2}
+    enabled: 1
+  - hash: 163533732
+    material: {fileID: 2100000, guid: dd77e20b7f3af2f4c9b791cd9aa0939a, type: 2}
+    enabled: 1
+  - hash: 704277718
+    material: {fileID: 2100000, guid: 64ec0f1fbd38fe540b2c6f05546b6e87, type: 2}
+    enabled: 1
+  - hash: 519101144
+    material: {fileID: 2100000, guid: d9c44cb2ac83cf44f90774d67c98a63b, type: 2}
+    enabled: 1
+  - hash: 1313378842
+    material: {fileID: 2100000, guid: e3f4acff63c003e4d9d71acbc8fd7ace, type: 2}
+    enabled: 1
+  - hash: 1686655388
+    material: {fileID: 2100000, guid: 1e3289acf79259743978bc254defc2c5, type: 2}
+    enabled: 1
+  customMesh: {fileID: 0}
+  isCameraPerspective: 0
+  settings:
+    TargetWidth: 32
+    TargetHeight: 32
+    PerPixelCorrectnessThreshold: 0.00075
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
+    AverageCorrectnessThreshold: 0.0001
+    IncorrectPixelsThreshold: 0.0000038146973
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 4
+    ActiveImageTests: 1
+    ActivePixelTests: 7

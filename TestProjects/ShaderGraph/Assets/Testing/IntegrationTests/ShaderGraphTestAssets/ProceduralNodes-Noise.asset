@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
+  m_Name: ProceduralNodes-Noise
+  m_EditorClassIdentifier: 
+  testMaterial:
+  - hash: 83998658
+    material: {fileID: 2100000, guid: 1c873ba79b4cd644aab9e51a53dc6539, type: 2}
+    enabled: 1
+  - hash: 1149262908
+    material: {fileID: 2100000, guid: ddf3085d56cfce5469d366a091563ea2, type: 2}
+    enabled: 0
+  - hash: 1539404862
+    material: {fileID: 2100000, guid: 26459e0ffe8ad2c438db2272a289ddb0, type: 2}
+    enabled: 0
+  customMesh: {fileID: 0}
+  isCameraPerspective: 0
+  settings:
+    TargetWidth: 512
+    TargetHeight: 512
+    PerPixelCorrectnessThreshold: 0.00075
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
+    AverageCorrectnessThreshold: 0.0001
+    IncorrectPixelsThreshold: 0.0000038146973
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 3
+    ActiveImageTests: 1
+    ActivePixelTests: 7
