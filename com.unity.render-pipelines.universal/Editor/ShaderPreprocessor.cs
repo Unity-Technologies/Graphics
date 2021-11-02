@@ -639,26 +639,26 @@ namespace UnityEditor.Rendering.Universal
         /// Returns if the <see cref="IPreprocessShaders"/> is active.
         /// </summary>
         /// <returns>Returns true or false depending on the specified conditions.</returns>
-        public override bool IsActive()
+        public override bool active
         {
-            UniversalRenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
-            if (urpAsset == null)
-                return false;
+            get
+            {
+                UniversalRenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
+                if (urpAsset == null)
+                    return false;
 
-            if (UniversalRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
-                return false;
+                if (UniversalRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
+                    return false;
 
-            return true;
+                return true;
+            }
         }
 
         /// <summary>
         /// Returns if the variants stripping needs to be exported
         /// </summary>
         /// <returns></returns>
-        public override bool IsExportLogEnabled()
-        {
-            return UniversalRenderPipeline.asset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled;
-        }
+        public override bool exportLog => UniversalRenderPipeline.asset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled;
 
         /// <summary>
         /// Returns if the the variants needs to be logged.
@@ -679,7 +679,8 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }
 
-            throw new System.Exception("Missing ShaderVariant Log Level");
+            Debug.LogError("Missing ShaderVariant Log Level");
+            return false;
         }
 
         protected override bool CanRemoveInput(Shader shader, ShaderSnippetData snippetData, ShaderCompilerData inputData)

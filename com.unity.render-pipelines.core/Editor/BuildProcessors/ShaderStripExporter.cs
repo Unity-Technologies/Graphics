@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.Rendering
@@ -8,33 +7,14 @@ namespace UnityEditor.Rendering
     {
         const string s_TempShaderStripJson = "Temp/shader-strip.json";
 
-        [Serializable]
-        public class Data
-        {
-            public string shader;
-            public string pass;
-            public string passType;
-            public string shaderType;
-            public int variantIn;
-            public int variantOut;
-            public int totalVariantIn;
-            public int totalVariantOut;
-
-            public Data(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> inputData)
-            {
-                this.shader = shader.name;
-                pass = snippetData.passName;
-                passType = snippetData.passType.ToString();
-                shaderType = snippetData.shaderType.ToString();
-                variantIn = inputData.Count;
-            }
-        }
-
-        public static void Export(Data shaderExport)
+        public static void Export(Shader shader, ShaderSnippetData snippetData, int variantIn, int variantOut, int totalVariantIn, int totalVariantOut)
         {
             try
             {
-                System.IO.File.AppendAllText(s_TempShaderStripJson, $"{JsonUtility.ToJson(shaderExport)},{Environment.NewLine}");
+                System.IO.File.AppendAllText(
+                            s_TempShaderStripJson,
+                            $"{{ \"shader\": \"{shader?.name}\", \"pass\": \"{snippetData.passName ?? string.Empty}\", \"passType\": \"{snippetData.passType}\", \"shaderType\": \"{snippetData.shaderType}\", \"variantIn\": \"{variantIn}\", \"variantOut\": \"{variantOut}\", \"totalVariantIn\": \"{totalVariantIn}\", \"totalVariantOut\": \"{totalVariantOut}\" }}\r\n"
+                        );
             }
             catch (Exception e)
             {

@@ -433,39 +433,40 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
             }
 
-            throw new System.Exception("Missing ShaderVariant Log Level");
+            Debug.LogError("Missing ShaderVariant Log Level");
+            return false;
         }
 
         /// <summary>
         /// Returns if the variants stripping needs to be exported
         /// </summary>
         /// <returns></returns>
-        public override bool IsExportLogEnabled()
-        {
-            return ShaderBuildPreprocessor.hdrpAssets.Count > 0
+        public override bool exportLog => ShaderBuildPreprocessor.hdrpAssets.Count > 0
                 && (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
-        }
 
         /// <summary>
         /// Returns if the <see cref="IPreprocessShaders"/> is active.
         /// </summary>
         /// <returns>Returns true or false depending on the specified conditions.</returns>
-        public override bool IsActive()
+        public override bool active
         {
-            if (HDRenderPipeline.currentAsset == null)
-                return false;
+            get
+            {
+                if (HDRenderPipeline.currentAsset == null)
+                    return false;
 
-            if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
-                return false;
+                if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
+                    return false;
 
-            // TODO: Grab correct configuration/quality asset.
-            var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
+                // TODO: Grab correct configuration/quality asset.
+                var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
 
-            // Test if striping is enabled in any of the found HDRP assets.
-            if (hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping))
-                return false;
+                // Test if striping is enabled in any of the found HDRP assets.
+                if (hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping))
+                    return false;
 
-            return true;
+                return true;
+            }
         }
 
         /// <summary>
@@ -473,12 +474,12 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="variantsInCount">The variants before the stripping</param>
         /// <param name="variantsOutCount">The variants after the stripping</param>
-        public override void ComputeTotalVariants(int variantsInCount, int variantsOutCount)
+        public override void ComputeTotalVariants(int variantsInCount, int variantsOutCount, out int totalVariantsInputCount, out int totalVariantsOutputCount)
         {
             // As the shader stripping is being perform by all the hdrp assets, the totals should bear in mind all of them
             var hdrpAssetsCount = ShaderBuildPreprocessor.hdrpAssets.Count();
-            totalVariantsInputCount += variantsInCount * hdrpAssetsCount;
-            totalVariantsOutputCount += variantsOutCount * hdrpAssetsCount;
+            totalVariantsInputCount = variantsInCount * hdrpAssetsCount;
+            totalVariantsOutputCount = variantsOutCount * hdrpAssetsCount;
         }
 
         protected override bool CanRemoveInput(Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
