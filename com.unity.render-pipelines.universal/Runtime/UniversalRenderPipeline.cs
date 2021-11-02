@@ -85,6 +85,10 @@ namespace UnityEngine.Rendering.Universal
             get => 8;
         }
 
+        // Variable to avoid flooding the log with warnings.
+        internal static bool hasLoggedCameraStackMultipassWarning = false;
+
+
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             SetSupportedRenderingFeatures();
@@ -380,7 +384,11 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    Debug.LogWarning("Multi pass stereo mode doesn't support Camera Stacking. Overlay cameras will skip rendering.");
+                    if (!hasLoggedCameraStackMultipassWarning)
+                    {
+                        Debug.LogWarning("Multi pass stereo mode doesn't support Camera Stacking. Overlay cameras will skip rendering.");
+                        hasLoggedCameraStackMultipassWarning = true;
+                    }
                 }
 #if POST_PROCESSING_STACK_2_0_0_OR_NEWER
                 }
