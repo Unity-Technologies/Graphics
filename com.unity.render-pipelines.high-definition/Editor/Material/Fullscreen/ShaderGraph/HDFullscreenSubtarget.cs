@@ -30,6 +30,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph }
         };
 
+        public override bool IsNodeAllowedBySubTarget(Type nodeType)
+        {
+            if (nodeType == typeof(BakedGINode))
+                return false;
+            return base.IsNodeAllowedBySubTarget(nodeType);
+        }
+
         // We don't need the save context / update materials for now
         public override object saveContext => null;
 
