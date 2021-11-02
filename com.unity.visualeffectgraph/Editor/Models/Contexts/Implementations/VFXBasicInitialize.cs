@@ -89,7 +89,7 @@ namespace UnityEditor.VFX
             {
                 if (data.boundsMode == BoundsSettingMode.Recorded)
                 {
-                    if (VFXViewWindow.currentWindow?.graphView?.attachedComponent == null ||
+                    if (VFXViewWindow.GetWindow(GetGraph())?.graphView?.attachedComponent == null ||
                         !BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false))
                     {
                         manager.RegisterError("NeedsRecording", VFXErrorType.Warning,

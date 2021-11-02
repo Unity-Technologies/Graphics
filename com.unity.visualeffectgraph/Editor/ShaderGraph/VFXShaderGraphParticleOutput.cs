@@ -34,7 +34,7 @@ namespace UnityEditor.VFX
             base.OnEnable();
         }
 
-        protected new void OnDisable()
+        protected void OnDisable()
         {
             foreach (VFXShaderGraphParticleOutput output in targets)
             {
@@ -43,7 +43,6 @@ namespace UnityEditor.VFX
             }
 
             DestroyImmediate(m_MaterialEditor);
-            base.OnDisable();
         }
 
         void UpdateMaterialEditor()
