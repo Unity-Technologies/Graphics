@@ -350,28 +350,21 @@ platforms:
     agents_project_Metal:
       default:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
       image: package-ci/mac:stable
       flavor: m1.mac
-    copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-    editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
     commands:
       [Metal]:
         setup_utr:
-          - git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-          - git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+          - git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/<PROJECT_FOLDER>/Packages/com.unity.testframework.graphics
+          - git -C TestProjects/<PROJECT_FOLDER>/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
           - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
           - chmod +x ./utr
-        copy_images_build:
-          - cp -rf TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_Intel
-        copy_images_run:
-          - cp -rf TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_Intel
         call_utr:
-          - cp -rf TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/<PROJECT_FOLDER>/Assets/ReferenceImages/Linear/OSXPlayer_Intel
           - |5-
                     export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                     ./utr <UTR_FLAGS>

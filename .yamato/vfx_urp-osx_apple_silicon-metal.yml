@@ -11,7 +11,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
     name: VFX_URP on OSX_Apple_Silicon_Metal_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -21,11 +21,10 @@ VFX_URP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --architecture=ARM64 --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
@@ -43,7 +42,7 @@ Build_VFX_URP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
     name: Build VFX_URP on OSX_Apple_Silicon_Metal_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -53,15 +52,14 @@ Build_VFX_URP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
@@ -80,7 +78,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_trunk:
     name: VFX_URP on OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -90,11 +88,10 @@ VFX_URP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --architecture=ARM64 --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
@@ -112,7 +109,7 @@ Build_VFX_URP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_tr
     name: Build VFX_URP on OSX_Apple_Silicon_Metal_mono_Linear_Standalone_PerformanceTests_build_Player on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -122,15 +119,14 @@ Build_VFX_URP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_tr
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
@@ -149,7 +145,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
     name: VFX_URP on OSX_Apple_Silicon_Metal_playmode_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -159,15 +155,14 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
@@ -183,7 +178,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear_trunk:
     name: VFX_URP on OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -193,15 +188,14 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
@@ -217,7 +211,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_editmode_mono_Linear_trunk:
     name: VFX_URP on OSX_Apple_Silicon_Metal_editmode_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -227,15 +221,14 @@ VFX_URP_OSX_Apple_Silicon_Metal_editmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
@@ -251,7 +244,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_editmode_PerformanceTests_mono_Linear_trunk:
     name: VFX_URP on OSX_Apple_Silicon_Metal_editmode_PerformanceTests_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -261,15 +254,14 @@ VFX_URP_OSX_Apple_Silicon_Metal_editmode_PerformanceTests_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
@@ -285,7 +277,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Apple_Silicon_Metal_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -295,11 +287,10 @@ VFX_URP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --architecture=ARM64 --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
@@ -317,7 +308,7 @@ Build_VFX_URP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_URP on OSX_Apple_Silicon_Metal_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -327,15 +318,14 @@ Build_VFX_URP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
@@ -354,7 +344,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_CUSTOM-R
     name: VFX_URP on OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -364,11 +354,10 @@ VFX_URP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_CUSTOM-R
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --architecture=ARM64 --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
@@ -386,7 +375,7 @@ Build_VFX_URP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_CU
     name: Build VFX_URP on OSX_Apple_Silicon_Metal_mono_Linear_Standalone_PerformanceTests_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -396,15 +385,14 @@ Build_VFX_URP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_CU
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
@@ -423,7 +411,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Apple_Silicon_Metal_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -433,15 +421,14 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
@@ -457,7 +444,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear_CUSTOM-REV
     name: VFX_URP on OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -467,15 +454,14 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear_CUSTOM-REV
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
@@ -491,7 +477,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_editmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Apple_Silicon_Metal_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -501,15 +487,14 @@ VFX_URP_OSX_Apple_Silicon_Metal_editmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
@@ -525,7 +510,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_editmode_PerformanceTests_mono_Linear_CUSTOM-REV
     name: VFX_URP on OSX_Apple_Silicon_Metal_editmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -535,15 +520,14 @@ VFX_URP_OSX_Apple_Silicon_Metal_editmode_PerformanceTests_mono_Linear_CUSTOM-REV
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/VisualEffectGraph_URP/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/VisualEffectGraph_URP/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1

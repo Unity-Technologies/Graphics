@@ -11,7 +11,7 @@ ShaderGraph_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
     name: ShaderGraph on OSX_Apple_Silicon_Metal_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -21,11 +21,10 @@ ShaderGraph_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/ShaderGraph/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/ShaderGraph/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  cp -rf TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
@@ -43,7 +42,7 @@ Build_ShaderGraph_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
     name: Build ShaderGraph on OSX_Apple_Silicon_Metal_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -53,15 +52,14 @@ Build_ShaderGraph_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/ShaderGraph/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/ShaderGraph/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
@@ -80,7 +78,7 @@ ShaderGraph_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
     name: ShaderGraph on OSX_Apple_Silicon_Metal_playmode_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -90,15 +88,14 @@ ShaderGraph_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/ShaderGraph/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/ShaderGraph/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
@@ -114,7 +111,7 @@ ShaderGraph_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on OSX_Apple_Silicon_Metal_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -124,11 +121,10 @@ ShaderGraph_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/ShaderGraph/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/ShaderGraph/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  cp -rf TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
@@ -146,7 +142,7 @@ Build_ShaderGraph_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION
     name: Build ShaderGraph on OSX_Apple_Silicon_Metal_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -156,15 +152,14 @@ Build_ShaderGraph_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/ShaderGraph/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/ShaderGraph/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
@@ -183,7 +178,7 @@ ShaderGraph_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on OSX_Apple_Silicon_Metal_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.15-base:stable
+        image: slough-ops/macos-11-base:stable
         model: M1
         flavor: m1.mac
     variables:
@@ -193,15 +188,14 @@ ShaderGraph_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
-      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/ShaderGraph/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/ShaderGraph/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  uname -m
-      -  cp -rf TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
