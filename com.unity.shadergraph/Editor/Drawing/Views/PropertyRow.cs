@@ -30,9 +30,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         public PropertyRow(VisualElement label = null)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyRow"));
-            VisualElement container = new VisualElement {name = "container"};
-            m_ContentContainer = new VisualElement { name = "content"  };
-            m_LabelContainer = new VisualElement {name = "label" };
+            VisualElement container = new VisualElement { name = "container" };
+            m_ContentContainer = new VisualElement { name = "content" };
+            m_LabelContainer = new VisualElement { name = "label" };
             m_LabelContainer.Add(label);
 
             container.Add(m_LabelContainer);

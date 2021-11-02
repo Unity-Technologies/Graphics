@@ -18,23 +18,23 @@ namespace UnityEditor.Rendering.HighDefinition
         public enum Features
         {
             /// <summary>Hide all the fields in the block.</summary>
-            None                    = 0,
+            None = 0,
             /// <summary>Display the instancing field.</summary>
-            Instancing              = 1 << 0,
+            Instancing = 1 << 0,
             /// <summary>Display the specular occlusion field.</summary>
-            SpecularOcclusion       = 1 << 1,
+            SpecularOcclusion = 1 << 1,
             /// <summary>Display the add precomputed velocity field.</summary>
-            AddPrecomputedVelocity  = 1 << 2,
+            AddPrecomputedVelocity = 1 << 2,
             /// <summary>Display the double sided GI field.</summary>
-            DoubleSidedGI           = 1 << 3,
+            DoubleSidedGI = 1 << 3,
             /// <summary>Display the emission GI field.</summary>
-            EmissionGI              = 1 << 4,
+            EmissionGI = 1 << 4,
             /// <summary>Display the motion vector field.</summary>
-            MotionVector            = 1 << 5,
+            MotionVector = 1 << 5,
             /// <summary>Display the fields for the shaders.</summary>
-            StandardLit             = Instancing | SpecularOcclusion | AddPrecomputedVelocity,
+            StandardLit = Instancing | SpecularOcclusion | AddPrecomputedVelocity,
             /// <summary>Display all the field.</summary>
-            All                     = ~0
+            All = ~0
         }
 
         internal class Styles
@@ -47,12 +47,11 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         MaterialProperty specularOcclusionMode = null;
-        const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
         MaterialProperty addPrecomputedVelocity = null;
         const string kAddPrecomputedVelocity = HDMaterialProperties.kAddPrecomputedVelocity;
 
-        Features    m_Features;
+        Features m_Features;
 
         /// <summary>
         /// Constructs the AdvancedOptionsUIBlock based on the parameters.
@@ -102,7 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if ((m_Features & Features.EmissionGI) != 0)
-                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
+                materialEditor.LightmapEmissionFlagsProperty(0, true);
 
             if ((m_Features & Features.MotionVector) != 0)
                 DrawMotionVectorToggle();

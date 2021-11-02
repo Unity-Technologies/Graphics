@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Film Grain effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Film Grain")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Film Grain", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Post-Processing-Film-Grain")]
     public sealed class FilmGrain : VolumeComponent, IPostProcessComponent
     {
@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the strength of the film grain effect.
         /// </summary>
-        [Tooltip("Controls the strength of the film grain effect.")]
+        [Tooltip("Use the slider to set the strength of the Film Grain effect.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies a tileable Texture to use for the grain. The neutral value for this Texture is 0.5 which means that HDRP does not apply grain at this value.
         /// </summary>
         [Tooltip("Specifies a tileable Texture to use for the grain. The neutral value for this Texture is 0.5 which means that HDRP does not apply grain at this value.")]
-        public NoInterpTextureParameter texture = new NoInterpTextureParameter(null);
+        public Texture2DParameter texture = new Texture2DParameter(null);
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.
@@ -119,6 +119,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public FilmGrainLookupParameter(FilmGrainLookup value, bool overrideState = false) : base(value, overrideState) {}
+        public FilmGrainLookupParameter(FilmGrainLookup value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

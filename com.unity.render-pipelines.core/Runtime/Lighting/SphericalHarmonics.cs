@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering
         /// <param name="lhs">First SphericalHarmonicsL1.</param>
         /// <param name="rhs">Second SphericalHarmonicsL1.</param>
         /// <returns>The resulting SphericalHarmonicsL1.</returns>
-        public static SphericalHarmonicsL1 operator+(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs) => new SphericalHarmonicsL1()
+        public static SphericalHarmonicsL1 operator +(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs) => new SphericalHarmonicsL1()
         {
             shAr = lhs.shAr + rhs.shAr,
             shAg = lhs.shAg + rhs.shAg,
@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering
         /// <param name="lhs">First SphericalHarmonicsL1.</param>
         /// <param name="rhs">Second SphericalHarmonicsL1.</param>
         /// <returns>The resulting SphericalHarmonicsL1.</returns>
-        public static SphericalHarmonicsL1 operator-(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs) => new SphericalHarmonicsL1()
+        public static SphericalHarmonicsL1 operator -(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs) => new SphericalHarmonicsL1()
         {
             shAr = lhs.shAr - rhs.shAr,
             shAg = lhs.shAg - rhs.shAg,
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering
         /// <param name="lhs">First SphericalHarmonicsL1.</param>
         /// <param name="rhs">Second SphericalHarmonicsL1.</param>
         /// <returns>The resulting SphericalHarmonicsL1.</returns>
-        public static SphericalHarmonicsL1 operator*(SphericalHarmonicsL1 lhs, float rhs) => new SphericalHarmonicsL1()
+        public static SphericalHarmonicsL1 operator *(SphericalHarmonicsL1 lhs, float rhs) => new SphericalHarmonicsL1()
         {
             shAr = lhs.shAr * rhs,
             shAg = lhs.shAg * rhs,
@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering
         /// <param name="lhs">First SphericalHarmonicsL1.</param>
         /// <param name="rhs">Second SphericalHarmonicsL1.</param>
         /// <returns>The resulting SphericalHarmonicsL1.</returns>
-        public static SphericalHarmonicsL1 operator/(SphericalHarmonicsL1 lhs, float rhs) => new SphericalHarmonicsL1()
+        public static SphericalHarmonicsL1 operator /(SphericalHarmonicsL1 lhs, float rhs) => new SphericalHarmonicsL1()
         {
             shAr = lhs.shAr / rhs,
             shAg = lhs.shAg / rhs,
@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering
         /// <param name="lhs">First SphericalHarmonicsL1.</param>
         /// <param name="rhs">Second SphericalHarmonicsL1.</param>
         /// <returns>Whether the SphericalHarmonicsL1 match.</returns>
-        public static bool operator==(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs)
+        public static bool operator ==(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs)
         {
             return lhs.shAr == rhs.shAr
                 && lhs.shAg == rhs.shAg
@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering
         /// <param name="lhs">First SphericalHarmonicsL1.</param>
         /// <param name="rhs">Second SphericalHarmonicsL1.</param>
         /// <returns>Whether the SphericalHarmonicsL1 are different.</returns>
-        public static bool operator!=(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs)
+        public static bool operator !=(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs)
         {
             return !(lhs == rhs);
         }

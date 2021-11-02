@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.Universal
                 public static GUIContent[] displayedCameraOptions =
                 {
                     EditorGUIUtility.TrTextContent("Off"),
-                    EditorGUIUtility.TrTextContent("Use Pipeline Settings"),
+                    EditorGUIUtility.TrTextContent("Use settings from Render Pipeline Asset"),
                 };
 
                 public static int[] cameraOptions = { 0, 1 };
@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.Universal
                 public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
 
                 public static string inspectorOverlayCameraText = L10n.Tr("Inspector Overlay Camera");
-                public static GUIContent allowMSAA = EditorGUIUtility.TrTextContent("MSAA", "Use Multi Sample Anti-Aliasing to reduce aliasing.");
+                public static GUIContent allowMSAA = EditorGUIUtility.TrTextContent("MSAA", "Enables Multi-Sample Anti-Aliasing, a technique that smooths jagged edges.");
                 public static GUIContent allowHDR = EditorGUIUtility.TrTextContent("HDR", "High Dynamic Range gives you a wider range of light intensities, so your lighting looks more realistic. With it, you can still see details and experience less saturation even with bright light.", (Texture)null);
 
                 public static string cameraTargetTextureMSAA = L10n.Tr("Camera target texture requires {0}x MSAA. Universal pipeline {1}.");

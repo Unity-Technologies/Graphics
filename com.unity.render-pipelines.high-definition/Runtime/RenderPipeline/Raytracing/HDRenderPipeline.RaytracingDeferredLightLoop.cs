@@ -35,15 +35,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void CheckBinningBuffersSize(HDCamera hdCamera)
         {
-            // Evaluate the dispatch parameters
+            // Grab the number of view we'll need to support
+            int numViews = hdCamera.viewCount;
+
+            // Evaluate the number of tiles
             int numTilesRayBinX = (hdCamera.actualWidth + (binningTileSize - 1)) / binningTileSize;
             int numTilesRayBinY = (hdCamera.actualHeight + (binningTileSize - 1)) / binningTileSize;
+            int minimalTileBufferSize = numViews * numTilesRayBinX * numTilesRayBinY;
 
+            // Evaluate the global size
             int bufferSizeX = numTilesRayBinX * binningTileSize;
             int bufferSizeY = numTilesRayBinY * binningTileSize;
+            int minimalBufferSize = numViews * bufferSizeX * bufferSizeY;
 
             //  Resize the binning buffers if required
-            if (bufferSizeX * bufferSizeY > m_RayBinResult.count)
+            if (minimalBufferSize > m_RayBinResult.count)
             {
                 if (m_RayBinResult != null)
                 {
@@ -53,10 +59,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_RayBinSizeResult = null;
                 }
 
-                if (bufferSizeX * bufferSizeY > 0)
+                if (minimalBufferSize > 0)
                 {
-                    m_RayBinResult = new ComputeBuffer(bufferSizeX * bufferSizeY, sizeof(uint));
-                    m_RayBinSizeResult = new ComputeBuffer(numTilesRayBinX * numTilesRayBinY, sizeof(uint));
+                    m_RayBinResult = new ComputeBuffer(minimalBufferSize, sizeof(uint));
+                    m_RayBinSizeResult = new ComputeBuffer(minimalTileBufferSize, sizeof(uint));
                 }
             }
         }
@@ -71,7 +77,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool halfResolution;
             public int rayCountType;
             public float lodBias;
-            public int fallbackHierarchy;
+            public int rayMiss;
+            public int lastBounceFallbackHierarchy;
 
             // Ray marching attributes
             public bool mixedTracing;
@@ -148,6 +155,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(config.rayBinningCS, currentKernel, HDShaderIDs._RayBinResult, config.rayBinResult);
             cmd.SetComputeBufferParam(config.rayBinningCS, currentKernel, HDShaderIDs._RayBinSizeResult, config.rayBinSizeResult);
             cmd.SetComputeIntParam(config.rayBinningCS, HDShaderIDs._RayBinTileCountX, numTilesRayBinX);
+
+            // Inject the data for the additional views
+            cmd.SetComputeIntParam(config.rayBinningCS, HDShaderIDs._RayBinViewOffset, bufferSizeX * bufferSizeY);
+            cmd.SetComputeIntParam(config.rayBinningCS, HDShaderIDs._RayBinTileViewOffset, numTilesRayBinX * numTilesRayBinY);
 
             // Run the binning
             cmd.DispatchCompute(config.rayBinningCS, currentKernel, numTilesRayBinX, numTilesRayBinY, config.viewCount);
@@ -231,20 +242,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Temporary buffers
                 passData.gbuffer0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, enableRandomWrite = true, name = "GBuffer0" });
+                { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, enableRandomWrite = true, name = "GBuffer0" });
                 passData.gbuffer1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "GBuffer1" });
+                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "GBuffer1" });
                 passData.gbuffer2 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "GBuffer2" });
+                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "GBuffer2" });
                 passData.gbuffer3 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = Builtin.GetLightingBufferFormat(), enableRandomWrite = true, name = "GBuffer3" });
+                { colorFormat = Builtin.GetLightingBufferFormat(), enableRandomWrite = true, name = "GBuffer3" });
                 passData.distanceBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Distance Buffer" });
+                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Distance Buffer" });
 
                 // Output buffers
                 passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
                 passData.litBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Deferred Lighting Result" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Deferred Lighting Result" }));
 
                 builder.SetRenderFunc(
                     (DeferredLightingRTRPassData data, RenderGraphContext ctx) =>
@@ -328,9 +339,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             int bufferSizeY = numTilesRayBinY * binningTileSize;
                             ctx.cmd.SetRayTracingIntParam(data.parameters.gBufferRaytracingRT, HDShaderIDs._BufferSizeX, bufferSizeX);
 
+                            // Inject the data for the additional views
+                            ctx.cmd.SetRayTracingIntParams(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayBinViewOffset, bufferSizeX * bufferSizeY);
+                            ctx.cmd.SetRayTracingIntParams(data.parameters.gBufferRaytracingRT, HDShaderIDs._RayBinTileViewOffset, numTilesRayBinX * numTilesRayBinY);
+
                             // A really nice tip is to dispatch the rays as a 1D array instead of 2D, the performance difference has been measured.
                             uint dispatchSize = (uint)(bufferSizeX * bufferSizeY);
-                            ctx.cmd.DispatchRays(data.parameters.gBufferRaytracingRT, m_RayGenGBufferBinned, dispatchSize, 1, 1);
+                            ctx.cmd.DispatchRays(data.parameters.gBufferRaytracingRT, m_RayGenGBufferBinned, dispatchSize, 1, (uint)data.parameters.viewCount);
                         }
                         else
                         {

@@ -10,12 +10,12 @@ namespace UnityEditor.VFX
         sealed protected override bool CanConvertFrom(Type type)
         {
             return base.CanConvertFrom(type)
-                ||  type == typeof(float)
-                ||  type == typeof(uint)
-                ||  type == typeof(int)
-                ||  type == typeof(Vector3)
-                ||  type == typeof(Vector4)
-                ||  type == typeof(Color);
+                || type == typeof(float)
+                || type == typeof(uint)
+                || type == typeof(int)
+                || type == typeof(Vector3)
+                || type == typeof(Vector4)
+                || type == typeof(Color);
         }
 
         sealed public override VFXValue DefaultExpression(VFXValue.Mode mode)

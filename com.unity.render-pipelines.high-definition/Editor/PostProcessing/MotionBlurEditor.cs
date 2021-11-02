@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             base.OnInspectorGUI();
 
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             using (new QualityScope(this))
             {
                 PropertyField(m_SampleCount);
@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.DisabledScope(!m_CameraMotionBlur.value.boolValue))
             {
                 PropertyField(m_CameraMVClampMode, EditorGUIUtility.TrTextContent("Camera Clamp Mode", "Determine if and how the component of the motion vectors coming from the camera is clamped in a special fashion."));
-                using (new HDEditorUtils.IndentScope())
+                using (new IndentLevelScope())
                 {
                     var mode = m_CameraMVClampMode.value.intValue;
                     using (new EditorGUI.DisabledScope(!(mode == (int)CameraClampMode.Rotation ||

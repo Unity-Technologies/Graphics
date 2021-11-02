@@ -123,10 +123,10 @@ namespace UnityEditor.VFX.UI
             List<Action> notifieds;
             if (m_Notified.TryGetValue(target, out notifieds))
             {
-                #if NOTIFICATION_VALIDATION
+#if NOTIFICATION_VALIDATION
                 if (notifieds.Contains(action))
                     Debug.LogError("Adding the same notification twice on:" + target.name);
-                #endif
+#endif
                 notifieds.Add(action);
             }
             else
@@ -147,10 +147,10 @@ namespace UnityEditor.VFX.UI
             List<Action> notifieds;
             if (m_Notified.TryGetValue(target, out notifieds))
             {
-                #if NOTIFICATION_VALIDATION
+#if NOTIFICATION_VALIDATION
                 if (!notifieds.Contains(action))
                     Debug.LogError("Removing a non existent notification" + target.name);
-                #endif
+#endif
                 notifieds.Remove(action);
 
                 if (m_CurrentlyNotified == target)
@@ -257,7 +257,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXGraph graph { get {return model != null ? model.graph as VFXGraph : null; }}
+        public VFXGraph graph { get { return model != null ? model.graph as VFXGraph : null; } }
 
         List<VFXFlowAnchorController> m_FlowAnchorController = new List<VFXFlowAnchorController>();
 
@@ -857,7 +857,7 @@ namespace UnityEditor.VFX.UI
                 {
                     Clear();
                 }
-                m_Graph =  model.GetOrCreateGraph();
+                m_Graph = model.GetOrCreateGraph();
                 m_Graph.SanitizeGraph();
 
                 if (m_Graph != null)
@@ -1403,11 +1403,11 @@ namespace UnityEditor.VFX.UI
 
         public ReadOnlyCollection<VFXGroupNodeController> groupNodes
         {
-            get {return m_GroupNodeControllers.AsReadOnly(); }
+            get { return m_GroupNodeControllers.AsReadOnly(); }
         }
         public ReadOnlyCollection<VFXStickyNoteController> stickyNotes
         {
-            get {return m_StickyNoteControllers.AsReadOnly(); }
+            get { return m_StickyNoteControllers.AsReadOnly(); }
         }
 
         List<VFXGroupNodeController> m_GroupNodeControllers = new List<VFXGroupNodeController>();
@@ -1505,7 +1505,7 @@ namespace UnityEditor.VFX.UI
 
                 if (missingCategories.Length > 0)
                 {
-                    categories.AddRange(missingCategories.Select(t => new VFXUI.CategoryInfo { name = t}));
+                    categories.AddRange(missingCategories.Select(t => new VFXUI.CategoryInfo { name = t }));
                     ui.categories = categories;
                     ui.Modified(true);
                 }

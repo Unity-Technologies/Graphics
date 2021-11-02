@@ -23,26 +23,31 @@ namespace UnityEngine.Rendering
     public enum DynamicResUpscaleFilter : byte
     {
         /// <summary>
-        /// Bilinear upscaling filter.
+        /// Bilinear upscaling filter. Obsolete and not supported.
         /// </summary>
-        Bilinear,
+        [Obsolete("Bilinear upscale filter is considered obsolete and is not supported anymore, please use CatmullRom for a very cheap, but blurry filter.", false)] Bilinear,
         /// <summary>
         /// Bicubic Catmull-Rom upscaling filter.
         /// </summary>
         CatmullRom,
         /// <summary>
-        /// Lanczos upscaling filter.
+        /// Lanczos upscaling filter. Obsolete and not supported.
         /// </summary>
-        Lanczos,
+        [Obsolete("Lanczos upscale filter is considered obsolete and is not supported anymore, please use Contrast Adaptive Sharpening for very sharp filter or FidelityFX Super Resolution 1.0.", false)] Lanczos,
         /// <summary>
         /// Contrast Adaptive Sharpening upscaling filter.
         /// </summary>
         ContrastAdaptiveSharpen,
         /// <summary>
-        /// Edge Adaptive Scaling Upres.
+        /// FidelityFX Super Resolution 1.0
         /// </summary>
-        [InspectorName("Edge Adaptive Scaling Upres")]
-        EdgeAdaptiveScalingUpres
+        [InspectorName("FidelityFX Super Resolution 1.0")]
+        EdgeAdaptiveScalingUpres,
+        /// <summary>
+        /// Temporal Upscaling.
+        /// </summary>
+        [InspectorName("TAA Upscale")]
+        TAAU
     }
 
     /// <summary>User-facing settings for dynamic resolution.</summary>
@@ -61,6 +66,7 @@ namespace UnityEngine.Rendering
             upsampleFilter = DynamicResUpscaleFilter.CatmullRom,
             forcedPercentage = 100.0f,
             lowResTransparencyMinimumThreshold = 0.0f,
+            rayTracingHalfResThreshold = 50.0f,
 
             //Defaults for dlss
             enableDLSS = false,
@@ -96,7 +102,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>The type of dynamic resolution method.</summary>
         public DynamicResolutionType dynResType;
-        /// <summary>The type of upscaling filter to use.</summary>
+        /// <summary>The default of upscaling filter used. It can be overridden via the API DynamicResolutionHandler.SetUpscaleFilter </summary>
         public DynamicResUpscaleFilter upsampleFilter;
 
         /// <summary>Select whether dynamic resolution system will force a specific resolution percentage.</summary>
@@ -106,5 +112,8 @@ namespace UnityEngine.Rendering
 
         /// <summary>The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.</summary>
         public float lowResTransparencyMinimumThreshold;
+
+        /// <summary>The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution.</summary>
+        public float rayTracingHalfResThreshold;
     }
 }

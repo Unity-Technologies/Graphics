@@ -72,11 +72,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportSSAO ?? false)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Ambient Occlusion.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Ambient Occlusion.", MessageType.Error,
+                    HDRenderPipelineUI.Expandable.Lighting, "m_RenderPipelineSettings.supportSSAO");
                 return;
             }
 
-            if (HDRenderPipeline.pipelineSupportsRayTracing)
+            if (HDRenderPipeline.assetSupportsRayTracing)
                 PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced ambient occlusion."));
 
             // Shared attributes
@@ -84,19 +85,19 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_DirectLightingStrength, EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient light affects occlusion."));
 
             // If ray tracing is supported and it is enabled on this volume, display the ray tracing options.
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+            if (HDRenderPipeline.assetSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
                 PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for ambient occlusion."));
                 base.OnInspectorGUI(); // Quality Setting
                 using (new QualityScope(this))
                 {
-                    using (new HDEditorUtils.IndentScope())
+                    using (new IndentLevelScope())
                     {
                         PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of ambient occlusion rays. The higher this value is, the more expensive ray traced ambient occlusion is."));
                         PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for ray traced ambient occlusion."));
                         PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced ambient occlusion."));
                         {
-                            using (new HDEditorUtils.IndentScope())
+                            using (new IndentLevelScope())
                                 PropertyField(m_DenoiserRadius, EditorGUIUtility.TrTextContent("Denoiser Radius", "Radius parameter for the denoising."));
                         }
                     }
@@ -113,7 +114,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 using (new QualityScope(this))
                 {
-                    using (new HDEditorUtils.IndentScope())
+                    using (new IndentLevelScope())
                     {
                         PropertyField(m_MaximumRadiusInPixels, EditorGUIUtility.TrTextContent("Maximum Radius In Pixels", "This poses a maximum radius in pixels that we consider. It is very important to keep this as tight as possible to preserve good performance. Note that this is the value used for 1080p when *not* running the effect at full resolution, it will be scaled accordingly for other resolutions."));
                         PropertyField(m_FullResolution, EditorGUIUtility.TrTextContent("Full Resolution", "The effect runs at full resolution. This increases quality, but also decreases performance significantly."));
@@ -122,7 +123,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     PropertyField(m_TemporalAccumulation, EditorGUIUtility.TrTextContent("Temporal Accumulation", "Whether the results are accumulated over time or not. This can get better results cheaper, but it can lead to temporal artifacts. Requires Motion Vectors to be enabled."));
 
-                    using (new HDEditorUtils.IndentScope())
+                    using (new IndentLevelScope())
                     {
                         if (!m_TemporalAccumulation.value.boolValue)
                         {

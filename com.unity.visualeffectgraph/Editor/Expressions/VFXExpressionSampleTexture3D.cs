@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
 
         public VFXExpressionSampleTexture3D(VFXExpression texture, VFXExpression uv, VFXExpression mipLevel)
             : base(Flags.InvalidOnCPU, new VFXExpression[3] { texture, uv, mipLevel })
-        {}
+        { }
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
         sealed public override VFXValueType valueType { get { return VFXValueType.Float4; } }

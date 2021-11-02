@@ -26,14 +26,14 @@ namespace UnityEngine.Rendering
 
         static class BlitShaderIDs
         {
-            public static readonly int _BlitTexture     = Shader.PropertyToID("_BlitTexture");
+            public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
             public static readonly int _BlitCubeTexture = Shader.PropertyToID("_BlitCubeTexture");
-            public static readonly int _BlitScaleBias   = Shader.PropertyToID("_BlitScaleBias");
+            public static readonly int _BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
             public static readonly int _BlitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
-            public static readonly int _BlitMipLevel    = Shader.PropertyToID("_BlitMipLevel");
+            public static readonly int _BlitMipLevel = Shader.PropertyToID("_BlitMipLevel");
             public static readonly int _BlitTextureSize = Shader.PropertyToID("_BlitTextureSize");
             public static readonly int _BlitPaddingSize = Shader.PropertyToID("_BlitPaddingSize");
-            public static readonly int _InputDepth      = Shader.PropertyToID("_InputDepthTexture");
+            public static readonly int _InputDepth = Shader.PropertyToID("_InputDepthTexture");
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering
                     s_TriangleMesh = new Mesh();
                     s_TriangleMesh.vertices = GetFullScreenTriangleVertexPosition(nearClipZ);
                     s_TriangleMesh.uv = GetFullScreenTriangleTexCoord();
-                    s_TriangleMesh.triangles = new int[3] { 0, 1, 2};
+                    s_TriangleMesh.triangles = new int[3] { 0, 1, 2 };
                 }
 
                 if (!s_QuadMesh)
@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering
                     s_QuadMesh = new Mesh();
                     s_QuadMesh.vertices = GetQuadVertexPosition(nearClipZ);
                     s_QuadMesh.uv = GetQuadTexCoord();
-                    s_QuadMesh.triangles = new int[6] { 0, 1, 2, 0, 2, 3};
+                    s_QuadMesh.triangles = new int[6] { 0, 1, 2, 0, 2, 3 };
                 }
 
                 // Should match Common.hlsl

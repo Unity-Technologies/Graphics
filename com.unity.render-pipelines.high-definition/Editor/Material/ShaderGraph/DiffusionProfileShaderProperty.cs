@@ -96,10 +96,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void IShaderPropertyDrawer.HandlePropertyField(PropertySheet propertySheet, PreChangeValueCallback preChangeValueCallback, PostChangeValueCallback postChangeValueCallback)
         {
-            var diffusionProfileDrawer = new DiffusionProfilePropertyDrawer();
+            var diffusionProfileDrawer = new ShaderGraphDiffusionProfilePropertyDrawer();
 
             propertySheet.Add(diffusionProfileDrawer.CreateGUI(
-                newValue => {
+                newValue =>
+                {
                     preChangeValueCallback("Changed Diffusion Profile");
                     value = newValue;
                     postChangeValueCallback(true);

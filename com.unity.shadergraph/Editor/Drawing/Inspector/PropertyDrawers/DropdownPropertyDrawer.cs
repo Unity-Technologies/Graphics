@@ -40,10 +40,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
-                newSelectedIndex => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newSelectedIndex}),
+                newSelectedIndex => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] { newSelectedIndex }),
                 (IEnumerable<string>)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var textArrayField);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

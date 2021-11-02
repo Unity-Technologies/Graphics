@@ -93,10 +93,9 @@ struct SpeedTreeFragmentInput
 
 void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 {
-    // smooth LOD
-    #if defined(LOD_FADE_PERCENTAGE)
+#if defined(LOD_FADE_PERCENTAGE) && (!defined(LOD_FADE_CROSSFADE) && !defined(EFFECT_BILLBOARD))
         input.vertex.xyz = lerp(input.vertex.xyz, input.texcoord2.xyz, lodValue);
-    #endif
+#endif
 
     // wind
     #if defined(ENABLE_WIND) && !defined(_WINDQUALITY_NONE)
@@ -513,7 +512,7 @@ half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
         // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
         return half4(_ObjectId, _PassValue, 1.0, 1.0);
     #else
-        return half4(0, 0, 0, 0);
+        return half4(input.clipPos.z, 0, 0, 0);
     #endif
 }
 

@@ -7,7 +7,7 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-    #pragma warning disable 0659
+#pragma warning disable 0659
     abstract class VFXValue : VFXExpression
     {
         public enum Mode
@@ -291,6 +291,11 @@ namespace UnityEditor.VFX
             if (value is UnityObject obj)
             {
                 m_Content = obj.GetInstanceID();
+                return;
+            }
+            if (value is CameraBuffer cameraBuffer)
+            {
+                m_Content = cameraBuffer;
                 return;
             }
             if (value is GraphicsBuffer)

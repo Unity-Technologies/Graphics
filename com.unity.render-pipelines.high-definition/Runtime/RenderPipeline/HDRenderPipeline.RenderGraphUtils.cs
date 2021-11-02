@@ -2,6 +2,10 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RendererUtils;
 
+// Resove the ambiguity in the RendererList name (pick the in-engine version)
+using RendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using RendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
@@ -63,6 +67,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (CoreUtils.IsSceneFilteringEnabled())
                 clearColor.a = 0.0f;
+
+            // Get the background color from preferences if preview camera
+#if UNITY_EDITOR
+            if (HDUtils.IsRegularPreviewCamera(hdCamera.camera) && hdCamera.camera.clearFlags != CameraClearFlags.SolidColor)
+            {
+                return CoreRenderPipelinePreferences.previewBackgroundColor;
+            }
+#endif
+
 
             return clearColor;
         }

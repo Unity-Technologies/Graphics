@@ -2,13 +2,13 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Rendering;
-using UnityEditor.Experimental.Rendering.Universal;
 using UnityEditor.ShaderGraph.Legacy;
+
+using Unity.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalSpriteLitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
+    sealed class UniversalSpriteLitSubTarget : UniversalSubTarget, ILegacyTarget
     {
         static readonly GUID kSourceCodeGuid = new GUID("ea1514729d7120344b27dcd67fbf34de"); // UniversalSpriteLitSubTarget.cs
 
@@ -19,8 +19,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override bool IsActive() => true;
 
+        protected override ShaderUtils.ShaderID shaderID => ShaderUtils.ShaderID.SG_SpriteLit;
+
         public override void Setup(ref TargetSetupContext context)
         {
+            base.Setup(ref context);
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddSubShader(SubShaders.SpriteLit(target));
         }
@@ -32,10 +35,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             bool useLegacyBlocks = !descs.Contains(BlockFields.SurfaceDescription.BaseColor) && !descs.Contains(BlockFields.SurfaceDescription.Alpha);
             context.AddField(CoreFields.UseLegacySpriteBlocks, useLegacyBlocks);
 
-            // Surface Type & Blend Mode
+            // Surface Type
             context.AddField(UniversalFields.SurfaceTransparent);
-            context.AddField(Fields.BlendAlpha);
             context.AddField(Fields.DoubleSided);
+
+            // Blend Mode
+            switch (target.alphaMode)
+            {
+                case AlphaMode.Premultiply:
+                    context.AddField(UniversalFields.BlendPremultiply);
+                    break;
+                case AlphaMode.Additive:
+                    context.AddField(UniversalFields.BlendAdd);
+                    break;
+                case AlphaMode.Multiply:
+                    context.AddField(UniversalFields.BlendMultiply);
+                    break;
+                default:
+                    context.AddField(Fields.BlendAlpha);
+                    break;
+            }
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -51,6 +70,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
+            context.AddProperty("Blending Mode", new UnityEngine.UIElements.EnumField(AlphaMode.Alpha) { value = target.alphaMode }, (evt) =>
+            {
+                if (Equals(target.alphaMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Blend");
+                target.alphaMode = (AlphaMode)evt.newValue;
+                onChange();
+            });
         }
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
@@ -89,9 +117,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     {
                         { SpriteLitPasses.Lit },
                         { SpriteLitPasses.Normal },
-                        { SpriteLitPasses.Forward },
+                        // Currently neither of these passes (selection/picking) can be last for the game view for
+                        // UI shaders to render correctly. Verify [1352225] before changing this order.
                         { CorePasses._2DSceneSelection(target) },
                         { CorePasses._2DScenePicking(target) },
+                        { SpriteLitPasses.Forward },
                     },
                 };
                 return result;
@@ -111,8 +141,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -142,8 +172,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -172,8 +202,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,

@@ -11,6 +11,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static string name = "VertexDescription";
 
+            public static BlockFieldDescriptor CustomVelocity = new BlockFieldDescriptor(VertexDescription.name, "CustomVelocity", "Velocity", "VERTEXDESCRIPTION_CUSTOMVELOCITY",
+                new Vector3Control(new Vector3(0.0f, 0.0f, 0.0f)), ShaderStage.Vertex);
+
             // TODO: In the future we may have proper ShaderStage for tessellation, this will need to be revisit then
             public static BlockFieldDescriptor TessellationFactor = new BlockFieldDescriptor(VertexDescription.name, "TessellationFactor", "Tessellation Factor", "VERTEXDESCRIPTION_TESSELLATIONFACTOR",
                 new FloatControl(1.0f), ShaderStage.Vertex);
@@ -123,14 +126,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(0.5f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SecondarySpecularShift = new BlockFieldDescriptor(SurfaceDescription.name, "SecondarySpecularShift", "Secondary Specular Shift", "SURFACEDESCRIPTION_SECONDARYSPECULARSHIFT",
                 new FloatControl(-0.1f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor LongitudinalRoughness = new BlockFieldDescriptor(SurfaceDescription.name, "LongitudinalRoughness", "Longitudinal Roughness", "SURFACEDESCRIPTION_LONGITUDINALROUGHNESS",
-                new FloatControl(0.5f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor AzimuthalRoughness = new BlockFieldDescriptor(SurfaceDescription.name, "AzimuthalRoughness", "Azimuthal Roughness", "SURFACEDESCRIPTION_AZIMUTHALROUGHNESS",
-                new FloatControl(0.5f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor PrimaryReflectionRoughness = new BlockFieldDescriptor(SurfaceDescription.name, "PrimaryReflectionRoughness", "Primary Reflection Roughness", "SURFACEDESCRIPTION_PRIMARYREFLECTIONROUGHNESS",
-                new FloatControl(1f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor RadialSmoothness = new BlockFieldDescriptor(SurfaceDescription.name, "RadialSmoothness", "Radial Smoothness", "SURFACEDESCRIPTION_RADIALSMOOTHNESS",
+                new FloatControl(0.7f), ShaderStage.Fragment);
             public static BlockFieldDescriptor CuticleAngle = new BlockFieldDescriptor(SurfaceDescription.name, "CuticleAngle", "Cuticle Angle", "SURFACEDESCRIPTION_CUTICLEANGLE",
-                new FloatControl(1.55f), ShaderStage.Fragment);
+                new FloatControl(3f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor StrandCountProbe = new BlockFieldDescriptor(SurfaceDescription.name, "StrandCountProbe", "Strand Count Probe", "SURFACEDESCRIPTION_STRANDCOUNTPROBE",
+                new Vector4Control(Vector4.zero), ShaderStage.Fragment);
+            public static BlockFieldDescriptor StrandShadowBias = new BlockFieldDescriptor(SurfaceDescription.name, "StrandShadowBias", "Strand Shadow Bias", "SURFACEDESCRIPTION_STRANDSHADOWBIAS",
+                new FloatControl(0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor AbsorptionCoefficient = new BlockFieldDescriptor(SurfaceDescription.name, "AbsorptionCoefficient", "Absorption", "SURFACEDESCRIPTION_ABSORPTIONCOEFFICIENT",
+                new Vector3Control(new Vector3(.06f, 0.1f, 0.2f)), ShaderStage.Fragment);
+            public static BlockFieldDescriptor Eumelanin = new BlockFieldDescriptor(SurfaceDescription.name, "Eumelanin", "Eumelanin", "SURFACEDESCRIPTION_EUMELANIN",
+                new FloatControl(0.3f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor Pheomelanin = new BlockFieldDescriptor(SurfaceDescription.name, "Pheomelanin", "Pheomelanin", "SURFACEDESCRIPTION_PHEOMELANIN",
+                new FloatControl(0.3f), ShaderStage.Fragment);
+
 
             // --------------------------------------------------
             // StackLit

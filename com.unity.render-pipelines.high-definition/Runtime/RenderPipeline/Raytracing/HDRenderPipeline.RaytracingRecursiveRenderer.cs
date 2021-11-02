@@ -69,6 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float rayLength;
             public int maxDepth;
             public float minSmoothness;
+            public int rayMissFallbackHiearchy;
+            public int lastBounceFallbackHiearchy;
 
             // Other data
             public RayTracingAccelerationStructure accelerationStructure;
@@ -89,7 +91,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // If ray tracing is disabled in the frame settings or the effect is not enabled
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) || !recursiveSettings.enable.value)
+
+            // Make sure all the requirements are there to render the effect
+            bool validEffect = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                && recursiveSettings.enable.value
+                && GetRayTracingState() && GetRayTracingClusterState();
+            if (!validEffect)
                 return colorBuffer;
 
             using (var builder = renderGraph.AddRenderPass<RecursiveRenderingPassData>("Recursive Rendering Evaluation", out var passData, ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering)))
@@ -105,9 +112,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayLength = recursiveSettings.rayLength.value;
                 passData.maxDepth = recursiveSettings.maxDepth.value;
                 passData.minSmoothness = recursiveSettings.minSmoothness.value;
+                passData.rayMissFallbackHiearchy = (int)recursiveSettings.rayMiss.value;
+                passData.lastBounceFallbackHiearchy = (int)recursiveSettings.lastBounce.value;
 
                 // Other data
-                passData.accelerationStructure = RequestAccelerationStructure();
+                passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
                 passData.recursiveRenderingRT = m_GlobalSettings.renderPipelineRayTracingResources.forwardRaytracing;
                 passData.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);
@@ -121,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Right now the debug buffer is written to independently of what is happening. This must be changed
                 // TODO RENDERGRAPH
                 passData.debugBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Recursive Rendering Debug Texture" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Recursive Rendering Debug Texture" }));
 
                 builder.SetRenderFunc(
                     (RecursiveRenderingPassData data, RenderGraphContext ctx) =>
@@ -137,8 +146,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Update Global Constant Buffer.
                         data.shaderVariablesRayTracingCB._RaytracingRayMaxLength = data.rayLength;
+#if NO_RAY_RECURSION
+                        data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = 1;
+#else
                         data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = data.maxDepth;
+#endif
                         data.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = data.minSmoothness;
+                        data.shaderVariablesRayTracingCB._RayTracingRayMissFallbackHierarchy = data.rayMissFallbackHiearchy;
+                        data.shaderVariablesRayTracingCB._RayTracingLastBounceFallbackHierarchy = data.lastBounceFallbackHiearchy;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Fecth the temporary buffers we shall be using

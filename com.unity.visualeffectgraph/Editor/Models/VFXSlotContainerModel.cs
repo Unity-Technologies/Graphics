@@ -11,8 +11,8 @@ namespace UnityEditor.VFX
 {
     interface IVFXSlotContainer
     {
-        ReadOnlyCollection<VFXSlot> inputSlots     { get; }
-        ReadOnlyCollection<VFXSlot> outputSlots    { get; }
+        ReadOnlyCollection<VFXSlot> inputSlots { get; }
+        ReadOnlyCollection<VFXSlot> outputSlots { get; }
 
         int GetNbInputSlots();
         int GetNbOutputSlots();
@@ -22,6 +22,7 @@ namespace UnityEditor.VFX
 
         void AddSlot(VFXSlot slot, int index = -1);
         void RemoveSlot(VFXSlot slot);
+        void ReplaceSlot(VFXSlot prevSlot, VFXSlot newSlot);
 
         int GetSlotIndex(VFXSlot slot);
 
@@ -48,13 +49,13 @@ namespace UnityEditor.VFX
         where ParentType : VFXModel
         where ChildrenType : VFXModel
     {
-        public virtual ReadOnlyCollection<VFXSlot> inputSlots  { get { return m_InputSlots.AsReadOnly(); } }
+        public virtual ReadOnlyCollection<VFXSlot> inputSlots { get { return m_InputSlots.AsReadOnly(); } }
         public virtual ReadOnlyCollection<VFXSlot> outputSlots { get { return m_OutputSlots.AsReadOnly(); } }
 
-        public virtual int GetNbInputSlots()            { return m_InputSlots.Count; }
-        public virtual int GetNbOutputSlots()           { return m_OutputSlots.Count; }
+        public virtual int GetNbInputSlots() { return m_InputSlots.Count; }
+        public virtual int GetNbOutputSlots() { return m_OutputSlots.Count; }
 
-        public virtual VFXSlot GetInputSlot(int index)  { return m_InputSlots[index]; }
+        public virtual VFXSlot GetInputSlot(int index) { return m_InputSlots[index]; }
         public virtual VFXSlot GetOutputSlot(int index) { return m_OutputSlots[index]; }
 
         protected virtual IEnumerable<VFXPropertyWithValue> inputProperties { get { return PropertiesFromType(GetInputPropertiesTypeName()); } }
@@ -76,7 +77,8 @@ namespace UnityEditor.VFX
             var instance = System.Activator.CreateInstance(type);
             return type.GetFields()
                 .Where(f => !f.IsStatic)
-                .Select(f => {
+                .Select(f =>
+                {
                     var p = new VFXPropertyWithValue();
                     p.property = new VFXProperty(f);
                     p.value = f.GetValue(instance);
@@ -168,6 +170,16 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual void ReplaceSlot(VFXSlot prevSlot, VFXSlot newSlot) { InnerReplaceSlot(prevSlot, newSlot, true); }
+        private void InnerReplaceSlot(VFXSlot prevSlot, VFXSlot newSlot, bool notify)
+        {
+            int index = GetSlotIndex(prevSlot);
+            InnerRemoveSlot(prevSlot, false);
+            InnerAddSlot(newSlot, index, false);
+            if (notify)
+                Invalidate(InvalidationCause.kStructureChanged);
+        }
+
         public int GetSlotIndex(VFXSlot slot)
         {
             var slotList = slot.direction == VFXSlot.Direction.kInput ? m_InputSlots : m_OutputSlots;
@@ -175,7 +187,7 @@ namespace UnityEditor.VFX
         }
 
         protected VFXSlotContainerModel()
-        {}
+        { }
 
         public override void OnEnable()
         {
@@ -423,7 +435,7 @@ namespace UnityEditor.VFX
             return m_expandedPaths.Contains(fieldPath);
         }
 
-        public virtual void UpdateOutputExpressions() {}
+        public virtual void UpdateOutputExpressions() { }
 
         public virtual VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {

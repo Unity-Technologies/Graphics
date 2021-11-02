@@ -486,7 +486,7 @@ namespace UnityEditor.Rendering.Universal
                 if (float.IsNaN(saved[axe]))
                 {
                     float oldSize = currentTarget.m_Size[axe];
-                    saved[axe] =  Mathf.Abs(oldSize) <= Mathf.Epsilon ? 0f : currentTarget.m_Offset[axe] / oldSize;
+                    saved[axe] = Mathf.Abs(oldSize) <= Mathf.Epsilon ? 0f : currentTarget.m_Offset[axe] / oldSize;
                     ratioSizePivotPositionSaved[currentTarget] = saved;
                 }
 
@@ -528,9 +528,7 @@ namespace UnityEditor.Rendering.Universal
 
             bool isDecalSupported = DecalProjector.isSupported;
             if (!isDecalSupported)
-            {
-                EditorGUILayout.HelpBox("No renderer has a Decal Renderer Feature added.", MessageType.Warning);
-            }
+                EditorUtils.FeatureHelpBox("The current renderer has no Decal Renderer Feature added.", MessageType.Warning);
 
             EditorGUI.BeginChangeCheck();
             {

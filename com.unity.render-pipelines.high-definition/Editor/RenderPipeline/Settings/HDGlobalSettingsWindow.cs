@@ -7,6 +7,8 @@ using UnityEngine.UIElements;
 using UnityEditorInternal;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.VFX.HDRP;
+using UnityEditor.VFX.UI;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -19,12 +21,15 @@ namespace UnityEditor.Rendering.HighDefinition
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {
+            var keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDGlobalSettingsPanelIMGUI.Styles>()
+                .Concat(OverridableFrameSettingsArea.frameSettingsKeywords);
+
+            keywords = RenderPipelineSettingsUtilities.RemoveDLSSKeywords(keywords);
+
             return new SettingsProvider("Project/Graphics/HDRP Global Settings", SettingsScope.Project)
             {
                 activateHandler = s_IMGUIImpl.OnActivate,
-                keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDGlobalSettingsPanelIMGUI.Styles>()
-                    .Concat(OverridableFrameSettingsArea.frameSettingsKeywords)
-                    .ToArray(),
+                keywords = keywords.ToArray(),
                 guiHandler = s_IMGUIImpl.DoGUI,
                 titleBarGuiHandler = s_IMGUIImpl.OnTitleBarGUI
             };
@@ -73,6 +78,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Help.BrowseURL(Documentation.GetPageLink("Default-Settings-Window"));
         }
 
+        internal static bool needRefreshVfxErrors = false;
+
         public void DoGUI(string searchContext)
         {
             // When the asset being serialized has been deleted before its reconstruction
@@ -84,11 +91,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (serializedSettings == null || settingsSerialized != HDRenderPipelineGlobalSettings.instance)
             {
-                if (HDRenderPipeline.currentAsset != null || HDRenderPipelineGlobalSettings.instance != null)
+                if (HDRenderPipelineGlobalSettings.instance != null)
                 {
                     settingsSerialized = HDRenderPipelineGlobalSettings.Ensure();
                     var serializedObject = new SerializedObject(settingsSerialized);
                     serializedSettings = new SerializedHDRenderPipelineGlobalSettings(serializedObject);
+                }
+                else
+                {
+                    serializedSettings = null;
+                    settingsSerialized = null;
                 }
             }
             else if (settingsSerialized != null && serializedSettings != null)
@@ -103,6 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
                 Inspector.Draw(serializedSettings, null);
                 serializedSettings.serializedObject?.ApplyModifiedProperties();
+                VFXHDRPSettingsUtility.RefreshVfxErrorsIfNeeded(ref needRefreshVfxErrors);
             }
         }
 
@@ -123,13 +136,27 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (isHDRPinUse)
             {
-                EditorGUILayout.HelpBox(Styles.warningGlobalSettingsMissing, MessageType.Warning);
+                ShowMessageWithFixButton(Styles.warningGlobalSettingsMissing, MessageType.Warning);
             }
             else
             {
                 EditorGUILayout.HelpBox(Styles.warningHdrpNotActive, MessageType.Warning);
                 if (serialized == null)
-                    EditorGUILayout.HelpBox(Styles.infoGlobalSettingsMissing, MessageType.Info);
+                {
+                    ShowMessageWithFixButton(Styles.infoGlobalSettingsMissing, MessageType.Info);
+                }
+            }
+        }
+
+        void ShowMessageWithFixButton(string helpBoxLabel, MessageType type)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.HelpBox(helpBoxLabel, type);
+                if (GUILayout.Button(Styles.fixAssetButtonLabel, GUILayout.Width(45)))
+                {
+                    HDRenderPipelineGlobalSettings.Ensure();
+                }
             }
         }
 
@@ -141,10 +168,11 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUILayout.HorizontalScope())
             {
                 EditorGUI.BeginChangeCheck();
-                var newAsset = (HDRenderPipelineGlobalSettings)EditorGUILayout.ObjectField(settingsSerialized , typeof(HDRenderPipelineGlobalSettings), false);
+                var newAsset = (HDRenderPipelineGlobalSettings)EditorGUILayout.ObjectField(settingsSerialized, typeof(HDRenderPipelineGlobalSettings), false);
                 if (EditorGUI.EndChangeCheck())
                 {
                     HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
+                    Debug.Assert(newAsset == HDRenderPipelineGlobalSettings.instance);
                     if (settingsSerialized != null && !settingsSerialized.Equals(null))
                         EditorUtility.SetDirty(settingsSerialized);
                 }
@@ -229,9 +257,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static private bool[] m_ShowFrameSettings_Rendering      = { false, false, false };
-        static private bool[] m_ShowFrameSettings_Lighting       = { false, false, false };
-        static private bool[] m_ShowFrameSettings_AsyncCompute   = { false, false, false };
+        static private bool[] m_ShowFrameSettings_Rendering = { false, false, false };
+        static private bool[] m_ShowFrameSettings_Lighting = { false, false, false };
+        static private bool[] m_ShowFrameSettings_AsyncCompute = { false, false, false };
         static private bool[] m_ShowFrameSettings_LightLoopDebug = { false, false, false };
 
         static void DrawFrameSettingsSubsection(int index, SerializedFrameSettings serialized, Editor owner)
@@ -309,6 +337,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 GUILayout.Space(5);
                 serialized.uiBeforePostProcessCustomPostProcesses.DoLayoutList();
+            }
+            GUILayout.Space(2);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(5);
+                serialized.uiAfterPostProcessBlursCustomPostProcesses.DoLayoutList();
             }
             GUILayout.Space(2);
             using (new EditorGUILayout.HorizontalScope())
@@ -448,6 +482,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevelLabel);
                 EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.lensAttenuationModeContentLabel);
+                EditorGUILayout.PropertyField(serialized.colorGradingSpace, Styles.colorGradingSpaceContentLabel);
                 EditorGUILayout.PropertyField(serialized.rendererListCulling, Styles.rendererListCulling);
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
@@ -502,21 +537,29 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             m_ShowLightLayerNames = CoreEditorUtils.DrawHeaderFoldout(Styles.lightLayersLabel,
                 m_ShowLightLayerNames,
-                documentationURL: DocumentationUrls.k_DecalLayers,
+                documentationURL: Documentation.GetPageLink(DocumentationUrls.k_LightLayers),
                 contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized, section: 1)
             );
             if (m_ShowLightLayerNames)
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName0, Styles.lightLayerName0, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName1, Styles.lightLayerName1, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName2, Styles.lightLayerName2, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName3, Styles.lightLayerName3, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName4, Styles.lightLayerName4, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName5, Styles.lightLayerName5, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName6, Styles.lightLayerName6, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName7, Styles.lightLayerName7, GUILayout.ExpandWidth(true));
+                    using (var changed = new EditorGUI.ChangeCheckScope())
+                    {
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName0, Styles.lightLayerName0);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName1, Styles.lightLayerName1);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName2, Styles.lightLayerName2);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName3, Styles.lightLayerName3);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName4, Styles.lightLayerName4);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName5, Styles.lightLayerName5);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName6, Styles.lightLayerName6);
+                        EditorGUILayout.DelayedTextField(serialized.lightLayerName7, Styles.lightLayerName7);
+                        if (changed.changed)
+                        {
+                            serialized.serializedObject?.ApplyModifiedProperties();
+                            (serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
+                        }
+                    }
                 }
             }
         }
@@ -524,20 +567,28 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawDecalLayerNames(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             m_ShowDecalLayerNames = CoreEditorUtils.DrawHeaderFoldout(Styles.decalLayersLabel, m_ShowDecalLayerNames,
-                documentationURL: DocumentationUrls.k_DecalLayers,
+                documentationURL: Documentation.GetPageLink(DocumentationUrls.k_DecalLayers),
                 contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized, section: 2));
             if (m_ShowDecalLayerNames)
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName0, Styles.decalLayerName0, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName1, Styles.decalLayerName1, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName2, Styles.decalLayerName2, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName3, Styles.decalLayerName3, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName4, Styles.decalLayerName4, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName5, Styles.decalLayerName5, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName6, Styles.decalLayerName6, GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName7, Styles.decalLayerName7, GUILayout.ExpandWidth(true));
+                    using (var changed = new EditorGUI.ChangeCheckScope())
+                    {
+                        EditorGUILayout.DelayedTextField(serialized.decalLayerName0, Styles.decalLayerName0);
+                        EditorGUILayout.DelayedTextField(serialized.decalLayerName1, Styles.decalLayerName1);
+                        EditorGUILayout.DelayedTextField(serialized.decalLayerName2, Styles.decalLayerName2);
+                        EditorGUILayout.DelayedTextField(serialized.decalLayerName3, Styles.decalLayerName3);
+                        EditorGUILayout.DelayedTextField(serialized.decalLayerName4, Styles.decalLayerName4);
+                        EditorGUILayout.DelayedTextField(serialized.decalLayerName5, Styles.decalLayerName5);
+                        EditorGUILayout.DelayedTextField(serialized.decalLayerName6, Styles.decalLayerName6);
+                        EditorGUILayout.DelayedTextField(serialized.decalLayerName7, Styles.decalLayerName7);
+                        if (changed.changed)
+                        {
+                            serialized.serializedObject?.ApplyModifiedProperties();
+                            (serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
+                        }
+                    }
                 }
             }
         }

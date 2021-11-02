@@ -258,6 +258,10 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_CustomSlotLabel = value;
         }
 
+        [SerializeField]
+        protected int m_DismissedVersion = 0;
+        public int dismissedUpdateVersion { get => m_DismissedVersion; set => m_DismissedVersion = value; }
+
         internal bool isConnectionTestable
         {
             get => m_UseCustomSlotLabel;
@@ -270,6 +274,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal abstract ShaderInput Copy();
 
-        internal virtual void OnBeforePasteIntoGraph(GraphData graph) {}
+        internal virtual void OnBeforePasteIntoGraph(GraphData graph) { }
     }
 }

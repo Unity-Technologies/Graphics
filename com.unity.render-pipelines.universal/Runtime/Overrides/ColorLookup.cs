@@ -3,10 +3,10 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenu("Post-processing/Color Lookup")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Color Lookup", typeof(UniversalRenderPipeline))]
     public sealed class ColorLookup : VolumeComponent, IPostProcessComponent
     {
-        [Tooltip("A custom 2D texture lookup table to apply.")]
+        [Tooltip("A 2D Lookup Texture (LUT) to use for color grading.")]
         public TextureParameter texture = new TextureParameter(null);
 
         [Tooltip("How much of the lookup texture will contribute to the color grading effect.")]

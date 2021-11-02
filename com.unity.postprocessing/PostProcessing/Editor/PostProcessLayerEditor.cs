@@ -38,9 +38,9 @@ namespace UnityEditor.Rendering.PostProcessing
 
         Dictionary<PostProcessEvent, ReorderableList> m_CustomLists;
 
-        #if UNITY_2017_3_OR_NEWER
+#if UNITY_2017_3_OR_NEWER
         Camera m_TargetCameraComponent;
-        #endif
+#endif
 
         static GUIContent[] s_AntialiasingMethodNames =
         {
@@ -80,9 +80,9 @@ namespace UnityEditor.Rendering.PostProcessing
             m_ShowToolkit = serializedObject.FindProperty("m_ShowToolkit");
             m_ShowCustomSorter = serializedObject.FindProperty("m_ShowCustomSorter");
 
-            #if UNITY_2017_3_OR_NEWER
+#if UNITY_2017_3_OR_NEWER
             m_TargetCameraComponent = m_Target.GetComponent<Camera>();
-            #endif
+#endif
         }
 
         void OnDisable()
@@ -161,14 +161,14 @@ namespace UnityEditor.Rendering.PostProcessing
 
                 if (m_AntialiasingMode.intValue == (int)PostProcessLayer.Antialiasing.TemporalAntialiasing)
                 {
-                    #if !UNITY_2017_3_OR_NEWER
+#if !UNITY_2017_3_OR_NEWER
                     if (RuntimeUtilities.isSinglePassStereoSelected)
                         EditorGUILayout.HelpBox("TAA requires Unity 2017.3+ for Single-pass stereo rendering support.", MessageType.Warning);
-                    #endif
-                    #if UNITY_2017_3_OR_NEWER
+#endif
+#if UNITY_2017_3_OR_NEWER
                     if (m_TargetCameraComponent != null && m_TargetCameraComponent.allowDynamicResolution)
                         EditorGUILayout.HelpBox("TAA is not supported with Dynamic Resolution.", MessageType.Warning);
-                    #endif
+#endif
 
                     EditorGUILayout.PropertyField(m_TaaJitterSpread);
                     EditorGUILayout.PropertyField(m_TaaStationaryBlending);

@@ -2,6 +2,7 @@
 
 This page contains an overview of new features, improvements, and issues resolved in version 12 of the Visual Effect Graph, embedded in Unity 2021.2.
 
+
 ## Added
 
 The following is a list of features Unity added to version 12 of the Visual Effect Graph, embedded in Unity 2021.12 Each entry includes a summary of the feature and a link to any relevant documentation.
@@ -30,7 +31,7 @@ This feature helps you create accurate bounds that match their systems so that e
 
 For more information, see [Visual effect bounds](visual-effect-bounds.md).
 
-### Graphics buffer bupport
+### Graphics buffer support
 
 ![img](Images/banner-graphics-compute-buffer-support.png)
 
@@ -41,6 +42,7 @@ This feature requires C# knowledge to set and handle Graphics Buffers.
 ### Signed Distance Field Bake Tool
 
 ![img](Images/banner-sdf-baker.png)
+
 
 This version includes the new Signed Distance Field (SDF) Bake Tool. To access it, navigate to **Window > Visual Effects > Utilities > SDF Bake Tool**. You can use this tool to quickly turn meshes and prefabs into SDF assets which you can use to create various effects, such as custom collisions, or to make particles conform to a particular shape.
 
@@ -84,7 +86,6 @@ VFX graph 12.0 includes a new workflow to attach visual effects to their instanc
 When an effect is attached, you can use various helper tools and use it to visualize some gizmos.
 
 
-
 ### URP high-end mobile support (compute-capable devices)
 
 ![img](Images/banner-urp-mobile.png)
@@ -97,3 +98,4 @@ Compute support on mobile devices varies widely across brands, mobile GPU archit
 
 ## Fixed
 For information on issues resolved in version 12 of the Visual Effect Graph, embedded in Unity 2021.2, see the [changelog](../changelog/CHANGELOG.html).
+

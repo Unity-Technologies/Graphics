@@ -307,6 +307,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (m_ChangedFileDependencyGUIDs.Count > 0 && graphObject != null && graphObject.graph != null)
                 {
                     bool reloadedSomething = false;
+                    foreach (var guid in m_ChangedFileDependencyGUIDs)
+                    {
+                        if (AssetDatabase.GUIDToAssetPath(guid) != null)
+                        {
+                            // update preview for changed textures
+                            graphEditorView?.previewManager?.ReloadChangedFiles(guid);
+                        }
+                    }
+
                     var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
                     foreach (var subGraphNode in subGraphNodes)
                     {
@@ -514,6 +523,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 // the window is closing for good.. cleanup undo history for the graph object
                 Undo.ClearUndo(graphObject);
+            }
+
+            // Discard any unsaved modification on the generated material
+            if (graphObject && graphObject.materialArtifact && EditorUtility.IsDirty(graphObject.materialArtifact))
+            {
+                var material = new Material(AssetDatabase.LoadAssetAtPath<Shader>(AssetDatabase.GUIDToAssetPath(graphObject.AssetGuid)));
+                graphObject.materialArtifact.CopyPropertiesFromMaterial(material);
+                CoreUtils.Destroy(material);
             }
 
             graphObject = null;
@@ -763,7 +780,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (deserialized == null)
                 return;
 
-            var subGraph = new GraphData {isSubGraph = true, path = "Sub Graphs"};
+            var subGraph = new GraphData { isSubGraph = true, path = "Sub Graphs" };
             var subGraphOutputNode = new SubGraphOutputNode();
             {
                 var drawState = subGraphOutputNode.drawState;
@@ -1086,8 +1103,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             graphObject.graph.RemoveElements(
                 graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => !(x is PropertyNode || x is SubGraphOutputNode) && x.allowedInSubGraph).ToArray(),
-                new IEdge[] {},
-                new GroupData[] {},
+                new IEdge[] { },
+                new GroupData[] { },
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
 
             List<GraphElement> moved = new List<GraphElement>();
@@ -1207,7 +1224,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphObject.hideFlags = HideFlags.HideAndDontSave;
                     graphObject.graph = new GraphData
                     {
-                        assetGuid = assetGuid, isSubGraph = isSubGraph, messageManager = messageManager
+                        assetGuid = assetGuid,
+                        isSubGraph = isSubGraph,
+                        messageManager = messageManager
                     };
                     MultiJson.Deserialize(graphObject.graph, m_LastSerializedFileContents);
                     graphObject.graph.OnEnable();

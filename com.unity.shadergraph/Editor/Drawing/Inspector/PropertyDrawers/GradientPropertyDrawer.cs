@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             out VisualElement propertyGradientField,
             int indentLevel = 0)
         {
-            var objectField = new GradientField { value = fieldToDraw, colorSpace = ColorSpace.Linear};
+            var objectField = new GradientField { value = fieldToDraw, colorSpace = ColorSpace.Linear };
 
             if (valueChangedCallback != null)
             {
@@ -41,10 +41,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
-                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
+                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] { newValue }),
                 (Gradient)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

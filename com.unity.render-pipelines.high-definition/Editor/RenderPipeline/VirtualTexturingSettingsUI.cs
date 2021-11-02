@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 SerializedProperty settingProperty = property.GetArrayElementAtIndex(i);
                 settings.Add(new GPUCacheSettingSRP()
-                    { format = (GraphicsFormat)settingProperty.FindPropertyRelative("format").intValue, sizeInMegaBytes = (uint)settingProperty.FindPropertyRelative("sizeInMegaBytes").intValue });
+                { format = (GraphicsFormat)settingProperty.FindPropertyRelative("format").intValue, sizeInMegaBytes = (uint)settingProperty.FindPropertyRelative("sizeInMegaBytes").intValue });
             }
 
             return settings.ToArray();

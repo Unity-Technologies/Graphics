@@ -21,19 +21,19 @@ namespace UnityEditor.Rendering.HighDefinition
         public enum Features
         {
             /// <summary>Minimal Lit Surface Inputs fields.</summary>
-            None            = 0,
+            None = 0,
             /// <summary>Displays Coat Mask fields.</summary>
-            CoatMask        = 1 << 0,
+            CoatMask = 1 << 0,
             /// <summary>Displays the height Map fields.</summary>
-            HeightMap       = 1 << 1,
+            HeightMap = 1 << 1,
             /// <summary>Displays the layer Options fields.</summary>
-            LayerOptions    = 1 << 2,
+            LayerOptions = 1 << 2,
             /// <summary>Displays the foldout header as a SubHeader.</summary>
-            SubHeader       = 1 << 3,
+            SubHeader = 1 << 3,
             /// <summary>Displays the default surface inputs.</summary>
-            Standard        = 1 << 4,
+            Standard = 1 << 4,
             /// <summary>Displays everything with a header.</summary>
-            All             = ~0 ^ SubHeader // By default we don't want a sub-header
+            All = ~0 ^ SubHeader // By default we don't want a sub-header
         }
 
         internal class Styles
@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Iridescence
             public static GUIContent iridescenceMaskText = new GUIContent("Iridescence Mask", "Specifies the Iridescence Mask (R) for this Material - This map controls the intensity of the iridescence.");
             public static GUIContent iridescenceThicknessText = new GUIContent("Iridescence Layer Thickness");
-            public static GUIContent iridescenceThicknessMapText = new GUIContent("Iridescence Layer Thickness map", "Specifies the Iridescence Layer Thickness map (R) for this Material.");
+            public static GUIContent iridescenceThicknessMapText = new GUIContent("Iridescence Layer Thickness map", "Specifies the Thickness map (R) of the thin iridescence layer over the material. Unit is micrometer multiplied by 3. A value of 1 is remapped to 3 micrometers or 3000 nanometers.");
             public static GUIContent iridescenceThicknessRemapText = new GUIContent("Iridescence Layer Thickness remap");
 
             // Clear Coat
@@ -112,26 +112,18 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         MaterialProperty[] UVBase = new MaterialProperty[kMaxLayerCount];
-        const string kUVBase = "_UVBase";
         MaterialProperty[] TexWorldScale = new MaterialProperty[kMaxLayerCount];
-        const string kTexWorldScale = "_TexWorldScale";
         MaterialProperty[] InvTilingScale = new MaterialProperty[kMaxLayerCount];
-        const string kInvTilingScale = "_InvTilingScale";
         MaterialProperty[] UVMappingMask = new MaterialProperty[kMaxLayerCount];
-        const string kUVMappingMask = "_UVMappingMask";
 
         MaterialProperty[] baseColor = new MaterialProperty[kMaxLayerCount];
-        const string kBaseColor = "_BaseColor";
         MaterialProperty[] baseColorMap = new MaterialProperty[kMaxLayerCount];
-        const string kBaseColorMap = "_BaseColorMap";
         MaterialProperty[] metallic = new MaterialProperty[kMaxLayerCount];
-        const string kMetallic = "_Metallic";
         MaterialProperty[] metallicRemapMin = new MaterialProperty[kMaxLayerCount];
         const string kMetallicRemapMin = "_MetallicRemapMin";
         MaterialProperty[] metallicRemapMax = new MaterialProperty[kMaxLayerCount];
         const string kMetallicRemapMax = "_MetallicRemapMax";
         MaterialProperty[] smoothness = new MaterialProperty[kMaxLayerCount];
-        const string kSmoothness = "_Smoothness";
         MaterialProperty[] smoothnessRemapMin = new MaterialProperty[kMaxLayerCount];
         const string kSmoothnessRemapMin = "_SmoothnessRemapMin";
         MaterialProperty[] smoothnessRemapMax = new MaterialProperty[kMaxLayerCount];
@@ -141,59 +133,38 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty[] aoRemapMax = new MaterialProperty[kMaxLayerCount];
         const string kAORemapMax = "_AORemapMax";
         MaterialProperty[] maskMap = new MaterialProperty[kMaxLayerCount];
-        const string kMaskMap = "_MaskMap";
         MaterialProperty[] normalScale = new MaterialProperty[kMaxLayerCount];
         const string kNormalScale = "_NormalScale";
         MaterialProperty[] normalMap = new MaterialProperty[kMaxLayerCount];
-        const string kNormalMap = "_NormalMap";
         MaterialProperty[] normalMapOS = new MaterialProperty[kMaxLayerCount];
-        const string kNormalMapOS = "_NormalMapOS";
         MaterialProperty[] bentNormalMap = new MaterialProperty[kMaxLayerCount];
-        const string kBentNormalMap = "_BentNormalMap";
         MaterialProperty[] bentNormalMapOS = new MaterialProperty[kMaxLayerCount];
-        const string kBentNormalMapOS = "_BentNormalMapOS";
         MaterialProperty[] normalMapSpace = new MaterialProperty[kMaxLayerCount];
-        const string kNormalMapSpace = "_NormalMapSpace";
 
         MaterialProperty[] heightMap = new MaterialProperty[kMaxLayerCount];
-        const string kHeightMap = "_HeightMap";
         MaterialProperty[] heightAmplitude = new MaterialProperty[kMaxLayerCount];
-        const string kHeightAmplitude = "_HeightAmplitude";
         MaterialProperty[] heightCenter = new MaterialProperty[kMaxLayerCount];
-        const string kHeightCenter = "_HeightCenter";
         MaterialProperty[] heightPoMAmplitude = new MaterialProperty[kMaxLayerCount];
-        const string kHeightPoMAmplitude = "_HeightPoMAmplitude";
         MaterialProperty[] heightTessCenter = new MaterialProperty[kMaxLayerCount];
-        const string kHeightTessCenter = "_HeightTessCenter";
         MaterialProperty[] heightTessAmplitude = new MaterialProperty[kMaxLayerCount];
-        const string kHeightTessAmplitude = "_HeightTessAmplitude";
         MaterialProperty[] heightMin = new MaterialProperty[kMaxLayerCount];
-        const string kHeightMin = "_HeightMin";
         MaterialProperty[] heightMax = new MaterialProperty[kMaxLayerCount];
-        const string kHeightMax = "_HeightMax";
         MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount];
-        const string kHeightOffset = "_HeightOffset";
         MaterialProperty[] heightParametrization = new MaterialProperty[kMaxLayerCount];
-        const string kHeightParametrization = "_HeightMapParametrization";
 
         MaterialProperty displacementMode = null;
-        const string kDisplacementMode = "_DisplacementMode";
 
         MaterialProperty tangentMap = null;
-        const string kTangentMap = "_TangentMap";
         MaterialProperty tangentMapOS = null;
-        const string kTangentMapOS = "_TangentMapOS";
         MaterialProperty anisotropy = null;
         const string kAnisotropy = "_Anisotropy";
         MaterialProperty anisotropyMap = null;
-        const string kAnisotropyMap = "_AnisotropyMap";
 
         MaterialProperty energyConservingSpecularColor = null;
         const string kEnergyConservingSpecularColor = "_EnergyConservingSpecularColor";
         MaterialProperty specularColor = null;
         const string kSpecularColor = "_SpecularColor";
         MaterialProperty specularColorMap = null;
-        const string kSpecularColorMap = "_SpecularColorMap";
 
         MaterialProperty[] diffusionProfileHash = new MaterialProperty[kMaxLayerCount];
         const string kDiffusionProfileHash = "_DiffusionProfileHash";
@@ -202,7 +173,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty[] subsurfaceMask = new MaterialProperty[kMaxLayerCount];
         const string kSubsurfaceMask = "_SubsurfaceMask";
         MaterialProperty[] subsurfaceMaskMap = new MaterialProperty[kMaxLayerCount];
-        const string kSubsurfaceMaskMap = "_SubsurfaceMaskMap";
         MaterialProperty[] thickness = new MaterialProperty[kMaxLayerCount];
         const string kThickness = "_Thickness";
         MaterialProperty[] thicknessMap = new MaterialProperty[kMaxLayerCount];
@@ -222,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kIridescenceThicknessRemap = "_IridescenceThicknessRemap";
 
         // Material ID
-        MaterialProperty materialID  = null;
+        MaterialProperty materialID = null;
         MaterialProperty transmissionEnable = null;
         const string kTransmissionEnable = "_TransmissionEnable";
 
@@ -258,12 +228,12 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
 
-        Features    m_Features;
-        int         m_LayerCount;
-        int         m_LayerIndex;
-        bool        m_UseHeightBasedBlend;
+        Features m_Features;
+        int m_LayerCount;
+        int m_LayerIndex;
+        bool m_UseHeightBasedBlend;
 
-        bool        isLayeredLit => m_LayerCount > 1;
+        bool isLayeredLit => m_LayerCount > 1;
 
         /// <summary>
         /// Constructs a LitSurfaceInputsUIBlock based on the parameters.
@@ -440,12 +410,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.TexturePropertySingleLine(Styles.bentNormalMapOSText, bentNormalMapOS[m_LayerIndex]);
             }
 
-            DisplacementMode displaceMode = BaseLitGUI.GetFilteredDisplacementMode(displacementMode);
+            DisplacementMode displaceMode = SurfaceOptionUIBlock.GetFilteredDisplacementMode(displacementMode);
             if (displaceMode != DisplacementMode.None || (m_Features & Features.HeightMap) != 0)
             {
-                EditorGUI.BeginChangeCheck();
                 materialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[m_LayerIndex]);
-                if (!heightMap[m_LayerIndex].hasMixedValue && heightMap[m_LayerIndex].textureValue != null && !BaseLitGUI.HasMixedDisplacementMode(displacementMode))
+                if (!heightMap[m_LayerIndex].hasMixedValue && heightMap[m_LayerIndex].textureValue != null && !SurfaceOptionUIBlock.HasMixedDisplacementMode(displacementMode))
                 {
                     EditorGUI.indentLevel++;
                     if (displaceMode == DisplacementMode.Pixel)
@@ -482,20 +451,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     }
                     EditorGUI.indentLevel--;
-                }
-
-                // UI only updates intermediate values, this will update the values actually used by the shader.
-                if (EditorGUI.EndChangeCheck())
-                {
-                    SurfaceOptionUIBlock    surfaceOption;
-
-                    // Fetch the surface option block which contains the function to update the displacement datas
-                    if (m_LayerCount == 1)
-                        surfaceOption = parent.FetchUIBlock<SurfaceOptionUIBlock>();
-                    else
-                        surfaceOption = parent.parent.FetchUIBlock<SurfaceOptionUIBlock>();
-
-                    surfaceOption.UpdateDisplacement(m_LayerIndex);
                 }
             }
 
@@ -677,7 +632,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel--;
             }
 
-            bool mainLayerModeInfluenceEnable  = useMainLayerInfluence.floatValue > 0.0f;
+            bool mainLayerModeInfluenceEnable = useMainLayerInfluence.floatValue > 0.0f;
             materialEditor.ShaderProperty(objectScaleAffectTile, mainLayerModeInfluenceEnable ? Styles.objectScaleAffectTileText2 : Styles.objectScaleAffectTileText);
         }
     }

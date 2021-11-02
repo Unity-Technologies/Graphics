@@ -185,6 +185,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
+            overrideCameraTarget = true;
+
             if (m_Destination == RenderTargetHandle.CameraTarget)
                 return;
 
@@ -227,18 +229,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Start by pre-fetching all builtin effect settings we need
             // Some of the color-grading settings are only used in the color grading lut pass
             var stack = VolumeManager.instance.stack;
-            m_DepthOfField        = stack.GetComponent<DepthOfField>();
-            m_MotionBlur          = stack.GetComponent<MotionBlur>();
-            m_PaniniProjection    = stack.GetComponent<PaniniProjection>();
-            m_Bloom               = stack.GetComponent<Bloom>();
-            m_LensDistortion      = stack.GetComponent<LensDistortion>();
+            m_DepthOfField = stack.GetComponent<DepthOfField>();
+            m_MotionBlur = stack.GetComponent<MotionBlur>();
+            m_PaniniProjection = stack.GetComponent<PaniniProjection>();
+            m_Bloom = stack.GetComponent<Bloom>();
+            m_LensDistortion = stack.GetComponent<LensDistortion>();
             m_ChromaticAberration = stack.GetComponent<ChromaticAberration>();
-            m_Vignette            = stack.GetComponent<Vignette>();
-            m_ColorLookup         = stack.GetComponent<ColorLookup>();
-            m_ColorAdjustments    = stack.GetComponent<ColorAdjustments>();
-            m_Tonemapping         = stack.GetComponent<Tonemapping>();
-            m_FilmGrain           = stack.GetComponent<FilmGrain>();
-            m_UseDrawProcedural   = renderingData.cameraData.xr.enabled;
+            m_Vignette = stack.GetComponent<Vignette>();
+            m_ColorLookup = stack.GetComponent<ColorLookup>();
+            m_ColorAdjustments = stack.GetComponent<ColorAdjustments>();
+            m_Tonemapping = stack.GetComponent<Tonemapping>();
+            m_FilmGrain = stack.GetComponent<FilmGrain>();
+            m_UseDrawProcedural = renderingData.cameraData.xr.enabled;
             m_UseFastSRGBLinearConversion = renderingData.postProcessingData.useFastSRGBLinearConversion;
 
             if (m_IsFinalPass)
@@ -329,14 +331,31 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             ref ScriptableRenderer renderer = ref cameraData.renderer;
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
+
+            //Check amount of swaps we have to do
+            //We blit back and forth without msaa untill the last blit.
+            bool useStopNan = cameraData.isStopNaNEnabled && m_Materials.stopNaN != null;
+            bool useSubPixeMorpAA = cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+            var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
+            bool useDepthOfField = m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null;
+            bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty();
+            bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
+            bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
+
+            int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useLensFlare ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);
+
+            if (m_UseSwapBuffer && amountOfPassesRemaining > 0)
+            {
+                renderer.EnableSwapBufferMSAA(false);
+            }
 
             // Don't use these directly unless you have a good reason to, use GetSource() and
             // GetDestination() instead
             bool tempTargetUsed = false;
             bool tempTarget2Used = false;
-            RenderTargetIdentifier source =  m_UseSwapBuffer ? renderer.cameraColorTarget : m_Source;
+            RenderTargetIdentifier source = m_UseSwapBuffer ? renderer.cameraColorTarget : m_Source;
             RenderTargetIdentifier destination = m_UseSwapBuffer ? renderer.GetCameraColorFrontBuffer(cmd) : -1;
-            bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             RenderTargetIdentifier GetSource() => source;
 
@@ -365,8 +384,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             void Swap(ref ScriptableRenderer r)
             {
+                --amountOfPassesRemaining;
                 if (m_UseSwapBuffer)
                 {
+                    //we want the last blit to be to MSAA
+                    if (amountOfPassesRemaining == 0 && !m_HasFinalPass)
+                    {
+                        r.EnableSwapBufferMSAA(true);
+                    }
+
                     r.SwapColorBuffer(cmd);
                     source = r.cameraColorTarget;
                     destination = r.GetCameraColorFrontBuffer(cmd);
@@ -382,7 +408,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Optional NaN killer before post-processing kicks in
             // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
-            if (cameraData.isStopNaNEnabled && m_Materials.stopNaN != null)
+            if (useStopNan)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.StopNaNs)))
                 {
@@ -396,7 +422,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Anti-aliasing
-            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)
+            if (useSubPixeMorpAA)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.SMAA)))
                 {
@@ -408,8 +434,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Depth of Field
             // Adreno 3xx SystemInfo.graphicsShaderLevel is 35, but instancing support is disabled due to buggy drivers.
             // DOF shader uses #pragma target 3.5 which adds requirement for instancing support, thus marking the shader unsupported on those devices.
-            var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
-            if (m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null)
+            if (useDepthOfField)
             {
                 var markerName = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian
                     ? URPProfileId.GaussianDepthOfField
@@ -422,8 +447,29 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
+            // Motion blur
+            if (useMotionBlur)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
+                {
+                    DoMotionBlur(cameraData, cmd, GetSource(), GetDestination());
+                    Swap(ref renderer);
+                }
+            }
+
+            // Panini projection is done as a fullscreen pass after all depth-based effects are done
+            // and before bloom kicks in
+            if (usePaniniProjection)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
+                {
+                    DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination());
+                    Swap(ref renderer);
+                }
+            }
+
             // Lens Flare
-            if (!LensFlareCommonSRP.Instance.IsEmpty())
+            if (useLensFlare)
             {
                 bool usePanini;
                 float paniniDistance;
@@ -447,27 +493,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
-            // Motion blur
-            if (m_MotionBlur.IsActive() && !isSceneViewCamera)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
-                {
-                    DoMotionBlur(cameraData, cmd, GetSource(), GetDestination());
-                    Swap(ref renderer);
-                }
-            }
-
-            // Panini projection is done as a fullscreen pass after all depth-based effects are done
-            // and before bloom kicks in
-            if (m_PaniniProjection.IsActive() && !isSceneViewCamera)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
-                {
-                    DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination());
-                    Swap(ref renderer);
-                }
-            }
-
             // Combined post-processing stack
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.UberPostProcess)))
             {
@@ -485,7 +510,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Setup other effects constants
                 SetupLensDistortion(m_Materials.uber, isSceneViewCamera);
                 SetupChromaticAberration(m_Materials.uber);
-                SetupVignette(m_Materials.uber);
+                SetupVignette(m_Materials.uber, cameraData.xr);
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
 
                 // Only apply dithering & grain if there isn't a final pass.
@@ -523,8 +548,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                 {
                     cameraTarget = (m_Destination == RenderTargetHandle.CameraTarget) ? cameraTarget : m_Destination.Identifier();
+                    m_ResolveToScreen = cameraData.resolveFinalTarget || (m_Destination == cameraTargetHandle || m_HasFinalPass == true);
                 }
-
 
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
                 bool finishPostProcessOnScreen = m_ResolveToScreen;
@@ -565,9 +590,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
                 {
                     cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                    cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
-                    if ((m_Destination == RenderTargetHandle.CameraTarget && !m_UseSwapBuffer) || m_ResolveToScreen)
+                    if ((m_Destination == RenderTargetHandle.CameraTarget && !m_UseSwapBuffer) || (m_ResolveToScreen && m_UseSwapBuffer))
                         cmd.SetViewport(cameraData.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
@@ -600,6 +626,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (tempTarget2Used)
                     cmd.ReleaseTemporaryRT(ShaderConstants._TempTarget2);
+
+                cmd.ReleaseTemporaryRT(m_InternalLut.id);
             }
         }
 
@@ -634,11 +662,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             switch (cameraData.antialiasingQuality)
             {
-                case AntialiasingQuality.Low: material.EnableKeyword(ShaderKeywordStrings.SmaaLow);
+                case AntialiasingQuality.Low:
+                    material.EnableKeyword(ShaderKeywordStrings.SmaaLow);
                     break;
-                case AntialiasingQuality.Medium: material.EnableKeyword(ShaderKeywordStrings.SmaaMedium);
+                case AntialiasingQuality.Medium:
+                    material.EnableKeyword(ShaderKeywordStrings.SmaaMedium);
                     break;
-                case AntialiasingQuality.High: material.EnableKeyword(ShaderKeywordStrings.SmaaHigh);
+                case AntialiasingQuality.High:
+                    material.EnableKeyword(ShaderKeywordStrings.SmaaHigh);
                     break;
             }
 
@@ -915,12 +946,23 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
         {
+            var gpuView = camera.worldToCameraMatrix;
+            var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
+            // Zero out the translation component.
+            gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
+            var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
+
             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)Screen.width, (float)Screen.height,
                 usePanini, paniniDistance, paniniCropToFit,
+                true,
+                camera.transform.position,
+                gpuVP,
                 cmd, source,
-                GetLensFlareLightAttenuation,
+                (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
+                ShaderConstants._FlareOcclusionTex, ShaderConstants._FlareOcclusionIndex,
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
-                ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4, ShaderConstants._FlareData5, false);
+                ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
+                false);
         }
 
         #endregion
@@ -1223,11 +1265,24 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         #region Vignette
 
-        void SetupVignette(Material material)
+        void SetupVignette(Material material, XRPass xrPass)
         {
             var color = m_Vignette.color.value;
             var center = m_Vignette.center.value;
             var aspectRatio = m_Descriptor.width / (float)m_Descriptor.height;
+
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xrPass != null && xrPass.enabled)
+            {
+                if (xrPass.singlePassEnabled)
+                    material.SetVector(ShaderConstants._Vignette_ParamsXR, xrPass.ApplyXRViewCenterOffset(center));
+                else
+                    // In multi-pass mode we need to modify the eye center with the values from .xy of the corrected
+                    // center since the version of the shader that is not single-pass will use the value in _Vignette_Params2
+                    center = xrPass.ApplyXRViewCenterOffset(center);
+            }
+#endif
 
             var v1 = new Vector4(
                 color.r, color.g, color.b,
@@ -1389,6 +1444,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetViewport(cameraData.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
                 cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+                cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
             }
         }
 
@@ -1455,57 +1511,60 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Precomputed shader ids to same some CPU cycles (mostly affects mobile)
         static class ShaderConstants
         {
-            public static readonly int _TempTarget         = Shader.PropertyToID("_TempTarget");
-            public static readonly int _TempTarget2        = Shader.PropertyToID("_TempTarget2");
+            public static readonly int _TempTarget = Shader.PropertyToID("_TempTarget");
+            public static readonly int _TempTarget2 = Shader.PropertyToID("_TempTarget2");
 
-            public static readonly int _StencilRef         = Shader.PropertyToID("_StencilRef");
-            public static readonly int _StencilMask        = Shader.PropertyToID("_StencilMask");
+            public static readonly int _StencilRef = Shader.PropertyToID("_StencilRef");
+            public static readonly int _StencilMask = Shader.PropertyToID("_StencilMask");
 
-            public static readonly int _FullCoCTexture     = Shader.PropertyToID("_FullCoCTexture");
-            public static readonly int _HalfCoCTexture     = Shader.PropertyToID("_HalfCoCTexture");
-            public static readonly int _DofTexture         = Shader.PropertyToID("_DofTexture");
-            public static readonly int _CoCParams          = Shader.PropertyToID("_CoCParams");
-            public static readonly int _BokehKernel        = Shader.PropertyToID("_BokehKernel");
-            public static readonly int _BokehConstants     = Shader.PropertyToID("_BokehConstants");
-            public static readonly int _PongTexture        = Shader.PropertyToID("_PongTexture");
-            public static readonly int _PingTexture        = Shader.PropertyToID("_PingTexture");
+            public static readonly int _FullCoCTexture = Shader.PropertyToID("_FullCoCTexture");
+            public static readonly int _HalfCoCTexture = Shader.PropertyToID("_HalfCoCTexture");
+            public static readonly int _DofTexture = Shader.PropertyToID("_DofTexture");
+            public static readonly int _CoCParams = Shader.PropertyToID("_CoCParams");
+            public static readonly int _BokehKernel = Shader.PropertyToID("_BokehKernel");
+            public static readonly int _BokehConstants = Shader.PropertyToID("_BokehConstants");
+            public static readonly int _PongTexture = Shader.PropertyToID("_PongTexture");
+            public static readonly int _PingTexture = Shader.PropertyToID("_PingTexture");
 
-            public static readonly int _Metrics            = Shader.PropertyToID("_Metrics");
-            public static readonly int _AreaTexture        = Shader.PropertyToID("_AreaTexture");
-            public static readonly int _SearchTexture      = Shader.PropertyToID("_SearchTexture");
-            public static readonly int _EdgeTexture        = Shader.PropertyToID("_EdgeTexture");
-            public static readonly int _BlendTexture       = Shader.PropertyToID("_BlendTexture");
+            public static readonly int _Metrics = Shader.PropertyToID("_Metrics");
+            public static readonly int _AreaTexture = Shader.PropertyToID("_AreaTexture");
+            public static readonly int _SearchTexture = Shader.PropertyToID("_SearchTexture");
+            public static readonly int _EdgeTexture = Shader.PropertyToID("_EdgeTexture");
+            public static readonly int _BlendTexture = Shader.PropertyToID("_BlendTexture");
 
-            public static readonly int _ColorTexture       = Shader.PropertyToID("_ColorTexture");
-            public static readonly int _Params             = Shader.PropertyToID("_Params");
-            public static readonly int _SourceTexLowMip    = Shader.PropertyToID("_SourceTexLowMip");
-            public static readonly int _Bloom_Params       = Shader.PropertyToID("_Bloom_Params");
-            public static readonly int _Bloom_RGBM         = Shader.PropertyToID("_Bloom_RGBM");
-            public static readonly int _Bloom_Texture      = Shader.PropertyToID("_Bloom_Texture");
-            public static readonly int _LensDirt_Texture   = Shader.PropertyToID("_LensDirt_Texture");
-            public static readonly int _LensDirt_Params    = Shader.PropertyToID("_LensDirt_Params");
+            public static readonly int _ColorTexture = Shader.PropertyToID("_ColorTexture");
+            public static readonly int _Params = Shader.PropertyToID("_Params");
+            public static readonly int _SourceTexLowMip = Shader.PropertyToID("_SourceTexLowMip");
+            public static readonly int _Bloom_Params = Shader.PropertyToID("_Bloom_Params");
+            public static readonly int _Bloom_RGBM = Shader.PropertyToID("_Bloom_RGBM");
+            public static readonly int _Bloom_Texture = Shader.PropertyToID("_Bloom_Texture");
+            public static readonly int _LensDirt_Texture = Shader.PropertyToID("_LensDirt_Texture");
+            public static readonly int _LensDirt_Params = Shader.PropertyToID("_LensDirt_Params");
             public static readonly int _LensDirt_Intensity = Shader.PropertyToID("_LensDirt_Intensity");
             public static readonly int _Distortion_Params1 = Shader.PropertyToID("_Distortion_Params1");
             public static readonly int _Distortion_Params2 = Shader.PropertyToID("_Distortion_Params2");
-            public static readonly int _Chroma_Params      = Shader.PropertyToID("_Chroma_Params");
-            public static readonly int _Vignette_Params1   = Shader.PropertyToID("_Vignette_Params1");
-            public static readonly int _Vignette_Params2   = Shader.PropertyToID("_Vignette_Params2");
-            public static readonly int _Lut_Params         = Shader.PropertyToID("_Lut_Params");
-            public static readonly int _UserLut_Params     = Shader.PropertyToID("_UserLut_Params");
-            public static readonly int _InternalLut        = Shader.PropertyToID("_InternalLut");
-            public static readonly int _UserLut            = Shader.PropertyToID("_UserLut");
+            public static readonly int _Chroma_Params = Shader.PropertyToID("_Chroma_Params");
+            public static readonly int _Vignette_Params1 = Shader.PropertyToID("_Vignette_Params1");
+            public static readonly int _Vignette_Params2 = Shader.PropertyToID("_Vignette_Params2");
+            public static readonly int _Vignette_ParamsXR = Shader.PropertyToID("_Vignette_ParamsXR");
+            public static readonly int _Lut_Params = Shader.PropertyToID("_Lut_Params");
+            public static readonly int _UserLut_Params = Shader.PropertyToID("_UserLut_Params");
+            public static readonly int _InternalLut = Shader.PropertyToID("_InternalLut");
+            public static readonly int _UserLut = Shader.PropertyToID("_UserLut");
             public static readonly int _DownSampleScaleFactor = Shader.PropertyToID("_DownSampleScaleFactor");
 
-            public static readonly int _FlareTex           = Shader.PropertyToID("_FlareTex");
-            public static readonly int _FlareColorValue    = Shader.PropertyToID("_FlareColorValue");
-            public static readonly int _FlareData0         = Shader.PropertyToID("_FlareData0");
-            public static readonly int _FlareData1         = Shader.PropertyToID("_FlareData1");
-            public static readonly int _FlareData2         = Shader.PropertyToID("_FlareData2");
-            public static readonly int _FlareData3         = Shader.PropertyToID("_FlareData3");
-            public static readonly int _FlareData4         = Shader.PropertyToID("_FlareData4");
-            public static readonly int _FlareData5         = Shader.PropertyToID("_FlareData5");
+            public static readonly int _FlareOcclusionTex = Shader.PropertyToID("_FlareOcclusionTex");
+            public static readonly int _FlareOcclusionIndex = Shader.PropertyToID("_FlareOcclusionIndex");
+            public static readonly int _FlareTex = Shader.PropertyToID("_FlareTex");
+            public static readonly int _FlareColorValue = Shader.PropertyToID("_FlareColorValue");
+            public static readonly int _FlareData0 = Shader.PropertyToID("_FlareData0");
+            public static readonly int _FlareData1 = Shader.PropertyToID("_FlareData1");
+            public static readonly int _FlareData2 = Shader.PropertyToID("_FlareData2");
+            public static readonly int _FlareData3 = Shader.PropertyToID("_FlareData3");
+            public static readonly int _FlareData4 = Shader.PropertyToID("_FlareData4");
+            public static readonly int _FlareData5 = Shader.PropertyToID("_FlareData5");
 
-            public static readonly int _FullscreenProjMat  = Shader.PropertyToID("_FullscreenProjMat");
+            public static readonly int _FullscreenProjMat = Shader.PropertyToID("_FullscreenProjMat");
 
             public static int[] _BloomMipUp;
             public static int[] _BloomMipDown;

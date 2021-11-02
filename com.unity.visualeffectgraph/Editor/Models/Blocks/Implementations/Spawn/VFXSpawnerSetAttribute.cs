@@ -11,16 +11,13 @@ namespace UnityEditor.VFX.Block
     {
         private static readonly string[] kReadOnlyExceptFromSpawnContext = new[] { VFXAttribute.SpawnCount.name, VFXAttribute.SpawnTime.name };
 
-        protected override sealed Dictionary<string, object[]> variants
+        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
         {
-            get
             {
-                return new Dictionary<string, object[]>
-                {
-                    { "attribute", VFXAttribute.AllReadWritable.Concat(kReadOnlyExceptFromSpawnContext).Cast<object>().ToArray() }
-                };
+                "attribute",
+                VFXAttribute.AllReadWritable.Concat(kReadOnlyExceptFromSpawnContext).Cast<object>().ToArray()
             }
-        }
+        };
 
         public string[] GetAvailableString()
         {
@@ -102,7 +99,7 @@ namespace UnityEditor.VFX.Block
 
                 var min = base.parameters.First(o => o.name == "Min");
                 var max = base.parameters.First(o => o.name == "Max");
-                return new[] { new VFXNamedExpression(VFXOperatorUtility.Lerp(min.exp, max.exp, random), currentAttribute.name)};
+                return new[] { new VFXNamedExpression(VFXOperatorUtility.Lerp(min.exp, max.exp, random), currentAttribute.name) };
             }
         }
 

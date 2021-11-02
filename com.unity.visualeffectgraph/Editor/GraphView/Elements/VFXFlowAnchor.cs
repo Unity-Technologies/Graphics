@@ -180,7 +180,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            VFXFlowEdge flowEdge  = edge as VFXFlowEdge;
+            VFXFlowEdge flowEdge = edge as VFXFlowEdge;
             bool exists = false;
             if (flowEdge.controller != null)
             {
@@ -223,7 +223,11 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition - new Vector2(376 * 0.5f * VFXViewWindow.currentWindow.graphView.scale, 0), view.ViewToScreenPosition(Event.current.mousePosition),  new VFXNodeProvider(viewController, AddLinkedContext, ProviderFilter, new Type[] { typeof(VFXContext)}));
+                VFXFilterWindow.Show(
+                    VFXViewWindow.GetWindow(view),
+                    Event.current.mousePosition - new Vector2(376 * 0.5f * view.scale, 0),
+                    view.ViewToScreenPosition(Event.current.mousePosition),
+                    new VFXNodeProvider(viewController, AddLinkedContext, ProviderFilter, new Type[] { typeof(VFXContext) }));
             }
         }
     }

@@ -163,7 +163,8 @@ namespace UnityEditor.ShaderGraph
                         e =>
                         {
                             Texture2DShaderProperty tex = graphData.GetMainTexture();
-                            if (tex.isMainTexture)
+                            // There's already a main texture, ask the user if they want to change and toggle the old one to not be main
+                            if (tex != null)
                             {
                                 if (EditorUtility.DisplayDialog("Change Main Texture Action", $"Are you sure you want to change the Main Texture from {tex.displayName} to {texProp.displayName}?", "Yes", "Cancel"))
                                 {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace UnityEngine.Rendering
 {
@@ -26,8 +27,9 @@ namespace UnityEngine.Rendering
                     m_Panel = value;
 
                     // Bubble down
-                    foreach (var child in children)
-                        child.panel = value;
+                    int numChildren = children.Count;
+                    for (int i = 0; i < numChildren; i++)
+                        children[i].panel = value;
                 }
             }
 
@@ -53,14 +55,19 @@ namespace UnityEngine.Rendering
                 this.children = children;
                 children.ItemAdded += OnItemAdded;
                 children.ItemRemoved += OnItemRemoved;
+
+                // Call OnAdded callback for already existing items to ensure their panel & parent are set
+                for (int i = 0; i < this.children.Count; i++)
+                    OnItemAdded(this.children, new ListChangedEventArgs<Widget>(i, this.children[i]));
             }
 
             internal override void GenerateQueryPath()
             {
                 base.GenerateQueryPath();
 
-                foreach (var child in children)
-                    child.GenerateQueryPath();
+                int numChildren = children.Count;
+                for (int i = 0; i < numChildren; i++)
+                    children[i].GenerateQueryPath();
             }
 
             /// <summary>
@@ -106,8 +113,9 @@ namespace UnityEngine.Rendering
                 int hash = 17;
                 hash = hash * 23 + queryPath.GetHashCode();
 
-                foreach (var child in children)
-                    hash = hash * 23 + child.GetHashCode();
+                int numChildren = children.Count;
+                for (int i = 0; i < numChildren; i++)
+                    hash = hash * 23 + children[i].GetHashCode();
 
                 return hash;
             }
@@ -167,7 +175,7 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Constructor.
             /// </summary>
-            public Foldout() : base() {}
+            public Foldout() : base() { }
             /// <summary>
             /// Constructor.
             /// </summary>

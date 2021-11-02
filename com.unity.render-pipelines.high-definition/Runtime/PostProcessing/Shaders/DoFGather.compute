@@ -80,7 +80,7 @@ CTYPE GetColorSample(float2 sampleTC, float lod)
     // we do this, it is more safe to point sample.
     return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, uv, lod).CTYPE_SWIZZLE;
 #else
-    float2 uv = ClampAndScaleUVPostProcessTextureForPoint(sampleTC * _PostProcessScreenSize.zw);
+    float2 uv = ClampAndScaleUVPostProcessTextureForPoint((sampleTC + 0.5) * _PostProcessScreenSize.zw);
     return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, uv, 0.0).CTYPE_SWIZZLE;
 #endif
 }

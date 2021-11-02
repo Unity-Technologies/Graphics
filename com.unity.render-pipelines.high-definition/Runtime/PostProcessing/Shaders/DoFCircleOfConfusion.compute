@@ -5,6 +5,8 @@
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
+#pragma multi_compile _ USE_MIN_DEPTH   // Active when using MSAA
+
 #pragma kernel KMainCoCPhysical
 #pragma kernel KMainCoCManual
 
@@ -20,6 +22,8 @@ CBUFFER_END
 #define NearMaxRadius   _Params2.x
 #define FarMaxRadius    _Params2.y
 
+TEXTURE2D_X(_DepthMinMaxAvg);
+
 // outpute texture
 RW_TEXTURE2D_X(float, _OutputTexture);
 
@@ -32,7 +36,7 @@ void KMainCoCPhysical(uint3 dispatchThreadId : SV_DispatchThreadID)
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
 
-    float depth = LoadCameraDepth(posInputs.positionSS);
+    float depth = CameraDepth(_DepthMinMaxAvg, posInputs.positionSS);
 
     // Note: the linearization of the depth is encoded directly in the MAD parameters
     float CoC = _Params.w - _Params.z * depth;
@@ -60,7 +64,7 @@ void KMainCoCManual(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    float depth = LoadCameraDepth(dispatchThreadId.xy);
+    float depth = CameraDepth(_DepthMinMaxAvg, dispatchThreadId.xy);
     // Note: we can avoid explicit linearization by merging it with the other computations
     float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 

@@ -28,26 +28,26 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">Model parameter.</param>
         /// <param name="overrideState">Initial override state.</param>
         public PhysicallyBasedSkyModelParameter(PhysicallyBasedSkyModel value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
     /// Physically Based Sky Volume Component.
     /// </summary>
-    [VolumeComponentMenu("Sky/Physically Based Sky")]
+    [VolumeComponentMenuForRenderPipeline("Sky/Physically Based Sky", typeof(HDRenderPipeline))]
     [SkyUniqueID((int)SkyType.PhysicallyBased)]
     [HDRPHelpURLAttribute("Override-Physically-Based-Sky")]
     public partial class PhysicallyBasedSky : SkySettings
     {
         /* We use the measurements from Earth as the defaults. */
-        const float k_DefaultEarthRadius    = 6.3781f * 1000000;
-        const float k_DefaultAirScatteringR =  5.8f / 1000000; // at 680 nm, without ozone
+        const float k_DefaultEarthRadius = 6.3781f * 1000000;
+        const float k_DefaultAirScatteringR = 5.8f / 1000000; // at 680 nm, without ozone
         const float k_DefaultAirScatteringG = 13.5f / 1000000; // at 550 nm, without ozone
         const float k_DefaultAirScatteringB = 33.1f / 1000000; // at 440 nm, without ozone
         const float k_DefaultAirScaleHeight = 8000;
-        const float k_DefaultAirAlbedoR     = 0.9f; // BS values to account for absorption
-        const float k_DefaultAirAlbedoG     = 0.9f; // due to the ozone layer. We assume that ozone
-        const float k_DefaultAirAlbedoB     = 1.0f; // has the same height distribution as air (most certainly WRONG).
+        const float k_DefaultAirAlbedoR = 0.9f; // BS values to account for absorption
+        const float k_DefaultAirAlbedoG = 0.9f; // due to the ozone layer. We assume that ozone
+        const float k_DefaultAirAlbedoB = 1.0f; // has the same height distribution as air (most certainly WRONG).
         const float k_DefaultAerosolScaleHeight = 1200;
         static readonly float k_DefaultAerosolMaximumAltitude = LayerDepthFromScaleHeight(k_DefaultAerosolScaleHeight);
 
@@ -186,7 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static internal float ExtinctionFromZenithOpacityAndScaleHeight(float alpha, float H)
         {
-            float opacity  = Mathf.Min(alpha, 0.999999f);
+            float opacity = Mathf.Min(alpha, 0.999999f);
             float optDepth = -Mathf.Log(1 - opacity, 2.71828183f); // product of extinction and H
 
             return optDepth / H;

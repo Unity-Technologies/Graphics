@@ -82,6 +82,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_IsActive ? 1 : 0;
         }
 
+        internal void SetRayCountEnabled(bool value)
+        {
+            m_IsActive = value;
+        }
+
         static public TextureHandle CreateRayCountTexture(RenderGraph renderGraph)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -249,7 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                while (m_RayCountReadbacks.Peek().done || m_RayCountReadbacks.Peek().hasError ==  true)
+                while (m_RayCountReadbacks.Peek().done || m_RayCountReadbacks.Peek().hasError == true)
                 {
                     // If this has an error, just skip it
                     if (!m_RayCountReadbacks.Peek().hasError)

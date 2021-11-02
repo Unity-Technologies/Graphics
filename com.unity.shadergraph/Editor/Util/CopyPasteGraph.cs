@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<string> m_MetaDropdownIds = new List<string>();
 
-        public CopyPasteGraph() {}
+        public CopyPasteGraph() { }
 
         public CopyPasteGraph(IEnumerable<GroupData> groups,
                               IEnumerable<AbstractMaterialNode> nodes,

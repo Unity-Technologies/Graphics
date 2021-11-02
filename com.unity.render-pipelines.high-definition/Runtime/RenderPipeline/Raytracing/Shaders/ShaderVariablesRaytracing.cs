@@ -31,9 +31,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _RayTracingDiffuseLightingOnly;
         // Shadow value to be used when the point to shade is not inside of the cascades
         public float _DirectionalShadowFallbackIntensity;
-        // Gloabal bias applied to texture reading for various reasons.
+        // Global bias applied to texture reading for various reasons.
         public float _RayTracingLodBias;
-        // Bit mask that defines which fallbacks to use when a ray misses.
-        public int _RayTracingFallbackHierarchy;
+        // Bit mask that defines which fall back to use when a ray misses.
+        public int _RayTracingRayMissFallbackHierarchy;
+        // Flag that defines if the sky should be used as an environment light.
+        public int _RayTracingLastBounceFallbackHierarchy;
+        public int _Padding0;
+        public int _Padding1;
     }
 }

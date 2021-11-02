@@ -9,22 +9,16 @@ namespace UnityEditor.VFX
 {
     class InitializeVariantProvider : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
         {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "dataType", Enum.GetValues(typeof(VFXDataParticle.DataType)).Cast<object>().ToArray() }
-                };
-            }
-        }
+            {"dataType", Enum.GetValues(typeof(VFXDataParticle.DataType)).Cast<object>().ToArray()}
+        };
     }
 
     [VFXInfo(variantProvider = typeof(InitializeVariantProvider))]
     class VFXBasicInitialize : VFXContext
     {
-        public VFXBasicInitialize() : base(VFXContextType.Init, VFXDataType.SpawnEvent, VFXDataType.None) {}
+        public VFXBasicInitialize() : base(VFXContextType.Init, VFXDataType.SpawnEvent, VFXDataType.None) { }
         public override string name { get { return "Initialize " + ObjectNames.NicifyVariableName(ownedType.ToString()); } }
         public override string codeGeneratorTemplate { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/Shaders/VFXInit"; } }
         public override bool codeGeneratorCompute { get { return true; } }
@@ -57,7 +51,7 @@ namespace UnityEditor.VFX
         {
             [Tooltip(
                 "The culling bounds of this system. The Visual Effect is only visible if the bounding box specified here is visible to the camera.")]
-            public AABox bounds = new AABox() {size = Vector3.one};
+            public AABox bounds = new AABox() { size = Vector3.one };
         }
 
         public class InputPropertiesPadding
@@ -93,7 +87,7 @@ namespace UnityEditor.VFX
             if (data != null && data.boundsSettingMode == BoundsSettingMode.Recorded
                 && CanBeCompiled())
             {
-                if (VFXViewWindow.currentWindow?.graphView?.attachedComponent == null ||
+                if (VFXViewWindow.GetWindow(GetGraph())?.graphView?.attachedComponent == null ||
                     !BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false))
                 {
                     manager.RegisterError("NeedsRecording", VFXErrorType.Warning,

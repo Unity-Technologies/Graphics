@@ -113,12 +113,12 @@ namespace UnityEditor.Rendering.Universal
             public static string deprecatedParametricLightDialogCancel = "Cancel";
         }
 
-        const float     k_GlobalLightGizmoSize      = 1.2f;
-        const float     k_AngleCapSize              = 0.16f * k_GlobalLightGizmoSize;
-        const float     k_AngleCapOffset            = 0.08f * k_GlobalLightGizmoSize;
-        const float     k_AngleCapOffsetSecondary   = -0.05f;
-        const float     k_RangeCapSize              = 0.025f * k_GlobalLightGizmoSize;
-        const float     k_InnerRangeCapSize         = 0.08f * k_GlobalLightGizmoSize;
+        const float k_GlobalLightGizmoSize = 1.2f;
+        const float k_AngleCapSize = 0.16f * k_GlobalLightGizmoSize;
+        const float k_AngleCapOffset = 0.08f * k_GlobalLightGizmoSize;
+        const float k_AngleCapOffsetSecondary = -0.05f;
+        const float k_RangeCapSize = 0.025f * k_GlobalLightGizmoSize;
+        const float k_InnerRangeCapSize = 0.08f * k_GlobalLightGizmoSize;
 
         SerializedProperty m_LightType;
         SerializedProperty m_LightColor;
@@ -151,15 +151,15 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShapeLightParametricSides;
         SerializedProperty m_ShapeLightSprite;
 
-        SavedBool          m_BlendingSettingsFoldout;
-        SavedBool          m_ShadowsSettingsFoldout;
-        SavedBool          m_VolumetricSettingsFoldout;
-        SavedBool          m_NormalMapsSettingsFoldout;
+        SavedBool m_BlendingSettingsFoldout;
+        SavedBool m_ShadowsSettingsFoldout;
+        SavedBool m_VolumetricSettingsFoldout;
+        SavedBool m_NormalMapsSettingsFoldout;
 
 
-        int[]           m_BlendStyleIndices;
-        GUIContent[]    m_BlendStyleNames;
-        bool            m_AnyBlendStyleEnabled  = false;
+        int[] m_BlendStyleIndices;
+        GUIContent[] m_BlendStyleNames;
+        bool m_AnyBlendStyleEnabled = false;
 
         SortingLayerDropDown m_SortingLayerDropDown;
 

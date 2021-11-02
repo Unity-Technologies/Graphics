@@ -9,6 +9,37 @@ namespace UnityEngine.Rendering.Tests
     public static class ReflectionUtils
     {
         /// <summary>
+        /// Finds a type by full name
+        /// </summary>
+        /// <param name="name">The full type name with namespace</param>
+        /// <returns>The found type</returns>
+        public static Type FindTypeByName(string name)
+        {
+            var type = AppDomain.CurrentDomain
+                .GetAssemblies()
+                .Select(assembly => assembly.GetType(name))
+                .FirstOrDefault(tt => tt != null);
+
+            Assert.True(type != null, "Type not found");
+            return type;
+        }
+
+        /// <summary>
+        /// Calls a private method from a class
+        /// </summary>
+        /// <param name="methodName">The method name</param>
+        /// <param name="args">The arguments to pass to the method</param>
+        public static object InvokeStatic(this Type targetType, string methodName, params object[] args)
+        {
+            Assert.True(targetType != null, "Invalid Type");
+            Assert.IsNotEmpty(methodName, "The methodName to set could not be null");
+
+            var mi = targetType.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.True(mi != null, $"Could not find method `{methodName}` on type `{targetType}`");
+            return mi.Invoke(null, args);
+        }
+
+        /// <summary>
         /// Calls a private method from a class
         /// </summary>
         /// <param name="methodName">The method name</param>
@@ -16,7 +47,7 @@ namespace UnityEngine.Rendering.Tests
         public static object Invoke(this object target, string methodName, params object[] args)
         {
             Assert.True(target != null, "The target could not be null");
-            Assert.IsNotEmpty(methodName, "The field to set could not be null");
+            Assert.IsNotEmpty(methodName, "The method name to set could not be null");
 
             var mi = target.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.True(mi != null, $"Could not find method `{methodName}` on object `{target}`");

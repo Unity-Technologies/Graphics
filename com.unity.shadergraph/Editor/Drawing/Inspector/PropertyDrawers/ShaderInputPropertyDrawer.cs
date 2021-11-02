@@ -92,13 +92,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this.graphData = inGraphData;
             this._keywordChangedCallback = () => graphData.OnKeywordChanged();
             this._dropdownChangedCallback = () => graphData.OnDropdownChanged();
-            this._precisionChangedCallback = () =>  graphData.ValidateGraph();
+            this._precisionChangedCallback = () => graphData.ValidateGraph();
 
             this._exposedFieldChangedCallback = newValue =>
             {
-                var changeExposedFlagAction = new ChangeExposedFlagAction();
-                changeExposedFlagAction.shaderInputReference = shaderInput;
-                changeExposedFlagAction.newIsExposedValue = newValue;
+                var changeExposedFlagAction = new ChangeExposedFlagAction(shaderInput, newValue);
                 ViewModel.requestModelChangeAction(changeExposedFlagAction);
             };
 
@@ -160,6 +158,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             UpdateEnableState();
             return propertySheet;
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
 
         void BuildPropertyNameLabel(PropertySheet propertySheet)
         {
@@ -378,7 +378,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 if (property.sgVersion < property.latestVersion)
                 {
                     var typeString = property.propertyType.ToString();
-                    var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{typeString} Property", () => property.ChangeVersion(property.latestVersion));
+
+                    Action dismissAction = null;
+                    if (property.dismissedUpdateVersion < property.latestVersion)
+                    {
+                        dismissAction = () =>
+                        {
+                            _preChangeValueCallback("Dismiss Property Update");
+                            property.dismissedUpdateVersion = property.latestVersion;
+                            _postChangeValueCallback();
+                            inspectorUpdateDelegate?.Invoke();
+                        };
+                    }
+
+                    var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{typeString} Property",
+                        () => property.ChangeVersion(property.latestVersion),
+                        dismissAction);
                     if (help != null)
                     {
                         propertySheet.Insert(0, help);
@@ -843,7 +858,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         #region VT reorderable list handler
         void HandleVirtualTextureProperty(PropertySheet propertySheet, VirtualTextureShaderProperty virtualTextureProperty)
         {
-            var container = new IMGUIContainer(() => OnVTGUIHandler(virtualTextureProperty)) {name = "ListContainer"};
+            var container = new IMGUIContainer(() => OnVTGUIHandler(virtualTextureProperty)) { name = "ListContainer" };
             AddPropertyRowToSheet(propertySheet, container, "Layers");
 
             m_VTLayer_Name = new TextField();
@@ -1312,6 +1327,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     this._preChangeValueCallback("Change property value");
                     keyword.value = newValue.isOn ? 1 : 0;
+                    if (graphData.owner.materialArtifact)
+                    {
+                        graphData.owner.materialArtifact.SetFloat(keyword.referenceName, keyword.value);
+                        MaterialEditor.ApplyMaterialPropertyDrawers(graphData.owner.materialArtifact);
+                    }
                     this._postChangeValueCallback(false, ModificationScope.Graph);
                 },
                 new ToggleData(keyword.value == 1),
@@ -1330,12 +1350,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             {
                 this._preChangeValueCallback("Change Keyword Value");
                 keyword.value = field.index;
+                if (graphData.owner.materialArtifact)
+                {
+                    graphData.owner.materialArtifact.SetFloat(keyword.referenceName, field.index);
+                    MaterialEditor.ApplyMaterialPropertyDrawers(graphData.owner.materialArtifact);
+                }
                 this._postChangeValueCallback(false, ModificationScope.Graph);
             });
 
             AddPropertyRowToSheet(propertySheet, field, "Default");
 
-            var container = new IMGUIContainer(() => OnKeywordGUIHandler()) {name = "ListContainer"};
+            var container = new IMGUIContainer(() => OnKeywordGUIHandler()) { name = "ListContainer" };
             AddPropertyRowToSheet(propertySheet, container, "Entries");
             container.SetEnabled(!keyword.isBuiltIn);
         }
@@ -1711,7 +1736,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 ids.Add(dropdownEntry.id);
             }
 
-            for (int x = 1;; x++)
+            for (int x = 1; ; x++)
             {
                 if (!ids.Contains(x))
                     return x;

@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         s_ErrorMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/FallbackError"));
                     }
-                    catch {}
+                    catch { }
                 }
 
                 return s_ErrorMaterial;
@@ -450,6 +450,16 @@ namespace UnityEngine.Rendering.Universal
                     return false;
 
             return true;
+        }
+
+        // TODO: remove useRenderPassEnabled parameter when depth resolve support is added to RenderPass (URP-1009)
+        internal static bool MultisampleDepthResolveSupported(bool useRenderPassEnabled)
+        {
+            if (useRenderPassEnabled)
+                return false;
+
+            // Should we also check if the format has stencil and check stencil resolve capability only in that case?
+            return SystemInfo.supportsMultisampleResolveDepth && SystemInfo.supportsMultisampleResolveStencil;
         }
     }
 }

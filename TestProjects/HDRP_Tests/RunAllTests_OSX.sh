@@ -16,8 +16,8 @@ echo "Project: $project"
 echo
 
 for a in $platforms; do
-	for b in $pipelines; do
-		echo $unity -projectPath "$project" -forgetProjectPath -automated -testResults "$project/TestResults-$a-$b.xml" -logFile "$project/Log-$a-$b.log" -runTests -testPlatform $a
-		$unity -projectPath "$project" -forgetProjectPath -automated -testResults "$project/TestResults-$a-$b.xml" -logFile "$project/Log-$a-$b.log" -runTests -testPlatform $a
+    for b in $pipelines; do
+        echo $unity -projectPath "$project" -forgetProjectPath -automated -testResults "$project/TestResults-$a-$b.xml" -logFile "$project/Log-$a-$b.log" -runTests -testPlatform $a
+        $unity -projectPath "$project" -forgetProjectPath -automated -testResults "$project/TestResults-$a-$b.xml" -logFile "$project/Log-$a-$b.log" -runTests -testPlatform $a
     done
 done

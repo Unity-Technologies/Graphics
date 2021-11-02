@@ -52,11 +52,13 @@ RW_TEXTURE2D_X(float4, _GBufferTexture3RW); // Bake lighting and/or emissive
 int _RaytracingHalfResolution;
 uint _RayTracingLayerMask;
 int _RayCountType;
+uint _RayBinViewOffset;
+uint _RayBinTileViewOffset;
 
 [shader("miss")]
 void MissShaderGBuffer(inout RayIntersectionGBuffer rayIntersection : SV_RayPayload)
 {
-    rayIntersection.t = 0;
+    rayIntersection.t = RAY_TRACING_DISTANCE_FLAG_SKY;
 }
 
 struct PixelCoordinates
@@ -176,6 +178,8 @@ void RayGenGBufferBinned()
     // Grab the dimensions of the current raytrace shader
     uint3 LaunchIndex = DispatchRaysIndex();
 
+    UNITY_XR_ASSIGN_VIEW_INDEX(LaunchIndex.z);
+
     // Pixel coordinate of the current pixel
     uint2 currentBinIndex = uint2(LaunchIndex.x % _BufferSizeX, LaunchIndex.x / _BufferSizeX);
 
@@ -187,11 +191,11 @@ void RayGenGBufferBinned()
 
     // Read and unpack the coordiante to screen space coordinates
     uint globalBinIndex = tileIndex * RAY_BINNING_TILE_SIZE * RAY_BINNING_TILE_SIZE + localTileIndex;
-    uint packedPixelCoordinate = _RayBinResult[globalBinIndex];
+    uint packedPixelCoordinate = _RayBinResult[globalBinIndex + _RayBinViewOffset * LaunchIndex.z];
     uint2 currentPixelCoord = uint2((packedPixelCoordinate & 0xffff0000) >> 16, packedPixelCoordinate & 0xffff);
 
     // If the local index of this pixel is beyond the valid count, no need to compute it
-    if (localTileIndex > _RayBinSizeResult[tileIndex])
+    if (localTileIndex > _RayBinSizeResult[tileIndex + _RayBinTileViewOffset * LaunchIndex.z])
         return;
 
     // For the full res ray tracing, everything is read from the same pixel coordinates

@@ -37,11 +37,12 @@ float3 _EmissionColor;
 // By default, the emissive is contributing
 float _IncludeIndirectLighting;
 
+CBUFFER_END
+
 // Following two variables are feeded by the C++ Editor for Scene selection
+// Following three variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
 int _PassValue;
-
-CBUFFER_END
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 

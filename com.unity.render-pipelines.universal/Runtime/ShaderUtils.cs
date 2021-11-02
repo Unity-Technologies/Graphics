@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
 
     public static class ShaderUtils
     {
-        static readonly string[] s_ShaderPaths  =
+        static readonly string[] s_ShaderPaths =
         {
             "Universal Render Pipeline/Lit",
             "Universal Render Pipeline/Simple Lit",
@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
             "Universal Render Pipeline/Baked Lit",
             "Universal Render Pipeline/Nature/SpeedTree7",
             "Universal Render Pipeline/Nature/SpeedTree7 Billboard",
-            "Universal Render Pipeline/Nature/SpeedTree8",
+            "Universal Render Pipeline/Nature/SpeedTree8_PBRLit",
         };
 
         public static string GetShaderPath(ShaderPathID id)
@@ -71,10 +71,15 @@ namespace UnityEngine.Rendering.Universal
             "0ca6dca7396eb48e5849247ffd444914",
             "0f4122b9a743b744abe2fb6a0a88868b",
             "5ec81c81908db34429b4f6ddecadd3bd",
-            "99134b1f0c27d54469a840832a28fadf",
+            "9920c1f1781549a46ba081a2a15a16ec",
         };
 
-        internal static string GetShaderGUID(ShaderPathID id)
+        /// <summary>
+        /// Returns shader from shader path id.
+        /// </summary>
+        /// <param name="id">Id of shader path.</param>
+        /// <returns></returns>
+        public static string GetShaderGUID(ShaderPathID id)
         {
             int index = (int)id;
             int arrayLength = s_ShaderGUIDs.Length;

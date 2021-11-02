@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEngine.Profiling;
 
@@ -42,7 +43,7 @@ namespace UnityEditor.VFX.UI
 
         public new VFXNodeUI node
         {
-            get {return m_Node; }
+            get { return m_Node; }
         }
 
         protected VFXDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, Capacity.Multi, type)
@@ -240,7 +241,7 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            VFXDataEdge dataEdge  = edge as VFXDataEdge;
+            VFXDataEdge dataEdge = edge as VFXDataEdge;
             bool exists = false;
             if (dataEdge.controller != null)
             {
@@ -275,7 +276,28 @@ namespace UnityEditor.VFX.UI
             }
             else if (controller.direction == Direction.Input && Event.current.modifiers == EventModifiers.Alt)
             {
-                VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == controller.portType.UserFriendlyName());
+                var targetType = controller.portType;
+
+                var attribute = VFXLibrary.GetAttributeFromSlotType(controller.portType);
+                VFXModelDescriptorParameters parameterDesc;
+                if (attribute != null && attribute.usages.HasFlag(VFXTypeAttribute.Usage.ExcludeFromProperty))
+                {
+                    parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t =>
+                    {
+                        if (!t.model.outputSlots[0].CanLink(controller.model))
+                            return false;
+                        var attributeCandidate = VFXLibrary.GetAttributeFromSlotType(t.model.type);
+                        return attributeCandidate == null || !attributeCandidate.usages.HasFlag(VFXTypeAttribute.Usage.ExcludeFromProperty);
+                    });
+                }
+                else
+                {
+                    parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t =>
+                    {
+                        return t.model.type == targetType;
+                    });
+                }
+
                 if (parameterDesc != null)
                 {
                     Vector2 pos = view.contentViewContainer.GlobalToBound(position) - new Vector2(140, 20);
@@ -291,10 +313,12 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
+                var window = VFXViewWindow.GetWindow(view);
+
                 if (direction == Direction.Input || viewController.model.visualEffectObject is VisualEffectSubgraphOperator || viewController.model.visualEffectObject is VisualEffectSubgraphBlock) // no context for subgraph operators.
-                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter)}));
+                    VFXFilterWindow.Show(window, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
                 else
-                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
+                    VFXFilterWindow.Show(window, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
             }
         }
 
@@ -331,7 +355,7 @@ namespace UnityEditor.VFX.UI
                     return false;
 
                 if (direction == Direction.Output
-                    &&  mySlot != null
+                    && mySlot != null
                     && container is VFXOperatorDynamicOperand
                     && (container as VFXOperatorDynamicOperand).validTypes.Contains(mySlot.property.type))
                     return true;

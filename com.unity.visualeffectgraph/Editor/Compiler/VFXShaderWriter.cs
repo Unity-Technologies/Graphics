@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
     class VFXShaderWriter
     {
         public VFXShaderWriter()
-        {}
+        { }
 
         public VFXShaderWriter(string initialValue)
         {
@@ -64,28 +64,38 @@ namespace UnityEditor.VFX
                     value = value.ToString().ToLower();
                     break;
                 case VFXValueType.Float:
-                    value = ((float)value).ToString("G9", CultureInfo.InvariantCulture);
+                    value = FormatFloat((float)value);
                     break;
                 case VFXValueType.Float2:
-                    value = $"({((Vector2)value).x.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector2)value).y.ToString("G9", CultureInfo.InvariantCulture)})";
+                    value = $"({FormatFloat(((Vector2)value).x)}, {FormatFloat(((Vector2)value).y)})";
                     break;
                 case VFXValueType.Float3:
-                    value = $"({((Vector3)value).x.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector3)value).y.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector3)value).z.ToString("G9", CultureInfo.InvariantCulture)})";
+                    value = $"({FormatFloat(((Vector3)value).x)}, {FormatFloat(((Vector3)value).y)}, {FormatFloat(((Vector3)value).z)})";
                     break;
                 case VFXValueType.Float4:
-                    value = $"({((Vector4)value).x.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector4)value).y.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector4)value).z.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector4)value).w.ToString("G9", CultureInfo.InvariantCulture)})";
+                    value = $"({FormatFloat(((Vector4)value).x)}, {FormatFloat(((Vector4)value).y)}, {FormatFloat(((Vector4)value).z)}, {FormatFloat(((Vector4)value).w)})";
                     break;
                 case VFXValueType.Matrix4x4:
                 {
                     var matrix = ((Matrix4x4)value).transpose;
                     value = "(";
                     for (int i = 0; i < 16; ++i)
-                        value += string.Format(CultureInfo.InvariantCulture, i == 15 ? "{0}" : "{0},", matrix[i].ToString("G9", CultureInfo.InvariantCulture));
+                        value += string.Format(CultureInfo.InvariantCulture, i == 15 ? "{0}" : "{0},", FormatFloat(matrix[i]));
                     value += ")";
                 }
                 break;
             }
             return string.Format(CultureInfo.InvariantCulture, format, VFXExpression.TypeToCode(type), value);
+        }
+
+        private static string FormatFloat(float f)
+        {
+            if (float.IsInfinity(f))
+                return f > 0.0f ? "VFX_INFINITY" : "-VFX_INFINITY";
+            else if (float.IsNaN(f))
+                return "VFX_NAN";
+            else
+                return f.ToString("G9", CultureInfo.InvariantCulture);
         }
 
         public static string GetMultilineWithPrefix(string str, string linePrefix)
@@ -110,13 +120,13 @@ namespace UnityEditor.VFX
             return dst.ToString(0, dst.Length - 1); // Remove the last line terminator
         }
 
-        public void WriteFormat(string str, object arg0)                                { m_Builder.AppendFormat(str, arg0); }
-        public void WriteFormat(string str, object arg0, object arg1)                   { m_Builder.AppendFormat(str, arg0, arg1); }
-        public void WriteFormat(string str, object arg0, object arg1, object arg2)      { m_Builder.AppendFormat(str, arg0, arg1, arg2); }
+        public void WriteFormat(string str, object arg0) { m_Builder.AppendFormat(str, arg0); }
+        public void WriteFormat(string str, object arg0, object arg1) { m_Builder.AppendFormat(str, arg0, arg1); }
+        public void WriteFormat(string str, object arg0, object arg1, object arg2) { m_Builder.AppendFormat(str, arg0, arg1, arg2); }
 
-        public void WriteLineFormat(string str, object arg0)                            { WriteFormat(str, arg0); WriteLine(); }
-        public void WriteLineFormat(string str, object arg0, object arg1)               { WriteFormat(str, arg0, arg1); WriteLine(); }
-        public void WriteLineFormat(string str, object arg0, object arg1, object arg2)  { WriteFormat(str, arg0, arg1, arg2); WriteLine(); }
+        public void WriteLineFormat(string str, object arg0) { WriteFormat(str, arg0); WriteLine(); }
+        public void WriteLineFormat(string str, object arg0, object arg1) { WriteFormat(str, arg0, arg1); WriteLine(); }
+        public void WriteLineFormat(string str, object arg0, object arg1, object arg2) { WriteFormat(str, arg0, arg1, arg2); WriteLine(); }
 
         // Generic builder method
         public void Write<T>(T t)
@@ -321,7 +331,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void WriteTexture(VFXUniformMapper mapper)
+        public void WriteTexture(VFXUniformMapper mapper, IEnumerable<string> skipNames = null)
         {
             foreach (var texture in mapper.textures)
             {
@@ -329,6 +339,9 @@ namespace UnityEditor.VFX
                 // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
                 for (int i = 0; i < names.Count; ++i)
                 {
+                    if (skipNames != null && skipNames.Contains(names[i]))
+                        continue;
+
                     WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), names[i]);
                     if (VFXExpression.IsTexture(texture.valueType)) //Mesh doesn't require a sampler or texel helper
                     {

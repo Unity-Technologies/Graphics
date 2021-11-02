@@ -43,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty shaderVariantLogLevel;
         public SerializedProperty lensAttenuation;
+        public SerializedProperty colorGradingSpace;
         public SerializedProperty diffusionProfileSettingsList;
         public SerializedProperty supportProbeVolumes;
         public SerializedProperty supportRuntimeDebugDisplay;
@@ -52,11 +53,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty DLSSProjectId;
         public SerializedProperty useDLSSCustomProjectId;
 
-        public SerializedProperty apvSceneBounds;
+        public SerializedProperty apvScenesData;
 
         internal ReorderableList uiBeforeTransparentCustomPostProcesses;
         internal ReorderableList uiBeforeTAACustomPostProcesses;
         internal ReorderableList uiBeforePostProcessCustomPostProcesses;
+        internal ReorderableList uiAfterPostProcessBlursCustomPostProcesses;
         internal ReorderableList uiAfterPostProcessCustomPostProcesses;
 
         //RenderPipelineResources not always exist and thus cannot be serialized normally.
@@ -107,8 +109,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             InitializeCustomPostProcessesLists();
 
-            defaultVolumeProfile  = serializedObject.FindProperty("m_DefaultVolumeProfile");
-            lookDevVolumeProfile  = serializedObject.FindProperty("m_LookDevVolumeProfile");
+            defaultVolumeProfile = serializedObject.FindProperty("m_DefaultVolumeProfile");
+            lookDevVolumeProfile = serializedObject.FindProperty("m_LookDevVolumeProfile");
 
             lightLayerName0 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName0);
             lightLayerName1 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName1);
@@ -131,6 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
             shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.shaderVariantLogLevel);
 
             lensAttenuation = serializedObject.FindProperty("lensAttenuationMode");
+            colorGradingSpace = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.colorGradingSpace);
             diffusionProfileSettingsList = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.diffusionProfileSettingsList);
             m_DiffusionProfileUI = new DiffusionProfileSettingsListUI()
             {
@@ -144,7 +147,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DLSSProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.DLSSProjectId);
             useDLSSCustomProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.useDLSSCustomProjectId);
 
-            apvSceneBounds = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.apvScenesBounds);
+            apvScenesData = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.apvScenesData);
         }
 
         void InitializeCustomPostProcessesLists()
@@ -162,6 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var globalSettings = serializedObject.targetObject as HDRenderPipelineGlobalSettings;
             InitList(ref uiBeforeTransparentCustomPostProcesses, globalSettings.beforeTransparentCustomPostProcesses, "After Opaque And Sky", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
             InitList(ref uiBeforePostProcessCustomPostProcesses, globalSettings.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
+            InitList(ref uiAfterPostProcessBlursCustomPostProcesses, globalSettings.afterPostProcessBlursCustomPostProcesses, "After Post Process Blurs", CustomPostProcessInjectionPoint.AfterPostProcessBlurs);
             InitList(ref uiAfterPostProcessCustomPostProcesses, globalSettings.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
             InitList(ref uiBeforeTAACustomPostProcesses, globalSettings.beforeTAACustomPostProcesses, "Before TAA", CustomPostProcessInjectionPoint.BeforeTAA);
 

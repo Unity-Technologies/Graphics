@@ -86,7 +86,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
             // Build the following intersection structure
             RayIntersection transmittedIntersection;
             transmittedIntersection.color = float3(0.0, 0.0, 0.0);
-            transmittedIntersection.t = 0.0f;
+            transmittedIntersection.t = _RaytracingRayMaxLength;
             transmittedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
             transmittedIntersection.rayCount = 1;
             transmittedIntersection.pixelCoord = rayIntersection.pixelCoord;
@@ -185,7 +185,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
 
     // Run the lightloop
     LightLoopOutput lightLoopOutput;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflectedWeight, refractedWeight, reflected, transmitted, lightLoopOutput);
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, float4(reflected, reflectedWeight), float4(transmitted, refractedWeight), lightLoopOutput);
 
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;

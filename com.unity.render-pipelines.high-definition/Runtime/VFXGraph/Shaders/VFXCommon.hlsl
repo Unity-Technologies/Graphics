@@ -144,11 +144,6 @@ float VFXSampleDepth(float4 posSS)
     return LoadCameraDepth(posSS.xy);
 }
 
-float VFXLinearEyeDepth(float depth)
-{
-    return LinearEyeDepth(depth,_ZBufferParams);
-}
-
 void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS, float3 normalWS)
 {
 }

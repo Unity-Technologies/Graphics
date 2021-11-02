@@ -147,6 +147,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [DisallowMultipleRendererFeature("Decal")]
+    [Tooltip("With this Renderer Feature, Unity can project specific Materials (decals) onto other objects in the Scene.")]
     internal class DecalRendererFeature : ScriptableRendererFeature
     {
         private static SharedDecalEntityManager sharedDecalEntityManager { get; } = new SharedDecalEntityManager();
@@ -391,7 +392,10 @@ namespace UnityEngine.Rendering.Universal
                     m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);
 
                     if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
+                    {
                         m_DBufferRenderPass.deferredLights = universalRenderer.deferredLights;
+                        m_DBufferRenderPass.deferredLights.DisableFramebufferFetchInput();
+                    }
                     break;
             }
 
@@ -472,6 +476,8 @@ namespace UnityEngine.Rendering.Universal
                             new RenderTargetHandle(m_DBufferRenderPass.cameraDepthTextureIndentifier),
                             new RenderTargetHandle(m_DBufferRenderPass.dBufferDepthIndentifier)
                         );
+
+                        m_CopyDepthPass.CopyToDepth = true;
                     }
                     m_CopyDepthPass.MssaSamples = 1;
 
@@ -480,6 +486,11 @@ namespace UnityEngine.Rendering.Universal
                     renderer.EnqueuePass(m_ForwardEmissivePass);
                     break;
             }
+        }
+
+        internal override bool SupportsNativeRenderPass()
+        {
+            return m_Technique == DecalTechnique.GBuffer || m_Technique == DecalTechnique.ScreenSpace;
         }
 
         protected override void Dispose(bool disposing)

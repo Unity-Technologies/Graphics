@@ -51,6 +51,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         MessageManager m_MessageManager;
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
+        VisualElement m_HoveredContextView;
 
         BlackboardController m_BlackboardController;
 
@@ -96,7 +97,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_GraphView; }
         }
 
-        PreviewManager previewManager
+        internal PreviewManager previewManager
         {
             get { return m_PreviewManager; }
             set { m_PreviewManager = value; }
@@ -131,7 +132,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_AssetName = graphName;
             m_MessageManager = messageManager;
             previewManager = new PreviewManager(graph, messageManager);
-            previewManager.RenderPreviews(false);
+            previewManager.RenderPreviews(m_EditorWindow, false);
 
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
             var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
@@ -301,6 +302,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 //need to eventually remove this reference to editor window in context views
                 var contextView = new ContextView(name, contextData, m_EditorWindow);
+
+                // GraphView marks ContextViews' stacks, but not the actual root elements, as insertable. We want the
+                // contextual searcher menu to come up when *any* part of the ContextView is hovered. As a workaround,
+                // we keep track of the hovered ContextView and offer it if no targets are found.
+                contextView.RegisterCallback((MouseOverEvent _) => m_HoveredContextView = contextView);
+                contextView.RegisterCallback((MouseOutEvent _) =>
+                {
+                    if (m_HoveredContextView == contextView) m_HoveredContextView = null;
+                });
+
                 contextView.SetPosition(new Rect(contextData.position, Vector2.zero));
                 contextView.AddPort(portDirection);
                 m_GraphView.AddElement(contextView);
@@ -346,10 +357,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (EditorWindow.focusedWindow == m_EditorWindow) //only display the search window when current graph view is focused
             {
                 m_SearchWindowProvider.connectedPort = null;
-                m_SearchWindowProvider.target = c.target;
+                m_SearchWindowProvider.target = c.target ?? m_HoveredContextView;
+                var displayPosition = (c.screenMousePosition - m_EditorWindow.position.position);
+
                 SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
                     item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - m_EditorWindow.position.position),
-                    c.screenMousePosition - m_EditorWindow.position.position, null);
+                    displayPosition, null, new SearcherWindow.Alignment(SearcherWindow.Alignment.Vertical.Center, SearcherWindow.Alignment.Horizontal.Left));
             }
         }
 
@@ -392,7 +405,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void CreateMasterPreview()
         {
-            m_MasterPreviewView = new MasterPreviewView(previewManager, m_Graph) {name = "masterPreview"};
+            m_MasterPreviewView = new MasterPreviewView(previewManager, m_Graph) { name = "masterPreview" };
 
             var masterPreviewViewDraggable = new WindowDraggable(null, this);
             m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
@@ -669,7 +682,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ColorManager.UpdateNodeViews(nodeList);
             }
 
-            previewManager.RenderPreviews();
+            previewManager.RenderPreviews(m_EditorWindow);
+
+
+            m_GraphView.wasUndoRedoPerformed = wasUndoRedoPerformed;
 
             if (wasUndoRedoPerformed || m_InspectorView.doesInspectorNeedUpdate)
                 m_InspectorView.Update();
@@ -898,7 +914,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                 {
                     var foundMessage = messageData.Value.First();
-                    string messageString = foundMessage.message + " at line " + foundMessage.line;
+                    string messageString;
+                    if (foundMessage.line > 0)
+                        messageString = foundMessage.message + " at line " + foundMessage.line;
+                    else
+                        messageString = foundMessage.message;
                     nodeView.AttachMessage(messageString, foundMessage.severity);
                 }
             }
@@ -928,14 +948,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else if (node is RedirectNodeData redirectNodeData)
             {
-                var redirectNodeView = new RedirectNodeView {userData = redirectNodeData};
+                var redirectNodeView = new RedirectNodeView { userData = redirectNodeData };
                 m_GraphView.AddElement(redirectNodeView);
                 redirectNodeView.ConnectToData(materialNode, m_EdgeConnectorListener);
                 nodeView = redirectNodeView;
             }
             else
             {
-                var materialNodeView = new MaterialNodeView {userData = materialNode};
+                var materialNodeView = new MaterialNodeView { userData = materialNode };
                 m_GraphView.AddElement(materialNodeView);
                 materialNodeView.Initialize(materialNode, m_PreviewManager, m_EdgeConnectorListener, graphView);
                 m_ColorManager.UpdateNodeView(materialNodeView);

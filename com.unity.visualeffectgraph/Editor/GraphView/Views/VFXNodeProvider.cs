@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.UI
 
         protected override string title
         {
-            get {return "Node"; }
+            get { return "Node"; }
         }
 
         string ComputeCategory<T>(string type, VFXModelDescriptor<T> model) where T : VFXModel
