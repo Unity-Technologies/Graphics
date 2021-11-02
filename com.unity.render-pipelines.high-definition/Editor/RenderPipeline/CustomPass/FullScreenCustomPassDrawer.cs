@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     GetStencilInfo(mat, out bool stencilEnabled, out int writeMask);
 
-                    if (stencilEnabled)
+                    if (stencilEnabled && targetDepthBuffer != CustomPass.TargetBuffer.Custom)
                     {
                         if (!m_ShowStencilInfoBox)
                         {
@@ -127,8 +127,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         }
-
-
 
         bool DoesWriteMaskContainsReservedBits(int writeMask)
         {
