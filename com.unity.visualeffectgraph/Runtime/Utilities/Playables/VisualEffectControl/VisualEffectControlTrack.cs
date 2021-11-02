@@ -35,14 +35,6 @@ namespace UnityEngine.VFX
             VisualEffect trackBinding = director.GetGenericBinding(this) as VisualEffect;
             if (trackBinding == null)
                 return;
-
-            // The field names are the name of the backing serializable field. These can be found from the class source,
-            // or from the unity scene file that contains an object of that type.
-            //TODOPAUL: Check if needed
-            //driver.AddFromName<TMP_Text>(trackBinding.gameObject, "m_text");
-            //driver.AddFromName<TMP_Text>(trackBinding.gameObject, "m_fontSize");
-            //driver.AddFromName<TMP_Text>(trackBinding.gameObject, "m_fontColor");
-
             base.GatherProperties(director, driver);
         }
     }
