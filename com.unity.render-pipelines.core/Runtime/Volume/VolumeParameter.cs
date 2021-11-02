@@ -1642,8 +1642,6 @@ namespace UnityEngine.Rendering
     [Serializable]
     public class AnimationCurveParameter : VolumeParameter<AnimationCurve>
     {
-        // TODO: Curve interpolation
-        bool hackDebugParam;
 
         /// <summary>
         /// Creates a new <seealso cref="AnimationCurveParameter"/> instance.
@@ -1653,7 +1651,6 @@ namespace UnityEngine.Rendering
         public AnimationCurveParameter(AnimationCurve value, bool overrideState = false)
             : base(value, overrideState)
         {
-            hackDebugParam = true;
         }
 
         static private Keyframe LerpKeyframeDirect(Keyframe lhs, Keyframe rhs, float t)
