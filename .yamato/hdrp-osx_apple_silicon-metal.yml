@@ -21,12 +21,15 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cp -rf TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  uname -m
+      -  cp -rf TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
@@ -52,12 +55,15 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cp -rf TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  uname -m
+      -  cp -rf TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
@@ -83,12 +89,15 @@ HDRP_OSX_Apple_Silicon_Metal_editmode_XR_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cp -rf TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  uname -m
+      -  cp -rf TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
@@ -114,9 +123,11 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --architecture=ARM64 --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
@@ -144,12 +155,15 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  uname -m
+      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_RuntimeTests --timeout=1200
@@ -178,9 +192,11 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --architecture=ARM64 --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
@@ -208,12 +224,15 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  uname -m
+      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_RuntimeTests --timeout=6000
@@ -242,12 +261,15 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cp -rf TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  uname -m
+      -  cp -rf TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
@@ -273,12 +295,15 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cp -rf TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  uname -m
+      -  cp -rf TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
@@ -304,12 +329,15 @@ HDRP_OSX_Apple_Silicon_Metal_editmode_XR_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cp -rf TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  uname -m
+      -  cp -rf TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
@@ -335,9 +363,11 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --architecture=ARM64 --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
@@ -365,12 +395,15 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  uname -m
+      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_RuntimeTests --timeout=1200
@@ -399,9 +432,11 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --architecture=ARM64 --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
@@ -429,12 +464,15 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics
+      -  git -C TestProjects/UniversalGraphicsTest_Foundation/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer
+      -  uname -m
+      -  cp -rf TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_AppleSilicon TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/OSXPlayer_Intel
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_RuntimeTests --timeout=6000
