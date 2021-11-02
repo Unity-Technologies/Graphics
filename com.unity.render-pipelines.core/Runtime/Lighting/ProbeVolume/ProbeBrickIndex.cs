@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 using System.Collections;
+using Unity.Collections;
 using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
 using CellInfo = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.CellInfo;
 using Cell = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.Cell;
@@ -303,9 +304,9 @@ namespace UnityEngine.Experimental.Rendering
             return true;
         }
 
-        public void AddBricks(Cell cell, List<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight, CellIndexUpdateInfo cellInfo)
+        public void AddBricks(Cell cell, NativeArray<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight, CellIndexUpdateInfo cellInfo)
         {
-            Debug.Assert(bricks.Count <= ushort.MaxValue, "Cannot add more than 65K bricks per RegId.");
+            Debug.Assert(bricks.Length <= ushort.MaxValue, "Cannot add more than 65K bricks per RegId.");
             int largest_cell = ProbeReferenceVolume.CellSize(kMaxSubdivisionLevels);
 
             g_Cell = cell;
@@ -319,7 +320,7 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = 0; i < allocations.Count; i++)
             {
                 Chunk alloc = allocations[i];
-                int cnt = Mathf.Min(allocationSize, bricks.Count - brick_idx);
+                int cnt = Mathf.Min(allocationSize, bricks.Length - brick_idx);
                 for (int j = 0; j < cnt; j++, brick_idx++, alloc.x += ProbeBrickPool.kBrickProbeCountPerDim)
                 {
                     Brick brick = bricks[brick_idx];

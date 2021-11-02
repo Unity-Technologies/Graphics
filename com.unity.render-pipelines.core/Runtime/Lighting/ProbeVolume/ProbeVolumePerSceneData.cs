@@ -92,15 +92,18 @@ namespace UnityEngine.Experimental.Rendering
         internal void QueueAssetLoading()
         {
             var refVol = ProbeReferenceVolume.instance;
-            if (assets.ContainsKey(m_CurrentState) && assets[m_CurrentState] != null)
+            if (assets.TryGetValue(m_CurrentState, out var asset) && asset != null)
             {
-                refVol.AddPendingAssetLoading(assets[m_CurrentState]);
+                asset.ResolveCells();
+                refVol.AddPendingAssetLoading(asset);
+
 #if UNITY_EDITOR
                 if (refVol.sceneData != null)
                 {
                     refVol.dilationValidtyThreshold = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene).dilationSettings.dilationValidityThreshold;
                 }
 #endif
+
                 m_PreviousState = m_CurrentState;
             }
         }

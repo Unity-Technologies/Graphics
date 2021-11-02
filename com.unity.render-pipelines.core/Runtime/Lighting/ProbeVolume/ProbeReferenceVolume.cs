@@ -286,18 +286,33 @@ namespace UnityEngine.Experimental.Rendering
     {
         const int kTemporaryDataLocChunkCount = 8;
 
-        [System.Serializable]
+        [Serializable]
         internal class Cell
         {
-            public int index;
             public Vector3Int position;
-            public List<Brick> bricks;
-            public Vector3[] probePositions;
-            public SphericalHarmonicsL2[] sh;
-            public float[] validity;
+            public int index;
             public int minSubdiv;
             public int indexChunkCount;
             public int shChunkCount;
+
+            public ProbeVolumeSHBands shBands;
+
+            public NativeArray<Brick> bricks { get; internal set; }
+
+            // shData is swizzled for direct runtime upload
+            //
+            // L0r0, L0g0, L0b0, L1r0
+            // L1g0, L1g1, L1g2, L1r1
+            // L1b0, L1b1, L1b2, L1r2
+            // L2r0, L2r1, L2r2, L2r3
+            // L2g0, L2g1, L2g2, L2g3
+            // L2b0, L2b1, L2b2, L2b3
+            // L2r4, L2g4, L2b4, 1.0
+            public NativeArray<Vector4> shData { get; internal set; }
+
+            public NativeArray<Vector3> probePositions { get; internal set; }
+            public NativeArray<float> validity { get; internal set; }
+            public NativeArray<Vector3> offsetVectors { get; internal set; }
         }
 
         [DebuggerDisplay("Index = {cell.index} Loaded = {loaded}")]
@@ -935,7 +950,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // Add all the cells to the system.
             // They'll be streamed in later on.
-            for (int i = 0; i < asset.cells.Count; ++i)
+            for (int i = 0; i < asset.cells.Length; ++i)
             {
                 AddCell(asset.cells[i], asset.GetInstanceID());
             }
@@ -988,12 +1003,12 @@ namespace UnityEngine.Experimental.Rendering
             m_PendingAssetsToBeUnloaded.Clear();
         }
 
-        internal int GetNumberOfBricksAtSubdiv(Cell cell, out Vector3Int minValidLocalIdxAtMaxRes, out Vector3Int sizeOfValidIndicesAtMaxRes)
+        internal int GetNumberOfBricksAtSubdiv(Vector3Int position, int minSubdiv, out Vector3Int minValidLocalIdxAtMaxRes, out Vector3Int sizeOfValidIndicesAtMaxRes)
         {
             minValidLocalIdxAtMaxRes = Vector3Int.zero;
             sizeOfValidIndicesAtMaxRes = Vector3Int.one;
 
-            var posWS = new Vector3(cell.position.x * MaxBrickSize(), cell.position.y * MaxBrickSize(), cell.position.z * MaxBrickSize());
+            var posWS = new Vector3(position.x * MaxBrickSize(), position.y * MaxBrickSize(), position.z * MaxBrickSize());
             Bounds cellBounds = new Bounds();
             cellBounds.min = posWS;
             cellBounds.max = posWS + (Vector3.one * MaxBrickSize());
@@ -1015,7 +1030,7 @@ namespace UnityEngine.Experimental.Rendering
             sizeOfValidIndicesAtMaxRes.z = Mathf.CeilToInt((toEnd.z) / MinBrickSize()) - minValidLocalIdxAtMaxRes.z + 1;
 
             Vector3Int bricksForCell = new Vector3Int();
-            bricksForCell = sizeOfValidIndicesAtMaxRes / CellSize(cell.minSubdiv);
+            bricksForCell = sizeOfValidIndicesAtMaxRes / CellSize(minSubdiv);
 
             return bricksForCell.x * bricksForCell.y * bricksForCell.z;
         }
@@ -1024,7 +1039,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             cellUpdateInfo = new ProbeBrickIndex.CellIndexUpdateInfo();
 
-            int brickCountsAtResolution = GetNumberOfBricksAtSubdiv(cell, out var minValidLocalIdx, out var sizeOfValidIndices);
+            int brickCountsAtResolution = GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out var minValidLocalIdx, out var sizeOfValidIndices);
             cellUpdateInfo.cellPositionInBricksAtMaxRes = cell.position * CellSize(m_MaxSubdivision - 1);
             cellUpdateInfo.minSubdivInCell = cell.minSubdiv;
             cellUpdateInfo.minValidBrickIndexForCellAtMaxRes = minValidLocalIdx;
@@ -1153,7 +1168,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // calculate the number of chunks necessary
             int chunkSize = ProbeBrickPool.GetChunkSize();
-            int brickChunksCount = (bricks.Count + chunkSize - 1) / chunkSize;
+            int brickChunksCount = (bricks.Length + chunkSize - 1) / chunkSize;
             cellInfo.chunkList.Clear();
 
             // Try to allocate texture space
@@ -1165,7 +1180,7 @@ namespace UnityEngine.Experimental.Rendering
             while (chunkIndex < cellInfo.chunkList.Count)
             {
                 int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.sh, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands, cell.shData.Reinterpret<Color>(), chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
 
                 // copy chunks into pool
                 m_TmpSrcChunks.Clear();

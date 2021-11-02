@@ -1,9 +1,9 @@
-#if UNITY_EDITOR
-
 using System.Collections.Generic;
 using Unity.Collections;
 using System;
 using System.Linq;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Profiling;
 using UnityEditor;
 
 using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
@@ -16,7 +16,19 @@ namespace UnityEngine.Experimental.Rendering
 {
     struct BakingCell
     {
-        public ProbeReferenceVolume.Cell cell;
+        public Vector3Int position;
+        public int index;
+
+        public Brick[] bricks;
+        public Vector3[] probePositions;
+        public SphericalHarmonicsL2[] sh;
+        public float[] validity;
+        public Vector3[] offsetVectors;
+
+        public int minSubdiv;
+        public int indexChunkCount;
+        public int shChunkCount;
+
         public int[] probeIndices;
     }
 
@@ -63,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering
         static bool onAdditionalProbesBakeCompletedCalled = false;
 
         static Dictionary<Vector3Int, int> m_CellPosToIndex = new Dictionary<Vector3Int, int>();
-        static Dictionary<int, Cell> m_BakedCells = new Dictionary<int, Cell>();
+        static Dictionary<int, BakingCell> m_BakedCells = new Dictionary<int, BakingCell>();
 
         static ProbeGIBaking()
         {
@@ -240,6 +252,7 @@ namespace UnityEngine.Experimental.Rendering
 
         // NOTE: This is somewhat hacky and is going to likely be slow (or at least slower than it could).
         // It is only a first iteration of the concept that won't be as impactful on memory as other options.
+#if false // TODO: Make sure we intend to keep this before fixing
         internal static void RevertDilation()
         {
             if (m_BakingProfile == null)
@@ -268,6 +281,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
         }
+#endif
 
         // Can definitively be optimized later on.
         // Also note that all the bookkeeping of all the reference volumes will likely need to change when we move to
@@ -388,33 +402,32 @@ namespace UnityEngine.Experimental.Rendering
                     // Make sure unloading happens.
                     prv.PerformPendingOperations();
 
-                    Dictionary<string, bool> assetCleared = new Dictionary<string, bool>();
-                    // Put back cells
+                    // Commit cell changes
+                    HashSet<string> assetsCommitted = new HashSet<string>();
                     foreach (var cell in dilatedCells)
                     {
                         foreach (var sceneData in perSceneDataList)
                         {
                             var asset = sceneData.GetCurrentStateAsset();
 
-                            if (asset == null) continue;
+                            // How would this happen?
+                            if (asset == null)
+                                continue;
 
                             var assetPath = asset.GetSerializedFullPath();
-                            bool valueFound = false;
-                            if (!assetCleared.TryGetValue(assetPath, out valueFound))
-                            {
-                                asset.cells.Clear();
-                                assetCleared.Add(asset.GetSerializedFullPath(), true);
-                                UnityEditor.EditorUtility.SetDirty(asset);
-                            }
-
                             if (cell2Assets[cell.index].Contains(assetPath))
                             {
-                                asset.cells.Add(cell);
+                                if (!assetsCommitted.Contains(assetPath))
+                                {
+                                    WritebackModifiedCellsData(asset);
+                                    assetsCommitted.Add(assetPath);
+                                }
                             }
                         }
                     }
-                    UnityEditor.AssetDatabase.SaveAssets();
-                    UnityEditor.AssetDatabase.Refresh();
+
+                    AssetDatabase.SaveAssets();
+                    AssetDatabase.Refresh();
 
                     foreach (var sceneData in perSceneDataList)
                     {
@@ -429,8 +442,9 @@ namespace UnityEngine.Experimental.Rendering
 
         static void OnAdditionalProbesBakeCompleted()
         {
+            using var pm = new ProfilerMarker("OnAdditionalProbesBakeCompleted").Auto();
+
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
-            UnityEngine.Profiling.Profiler.BeginSample("OnAdditionalProbesBakeCompleted");
 
             var probeRefVolume = ProbeReferenceVolume.instance;
             var bakingCells = m_BakingBatch.cells;
@@ -465,7 +479,7 @@ namespace UnityEngine.Experimental.Rendering
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
             {
-                var cell = bakingCells[c].cell;
+                var cell = bakingCells[c];
 
                 m_CellPosToIndex.Add(cell.position, cell.index);
 
@@ -477,11 +491,12 @@ namespace UnityEngine.Experimental.Rendering
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
+                cell.offsetVectors = new Vector3[0]; // pending PR #6169
                 cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
 
                 for (int i = 0; i < numProbes; ++i)
                 {
-                    int j = bakingCells[c].probeIndices[i];
+                    int j = cell.probeIndices[i];
                     SphericalHarmonicsL2 shv = sh[j];
 
                     int brickIdx = i / 64;
@@ -542,11 +557,10 @@ namespace UnityEngine.Experimental.Rendering
                     cell.validity[i] = validity[j];
                 }
 
-                cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell, out var minValidLocalIdxAtMaxRes, out var sizeOfValidIndicesAtMaxRes);
-                cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Count);
+                cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out _, out _);
+                cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length);
 
                 m_BakedCells[cell.index] = cell;
-                UnityEngine.Profiling.Profiler.EndSample();
             }
 
             m_BakingBatchIndex = 0;
@@ -566,24 +580,36 @@ namespace UnityEngine.Experimental.Rendering
                 data2Asset[data] = ProbeVolumeAsset.CreateAsset(data.gameObject.scene);
             }
 
-            // Put cells into the respective assets
+            // Allocate cells to the respective assets
+            var asset2BakingCells = new Dictionary<ProbeVolumeAsset, List<BakingCell>>();
             foreach (var cell in m_BakedCells.Values)
             {
                 foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
                 {
                     // This scene has a reference volume authoring component in it?
-                    ProbeVolumePerSceneData data = null;
-                    if (scene2Data.TryGetValue(scene, out data))
+                    if (scene2Data.TryGetValue(scene, out var data))
                     {
                         var asset = data2Asset[data];
-                        asset.cells.Add(cell);
+
+                        if (!asset2BakingCells.TryGetValue(asset, out var bakingCellsList))
+                            bakingCellsList = asset2BakingCells[asset] = new();
+
+                        bakingCellsList.Add(cell);
+
                         var profile = probeRefVolume.sceneData.GetProfileForScene(scene);
                         asset.StoreProfileData(profile);
-                        Debug.Assert(profile != null);
                         CellCountInDirections(out asset.minCellPosition, out asset.maxCellPosition, profile.cellSizeInMeters);
                         asset.globalBounds = globalBounds;
                     }
                 }
+            }
+
+            // Convert baking cells to runtime cells
+            foreach ((var asset, var bakingCellsList) in asset2BakingCells)
+            {
+                asset.bands = probeRefVolume.shBands;
+                WriteBakingCells(asset, bakingCellsList);
+                asset.ResolveCells();
             }
 
             // Connect the assets to their components
@@ -595,10 +621,10 @@ namespace UnityEngine.Experimental.Rendering
                 // TODO: This will need to use the proper state, not default, when we have them.
                 data.StoreAssetForState(ProbeVolumeState.Default, asset);
 
-                if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
+                if (Lightmapping.giWorkflowMode != Lightmapping.GIWorkflowMode.Iterative)
                 {
-                    UnityEditor.EditorUtility.SetDirty(data);
-                    UnityEditor.EditorUtility.SetDirty(asset);
+                    EditorUtility.SetDirty(data);
+                    EditorUtility.SetDirty(asset);
                 }
             }
 
@@ -608,9 +634,11 @@ namespace UnityEngine.Experimental.Rendering
                 probeVolume.OnBakeCompleted();
             }
 
-            UnityEditor.AssetDatabase.SaveAssets();
-            UnityEditor.AssetDatabase.Refresh();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
             probeRefVolume.clearAssetsOnVolumeClear = false;
+
+            m_BakingBatch = null;
 
             foreach (var data in data2Asset.Keys)
             {
@@ -624,6 +652,154 @@ namespace UnityEngine.Experimental.Rendering
         static void OnLightingDataCleared()
         {
             Clear();
+        }
+
+        static void GetShaderCoeffsL0L1(ref SphericalHarmonicsL2 sh, NativeArray<Vector4> target, int offset)
+        {
+            target[offset + 0] = new Vector4(sh[0, 0], sh[1, 0], sh[2, 0], sh[0, 1]);
+            target[offset + 1] = new Vector4(sh[1, 1], sh[1, 2], sh[1, 3], sh[0, 2]);
+            target[offset + 2] = new Vector4(sh[2, 1], sh[2, 2], sh[2, 3], sh[0, 3]);
+        }
+
+        static void GetShaderCoeffsL2(ref SphericalHarmonicsL2 sh, NativeArray<Vector4> target, int offset)
+        {
+            target[offset + 0] = new Vector4(sh[0, 4], sh[0, 5], sh[0, 6], sh[0, 7]);
+            target[offset + 1] = new Vector4(sh[1, 4], sh[1, 5], sh[1, 6], sh[1, 7]);
+            target[offset + 2] = new Vector4(sh[2, 4], sh[2, 5], sh[2, 6], sh[2, 7]);
+            target[offset + 3] = new Vector4(sh[0, 8], sh[1, 8], sh[2, 8], 1f);
+        }
+
+        static void GetBlobFileNames(string sourceFilename, out string cellDataFilename, out string cellSupportDataFilename )
+        {
+            cellDataFilename = System.IO.Path.ChangeExtension(sourceFilename, "CellData.bytes");
+            cellSupportDataFilename = System.IO.Path.ChangeExtension(sourceFilename, "CellSupportData.bytes");
+        }
+
+        static void WriteBakingCells(ProbeVolumeAsset asset, List<BakingCell> bakingCells)
+        {
+            asset.cells = new Cell[bakingCells.Count];
+            asset.cellCounts = new ProbeVolumeAsset.CellCounts[bakingCells.Count];
+            asset.totalCellCounts = new ProbeVolumeAsset.CellCounts();
+
+            for (var i = 0; i < bakingCells.Count; ++i)
+            {
+                var bakingCell = bakingCells[i];
+
+                asset.cells[i] = new Cell {
+                    position = bakingCell.position,
+                    index = bakingCell.index,
+                    minSubdiv = bakingCell.minSubdiv,
+                    indexChunkCount = bakingCell.indexChunkCount,
+                    shChunkCount = bakingCell.shChunkCount,
+                    shBands = asset.bands,
+                };
+
+                var cellCounts = new ProbeVolumeAsset.CellCounts {
+                    bricksCount = bakingCell.bricks.Length,
+                    probesCount = bakingCell.probePositions.Length,
+                    offsetsCount = bakingCell.offsetVectors.Length
+                };
+                asset.cellCounts[i] = cellCounts;
+                asset.totalCellCounts.Add(cellCounts);
+            }
+
+            using var bricks = new NativeArray<Brick>(asset.totalCellCounts.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var probes = new NativeArray<Vector4>(asset.totalCellCounts.probesCount * asset.CoefficientVectorsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            using var positions = new NativeArray<Vector3>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var validity = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var offsets = new NativeArray<Vector3>(asset.totalCellCounts.offsetsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            var startCounts = new ProbeVolumeAsset.CellCounts();
+            for (var i = 0; i < bakingCells.Count; ++i)
+            {
+                var bakingCell = bakingCells[i];
+                var cellCounts = asset.cellCounts[i];
+
+                bricks.GetSubArray(startCounts.bricksCount, cellCounts.bricksCount).CopyFrom(bakingCell.bricks);
+
+                var coefficientVectorsCount = asset.CoefficientVectorsCount;
+                var probesTarget = probes.GetSubArray(startCounts.probesCount * coefficientVectorsCount, cellCounts.probesCount * coefficientVectorsCount);
+                for (int j = 0, k = 0; j < cellCounts.probesCount; ++j, k += coefficientVectorsCount)
+                {
+                    ref var sh = ref bakingCell.sh[j];
+
+                    GetShaderCoeffsL0L1(ref sh, probesTarget, k);
+
+                    if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                        GetShaderCoeffsL2(ref sh, probesTarget, k + 3);
+                }
+
+                positions.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.probePositions);
+                validity.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validity);
+                offsets.GetSubArray(startCounts.offsetsCount, cellCounts.offsetsCount).CopyFrom(bakingCell.offsetVectors);
+
+                startCounts.Add(cellCounts);
+            }
+
+            // Need to save here because the forced import below discards the changes.
+            EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssets();
+
+            GetBlobFileNames(asset.GetSerializedFullPath(), out var cellDataFilename, out var cellSupportDataFilename);
+
+            unsafe
+            {
+                static long AlignRemainder16(long count) => count % 16L;
+
+                using (var fs = new System.IO.FileStream(cellDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                {
+                    fs.Write(new ReadOnlySpan<byte>(bricks.GetUnsafeReadOnlyPtr(), bricks.Length * UnsafeUtility.SizeOf<Brick>()));
+                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
+                    fs.Write(new ReadOnlySpan<byte>(probes.GetUnsafeReadOnlyPtr(), probes.Length * UnsafeUtility.SizeOf<Vector4>()));
+                }
+                using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                {
+                    fs.Write(new ReadOnlySpan<byte>(positions.GetUnsafeReadOnlyPtr(), positions.Length * UnsafeUtility.SizeOf<Vector3>()));
+                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
+                    fs.Write(new ReadOnlySpan<byte>(validity.GetUnsafeReadOnlyPtr(), validity.Length * UnsafeUtility.SizeOf<float>()));
+                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
+                    fs.Write(new ReadOnlySpan<byte>(offsets.GetUnsafeReadOnlyPtr(), offsets.Length * UnsafeUtility.SizeOf<Vector3>()));
+                }
+            }
+
+            AssetDatabase.ImportAsset(cellDataFilename);
+            AssetDatabase.ImportAsset(cellSupportDataFilename);
+
+            asset.cellDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellDataFilename);
+            asset.cellSupportDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellSupportDataFilename);
+
+            asset.LoadBinaryData();
+        }
+
+        static void WritebackModifiedCellsData(ProbeVolumeAsset asset)
+        {
+            GetBlobFileNames(asset.GetSerializedFullPath(), out var cellDataFilename, out var cellSupportDataFilename);
+
+            unsafe
+            {
+                using (var fs = new System.IO.FileStream(cellDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                {
+                    var cellData = asset.assetToBytes[asset.cellDataAsset];
+                    fs.Write(new ReadOnlySpan<byte>(cellData.GetUnsafeReadOnlyPtr(), cellData.Length));
+                }
+                using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                {
+                    var cellSupportData = asset.assetToBytes[asset.cellSupportDataAsset];
+                    fs.Write(new ReadOnlySpan<byte>(cellSupportData.GetUnsafeReadOnlyPtr(), cellSupportData.Length));
+                }
+            }
+
+            asset.ReleaseBinaryData();
+
+            AssetDatabase.ImportAsset(cellDataFilename);
+            AssetDatabase.ImportAsset(cellSupportDataFilename);
+
+            asset.cellDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellDataFilename);
+            asset.cellSupportDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellSupportDataFilename);
+
+            asset.LoadBinaryData();
+            asset.ResolveCells();
         }
 
         private static void DeduplicateProbePositions(in Vector3[] probePositions, in int[] brickSubdivLevel, Dictionary<Vector3, int> uniquePositions,
@@ -824,30 +1000,28 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var cellPos in results.cellPositions)
             {
                 var bricks = results.bricksPerCells[cellPos];
-                var cell = new ProbeReferenceVolume.Cell();
 
+                if (bricks.Count == 0)
+                    continue;
+
+                BakingCell cell = new BakingCell();
                 cell.position = cellPos;
                 cell.index = index++;
-                if (bricks.Count > 0)
-                {
-                    // Convert bricks to positions
-                    var probePositionsArr = new Vector3[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
-                    var brickSubdivLevels = new int[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
-                    ConvertBricksToPositions(bricks, probePositionsArr, refToWS, brickSubdivLevels);
 
-                    int[] indices = null;
-                    DeduplicateProbePositions(in probePositionsArr, in brickSubdivLevels, m_BakingBatch.uniquePositions, m_BakingBatch.uniqueBrickSubdiv, out indices);
+                // Convert bricks to positions
+                var probePositionsArr = new Vector3[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
+                var brickSubdivLevels = new int[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
+                ConvertBricksToPositions(bricks, probePositionsArr, refToWS, brickSubdivLevels);
 
-                    cell.probePositions = probePositionsArr;
-                    cell.bricks = bricks;
+                DeduplicateProbePositions(in probePositionsArr, in brickSubdivLevels, m_BakingBatch.uniquePositions, m_BakingBatch.uniqueBrickSubdiv, out var indices);
 
-                    BakingCell bakingCell = new BakingCell();
-                    bakingCell.cell = cell;
-                    bakingCell.probeIndices = indices;
+                cell.probePositions = probePositionsArr;
+                cell.bricks = bricks.ToArray();
 
-                    m_BakingBatch.cells.Add(bakingCell);
-                    m_BakingBatch.cellIndex2SceneReferences[cell.index] = results.scenesPerCells[cellPos].ToList();
-                }
+                cell.probeIndices = indices;
+
+                m_BakingBatch.cells.Add(cell);
+                m_BakingBatch.cellIndex2SceneReferences[cell.index] = results.scenesPerCells[cellPos].ToList();
             }
 
 
@@ -873,5 +1047,3 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 }
-
-#endif
