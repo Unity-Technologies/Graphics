@@ -154,6 +154,7 @@ namespace UnityEngine.Experimental.Rendering
             parameters.viewBias = 0;
             parameters.scaleBiasByMinDistanceBetweenProbes = false;
             parameters.samplingNoise = 0;
+            parameters.leakParams = Vector4.zero;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 

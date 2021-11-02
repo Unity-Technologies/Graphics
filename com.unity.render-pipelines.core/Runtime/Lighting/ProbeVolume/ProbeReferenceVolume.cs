@@ -251,6 +251,9 @@ namespace UnityEngine.Experimental.Rendering
         /// Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.
         /// </summary>
         public float samplingNoise;
+
+        // TMP
+        public Vector4 leakParams;
     }
 
     /// <summary>
@@ -1170,7 +1173,7 @@ namespace UnityEngine.Experimental.Rendering
             while (chunkIndex < cellInfo.chunkList.Count)
             {
                 int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.validity, cell.sh, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.probePositions, cell.validity, cell.sh, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
 
                 // copy chunks into pool
                 m_TmpSrcChunks.Clear();
@@ -1265,6 +1268,7 @@ namespace UnityEngine.Experimental.Rendering
             shaderVars._MinBrickSize = MinBrickSize();
             shaderVars._IndexChunkSize = ProbeBrickIndex.kIndexChunkSize;
             shaderVars._CellInMeters = MaxBrickSize();
+            shaderVars._AntiLeakParams = parameters.leakParams;
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }

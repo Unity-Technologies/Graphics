@@ -6,6 +6,27 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Experimental.Rendering
 {
+
+    public enum LeakingPreventionMethod
+    {
+        None = 0,
+        Validity = 1,
+        Geometric = 2,
+        Octahedral = 3
+    }
+
+
+    [Serializable]
+    public sealed class LeakingPreventionMethodParameter : VolumeParameter<LeakingPreventionMethod>
+    {
+        /// <summary>
+        /// Creates a new <see cref="LeakingPreventionMethod"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public LeakingPreventionMethodParameter(LeakingPreventionMethod value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
     /// <summary>
     /// A volume component that holds settings for the Probe Volumes System per-camera options.
     /// </summary>
@@ -35,5 +56,11 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         [AdditionalProperty, Tooltip("Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.")]
         public ClampedFloatParameter samplingNoise = new ClampedFloatParameter(0.125f, 0.0f, 1.0f);
+
+
+        //
+        public LeakingPreventionMethodParameter antiLeakMode = new LeakingPreventionMethodParameter(LeakingPreventionMethod.None);
+        public ClampedFloatParameter leakWeightContrib = new ClampedFloatParameter(1, 0, 1);
+
     }
 }

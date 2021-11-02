@@ -102,6 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.viewBias = probeVolumeOptions.viewBias.value;
                 parameters.scaleBiasByMinDistanceBetweenProbes = probeVolumeOptions.scaleBiasWithMinProbeDistance.value;
                 parameters.samplingNoise = probeVolumeOptions.samplingNoise.value;
+                parameters.leakParams = new Vector4((float)probeVolumeOptions.antiLeakMode.value, probeVolumeOptions.leakWeightContrib.value, 1, 1);
                 ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
             }
         }

@@ -22,6 +22,8 @@ namespace UnityEngine.Rendering
         public Vector3 _CellIndicesDim;
         public float _CellInMeters;
 
+        public Vector4 _AntiLeakParams;
+
         public float _CellInMinBricks;
         public float _MinBrickSize;
         public int _IndexChunkSize;
