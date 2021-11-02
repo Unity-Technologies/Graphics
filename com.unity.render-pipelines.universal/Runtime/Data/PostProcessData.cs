@@ -72,6 +72,9 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/PostProcessing/ScalingSetup.shader")]
             public Shader scalingSetupPS;
 
+            [Reload("Shaders/PostProcessing/EdgeAdaptiveSpatialUpsampling.shader")]
+            public Shader easuPs;
+
             [Reload("Shaders/PostProcessing/UberPost.shader")]
             public Shader uberPostPS;
 

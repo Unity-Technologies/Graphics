@@ -2,6 +2,7 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
 {
     HLSLINCLUDE
         #pragma multi_compile_local_fragment _ _FXAA
+        #pragma multi_compile_local_fragment _ _GAMMA_20
         #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -24,6 +25,12 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
 
 #if _FXAA
             color = ApplyFXAA(color, positionNDC, positionSS, _SourceSize, _SourceTex);
+#endif
+
+#if _GAMMA_20
+            // EASU expects the input image to be in gamma 2.0 color space so perform color space conversion
+            // while we store the pixel data from the setup pass.
+            color = LinearToGamma20(color);
 #endif
 
             return half4(color, 1.0);
