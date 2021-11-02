@@ -2,7 +2,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 {
     HLSLINCLUDE
         #pragma exclude_renderers gles
-        #pragma multi_compile_local_fragment _ _POINT_SAMPLING
+        #pragma multi_compile_local_fragment _ _POINT_SAMPLING _RCAS
         #pragma multi_compile_local_fragment _ _FXAA
         #pragma multi_compile_local_fragment _ _FILM_GRAIN
         #pragma multi_compile_local_fragment _ _DITHERING
@@ -17,7 +17,6 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
         TEXTURE2D_X(_SourceTex);
-
         TEXTURE2D(_Grain_Texture);
         TEXTURE2D(_BlueNoise_Texture);
 
@@ -25,6 +24,18 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         float2 _Grain_Params;
         float4 _Grain_TilingParams;
         float4 _Dithering_Params;
+
+        #if SHADER_TARGET >= 45
+            #define FSR_INPUT_TEXTURE _SourceTex
+            #define FSR_INPUT_SAMPLER sampler_LinearClamp
+
+            // Only enable 16-bit instructions when the underlying hardware supports them
+            #if HAS_HALF
+                #define FSR_ENABLE_16BIT 1
+            #endif
+
+            #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
+        #endif
 
         #define GrainIntensity          _Grain_Params.x
         #define GrainResponse           _Grain_Params.y
@@ -44,6 +55,8 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             #if _POINT_SAMPLING
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_PointClamp, uv).xyz;
+            #elif _RCAS && SHADER_TARGET >= 45
+            half3 color = ApplyRCAS(positionSS);
             #else
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;
             #endif
@@ -88,6 +101,25 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
     ENDHLSL
 
+    SubShader
+    {
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
+        LOD 100
+        ZTest Always ZWrite Off Cull Off
+
+        Pass
+        {
+            Name "FinalPost"
+
+            HLSLPROGRAM
+                #pragma vertex FullscreenVert
+                #pragma fragment Frag
+                #pragma target 4.5
+            ENDHLSL
+        }
+    }
+
+    // Fallback shader with no support for FSR
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}

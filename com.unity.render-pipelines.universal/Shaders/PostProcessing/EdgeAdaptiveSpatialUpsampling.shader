@@ -1,9 +1,6 @@
-Shader "Hidden/Universal Render Pipeline/Upscale Setup"
+Shader "Hidden/Universal Render Pipeline/Edge Adaptive Spatial Upsampling"
 {
     HLSLINCLUDE
-        #pragma multi_compile_local_fragment _ _FXAA
-        #pragma multi_compile_local_fragment _ _GAMMA_20
-
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -12,25 +9,27 @@ Shader "Hidden/Universal Render Pipeline/Upscale Setup"
         TEXTURE2D_X(_SourceTex);
         float4 _SourceSize;
 
-        half4 Frag(Varyings input) : SV_Target
+        #define FSR_INPUT_TEXTURE _SourceTex
+        #define FSR_INPUT_SAMPLER sampler_LinearClamp
+
+        // Only enable 16-bit instructions when the underlying hardware supports them
+        #if HAS_HALF
+            #define FSR_ENABLE_16BIT 1
+        #endif
+
+        #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
+
+        half4 FragEASU(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
-            float2 positionNDC = uv;
-            int2   positionSS = uv * _SourceSize.xy;
+            uint2 integerUv = uv * _ScreenParams.xy;
 
-            half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_PointClamp, uv).xyz;
+            half3 color = ApplyEASU(integerUv);
 
-#if _FXAA
-            color = ApplyFXAA(color, positionNDC, positionSS, _SourceSize, _SourceTex);
-#endif
-
-#if _GAMMA_20
-            // EASU expects the input image to be in gamma 2.0 color space so perform color space conversion
-            // while we store the pixel data from the setup pass.
-            color = LinearToGamma20(color);
-#endif
+            // Convert back to linear color space before this data is sent into RCAS
+            color = Gamma20ToLinear(color);
 
             return half4(color, 1.0);
         }
@@ -45,11 +44,12 @@ Shader "Hidden/Universal Render Pipeline/Upscale Setup"
 
         Pass
         {
-            Name "UpscaleSetup"
+            Name "EASU"
 
             HLSLPROGRAM
                 #pragma vertex FullscreenVert
-                #pragma fragment Frag
+                #pragma fragment FragEASU
+                #pragma target 4.5
             ENDHLSL
         }
     }
