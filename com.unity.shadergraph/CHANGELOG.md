@@ -4,12 +4,16 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.2] - 2021-10-22
+
+### Fixed
+  - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+
 ## [12.1.1] - 2021-10-04
 
 ### Fixed
   - Fixed a bug that caused the Scene Depth Node in Eye space to not work correctly when using an orthographic camera [1311272].
   - Fixed missing shader keyword stage during keyword copying.
-  - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
 
 ## [12.1.0] - 2021-09-23
 
