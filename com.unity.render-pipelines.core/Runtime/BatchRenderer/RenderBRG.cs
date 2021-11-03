@@ -476,14 +476,14 @@ namespace UnityEngine.Rendering
             int instanceIndex, int submeshIndex)
         {
             var material = m_BatchRendererGroup.RegisterMaterial(matToUse);
-            
+
             var flags = BatchDrawCommandFlags.None;
-            
+
             bool flipWinding = math.determinant(transform.localToWorldMatrix) < 0.0;
-            
+
             if (flipWinding)
                 flags |= BatchDrawCommandFlags.FlipWinding;
-            
+
             var key = new DrawKey
             {
                 material = material,
@@ -492,11 +492,11 @@ namespace UnityEngine.Rendering
                 flags = flags,
                 range = drawRange.key
             };
-            
-            var drawBatch = new DrawBatch {key = key, instanceCount = 0, instanceOffset = 0};
-            
-            m_instances.Add(new DrawInstance {key = key, instanceIndex = instanceIndex});
-            
+
+            var drawBatch = new DrawBatch { key = key, instanceCount = 0, instanceOffset = 0 };
+
+            m_instances.Add(new DrawInstance { key = key, instanceIndex = instanceIndex });
+
             int drawBatchIndex;
             if (m_batchHash.TryGetValue(key, out drawBatchIndex))
             {
@@ -507,11 +507,11 @@ namespace UnityEngine.Rendering
                 drawBatchIndex = m_drawBatches.Length;
                 m_drawBatches.Add(drawBatch);
                 m_batchHash[key] = drawBatchIndex;
-            
+
                 drawRange.drawCount++;
                 m_drawRanges[drawRangeIndex] = drawRange;
             }
-            
+
             drawBatch.instanceCount++;
             m_drawBatches[drawBatchIndex] = drawBatch;
         }
@@ -534,7 +534,7 @@ namespace UnityEngine.Rendering
             m_drawRanges = new NativeList<DrawRange>(Allocator.Persistent);
             m_AddedRenderers = new List<MeshRenderer>(renderers.Count);
 
-            BRGInternalSRPConfig srpConfig = m_SRPCallbacks != null ?  m_SRPCallbacks.GetSRPConfig() : BRGInternalSRPConfig.NewDefault();
+            BRGInternalSRPConfig srpConfig = m_SRPCallbacks != null ? m_SRPCallbacks.GetSRPConfig() : BRGInternalSRPConfig.NewDefault();
 
             BatchMeshID overrideMeshID = srpConfig.overrideMesh == null ? BatchMeshID.Null : m_BatchRendererGroup.RegisterMesh(srpConfig.overrideMesh);
 
@@ -723,7 +723,7 @@ namespace UnityEngine.Rendering
                         rendererInfo = addedRendererInfo
                     }) : 0;
 
-                    RegisterBatchDrawInstance(srpConfig.overrideMaterial, mesh, renderer.transform, 
+                    RegisterBatchDrawInstance(srpConfig.overrideMaterial, mesh, renderer.transform,
                         drawRangeIndex, ref drawRange, i, submeshIndex);
                 }
                 else
@@ -736,7 +736,7 @@ namespace UnityEngine.Rendering
 
                         matToUse = srpConfig.overrideMaterial != null ? srpConfig.overrideMaterial : matToUse;
 
-                        RegisterBatchDrawInstance(matToUse, mesh, renderer.transform, 
+                        RegisterBatchDrawInstance(matToUse, mesh, renderer.transform,
                             drawRangeIndex, ref drawRange, i, matIndex + startSubMesh);
                     }
                 }
@@ -979,7 +979,7 @@ namespace UnityEngine.Rendering
                         break;
                 }
             }
-            
+
         }
 
         private void OnEnable()
