@@ -522,6 +522,11 @@ namespace UnityEngine.Rendering
         public void Unregister(Mesh mesh)
         {
             int meshHashCode = mesh.GetHashCode();
+            UnregisterByMeshHashCode(meshHashCode);
+        }
+
+        public void UnregisterByMeshHashCode(int meshHashCode)
+        {
             if (!m_MeshSlots.TryGetValue(meshHashCode, out MeshSlot outSlot))
                 return;
 

@@ -6,15 +6,15 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/GeometryPool/Resources/GeometryPool.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
-    float4 _VisBufferInstanceData;
+    float4 _DeferredMaterialInstanceData;
 CBUFFER_END
 
 #if defined(UNITY_DOTS_INSTANCING_ENABLED)
 UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
-    UNITY_DOTS_INSTANCED_PROP(float4, _VisBufferInstanceData)
+    UNITY_DOTS_INSTANCED_PROP(float4, _DeferredMaterialInstanceData)
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
-#define _VisBufferInstanceData UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _VisBufferInstanceData)
+#define _DeferredMaterialInstanceData UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _DeferredMaterialInstanceData)
 
 #endif
 
@@ -45,7 +45,7 @@ VisibilityVtoP Vert(VisibilityDrawInput input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, v2p);
 
-    GeoPoolMetadataEntry metadata = _GeoPoolGlobalMetadataBuffer[(int)_VisBufferInstanceData.x];
+    GeoPoolMetadataEntry metadata = _GeoPoolGlobalMetadataBuffer[(int)_DeferredMaterialInstanceData.x];
 
     GeoPoolVertex vertexData;
     GeometryPool::LoadVertex(input.vertexIndex, metadata, vertexData);
