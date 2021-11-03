@@ -2,7 +2,11 @@ Shader "HDRP/Visibility"
 {
     Properties
     {
-        _VisBufferInstanceData ("", Vector) = (1.0, 1.0, 1.0, 1.0)
+        _DeferredMaterialInstanceData ("", Vector) = (1.0, 1.0, 1.0, 1.0)
+
+        // Mandatory or we get yelled by the runtime
+        _MainTex("Albedo", 2D) = "white" {}
+        _Color("Color", Color) = (0,0,0,0)
     }
 
     HLSLINCLUDE
