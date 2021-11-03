@@ -139,11 +139,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return hdCamera;
         }
 
-        public bool IsFrameCompleted()
-        {
-            return HDRenderPipeline.currentPipeline.IsFrameCompleted(this);
-        }
-
         /// <summary>
         /// Reset the camera persistent informations.
         /// This needs to be used when doing camera cuts for example in order to avoid information from previous unrelated frames to be used.
