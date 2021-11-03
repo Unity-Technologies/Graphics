@@ -40,6 +40,98 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             TEXTURE2D_X(_DebugFullScreenTexture);
 
+            real SampleDigitPoint(int digit, real2 texCoord)
+            {
+                const int digitCount = 10;
+                real2 texDigitSize = real2(4, 7);
+                const real k_Digits[] = {0, 1, 1, 0,  0, 0, 0, 1,  1, 1, 1, 1,  0, 1, 1, 1,  1, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,
+                                         1, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  1, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 1,  1, 0, 0, 1,  1, 0, 0, 1,
+                                         1, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  1, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 1,  1, 0, 0, 1,  1, 0, 0, 1,
+                                         1, 0, 0, 1,  0, 0, 0, 1,  1, 1, 1, 1,  0, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,
+                                         1, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  0, 0, 0, 1,
+                                         1, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  0, 0, 0, 1,
+                                         0, 1, 1, 0,  0, 0, 0, 1,  1, 1, 1, 1,  0, 1, 1, 1,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1};
+
+                digit = digit % 10;
+
+                texCoord = clamp(texCoord, 0, 0.99999);
+                texCoord.y = 1 - texCoord.y;
+
+                int2 texCoordInt = int2(floor(clamp(texCoord, 0, 0.99999) * texDigitSize));
+                const int columnOffset = digit * int(texDigitSize.x);
+                const int rowOffset = digitCount * int(texDigitSize.x);
+                const int index = texCoordInt.x + columnOffset + rowOffset * texCoordInt.y;
+                return k_Digits[index];
+            }
+
+            void DrawDigit(real2 texCoordStart, real2 texCoordSize, real2 texCoord, int digit, inout real3 color)
+            {
+                real2 sample = (texCoord - texCoordStart) / texCoordSize;
+                real4 test = real4(sample < 0, sample > 1);
+                if (any(test))
+                    return;
+
+                real digitSample = SampleDigitPoint(digit, sample);
+                color = color * (1 - digitSample.xxx) + digitSample.xxx;
+            }
+
+            void DrawNumber(real2 texCoordStart, real2 texCoordSize, real2 texCoord, int number, inout real3 color)
+            {
+                int digits[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+                // Find digits
+                int current = number;
+                int digitIndex = 0;
+                for (digitIndex = 0; digitIndex < 10 && current > 10; ++digitIndex)
+                {
+                    int newCurrent = current / 10;
+                    int digit = current - newCurrent / 10;
+                    digits[digitIndex] = digit;
+                    current = newCurrent;
+                }
+                // final digit
+                digits[digitIndex] = current;
+
+                // digitIndex has last digit to display
+                // digit count = digitIndex + 1
+                real2 texCursor = texCoordStart;
+                real2 texDigitSize = texCoordSize / (digitIndex + 1);
+                for (int i = digitIndex; i <= 0; --i)
+                {
+                    DrawDigit(texCursor, texDigitSize, texCoord, digits[i], color);
+                    texCoord.x += texDigitSize.x;
+                }
+            }
+
+            void DrawOverdrawLegend2(real2 texcoord, real maxOverdrawCount, inout real3 color)
+            {
+                DrawNumber(real2(0.1, 0.1), real2(0.1, 0.1), texcoord, 10, color);
+
+                const float bandStartY = 0.05;
+                const float bandWidthY = 0.02;
+                const float bandBorderSize = 0.003;
+                const float bandOffsetX = 0.05;
+                if (bandStartY <= texcoord.y
+                    && texcoord.y <= bandStartY + bandWidthY
+                    && bandOffsetX <= texcoord.x
+                    && texcoord.x <= 1 - bandOffsetX)
+                {
+                    if (texcoord.y < bandStartY + bandBorderSize
+                        || bandStartY + bandWidthY - bandBorderSize <= texcoord.y
+                        || texcoord.x < bandOffsetX + bandBorderSize
+                        || 1 - bandOffsetX - bandBorderSize <= texcoord.x)
+                    {
+                        color = float3(0.1, 0.1, 0.1);
+                    }
+                    else
+                    {
+                        float x = (texcoord.x - bandOffsetX)/(1 - 2 * bandOffsetX);
+                        float bucket = ceil(x * maxOverdrawCount);
+                        color = GetOverdrawColor(bucket, maxOverdrawCount);
+                    }
+                }
+            }
+
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
@@ -370,7 +462,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                         color.rgb = GetOverdrawColor(pixelCost, _TransparencyOverdrawMaxPixelCost);
                     }
 
-                    DrawOverdrawLegend(input.texcoord, _TransparencyOverdrawMaxPixelCost, color.rgb);
+                    DrawOverdrawLegend2(input.texcoord / _RTHandleScale.xy, _TransparencyOverdrawMaxPixelCost, color.rgb);
 
                     return color;
                 }
