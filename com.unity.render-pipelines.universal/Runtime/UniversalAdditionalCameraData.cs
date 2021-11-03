@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.Universal
     {
         Off,
         On,
+        [InspectorName("Use settings from Render Pipeline Asset")]
         UsePipelineSettings,
     }
 
