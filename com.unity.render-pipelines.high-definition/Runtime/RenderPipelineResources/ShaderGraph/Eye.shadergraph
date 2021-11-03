@@ -90,6 +90,9 @@
         },
         {
             "m_Id": "407705ab55b84a768ef8a45175e577ff"
+        },
+        {
+            "m_Id": "7fdfd7fe176e46ac8406c58968b05189"
         }
     ],
     "m_Nodes": [
@@ -5525,6 +5528,18 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "7fdfd7fe176e46ac8406c58968b05189",
+    "m_Name": "Geometry",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "684964ae6dc74d5f83ee7912478c9f82"
+        }
+    ]
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "8160b9d57fc74b0db92492463a8ea398",
     "m_Id": 2,
@@ -8854,11 +8869,7 @@
     "m_Type": "UnityEditor.ShaderGraph.CategoryData",
     "m_ObjectId": "dec2d123624f4d2392482719d08589d5",
     "m_Name": "",
-    "m_ChildObjectList": [
-        {
-            "m_Id": "684964ae6dc74d5f83ee7912478c9f82"
-        }
-    ]
+    "m_ChildObjectList": []
 }
 
 {
