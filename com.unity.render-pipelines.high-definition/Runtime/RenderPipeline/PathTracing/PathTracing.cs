@@ -208,17 +208,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ResetPathTracing(camID, camData);
             }
 
-//SensorSDK - Begin
-            hdCamera.isLastIteration = camData.currentIteration == m_SubFrameManager.subFrameCount;
-
-            if (Application.isPlaying && hdCamera.isLastIteration && hdCamera.isContinousCaptureEnabled)
-            {
-                camData.ResetIteration();
-                m_SubFrameManager.SetCameraData(camID, camData);
-                return ResetPathTracing(camID, camData);
-            }
-//SensorSDK - End
-
             // Check camera matrix dirtiness
             if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
             {
