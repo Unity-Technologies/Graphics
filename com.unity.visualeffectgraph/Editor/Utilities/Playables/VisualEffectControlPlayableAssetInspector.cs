@@ -156,6 +156,7 @@ namespace UnityEditor.VFX
     {
         SerializedProperty scrubbingProperty;
         SerializedProperty startSeedProperty;
+        SerializedProperty reinitProperty;
         SerializedProperty prewarmEnable;
         SerializedProperty prewarmStepCount;
         SerializedProperty prewarmDeltaTime;
@@ -354,6 +355,7 @@ namespace UnityEditor.VFX
 
             scrubbingProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.scrubbing));
             startSeedProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.startSeed));
+            reinitProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.reinit));
 
             var prewarmSettings = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.prewarm));
             prewarmEnable = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlPlayableAsset.PrewarmClipSettings.enable));
@@ -419,13 +421,30 @@ namespace UnityEditor.VFX
             serializedObject.Update();
 
             EditorGUI.BeginChangeCheck();
-
             EditorGUILayout.PropertyField(scrubbingProperty);
+
+            var currentReinit = (VisualEffectControlPlayableAsset.ReinitMode)reinitProperty.enumValueIndex;
+
             if (scrubbingProperty.boolValue)
+                currentReinit = VisualEffectControlPlayableAsset.ReinitMode.OnEnterOrExitClip;
+
+            using (new EditorGUI.DisabledScope(scrubbingProperty.boolValue))
+            {
+                EditorGUI.BeginChangeCheck();
+                var newReinit = (VisualEffectControlPlayableAsset.ReinitMode)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Reinit"), currentReinit);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    reinitProperty.enumValueIndex = (int)newReinit;
+                }
+            }
+
+            using (new EditorGUI.DisabledScope(!(
+                 currentReinit == VisualEffectControlPlayableAsset.ReinitMode.OnEnterOrExitClip
+                || currentReinit == VisualEffectControlPlayableAsset.ReinitMode.OnEnterClip)))
             {
                 EditorGUILayout.PropertyField(startSeedProperty);
                 EditorGUILayout.PropertyField(prewarmEnable, EditorGUIUtility.TrTextContent("Enable PreWarm"));
-                if (prewarmEnable.boolValue)
+                using (new EditorGUI.DisabledScope(!prewarmEnable.boolValue))
                 {
                     VisualEffectAssetEditor.PrewarmGenericInspector(serializedObject, prewarmDeltaTime, prewarmStepCount);
                     EditorGUILayout.PropertyField(prewarmEvent, EditorGUIUtility.TrTextContent("PreWarm Event Name"));

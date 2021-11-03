@@ -229,6 +229,8 @@ namespace UnityEngine.VFX
         public double clipStart { get; set; }
         public double clipEnd { get; set; }
         public bool scrubbing { get; set; }
+        public bool reinitEnter { get; set; }
+        public bool reinitExit { get; set; }
         public uint startSeed { get; set; }
 
         public VisualEffectPlayableSerializedEvent[] events { get; set; }

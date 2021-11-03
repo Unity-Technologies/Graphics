@@ -27,6 +27,16 @@ namespace UnityEngine.VFX
         [NotKeyable]
         public uint startSeed;
 
+        public enum ReinitMode
+        {
+            None,
+            OnExitClip,
+            OnEnterClip,
+            OnEnterOrExitClip
+        }
+        [NotKeyable]
+        public ReinitMode reinit = ReinitMode.OnEnterOrExitClip;
+
         [Serializable]
         public struct PrewarmClipSettings
         {
@@ -86,6 +96,34 @@ namespace UnityEngine.VFX
             behaviour.scrubbing = scrubbing;
             behaviour.startSeed = startSeed;
 
+            if (scrubbing)
+            {
+                behaviour.reinitEnter = true;
+                behaviour.reinitExit = true;
+            }
+            else
+            {
+                switch (reinit)
+                {
+                    case ReinitMode.None:
+                        behaviour.reinitEnter = false;
+                        behaviour.reinitExit = false;
+                        break;
+                    case ReinitMode.OnExitClip:
+                        behaviour.reinitEnter = false;
+                        behaviour.reinitExit = true;
+                        break;
+                    case ReinitMode.OnEnterClip:
+                        behaviour.reinitEnter = true;
+                        behaviour.reinitExit = false;
+                        break;
+                    case ReinitMode.OnEnterOrExitClip:
+                        behaviour.reinitEnter = true;
+                        behaviour.reinitExit = true;
+                        break;
+                }
+            }
+
             if (clipEvents == null)
                 clipEvents = new List<ClipEvent>();
             if (singleEvents == null)
@@ -105,7 +143,7 @@ namespace UnityEngine.VFX
                 behaviour.events[cursor++] = itEvent;
             }
 
-            if (!prewarm.enable || !scrubbing || prewarm.eventName == null || string.IsNullOrEmpty((string)prewarm.eventName))
+            if (!prewarm.enable || !behaviour.reinitEnter || prewarm.eventName == null || string.IsNullOrEmpty((string)prewarm.eventName))
             {
                 behaviour.prewarmStepCount = 0u;
                 behaviour.prewarmDeltaTime = 0.0f;

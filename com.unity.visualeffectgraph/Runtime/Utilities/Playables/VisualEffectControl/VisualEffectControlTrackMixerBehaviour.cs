@@ -66,6 +66,8 @@ namespace UnityEngine.VFX
             struct Chunk
             {
                 public bool scrubbing;
+                public bool reinitEnter;
+                public bool reinitExit;
                 public uint startSeed;
 
                 public double begin;
@@ -125,14 +127,11 @@ namespace UnityEngine.VFX
             private void OnEnterChunk(int currentChunk)
             {
                 var chunk = m_Chunks[currentChunk];
-
-                if (!chunk.scrubbing)
-                {
 #if UNITY_EDITOR
+                if (!chunk.scrubbing)
                     m_ClipState = new bool[chunk.clips.Length];
 #endif
-                }
-                else
+                if (chunk.reinitEnter)
                 {
                     m_Target.resetSeedOnPlay = false;
                     m_Target.startSeed = chunk.startSeed;
@@ -147,11 +146,13 @@ namespace UnityEngine.VFX
 
             private void OnLeaveChunk(int previousChunk)
             {
-                if (m_Chunks[previousChunk].scrubbing)
-                {
+                var chunk = m_Chunks[previousChunk];
+
+                if (chunk.reinitExit)
                     m_Target.Reinit(false);
-                    RestoreVFXState();
-                }
+
+                RestoreVFXState(chunk.scrubbing, chunk.reinitEnter);
+
 #if UNITY_EDITOR
                 m_ClipState = null;
 #endif
@@ -478,15 +479,20 @@ namespace UnityEngine.VFX
                 }
             }
 
-            public void RestoreVFXState()
+            public void RestoreVFXState(bool restorePause = true, bool restoreSeedState = true)
             {
                 //Target could have been destroyed
                 if (m_Target == null)
                     return;
 
-                m_Target.pause = false;
-                m_Target.startSeed = m_BackupStartSeed;
-                m_Target.resetSeedOnPlay = m_BackupReseedOnPlay;
+                if (restorePause)
+                    m_Target.pause = false;
+
+                if (restoreSeedState)
+                {
+                    m_Target.startSeed = m_BackupStartSeed;
+                    m_Target.resetSeedOnPlay = m_BackupReseedOnPlay;
+                }
             }
 
             public void Init(Playable playable, VisualEffect vfx)
@@ -513,6 +519,7 @@ namespace UnityEngine.VFX
                     if (   !chunks.Any()
                         || inputBehavior.clipStart > chunks.Peek().end
                         || inputBehavior.scrubbing != chunks.Peek().scrubbing
+                        || (!inputBehavior.scrubbing && (inputBehavior.reinitEnter || chunks.Peek().reinitExit))
                         || inputBehavior.startSeed != chunks.Peek().startSeed
                         || inputBehavior.prewarmStepCount != 0u)
                     {
@@ -523,6 +530,8 @@ namespace UnityEngine.VFX
                             clips = new Clip[0],
                             scrubbing = inputBehavior.scrubbing,
                             startSeed = inputBehavior.startSeed,
+                            reinitEnter = inputBehavior.reinitEnter,
+                            reinitExit = inputBehavior.reinitExit,
 
                             prewarmCount = inputBehavior.prewarmStepCount,
                             prewarmDeltaTime = inputBehavior.prewarmDeltaTime,
