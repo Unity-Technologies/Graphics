@@ -98,6 +98,11 @@ namespace UnityEngine.Rendering.Universal
         [HideInInspector]
         private Texture2D m_FallOffLookup = null;
 
+        [SerializeField, Reload("Textures/2D/ErrorTexture.png")]
+        [HideInInspector]
+        private Texture2D m_ErrorTexture = null;
+
+
         /// <summary>
         /// HDR Emulation Scale allows platforms to use HDR lighting by compressing the number of expressible colors in exchange for extra intensity range.
         /// Scale describes this extra intensity range. Increasing this value too high may cause undesirable banding to occur.
@@ -110,6 +115,7 @@ namespace UnityEngine.Rendering.Universal
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
         internal Texture2D fallOffLookup => m_FallOffLookup;
+        internal Texture2D errorTexture => m_ErrorTexture;
         internal Shader shapeLightShader => m_ShapeLightShader;
         internal Shader shapeLightVolumeShader => m_ShapeLightVolumeShader;
         internal Shader pointLightShader => m_PointLightShader;

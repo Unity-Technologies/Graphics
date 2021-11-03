@@ -369,6 +369,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                 cmd.SetGlobalColor(k_RendererColorID, Color.white);
+                cmd.SetGlobalTexture(k_CameraSortingLayerTextureID, Texture2D.blackTexture);
                 this.SetShapeLightShaderGlobals(cmd);
 
                 var desc = this.GetBlendStyleRenderTextureDesc(renderingData);
@@ -401,11 +402,12 @@ namespace UnityEngine.Rendering.Universal
 
                     cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                     cmd.SetGlobalColor(k_RendererColorID, Color.white);
+                    cmd.SetGlobalTexture(k_CameraSortingLayerTextureID, m_Renderer2DData.errorTexture);
 
                     for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
                     {
                         if (blendStyleIndex == 0)
-                            cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
+                            cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], m_Renderer2DData.errorTexture);
 
                         RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
                     }
