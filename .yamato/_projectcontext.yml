@@ -244,6 +244,7 @@ test_all_project_Win_trunk:
               -  "**/test-results/**"
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UPMCI_PVS_VERSION: current
 test_all_project_OSX_trunk:
     name: Test all packages [project context] OSX trunk
     agent:
@@ -264,6 +265,7 @@ test_all_project_OSX_trunk:
               -  "**/test-results/**"
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UPMCI_PVS_VERSION: current
 test_all_project_Win_CUSTOM-REVISION:
     name: Test all packages [project context] Win CUSTOM-REVISION
     agent:
@@ -284,6 +286,7 @@ test_all_project_Win_CUSTOM-REVISION:
               -  "**/test-results/**"
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UPMCI_PVS_VERSION: current
 test_all_project_OSX_CUSTOM-REVISION:
     name: Test all packages [project context] OSX CUSTOM-REVISION
     agent:
@@ -304,6 +307,7 @@ test_all_project_OSX_CUSTOM-REVISION:
               -  "**/test-results/**"
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UPMCI_PVS_VERSION: current
 test_all_project_Win_min_editor:
     name: Test minimum editor version - all packages [project context] Win
     agent:
@@ -350,6 +354,7 @@ all_package_ci_project_trunk:
       -  .yamato/_projectcontext.yml#test_all_project_Win_trunk
       -  .yamato/_projectcontext.yml#test_all_project_OSX_trunk
     variables:
+        UPMCI_PVS_VERSION: current
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -365,6 +370,7 @@ all_package_ci_project_CUSTOM-REVISION:
       -  .yamato/_projectcontext.yml#test_all_project_Win_CUSTOM-REVISION
       -  .yamato/_projectcontext.yml#test_all_project_OSX_CUSTOM-REVISION
     variables:
+        UPMCI_PVS_VERSION: current
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
