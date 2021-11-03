@@ -565,7 +565,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
 
             bool requiresDepthCopyPass = !requiresDepthPrepass
-                && renderingData.cameraData.requiresDepthTexture
+                && (renderingData.cameraData.requiresDepthTexture || cameraHasPostProcessingWithDepth)
                 && createDepthTexture;
 
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
