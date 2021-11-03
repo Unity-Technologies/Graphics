@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(FadeValue, kFadeValueInputName, kFadeValueInputName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(FadeContrast, kFadeContrastInputName, kFadeContrastInputName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
 
-            RemoveSlotsNameNotMatching(new[] { OutputSlotFadeId, NoiseValue, FadeValue, FadeContrast});
+            RemoveSlotsNameNotMatching(new[] { OutputSlotFadeId, NoiseValue, FadeValue, FadeContrast });
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
