@@ -280,19 +280,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle output;
             public TextureHandle sky;
+        }
 
 //SensorSDK - Begin
-            public HDCamera hdCamera;
-//SensorSDK - End            
+        private RayTracingShader _pathTracingShaderOverride = null;
+        internal Action<UnityEngine.Rendering.CommandBuffer> _prepareDispatchRays;
+
+        internal void SetPrepareDispatchCallback(Action<UnityEngine.Rendering.CommandBuffer> callback)
+        {
+            _prepareDispatchRays = callback;
         }
+        internal void SetPathTracingShaderOverride(RayTracingShader shaderOverride)
+        {
+            _pathTracingShaderOverride = shaderOverride;
+        }
+//SensorSDK - End
 
         TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, in CameraData cameraData, TextureHandle pathTracingBuffer, TextureHandle skyBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render PathTracing", out var passData))
             {
 //SensorSDK - Begin 
-                passData.pathTracingShader = hdCamera.pathTracingShaderOverride == null ? m_GlobalSettings.renderPipelineRayTracingResources.pathTracing : hdCamera.pathTracingShaderOverride;
-                passData.hdCamera = hdCamera;
+                passData.pathTracingShader = _pathTracingShaderOverride == null ? m_GlobalSettings.renderPipelineRayTracingResources.pathTracing : _pathTracingShaderOverride;
 //SensorSDK - End
 
                 passData.cameraData = cameraData;
@@ -353,7 +362,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracingTilingParameters, data.tilingParameters);
 
 //SensorSDK - Begin
-                        data.hdCamera.PrepareDispatchRays?.Invoke(ctx.cmd);
+                        _prepareDispatchRays?.Invoke(ctx.cmd);
 //SensorSDK - End
                         // Run the computation
                         ctx.cmd.DispatchRays(data.pathTracingShader, "RayGen", (uint)data.width, (uint)data.height, 1);

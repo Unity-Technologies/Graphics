@@ -257,12 +257,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public float verticalErosionOffset;
         }
 
-//SensorSDK - Begin - Tonemapping support
-        public RayTracingShader pathTracingShaderOverride;
-        public delegate void PrepareDispatchRaysAction<T1>(T1 cmd);
-        public PrepareDispatchRaysAction<UnityEngine.Rendering.CommandBuffer> PrepareDispatchRays;
-//SensorSDK - End - Tonemapping support
-
         internal Vector4[] frustumPlaneEquations;
         internal int taaFrameIndex;
         internal float taaSharpenStrength;
