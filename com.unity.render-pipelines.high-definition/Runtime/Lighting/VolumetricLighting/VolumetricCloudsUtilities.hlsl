@@ -500,7 +500,7 @@ void FillCloudUpscaleNeighborhoodData(int2 groupThreadId, int subRegionIdx, out 
 }
 
 float EvaluateFinalTransmittance(float3 color, float transmittance)
-{  
+{
     // Due to the high intensity of the sun, we often need apply the transmittance in a tonemapped space
     float3 resultColor = color / (1.0 + color) * transmittance;
     resultColor = resultColor / (1.0 - resultColor);
