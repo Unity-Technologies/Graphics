@@ -445,12 +445,28 @@ namespace UnityEngine.Rendering.Universal
                 var attachmentIndicesCount = GetSubPassAttachmentIndicesCount(renderPass);
 
                 var attachmentIndices = new NativeArray<int>(!depthOnly ? (int)attachmentIndicesCount : 0, Allocator.Temp);
+                bool needsYFlipXR = true;
                 if (!depthOnly)
                 {
                     for (int i = 0; i < attachmentIndicesCount; ++i)
                     {
                         attachmentIndices[i] = renderPass.m_ColorAttachmentIndices[i];
+
+                        // If at least one attachment doesn't need the flip - we leave it to be done manually in shaders
+                        if (attachments[attachmentIndices[i]].loadStoreTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture)
+                            needsYFlipXR = false;
                     }
+                }
+
+                // Update XR matricies with yflip state
+                if (cameraData.xr.enabled)
+                {
+                    CommandBuffer cmd = CommandBufferPool.Get();
+
+                    cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, needsYFlipXR);
+
+                    context.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
                 }
 
                 if (validPassCount == 1 || currentMergeablePasses[0] == currentPassIndex) // Check if it's the first pass
@@ -485,7 +501,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         context.EndSubPass();
                         context.BeginSubPass(attachmentIndices, m_ActiveRenderPassQueue[currentPassIndex].m_InputAttachmentIndices);
-
+                        
                         m_LastBeginSubpassPassIndex = currentPassIndex;
                     }
                 }
