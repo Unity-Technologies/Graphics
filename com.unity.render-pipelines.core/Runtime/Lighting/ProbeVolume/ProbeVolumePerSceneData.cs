@@ -1,12 +1,5 @@
-using UnityEngine.Rendering;
-using UnityEngine.SceneManagement;
-using System.IO;
 using System;
 using System.Collections.Generic;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -42,8 +35,6 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            if (serializedAssets == null) return;
-
             assets.Clear();
             foreach (var assetItem in serializedAssets)
             {
@@ -58,8 +49,6 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
-            if (assets == null || serializedAssets == null) return;
-
             serializedAssets.Clear();
             foreach (var k in assets.Keys)
             {
