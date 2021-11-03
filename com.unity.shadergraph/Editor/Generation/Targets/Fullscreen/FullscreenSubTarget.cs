@@ -16,8 +16,12 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
     {
         public static BlockFieldDescriptor color = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "FullscreenColor", "Color",
             "SURFACEDESCRIPTION_COLOR", new ColorControl(UnityEngine.Color.grey, true), ShaderStage.Fragment);
-        public static BlockFieldDescriptor depth = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "FullscreenDepth", "Depth",
-            "SURFACEDESCRIPTION_DEPTH", new FloatControl(0), ShaderStage.Fragment);
+        public static BlockFieldDescriptor eyeDepth = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "FullscreenEyeDepth", "Eye Depth",
+            "SURFACEDESCRIPTION_EYE_DEPTH", new FloatControl(0), ShaderStage.Fragment);
+        public static BlockFieldDescriptor linear01Depth = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "FullscreenLinear01Depth", "Linear01 Depth",
+            "SURFACEDESCRIPTION_LINEAR01_DEPTH", new FloatControl(0), ShaderStage.Fragment);
+        public static BlockFieldDescriptor rawDepth = new BlockFieldDescriptor(BlockFields.SurfaceDescription.name, "FullscreenRawDepth", "Raw Depth",
+            "SURFACEDESCRIPTION_RAW_DEPTH", new FloatControl(0), ShaderStage.Fragment);
     }
 
     [GenerationAPI]
@@ -46,6 +50,13 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         Additive,
         Multiply,
         Custom,
+    }
+
+    internal enum FullscreenDepthWriteMode
+    {
+        LinearEye,
+        Linear01,
+        Raw,
     }
 
     internal static class FullscreenUniforms
@@ -196,10 +207,10 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                         Ref = fullscreenData.stencilReference.ToString(),
                         ReadMask = fullscreenData.stencilReadMask.ToString(),
                         WriteMask = fullscreenData.stencilWriteMask.ToString(),
-                        Comp = fullscreenData.stencilCompareFunction.ToString(),
-                        ZFail = fullscreenData.stencilDepthTestFailOperation.ToString(),
-                        Fail = fullscreenData.stencilFailOperation.ToString(),
-                        Pass = fullscreenData.stencilPassOperation.ToString(),
+                        Comp = CompareFunctionToStencilString(fullscreenData.stencilCompareFunction),
+                        ZFail = StencilOpToStencilString(fullscreenData.stencilDepthTestFailOperation),
+                        Fail = StencilOpToStencilString(fullscreenData.stencilFailOperation),
+                        Pass = StencilOpToStencilString(fullscreenData.stencilPassOperation),
                     }));
                 }
             }
@@ -298,12 +309,27 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             return new IncludeCollection { { kFullscreenCommon, IncludeLocation.Postgraph } };
         }
 
-        static readonly KeywordDescriptor depthWriteKeywork = new KeywordDescriptor
+        static readonly KeywordDescriptor depthWriteKeyword = new KeywordDescriptor
         {
             displayName = "Depth Write",
             referenceName = "DEPTH_WRITE",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        static readonly KeywordDescriptor depthWriteModeKeyword = new KeywordDescriptor
+        {
+            displayName = "Depth Write Mode",
+            referenceName = "DEPTH_WRITE_MODE",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.Predefined,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry("Eye Depth", "EYE"),
+                new KeywordEntry("Eye Linear 01", "LINEAR01"),
+                new KeywordEntry("Eye Raw", "RAW"),
+            },
             stages = KeywordShaderStage.Fragment,
         };
 
@@ -360,7 +386,9 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 {
                     BlockFields.SurfaceDescription.BaseColor,
                     BlockFields.SurfaceDescription.Alpha,
-                    FullscreenBlocks.depth,
+                    FullscreenBlocks.eyeDepth,
+                    FullscreenBlocks.linear01Depth,
+                    FullscreenBlocks.rawDepth,
                 },
 
                 // Fields
@@ -389,7 +417,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 },
                 defines = new DefineCollection
                 {
-                    {depthWriteKeywork, 1, new FieldCondition(FullscreenFields.depth, true)},
+                    {depthWriteKeyword, 1, new FieldCondition(FullscreenFields.depth, true)},
+                    {depthWriteModeKeyword, (int)fullscreenData.depthWriteMode, new FieldCondition(FullscreenFields.depth, true)},
                     GetPassDefines(compatibility),
                 },
                 keywords = GetPassKeywords(compatibility),
@@ -455,7 +484,15 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         {
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
-            context.AddBlock(FullscreenBlocks.depth, fullscreenData.depthWrite || fullscreenData.depthTestMode != CompareFunction.Disabled);
+
+            var depthBlock = FullscreenBlocks.eyeDepth;
+
+            if (fullscreenData.depthWriteMode == FullscreenDepthWriteMode.Linear01)
+                depthBlock = FullscreenBlocks.linear01Depth;
+            if (fullscreenData.depthWriteMode == FullscreenDepthWriteMode.Raw)
+                depthBlock = FullscreenBlocks.rawDepth;
+
+            context.AddBlock(depthBlock, fullscreenData.depthWrite || fullscreenData.depthTestMode != CompareFunction.Disabled);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
