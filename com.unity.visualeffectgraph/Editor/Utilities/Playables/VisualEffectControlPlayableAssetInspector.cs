@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEngine.VFX;
+using UnityEngine.VFX.Utility;
 
 namespace UnityEditor.VFX
 {
@@ -309,6 +310,22 @@ namespace UnityEditor.VFX
             return reordableList;
         }
 
+        private static VisualEffectPlayableSerializedEvent DeepClone(VisualEffectPlayableSerializedEvent source)
+        {
+            VisualEffectPlayableSerializedEvent newEvent = source;
+            newEvent.name = DeepClone(newEvent.name);
+            newEvent.eventAttributes.content = DeepClone(newEvent.eventAttributes.content);
+            return newEvent;
+        }
+
+        private static ExposedProperty DeepClone(ExposedProperty source)
+        {
+            ExposedProperty newExposedProperty = (string)source;
+            if (object.ReferenceEquals(source, newExposedProperty))
+                throw new InvalidOperationException();
+            return newExposedProperty;
+        }
+
         private static EventAttribute[] DeepClone(EventAttribute[] source)
         {
             if (source == null)
@@ -359,15 +376,8 @@ namespace UnityEditor.VFX
                 if (playable.clipEvents.Any())
                 {
                     var last = playable.clipEvents.Last();
-                    newClipEvent = last;
-                    newClipEvent.enter.eventAttributes = new UnityEngine.VFX.EventAttributes()
-                    {
-                        content = DeepClone(last.enter.eventAttributes.content)
-                    };
-                    newClipEvent.exit.eventAttributes = new UnityEngine.VFX.EventAttributes()
-                    {
-                        content = DeepClone(last.exit.eventAttributes.content)
-                    };
+                    newClipEvent.enter = DeepClone(newClipEvent.enter);
+                    newClipEvent.exit = DeepClone(newClipEvent.exit);
                 }
                 else
                 {
@@ -397,11 +407,7 @@ namespace UnityEditor.VFX
                 if (playable.singleEvents.Any())
                 {
                     var last = playable.singleEvents.Last();
-                    newSingleEvent = last;
-                    newSingleEvent.eventAttributes = new UnityEngine.VFX.EventAttributes()
-                    {
-                        content = DeepClone(last.eventAttributes.content)
-                    };
+                    newSingleEvent = DeepClone(last);
                 }
                 playable.singleEvents.Add(newSingleEvent);
                 singleEventsProperty.serializedObject.Update();
