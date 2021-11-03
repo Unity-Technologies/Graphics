@@ -1,11 +1,29 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using UnityEditor.Build;
 using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
+    internal class Strippers<TShader>
+    {
+        readonly List<IStripper<TShader>> s_Strippers = new();
+        public int totalVariantsInputCount { get; set; } = 0;
+        public int totalVariantsOutputCount { get; set; } = 0;
+
+        public Strippers()
+        {
+            foreach (var stripper in TypeCache.GetTypesDerivedFrom<IStripper<Shader>>())
+            {
+                if (stripper.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null) == null)
+                    continue;
+                s_Strippers.Add(Activator.CreateInstance(stripper) as IStripper<TShader>);
+            }
+        }
+    }
+
     /// <summary>
     /// Implements common functionality for SRP for the <see cref="IPreprocessShaders"/>
     /// </summary>
@@ -14,6 +32,9 @@ namespace UnityEditor.Rendering
 #if PROFILE_BUILD
         private const string k_ProcessShaderTag = "OnProcessShader";
 #endif
+
+        readonly Strippers<Shader> s_ShaderStrippers = new Strippers<Shader>();
+        readonly Strippers<ComputeShader> s_ComputeShaderStrippers = new Strippers<ComputeShader>();
 
         /// <summary>
         /// Event callback to report the shader stripping info
