@@ -23,6 +23,12 @@ namespace UnityEngine.Rendering.HighDefinition
         PerfectLens
     }
 
+    enum ColorGradingSpace
+    {
+        AcesCg = 0,
+        sRGB        // Legacy.
+    }
+
     /// <summary>
     /// High Definition Render Pipeline's Global Settings.
     /// Global settings are unique per Render Pipeline type. In HD, Global Settings contain:
@@ -777,6 +783,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal LensAttenuationMode lensAttenuationMode;
 
         [SerializeField]
+        internal ColorGradingSpace colorGradingSpace;
+
+        [SerializeField]
         internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
 
         [SerializeField]
@@ -826,10 +835,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal ProbeVolumeSceneData GetOrCreateAPVSceneData()
         {
             if (apvScenesData == null)
-                apvScenesData = new ProbeVolumeSceneData((Object)this);
+                apvScenesData = new ProbeVolumeSceneData((Object)this, nameof(apvScenesData));
 
 
-            apvScenesData.SetParentObject((Object)this);
+            apvScenesData.SetParentObject((Object)this, nameof(apvScenesData));
             return apvScenesData;
         }
 

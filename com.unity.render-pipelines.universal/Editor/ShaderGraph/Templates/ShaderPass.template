@@ -28,6 +28,8 @@ $splice(PassKeywords)
 $splice(GraphKeywords)
 
 // Defines
+$features.graphVFX: #define HAVE_VFX_MODIFICATION
+
 $Normal: #define _NORMALMAP 1
 $NormalDropOffTS: #define _NORMAL_DROPOFF_TS 1
 $NormalDropOffOS: #define _NORMAL_DROPOFF_OS 1
@@ -48,6 +50,8 @@ $Varyings.texCoord1: #define VARYINGS_NEED_TEXCOORD1
 $Varyings.texCoord2: #define VARYINGS_NEED_TEXCOORD2
 $Varyings.texCoord3: #define VARYINGS_NEED_TEXCOORD3
 $Varyings.color: #define VARYINGS_NEED_COLOR
+$Varyings.elementToWorld0:  #define VARYINGS_NEED_ELEMENT_TO_WORLD
+$Varyings.worldToElement0:  #define VARYINGS_NEED_WORLD_TO_ELEMENT
 $Varyings.viewDirectionWS: #define VARYINGS_NEED_VIEWDIRECTION_WS
 $Varyings.bitangentWS: #define VARYINGS_NEED_BITANGENT_WS
 $Varyings.screenPosition: #define VARYINGS_NEED_SCREENPOSITION
@@ -114,7 +118,12 @@ $splice(GraphPixel)
 
 // --------------------------------------------------
 // Build Graph Inputs
-
+#ifdef HAVE_VFX_MODIFICATION
+#define VFX_SRP_ATTRIBUTES Attributes
+#define VFX_SRP_VARYINGS Varyings
+#define VFX_SRP_SURFACE_INPUTS SurfaceDescriptionInputs
+#endif
+$features.graphVFX: $include("VFXConfig.template.hlsl")
 $features.graphVertex:  $include("BuildVertexDescriptionInputs.template.hlsl")
 $features.graphPixel: $include("SharedCode.template.hlsl")
 
@@ -122,6 +131,12 @@ $features.graphPixel: $include("SharedCode.template.hlsl")
 // Main
 
 $splice(PostGraphIncludes)
+
+// --------------------------------------------------
+// Visual Effect Vertex Invocations
+#ifdef HAVE_VFX_MODIFICATION
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/VisualEffectVertex.hlsl"
+#endif
 
 ENDHLSL
 }
