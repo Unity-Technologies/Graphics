@@ -655,7 +655,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
-    /// Builtin Drawer for Object Debug Items.
+    /// Builtin Drawer for <see cref="DebugUI.ObjectField"> Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.ObjectField))]
     public sealed class DebugUIDrawerObjectField : DebugUIDrawer
@@ -663,7 +663,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// OnGUI implementation for Object DebugUIDrawer.
         /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="widget">DebugUI <see cref="DebugUI.Widget">.</param>
         /// <param name="state">Debug State associated with the Debug Item.</param>
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
@@ -683,7 +683,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
-    /// Builtin Drawer for Object Debug Items.
+    /// Builtin Drawer for <see cref="DebugUI.ObjectListField"> Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.ObjectListField))]
     public sealed class DebugUIDrawerObjectListField : DebugUIDrawer
@@ -691,7 +691,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// OnGUI implementation for ObjectList DebugUIDrawer.
         /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="widget">DebugUI <see cref="DebugUI.Widget">.</param>
         /// <param name="state">Debug State associated with the Debug Item.</param>
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
@@ -714,17 +714,18 @@ namespace UnityEditor.Rendering
 
         internal static void DoObjectList(Rect rect, DebugUI.ObjectListField widget, UnityEngine.Object[] objects)
         {
-            if (objects != null && objects.Length != 0)
+            if (objects == null || objects.Length == 0)
             {
-                rect.height = EditorGUIUtility.singleLineHeight;
-                for (int i = 0; i < objects.Length; i++)
-                {
-                    objects[i] = EditorGUI.ObjectField(rect, GUIContent.none, objects[i], widget.type, true);
-                    rect.y += DebugWindow.Styles.singleRowHeight;
-                }
-            }
-            else
                 EditorGUI.LabelField(rect, GUIContent.none, EditorGUIUtility.TrTextContent("Empty"));
+                return;
+            }
+
+            rect.height = EditorGUIUtility.singleLineHeight;
+            for (int i = 0; i < objects.Length; i++)
+            {
+                objects[i] = EditorGUI.ObjectField(rect, GUIContent.none, objects[i], widget.type, true);
+                rect.y += DebugWindow.Styles.singleRowHeight;
+            }
         }
     }
 
@@ -864,12 +865,7 @@ namespace UnityEditor.Rendering
 
             float contentHeight = 0.0f;
             foreach (DebugUI.Table.Row row in w.children)
-            {
-                if (row != null)
-                    contentHeight += GetRowHeight(row, visible);
-                else
-                    contentHeight += EditorGUIUtility.singleLineHeight;
-            }
+                contentHeight += row != null ? GetRowHeight(row, visible) : EditorGUIUtility.singleLineHeight;
 
             // Put some space before the array
             PrepareControlRect(EditorGUIUtility.singleLineHeight * 0.5f);
@@ -890,7 +886,6 @@ namespace UnityEditor.Rendering
 
             // Show array content
             w.scroll = GUI.BeginScrollView(contentRect, w.scroll, viewRect);
-            using (new EditorGUI.DisabledScope(w.isReadOnly))
             {
                 var columns = header.state.columns;
                 for (int r = 0; r < w.children.Count; r++)
@@ -898,11 +893,7 @@ namespace UnityEditor.Rendering
                     var row = Cast<DebugUI.Container>(w.children[r]);
                     rowRect.x = contentRect.x;
                     rowRect.width = columns[0].width;
-
-                    if (row is DebugUI.Table.Row tableRow)
-                        rowRect.height = GetRowHeight(tableRow, visible);
-                    else
-                        rowRect.height = EditorGUIUtility.singleLineHeight;
+                    rowRect.height = (row is DebugUI.Table.Row tableRow) ? GetRowHeight(tableRow, visible) : EditorGUIUtility.singleLineHeight;
 
                     rowRect.xMin += 2;
                     rowRect.xMax -= 2;
@@ -910,11 +901,14 @@ namespace UnityEditor.Rendering
                     rowRect.xMin -= 2;
                     rowRect.xMax += 2;
 
-                    for (int c = 1; c < visible.Length; c++)
+                    using (new EditorGUI.DisabledScope(w.isReadOnly))
                     {
-                        rowRect.x += rowRect.width;
-                        rowRect.width = columns[visible[c]].width;
-                        DisplayChild(rowRect, row.children[visible[c] - 1]);
+                        for (int c = 1; c < visible.Length; c++)
+                        {
+                            rowRect.x += rowRect.width;
+                            rowRect.width = columns[visible[c]].width;
+                            DisplayChild(rowRect, row.children[visible[c] - 1]);
+                        }
                     }
                     rowRect.y += rowRect.height;
                 }

@@ -1872,7 +1872,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var row2 = new DebugUI.Table.Row()
                     {
                         displayName = "GameObject",
-                        children = { new DebugUI.Value() { getter = () => "" } }
+                        children = { new DebugUI.Value() { getter = () => string.Empty } }
                     };
 
                     foreach (var volume in volumes)
@@ -1897,10 +1897,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         });
                     }
 
-                    row.children.Add(new DebugUI.Value() { displayName = "Default Value", getter = () => "" });
+                    row.children.Add(new DebugUI.Value() { displayName = "Default Value", getter = () => string.Empty });
                     table.children.Add(row);
 
-                    row2.children.Add(new DebugUI.Value() { getter = () => "" });
+                    row2.children.Add(new DebugUI.Value() { getter = () => string.Empty });
                     table.children.Add(row2);
 
                     // Build rows - recursively handles nested parameters
