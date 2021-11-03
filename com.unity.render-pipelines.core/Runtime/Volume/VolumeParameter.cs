@@ -1691,7 +1691,7 @@ namespace UnityEngine.Rendering
             }
             else if (index >= keys.Length)
             {
-                Keyframe lastKey = keys[keys.Length-1];
+                Keyframe lastKey = keys[keys.Length - 1];
                 Assert.IsTrue(lastKey.time <= endTime);
 
                 float offsetTime = endTime - lastKey.time;
