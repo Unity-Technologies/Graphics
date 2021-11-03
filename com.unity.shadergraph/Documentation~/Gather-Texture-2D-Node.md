@@ -33,3 +33,15 @@ The Gather Texture 2D node is compatible with all render pipelines.
 | A            | Output        | Float         |    None     | The fourth neighboring pixel's Red channel.       |
 
 ## Example shader usage
+
+This Gather Texture 2D node creates a blurred version of a texture by averaging its 4 samples:
+
+![An image of the Graph window, showing a Gather Texture 2D node with its R & G ports connected to one Add node, its B port connected to another Add node, and its A port connected to another. The Add nodes add all of the Gather Texture 2D node's ports together, then uses a Divide node to divide them by 4.](images/sg-gather-texture-2d-node-example.png)
+
+Then, the rest of the Shader Graph uses a Sample Texture 2D node to sample the texture again, and uses a Lerp node to determine when to use the blurred texture and when to use the regular texture:
+
+![An image of the Graph window, showing a Sample Texture 2D node with its R port connected to the B port on a Lerp node. The Lerp node takes the result of the Divide node from the previous image and sends its Output port result to the Fragment Stage's Base Color and Emission nodes.](images/sg-gather-texture-2d-node-example-2.png)
+
+By changing the value provided to the T port on the Lerp node, you can change whether the texture is blurred or sharpened in the Shader Graph.
+
+![An image of the Graph window, showing the full graph from the previous two example images.](images/sg-gather-texture-2d-node-example-3.png)
