@@ -68,6 +68,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (!s_HasSetupRenderTextureFormatToUse)
             {
+                // TODO: does 2D really need a duplicate logic for this???
                 if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
                     s_RenderTextureFormatToUse = GraphicsFormat.B10G11R11_UFloatPack32;
                 else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))

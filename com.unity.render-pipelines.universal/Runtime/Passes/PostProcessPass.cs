@@ -99,6 +99,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Texture format pre-lookup
             if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
             {
+                // TODO: update with HDR format option???
                 m_DefaultHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
                 m_UseRGBM = false;
             }

@@ -38,6 +38,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_LutBuilderLdr = Load(data.shaders.lutBuilderLdrPS);
             m_LutBuilderHdr = Load(data.shaders.lutBuilderHdrPS);
 
+            // TODO: does this need to be in sync with RenderPipeline & Asset????
             // Warm up lut format as IsFormatSupported adds GC pressure...
             const FormatUsage kFlags = FormatUsage.Linear | FormatUsage.Render;
             if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, kFlags))

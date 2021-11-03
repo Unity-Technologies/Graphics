@@ -695,6 +695,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 GraphicsFormat hdrFormat = GraphicsFormat.None;
 
+                // TODO: does this be updated? Be in sync with UniversalRenderPipeline ???
                 if (!Graphics.preserveFramebufferAlpha &&
                     RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32,
                         FormatUsage.Linear | FormatUsage.Render))
