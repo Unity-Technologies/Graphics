@@ -18,12 +18,8 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
-        [SerializeField]
-        internal bool isMainTexture = false;
 
         internal string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
-
-        internal string mainTextureString => isMainTexture ? "[MainTexture]" : "";
 
         internal override string GetPropertyBlockString()
         {
@@ -85,7 +81,6 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 displayName = displayName,
                 value = value,
-                isMainTexture = isMainTexture
             };
         }
     }
