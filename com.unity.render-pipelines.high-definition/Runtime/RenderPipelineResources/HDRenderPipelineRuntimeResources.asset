@@ -23,10 +23,9 @@ MonoBehaviour:
     debugColorPickerPS: {fileID: 4800000, guid: 8137b807709e178498f22ed710864bb0,
       type: 3}
     debugExposurePS: {fileID: 4800000, guid: 0ef322534f047a34c96d29419d56d17a, type: 3}
-    debugLightVolumePS: {fileID: 4800000, guid: 8e706c0e71fcec34a8f5c9713e5e2943,
-      type: 3}
-    debugLightVolumeCS: {fileID: 7200000, guid: f5d5d21faef5cf445ac2c5d8ff9c4184,
-      type: 3}
+    debugHDRPS: {fileID: 4800000, guid: 9bc5229549892084da43ad706d84f1bc, type: 3}
+    debugLightVolumePS: {fileID: 4800000, guid: 8e706c0e71fcec34a8f5c9713e5e2943, type: 3}
+    debugLightVolumeCS: {fileID: 7200000, guid: f5d5d21faef5cf445ac2c5d8ff9c4184, type: 3}
     debugBlitQuad: {fileID: 4800000, guid: cf5ca5b6ef18b3f429ed707ee9ceac9f, type: 3}
     debugViewVirtualTexturingBlit: {fileID: 4800000, guid: 55d195396b03b804eb78c92d468e3c8e,
       type: 3}
@@ -176,8 +175,8 @@ MonoBehaviour:
     histogramExposureCS: {fileID: 7200000, guid: 222da48299136f34b8e3fb75ae9f8ac7,
       type: 3}
     applyExposureCS: {fileID: 7200000, guid: 1a6fea1dc099b984d8f2b27d504dc096, type: 3}
-    debugImageHistogramCS: {fileID: 7200000, guid: 52cc17ef5a5ffc443a5c142f9b745a85,
-      type: 3}
+    debugImageHistogramCS: {fileID: 7200000, guid: 52cc17ef5a5ffc443a5c142f9b745a85, type: 3}
+    debugHDRxyMappingCS: {fileID: 7200000, guid: f055d2983d992b64494f1a03fc725cde, type: 3}
     uberPostCS: {fileID: 7200000, guid: f1bf52f7c71bffd4f91e6cd90d12a4f7, type: 3}
     lutBuilder3DCS: {fileID: 7200000, guid: 37f2b1b0ecd6f1c439e4c1b4f2fdb524, type: 3}
     depthOfFieldKernelCS: {fileID: 7200000, guid: 7869415cc3e4eaa4d82ac21a752a2780,
@@ -224,6 +223,7 @@ MonoBehaviour:
     lensFlareDataDrivenPS: {fileID: 4800000, guid: 85330b3de0cfebc4ba78b2d61b1a2899, type: 3}
     lensFlareMergeOcclusionCS: {fileID: 7200000, guid: 07492750f384d9a4da9aaf5d2feeed4a, type: 3}
     DLSSBiasColorMaskPS: {fileID: 4800000, guid: 017a05924c0b0484ca29717ed0c60343, type: 3}
+    compositeUIAndOETFApplyPS: {fileID: 4800000, guid: 08b7ad21d2b8e9142b730b22d7355821, type: 3}
     dofCircleOfConfusion: {fileID: 7200000, guid: 75332b7b315c80d4babe506820aa0bfd, type: 3}
     dofGatherCS: {fileID: 7200000, guid: 1e6b16a7970a1494db74b1d3d007d1cc, type: 3}
     dofCoCMinMaxCS: {fileID: 7200000, guid: c70dd492c3d2fe94589d6ca8d4e37915, type: 3}

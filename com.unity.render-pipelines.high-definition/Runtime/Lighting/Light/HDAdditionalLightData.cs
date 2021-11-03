@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Assertions;
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEditor.Rendering;
 #endif
 using UnityEngine.Serialization;
 
@@ -636,7 +637,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Texture m_IESSpot;
 
         /// <summary>
-        /// Get/Set IES texture for Point
+        /// IES texture for Point lights.
         /// </summary>
         internal Texture IESPoint
         {
@@ -657,7 +658,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Get/Set IES texture for Spot or rectangular light.
+        /// IES texture for Spot or Rectangular lights.
         /// </summary>
         internal Texture IESSpot
         {
@@ -674,6 +675,30 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.LogError("Texture dimension " + value.dimension + " is not supported for spot lights or rectangular light (only square images).");
                     m_IESSpot = null;
                 }
+            }
+        }
+
+        /// <summary>
+        /// IES texture for Point, Spot or Rectangular lights.
+        /// For Point lights, this must be a cubemap.
+        /// For Spot or Rectangle lights, this must be a 2D texture
+        /// </summary>
+        public Texture IESTexture
+        {
+            get
+            {
+                if (type == HDLightType.Point)
+                    return IESPoint;
+                else if (type == HDLightType.Spot || (type == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle))
+                    return IESSpot;
+                return null;
+            }
+            set
+            {
+                if (type == HDLightType.Point)
+                    IESPoint = value;
+                else if (type == HDLightType.Spot || (type == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle))
+                    IESSpot = value;
             }
         }
 
@@ -2031,8 +2056,17 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (ShadowIsUpdatedEveryFrame()) return ShadowMapUpdateType.Dynamic;
 #if UNITY_2021_1_OR_NEWER
-            // Note: For now directional are not supported as it will require extra memory budget. This will change in a near future.
-            if (m_AlwaysDrawDynamicShadows && lightType != HDLightType.Directional) return ShadowMapUpdateType.Mixed;
+            if (m_AlwaysDrawDynamicShadows)
+            {
+                if (lightType == HDLightType.Directional)
+                {
+                    if (HDCachedShadowManager.instance.DirectionalHasCachedAtlas()) return ShadowMapUpdateType.Mixed;
+                }
+                else
+                {
+                    return ShadowMapUpdateType.Mixed;
+                }
+            }
 #endif
             return ShadowMapUpdateType.Cached;
         }
@@ -2130,10 +2164,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // area light shape is included in the cone spanned by the spot light.
         internal static float GetAreaLightOffsetForShadows(Vector2 shapeSize, float coneAngle)
         {
-            float rectangleDiagonal = shapeSize.magnitude;
+            float halfMinSize = Mathf.Min(shapeSize.x, shapeSize.y) * 0.5f;
             float halfAngle = coneAngle * 0.5f;
             float cotanHalfAngle = 1.0f / Mathf.Tan(halfAngle * Mathf.Deg2Rad);
-            float offset = rectangleDiagonal * cotanHalfAngle;
+            float offset = halfMinSize * cotanHalfAngle;
 
             return -offset;
         }
@@ -2169,6 +2203,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Matrix4x4 invViewProjection = Matrix4x4.identity;
             Vector3 cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
+            float forwardOffset = 0;
 
             // Write per light type matrices, splitDatas and culling parameters
             switch (lightType)
@@ -2198,9 +2233,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         case AreaLightShape.Rectangle:
                             Vector2 shapeSize = new Vector2(shapeWidth, m_ShapeHeight);
-                            float offset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
-                            Vector3 shadowOffset = offset * visibleLight.GetForward();
-                            HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, filteringQuality,
+                            forwardOffset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
+                            HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, forwardOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, filteringQuality,
                                 out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData);
                             break;
                         case AreaLightShape.Tube:
@@ -2212,7 +2246,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Assign all setting common to every lights
-            SetCommonShadowRequestSettings(shadowRequest, visibleLight, cameraPos, invViewProjection, viewportSize, lightIndex, lightType, filteringQuality);
+            SetCommonShadowRequestSettings(shadowRequest, visibleLight, forwardOffset, cameraPos, invViewProjection, viewportSize, lightIndex, lightType, filteringQuality);
         }
 
         internal int UpdateShadowRequest(HDCamera hdCamera, HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight,
@@ -2292,11 +2326,25 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadowRequest.shouldUseCachedShadowData = true;
                     shadowRequest.shouldRenderCachedComponent = false;
                     // If directional we still need to calculate the split data.
+
+
+
                     if (lightType == HDLightType.Directional)
+                    {
+                        //Matrix4x4 viewProjection = shadowRequest.deviceProjectionYFlip * shadowRequest.view;
+                        var _ViewMatrix = shadowRequest.view;
+                        var _ProjMatrix = shadowRequest.deviceProjectionYFlip;
+                        var _SlopeScaleDepthBias = -shadowRequest.slopeBias;
+
                         UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
+
+                        shadowRequest.view = _ViewMatrix;
+                        shadowRequest.deviceProjectionYFlip = _ProjMatrix;
+                    }
                 }
 
-                if (needToUpdateDynamicContent && !hasUpdatedRequestData)
+                bool isDirectionalCached = lightType == HDLightType.Directional && hasCachedComponent;
+                if (!isDirectionalCached && needToUpdateDynamicContent && !hasUpdatedRequestData)
                 {
                     shadowRequest.shouldUseCachedShadowData = false;
 
@@ -2325,7 +2373,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return shadowHasAtlasPlacement ? firstShadowRequestIndex : -1;
         }
 
-        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight visibleLight, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality)
+        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight visibleLight, float forwardOffset, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality)
         {
             // zBuffer param to reconstruct depth position (for transmission)
             float f = legacyLight.range;
@@ -2350,8 +2398,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                var vlPos = visibleLight.GetPosition();
-                shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? vlPos - cameraPos : vlPos;
+                var lightAxisAndPosition = visibleLight.GetAxisAndPosition();
+                shadowRequest.position = lightAxisAndPosition.Position + lightAxisAndPosition.Forward * forwardOffset;
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    shadowRequest.position -= cameraPos;
             }
 
             shadowRequest.shadowToWorld = invViewProjection.transpose;
