@@ -6,12 +6,12 @@ namespace Unity.Mathematics
     {
         public static AABB ToAABB(this Bounds bounds)
         {
-            return new AABB { Center = bounds.center, Extents = bounds.extents};
+            return new AABB { Center = bounds.center, Extents = bounds.extents };
         }
 
         public static Bounds ToBounds(this AABB aabb)
         {
-            return new Bounds { center = aabb.Center, extents = aabb.Extents};
+            return new Bounds { center = aabb.Center, extents = aabb.Extents };
         }
     }
 }

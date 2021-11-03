@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering
             int added = 0;
             for (var i = 0; i < lightmapsbaked.Length; i++)
             {
-                if(!indexesToConvert.Contains(i))
+                if (!indexesToConvert.Contains(i))
                     continue;
 
                 remapTable[i] = added;
@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering
             // renderer
             foreach (var renderer in renderers)
             {
-                if(renderer == null)
+                if (renderer == null)
                     continue;
 
                 var lightmapIndex = renderer.lightmapIndex;
@@ -231,11 +231,11 @@ namespace UnityEngine.Rendering
 
         public void Destroy()
         {
-            if(colors != null)
+            if (colors != null)
                 Object.Destroy(colors);
-            if(directions != null)
+            if (directions != null)
                 Object.Destroy(directions);
-            if(shadowMasks != null)
+            if (shadowMasks != null)
                 Object.Destroy(shadowMasks);
         }
     }

@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering
             return new float4(sh[0, 8], sh[1, 8], sh[2, 8], 1);
         }
     }
-    
+
     unsafe class SceneBRG
     {
         private BatchRendererGroup m_BatchRendererGroup;
@@ -143,8 +143,12 @@ namespace UnityEngine.Rendering
         private NativeArray<int> m_instanceIndices;
         private NativeArray<int> m_drawIndices;
         private NativeArray<DrawRenderer> m_renderers;
+        private int m_transformVec4InstanceBufferOffsetL2W;
+        private int m_transformVec4InstanceBufferOffsetW2L;
 
         private LightMaps m_Lightmaps;
+
+        BRGTransformUpdater m_BRGTransformUpdater = new BRGTransformUpdater();
 
         private List<MeshRenderer> m_AddedRenderers;
 
@@ -161,7 +165,8 @@ namespace UnityEngine.Rendering
             const uint kIsOverriddenBit = 0x80000000;
             return new MetadataValue
             {
-                NameID = nameID, Value = (uint)gpuAddress | (isOverridden ? kIsOverriddenBit : 0),
+                NameID = nameID,
+                Value = (uint)gpuAddress | (isOverridden ? kIsOverriddenBit : 0),
             };
         }
 
@@ -240,7 +245,7 @@ namespace UnityEngine.Rendering
                     var rendererIndex = instanceIndices[i];
                     uint visibleMask = (uint)((rendererVisibility[rendererIndex / 8] >> ((rendererIndex % 8) * 8)) & 0xfful);
 
-                    if (visibleMask != 0) 
+                    if (visibleMask != 0)
                     {
                         // Emit extra DrawCommand if visible mask changes
                         // TODO: Sort draws in batch first to minimize the number of DrawCommands
@@ -251,7 +256,7 @@ namespace UnityEngine.Rendering
                             {
                                 draws.drawCommands[outBatch] = new BatchDrawCommand
                                 {
-                                    visibleOffset = (uint)batchStartIndex, 
+                                    visibleOffset = (uint)batchStartIndex,
                                     visibleCount = (uint)visibleCount,
                                     batchID = batchID,
                                     materialID = drawBatches[remappedIndex].key.material,
@@ -462,6 +467,7 @@ namespace UnityEngine.Rendering
         public void Initialize(List<MeshRenderer> renderers)
         {
             m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
+            m_BRGTransformUpdater.Initialize();
 
             // Create a batch...
 #if DEBUG_LOG_SCENE
@@ -511,6 +517,9 @@ namespace UnityEngine.Rendering
             var localToWorldOffset = lightMapScaleOffset + m_renderers.Length;
             var worldToLocalOffset = localToWorldOffset + m_renderers.Length * 3;
 
+            m_transformVec4InstanceBufferOffsetL2W = localToWorldOffset; //this will be used by the transform updated later.
+            m_transformVec4InstanceBufferOffsetW2L = worldToLocalOffset; //this will be used by the transform updated later.
+
             m_instances = new NativeList<DrawInstance>(1024, Allocator.Persistent);
 
             var lightmappingData = LightMaps.GenerateLightMappingData(renderers);
@@ -526,7 +535,7 @@ namespace UnityEngine.Rendering
 
                 m_renderers[i] = new DrawRenderer
                 {
-                    bounds = new AABB {Center = new float3(0, 0, 0), Extents = new float3(0, 0, 0)}
+                    bounds = new AABB { Center = new float3(0, 0, 0), Extents = new float3(0, 0, 0) }
                 };
 
                 var meshFilter = renderer.gameObject.GetComponent<MeshFilter>();
@@ -564,6 +573,8 @@ namespace UnityEngine.Rendering
                 vectorBuffer[i * 3 + 1 + worldToLocalOffset] = new Vector4(mi.m11, mi.m21, mi.m02, mi.m12);
                 vectorBuffer[i * 3 + 2 + worldToLocalOffset] = new Vector4(mi.m22, mi.m03, mi.m13, mi.m23);
 
+                m_BRGTransformUpdater.RegisterTransformObject(i, rendererTransform);
+
                 lpq.CalculateInterpolatedLightAndOcclusionProbe(rendererTransform.position, -1, out var lp,
                     out var probeOcclusion);
 
@@ -580,7 +591,7 @@ namespace UnityEngine.Rendering
 
                 // Renderer bounds
                 var transformedBounds = AABB.Transform(m, meshFilter.sharedMesh.bounds.ToAABB());
-                m_renderers[i] = new DrawRenderer {bounds = transformedBounds};
+                m_renderers[i] = new DrawRenderer { bounds = transformedBounds };
 
                 var mesh = m_BatchRendererGroup.RegisterMesh(meshFilter.sharedMesh);
 
@@ -594,7 +605,7 @@ namespace UnityEngine.Rendering
                                   (renderer.staticShadowCaster ? RangeShadowFlags.StaticShadowCaster : 0)
                 };
 
-                var drawRange = new DrawRange {key = rangeKey, drawCount = 0, drawOffset = 0};
+                var drawRange = new DrawRange { key = rangeKey, drawCount = 0, drawOffset = 0 };
 
                 int drawRangeIndex;
                 if (m_rangeHash.TryGetValue(rangeKey, out drawRangeIndex))
@@ -636,9 +647,9 @@ namespace UnityEngine.Rendering
                         range = rangeKey
                     };
 
-                    var drawBatch = new DrawBatch {key = key, instanceCount = 0, instanceOffset = 0};
+                    var drawBatch = new DrawBatch { key = key, instanceCount = 0, instanceOffset = 0 };
 
-                    m_instances.Add(new DrawInstance {key = key, instanceIndex = i});
+                    m_instances.Add(new DrawInstance { key = key, instanceIndex = i });
 
                     int drawBatchIndex;
                     if (m_batchHash.TryGetValue(key, out drawBatchIndex))
@@ -776,6 +787,16 @@ namespace UnityEngine.Rendering
             // https://docs.unity3d.com/ScriptReference/Jobs.TransformAccess.html
         }
 
+        public void StartTransformsUpdate()
+        {
+            m_BRGTransformUpdater.StartUpdateJobs();
+        }
+
+        public bool EndTransformsUpdate(CommandBuffer cmdBuffer)
+        {
+            return m_BRGTransformUpdater.EndUpdateJobs(cmdBuffer, m_transformVec4InstanceBufferOffsetL2W, m_transformVec4InstanceBufferOffsetW2L, m_GPUPersistentInstanceData);
+        }
+
         public void Destroy()
         {
             if (m_initialized)
@@ -783,6 +804,7 @@ namespace UnityEngine.Rendering
                 // NOTE: Don't need to remove batch or unregister BatchRendererGroup resources. BRG.Dispose takes care of that.
                 m_BatchRendererGroup.Dispose();
                 m_GPUPersistentInstanceData.Dispose();
+                m_BRGTransformUpdater.Dispose();
 
                 m_renderers.Dispose();
                 m_batchHash.Dispose();
@@ -807,9 +829,11 @@ namespace UnityEngine.Rendering
     {
         private static bool s_QueryLoadedScenes = true;
         private Dictionary<Scene, SceneBRG> m_Scenes = new();
+        private CommandBuffer m_gpuCmdBuffer;
 
         private void OnEnable()
         {
+            m_gpuCmdBuffer = new CommandBuffer();
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.sceneUnloaded += OnSceneUnloaded;
 
@@ -837,6 +861,8 @@ namespace UnityEngine.Rendering
 
         private void OnDisable()
         {
+            m_gpuCmdBuffer.Release();
+            m_gpuCmdBuffer = null;
             SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.sceneUnloaded -= OnSceneUnloaded;
 
@@ -855,9 +881,7 @@ namespace UnityEngine.Rendering
         {
             if (root == null
                 || root.activeInHierarchy == false
-                || root.GetComponent<BRGNoConvert>() != null
-                || root.GetComponent<Animator>() != null
-                || root.GetComponent<Rigidbody>() != null)
+                || root.GetComponent<BRGNoConvert>() != null)
                 return;
 
             var mr = root.GetComponent<MeshRenderer>();
@@ -891,6 +915,32 @@ namespace UnityEngine.Rendering
                 brg.Destroy();
                 m_Scenes.Remove(scene);
             }
+        }
+
+        private void Update()
+        {
+            m_gpuCmdBuffer.Clear();
+
+            foreach (var sceneBrg in m_Scenes)
+            {
+                if (sceneBrg.Value == null)
+                    continue;
+
+                sceneBrg.Value.StartTransformsUpdate();
+            }
+
+            int gpuCmds = 0;
+            foreach (var sceneBrg in m_Scenes)
+            {
+                if (sceneBrg.Value == null)
+                    continue;
+
+                if (sceneBrg.Value.EndTransformsUpdate(m_gpuCmdBuffer))
+                    ++gpuCmds;
+            }
+
+            if (gpuCmds > 0)
+                Graphics.ExecuteCommandBuffer(m_gpuCmdBuffer);
         }
 
         private void OnDestroy()

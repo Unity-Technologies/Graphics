@@ -1,0 +1,31 @@
+#include "BRGTransformUpdaterDefs.cs.hlsl"
+
+#pragma kernel ScatterUpdateMain
+
+int _TransformUpdateQueueCount;
+int _TransformUpdateOutputL2WVec4Offset;
+int _TransformUpdateOutputW2LVec4Offset;
+
+StructuredBuffer<BRGGpuTransformUpdate> _TransformUpdateDataQueue;
+ByteAddressBuffer _TransformUpdateIndexQueue;
+RWByteAddressBuffer _OutputTransformBuffer;
+
+[numthreads(64, 1, 1)]
+void ScatterUpdateMain(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_TransformUpdateQueueCount)
+        return;
+
+    uint outputIndex = _TransformUpdateIndexQueue.Load(dispatchThreadID.x << 2);
+    BRGGpuTransformUpdate updatePacket = _TransformUpdateDataQueue[dispatchThreadID.x];
+
+    uint byteOutputL2WOffset = _TransformUpdateOutputL2WVec4Offset * 16 + outputIndex * 4 * 4 * 3;
+    uint byteOutputW2LOffset = _TransformUpdateOutputW2LVec4Offset * 16 + outputIndex * 4 * 4 * 3;
+
+    _OutputTransformBuffer.Store4(byteOutputL2WOffset + 0,  asuint(updatePacket.localToWorld0));
+    _OutputTransformBuffer.Store4(byteOutputL2WOffset + 16, asuint(updatePacket.localToWorld1));
+    _OutputTransformBuffer.Store4(byteOutputL2WOffset + 32, asuint(updatePacket.localToWorld2));
+    _OutputTransformBuffer.Store4(byteOutputW2LOffset + 0,  asuint(updatePacket.worldToLocal0));
+    _OutputTransformBuffer.Store4(byteOutputW2LOffset + 16, asuint(updatePacket.worldToLocal1));
+    _OutputTransformBuffer.Store4(byteOutputW2LOffset + 32, asuint(updatePacket.worldToLocal2));
+}
