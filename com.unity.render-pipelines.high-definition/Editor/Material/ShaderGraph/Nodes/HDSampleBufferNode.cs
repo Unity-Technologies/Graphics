@@ -29,7 +29,6 @@ namespace UnityEditor.Rendering.HighDefinition
             Roughness,
             MotionVectors,
             PostProcessInput,
-            BlitSource,
         }
 
         [SerializeField]
@@ -84,7 +83,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     channelCount = 2;
                     break;
                 case BufferType.PostProcessInput:
-                case BufferType.BlitSource:
                     AddSlot(new ColorRGBAMaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Color.black, ShaderStageCapability.Fragment));
                     channelCount = 4;
                     break;
@@ -98,35 +96,6 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
-        {
-            if (generationMode.IsPreview())
-                return;
-
-            if (bufferType == BufferType.BlitSource)
-            {
-                properties.AddShaderProperty(new Texture2DArrayShaderProperty
-                {
-                    overrideReferenceName = "_MainTex",
-                    displayName = "_MainTex",
-                    hidden = true,
-                    generatePropertyBlock = true,
-                    isMainTexture = true,
-                });
-            }
-            else if (bufferType == BufferType.PostProcessInput)
-            {
-                properties.AddShaderProperty(new Texture2DArrayShaderProperty
-                {
-                    overrideReferenceName = nameof(HDShaderIDs._CustomPostProcessInput),
-                    displayName = nameof(HDShaderIDs._CustomPostProcessInput),
-                    hidden = true,
-                    generatePropertyBlock = true,
-                    isMainTexture = true,
-                });
-            }
-        }
-
         string GetFunctionName() => $"Unity_HDRP_SampleBuffer_{bufferType}_$precision";
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
@@ -138,6 +107,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     s.AppendLine("#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl\"");
                     s.AppendLine("#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl\"");
+
+                    // Declare post process input here because the property collector don't support TEXTURE_X type
+                    s.AppendLine($"TEXTURE2D_X({nameof(HDShaderIDs._CustomPostProcessInput)});");
+                    s.AppendLine($"SAMPLER(sampler{nameof(HDShaderIDs._CustomPostProcessInput)});");
 
                     s.AppendLine("$precision{1} {0}($precision2 uv, SamplerState samplerState)", GetFunctionName(), channelCount);
                     using (s.BlockScope())
@@ -168,9 +141,6 @@ namespace UnityEditor.Rendering.HighDefinition
                             case BufferType.PostProcessInput:
                                 s.AppendLine("return SAMPLE_TEXTURE2D_X_LOD(_CustomPostProcessInput, samplerState, uv * _RTHandlePostProcessScale.xy, 0);");
                                 break;
-                            case BufferType.BlitSource:
-                                s.AppendLine($"return SAMPLE_TEXTURE2D_X_LOD(_MainTex, samplerState, uv, 0); ");
-                                break;
                             default:
                                 s.AppendLine("return 0.0;");
                                 break;
@@ -197,7 +167,6 @@ namespace UnityEditor.Rendering.HighDefinition
                                 s.AppendLine("return uv.x;");
                                 break;
                             case BufferType.PostProcessInput:
-                            case BufferType.BlitSource:
                             default:
                                 s.AppendLine("return 0.0;");
                                 break;
