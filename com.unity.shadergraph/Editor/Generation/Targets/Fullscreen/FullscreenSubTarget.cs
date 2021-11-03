@@ -355,10 +355,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 sharedTemplateDirectories = kSharedTemplateDirectories,
 
                 // Port Mask
-                validVertexBlocks = new BlockFieldDescriptor[]
-                {
-                    BlockFields.VertexDescription.Position
-                },
+                validVertexBlocks = null,
                 validPixelBlocks = new BlockFieldDescriptor[]
                 {
                     BlockFields.SurfaceDescription.BaseColor,
