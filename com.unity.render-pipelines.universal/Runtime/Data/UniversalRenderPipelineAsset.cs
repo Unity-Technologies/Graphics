@@ -46,6 +46,12 @@ namespace UnityEngine.Rendering.Universal
         ColorHDR,
     }
 
+    public enum HDRFormat
+    {
+        Default = GraphicsFormat.B10G11R11_UFloatPack32,
+        High = GraphicsFormat.R16G16B16A16_SFloat,
+    }
+
     public enum MsaaQuality
     {
         Disabled = 1,
@@ -164,6 +170,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
+        [SerializeField] HDRFormat m_HDRFormat = HDRFormat.Default; // TODO: could just replace bool with the enum
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         // TODO: Shader Quality Tiers
@@ -646,6 +653,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_SupportsHDR; }
             set { m_SupportsHDR = value; }
+        }
+
+        public HDRFormat hdrFormat
+        {
+            get { return m_HDRFormat; }
+            set { m_HDRFormat = value; }
         }
 
         public int msaaSampleCount
