@@ -44,9 +44,9 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField] internal float minDistanceBetweenProbes;
         [SerializeField] internal int simplificationLevels;
 
-        // Binary data
-        [SerializeField] internal TextAsset cellDataAsset;
-        [SerializeField] internal TextAsset cellSupportDataAsset;
+        // Binary data (stored in ProbeVolumeSceneData)
+        internal TextAsset cellDataAsset;
+        internal TextAsset cellSupportDataAsset;
 
         [Serializable]
         internal struct CellCounts
@@ -95,7 +95,8 @@ namespace UnityEngine.Experimental.Rendering
             var bricksData = cellData.GetSubArray(0, bricksByteCount).Reinterpret<ProbeBrickIndex.Brick>(1);
             var shData = cellData.GetSubArray( shDataByteStart, shDataByteCount).Reinterpret<Vector4>(1);
 
-            var hasSupportData = assetToBytes.TryGetValue(cellSupportDataAsset, out var cellSupportData);
+            var cellSupportData = cellSupportDataAsset ? assetToBytes[cellSupportDataAsset] : default;
+            var hasSupportData = cellSupportData.IsCreated;
             var positionsByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<Vector3>();
             var validityByteStart = AlignUp16(positionsByteCount);
             var validityByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();

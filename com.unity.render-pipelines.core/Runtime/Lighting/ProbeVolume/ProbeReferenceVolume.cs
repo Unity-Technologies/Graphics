@@ -229,6 +229,8 @@ namespace UnityEngine.Experimental.Rendering
         public Shader probeDebugShader;
         public ProbeVolumeSceneData sceneData;
         public ProbeVolumeSHBands shBands;
+        /// <summary>True if APV is able to show runtime debug information.</summary>
+        public bool supportsRuntimeDebug;
         /// <summary>True if APV should support streaming of cell data.</summary>
         public bool supportStreaming;
     }
@@ -605,7 +607,7 @@ namespace UnityEngine.Experimental.Rendering
 
             m_MemoryBudget = parameters.memoryBudget;
             m_SHBands = parameters.shBands;
-            InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
+            InitializeDebug(parameters);
             InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
             m_NeedsIndexRebuild = true;

@@ -19,19 +19,20 @@ namespace UnityEngine.Experimental.Rendering
 
     [ExecuteAlways]
     [AddComponentMenu("")] // Hide.
-    internal class ProbeVolumePerSceneData : MonoBehaviour, ISerializationCallbackReceiver
+    public class ProbeVolumePerSceneData : MonoBehaviour, ISerializationCallbackReceiver
     {
-
-        [System.Serializable]
+        [Serializable]
         struct SerializableAssetItem
         {
-            [SerializeField] public ProbeVolumeState state;
-            [SerializeField] public ProbeVolumeAsset asset;
+            public ProbeVolumeState state;
+            public ProbeVolumeAsset asset;
+            public TextAsset cellDataAsset;
+            public TextAsset cellSupportDataAsset;
         }
 
-        internal Dictionary<ProbeVolumeState, ProbeVolumeAsset> assets = new Dictionary<ProbeVolumeState, ProbeVolumeAsset>();
+        [SerializeField] List<SerializableAssetItem> serializedAssets = new();
 
-        [SerializeField] List<SerializableAssetItem> serializedAssets;
+        Dictionary<ProbeVolumeState, ProbeVolumeAsset> assets = new();
 
         ProbeVolumeState m_CurrentState = ProbeVolumeState.Default;
         ProbeVolumeState m_PreviousState = ProbeVolumeState.Invalid;
@@ -39,13 +40,15 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// OnAfterDeserialize implementation.
         /// </summary>
-        public void OnAfterDeserialize()
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
             if (serializedAssets == null) return;
 
-            assets = new Dictionary<ProbeVolumeState, ProbeVolumeAsset>();
+            assets.Clear();
             foreach (var assetItem in serializedAssets)
             {
+                assetItem.asset.cellDataAsset = assetItem.cellDataAsset;
+                assetItem.asset.cellSupportDataAsset = assetItem.cellSupportDataAsset;
                 assets.Add(assetItem.state, assetItem.asset);
             }
         }
@@ -53,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// OnBeforeSerialize implementation.
         /// </summary>
-        public void OnBeforeSerialize()
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
             if (assets == null || serializedAssets == null) return;
 
@@ -63,6 +66,8 @@ namespace UnityEngine.Experimental.Rendering
                 SerializableAssetItem item;
                 item.state = k;
                 item.asset = assets[k];
+                item.cellDataAsset = item.asset.cellDataAsset;
+                item.cellSupportDataAsset = item.asset.cellSupportDataAsset;
                 serializedAssets.Add(item);
             }
         }
@@ -143,5 +148,13 @@ namespace UnityEngine.Experimental.Rendering
                 QueueAssetLoading();
             }
         }
+
+#if UNITY_EDITOR
+        public void StripSupportData()
+        {
+            foreach (var asset in assets.Values)
+                asset.cellSupportDataAsset = null;
+        }
+#endif
     }
 }
