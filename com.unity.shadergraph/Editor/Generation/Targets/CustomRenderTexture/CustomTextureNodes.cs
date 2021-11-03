@@ -89,10 +89,9 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
             {
                 case OutputSlotCubeFaceId:
                     return "_CustomRenderTextureCubeFace";
+                default:
                 case OutputSlot3DSliceId:
                     return "_CustomRenderTexture3DSlice";
-                default:
-                    return "_CustomRenderTextureWidth";
             }
         }
 
@@ -109,7 +108,6 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
 
     [Title("Custom Render Texture", "Self")]
     [SubTargetFilter(typeof(CustomTextureSubTarget))]
-
     class CustomTextureSelf : AbstractMaterialNode, IGeneratesFunction
     {
         private const string kOutputSlotSelf2DName = "Self Texture 2D";
