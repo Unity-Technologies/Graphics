@@ -352,37 +352,162 @@ real3 GetOverdrawColor(real overdrawCount, real maxOverdrawCount)
     return HsvToRgb(real3(hue, saturation, 1.0));
 }
 
+real SampleDigitPoint(int digit, real2 texCoord)
+{
+    const int digitCount = 10;
+    real2 texDigitSize = real2(4, 7);
+    const real k_Digits[] = {0, 1, 1, 0,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,
+                             1, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  1, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 1,  1, 0, 0, 1,  1, 0, 0, 1,
+                             1, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  1, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 1,  1, 0, 0, 1,  1, 0, 0, 1,
+                             1, 0, 0, 1,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,
+                             1, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  0, 0, 0, 1,
+                             1, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  0, 0, 0, 1,
+                             0, 1, 1, 0,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1};
+
+    digit = digit % 10;
+
+    texCoord = clamp(texCoord, 0, 0.99999);
+    texCoord.y = 1 - texCoord.y;
+
+    int2 texCoordInt = int2(floor(clamp(texCoord, 0, 0.99999) * texDigitSize));
+    const int columnOffset = digit * int(texDigitSize.x);
+    const int rowOffset = digitCount * int(texDigitSize.x);
+    const int index = texCoordInt.x + columnOffset + rowOffset * texCoordInt.y;
+    return k_Digits[index];
+}
+
+real3 BlendMultiply(real3 color, real4 toBlend)
+{
+    return color * (1 - toBlend.a) + toBlend.a * toBlend.rgb;
+}
+
+real2 ToDigitRatio(real2 texCoordSize)
+{
+    const real ratio = real(4) / real(12);
+    const real x = texCoordSize.y * ratio;
+    if (x < texCoordSize.x)
+        return real2(x, texCoordSize.y);
+
+    return real2(texCoordSize.x, texCoordSize.y / ratio);
+}
+
+real4 RenderNumber(real2 texCoordStart, real2 texCoordSize, real2 texCoord, int number)
+{
+    const float digitSpacing = 0.002;
+    int digits[11] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+    // Find digits
+    int current = abs(number);
+    int digitIndex;
+    for (digitIndex = 0; digitIndex < 10 && current > 9; ++digitIndex)
+    {
+        const int newCurrent = current / 10;
+        const int digit = current - newCurrent * 10;
+        digits[digitIndex] = digit;
+        current = newCurrent;
+    }
+    // final digit
+    digits[digitIndex] = current;
+
+    real4 color = 0;
+
+    // digitIndex has last digit to display
+    // digit count = digitIndex + 1
+    real2 texCursor = texCoordStart;
+    real2 texDigitSize = texCoordSize / (digitIndex + 1);
+    texDigitSize.x -= digitIndex * digitSpacing;
+    texDigitSize = ToDigitRatio(texDigitSize);
+    for (int i = digitIndex; i >= 0; --i)
+    {
+        const real2 coord = (texCoord - texCursor) / texDigitSize;
+        if (all(coord >= 0 && all(coord <= 1)))
+        {
+            const real digitSample = SampleDigitPoint(digits[i], coord);
+            color = real4(BlendMultiply(color, digitSample.xxxx), digitSample);
+        }
+        texCoord.x -= texDigitSize.x + digitSpacing;
+    }
+
+    return color;
+}
+
+int OverdrawLegendBucketInterval(int maxOverdrawCount)
+{
+    if (maxOverdrawCount <= 10)
+        return 1;
+    if (maxOverdrawCount <= 50)
+        return 5;
+    if (maxOverdrawCount <= 100)
+        return 10;
+
+    const int digitCount = floor(log10(maxOverdrawCount));
+    const int digitMultiplier = pow(10, digitCount);
+    const int biggestDigit = floor(maxOverdrawCount/digitMultiplier);
+    if (biggestDigit < 5)
+        return pow(10, digitCount - 1) * 5;
+
+    return digitMultiplier;
+}
+
 /// Return the color of the overdraw debug legend.
 ///
 /// It will draw a bar with all the color buckets of the overdraw debug
 ///
 /// * texcoord: the texture coordinate of the pixel to draw
 /// * maxOverdrawCount: the maximum number of overdraw.
+/// * screenSize: screen size (w, h, 1/w, 1/h).
 /// * defaultColor: the default color used for other areas
-void DrawOverdrawLegend(real2 texcoord, real maxOverdrawCount, inout real3 color)
+void DrawOverdrawLegend(real2 texCoord, real maxOverdrawCount, real4 screenSize, inout real3 color)
 {
-    const float bandStartY = 0.05;
-    const float bandWidthY = 0.02;
-    const float bandBorderSize = 0.003;
-    const float bandOffsetX = 0.05;
-    if (bandStartY <= texcoord.y
-        && texcoord.y <= bandStartY + bandWidthY
-        && bandOffsetX <= texcoord.x
-        && texcoord.x <= 1 - bandOffsetX)
+    // Band parameters
+    // Position of the band (fixed x, fixed y, rel x, rel y)
+    const real4 bandPosition = real4(20, 20, 0, 0);
+    // Position of the band labels (fixed x, fixed y, rel x, rel y)
+    const real4 bandLabelPosition = real4(20, 50, 0, 0);
+    // Minimum size of labels (fixed x, fixed y, rel x, rel y)
+    const real4 bandLabelMinSize = real4(100, 20, 0, 0);
+    // Size of the band (fixed x, fixed y, rel x, rel y)
+    const real4 bandSize = real4(-bandPosition.x * 2, 20, 1, 0);
+    // Thickness of the band (fixed x, fixed y, rel x, rel y)
+    const real4 bandBorderThickness = real4(4, 4, 0, 0);
+
+    // Compute UVs
+    const real2 bandPositionUV = bandPosition.xy * screenSize.zw + bandPosition.zw;
+    const real2 bandLabelPositionUV = bandLabelPosition.xy * screenSize.zw + bandLabelPosition.zw;
+    const real2 bandLabelMinSizeUV = bandLabelMinSize.xy * screenSize.zw + bandLabelMinSize.zw;
+    const real2 bandSizeUV = bandSize.xy * screenSize.zw + bandSize.zw;
+    const real4 bandBorderPosition = bandPosition - bandBorderThickness;
+    const real4 bandBorderSize = bandSize + 2 * bandBorderThickness;
+    const real2 bandBorderPositionUV = bandBorderPosition.xy * screenSize.zw + bandBorderPosition.zw;
+    const real2 bandBorderSizeUV = bandBorderSize.xy * screenSize.zw + bandBorderSize.zw;
+
+    // Transform coordinate
+    const real2 bandBorderCoord =  (texCoord - bandBorderPositionUV) / bandBorderSizeUV;
+    const real2 bandCoord =  (texCoord - bandPositionUV) / bandSizeUV;
+
+    // Compute bucket index
+    const real bucket = ceil(bandCoord.x * maxOverdrawCount);
+
+    // Assign color when relevant
+    // Band border
+    if (all(bandBorderCoord >= 0) && all(bandBorderCoord <= 1))
+        color = float3(0.1, 0.1, 0.1);
+
+    // Band color
+    if (all(bandCoord >= 0) && all(bandCoord <= 1))
+        color = GetOverdrawColor(bucket, maxOverdrawCount);
+
+    // Bucket label
+    if (0 < bucket && bucket <= maxOverdrawCount)
     {
-        if (texcoord.y < bandStartY + bandBorderSize
-            || bandStartY + bandWidthY - bandBorderSize <= texcoord.y
-            || texcoord.x < bandOffsetX + bandBorderSize
-            || 1 - bandOffsetX - bandBorderSize <= texcoord.x)
-        {
-            color = float3(0.1, 0.1, 0.1);
-        }
-        else
-        {
-            float x = (texcoord.x - bandOffsetX)/(1 - 2 * bandOffsetX);
-            float bucket = ceil(x * maxOverdrawCount);
-            color = GetOverdrawColor(bucket, maxOverdrawCount);
-        }
+        const int bucketInterval = OverdrawLegendBucketInterval(maxOverdrawCount);
+        const int bucketLabelIndex = int(bucket / real(bucketInterval)) * bucketInterval;
+        const real2 labelStartCoord = real2(
+            bandLabelPositionUV.x + (bucketLabelIndex - 1) * (bandSizeUV.x / maxOverdrawCount),
+            bandLabelPositionUV.y
+        );
+        const real4 number = RenderNumber(labelStartCoord, bandLabelMinSizeUV, texCoord, bucketLabelIndex);
+        color = BlendMultiply(color, number);
     }
 }
 
