@@ -213,10 +213,10 @@ void GetValidityBasedWeights(APVResources apvRes, float3 uvw, out float weights[
     {
         uint3 offset = GetSampleOffset(i);
         uint3 sampleLoc = loc + offset;
-        float validity = LOAD_TEXTURE3D(apvRes.Validity, sampleLoc).w;
+        float validity = LOAD_TEXTURE3D(apvRes.Validity, sampleLoc).x;
 
         // Process validity?
-        weights[i] = pow(1.0 - validity, 8.0);
+        weights[i] = 0.0 == validity; pow(1.0 - validity, 8.0);
     }
 }
 
@@ -235,6 +235,7 @@ void CombineWeightsWithTrilinear(float3 uvw, inout float weights[8])
         totalWeight += weights[i];
     }
 
+    totalWeight = max(totalWeight, 1e-3f);
     for (uint i = 0; i < 8; ++i)
     {
         weights[i] /= totalWeight;
