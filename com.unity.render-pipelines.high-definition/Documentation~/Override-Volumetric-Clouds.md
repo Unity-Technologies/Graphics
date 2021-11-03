@@ -157,3 +157,4 @@ When importing these two map Textures, disable **sRGB**. For best results, do no
 * When enabled for [Reflection Probes](Reflection-Probe.md), the volumetric clouds are rendered at low resolution, without any form of temporal accumulation for performance and stability reasons.
 * By default volumetric clouds are enabled on the baked [Reflection Probes](Reflection-Probe.md) if the asset allows it. They are rendered at full resolution without any form of temporal accumulation.
 * Volumetric clouds do not appear in ray-traced effects.
+* Transmittance is not applied linearly on the camera color to provide a better blending with the sun light (or high intensity pixels). If [Multi-sample anti-aliasing (MSAA)](#MSAA) is enabled on the camera, due to internal limitations, a different blending profile is used that may result in darker cloud edges.

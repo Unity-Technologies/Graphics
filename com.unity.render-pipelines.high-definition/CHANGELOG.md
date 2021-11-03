@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sky override layer mask having no effect.
 - Fixed a memory leak in the template tutorial (1374640).
 - Fixed a build-time warning regarding light loop variants (case 1372256).
+- Fixed the bad blending between the sun and the clouds (case 1373282).
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
