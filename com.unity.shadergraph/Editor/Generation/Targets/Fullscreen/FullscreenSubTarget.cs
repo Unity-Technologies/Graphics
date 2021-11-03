@@ -383,7 +383,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 // Port Mask
                 validVertexBlocks = new BlockFieldDescriptor[]
                 {
-                    BlockFields.VertexDescription.Position
+                    // BlockFields.VertexDescription.Position
                 },
                 validPixelBlocks = new BlockFieldDescriptor[]
                 {
