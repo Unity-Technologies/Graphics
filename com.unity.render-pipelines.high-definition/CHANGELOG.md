@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new panels to Rendering Debugger Display Stats panel, displaying improved CPU/GPU frame timings and bottlenecks.
 - Added API to edit diffusion profiles and set IES on lights.
 - Added public API to reset path tracing accumulation, and check its status.
+- Added support for SensorSDK's Lidar and camera models in path tracing.
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
