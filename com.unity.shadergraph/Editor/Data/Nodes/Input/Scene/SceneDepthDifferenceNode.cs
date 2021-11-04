@@ -76,9 +76,9 @@ namespace UnityEditor.ShaderGraph
 {
     $precision deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(PositionWS, GetWorldToHClipMatrix()).z;
 #if defined(UNITY_REVERSED_Z)
-    Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy) - deviceDepth;
-#else
     Out = deviceDepth - SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy);
+#else
+    Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy) - deviceDepth;
 #endif
 }
 ";
@@ -94,11 +94,22 @@ namespace UnityEditor.ShaderGraph
 {
     if (unity_OrthoParams.w == 1.0)
     {
+#if defined(UNITY_REVERSED_Z)
         Out = LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V) - length(PositionWS);
+#else
+        Out = length(PositionWS) - LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V);
+#endif
     }
     else
     {
-        Out = length(PositionWS) - LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);
+        //LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams)
+        float theEye = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);//ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x).w;
+        //float theEye = LinearEyeDepth(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);
+#if defined(UNITY_REVERSED_Z)
+        Out = theEye - length(PositionWS);
+#else
+        Out = length(PositionWS) - theEye;
+#endif
     }
 }
 ";
