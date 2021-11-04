@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scrubbing: 0
   startSeed: 0
+  reinit: 0
   prewarm:
     enable: 0
     stepCount: 20
@@ -172,6 +173,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scrubbing: 1
   startSeed: 0
+  reinit: 3
   prewarm:
     enable: 0
     stepCount: 20
