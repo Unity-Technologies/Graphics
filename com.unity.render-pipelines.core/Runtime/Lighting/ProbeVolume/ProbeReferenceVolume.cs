@@ -40,7 +40,11 @@ namespace UnityEngine.Experimental.Rendering
             UnsubscribeOnBakeStarted();
         }
 
+        const float kInvalidSH = 1f;
+        const float kValidSH = 0f;
+
         private static List<SphericalHarmonicsL2> m_SHCoefficients = new List<SphericalHarmonicsL2>();
+        private static List<float> m_SHValidity = new List<float>();
         private static List<Vector3> m_RequestPositions = new List<Vector3>();
         private static int m_FreelistHead = -1;
 
@@ -62,6 +66,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_FreelistHead = ComputeFreelistNext(m_RequestPositions[requestID]);
                 m_RequestPositions[requestID] = capturePosition;
                 m_SHCoefficients[requestID] = new SphericalHarmonicsL2();
+                m_SHValidity[requestID] = kInvalidSH;
                 return requestID;
             }
             else
@@ -69,6 +74,7 @@ namespace UnityEngine.Experimental.Rendering
                 int requestID = m_RequestPositions.Count;
                 m_RequestPositions.Add(capturePosition);
                 m_SHCoefficients.Add(new SphericalHarmonicsL2());
+                m_SHValidity.Add(kInvalidSH);
                 return requestID;
             }
         }
@@ -84,6 +90,7 @@ namespace UnityEngine.Experimental.Rendering
 
             m_RequestPositions[requestID] = new Vector3(s_FreelistSentinel.x, s_FreelistSentinel.y, m_FreelistHead);
             m_SHCoefficients[requestID] = new SphericalHarmonicsL2();
+            m_SHValidity[requestID] = kInvalidSH;
             m_FreelistHead = requestID;
         }
 
@@ -121,11 +128,10 @@ namespace UnityEngine.Experimental.Rendering
         /// <returns>Whether the request for light probe rendering has been fulfilled and sh is valid.</returns>
         public bool RetrieveProbeSH(int requestID, out SphericalHarmonicsL2 sh)
         {
-            if (requestID >= 0 && requestID < m_SHCoefficients.Count
-                && ComputeCapturePositionIsValid(m_RequestPositions[requestID]))
+            if (requestID >= 0 && requestID < m_SHCoefficients.Count && ComputeCapturePositionIsValid(m_RequestPositions[requestID]))
             {
                 sh = m_SHCoefficients[requestID];
-                return true;
+                return m_SHValidity[requestID] == kValidSH;
             }
             else
             {
@@ -146,6 +152,7 @@ namespace UnityEngine.Experimental.Rendering
                 Debug.Assert(ComputeCapturePositionIsValid(m_RequestPositions[requestID]));
                 m_RequestPositions[requestID] = newPosition;
                 m_SHCoefficients[requestID] = new SphericalHarmonicsL2();
+                m_SHValidity[requestID] = kInvalidSH;
                 return requestID;
             }
             else
@@ -189,9 +196,16 @@ namespace UnityEngine.Experimental.Rendering
             var validity = new NativeArray<float>(m_RequestPositions.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var bakedProbeOctahedralDepth = new NativeArray<float>(m_RequestPositions.Count * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(s_BakingID, sh, validity, bakedProbeOctahedralDepth);
+            if (UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(s_BakingID, sh, validity, bakedProbeOctahedralDepth))
+            {
+                SetSHCoefficients(sh, validity);
+            }
+            else
+            {
+                Debug.LogWarning($"Failed to collect results for additional probes. (Bake Id {s_BakingID})");
+                ClearSHCoefficients();
+            }
 
-            SetSHCoefficients(sh);
             ProbeReferenceVolume.instance.retrieveExtraDataAction?.Invoke(new ProbeReferenceVolume.ExtraDataActionInput());
 
             sh.Dispose();
@@ -199,12 +213,23 @@ namespace UnityEngine.Experimental.Rendering
             bakedProbeOctahedralDepth.Dispose();
         }
 
-        private void SetSHCoefficients(NativeArray<SphericalHarmonicsL2> sh)
+        private void SetSHCoefficients(NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity)
         {
             Debug.Assert(sh.Length == m_SHCoefficients.Count);
+            Debug.Assert(sh.Length == validity.Length);
             for (int i = 0; i < sh.Length; ++i)
             {
                 m_SHCoefficients[i] = sh[i];
+                m_SHValidity[i] = validity[i];
+            }
+        }
+
+        private void ClearSHCoefficients()
+        {
+            for (int i = 0; i < m_SHCoefficients.Count; ++i)
+            {
+                m_SHCoefficients[i] = default;
+                m_SHValidity[i] = kInvalidSH;
             }
         }
     }
