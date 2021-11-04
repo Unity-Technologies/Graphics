@@ -1,12 +1,10 @@
-//SensorSDK - Begin
+// SensorSDK support: in Lidar mode, an alternate computation is used, implemented in a separate file
 #ifdef SENSORSDK_OVERRIDE_REFLECTANCE
 #define SENSORSDK_ENABLE_LIDAR
 #endif
-
 #ifdef SENSORSDK_ENABLE_LIDAR
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassSensorLidar.hlsl"
 #else
-//SensorSDK - End
 
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"

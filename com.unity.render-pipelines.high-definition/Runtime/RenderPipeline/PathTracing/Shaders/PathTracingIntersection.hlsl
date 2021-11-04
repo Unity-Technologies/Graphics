@@ -21,15 +21,12 @@ struct PathIntersection
     // Max roughness encountered along the path
     float maxRoughness;
     
-// SensorSDK - Begin
 #ifdef SENSORSDK_ENABLE_LIDAR
     float3 beamDirection;
     float3 beamOrigin;
-
-    float beamRadius;
-    float beamDepth;
+    float  beamRadius;
+    float  beamDepth;
 #endif
-//SensorSDK - End    
 };
 
 #endif // UNITY_PATH_TRACING_INTERSECTION_INCLUDED
