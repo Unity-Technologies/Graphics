@@ -253,9 +253,9 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                     if (n >= 0)
                     {
-                        if (SampleDebugFontNumber(offsetInTile, n))
+                        if (SampleDebugFontNumber2Digits(offsetInTile, n))
                             result2 = float4(0.0, 0.0, 0.0, 1.0);
-                        if (SampleDebugFontNumber(offsetInTile + 1, n))
+                        if (SampleDebugFontNumber2Digits(offsetInTile + 1, n))
                             result2 = float4(1.0, 1.0, 1.0, 1.0);
                     }
 

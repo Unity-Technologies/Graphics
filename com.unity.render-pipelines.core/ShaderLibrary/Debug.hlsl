@@ -100,7 +100,17 @@ bool SampleDebugFont(int2 pixCoord, uint digit)
     return (fontData[8 - pixCoord.y][digit >= 5] >> ((digit % 5) * 5 + pixCoord.x)) & 1;
 }
 
-bool SampleDebugFontNumber(int2 pixCoord, uint number)
+/*
+ * Sample up to 2 digits of a number. (Excluding leading zeroes)
+ *
+ * Note: Digit have a size of 5x8 pixels and spaced by 1 pixel
+ * See SampleDebugFontNumberAllDigits to sample all digits.
+ *
+ * @param pixCoord: pixel coordinate of the number sample
+ * @param number: number to sample
+ * @return true when the pixel is a pixel of a digit.
+ */
+bool SampleDebugFontNumber2Digits(int2 pixCoord, uint number)
 {
     pixCoord.y -= 4;
     if (number <= 9)
@@ -111,6 +121,34 @@ bool SampleDebugFontNumber(int2 pixCoord, uint number)
     {
         return (SampleDebugFont(pixCoord, number / 10) | SampleDebugFont(pixCoord - int2(6, 0), number % 10));
     }
+}
+
+/*
+ * Sample all digits of a number. (Excluding leading zeroes)
+ *
+ * Note: Digit have a size of 5x8 pixels and spaced by 1 pixel
+ * See SampleDebugFontNumber2Digits for a faster version supporting only 2 digits.
+ *
+ * @param pixCoord: pixel coordinate of the number sample
+ * @param number: number to sample
+ * @return true when the pixel is a pixel of a digit.
+ */
+bool SampleDebugFontNumberAllDigits(int2 pixCoord, uint number)
+{
+    const uint digitCount = uint(log10(number)) + 1;
+
+    pixCoord.y -= 4;
+    int2 offset = int2(6 * digitCount, 0);
+    uint current = number;
+    for (int i = 0; i < digitCount; ++i)
+    {
+        if (SampleDebugFont(pixCoord - offset, current % 10))
+            return true;
+
+        current /= 10;
+        offset -= int2(6, 0);
+    }
+    return false;
 }
 
 // Draws a heatmap with numbered tiles, with increasingly "hot" background colors depending on n,
@@ -126,9 +164,9 @@ float4 OverlayHeatMap(uint2 pixCoord, uint2 tileSize, uint n, uint maxN, float o
     float4 color = float4(PositivePow(col.rgb, 2.2), opacity * col.a);
     if (n >= 0)
     {
-        if (SampleDebugFontNumber(coord, n))        // Shadow
+        if (SampleDebugFontNumber2Digits(coord, n))        // Shadow
             color = float4(0, 0, 0, 1);
-        if (SampleDebugFontNumber(coord + 1, n))    // Text
+        if (SampleDebugFontNumber2Digits(coord + 1, n))    // Text
             color = float4(1, 1, 1, 1);
     }
     return color;
@@ -352,85 +390,6 @@ real3 GetOverdrawColor(real overdrawCount, real maxOverdrawCount)
     return HsvToRgb(real3(hue, saturation, 1.0));
 }
 
-real SampleDigitPoint(int digit, real2 texCoord)
-{
-    const int digitCount = 10;
-    real2 texDigitSize = real2(4, 7);
-    const real k_Digits[] = {0, 1, 1, 0,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,
-                             1, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  1, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 1,  1, 0, 0, 1,  1, 0, 0, 1,
-                             1, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  1, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 1,  1, 0, 0, 1,  1, 0, 0, 1,
-                             1, 0, 0, 1,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,
-                             1, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  0, 0, 0, 1,
-                             1, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 1,  0, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  0, 0, 0, 1,  1, 0, 0, 1,  0, 0, 0, 1,
-                             0, 1, 1, 0,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1,  0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1};
-
-    digit = digit % 10;
-
-    texCoord = clamp(texCoord, 0, 0.99999);
-    texCoord.y = 1 - texCoord.y;
-
-    int2 texCoordInt = int2(floor(clamp(texCoord, 0, 0.99999) * texDigitSize));
-    const int columnOffset = digit * int(texDigitSize.x);
-    const int rowOffset = digitCount * int(texDigitSize.x);
-    const int index = texCoordInt.x + columnOffset + rowOffset * texCoordInt.y;
-    return k_Digits[index];
-}
-
-real3 BlendMultiply(real3 color, real4 toBlend)
-{
-    return color * (1 - toBlend.a) + toBlend.a * toBlend.rgb;
-}
-
-real2 ToDigitRatio(real2 texCoordSize)
-{
-    const real ratio = real(4) / real(12);
-    const real x = texCoordSize.y * ratio;
-    if (x < texCoordSize.x)
-        return real2(x, texCoordSize.y);
-
-    return real2(texCoordSize.x, texCoordSize.y / ratio);
-}
-
-real4 RenderNumber(real2 texCoordStart, real2 texCoordSize, real2 texCoord, int number)
-{
-    const float digitSpacing = 0.002;
-    int digits[11] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-    // Find digits
-    int current = abs(number);
-    int digitIndex;
-    for (digitIndex = 0; digitIndex < 10 && current > 9; ++digitIndex)
-    {
-        const int newCurrent = current / 10;
-        const int digit = current - newCurrent * 10;
-        digits[digitIndex] = digit;
-        current = newCurrent;
-    }
-    // final digit
-    digits[digitIndex] = current;
-
-    real4 color = 0;
-
-    // digitIndex has last digit to display
-    // digit count = digitIndex + 1
-    real2 texCursor = texCoordStart;
-    real2 texDigitSize = texCoordSize / (digitIndex + 1);
-    texDigitSize.x -= digitIndex * digitSpacing;
-    texDigitSize = ToDigitRatio(texDigitSize);
-    for (int i = digitIndex; i >= 0; --i)
-    {
-        const real2 coord = (texCoord - texCursor) / texDigitSize;
-        if (all(coord >= 0 && all(coord <= 1)))
-        {
-            const real digitSample = SampleDigitPoint(digits[i], coord);
-            color = real4(BlendMultiply(color, digitSample.xxxx), digitSample);
-        }
-        texCoord.x -= texDigitSize.x + digitSpacing;
-    }
-
-    return color;
-}
-
 int OverdrawLegendBucketInterval(int maxOverdrawCount)
 {
     if (maxOverdrawCount <= 10)
@@ -464,8 +423,6 @@ void DrawOverdrawLegend(real2 texCoord, real maxOverdrawCount, real4 screenSize,
     const real4 bandPosition = real4(20, 20, 0, 0);
     // Position of the band labels (fixed x, fixed y, rel x, rel y)
     const real4 bandLabelPosition = real4(20, 50, 0, 0);
-    // Minimum size of labels (fixed x, fixed y, rel x, rel y)
-    const real4 bandLabelMinSize = real4(100, 20, 0, 0);
     // Size of the band (fixed x, fixed y, rel x, rel y)
     const real4 bandSize = real4(-bandPosition.x * 2, 20, 1, 0);
     // Thickness of the band (fixed x, fixed y, rel x, rel y)
@@ -474,7 +431,6 @@ void DrawOverdrawLegend(real2 texCoord, real maxOverdrawCount, real4 screenSize,
     // Compute UVs
     const real2 bandPositionUV = bandPosition.xy * screenSize.zw + bandPosition.zw;
     const real2 bandLabelPositionUV = bandLabelPosition.xy * screenSize.zw + bandLabelPosition.zw;
-    const real2 bandLabelMinSizeUV = bandLabelMinSize.xy * screenSize.zw + bandLabelMinSize.zw;
     const real2 bandSizeUV = bandSize.xy * screenSize.zw + bandSize.zw;
     const real4 bandBorderPosition = bandPosition - bandBorderThickness;
     const real4 bandBorderSize = bandSize + 2 * bandBorderThickness;
@@ -491,7 +447,7 @@ void DrawOverdrawLegend(real2 texCoord, real maxOverdrawCount, real4 screenSize,
     // Assign color when relevant
     // Band border
     if (all(bandBorderCoord >= 0) && all(bandBorderCoord <= 1))
-        color = float3(0.1, 0.1, 0.1);
+        color = real3(0.1, 0.1, 0.1);
 
     // Band color
     if (all(bandCoord >= 0) && all(bandCoord <= 1))
@@ -501,13 +457,15 @@ void DrawOverdrawLegend(real2 texCoord, real maxOverdrawCount, real4 screenSize,
     if (0 < bucket && bucket <= maxOverdrawCount)
     {
         const int bucketInterval = OverdrawLegendBucketInterval(maxOverdrawCount);
-        const int bucketLabelIndex = int(bucket / real(bucketInterval)) * bucketInterval;
+        const int bucketLabelIndex = (int(bucket) / bucketInterval) * bucketInterval;
         const real2 labelStartCoord = real2(
-            bandLabelPositionUV.x + (bucketLabelIndex - 1) * (bandSizeUV.x / maxOverdrawCount),
+            bandLabelPositionUV.x + (bucketLabelIndex) * (bandSizeUV.x / maxOverdrawCount),
             bandLabelPositionUV.y
         );
-        const real4 number = RenderNumber(labelStartCoord, bandLabelMinSizeUV, texCoord, bucketLabelIndex);
-        color = BlendMultiply(color, number);
+
+        const uint2 pixCoord = uint2((texCoord - labelStartCoord) * screenSize.xy);
+        if (SampleDebugFontNumberAllDigits(pixCoord, bucketLabelIndex))
+            color = real3(1, 1, 1);
     }
 }
 
