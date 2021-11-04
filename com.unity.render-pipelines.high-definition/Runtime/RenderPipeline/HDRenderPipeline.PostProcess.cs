@@ -3065,11 +3065,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         passData.pingFarRGB = builder.CreateTransientTexture(GetPostprocessOutputHandle(renderGraph, "DoF Source Pyramid", GetPostprocessTextureFormat(), true));
 
-                        float scaleFactor = 1.0f / passData.parameters.minMaxCoCTileSize;
-                        passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, IsDynamicResUpscaleTargetEnabled(), true)
+                        // The size of the tile texture should be rounded-up, so we use a custom scale operator
+                        // We cannot use the tile size in the scale call callback (to avoid gc alloc), so for now we use an assert
+                        Assert.IsTrue(passData.parameters.minMaxCoCTileSize == 8);
+                        ScaleFunc scaler = delegate (Vector2Int size) { return new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8); };
+
+                        passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(scaler, IsDynamicResUpscaleTargetEnabled(), true)
                         { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
 
-                        passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, IsDynamicResUpscaleTargetEnabled(), true)
+                        passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(scaler, IsDynamicResUpscaleTargetEnabled(), true)
                         { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
 
                         builder.SetRenderFunc(
