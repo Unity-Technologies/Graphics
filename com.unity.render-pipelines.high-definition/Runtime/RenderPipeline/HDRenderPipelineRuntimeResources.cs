@@ -27,6 +27,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugColorPickerPS;
             [Reload("Runtime/Debug/DebugExposure.Shader")]
             public Shader debugExposurePS;
+            [Reload("Runtime/Debug/DebugHDR.Shader")]
+            public Shader debugHDRPS;
             [Reload("Runtime/Debug/DebugLightVolumes.Shader")]
             public Shader debugLightVolumePS;
             [Reload("Runtime/Debug/DebugLightVolumes.compute")]
@@ -259,6 +261,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader applyExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/DebugHistogramImage.compute")]
             public ComputeShader debugImageHistogramCS;
+            [Reload("Runtime/PostProcessing/Shaders/DebugHDRxyMapping.compute")]
+            public ComputeShader debugHDRxyMappingCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
             public ComputeShader uberPostCS;
             [Reload("Runtime/PostProcessing/Shaders/LutBuilder3D.compute")]
@@ -321,6 +325,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader lensFlareMergeOcclusionCS;
             [Reload("Runtime/PostProcessing/Shaders/DLSSBiasColorMask.shader")]
             public Shader DLSSBiasColorMaskPS;
+            [Reload("Runtime/PostProcessing/Shaders/CompositeWithUIAndOETF.shader")]
+            public Shader compositeUIAndOETFApplyPS;
 
             // Physically based DoF
             [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
