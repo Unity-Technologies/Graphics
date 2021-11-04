@@ -15,8 +15,6 @@ float Wavelength;
 
 int _SensorLightCount;
 
-
-
 /*
 struct LightData
 {
