@@ -71,8 +71,9 @@ CBUFFER_START(ShaderVariablesClouds)
     int _EnableFastToneMapping;
     int _IsPlanarReflection;
     int _ValidMaxZMask;
-    int _Padding0;
-    float2 _Padding1;
+    int _ImprovedTransmittanceBlend;
+    int _CubicTransmittance;
+    int _Padding1;
     float4 _DistanceBasedWeights[12];
 CBUFFER_END
 
