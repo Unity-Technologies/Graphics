@@ -2,7 +2,7 @@
 
 The Branch On Input Connection node allows you to change the behavior of a Sub Graph based on the connected state of an input property in the parent Shader Graph. Shader Graph determines whether the property in the parent Shader Graph is connected, or not connected, and chooses a value to use as an output based on that connection state.
 
-![](images/sg-branch-on-input-connection-node.png)
+![An image of the Graph window, showing the Branch on Input Connection node.](images/sg-branch-on-input-connection-node.png)
 
 Shader Graph uses two ports when it determines the node's connection state:
 
@@ -61,6 +61,6 @@ The Branch On Input Connection node is compatible with all render pipelines.
 
 ## Example shader Sub Graph usage
 
-This Branch On Input Connection node uses the connection status of a Vector2 property to change the UV channel used to generate a checkerboard pattern:
+This Branch On Input Connection node uses the connection status of a Vector2 property in its parent graph. The connection status tells the Branch on Input Connection node whether to use the UV2 or UV0 channel to generate a checkerboard pattern:
 
-![](images/sg-branch-on-input-connection-node-example.png)
+![An image of the Graph window, showing a Branch on Input Connection node connected to the UV2 property, and a UV node that outputs the UV0 channel. It outputs the UV channel to the UV input port on a Checkerboard node.](images/sg-branch-on-input-connection-node-example.png)

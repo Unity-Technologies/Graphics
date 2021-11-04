@@ -2,7 +2,7 @@
 
 The Calculate Level of Detail Texture 2D node calculates the mip level, or Level of Detail (LOD) used by a texture sample. This node can help you modify the LOD of a texture before sampling in your Shader Graph.
 
-![](images/sg-calculate-level-detail-texture-2d-node.png)
+![An image of the Graph window, showing a Calculate Level of Detail Texture 2D node.](images/sg-calculate-level-detail-texture-2d-node.png)
 
 The Calculate Level of Detail Texture 2D node also has a clamped and unclamped mode:
 
@@ -39,6 +39,6 @@ The Calculate Level of Detail Texture 2D node is compatible with all render pipe
 
 ## Example shader usage
 
-This Calculate Level of Detail Texture 2D node calculates the level of detail of the **Leaves_Albedo** texture and gives that value as an input to the Sample Texture 2D LOD node for the same texture:
+This Calculate Level of Detail Texture 2D node calculates the level of detail of the **Leaves_Albedo** texture. It sends the calculated level of detail to the LOD input port on the Sample Texture 2D LOD node for the same texture:
 
-![](images/sg-calculate-level-detail-texture-2d-node-example.png)
+![An image of the Graph window, showing a Texture 2D asset node connected to a Calculate Level of Detail Texture 2D node. The node sends the calculated level of detail as an input to the LOD input port on a Sample Texture 2D LOD node.](images/sg-calculate-level-detail-texture-2d-node-example.png)
