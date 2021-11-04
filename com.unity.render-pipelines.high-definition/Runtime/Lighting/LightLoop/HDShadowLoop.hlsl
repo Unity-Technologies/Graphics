@@ -52,9 +52,15 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
                 else
 #endif
                 {
-                    shadowD = GetDirectionalShadowAttenuation(shadowContext,
-                                                            posInput.positionSS, posInput.positionWS, normalWS,
-                                                            light.shadowIndex, wi);
+                #if defined(SHADER_STAGE_RAY_TRACING)
+                    // If we are in the ray tracing case, we want to be able to have the directional shadow fallback.
+                    int shadowSplitIndex;
+                    shadowD = EvalShadow_CascadedDepth_Dither_SplitIndex(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, posInput.positionSS, posInput.positionWS, normalWS, light.shadowIndex, wi, shadowSplitIndex);
+                    if (shadowSplitIndex < 0.0)
+                        shadowD = _DirectionalShadowFallbackIntensity;
+                #else
+                    shadowD = GetDirectionalShadowAttenuation(shadowContext, posInput.positionSS, posInput.positionWS, normalWS, light.shadowIndex, wi);
+                #endif
                 }
 
 #ifdef SHADOW_LOOP_MULTIPLY
