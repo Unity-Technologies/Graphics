@@ -171,6 +171,8 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 [shader("closesthit")]
 void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
+    pathIntersection.t = RayTCurrent();
+
     float4 inputSample = GetSample4D(pathIntersection.pixelCoord, _RaytracingSampleIndex, 0);
     ComputeSurfaceScattering(pathIntersection, attributeData, inputSample);
 
