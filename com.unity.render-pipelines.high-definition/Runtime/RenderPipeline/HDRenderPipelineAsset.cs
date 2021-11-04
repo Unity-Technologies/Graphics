@@ -222,5 +222,20 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Indicates if virtual texturing is currently enabled for this render pipeline instance.
         /// </summary>
         public bool virtualTexturingEnabled { get { return true; } }
+
+        private static Material s_VisibilityMaterial = null;
+        public Material VisibilityMaterial { get { return s_VisibilityMaterial; } }
+
+        public override RenderPipelineAsset.VisibilityMaterialRendererInfo GetVisibilityMaterialInfoForRenderer(RenderPipelineAsset.GetVisibilityMaterialInfoForRendererArgs arguments)
+        {
+            if (s_VisibilityMaterial == null)
+                s_VisibilityMaterial = CoreUtils.CreateEngineMaterial(globalSettings.renderPipelineResources.shaders.visibilityPS);
+
+            return new RenderPipelineAsset.VisibilityMaterialRendererInfo()
+            {
+                supportsVisibility = true,
+                materialOverride = s_VisibilityMaterial
+            };
+        }
     }
 }

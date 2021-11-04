@@ -318,11 +318,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer depthPyramidOffsets;
             public TextureHandle output;
             public TextureHandle input;
+            public TextureHandle vBuffer;
             public TextureHandle depthPyramid;
             public ComputeBufferHandle fullscreenBuffer;
         }
 
-        TextureHandle ResolveFullScreenDebug(RenderGraph renderGraph, TextureHandle inputFullScreenDebug, TextureHandle depthPyramid, HDCamera hdCamera, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        TextureHandle ResolveFullScreenDebug(RenderGraph renderGraph, TextureHandle inputFullScreenDebug, TextureHandle vBuffer, TextureHandle depthPyramid, HDCamera hdCamera, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat)
         {
             using (var builder = renderGraph.AddRenderPass<ResolveFullScreenDebugPassData>("ResolveFullScreenDebug", out var passData))
             {
@@ -330,6 +331,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
                 passData.debugFullScreenMaterial = m_DebugFullScreen;
                 passData.input = builder.ReadTexture(inputFullScreenDebug);
+                passData.vBuffer = builder.ReadTexture(vBuffer);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.depthPyramidMip = (int)(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * GetDepthBufferMipChainInfo().mipLevelCount);
                 passData.depthPyramidOffsets = GetDepthBufferMipChainInfo().GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
@@ -350,6 +352,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         mpb.SetTexture(HDShaderIDs._DebugFullScreenTexture, data.input);
                         mpb.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+                        mpb.SetTexture(HDShaderIDs._VisibilityTexture, data.vBuffer);
                         mpb.SetFloat(HDShaderIDs._FullScreenDebugMode, (float)data.debugDisplaySettings.data.fullScreenDebugMode);
                         if (data.debugDisplaySettings.data.enableDebugDepthRemap)
                             mpb.SetVector(HDShaderIDs._FullScreenDebugDepthRemap, new Vector4(data.debugDisplaySettings.data.fullScreenDebugDepthRemap.x, data.debugDisplaySettings.data.fullScreenDebugDepthRemap.y, data.hdCamera.camera.nearClipPlane, data.hdCamera.camera.farClipPlane));
@@ -1001,6 +1004,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderDebug(RenderGraph renderGraph,
             HDCamera hdCamera,
             TextureHandle colorBuffer,
+            TextureHandle vBuffer,
             TextureHandle depthBuffer,
             TextureHandle depthPyramidTexture,
             TextureHandle colorPickerDebugTexture,
@@ -1018,7 +1022,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (NeedsFullScreenDebugMode() && m_FullScreenDebugPushed)
             {
-                output = ResolveFullScreenDebug(renderGraph, m_DebugFullScreenTexture, depthPyramidTexture, hdCamera, colorFormat);
+                output = ResolveFullScreenDebug(renderGraph, m_DebugFullScreenTexture, vBuffer, depthPyramidTexture, hdCamera, colorFormat);
 
                 // If we have full screen debug, this is what we want color picked, so we replace color picker input texture with the new one.
                 if (NeedColorPickerDebug(m_CurrentDebugDisplaySettings))

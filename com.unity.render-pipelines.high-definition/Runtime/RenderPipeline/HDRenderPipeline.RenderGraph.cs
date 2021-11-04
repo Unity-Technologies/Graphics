@@ -286,6 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     postProcessDest = RenderDebug(m_RenderGraph,
                         hdCamera,
                         postProcessDest,
+                        prepassOutput.vbuffer.vbuffer,
                         prepassOutput.resolvedDepthBuffer,
                         prepassOutput.depthPyramidTexture,
                         colorPickerTexture,
