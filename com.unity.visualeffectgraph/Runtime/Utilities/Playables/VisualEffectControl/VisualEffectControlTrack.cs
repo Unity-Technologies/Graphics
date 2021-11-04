@@ -5,7 +5,7 @@ using UnityEngine.Timeline;
 
 namespace UnityEngine.VFX
 {
-    [TrackColor(1.0f, 0.0f, 1.0f)]
+    [TrackColor(0.5990566f, 0.9038978f, 1f)]
     [TrackClipType(typeof(VisualEffectControlPlayableAsset))]
     [TrackBindingType(typeof(VisualEffect))]
     class VisualEffectControlTrack : TrackAsset
