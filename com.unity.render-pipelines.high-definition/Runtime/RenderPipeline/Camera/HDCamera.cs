@@ -257,6 +257,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public float verticalErosionOffset;
         }
 
+#if ENABLE_SENSOR_SDK
+        internal RayTracingShader pathTracingShaderOverride { get; set; } = null;
+        internal Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays { get; set; } = null;
+#endif
+
         internal Vector4[] frustumPlaneEquations;
         internal int taaFrameIndex;
         internal float taaSharpenStrength;
