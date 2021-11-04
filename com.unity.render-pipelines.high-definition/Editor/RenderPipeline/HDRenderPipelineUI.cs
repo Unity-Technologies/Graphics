@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         #region Expandable States
 
-        enum Expandable
+        internal enum Expandable
         {
             // Obsolete values
             Rendering = 1 << 4,
@@ -219,6 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeStreaming, Styles.supportProbeVolumeStreaming);
 
                 int estimatedVMemCost = ProbeReferenceVolume.instance.GetVideoMemoryCost();
                 if (estimatedVMemCost == 0)
@@ -232,7 +233,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Global Settings.", MessageType.Info, wide: true);
+                HDEditorUtils.GlobalSettingsHelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Global Settings.",
+                    MessageType.Info, "supportProbeVolumes");
             }
         }
 
@@ -438,6 +440,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (new EditorGUI.IndentLevelScope())
             {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.allowDirectionalMixedCachedShadows, Styles.allowMixedCachedCascadeShadows);
                 EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowMapDepthBits, Styles.shadowBitDepthNames, Styles.shadowBitDepthValues, Styles.directionalShadowPrecisionContent);
                 serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional.ValueGUI<int>(Styles.shadowResolutionTiers);
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxDirectionalShadowMapResolution, Styles.maxShadowResolution);
