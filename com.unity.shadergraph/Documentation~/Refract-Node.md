@@ -2,7 +2,7 @@
 
 ## Description
 
-Generates a refraction [Ibn Sahl-Snell-Descartes's Law](https://en.wikipedia.org/wiki/Snell%27s_law). Based on an **Incident** vector, the **Normal** of the surface and **Eta** we produce the refracted vector.
+Generates a refraction using [Sahl-Snell's Law](https://en.wikipedia.org/wiki/Snell%27s_law) and produces a new refracted vector. Based on an **Incident** vector, the **Normal** of the surface and **Eta** we produce the refracted vector.
 
 Based on Ibn Sahl's Law, for a given refractive index of the medium, we can reach an angle where all the surface behave like a perfect mirror, that's why in **Safe** Mode generate a null vector, this implementation is here to not double the reflection intensity which is handle by Fresnel.
 
@@ -13,7 +13,7 @@ Based on Ibn Sahl's Law, for a given refractive index of the medium, we can reac
 | Incident      | Input | Vector | None | Incident normalied vector to the surface (From surface to source, for instance from pixel to eye). |
 | Normal      | Input | Vector | None | Normal normalized of the surface |
 | Eta      | Input | Float    | None | The ratio of refractive index (Eta == (source refractive index)/(medium refractive index)), For instance for an interaction from air to glass **Eta** will be 1.0/1.5 and for an interaction from glass to air **Eta** will be 1.5/1.0. |
-| Out | Output      |  Vector | None | Refracted vector |
+| Out | Output      |  Vector | None | The refracted vector |
 
 ## Controls
 
