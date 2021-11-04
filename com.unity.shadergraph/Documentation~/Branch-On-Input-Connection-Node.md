@@ -15,7 +15,7 @@ The Branch On Input Connection node's functionality is based on the [Branch Node
 > [!NOTE]
 > You can't use the Branch On Input Connection node with a Streaming Virtual Texture Property. For more information on Streaming Virtual Texturing, see [Using Streaming Virtual Texturing in Shader Graph](https://docs.unity3d.com/Documentation/Manual/svt-use-in-shader-graph.html).
 
-## Create Node menu location
+## Create Node menu category
 
 The Branch On Input Connection node is under the **Utility** &gt; **Logic** category in the Create Node menu. You can only use it in a Shader Sub Graph.
 
