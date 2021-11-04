@@ -281,6 +281,17 @@ float SampleCustomDepth(float2 uv)
     return LoadCustomDepth(uint2(uv * _ScreenSize.xy));
 }
 
+bool IsSky(uint2 pixelCoord)
+{
+    float deviceDepth = LoadCameraDepth(pixelCoord);
+    return deviceDepth == 0; // We assume the sky is the part of the depth buffer that haven't been written.
+}
+
+bool IsSky(float2 uv)
+{
+    return IsSky(uint2(uv * _ScreenSize.xy));
+}
+
 float4x4 OptimizeProjectionMatrix(float4x4 M)
 {
     // Matrix format (x = non-constant value).

@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             NormalWorldSpace,
             Roughness,
             MotionVectors,
+            IsSky,
             PostProcessInput,
         }
 
@@ -54,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public HDSampleBufferNode()
         {
             name = "HD Sample Buffer";
-            synonyms = new string[] { "normal", "motion vector", "roughness", "postprocessinput", "blit" };
+            synonyms = new string[] { "normal", "motion vector", "roughness", "postprocessinput", "blit", "issky"};
             UpdateNodeAfterDeserialization();
         }
 
@@ -82,6 +83,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     AddSlot(new Vector2MaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Vector2.zero, ShaderStageCapability.Fragment));
                     channelCount = 2;
                     break;
+                case BufferType.IsSky:
+                    AddSlot(new Vector1MaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, 0, ShaderStageCapability.Fragment));
+                    channelCount = 1;
+                    break;
                 case BufferType.PostProcessInput:
                     AddSlot(new ColorRGBAMaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Color.black, ShaderStageCapability.Fragment));
                     channelCount = 4;
@@ -103,10 +108,17 @@ namespace UnityEditor.Rendering.HighDefinition
             // Preview SG doesn't have access to HDRP depth buffer
             if (!generationMode.IsPreview())
             {
+                registry.RequiresIncludePath("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl");
+                registry.RequiresIncludePath("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl");
+
                 registry.ProvideFunction(GetFunctionName(), s =>
                 {
-                    s.AppendLine("#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl\"");
-                    s.AppendLine("#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl\"");
+                    if (bufferType == BufferType.PostProcessInput)
+                    {
+                        // Declare post process input here because the property collector don't support TEXTURE_X type
+                        s.AppendLine($"TEXTURE2D_X({nameof(HDShaderIDs._CustomPostProcessInput)});");
+                        s.AppendLine($"SAMPLER(sampler{nameof(HDShaderIDs._CustomPostProcessInput)});");
+                    }
 
                     // Declare post process input here because the property collector don't support TEXTURE_X type
                     s.AppendLine($"TEXTURE2D_X({nameof(HDShaderIDs._CustomPostProcessInput)});");
@@ -121,22 +133,22 @@ namespace UnityEditor.Rendering.HighDefinition
                                 s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
                                 s.AppendLine("NormalData normalData;");
                                 s.AppendLine("DecodeFromNormalBuffer(pixelCoords, normalData);");
-                                s.AppendLine("float depth = LoadCameraDepth(pixelCoords);");
-                                s.AppendLine("return depth > 0 ? normalData.normalWS : 0;");
+                                s.AppendLine("return IsSky(pixelCoords) ? 0 : normalData.normalWS;");
                                 break;
                             case BufferType.Roughness:
                                 s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
                                 s.AppendLine("NormalData normalData;");
                                 s.AppendLine("DecodeFromNormalBuffer(pixelCoords, normalData);");
-                                s.AppendLine("float depth = LoadCameraDepth(pixelCoords);");
-                                s.AppendLine("return depth > 0 ? PerceptualRoughnessToRoughness(normalData.perceptualRoughness) : 0;");
+                                s.AppendLine("return IsSky(pixelCoords) ? 0 : PerceptualRoughnessToRoughness(normalData.perceptualRoughness);");
                                 break;
                             case BufferType.MotionVectors:
-                                // if we have a value > 1.0f, it means we have selected the "no motion option", hence we force motionVec 0.
                                 s.AppendLine($"float4 motionVecBufferSample = SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, samplerState, uv * _RTHandleScale.xy, 0);");
                                 s.AppendLine("float2 motionVec;");
                                 s.AppendLine("DecodeMotionVector(motionVecBufferSample, motionVec);");
                                 s.AppendLine("return motionVec;");
+                                break;
+                            case BufferType.IsSky:
+                                s.AppendLine("return IsSky(uv) ? 1 : 0;");
                                 break;
                             case BufferType.PostProcessInput:
                                 s.AppendLine("return SAMPLE_TEXTURE2D_X_LOD(_CustomPostProcessInput, samplerState, uv * _RTHandlePostProcessScale.xy, 0);");
