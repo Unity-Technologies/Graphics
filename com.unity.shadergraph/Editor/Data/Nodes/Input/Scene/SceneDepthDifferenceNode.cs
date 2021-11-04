@@ -92,23 +92,28 @@ namespace UnityEditor.ShaderGraph
             return
 @"
 {
-    if (unity_OrthoParams.w == 1.0)
+    if (IsPerspectiveProjection())
+    {
+        //LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams)
+        //float theEye = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);//ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x).w;
+        //float theEye = LinearEyeDepth(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);
+
+        //float theEye = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);
+        //float theEye = ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP).z*dot(GetViewForwardDir(), GetWorldSpaceNormalizeViewDir(PositionWS));
+        float theEye = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams)/dot(GetViewForwardDir(), GetWorldSpaceNormalizeViewDir(PositionWS));
+
+#if defined(UNITY_REVERSED_Z)
+        Out = theEye - length(PositionWS);
+#else
+        Out = length(PositionWS) - theEye;
+#endif
+    }
+    else
     {
 #if defined(UNITY_REVERSED_Z)
         Out = LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V) - length(PositionWS);
 #else
         Out = length(PositionWS) - LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V);
-#endif
-    }
-    else
-    {
-        //LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams)
-        float theEye = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);//ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x).w;
-        //float theEye = LinearEyeDepth(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);
-#if defined(UNITY_REVERSED_Z)
-        Out = theEye - length(PositionWS);
-#else
-        Out = length(PositionWS) - theEye;
 #endif
     }
 }
