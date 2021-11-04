@@ -36,7 +36,7 @@ After you enable Decal Layers, you can then use them to decouple Meshes from cer
 
 By default, in the UI for Decal Projectors, Mesh Renderers, or Terrain, Decal Layers are named **Decal Layer 1-7**. To more easily differentiate between them, you can give each Decal Layer a specific name. To do this, open the [HDRP Global Settings](Default-Settings-Window.md), and go to **Decal Layer Names**. Here you can set the name of each Decal Layer individually.
 
-### How decals affect performance
+### How Decal Layers affect performance
 
 When you enable Decal Layers, it increases the build time of your project. This is because Decal Layers:
 
