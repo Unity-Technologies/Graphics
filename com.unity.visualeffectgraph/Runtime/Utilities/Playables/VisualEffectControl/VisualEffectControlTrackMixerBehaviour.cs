@@ -144,14 +144,24 @@ namespace UnityEngine.VFX
                 }
             }
 
-            private void OnLeaveChunk(int previousChunk)
+            private void OnLeaveChunk(int previousChunkIndex, bool leavingGoingBeforeClip)
             {
-                var chunk = m_Chunks[previousChunk];
+                var previousChunk = m_Chunks[previousChunkIndex];
 
-                if (chunk.reinitExit)
+                if (previousChunk.reinitExit)
+                {
                     m_Target.Reinit(false);
+                }
+                else
+                {
+#if UNITY_EDITOR
+                    if (previousChunk.scrubbing)
+                        throw new InvalidOperationException();
+#endif
+                    ProcessNoScrubbingEvents(previousChunk, m_LastPlayableTime, leavingGoingBeforeClip ? previousChunk.begin : previousChunk.end);
+                }
 
-                RestoreVFXState(chunk.scrubbing, chunk.reinitEnter);
+                RestoreVFXState(previousChunk.scrubbing, previousChunk.reinitEnter);
 
 #if UNITY_EDITOR
                 m_ClipState = null;
@@ -179,7 +189,6 @@ namespace UnityEngine.VFX
                 m_DebugFrame.Enqueue(current);
             }
 #endif
-
             private static double Abs(double a)
             {
                 return a < 0.0 ? -a : a;
@@ -193,7 +202,6 @@ namespace UnityEngine.VFX
 
             public void Update(double playableTime, float deltaTime)
             {
-
 #if UNITY_EDITOR
                 if (m_LastErrorID != uint.MaxValue)
                 {
@@ -203,7 +211,6 @@ namespace UnityEngine.VFX
 #endif
 
                 var paused = deltaTime == 0.0;
-                var playingBackward = playableTime < m_LastPlayableTime;
                 var dbg = Debug.State.OutChunk;
 
                 var currentChunkIndex = kErrorIndex;
@@ -232,7 +239,8 @@ namespace UnityEngine.VFX
                 {
                     if (m_LastChunk != kErrorIndex)
                     {
-                        OnLeaveChunk(m_LastChunk);
+                        var before = playableTime < m_Chunks[m_LastChunk].begin;
+                        OnLeaveChunk(m_LastChunk, before);
                     }
                     if (currentChunkIndex != kErrorIndex)
                     {
@@ -256,6 +264,7 @@ namespace UnityEngine.VFX
                         if (!firstFrameOfChunk)
                             actualCurrentTime -= chunk.prewarmOffset;
 
+                        var playingBackward = playableTime < m_LastPlayableTime;
                         if (!playingBackward)
                         {
                             if (Abs(m_LastPlayableTime - actualCurrentTime) < VFXManager.maxDeltaTime)
@@ -348,41 +357,50 @@ namespace UnityEngine.VFX
                     else //No scrubbing
                     {
                         m_Target.pause = false;
-                        if (playingBackward)
-                        {
-                            var eventBehind = GetEventsIndex(chunk, playableTime, m_LastPlayableTime, kErrorIndex);
-                            if (eventBehind.Any())
-                            {
-                                foreach (var itEvent in eventBehind)
-                                {
-                                    var currentEvent = chunk.events[itEvent];
-                                    if (currentEvent.clipType == Event.ClipType.Enter)
-                                    {
-                                        ProcessEvent(chunk.clips[currentEvent.clipIndex].exit, chunk);
-                                        dbg = Debug.State.ScrubbingBackward;
-                                    }
-                                    else if (currentEvent.clipType == Event.ClipType.Exit)
-                                    {
-                                        ProcessEvent(chunk.clips[currentEvent.clipIndex].enter, chunk);
-                                        dbg = Debug.State.ScrubbingBackward;
-                                    }
-                                    //else: Ignore, we aren't playing single event backward
-                                }
-
-                                //The last event will be always invalid in case of scrubbing backward
-                                m_LastEvent = kErrorIndex;
-                            }
-                        }
-
-                        var eventList = GetEventsIndex(chunk, m_LastPlayableTime, playableTime, m_LastEvent);
-                        foreach (var itEvent in eventList)
-                            ProcessEvent(itEvent, chunk);
+                        ProcessNoScrubbingEvents(chunk, m_LastPlayableTime, playableTime);
                     }
                 }
                 m_LastPlayableTime = playableTime;
 #if UNITY_EDITOR
                 PushDebugState(dbg, deltaTime);
 #endif
+            }
+
+            void ProcessNoScrubbingEvents(Chunk chunk, double oldTime, double newTime)
+            {
+#if UNITY_EDITOR
+                if (chunk.scrubbing)
+                    throw new InvalidOperationException();
+#endif
+                if (newTime < oldTime) // == playingBackward
+                {
+                    var eventBehind = GetEventsIndex(chunk, newTime, oldTime, kErrorIndex);
+                    if (eventBehind.Any())
+                    {
+                        foreach (var itEvent in eventBehind.Reverse())
+                        {
+                            var currentEvent = chunk.events[itEvent];
+                            if (currentEvent.clipType == Event.ClipType.Enter)
+                            {
+                                ProcessEvent(chunk.clips[currentEvent.clipIndex].exit, chunk);
+                            }
+                            else if (currentEvent.clipType == Event.ClipType.Exit)
+                            {
+                                ProcessEvent(chunk.clips[currentEvent.clipIndex].enter, chunk);
+                            }
+                            //else: Ignore, we aren't playing single event backward
+                        }
+
+                        //The last event will be always invalid in case of scrubbing backward
+                        m_LastEvent = kErrorIndex;
+                    }
+                }
+                else
+                {
+                    var eventAhead = GetEventsIndex(chunk, oldTime, newTime, m_LastEvent);
+                    foreach (var itEvent in eventAhead)
+                        ProcessEvent(itEvent, chunk);
+                }
             }
 
             void ProcessEvent(int eventIndex, Chunk currentChunk)
