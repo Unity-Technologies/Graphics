@@ -248,15 +248,15 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
     pathIntersection.value = computeDirect ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
 
-// Apply shadow matte if requested
-#ifdef _ENABLE_SHADOW_MATTE
+    // Apply shadow matte if requested
+    #ifdef _ENABLE_SHADOW_MATTE
     float3 shadowColor = lerp(pathIntersection.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
     float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
     pathIntersection.value = lerp(shadowColor, pathIntersection.value, visibility);
-#endif
+    #endif
 
-// Simulate opacity blending by simply continuing along the current ray
-#ifdef _SURFACE_TYPE_TRANSPARENT
+    // Simulate opacity blending by simply continuing along the current ray
+    #ifdef _SURFACE_TYPE_TRANSPARENT
     if (builtinData.opacity < 1.0)
     {
         RayDesc rayDescriptor;
@@ -273,7 +273,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
         pathIntersection.value = lerp(nextPathIntersection.value, pathIntersection.value, builtinData.opacity);
     }
-#endif
+    #endif
 
 #endif // SHADER_UNLIT
 }
@@ -329,25 +329,28 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
 #endif // HAS_LIGHTLOOP
 
-    // Apply volumetric attenuation
-    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
-
-    // Apply the volume/surface pdf
-    pathIntersection.value /= pdf;
-
-    if (currentDepth)
+    if (currentDepth >= 0)
     {
-        // Bias the result (making it too dark), but reduces fireflies a lot
-        float intensity = Luminance(pathIntersection.value) * GetCurrentExposureMultiplier();
-        if (intensity > _RaytracingIntensityClamp)
-            pathIntersection.value *= _RaytracingIntensityClamp / intensity;
+        // Apply volumetric attenuation
+        ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
+
+        // Apply the volume/surface pdf
+        pathIntersection.value /= pdf;
+
+        if (currentDepth)
+        {
+            // Bias the result (making it too dark), but reduces fireflies a lot
+            float intensity = Luminance(pathIntersection.value) * GetCurrentExposureMultiplier();
+            if (intensity > _RaytracingIntensityClamp)
+                pathIntersection.value *= _RaytracingIntensityClamp / intensity;
+        }
     }
 }
 
 [shader("anyhit")]
 void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
-    // The first thing that we should do is grab the intersection vertice
+    // The first thing that we should do is grab the intersection vertex
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
 
