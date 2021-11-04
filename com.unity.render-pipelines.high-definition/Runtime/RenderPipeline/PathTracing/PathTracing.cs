@@ -282,16 +282,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle sky;
         }
 
-//SensorSDK - Begin
-        internal RayTracingShader m_PathTracingShaderOverride = null;
-        internal Action<UnityEngine.Rendering.CommandBuffer> m_PrepareDispatchRays = null;
-//SensorSDK - End
+#if !ENABLE_SENSOR_SDK
+        internal RayTracingShader pathTracingShaderOverride { private get; set; } = null;
+        internal Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays { private get; set; } = null;
+#endif
 
         TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, in CameraData cameraData, TextureHandle pathTracingBuffer, TextureHandle skyBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render PathTracing", out var passData))
             {
-                passData.pathTracingShader = m_PathTracingShaderOverride ? m_PathTracingShaderOverride : m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
+#if !ENABLE_SENSOR_SDK
+                passData.pathTracingShader = pathTracingShaderOverride ? pathTracingShaderOverride : m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
+#else
+                passData.pathTracingShader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
+#endif
                 passData.cameraData = cameraData;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
                 passData.backgroundColor = hdCamera.backgroundColorHDR;
@@ -349,9 +353,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracingDoFParameters, data.dofParameters);
                         ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracingTilingParameters, data.tilingParameters);
 
-//SensorSDK - Begin
-                        m_PrepareDispatchRays?.Invoke(ctx.cmd);
-//SensorSDK - End
+#if !ENABLE_SENSOR_SDK
+                        // SensorSDK can do its own camera rays generation
+                        prepareDispatchRays?.Invoke(ctx.cmd);
+#endif
                         // Run the computation
                         ctx.cmd.DispatchRays(data.pathTracingShader, "RayGen", (uint)data.width, (uint)data.height, 1);
                     });
