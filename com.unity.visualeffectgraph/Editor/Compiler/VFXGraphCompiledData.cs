@@ -43,7 +43,8 @@ namespace UnityEditor.VFX
     class VFXGraphCompiledData
     {
         // 3: Serialize material
-        public const uint compiledVersion = 3;
+        // 4: Bounds helper change
+        public const uint compiledVersion = 4;
 
         public VFXGraphCompiledData(VFXGraph graph)
         {
