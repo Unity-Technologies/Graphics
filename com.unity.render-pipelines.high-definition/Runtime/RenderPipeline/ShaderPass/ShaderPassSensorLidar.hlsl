@@ -85,9 +85,13 @@ bool SampleBeam(LightData lightData,
     return value.x > 0.0;
 }
 
-void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
+[shader("closesthit")]
+void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
-    // The first thing that we should do is grab the intersection vertex
+    // Always set the new t value
+    pathIntersection.t = RayTCurrent();
+
+    // Then grab the intersection vertex
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
 
@@ -139,7 +143,8 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
     // Initialize our material data (this will alter the bsdfData to suit path tracing, and choose between BSDF or SSS evaluation)
     MaterialData mtlData;
-    if (CreateMaterialData(pathIntersection, builtinData, bsdfData, shadingPosition, inputSample.z, mtlData))
+    if (CreateMaterialData(pathIntersection, builtinData, bsdfData, shadingPosition,
+                           GetSample(pathIntersection.pixelCoord, _RaytracingSampleIndex, 0), mtlData))
     {
     #ifdef _SURFACE_TYPE_TRANSPARENT
         float3 lightNormal = 0.0;
@@ -163,18 +168,9 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
             }
         }
 
+        ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value);
+
         // Copy the last beam radius and depth to the payload
         pathIntersection.value.yz = value.yz;
     }
-}
-
-[shader("closesthit")]
-void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
-{
-    pathIntersection.t = RayTCurrent();
-
-    float4 inputSample = GetSample4D(pathIntersection.pixelCoord, _RaytracingSampleIndex, 0);
-    ComputeSurfaceScattering(pathIntersection, attributeData, inputSample);
-
-    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value);
 }
