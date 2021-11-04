@@ -306,6 +306,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     float3 lightPosition;
     bool sampleLocalLights, sampleVolume = false;
 
+    // Skip this code if getting out of a SSS random walk (currentDepth < 0)
     if (currentDepth >= 0)
     {
         // Generate a 4D unit-square sample for this depth, from our QMC sequence
@@ -329,6 +330,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
 #endif // HAS_LIGHTLOOP
 
+    // Skip this code if getting out of a SSS random walk (currentDepth < 0)
     if (currentDepth >= 0)
     {
         // Apply volumetric attenuation
