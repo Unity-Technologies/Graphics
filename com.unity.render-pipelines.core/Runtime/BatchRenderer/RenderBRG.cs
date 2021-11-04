@@ -902,6 +902,12 @@ namespace UnityEngine.Rendering
             foreach (var go in scene.GetRootGameObjects())
                 GetValidChildRenderers(go, renderers);
 
+            if (renderers.Count == 0)
+                return;
+
+#if DEBUG_LOG_SCENE
+            Debug.Log("Loading scene: " + scene.name);
+#endif
             SceneBRG brg = new SceneBRG();
             brg.Initialize(renderers);
             m_Scenes[scene] = brg;
