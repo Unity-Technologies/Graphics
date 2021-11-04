@@ -66,11 +66,15 @@ HDRP uses the ambient Light Probe as the final fallback for indirect diffuse lig
 - Mesh Renderers that have their **Light Probe Mode** set to **Off**
 - Volumetric fog if the Global Light Probe dimmer is set to a value above 0
 
-The ambient Light Probe can be static (generated only once from the static lighting sky set in the HDRP environment panel) or dynamic (updated at runtime from the sky currently in use).**Note**: If there is a **Light Probe group** in your Scene and you have computed indirect ambient lighting, then the Ambient Light Probe only affects Mesh Renderers that have their **Light Probe Mode** set to **Off**, and that have **Volumetric fog** (if it’s enabled in the Scene).
+The ambient Light Probe can be static (generated only once from the static lighting sky set in the HDRP **Environment (HDRP)**panel) or dynamic (updated at runtime from the sky currently in use).
+
+***\*Note\****: If there is a ***\*Light Probe group\**** in your Scene and you have computed indirect ambient lighting, then the Ambient Light Probe only affects Mesh Renderers that have their ***\*Light Probe Mode\**** set to ***\*Off\****, and that have ***\*Volumetric fog\**** (if it’s enabled in the Scene).
 
 ### Limitation of Dynamic Ambient mode
 
-HDRP computes the Ambient Light Probe on the GPU and then uses asynchronous readback on the CPU. For this reason, the ambient probe will always be at least one frame late after being changed. As a consequence, when using dynamic ambient mode and more complex lighting setups with reflection probes updated every once in a while on demand, the ambient probe used for reflection rendering will not be the right one (it will be the one computed the last time the reflection probe was updated). This can cause visual artefacts as the ambient lighting won't match actual lighting.
+The Ambient Light Probe always affects your scene one frame late after HDRP calculates it. This is because HDRP calculates Ambient Light Probes on the GPU and then uses asynchronous readback on the CPU. 
+
+As a result, the ambient lighting might not match the actual lighting and cause visual artifacts. This can happen when you use the dynamic ambient mode and use reflection probes that update on demand.
 
 ## Ambient Reflection Probe
 
