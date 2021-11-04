@@ -59,6 +59,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>User stencil bit 0.</summary>
         UserBit0 = StencilUsage.UserBit0,
         /// <summary>User stencil bit 1.</summary>
-        UserBit1 = StencilUsage.UserBit1
+        UserBit1 = StencilUsage.UserBit1,
+        /// <summary>The mask of all the user bits.</summary>
+        AllUserBits = UserBit0 | UserBit1,
     }
 }

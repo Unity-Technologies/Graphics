@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent fetchColorBuffer = new GUIContent("Fetch Color Buffer", "Tick this if your effect sample/fetch the camera color buffer");
 
             public readonly static string writeAndFetchColorBufferWarning = "Fetching and Writing to the camera color buffer at the same time is not supported on most platforms.";
-            public readonly static string stencilWriteOverReservedBits = "The Stencil Write Mask of your material overwrites the bits reserved by HDRP. To avoid rendering errors, set the Write Mask to " + (int)(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1);
+            public readonly static string stencilWriteOverReservedBits = "The Stencil Write Mask of your material overwrites the bits reserved by HDRP. To avoid rendering errors, set the Write Mask to " + (int)(UserStencilUsage.AllUserBits);
             public readonly static string stencilHelpInfo = $"Stencil is enabled on the material. To help you configure the stencil operations, use these values for the bits available in HDRP: User Bit 0: {(int)UserStencilUsage.UserBit0} User Bit 1: {(int)UserStencilUsage.UserBit1}";
         }
 
@@ -133,7 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (targetDepthBuffer == CustomPass.TargetBuffer.Custom)
                 return false;
 
-            return ((writeMask & (int)~(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1)) != 0);
+            return ((writeMask & (int)~UserStencilUsage.AllUserBits) != 0);
         }
 
         void GetStencilInfo(Material material, out bool stencilEnabled, out int writeMaskValue)

@@ -79,12 +79,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Write mask of the stencil.
         /// </summary>
-        public int stencilWriteMask = (int)(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1);
+        public int stencilWriteMask = (int)(UserStencilUsage.AllUserBits);
 
         /// <summary>
         /// Read mask of the stencil
         /// </summary>
-        public int stencilReadMask = (int)(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1);
+        public int stencilReadMask = (int)(UserStencilUsage.AllUserBits);
 
         /// <summary>
         /// Comparison operation between the stencil buffer and the reference value.

@@ -824,4 +824,3 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2319_Mixed_Cached_ShadowMap_Area.unity
     guid: 7e722454fc2b45846bf45661cc490359
-  m_configObjects: {}
