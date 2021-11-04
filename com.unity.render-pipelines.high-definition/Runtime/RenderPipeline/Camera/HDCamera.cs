@@ -258,8 +258,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if ENABLE_SENSOR_SDK
-        internal RayTracingShader pathTracingShaderOverride { get; set; } = null;
-        internal Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays { get; set; } = null;
+        internal RayTracingShader pathTracingShaderOverride = null;
+        internal Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays = null;
 #endif
 
         internal Vector4[] frustumPlaneEquations;
