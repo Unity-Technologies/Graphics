@@ -176,5 +176,5 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     float4 inputSample = GetSample4D(pathIntersection.pixelCoord, _RaytracingSampleIndex, 0);
     ComputeSurfaceScattering(pathIntersection, attributeData, inputSample);
 
-    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), RayTCurrent(), pathIntersection.value);
+    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value);
 }
