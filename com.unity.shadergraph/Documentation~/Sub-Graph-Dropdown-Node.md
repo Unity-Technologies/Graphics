@@ -4,7 +4,7 @@ The Sub Graph Dropdown node is a node representation of a Dropdown property. It 
 
 After you create a Dropdown property and add its Dropdown node to a Sub Graph, the Sub Graph's node in any parent Shader Graph displays with a dropdown control:
 
-![An image of the Graph Editor, showing a parent Shader Graph with a Sub Graph node. The Sub Graph node has a dropdown menu because the Sub Graph has a Dropdown property and Dropdown node.](images/sg-Sub Graph-dropdown-node-example.png)
+![An image of the Graph Editor, showing a parent Shader Graph with a Sub Graph node. The Sub Graph node has a dropdown menu because the Sub Graph has a Dropdown property and Dropdown node.](images/sg-subgraph-dropdown-node-example.png)
 
 The Sub Graph Dropdown node is similar to the [Keyword node](Keyword-Node.md), and the Graph Inspector displays many of the same properties as an [enum Keyword](Keywords.md#enum-keywords).
 
