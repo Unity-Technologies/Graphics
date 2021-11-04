@@ -1,6 +1,10 @@
 #ifndef UNITY_PATH_TRACING_LIGHT_INCLUDED
 #define UNITY_PATH_TRACING_LIGHT_INCLUDED
 
+#ifdef SENSORSDK_OVERRIDE_REFLECTANCE
+#define SENSORSDK_ENABLE_LIDAR
+#endif
+
 // This is just because it need to be defined, shadow maps are not used.
 #define SHADOW_LOW
 
@@ -338,7 +342,7 @@ float3 GetAreaEmission(LightData lightData, float centerU, float centerV, float 
     return emission;
 }
 
-#if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
+#if defined(SENSORSDK_ENABLE_LIDAR)
 /*
 struct LightData
 {

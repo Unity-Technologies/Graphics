@@ -1,3 +1,8 @@
+
+#ifdef SENSORSDK_OVERRIDE_REFLECTANCE
+#define SENSORSDK_ENABLE_LIDAR
+#endif
+
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
@@ -14,7 +19,7 @@ TEXTURE2D(_SensorCustomReflectance);
 float Wavelength;
 #endif
 
-#if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
+#if defined(SENSORSDK_ENABLE_LIDAR)
 int _SensorLightCount;
 #endif
 
@@ -167,7 +172,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         float3 lightNormal = GetLightNormal(mtlData);
     #endif
     
-    #if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)
+    #if !defined(SENSORSDK_ENABLE_LIDAR)
         LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
     #endif
 
@@ -181,7 +186,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
         PathIntersection nextPathIntersection;
 
-    #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
+    #if defined(SENSORSDK_ENABLE_LIDAR)
             pathIntersection.value = float3(0., 0., 0.);
             for (uint i = 0; i < _SensorLightCount; i++)
             {

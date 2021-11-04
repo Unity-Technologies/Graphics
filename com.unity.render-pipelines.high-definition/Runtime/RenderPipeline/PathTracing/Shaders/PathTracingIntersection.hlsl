@@ -22,7 +22,7 @@ struct PathIntersection
     float maxRoughness;
     
 // SensorSDK - Begin
-#if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
+#if defined(SENSORSDK_ENABLE_LIDAR)
     // Extra params for beam lighthing
     float3 beamDirection;
     float3 beamOrigin;
