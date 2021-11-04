@@ -112,10 +112,24 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif // UNITY_EDITOR
         }
 
-        internal void ResetPathTracing()
+        /// <summary>
+        /// Resets path tracing accumulation for all cameras.
+        /// </summary>
+        public void ResetPathTracing()
         {
             m_RenderSky = true;
             m_SubFrameManager.Reset();
+        }
+
+        /// <summary>
+        /// Resets path tracing accumulation for a specific camera.
+        /// </summary>
+        /// <param name="hdCamera">Camera for which the accumulation is reset.</param>
+        public void ResetPathTracing(HDCamera hdCamera)
+        {
+            int camID = hdCamera.camera.GetInstanceID();
+            CameraData camData = m_SubFrameManager.GetCameraData(camID);
+            ResetPathTracing(camID, camData);
         }
 
         internal CameraData ResetPathTracing(int camID, CameraData camData)
