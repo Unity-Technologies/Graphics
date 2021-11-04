@@ -297,7 +297,16 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
 
     // Transparents have no contact shadow information
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(LIGHT_EVALUATION_NO_CONTACT_SHADOWS)
-    shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
+{
+    // In certain cases (like hair) we allow to force the contact shadow sample.
+    #ifdef LIGHT_EVALUATION_CONTACT_SHADOW_DISABLE_NDOTL
+        const bool allowContactShadow = true;
+    #else
+        const bool allowContactShadow = NdotL > 0.0;
+    #endif
+
+    shadow = min(shadow, allowContactShadow ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
+}
 #endif
 
 #ifdef DEBUG_DISPLAY
@@ -318,7 +327,7 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl"
 
 float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData light,
-                               float3 lightToSample)
+                               float3 lightToSample, float lod = 0)
 {
 #ifndef LIGHT_EVALUATION_NO_COOKIE
     int lightType = light.lightType;
@@ -354,7 +363,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         float2 positionNDC = positionCS * 0.5 + 0.5;
 
         // Manually clamp to border (black).
-        cookie.rgb = SampleCookie2D(positionNDC, light.cookieScaleOffset);
+        cookie.rgb = SampleCookie2D(positionNDC, light.cookieScaleOffset, lod);
         cookie.a   = isInBounds ? 1.0 : 0.0;
     }
 
@@ -471,7 +480,16 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
 
     // Transparents have no contact shadow information
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(LIGHT_EVALUATION_NO_CONTACT_SHADOWS)
-    shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
+    {
+    // In certain cases (like hair) we allow to force the contact shadow sample.
+    #ifdef LIGHT_EVALUATION_CONTACT_SHADOW_DISABLE_NDOTL
+        const bool allowContactShadow = true;
+    #else
+        const bool allowContactShadow = NdotL > 0.0;
+    #endif
+
+        shadow = min(shadow, allowContactShadow ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
+    }
 #endif
 
 #ifdef DEBUG_DISPLAY
