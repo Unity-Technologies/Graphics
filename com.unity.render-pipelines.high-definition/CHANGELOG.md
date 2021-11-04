@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed geometry scale issue with the Eye Shader.
 - Fixed motion vector buffer not accessible from custom passes in the BeforeTransparent, BeforePreRefraction and AfterDepthAndNormal injection points.
 - Fixed the point distribution for the diffuse denoiser sometimes not being properly intialized.
+- Fixed the bad blending between the sun and the clouds (case 1373282).
 
 ### Changed
 - Maximum light count per fine prunned tile (opaque deferred) is now 63 instead of 23.
