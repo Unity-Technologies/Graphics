@@ -30,8 +30,7 @@ To view the Operator's configuration, click the **cog** icon in the Operator's h
 
 ### Available types
 This Operator supports sampling structured buffers that use blittable types. The list of built-in blittable types is:
-  - bool
-  - float*
+  - float
   - int
   - uint
   - Vector2
@@ -59,4 +58,4 @@ The Operator has the following limitations:
 - This Operator expects a GraphicsBuffer created using the [Structured](https://docs.unity3d.com/ScriptReference/GraphicsBuffer.Target.Structured.html) target.
 - The stride of the GraphicsBuffer declaration must match with the structure stride.
 - The structure must be blittable. This means the structure can't store a reference to a Texture2D, but it can store any other blittable structure.
-- This Operator only supports structured buffers that use one of the blittable public type the Visual Effect Graph supports. For the list of avaialable types, see [Available types](#available-types).
+- This Operator only supports structured buffers that use one of the blittable public types the Visual Effect Graph supports. For the list of available types, see [Available types](#available-types).

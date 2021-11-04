@@ -98,6 +98,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor positionPredisplacementRWS = new FieldDescriptor(FragInputs.name, "positionPredisplacementRWS", "", ShaderValueType.Float3,
                 subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor positionPixel = new FieldDescriptor(FragInputs.name, "positionPixel", "", ShaderValueType.Float2,
+                subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor tangentToWorld = new FieldDescriptor(FragInputs.name, "tangentToWorld", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor texCoord0 = new FieldDescriptor(FragInputs.name, "texCoord0", "", ShaderValueType.Float4,

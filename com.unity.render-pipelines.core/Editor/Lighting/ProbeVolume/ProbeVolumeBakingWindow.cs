@@ -145,6 +145,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added new baking set");
                 sceneData.CreateNewBakingSet("New Baking Set");
+                m_SerializedObject.Update();
                 OnBakingSetSelected(list);
             };
 
@@ -155,8 +156,11 @@ namespace UnityEngine.Experimental.Rendering
                     EditorUtility.DisplayDialog("Can't delete baking set", "You can't delete the last Baking set. You need to have at least one.", "Ok");
                     return;
                 }
-                if (EditorUtility.DisplayDialog("Delete the selected baking set?", $"Do you really want to delete the baking set '{sceneData.bakingSets[list.index].name}'?", "Yes", "Cancel"))
+                if (EditorUtility.DisplayDialog("Delete the selected baking set?", $"Deleting the baking set will also delete it's profile asset on disk.\nDo you really want to delete the baking set '{sceneData.bakingSets[list.index].name}'?\n\nYou cannot undo the delete assets action.", "Yes", "Cancel"))
                 {
+                    var pathToDelete = AssetDatabase.GetAssetPath(sceneData.bakingSets[list.index].profile);
+                    if (!String.IsNullOrEmpty(pathToDelete))
+                        AssetDatabase.DeleteAsset(pathToDelete);
                     Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted baking set");
                     ReorderableList.defaultBehaviours.DoRemoveButton(list);
                 }
@@ -169,6 +173,12 @@ namespace UnityEngine.Experimental.Rendering
 
         void RefreshAfterUndo()
         {
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
+            {
+                // Feature not enabled, nothing to do.
+                return;
+            }
+
             InitializeBakingSetList();
 
             OnBakingSetSelected(m_BakingSets);
@@ -385,7 +395,14 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     EditorUtility.DisplayDialog("Missing Probe Volume Profile Asset!", $"We couldn't find the asset profile associated with the Baking Set '{set.name}'.\nDo you want to create a new one?", "Yes");
                     set.profile = ScriptableObject.CreateInstance<ProbeReferenceVolumeProfile>();
-                    ProjectWindowUtil.CreateAsset(set.profile, set.name + ".asset");
+
+                    // Delay asset creation, workaround to avoid creating assets while importing another one (SRP can be called from asset import).
+                    EditorApplication.update += DelayCreateAsset;
+                    void DelayCreateAsset()
+                    {
+                        EditorApplication.update -= DelayCreateAsset;
+                        ProjectWindowUtil.CreateAsset(set.profile, set.name + ".asset");
+                    }
                 }
                 if (m_ProbeVolumeProfileEditor == null)
                     m_ProbeVolumeProfileEditor = Editor.CreateEditor(set.profile);
@@ -401,6 +418,9 @@ namespace UnityEngine.Experimental.Rendering
                 var serializedSet = serializedSets.GetArrayElementAtIndex(m_BakingSets.index);
                 var probeVolumeBakingSettings = serializedSet.FindPropertyRelative("settings");
                 EditorGUILayout.PropertyField(probeVolumeBakingSettings);
+
+                // Clamp to make sure minimum we set for dilation distance is min probe distance
+                set.settings.dilationSettings.dilationDistance = Mathf.Max(set.profile.minDistanceBetweenProbes, set.settings.dilationSettings.dilationDistance);
             }
             else
             {

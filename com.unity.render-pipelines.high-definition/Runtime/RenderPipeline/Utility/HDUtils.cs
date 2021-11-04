@@ -19,8 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const PerObjectData k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
 
         /// <summary>Returns the render configuration for baked static lighting, this value can be used in a RendererListDesc call to render Lit objects.</summary>
+        /// <returns></returns>
         public static PerObjectData GetBakedLightingRenderConfig() => k_RendererConfigurationBakedLighting;
         /// <summary>Returns the render configuration for baked static lighting with shadow masks, this value can be used in a RendererListDesc call to render Lit objects when shadow masks are enabled.</summary>
+        /// <returns></returns>
         public static PerObjectData GetBakedLightingWithShadowMaskRenderConfig() => k_RendererConfigurationBakedLightingWithShadowMask;
 
         /// <summary>Default HDAdditionalReflectionData</summary>
@@ -549,6 +551,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static string GetCorePath()
             => "Packages/com.unity.render-pipelines.core/";
+
+        internal static string GetVFXPath()
+            => "Packages/com.unity.visualeffectgraph/";
 
         // It returns the previously set RenderPipelineAsset, assetWasFromQuality is true if the current asset was set through the quality settings
         internal static RenderPipelineAsset SwitchToBuiltinRenderPipeline(out bool assetWasFromQuality)

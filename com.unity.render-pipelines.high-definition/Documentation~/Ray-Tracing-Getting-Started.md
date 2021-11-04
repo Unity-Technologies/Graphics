@@ -250,7 +250,7 @@ This section contains information on the limitations of HDRP's ray tracing imple
 
 There is no support for ray tracing on platforms other than DX12 for now.
 
-HDRP ray tracing in Unity 2020.2 has the following limitations:
+HDRP ray tracing in Unity has the following limitations:
 - Does not support vertex animation.
 - Does not support decals.
 - Does not support tessellation.
@@ -268,6 +268,7 @@ When building your custom shaders using shader graph, some nodes are incompatibl
 - DDX, DDY and DDXY nodes.
 - All the nodes under Inputs > Geometry (Position, View Direction, Normal, etc.) in View Space mode.
 - Checkerboard node.
+Furthermore, Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md) are not supported in ray tracing.
 
 ### Unsupported features of path tracing
 

@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.Universal
             public GUIContent refRes = new GUIContent("Reference Resolution", "The original resolution the Assets are designed for.");
             public GUIContent gridSnapping = new GUIContent("Grid Snapping", "Sets the snapping behavior for the camera and sprites.");
             public GUIContent cropFrame = new GUIContent("Crop Frame", "Crops the viewport to match the Reference Resolution, along the checked axis. Black bars will be added to fit the screen aspect ratio.");
+            public GUIContent filterMode = new GUIContent("Filter Mode", "Use selected Filter Mode when using Stretch Fill to upscale from Reference Resolution.");
             public GUIContent stretchFill = new GUIContent("Stretch Fill", "If enabled, expands the viewport to fit the screen resolution while maintaining the viewport aspect ratio.");
             public GUIContent currentPixelRatio = new GUIContent("Current Pixel Ratio", "Ratio of the rendered Sprites compared to their original size.");
             public GUIContent runInEditMode = new GUIContent("Run In Edit Mode", "Enable this to preview Camera setting changes in Edit Mode. This will cause constant changes to the Scene while active.");
@@ -40,6 +41,7 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_RefResX;
         private SerializedProperty m_RefResY;
         private SerializedProperty m_CropFrame;
+        private SerializedProperty m_FilterMode;
         private SerializedProperty m_GridSnapping;
 
         private Vector2 m_GameViewSize = Vector2.zero;
@@ -97,6 +99,7 @@ namespace UnityEditor.Rendering.Universal
             m_RefResX = serializedObject.FindProperty("m_RefResolutionX");
             m_RefResY = serializedObject.FindProperty("m_RefResolutionY");
             m_CropFrame = serializedObject.FindProperty("m_CropFrame");
+            m_FilterMode = serializedObject.FindProperty("m_FilterMode");
             m_GridSnapping = serializedObject.FindProperty("m_GridSnapping");
         }
 
@@ -161,7 +164,10 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.PropertyField(m_CropFrame, m_Style.cropFrame);
             EditorGUILayout.PropertyField(m_GridSnapping, m_Style.gridSnapping);
-
+            if (m_CropFrame.enumValueIndex == (int)PixelPerfectCamera.CropFrame.StretchFill)
+            {
+                EditorGUILayout.PropertyField(m_FilterMode, m_Style.filterMode);
+            }
 
             serializedObject.ApplyModifiedProperties();
 

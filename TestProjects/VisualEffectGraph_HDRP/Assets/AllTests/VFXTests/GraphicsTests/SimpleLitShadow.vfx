@@ -339,7 +339,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &114512514798047786
 MonoBehaviour:
@@ -1278,7 +1278,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615120}
   cullMode: 0
@@ -1287,14 +1287,17 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 0
+  vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -1720,7 +1723,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615121}
   cullMode: 0
@@ -1729,14 +1732,17 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 0
+  vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -2952,7 +2958,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614659
 MonoBehaviour:
@@ -3390,7 +3396,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615122}
   cullMode: 0
@@ -3399,14 +3405,17 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 0
+  vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -3620,7 +3629,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615123}
   cullMode: 0
@@ -3629,14 +3638,17 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 0
+  vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -4180,7 +4192,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614716
 MonoBehaviour:
@@ -4618,7 +4630,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615124}
   cullMode: 0
@@ -4627,14 +4639,17 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 0
+  vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -4848,7 +4863,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615125}
   cullMode: 0
@@ -4857,14 +4872,17 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 0
+  vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -5408,7 +5426,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614773
 MonoBehaviour:
@@ -5846,7 +5864,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615126}
   cullMode: 0
@@ -5855,14 +5873,17 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 0
+  vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -6076,7 +6097,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615127}
   cullMode: 0
@@ -6085,14 +6106,17 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 0
+  vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -6636,7 +6660,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614830
 MonoBehaviour:
@@ -7074,7 +7098,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615128}
   cullMode: 0
@@ -7083,14 +7107,17 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 0
+  vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -7304,7 +7331,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615129}
   cullMode: 0
@@ -7313,14 +7340,17 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 0
+  vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -7864,7 +7894,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614887
 MonoBehaviour:
@@ -8302,7 +8332,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615130}
   cullMode: 0
@@ -8311,14 +8341,17 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 0
+  vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -8532,7 +8565,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
-  materialOffset: 0
+  sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615131}
   cullMode: 0
@@ -8541,14 +8574,17 @@ MonoBehaviour:
   colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
-  sortPriority: 0
+  vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []

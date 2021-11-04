@@ -191,6 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public override Material defaultTerrainMaterial
             => globalSettings?.renderPipelineEditorResources?.materials.defaultTerrainMat;
 
+
         // Array structure that allow us to manipulate the set of defines that the HD render pipeline needs
         List<string> defineArray = new List<string>();
 
@@ -217,7 +218,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #endif
-
         /// <summary>
         /// Indicates if virtual texturing is currently enabled for this render pipeline instance.
         /// </summary>

@@ -2,8 +2,8 @@ comment:
   on-update: edit
   header: |
     Hi! This comment will help you figure out which jobs to run before merging your PR. The suggestions are dynamic based on what files you have changed.
-    Link to Yamato: https://yamato.cds.internal.unity3d.com/jobs/902-Graphics
-    Search for your PR branch using the sidebar on the left, then add the following segment(s) to the end of the URL (you may need multiple tabs depending on how many packages you change)
+    Link to Yamato: https://unity-ci.cds.internal.unity3d.com/project/902/
+    Search for your PR branch using the search bar at the top, then add the following segment(s) to the end of the URL (you may need multiple tabs depending on how many packages you change)
   footer: |
     Depending on the scope of your PR, you may need to run more jobs than what has been suggested. Please speak to your lead or a Graphics SDET (#devs-graphics-automation) if you are unsure.
 
@@ -16,7 +16,9 @@ comment:
         - TestProjects/HDRP*/**/*
       body: |
         **HDRP**
-        `/.yamato%252Fall-hdrp.yml%2523PR_HDRP_trunk`
+        `/jobDefinition/.yamato%2Fall-hdrp.yml%23PR_HDRP_trunk`
+        With changes to HDRP packages, you should also run
+        `/jobDefinition/.yamato%2Fall-lightmapping.yml%23PR_Lightmapping_trunk`
     - id: URP
       files:
         - com.unity.render-pipelines.universal/**/*
@@ -24,7 +26,9 @@ comment:
         - TestProjects/Universal*/**/*
       body: |
         **URP**
-        `/.yamato%252Fall-urp.yml%2523PR_URP_trunk`
+        `/jobDefinition/.yamato%252Fall-urp.yml%2523PR_URP_trunk`
+        With changes to URP packages, you should also run
+        `/jobDefinition/.yamato%2Fall-lightmapping.yml%23PR_Lightmapping_trunk`
     - id: ShaderGraph
       files:
         - com.unity.shadergraph/**/*
@@ -32,10 +36,10 @@ comment:
         - com.unity.render-pipelines.universal/Editor/ShaderGraph/*
       body: |
         **Shader Graph**
-        `/.yamato%252Fall-shadergraph.yml%2523PR_ShaderGraph_trunk`
+        `/jobDefinition/.yamato%252Fall-shadergraph.yml%2523PR_ShaderGraph_trunk`
         Depending on your PR, you may also want
-        `/.yamato%252Fall-shadergraph_builtin_foundation.yml%2523PR_ShaderGraph_BuiltIn_Foundation_trunk`
-        `/.yamato%252Fall-shadergraph_builtin_lighting.yml%2523PR_ShaderGraph_BuiltIn_Lighting_trunk`
+        `/jobDefinition/.yamato%252Fall-shadergraph_builtin_foundation.yml%2523PR_ShaderGraph_BuiltIn_Foundation_trunk`
+        `/jobDefinition/.yamato%252Fall-shadergraph_builtin_lighting.yml%2523PR_ShaderGraph_BuiltIn_Lighting_trunk`
     - id: VFX
       files:
         - com.unity.visualeffectgraph/**/*
@@ -43,12 +47,12 @@ comment:
         - TestProjects/VisualEffectGraph*/**/*
       body: |
         **VFX**
-        `/.yamato%252Fall-vfx.yml%2523PR_VFX_trunk`
+        `/jobDefinition/.yamato%252Fall-vfx.yml%2523PR_VFX_trunk`
     - id: Core
       files:
         - com.unity.render-pipelines.core/**/*
       body: |
         **SRP Core**
         You could run ABV on your branch before merging your PR, but it will start A LOT of jobs. Please be responsible about it and run it only when you feel the PR is ready:
-        `/.yamato%252F_abv.yml%2523all_project_ci_trunk`
+        `/jobDefinition/.yamato%252F_abv.yml%2523all_project_ci_trunk`
         Be aware that any modifications to the Core package impacts everyone in the Graphics repo so please discuss the PR with your lead.
