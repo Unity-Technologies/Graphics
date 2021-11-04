@@ -143,8 +143,8 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
     // Initialize our material data (this will alter the bsdfData to suit path tracing, and choose between BSDF or SSS evaluation)
     MaterialData mtlData;
-    if (CreateMaterialData(pathIntersection, builtinData, bsdfData, shadingPosition,
-                           GetSample(pathIntersection.pixelCoord, _RaytracingSampleIndex, 0), mtlData))
+    float inputSample = GetSample(pathIntersection.pixelCoord, _RaytracingSampleIndex, 0);
+    if (CreateMaterialData(pathIntersection, builtinData, bsdfData, shadingPosition, inputSample, mtlData))
     {
     #ifdef _SURFACE_TYPE_TRANSPARENT
         float3 lightNormal = 0.0;
