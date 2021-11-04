@@ -20,7 +20,6 @@ MonoBehaviour:
     terrainDetailLitShader: {fileID: 0}
     terrainDetailGrassShader: {fileID: 0}
     terrainDetailGrassBillboardShader: {fileID: 0}
-    probeVolumeGizmoShader: {fileID: 4800000, guid: 3b21275fd12d65f49babb5286f040f2d, type: 3}
   materials:
     defaultDiffuseMat: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
     defaultMirrorMat: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe, type: 2}
@@ -32,11 +31,7 @@ MonoBehaviour:
     autodeskInteractive: {fileID: 4800000, guid: 7252379db4c18b641b517f2c91bb57e1, type: 3}
     autodeskInteractiveMasked: {fileID: 4800000, guid: 29c4adff654862b40a2e9fb2015a42c3, type: 3}
     autodeskInteractiveTransparent: {fileID: 4800000, guid: ee2ce0be66f45d9449d71ba9b49c2acd, type: 3}
-    autodeskInteractive: {fileID: 4800000, guid: 7252379db4c18b641b517f2c91bb57e1, type: 3}
-    autodeskInteractiveMasked: {fileID: 4800000, guid: 29c4adff654862b40a2e9fb2015a42c3, type: 3}
-    autodeskInteractiveTransparent: {fileID: 4800000, guid: ee2ce0be66f45d9449d71ba9b49c2acd, type: 3}
-    defaultSpeedTree8Shader: {fileID: -6465566751694194690, guid: 4819724840ee9444f9da841b477038ce,
-      type: 3}
+    defaultSpeedTree8Shader: {fileID: -6465566751694194690, guid: 4819724840ee9444f9da841b477038ce, type: 3}
   lookDev:
     defaultLookDevVolumeProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02, type: 2}
   m_Version: 0
