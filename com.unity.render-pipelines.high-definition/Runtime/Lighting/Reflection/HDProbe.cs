@@ -633,6 +633,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void QueueSHBaking()
         {
+            if (Application.isPlaying)
+                return;
+
             var globalSettings = HDRenderPipelineGlobalSettings.instance;
             if (globalSettings == null || !globalSettings.supportProbeVolumes)
                 return;
