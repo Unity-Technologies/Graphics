@@ -156,8 +156,8 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
             {
                 EvaluateMaterial(mtlData, direction, mtlResult);
 
-                // value is in radian (w/sr) not in lumen (cd/sr), only on the x channel
-                value.x *= Luminance(mtlResult.diffValue + mtlResult.specValue);
+                // value is in radian (w/sr) not in lumen (cd/sr), only on the red channel
+                value.x *= mtlResult.diffValue.x + mtlResult.specValue.x;
 
                 pathIntersection.value.x += value.x;
             }
