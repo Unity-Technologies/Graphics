@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.Universal
         {
             base.profilingSampler = new ProfilingSampler(nameof(InvokeOnRenderObjectCallbackPass));
             renderPassEvent = evt;
+            useNativeRenderPass = false;
         }
 
         /// <inheritdoc/>
