@@ -482,7 +482,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static PragmaCollection InstancedDecal = new PragmaCollection
             {
                 { CorePragmas.Basic },
-                { Pragma.MultiCompileInstancing },
                 { Pragma.DOTSInstancing },
             };
         }
