@@ -3,7 +3,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 // Path tracing includes
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/SensorIntersection.hlsl"
 #ifdef HAS_LIGHTLOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
 #endif
@@ -30,17 +30,15 @@ float3 OverrideReflectance()
 #endif // SENSORSDK_OVERRIDE_REFLECTANCE
 
 bool SampleBeam(LightData lightData,
+                float3 lightPosition,
+                float3 lightDirection,
                 float3 position,
                 float3 normal,
                 out float3 outgoingDir,
-                out float3 value,
-                inout PathIntersection payload)
+                out float3 value)
 {
     const float MM_TO_M = 1e-3;
     const float M_TO_MM = 1e3;
-
-    float3 lightDirection = payload.beamDirection;
-    float3 lightPosition = payload.beamOrigin;
 
     outgoingDir = position - lightPosition;
     float dist = length(outgoingDir);
@@ -71,10 +69,9 @@ bool SampleBeam(LightData lightData,
     const float wzSq = wz*wz;
 
     float gaussianFactor = exp(-2 * rSq / wzSq) / (PI * wzSq); // 1/m^2
-    value = gaussianFactor * Eoz; // W/m^2
-
-    payload.beamRadius = wz;
-    payload.beamDepth = zFromAperture;
+    value.x = gaussianFactor * Eoz; // W/m^2
+    value.y = wz; // beamRadius
+    value.z = zFromAperture; // beamDepth
 
     // sampling a point in the "virtual" aperture
     // Find the actual point in the beam aperture that corresponds to this point
@@ -85,7 +82,7 @@ bool SampleBeam(LightData lightData,
     dist = length(outgoingDir);
     outgoingDir /= dist;
 
-    return any(value);
+    return value.x > 0.0;
 }
 
 void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
@@ -105,11 +102,10 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         return;
     }
 
-    // Grab depth information
-    uint currentDepth = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
-
-    // Make sure to add the additional travel distance
-    pathIntersection.cone.width += pathIntersection.t * abs(pathIntersection.cone.spreadAngle);
+    // Fetch, then clear the beam data aliased in our payload
+    const float3 beamOrigin = GetBeamOrigin(pathIntersection);
+    const float3 beamDirection = GetBeamDirection(pathIntersection);
+    clearBeamData(pathIntersection);
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
@@ -126,13 +122,8 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, pathIntersection.cone, isVisible);
 
-    // Check if we want to compute direct and emissive lighting for current depth
-    bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
-
     // Compute the bsdf data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
-
-#ifndef SHADER_UNLIT
 
     #ifdef SENSORSDK_OVERRIDE_REFLECTANCE
     // Override the diffuce color when using builtin lit shader (but not with shader graph)
@@ -145,9 +136,6 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
     // Compute the world space position (the non-camera relative one if camera relative rendering is enabled)
     float3 shadingPosition = fragInput.positionRWS;
-
-    // And reset the ray intersection color, which will store our final result
-    pathIntersection.value = computeDirect ? builtinData.emissiveColor : 0.0;
 
     // Initialize our material data (this will alter the bsdfData to suit path tracing, and choose between BSDF or SSS evaluation)
     MaterialData mtlData;
@@ -164,54 +152,27 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
         for (uint i = 0; i < _SensorLightCount; i++)
         {
-            if (SampleBeam(_LightDatasRT[i], shadingPosition, bsdfData.normalWS,
-                           direction, value, pathIntersection))
+            if (SampleBeam(_LightDatasRT[i], beamOrigin, beamDirection, shadingPosition, bsdfData.normalWS, direction, value))
             {
                 EvaluateMaterial(mtlData, direction, mtlResult);
 
-                // value is in radian (w/sr) not in lumen (cd/sr) and only the r channel is used
-                value *= mtlResult.diffValue + mtlResult.specValue;
+                // value is in radian (w/sr) not in lumen (cd/sr), only on the x channel
+                value.x *= Luminance(mtlResult.diffValue + mtlResult.specValue);
 
-                pathIntersection.value += value;
+                pathIntersection.value.x += value.x;
             }
         }
+
+        // Copy the last beam radius and depth to the payload
+        pathIntersection.value.yz = value.yz;
     }
-
-#else // SHADER_UNLIT
-
-    pathIntersection.value = computeDirect ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
-
-    // Simulate opacity blending by simply continuing along the current ray
-    #ifdef _SURFACE_TYPE_TRANSPARENT
-    if (builtinData.opacity < 1.0)
-    {
-        RayDesc rayDescriptor;
-        float bias = dot(WorldRayDirection(), fragInput.tangentToWorld[2]) > 0.0 ? _RaytracingRayBias : -_RaytracingRayBias;
-        rayDescriptor.Origin = fragInput.positionRWS + bias * fragInput.tangentToWorld[2];
-        rayDescriptor.Direction = WorldRayDirection();
-        rayDescriptor.TMin = 0.0;
-        rayDescriptor.TMax = FLT_INF;
-
-        PathIntersection nextPathIntersection = pathIntersection;
-        nextPathIntersection.remainingDepth--;
-
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
-
-        pathIntersection.value = lerp(nextPathIntersection.value, pathIntersection.value, builtinData.opacity);
-    }
-    #endif
-
-#endif // SHADER_UNLIT
 }
 
 [shader("closesthit")]
 void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
-    // Always set the new t value
-    pathIntersection.t = RayTCurrent();
-
     float4 inputSample = GetSample4D(pathIntersection.pixelCoord, _RaytracingSampleIndex, 0);
     ComputeSurfaceScattering(pathIntersection, attributeData, inputSample);
 
-    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value);
+    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), RayTCurrent(), pathIntersection.value);
 }
