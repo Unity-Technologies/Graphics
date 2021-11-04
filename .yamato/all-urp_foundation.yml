@@ -41,12 +41,6 @@ PR_URP_Foundation_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-osx-openglcore.yml#URP_Foundation_OSX_OpenGLCore_editmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/urp_foundation-android-opengles3.yml#URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-android-vulkan.yml#URP_Foundation_Android_Vulkan_Standalone_il2cpp_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-iphone-metal.yml#URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_trunk
-         rerun: on_new_revision
 Extra_URP_Foundation_trunk:
     name: Extra URP_Foundation on trunk
     variables:
@@ -108,12 +102,6 @@ PR_URP_Foundation_CUSTOM-REVISION:
       -  path: .yamato/urp_foundation-osx-metal.yml#URP_Foundation_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-osx-openglcore.yml#URP_Foundation_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-android-opengles3.yml#URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-android-vulkan.yml#URP_Foundation_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-iphone-metal.yml#URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_URP_Foundation_CUSTOM-REVISION:
     name: Extra URP_Foundation on CUSTOM-REVISION

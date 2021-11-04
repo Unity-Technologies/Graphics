@@ -45,7 +45,11 @@ all_project_ci_nightly_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-lightmapper.yml#LightMapper_trunk
+      -  path: .yamato/_templates.yml#all_template_ci_trunk
+         rerun: on_new_revision
+      -  path: .yamato/all-lightmapping.yml#Lightmapping_trunk
+         rerun: on_new_revision
+      -  path: .yamato/all-postprocessing.yml#PostProcessing_trunk
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_trunk
          rerun: on_new_revision
@@ -62,6 +66,22 @@ General_Checks_trunk:
       -  path: .yamato/_formatting.yml#formatting
          rerun: on_new_revision
       -  path: .yamato/all-smoke_test.yml#Smoke_Test_trunk
+         rerun: on_new_revision
+Safety_net_trunk:
+    name: Safety net on trunk
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    triggers:
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match [".yamato/**/*", "com.unity.*/**/*", "TestProjects/**/*"]
+    dependencies:
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
 Trunk_verification_trunk:
     name: Trunk verification on trunk
@@ -139,7 +159,11 @@ all_project_ci_nightly_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-lightmapper.yml#LightMapper_CUSTOM-REVISION
+      -  path: .yamato/_templates.yml#all_template_ci_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-lightmapping.yml#Lightmapping_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-postprocessing.yml#PostProcessing_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision
@@ -156,6 +180,20 @@ General_Checks_CUSTOM-REVISION:
       -  path: .yamato/_formatting.yml#formatting
          rerun: on_new_revision
       -  path: .yamato/all-smoke_test.yml#Smoke_Test_CUSTOM-REVISION
+         rerun: on_new_revision
+Safety_net_CUSTOM-REVISION:
+    name: Safety net on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 Trunk_verification_CUSTOM-REVISION:
     name: Trunk verification on CUSTOM-REVISION

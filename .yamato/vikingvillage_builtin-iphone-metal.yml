@@ -29,8 +29,8 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_tr
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_BuiltIn --platform=iOS --player-load-path=players --report-performance-data --suite=playmode --timeout=2400 --zero-tests-are-ok=1
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -64,7 +64,7 @@ Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Lin
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -88,8 +88,8 @@ Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Lin
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -124,7 +124,7 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trun
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -150,8 +150,8 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trun
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_BuiltIn --platform=iOS --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -182,8 +182,8 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CU
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_BuiltIn --platform=iOS --player-load-path=players --report-performance-data --suite=playmode --timeout=2400 --zero-tests-are-ok=1
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -217,7 +217,7 @@ Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Lin
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -241,8 +241,8 @@ Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Lin
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -277,7 +277,7 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUST
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -303,8 +303,8 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUST
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_BuiltIn --platform=iOS --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:

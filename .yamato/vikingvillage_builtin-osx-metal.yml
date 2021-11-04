@@ -30,7 +30,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_runtime_mono_Linear_trunk:
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -60,8 +60,8 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_runtime_mono_Linear_trunk:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -93,7 +93,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_editor_mono_Linear_trunk:
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -123,8 +123,8 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_editor_mono_Linear_trunk:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -156,7 +156,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_build_editmode_mono_Linear_trunk:
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -186,8 +186,8 @@ VikingVillage_BuiltIn_OSX_Metal_performance_build_editmode_mono_Linear_trunk:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -219,7 +219,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -249,8 +249,8 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -282,7 +282,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-R
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -312,8 +312,8 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-R
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -345,7 +345,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-RE
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -375,8 +375,8 @@ VikingVillage_BuiltIn_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-RE
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: python3 .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:

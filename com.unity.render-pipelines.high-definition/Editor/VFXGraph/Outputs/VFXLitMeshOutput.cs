@@ -8,7 +8,15 @@ namespace UnityEditor.VFX.HDRP
     [VFXInfo]
     class VFXLitMeshOutput : VFXAbstractParticleHDRPLitOutput, IVFXMultiMeshOutput
     {
-        public override string name { get { return "Output Particle HDRP Lit Mesh"; } }
+        public override string name
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(shaderName)
+                ? $"Output Particle {shaderName} Mesh"
+                : "Output Particle HDRP Lit Mesh";
+            }
+        }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
@@ -33,8 +41,13 @@ namespace UnityEditor.VFX.HDRP
                         features |= VFXOutputUpdate.Features.MultiMesh;
                     if (lod)
                         features |= VFXOutputUpdate.Features.LOD;
-                    if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
-                        features |= VFXOutputUpdate.Features.Sort;
+                    if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw) || needsOwnSort)
+                    {
+                        if (VFXSortingUtility.IsPerCamera(sortMode))
+                            features |= VFXOutputUpdate.Features.CameraSort;
+                        else
+                            features |= VFXOutputUpdate.Features.Sort;
+                    }
                 }
                 return features;
             }

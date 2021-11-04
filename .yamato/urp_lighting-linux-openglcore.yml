@@ -33,7 +33,8 @@ URP_Lighting_Linux_OpenGLCore_playmode_mono_Linear_trunk:
          retries: 2
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -68,7 +69,8 @@ URP_Lighting_Linux_OpenGLCore_editmode_mono_Linear_trunk:
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -103,7 +105,8 @@ URP_Lighting_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -138,7 +141,8 @@ URP_Lighting_Linux_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
     after:
-      -  command: python .yamato/script/log_scripts/log_parser.py
+      -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:

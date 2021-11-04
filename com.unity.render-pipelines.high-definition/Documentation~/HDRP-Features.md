@@ -172,7 +172,7 @@ HDRP supports the Illuminating Engineering Society's (IES) file format for descr
 ![](Images/LensFlareSamples2.png)
 
 From HDRP 12.0, HDRP (and URP) introduces a new Lens Flare system. You can attach a Lens Flare (SRP) component to any GameObject.
-Some Lens Flare properties only appear when you attach this component to a light. Each Lens Flare can have multiple elements that you can control individually. HDRP also provides a [new asset](lens-flare-data-driven-asset.md) and a [new component](lens-flare-data-driven-component.md) which you can attach to any GameObject.
+Some Lens Flare properties only appear when you attach this component to a light. Each Lens Flare can have multiple elements that you can control individually. HDRP also provides a [new asset](shared/lens-flare/lens-flare-asset.md) and a [new component](shared/lens-flare/lens-flare-component.md) which you can attach to any GameObject.
 
 ### Reflection probes
 
@@ -317,6 +317,11 @@ Real time raytracing effect are currently in Preview and behavior could change i
 - [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md) is an alternative to [Subsurface-Scattering](Subsurface-Scattering.md) that can make use of off-screen data.
 
 <a name="Camera"></a>
+
+### Light count limit
+
+HDRP has a maximum limit on the number of lights a single pixel can get influence from. This setting can be configured through the ShaderConfig.cs file as the FPTLMaxLightCount. By default, HDRP's maximum light count per pixel is 63.
+The only two possible values HDRP supports are Low (31 lights) and High (63 lights). For more information on how to configure this setting, please see [HDRP Config package](HDRP-Config-Package.md).
 
 ## Camera
 
