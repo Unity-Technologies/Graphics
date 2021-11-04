@@ -1,7 +1,0 @@
-sub-package.*
-upm-ci~/**
-.Editor/**
-.yamato/**
-*.zip*
-TestRunnerOptions.json
-.idea/**

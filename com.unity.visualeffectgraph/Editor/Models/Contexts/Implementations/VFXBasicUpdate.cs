@@ -267,6 +267,12 @@ namespace UnityEditor.VFX
             var mapper = base.GetExpressionMapper(target);
             if (target == VFXDeviceTarget.GPU && skipZeroDeltaUpdate)
                 mapper.AddExpression(VFXBuiltInExpression.DeltaTime, "deltaTime", -1);
+            var dataParticle = GetData() as VFXDataParticle;
+
+            if (target == VFXDeviceTarget.GPU && dataParticle && dataParticle.NeedsComputeBounds() && space == VFXCoordinateSpace.World)
+            {
+                mapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal", -1);
+            }
             return mapper;
         }
 
