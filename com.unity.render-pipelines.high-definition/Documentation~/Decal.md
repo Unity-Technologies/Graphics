@@ -38,7 +38,11 @@ By default, in the UI for Decal Projectors, Mesh Renderers, or Terrain, Decal La
 
 ### How decals affect performance
 
-When you enable Decal Layers, you also increase memory usage, GPU performance cost and generate more Shader Variants. This increases build time.
+When you enable Decal Layers, it increases the build time of your project. This is because Decal Layers:
+
+* Uses a high amount of memory.
+* Increases GPU performance cost.
+* Generates more [Shader Variants](https://docs.unity3d.com/Manual/shader-variants.html).
 
 If you use the Decal Layer system to disable a decal, via the **Rendering Layer Mask** of a Mesh Renderer or Terrain, it doesn't save on any performance. Instead, to save performance, you need to disable the **Receive Decals** property for the Mesh Renderer or Terrain's Material.
 
