@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sky override layer mask having no effect.
 - Fixed pyramid blur being corrupted when hardware DRS was on (case # 1372245)
 - Fixed area light support for hair
+- Fixed public API to reset path tracing accumulation, and check its status.
 
 ### Changed
 - Maximum light count per fine prunned tile (opaque deferred) is now 63 instead of 23.
