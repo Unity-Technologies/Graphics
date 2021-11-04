@@ -151,7 +151,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     #else
         float3 lightNormal = GetLightNormal(mtlData);
     #endif
-    
+
         float3 value, direction;
         MaterialResult mtlResult;
 
