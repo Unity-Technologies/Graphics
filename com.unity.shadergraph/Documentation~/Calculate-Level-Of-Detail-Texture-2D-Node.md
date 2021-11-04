@@ -13,7 +13,7 @@ The Calculate Level of Detail Texture 2D node also has a clamped and unclamped m
 > [!NOTE]
 > On platforms where these HLSL functions don't exist, Shader Graph determines an appropriate approximation to use, instead.
 
-## Create Node menu location
+## Create Node menu category
 
 The Calculate Level of Detail Texture 2D node is under the **Input** &gt; **Texture** category in the Create Node menu.
 

@@ -8,7 +8,7 @@ After you create a Dropdown property and add its Dropdown node to a Sub Graph, t
 
 The Sub Graph Dropdown node is similar to the [Keyword node](Keyword-Node.md), and the Graph Inspector displays many of the same properties as an [enum Keyword](Keywords.md#enum-keywords).
 
-## Create Node menu location
+## Create Node menu category
 
 The Sub Graph Dropdown node isn't accessible from the Create Node menu.
 
