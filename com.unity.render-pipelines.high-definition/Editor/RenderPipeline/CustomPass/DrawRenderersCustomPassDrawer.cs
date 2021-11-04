@@ -402,7 +402,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.BeginChangeCheck();
                 var e = ConvertToUserStencilUsage((UserStencilUsageWorkaround)EditorGUI.EnumFlagsField(rect, label, ConvertToUserStencilUsageWorkaround(userStencilBits)));
                 if (EditorGUI.EndChangeCheck())
-                    property.intValue = (int)(e & (UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1));
+                    property.intValue = (int)(e & UserStencilUsage.AllUserBits);
             }
             else
             {
