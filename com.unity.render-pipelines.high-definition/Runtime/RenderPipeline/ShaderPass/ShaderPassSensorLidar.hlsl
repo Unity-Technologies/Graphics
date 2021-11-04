@@ -146,12 +146,6 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     float inputSample = GetSample(pathIntersection.pixelCoord, _RaytracingSampleIndex, 0);
     if (CreateMaterialData(pathIntersection, builtinData, bsdfData, shadingPosition, inputSample, mtlData))
     {
-    #ifdef _SURFACE_TYPE_TRANSPARENT
-        float3 lightNormal = 0.0;
-    #else
-        float3 lightNormal = GetLightNormal(mtlData);
-    #endif
-
         float3 value, direction;
         MaterialResult mtlResult;
 
