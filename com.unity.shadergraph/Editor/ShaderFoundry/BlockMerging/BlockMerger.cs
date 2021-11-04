@@ -311,7 +311,7 @@ namespace UnityEditor.ShaderFoundry
                 blockBuilder.MergeTypesFunctionsDescriptors(blockLinkInstance.Block);
 
             // Create the input/output types
-            var inputTypeBuilder = TypeUtilities.BuildStructBuilder(Container, context.InputTypeName, mergedInputInstance.Fields);
+            var inputTypeBuilder = TypeUtilities.BuildStructBuilder(Container, context.InputTypeName, mergedInputInstance.ResolvedFields);
             mergedInputInstance.Type = inputTypeBuilder.Build();
             blockBuilder.AddType(mergedInputInstance.Type);
 
@@ -323,7 +323,7 @@ namespace UnityEditor.ShaderFoundry
             blockBuilder.SetEntryPointFunction(entryPointFunction);
 
             // Add all of the block input/output/property variables
-            foreach(var field in mergedInputInstance.Fields)
+            foreach(var field in mergedInputInstance.ResolvedFields)
                 blockBuilder.AddInput(field.Build(Container));
             foreach (var field in mergedOutputInstance.Fields)
                 blockBuilder.AddOutput(field.Build(Container));
