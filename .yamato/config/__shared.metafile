@@ -50,6 +50,7 @@ color_spaces:
 test_platforms:
   - type: Standalone
     allow_cache: True
+    disable_split_build_run_for: [OSX_Metal, OSX_Apple_Silicon_Metal]
     utr_flags:
       - [OSX_Metal , OSX_Apple_Silicon_Metal]: '%CACHE_ARGS%'
       - [all]: --suite=playmode
