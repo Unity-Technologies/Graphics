@@ -135,7 +135,7 @@ bool SampleDebugFontNumber2Digits(int2 pixCoord, uint number)
  */
 bool SampleDebugFontNumberAllDigits(int2 pixCoord, uint number)
 {
-    const uint digitCount = uint(log10(number)) + 1;
+    const uint digitCount = max(1, uint(log10(number)) + 1);
 
     pixCoord.y -= 4;
     int2 offset = int2(6 * digitCount, 0);
@@ -459,7 +459,7 @@ void DrawOverdrawLegend(real2 texCoord, real maxOverdrawCount, real4 screenSize,
         const int bucketInterval = OverdrawLegendBucketInterval(maxOverdrawCount);
         const int bucketLabelIndex = (int(bucket) / bucketInterval) * bucketInterval;
         const real2 labelStartCoord = real2(
-            bandLabelPositionUV.x + (bucketLabelIndex) * (bandSizeUV.x / maxOverdrawCount),
+            bandLabelPositionUV.x + (bucketLabelIndex - 1) * (bandSizeUV.x / maxOverdrawCount),
             bandLabelPositionUV.y
         );
 
