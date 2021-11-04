@@ -378,8 +378,8 @@ namespace UnityEditor.VFX
                 if (playable.clipEvents.Any())
                 {
                     var last = playable.clipEvents.Last();
-                    newClipEvent.enter = DeepClone(newClipEvent.enter);
-                    newClipEvent.exit = DeepClone(newClipEvent.exit);
+                    newClipEvent.enter = DeepClone(last.enter);
+                    newClipEvent.exit = DeepClone(last.exit);
                 }
                 else
                 {
