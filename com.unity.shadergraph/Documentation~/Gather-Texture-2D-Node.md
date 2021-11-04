@@ -9,7 +9,7 @@ This node uses the [Gather](https://docs.microsoft.com/en-us/windows/win32/direc
 > [!NOTE]
 > When developing for platforms using the Metal graphics API, the `sample`, `sample_compare`, `gather`, and `gather_compare` intrinsics use an integer (int2) `offset` argument when sampling or gathering from a 2D texture. This value is applied to texture coordinates before looking up each pixel, and must be in the range of `-8` to `+7`. Otherwise, the Metal API clamps the `offset` value.
 
-The pixels that the Gather Texture 2D samples are always from the top mip level of the texture, from a 2×2 block of pixels around the sample point. Rather than blending the 2×2 sample, it returns the sampled pixels in the following order:
+The pixels that the Gather Texture 2D samples are always from the top mip level of the texture, from a 2×2 block of pixels around the sample point. Rather than blending the 2×2 sample, it returns the sampled pixels in counter-clockwise order, starting with the sample to the lower left of the query location:
 
 ![An image showing 4 quadrants, numbered 1 to 4, to indicate the order that the Gather Texture 2D node collects its samples: (-,+), (+,+), (-,+), (-,-).](images/sg-gather-texture-2d-node-sample-order.png)
 
