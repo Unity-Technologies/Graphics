@@ -26,5 +26,7 @@ namespace UnityEngine.Rendering
         public float _MinBrickSize;
         public int _IndexChunkSize;
         public float _NormalBias;
+
+        public float _Weight;
     }
 }

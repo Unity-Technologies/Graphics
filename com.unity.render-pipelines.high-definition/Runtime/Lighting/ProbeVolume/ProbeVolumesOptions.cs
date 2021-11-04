@@ -35,5 +35,11 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         [AdditionalProperty, Tooltip("Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.")]
         public ClampedFloatParameter samplingNoise = new ClampedFloatParameter(0.125f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.
+        /// </summary>
+        [AdditionalProperty, Tooltip("Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.")]
+        public ClampedFloatParameter weight = new ClampedFloatParameter(1f, 0.0f, 1.0f);
     }
 }
