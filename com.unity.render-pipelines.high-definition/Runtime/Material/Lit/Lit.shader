@@ -1199,6 +1199,10 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE
 
+            #ifdef SENSORSDK_OVERRIDE_REFLECTANCE
+            #define SENSORSDK_ENABLE_LIDAR
+            #endif
+
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
             // This is just because it needs to be defined, shadow maps are not used.
