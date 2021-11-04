@@ -647,8 +647,7 @@ namespace UnityEngine.VFX
             {
                 if (vfx.visualEffectAsset == null)
                     vfx = null;
-
-                if (!vfx.isActiveAndEnabled)
+                else if (!vfx.isActiveAndEnabled)
                     vfx = null;
             }
 
