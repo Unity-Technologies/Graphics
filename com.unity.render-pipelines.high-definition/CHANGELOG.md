@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new functions that sample the custom buffer in custom passes (CustomPassSampleCustomColor and CustomPassLoadCustomColor) to handle the RTHandleScale automatically.
 - Added new panels to Rendering Debugger Display Stats panel, displaying improved CPU/GPU frame timings and bottlenecks.
 - Added API to edit diffusion profiles and set IES on lights.
-- Added a parameter to scale the Eye Shader.
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
@@ -42,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sky override layer mask having no effect.
 - Fixed a memory leak in the template tutorial (1374640).
 - Fixed a build-time warning regarding light loop variants (case 1372256).
+- Fixed geometry scale issue with the Eye Shader.
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
