@@ -227,11 +227,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 EditorGUI.showMixedValue = smoothnessMapChannel.hasMixedValue;
                 if (opaque)
                 {
+                    MaterialEditor.BeginProperty(smoothnessMapChannel);
                     EditorGUI.BeginChangeCheck();
                     var smoothnessSource = (int)smoothnessMapChannel.floatValue;
                     smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource, smoothnessChannelNames);
                     if (EditorGUI.EndChangeCheck())
                         smoothnessMapChannel.floatValue = smoothnessSource;
+                    MaterialEditor.EndProperty();
                 }
                 else
                 {
