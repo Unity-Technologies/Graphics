@@ -1,75 +1,140 @@
-//SensorSDK - Begin
-#ifdef SENSORSDK_OVERRIDE_REFLECTANCE
-#define SENSORSDK_ENABLE_LIDAR
-#endif
-
-#ifdef SENSORSDK_ENABLE_LIDAR
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassSensorLidar.hlsl"
-#else
-//SensorSDK - End
-
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 // Path tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
-#ifdef HAS_LIGHTLOOP
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
+// #ifdef HAS_LIGHTLOOP
+// #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
+// #endif
+
+#ifdef SENSORSDK_OVERRIDE_REFLECTANCE
+TEXTURE2D(_SensorCustomReflectance);
+float Wavelength;
 #endif
 
-float PowerHeuristic(float f, float b)
+int _SensorLightCount;
+
+
+
+/*
+struct LightData
 {
-    return Sq(f) / (Sq(f) + Sq(b));
+    float3 positionRWS;
+    uint lightLayers;
+    float lightDimmer;
+    float volumetricLightDimmer;
+    real angleScale;
+    real angleOffset;
+    float3 forward;
+    int lightType;
+    float3 right;
+    real range;
+    float3 up;
+    float rangeAttenuationScale;
+    float3 color;
+    float rangeAttenuationBias;
+    int cookieIndex;
+    int tileCookie;
+    int shadowIndex;
+    int contactShadowMask;
+    float3 shadowTint;
+    float shadowDimmer;
+    float volumetricShadowDimmer;
+    int nonLightMappedOnly;
+    real minRoughness;
+    int screenSpaceShadowIndex;
+    real4 shadowMaskSelector;
+    real4 size;
+    float diffuseDimmer;
+    float specularDimmer;
+    float isRayTracedContactShadow;
+    float penumbraTint;
+    float3 padding;
+    float boxLightSafeExtent;
+};
+*/
+
+bool SampleBeam(
+    LightData lightData,
+    float3 position,
+    float3 normal,
+    out float3 outgoingDir,
+    out float3 value,
+    out float pdf,
+    out float dist,
+    inout PathIntersection payload)
+{
+    const float MM_TO_M = 1e-3;
+    const float M_TO_MM = 1e3;
+
+    float3 lightDirection = payload.beamDirection;
+    float3 lightPosition = payload.beamOrigin;
+
+    outgoingDir = position - lightPosition;
+    dist = length(outgoingDir);
+    outgoingDir /= dist;
+
+    float apertureRadius = lightData.size.x;
+    float w0 = lightData.size.y;
+    float zr = lightData.size.z;
+    float distToWaist = lightData.size.w;
+
+    // get the hit point in the coordinate frame of the laser as a depth(z) and
+    // radial measure(r)
+    float ctheta = dot(lightDirection, outgoingDir);
+    float zFromAperture = ctheta * dist;
+    float rSq = Sq(dist) - Sq(zFromAperture);
+    float3 radialDirection = dist * outgoingDir - zFromAperture*lightDirection;
+
+    float zFromWaist = abs(zFromAperture * M_TO_MM - distToWaist);
+    if (dot(normal, -outgoingDir) < 0.001)
+        return false;
+
+    // Total beam power, note: different from the output here which is irradiance.
+    float P = lightData.color.x;
+
+    const float zRatio = Sq(zFromWaist / zr);
+    const float wz = w0 * sqrt(1 + zRatio) * MM_TO_M;
+    const float Eoz = 2 * P;
+    const float wzSq = wz*wz;
+
+    float gaussianFactor = exp(-2 * rSq / wzSq) / (PI * wzSq); // 1/m^2
+    value = gaussianFactor * Eoz; // W/m^2
+
+    payload.beamRadius = wz;
+    payload.beamDepth = zFromAperture;
+
+#if 0 /*Debug values*/
+    payload.diffuseColor = float3(ctheta, zFromAperture, rSq);
+    payload.fresnel0 = float3(distToWaist, w0, zr);
+    payload.transmittance = float3(zFromWaist, zRatio, wzSq);
+    payload.tangentWS = float3(Eoz, wzSq, gaussianFactor);
+#endif
+
+    // sampling a point in the "virtual" aperture
+    // Find the actual point in the beam aperture that corresponds to this point
+    float rRatio = apertureRadius / wz;
+    float3 pAperture = lightPosition + rRatio * radialDirection; // location of the point in the aperture
+
+    outgoingDir = pAperture - position; // corrected outgoing vector using the assumption below
+    dist = length(outgoingDir);
+    outgoingDir /= dist;
+
+    // assumption that the interaction point is only illuminated by
+    // one point in the laser aperture.
+    pdf = 1.0f;
+
+    return any(value);
 }
 
-float3 GetPositionBias(float3 geomNormal, float bias, bool below)
-{
-    return geomNormal * (below ? -bias : bias);
-}
 
-#ifdef _ENABLE_SHADOW_MATTE
 
-// Compute scalar visibility for shadow mattes, between 0 and 1
-float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
-{
-    // Select active types of lights
-    bool withPoint = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_PUNCTUAL;
-    bool withArea = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_AREA;
-    bool withDistant = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_DIRECTIONAL;
 
-    LightList lightList = CreateLightList(position, normal, DEFAULT_LIGHT_LAYERS, withPoint, withArea, withDistant);
 
-    RayDesc rayDescriptor;
-    rayDescriptor.Origin = position + normal * _RaytracingRayBias;
-    rayDescriptor.TMin = 0.0;
 
-    // By default, full visibility
-    float visibility = 1.0;
 
-    // We will ignore value and pdf here, as we only want to catch occluders (no distance falloffs, cosines, etc.)
-    float3 value;
-    float pdf, shadowOpacity;
 
-    if (SampleLights(lightList, inputSample, rayDescriptor.Origin, normal, false, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax, shadowOpacity))
-    {
-        // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
-        PathIntersection intersection;
-        intersection.remainingDepth = _RaytracingMaxRecursion + 1;
-        rayDescriptor.TMax -= _RaytracingRayBias;
-        intersection.value = 1.0;
-
-        // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
-                 RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, rayDescriptor, intersection);
-
-        visibility = Luminance(GetLightTransmission(intersection.value, shadowOpacity));
-    }
-
-    return visibility;
-}
-
-#endif // _ENABLE_SHADOW_MATTE
 
 // Function responsible for surface scattering
 void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
@@ -116,13 +181,6 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, pathIntersection.cone, isVisible);
 
-    // if (!isVisible)
-    // {
-    //     // This should never happen, return magenta just in case
-    //     pathIntersection.value = float3(1.0, 0.0, 0.5);
-    //     return;
-    // }
-
     // Check if we want to compute direct and emissive lighting for current depth
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
 
@@ -130,6 +188,18 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
 
 #ifndef SHADER_UNLIT
+    //We override the diffuce color when we are using standard lit shader.  Don't need to when using shader graph.
+#ifdef SENSORSDK_OVERRIDE_REFLECTANCE
+    //bsdfData.diffuseColor = float3(_SensorCustomReflectance, _SensorCustomReflectance, _SensorCustomReflectance); //Override diffuse with material reflectance
+    const float _minWaveLengthValue = 0.35f; // 350 nm
+    const float _maxWaveLengthValue = 2.5f; // 2500 nm
+
+    float wlIdx = clamp(Wavelength * 0.001f, _minWaveLengthValue, _maxWaveLengthValue);
+    float wavelengthSpan = _maxWaveLengthValue - _minWaveLengthValue + 1;
+    float2 coordCurve = float2(wlIdx / wavelengthSpan, 0);
+
+    bsdfData.diffuseColor = SAMPLE_TEXTURE2D(_SensorCustomReflectance, s_linear_clamp_sampler, coordCurve);
+#endif
 
     // Override the geometric normal (otherwise, it is merely the non-mapped smooth normal)
     // Also make sure that it is in the same hemisphere as the shading normal (which may have been flipped)
@@ -155,7 +225,9 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         float3 lightNormal = GetLightNormal(mtlData);
     #endif
     
+    #if !defined(SENSORSDK_ENABLE_LIDAR)
         LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
+    #endif
 
         float pdf, shadowOpacity;
         float3 value;
@@ -167,6 +239,23 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
         PathIntersection nextPathIntersection;
 
+    #if defined(SENSORSDK_ENABLE_LIDAR)
+            pathIntersection.value = float3(0., 0., 0.);
+            for (uint i = 0; i < _SensorLightCount; i++)
+            {
+                if (SampleBeam(_LightDatasRT[i], rayDescriptor.Origin, bsdfData.normalWS,
+                               rayDescriptor.Direction, value, pdf, rayDescriptor.TMax,
+                               pathIntersection))
+                {
+                    EvaluateMaterial(mtlData, rayDescriptor.Direction, mtlResult);
+
+                    // value is in radian (w/sr) not in lumen (cd/sr) and only the r channel is used
+                    value *= (mtlResult.diffValue + mtlResult.specValue) / pdf;
+
+                    pathIntersection.value += value;
+                }
+            }
+    #else
         // Light sampling
         if (computeDirect)
         {
@@ -248,6 +337,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 pathIntersection.value += value * rrFactor * nextPathIntersection.value;
             }
         }
+    #endif
     }
 
 #else // SHADER_UNLIT
@@ -349,51 +439,3 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
             pathIntersection.value *= _RaytracingIntensityClamp / intensity;
     }
 }
-
-[shader("anyhit")]
-void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
-{
-    // The first thing that we should do is grab the intersection vertice
-    IntersectionVertex currentVertex;
-    GetCurrentIntersectionVertex(attributeData, currentVertex);
-
-    // Build the Frag inputs from the intersection vertex
-    FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, fragInput);
-
-    PositionInputs posInput;
-    posInput.positionWS = fragInput.positionRWS;
-    posInput.positionSS = pathIntersection.pixelCoord;
-
-    // Build the surfacedata and builtindata
-    SurfaceData surfaceData;
-    BuiltinData builtinData;
-    bool isVisible;
-    GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, pathIntersection.cone, isVisible);
-
-    // Check alpha clipping
-    if (!isVisible)
-    {
-        IgnoreHit();
-    }
-    else if (pathIntersection.remainingDepth > _RaytracingMaxRecursion)
-    {
-#ifdef _SURFACE_TYPE_TRANSPARENT
-    #if HAS_REFRACTION
-        pathIntersection.value *= surfaceData.transmittanceMask * surfaceData.transmittanceColor;
-    #else
-        pathIntersection.value *= 1.0 - builtinData.opacity;
-    #endif
-        if (Luminance(pathIntersection.value) < 0.001)
-            AcceptHitAndEndSearch();
-        else
-            IgnoreHit();
-#else
-        // Opaque surface
-        pathIntersection.value = 0.0;
-        AcceptHitAndEndSearch();
-#endif
-    }
-}
-
-#endif // SENSORSDK_ENABLE_LIDAR
