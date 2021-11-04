@@ -21,9 +21,13 @@ namespace UnityEngine.Experimental.Rendering
             public static readonly GUIContent virtualOffsetCollisionMask = EditorGUIUtility.TrTextContent("Collision mask", "The collision layer mask to cast rays against.");
             public static readonly GUIContent virtualOffsetMultiThreaded = EditorGUIUtility.TrTextContent("Use Multi-Threaded", "Use multi-threaded offset algorithm (rename this, it is also different).");
 
+            public static readonly GUIContent advanced = EditorGUIUtility.TrTextContent("Advanced");
+
             public static readonly string dilationSettingsTitle = "Dilation Settings";
             public static readonly string virtualOffsetSettingsTitle = "Virtual Offset Settings";
         }
+
+        bool m_VirtualOffsetShowAdvanced;
 
         // Draw the property inside the given rect
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -76,27 +80,33 @@ namespace UnityEngine.Experimental.Rendering
 
         void DrawVirtualOffsetSettings(SerializedProperty virtualOffsetSettings)
         {
-            var enableVirtualOffset = virtualOffsetSettings.FindPropertyRelative("useVirtualOffset");
-            var virtualOffsetGeometrySearchMultiplier = virtualOffsetSettings.FindPropertyRelative("searchMultiplier");
-            var virtualOffsetBiasOutOfGeometry = virtualOffsetSettings.FindPropertyRelative("outOfGeoOffset");
-            var virtualOffsetRayOriginBias = virtualOffsetSettings.FindPropertyRelative("rayOriginBias");
-            var virtualOffsetMaxHitsPerRay = virtualOffsetSettings.FindPropertyRelative("maxHitsPerRay");
-            var virtualOffsetCollisionMask = virtualOffsetSettings.FindPropertyRelative("collisionMask");
-            var virtualOffsetMultiThreaded = virtualOffsetSettings.FindPropertyRelative("useMultiThreadedOffset");
-
             EditorGUILayout.LabelField(Styles.virtualOffsetSettingsTitle, EditorStyles.boldLabel);
             using (new EditorGUI.IndentLevelScope())
             {
+                var enableVirtualOffset = virtualOffsetSettings.FindPropertyRelative("useVirtualOffset");
                 EditorGUILayout.PropertyField(enableVirtualOffset, Styles.useVirtualOffset);
 
                 using (new EditorGUI.DisabledScope(!enableVirtualOffset.boolValue))
                 {
-                    EditorGUILayout.PropertyField(virtualOffsetGeometrySearchMultiplier, Styles.virtualOffsetSearchMultiplier);
-                    EditorGUILayout.PropertyField(virtualOffsetBiasOutOfGeometry, Styles.virtualOffsetBiasOutGeometry);
-                    EditorGUILayout.PropertyField(virtualOffsetRayOriginBias, Styles.virtualOffsetRayOriginBias);
-                    EditorGUILayout.PropertyField(virtualOffsetMaxHitsPerRay, Styles.virtualOffsetMaxHitsPerRay);
-                    EditorGUILayout.PropertyField(virtualOffsetCollisionMask, Styles.virtualOffsetCollisionMask);
-                    EditorGUILayout.PropertyField(virtualOffsetMultiThreaded, Styles.virtualOffsetMultiThreaded);
+                    if (m_VirtualOffsetShowAdvanced = EditorGUILayout.Foldout(m_VirtualOffsetShowAdvanced, Styles.advanced))
+                    {
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            var virtualOffsetGeometrySearchMultiplier = virtualOffsetSettings.FindPropertyRelative("searchMultiplier");
+                            var virtualOffsetBiasOutOfGeometry = virtualOffsetSettings.FindPropertyRelative("outOfGeoOffset");
+                            var virtualOffsetRayOriginBias = virtualOffsetSettings.FindPropertyRelative("rayOriginBias");
+                            var virtualOffsetMaxHitsPerRay = virtualOffsetSettings.FindPropertyRelative("maxHitsPerRay");
+                            var virtualOffsetCollisionMask = virtualOffsetSettings.FindPropertyRelative("collisionMask");
+                            var virtualOffsetMultiThreaded = virtualOffsetSettings.FindPropertyRelative("useMultiThreadedOffset");
+
+                            EditorGUILayout.PropertyField(virtualOffsetGeometrySearchMultiplier, Styles.virtualOffsetSearchMultiplier);
+                            EditorGUILayout.PropertyField(virtualOffsetBiasOutOfGeometry, Styles.virtualOffsetBiasOutGeometry);
+                            EditorGUILayout.PropertyField(virtualOffsetRayOriginBias, Styles.virtualOffsetRayOriginBias);
+                            EditorGUILayout.PropertyField(virtualOffsetMaxHitsPerRay, Styles.virtualOffsetMaxHitsPerRay);
+                            EditorGUILayout.PropertyField(virtualOffsetCollisionMask, Styles.virtualOffsetCollisionMask);
+                            EditorGUILayout.PropertyField(virtualOffsetMultiThreaded, Styles.virtualOffsetMultiThreaded);
+                        }
+                    }
                 }
             }
         }
