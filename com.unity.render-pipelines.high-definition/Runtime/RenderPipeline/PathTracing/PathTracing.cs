@@ -282,7 +282,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle sky;
         }
 
-#if !ENABLE_SENSOR_SDK
+#if ENABLE_SENSOR_SDK
         internal RayTracingShader pathTracingShaderOverride { private get; set; } = null;
         internal Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays { private get; set; } = null;
 #endif
@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render PathTracing", out var passData))
             {
-#if !ENABLE_SENSOR_SDK
+#if ENABLE_SENSOR_SDK
                 passData.pathTracingShader = pathTracingShaderOverride ? pathTracingShaderOverride : m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
 #else
                 passData.pathTracingShader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
@@ -353,7 +353,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracingDoFParameters, data.dofParameters);
                         ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracingTilingParameters, data.tilingParameters);
 
-#if !ENABLE_SENSOR_SDK
+#if ENABLE_SENSOR_SDK
                         // SensorSDK can do its own camera rays generation
                         prepareDispatchRays?.Invoke(ctx.cmd);
 #endif
