@@ -37,7 +37,7 @@ The **Fog** override of the active Volume controls the appearance of the global 
 
 ## Properties
 
-![](Images/Override-VolumetricFog1.png)
+![](Images/fog-overrides.png)
 
 [!include[](snippets/Volume-Override-Enable-Properties.md)]
 
