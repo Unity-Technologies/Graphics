@@ -3,14 +3,13 @@
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 ${VFXPerPassInclude}
+${VFXInclude("Shaders/VFXParticleCommon.template")}
+
+
 
 CBUFFER_START(params)
     uint nbMax;
     uint dispatchWidth;
-CBUFFER_END
-
-CBUFFER_START(cameraParams)
-    float3 cameraPosition;
 CBUFFER_END
 
 ByteAddressBuffer attributeBuffer;
@@ -40,21 +39,12 @@ void CSMain(uint3 groupId          : SV_GroupID,
 	if (id < threshold)
 	{
 		uint index = inputBuffer[id];
-		
-		VFXAttributes attributes = (VFXAttributes)0;
-		${VFXLoadAttributes:{position}}
-		
-#if VFX_LOCAL_SPACE
-		float3 wPos = mul(localToWorld,float4(attributes.position,1.0f)).xyz;
-#else
-		float3 wPos = attributes.position;
-#endif
-		float3 camToPos = wPos - cameraPosition;
-		
-		Kvp kvp;
-		kvp.sortKey = dot(camToPos,camToPos); // sqr distance to the camera
-		kvp.index = index;
 
-		outputBuffer[id] = kvp;
+		VFXAttributes attributes = (VFXAttributes)0;
+        ${VFXLoadAttributes}
+
+        ${VFXFeedSortingKeys}
+
+		outputBuffer[id] = output;
 	}
 }
