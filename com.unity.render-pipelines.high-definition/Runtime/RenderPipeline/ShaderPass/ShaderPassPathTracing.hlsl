@@ -154,7 +154,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     #else
         float3 lightNormal = GetLightNormal(mtlData);
     #endif
-    
+
         LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
 
         float pdf, shadowOpacity;
