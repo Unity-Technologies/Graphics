@@ -400,10 +400,11 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                 // Emit scene view UI
                 if (isSceneViewCamera)
-                {
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
-                }
+                else
 #endif
+                if (cameraData.camera.targetTexture != null && cameraData.cameraType != CameraType.Preview)
+                    ScriptableRenderContext.EmitGeometryForCamera(camera);
 
                 var cullResults = context.Cull(ref cullingParameters);
                 InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);

@@ -36,15 +36,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool msaa = hdCamera.msaaEnabled;
                 var target = renderRequest.target;
 
-                m_RenderGraph.Begin(new RenderGraphParameters()
-                {
-                    executionName = hdCamera.name,
-                    currentFrameIndex = m_FrameCount,
-                    rendererListCulling = m_GlobalSettings.rendererListCulling,
-                    scriptableRenderContext = renderContext,
-                    commandBuffer = commandBuffer
-                });
-
                 // We need to initialize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
                 hdCamera.depthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize);
@@ -109,6 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // For alpha output in AOVs or debug views, in case we have a shadow matte material, we need to render the shadow maps
                     if (m_CurrentDebugDisplaySettings.data.materialDebugSettings.debugViewMaterialCommonValue == Attributes.MaterialSharedProperty.Alpha)
                         RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
+                    else
+                        HDShadowManager.BindDefaultShadowGlobalResources(m_RenderGraph);
 
                     // Stop Single Pass is after post process.
                     StartXRSinglePass(m_RenderGraph, hdCamera);
@@ -336,11 +329,20 @@ namespace UnityEngine.Rendering.HighDefinition
             ScriptableRenderContext renderContext,
             CommandBuffer commandBuffer)
         {
-            RecordRenderGraph(
-                renderRequest, aovRequest, aovBuffers,
-                aovCustomPassBuffers, renderContext, commandBuffer);
+            using (m_RenderGraph.RecordAndExecute(new RenderGraphParameters
+            {
+                executionName = renderRequest.hdCamera.name,
+                currentFrameIndex = m_FrameCount,
+                rendererListCulling = m_GlobalSettings.rendererListCulling,
+                scriptableRenderContext = renderContext,
+                commandBuffer = commandBuffer
+            }))
+            {
+                RecordRenderGraph(
+                    renderRequest, aovRequest, aovBuffers,
+                    aovCustomPassBuffers, renderContext, commandBuffer);
+            }
 
-            m_RenderGraph.Execute();
 
             if (aovRequest.isValid)
             {
