@@ -1246,7 +1246,13 @@ namespace UnityEngine.Rendering.PostProcessing
                 m_LogHistogram.Generate(context);
 
             // Uber effects
+            // 1336238: override xrActiveEye in multipass with the currently rendered eye to fix flickering issue.
+            int xrActiveEyeBackup = context.xrActiveEye;
+            if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.MultiPass)
+                context.xrActiveEye = eye;
             RenderEffect<AutoExposure>(context);
+            context.xrActiveEye = xrActiveEyeBackup; // restore the eye
+
             uberSheet.properties.SetTexture(ShaderIDs.AutoExposureTex, context.autoExposureTexture);
 
             RenderEffect<LensDistortion>(context);

@@ -30,6 +30,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
 
 ## [13.0.0] - 2021-09-01
+### Added
+- New options to select how to sort particles in the Output Context.
+
 
 ### Fixed
 - Prevent vector truncation error in HDRP Decal template

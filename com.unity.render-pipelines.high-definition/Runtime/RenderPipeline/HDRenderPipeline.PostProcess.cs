@@ -4097,7 +4097,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector3(w1.x / w2.x, w1.y / w2.y, w1.z / w2.z);
         }
 
-        public static void GetHDROutputParameters(Tonemapping tonemappingComponent, out Vector4 hdrOutputParameters1, out Vector4 hdrOutputParameters2)
+        static void GetHDROutputParameters(Tonemapping tonemappingComponent, out Vector4 hdrOutputParameters1, out Vector4 hdrOutputParameters2)
         {
             var minNits = HDROutputSettings.main.minToneMapLuminance;
             var maxNits = HDROutputSettings.main.maxToneMapLuminance;
