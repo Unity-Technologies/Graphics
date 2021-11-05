@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
  - Adding ability to automatically cast Bools to Vector types in ShaderGraph [1359160]
+ - Adding Refract Node (https://jira.unity3d.com/browse/HDRP-1599)
 
 ### Fixed
  - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
