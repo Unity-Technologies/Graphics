@@ -1235,8 +1235,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera.currentSSRAlgorithm = volumeSettings.usedAlgorithm.value; // Store for next frame comparison
                     passData.validColorPyramid = hdCamera.colorPyramidHistoryValidFrames > 1;
 
-                    passData.depthBuffer = builder.ReadTexture(prepassOutput.depthBuffer);
-                    passData.depthPyramid = builder.ReadTexture(prepassOutput.depthPyramidTexture);
+                    if (usePBRAlgo)
+                    {
+                        passData.depthBuffer = builder.ReadTexture(prepassOutput.depthBuffer);
+                    }
+                    else
+                    {
+                        passData.depthPyramid = builder.ReadTexture(prepassOutput.depthPyramidTexture);
+                    }
                     passData.colorPyramid = builder.ReadTexture(colorPyramid);
                     passData.stencilBuffer = builder.ReadTexture(prepassOutput.stencilBuffer);
                     passData.clearCoatMask = builder.ReadTexture(clearCoatMask);
