@@ -11,6 +11,7 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile_local_fragment _ DITHER
         #pragma multi_compile_local_fragment _ ENABLE_ALPHA
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
+        #pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB
 
         #pragma multi_compile_local_fragment _ CATMULL_ROM_4 BYPASS
         #define DEBUG_UPSCALE_POINT 0
@@ -21,12 +22,18 @@ Shader "Hidden/HDRP/FinalPass"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
+#if defined(HDR_OUTPUT_REC2020) || defined(HDR_OUTPUT_SCRGB)
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
+#endif
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D(_GrainTexture);
+
         TEXTURE2D_X(_AfterPostProcessTexture);
         TEXTURE2D_ARRAY(_BlueNoiseTexture);
         TEXTURE2D_X(_AlphaTexture);
+
+        TEXTURE2D_X(_UITexture);
 
         SAMPLER(sampler_LinearClamp);
         SAMPLER(sampler_LinearRepeat);
@@ -37,6 +44,13 @@ Shader "Hidden/HDRP/FinalPass"
         float4 _UVTransform;
         float4 _ViewPortSize;
         float  _KeepAlpha;
+
+        float4 _HDROutputParams;
+        float4 _HDROutputParams2;
+        #define _MinNits    _HDROutputParams.x
+        #define _MaxNits    _HDROutputParams.y
+        #define _PaperWhite _HDROutputParams.z
+        #define _RangeReductionMode    (int)_HDROutputParams2.x
 
         struct Attributes
         {
@@ -148,8 +162,22 @@ Shader "Hidden/HDRP/FinalPass"
             // Apply AfterPostProcess target
             #if APPLY_AFTER_POST
             float4 afterPostColor = SAMPLE_TEXTURE2D_X_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
+            #ifdef HDR_OUTPUT
+                afterPostColor.rgb = ProcessUIForHDR(afterPostColor.rgb, _PaperWhite, _MaxNits);
+            #endif
             // After post objects are blended according to the method described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
+            #endif
+
+
+            #ifdef HDR_OUTPUT
+            // Screen space overlay blending.
+            {
+                float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
+                outColor.rgb = SceneUIComposition(uiValue, outColor.rgb, _PaperWhite, _MaxNits);
+
+                outColor.rgb = OETF(outColor.rgb);
+            }
             #endif
 
         #if !defined(ENABLE_ALPHA)
