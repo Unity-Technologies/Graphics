@@ -353,18 +353,33 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
         protected virtual KeywordCollection GetPassKeywords(FullscreenCompatibility compatibility)
             => new KeywordCollection();
 
-        static StructDescriptor GetFullscreenAttributes()
+        static StructDescriptor GetFullscreenAttributes(FullscreenCompatibility compatibility)
         {
-            return new StructDescriptor()
+            var desc = new StructDescriptor()
             {
                 name = "Attributes",
                 packFields = false,
-                fields = new FieldDescriptor[]
+            };
+
+            if (compatibility == FullscreenCompatibility.Blit)
+            {
+                desc.fields = new FieldDescriptor[]
                 {
                     StructFields.Attributes.instanceID,
                     StructFields.Attributes.vertexID,
-                }
-            };
+                    StructFields.Attributes.positionOS,
+                };
+            }
+            else
+            {
+                desc.fields = new FieldDescriptor[]
+                {
+                    StructFields.Attributes.instanceID,
+                    StructFields.Attributes.vertexID,
+                };
+            }
+
+            return desc;
         }
 
         public virtual PassDescriptor GenerateFullscreenPass(FullscreenCompatibility compatibility)
@@ -394,7 +409,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 // Fields
                 structs = new StructCollection
                 {
-                    { GetFullscreenAttributes() },
+                    { GetFullscreenAttributes(compatibility) },
                     { Structs.SurfaceDescriptionInputs },
                     { Varyings },
                     { Structs.VertexDescriptionInputs },

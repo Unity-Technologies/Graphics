@@ -1,7 +1,7 @@
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
-    output.positionCS = GetBlitVertexPosition(input.vertexID);
+    output.positionCS = GetBlitVertexPositionFromPositionOS(input.positionOS);
     BuildVaryingsWithoutInverseProjection(input, output);
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;

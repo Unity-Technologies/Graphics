@@ -60,7 +60,6 @@ void BuildVaryingsWithoutInverseProjection(Attributes input, inout Varyings outp
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     output.texCoord0 = output.positionCS * 0.5 + 0.5;
-    output.texCoord0.y = 1 - output.texCoord0.y;
 
     float3x3 inverseView = (float3x3)inverse(UNITY_MATRIX_V);
     float4x4 inverseProj = inverse(UNITY_MATRIX_P);
@@ -96,6 +95,11 @@ float4 GetBlitVertexPosition(uint vertexID)
     float4 positionCS = GetQuadVertexPosition(vertexID);
     positionCS.xy = positionCS.xy * 2 - 1;
     return positionCS;
+}
+
+float4 GetBlitVertexPositionFromPositionOS(float3 positionOS)
+{
+    return float4(positionOS.xy *  2 - 1, UNITY_NEAR_CLIP_VALUE, 1);
 }
 
 FragOutput DefaultFullscreenFragmentShader(PackedVaryings packedInput)
