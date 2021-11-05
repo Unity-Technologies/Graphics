@@ -383,7 +383,7 @@ platforms:
           - brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
           - brew install unity-downloader-cli
           - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
-          - scp -i ~/.ssh/id_rsa_macmini -r .Editor bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
+          - rsync -az .Editor bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
   Linux:
     name: Linux
     os: linux
