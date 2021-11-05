@@ -22,6 +22,8 @@ The Gather Texture 2D node is under the **Input** &gt; **Texture** category in t
 
 The Gather Texture 2D node is compatible with all render pipelines.
 
+[!include[node-fragment-only](./snippets/sg-node-fragment-only.md)]
+
 ## Ports
 
 | **Name**     | **Direction** | **Type**      | **Binding** | **Description**  |

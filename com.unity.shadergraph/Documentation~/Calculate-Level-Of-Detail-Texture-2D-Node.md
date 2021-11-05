@@ -8,7 +8,7 @@ The Calculate Level of Detail Texture 2D node also has a clamped and unclamped m
 
 - **Clamped**: The node clamps the returned mip level to the actual mips present on the texture. The node uses the [CalculateLevelOfDetail](https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-calculate-lod) HLSL intrinsic function.
 
-- **Unclamped**: The node returns the ideal mip level, based on an idealized texture and number of mips. The node uses the [CalculateLevelOfDetailUnclamped](https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-calculate-lod-unclamped) HLSL intrinsic function.
+- **Unclamped**: The node returns the ideal mip level, based on an idealized texture with all its mips present. The node uses the [CalculateLevelOfDetailUnclamped](https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-calculate-lod-unclamped) HLSL intrinsic function.
 
 > [!NOTE]
 > On platforms where these HLSL functions don't exist, Shader Graph determines an appropriate approximation to use, instead.
@@ -20,6 +20,8 @@ The Calculate Level of Detail Texture 2D node is under the **Input** &gt; **Text
 ## Compatibility
 
 The Calculate Level of Detail Texture 2D node is compatible with all render pipelines.
+
+[!include[node-fragment-only](./snippets/sg-node-fragment-only.md)]
 
 ## Ports
 
@@ -35,7 +37,7 @@ The Calculate Level of Detail Texture 2D node is compatible with all render pipe
 
 | **Name**     | **Type** | **Options** | **Description**  |
 | :---         | :---     | :------     |  :----------     |
-| Clamp        | Toggle   | True, False | When enabled, Shader Graph clamps the output LOD to the actual mips present on the provided **Texture** input. When disabled, Shader Graph returns an ideal mip level, based on an idealized texture and number of mips. |
+| Clamp        | Toggle   | True, False | When enabled, Shader Graph clamps the output LOD to the actual mips present on the provided **Texture** input. When disabled, Shader Graph returns an ideal mip level, based on an idealized texture with all its mips present. |
 
 ## Example shader usage
 
