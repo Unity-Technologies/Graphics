@@ -223,7 +223,7 @@ namespace UnityEngine.Rendering.Universal
                     for (int i = 0; i < validColorBuffersCount; ++i)
                     {
                         AttachmentDescriptor currentAttachmentDescriptor =
-                            new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None ? pass.renderTargetFormat[i] : GetDefaultGraphicsFormat(cameraData));
+                            new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None ? pass.renderTargetFormat[i] : UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, m_HDRFormat, Graphics.preserveFramebufferAlpha));
 
                         var colorTarget = pass.overrideCameraTarget ? pass.colorAttachments[i] : m_CameraColorTarget;
                         int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(colorTarget, m_ActiveColorAttachmentDescriptors);
@@ -332,7 +332,10 @@ namespace UnityEngine.Rendering.Universal
                             new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
 
                     if (pass.overrideCameraTarget)
-                        currentAttachmentDescriptor = new AttachmentDescriptor(pass.renderTargetFormat[0] != GraphicsFormat.None ? pass.renderTargetFormat[0] : GetDefaultGraphicsFormat(cameraData));
+                        currentAttachmentDescriptor = new AttachmentDescriptor(pass.renderTargetFormat[0] != GraphicsFormat.None
+                            ? pass.renderTargetFormat[0]
+                            : UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, m_HDRFormat, Graphics.preserveFramebufferAlpha)); // TODO: maybe this our of UniversalRenderPipeline
+
 
                     var samples = pass.renderTargetSampleCount != -1
                         ? pass.renderTargetSampleCount
@@ -687,29 +690,6 @@ namespace UnityEngine.Rendering.Universal
             var depthTarget = renderPass.overrideCameraTarget ? renderPass.depthAttachment : m_CameraDepthTarget;
             var depthID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : depthTarget.GetHashCode();
             return new RenderPassDescriptor(w, h, samples, depthID);
-        }
-
-        private static GraphicsFormat GetDefaultGraphicsFormat(CameraData cameraData)
-        {
-            if (cameraData.isHdrEnabled)
-            {
-                GraphicsFormat hdrFormat = GraphicsFormat.None;
-
-                // TODO: does this be updated? Be in sync with UniversalRenderPipeline ???
-                if (!Graphics.preserveFramebufferAlpha &&
-                    RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32,
-                        FormatUsage.Linear | FormatUsage.Render))
-                    hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-                else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat,
-                    FormatUsage.Linear | FormatUsage.Render))
-                    hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
-                else
-                    hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);
-
-                return hdrFormat;
-            }
-
-            return SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
         }
     }
 }

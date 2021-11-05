@@ -519,7 +519,7 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
-        static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, HDRFormat requestHdrFormat, bool needsAlpha)
+        internal static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, HDRFormat requestHdrFormat, bool needsAlpha)
         {
             if (isHdrEnabled)
             {

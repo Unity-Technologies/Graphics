@@ -46,6 +46,7 @@ namespace UnityEngine.Rendering.Universal
         ColorHDR,
     }
 
+    // TODO: should this be like light cookie format, an index to a  list of formats that are tested in order for support.
     public enum HDRFormat
     {
         Default = GraphicsFormat.B10G11R11_UFloatPack32,
