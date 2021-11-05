@@ -248,6 +248,8 @@ Improved the quality of the physically-based Depth Of Field in the following way
 
 ![](Images/HDRPFeatures-BetterDoF.png)
 
+Optimize the physically based depth of field implementation. In particular, image regions that are out-of-focus are now computed at lower resolution, while in-focus regions retain the full resolution. For many scenes this results in significant speedup, without any visible reduction in image quality.
+
 ### Physically Based Hair Shader
 ![](Images/PBHairShader.png)
 
