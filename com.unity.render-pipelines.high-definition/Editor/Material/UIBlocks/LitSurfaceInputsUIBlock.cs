@@ -375,6 +375,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             materialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[m_LayerIndex], baseColor[m_LayerIndex]);
 
+            if (baseColorMap[m_LayerIndex].textureValue != null && materials.All(m => m.GetSurfaceType() == SurfaceType.Transparent))
+            {
+                materialEditor.MinMaxShaderProperty(alphaRemapMin[m_LayerIndex], alphaRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.transparencyRemappingText);
+            }
+
+            materialEditor.TexturePropertySingleLine((materials.All(m => m.GetMaterialId() == MaterialId.LitSpecular)) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);
+
             bool hasMetallic = materials.All(m =>
                 m.GetMaterialId() == MaterialId.LitStandard ||
                 m.GetMaterialId() == MaterialId.LitAniso ||
@@ -394,13 +401,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.MinMaxShaderProperty(smoothnessRemapMin[m_LayerIndex], smoothnessRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.smoothnessRemappingText);
                 materialEditor.MinMaxShaderProperty(aoRemapMin[m_LayerIndex], aoRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.aoRemappingText);
             }
-
-            if (baseColorMap[m_LayerIndex].textureValue != null && materials.All(m => m.GetSurfaceType() == SurfaceType.Transparent))
-            {
-                materialEditor.MinMaxShaderProperty(alphaRemapMin[m_LayerIndex], alphaRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.transparencyRemappingText);
-            }
-
-            materialEditor.TexturePropertySingleLine((materials.All(m => m.GetMaterialId() == MaterialId.LitSpecular)) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);
 
             materialEditor.ShaderProperty(normalMapSpace[m_LayerIndex], Styles.normalMapSpaceText);
 

@@ -51,12 +51,13 @@ namespace UnityEditor.Rendering.HighDefinition
         protected override void OnGUIOpen()
         {
             materialEditor.TexturePropertySingleLine(Styles.colorText, colorMap, color);
-            materialEditor.TextureScaleOffsetProperty(colorMap);
 
             if (colorMap.textureValue != null)
             {
                 materialEditor.MinMaxShaderProperty(alphaRemapMin, alphaRemapMax, 0.0f, 1.0f, Styles.transparencyRemappingText);
             }
+
+            materialEditor.TextureScaleOffsetProperty(colorMap);
         }
     }
 }
