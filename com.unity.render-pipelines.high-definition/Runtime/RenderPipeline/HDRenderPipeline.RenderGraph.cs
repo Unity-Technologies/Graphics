@@ -620,6 +620,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public bool decalsEnabled;
             public bool renderMotionVecForTransparent;
+            public int colorMaskTransparentVel;
             public TextureHandle transparentSSRLighting;
             public TextureHandle volumetricLighting;
             public TextureHandle depthPyramidTexture;
@@ -860,6 +861,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // decal datas count is 0 if no decals affect transparency
                 passData.decalsEnabled = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0);
                 passData.renderMotionVecForTransparent = NeedMotionVectorForTransparent(hdCamera.frameSettings);
+                passData.colorMaskTransparentVel = colorMaskTransparentVel;
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 passData.transparentSSRLighting = builder.ReadTexture(ssrLighting);
                 passData.depthPyramidTexture = builder.ReadTexture(prepassOutput.depthPyramidTexture); // We need to bind this for transparent materials doing stuff like soft particles etc.
@@ -901,7 +903,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (ForwardTransparentPassData data, RenderGraphContext context) =>
                     {
                         // Bind all global data/parameters for transparent forward pass
-                        context.cmd.SetGlobalInt(colorMaskTransparentVel, data.renderMotionVecForTransparent ? (int)ColorWriteMask.All : 0);
+                        context.cmd.SetGlobalInt(data.colorMaskTransparentVel, data.renderMotionVecForTransparent ? (int)ColorWriteMask.All : 0);
                         if (data.decalsEnabled)
                             DecalSystem.instance.SetAtlas(context.cmd); // for clustered decals
 
