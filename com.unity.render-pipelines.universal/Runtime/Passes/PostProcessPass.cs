@@ -88,18 +88,22 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         Material m_BlitMaterial;
 
-        public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
+        public PostProcessPass(RenderPassEvent evt, PostProcessData data, ref PostProcessParams postProcessParams) : this(evt, data)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(PostProcessPass));
-            renderPassEvent = evt;
-            m_Data = data;
-            m_Materials = new MaterialLibrary(data);
-            m_BlitMaterial = blitMaterial;
+            m_BlitMaterial = postProcessParams.blitMaterial;
 
             // Texture format pre-lookup
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+            const FormatUsage usage = FormatUsage.Linear | FormatUsage.Render;
+            if (SystemInfo.IsFormatSupported(postProcessParams.requestHDRFormat, usage))
             {
-                // TODO: update with HDR format option???
+                // TODO: we could get render target format from
+                // static `UniversalRenderPipeline.asset.hdrFormat´ but that would means a static tight dependency to the pipeline asset.
+
+                m_DefaultHDRFormat = postProcessParams.requestHDRFormat;
+                m_UseRGBM = false;
+            }
+            else if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, usage)) // HDR fallback
+            {
                 m_DefaultHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
                 m_UseRGBM = false;
             }
@@ -110,6 +114,35 @@ namespace UnityEngine.Rendering.Universal.Internal
                     : GraphicsFormat.R8G8B8A8_UNorm;
                 m_UseRGBM = true;
             }
+        }
+
+        [Obsolete]
+        public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial) : this(evt, data)
+        {
+            m_BlitMaterial = blitMaterial;
+
+            // Texture format pre-lookup
+            const FormatUsage usage = FormatUsage.Linear | FormatUsage.Render;
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, usage))
+            {
+                m_DefaultHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                m_UseRGBM = false;
+            }
+            else
+            {
+                m_DefaultHDRFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
+                    ? GraphicsFormat.R8G8B8A8_SRGB
+                    : GraphicsFormat.R8G8B8A8_UNorm;
+                m_UseRGBM = true;
+            }
+        }
+
+        private PostProcessPass(RenderPassEvent evt, PostProcessData data)
+        {
+            base.profilingSampler = new ProfilingSampler(nameof(PostProcessPass));
+            renderPassEvent = evt;
+            m_Data = data;
+            m_Materials = new MaterialLibrary(data);
 
             // Only two components are needed for edge render texture, but on some vendors four components may be faster.
             if (SystemInfo.IsFormatSupported(GraphicsFormat.R8G8_UNorm, FormatUsage.Render) && SystemInfo.graphicsDeviceVendor.ToLowerInvariant().Contains("arm"))
@@ -335,7 +368,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             //Check amount of swaps we have to do
-            //We blit back and forth without msaa untill the last blit.
+            //We blit back and forth without msaa until the last blit.
             bool useStopNan = cameraData.isStopNaNEnabled && m_Materials.stopNaN != null;
             bool useSubPixeMorpAA = cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
             var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;

@@ -2,10 +2,25 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
+    public struct PostProcessParams
+    {
+        public Material blitMaterial;
+        public GraphicsFormat requestHDRFormat;
+
+        public static PostProcessParams GetDefault()
+        {
+            PostProcessParams ppParams;
+            ppParams.blitMaterial = null;
+            ppParams.requestHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+            return ppParams;
+        }
+    }
+
     /// <summary>
     /// Type acts as wrapper for post process passes. Can we be recreated and destroyed at any point during runtime with post process data.
     /// </summary>
@@ -30,7 +45,7 @@ namespace UnityEngine.Rendering.Universal
 
         public bool isCreated { get => m_CurrentPostProcessData != null; }
 
-        public PostProcessPasses(PostProcessData rendererPostProcessData, Material blitMaterial)
+        private PostProcessPasses(PostProcessData rendererPostProcessData)
         {
             m_ColorGradingLutPass = null;
             m_PostProcessPass = null;
@@ -38,22 +53,34 @@ namespace UnityEngine.Rendering.Universal
             m_AfterPostProcessColor = new RenderTargetHandle();
             m_ColorGradingLut = new RenderTargetHandle();
             m_CurrentPostProcessData = null;
+            m_BlitMaterial = null;
 
             m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
             m_ColorGradingLut.Init("_InternalGradingLut");
-
             m_RendererPostProcessData = rendererPostProcessData;
-            m_BlitMaterial = blitMaterial;
-
-
-            Recreate(rendererPostProcessData);
         }
+
+        public PostProcessPasses(PostProcessData rendererPostProcessData, ref PostProcessParams postProcessParams) : this(rendererPostProcessData)
+        {
+            m_BlitMaterial = postProcessParams.blitMaterial;
+            Recreate(rendererPostProcessData, ref postProcessParams);
+        }
+
+        [Obsolete]
+        public PostProcessPasses(PostProcessData rendererPostProcessData, Material blitMaterial) : this(rendererPostProcessData)
+        {
+            m_BlitMaterial = blitMaterial;
+            var ppParams = new PostProcessParams { blitMaterial = blitMaterial, requestHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32 };
+            Recreate(rendererPostProcessData, ref ppParams);
+        }
+
 
         /// <summary>
         /// Recreates post process passes with supplied data. If already contains valid post process passes, they will be replaced by new ones.
         /// </summary>
         /// <param name="data">Resources used for creating passes. In case of the null, no passes will be created.</param>
-        public void Recreate(PostProcessData data)
+        /// <param name="ppParams">Resources used for creating passes. In case of the null, no passes will be created.</param>
+        public void Recreate(PostProcessData data, ref PostProcessParams ppParams)
         {
             if (m_RendererPostProcessData)
                 data = m_RendererPostProcessData;
@@ -77,10 +104,17 @@ namespace UnityEngine.Rendering.Universal
             if (data != null)
             {
                 m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data);
-                m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data, m_BlitMaterial);
-                m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data, m_BlitMaterial);
+                m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data, ref ppParams);
+                m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data, ref ppParams);
                 m_CurrentPostProcessData = data;
             }
+        }
+
+        [Obsolete]
+        public void Recreate(PostProcessData data)
+        {
+            var ppParams = new PostProcessParams { blitMaterial = null, requestHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32 };
+            Recreate(data, ref ppParams);
         }
 
         public void Dispose()
