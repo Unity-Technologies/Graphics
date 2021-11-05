@@ -256,11 +256,13 @@ namespace UnityEditor.ShaderFoundry
                 }
                 node.CollectShaderProperties(propCollector, GenerationMode.ForReals);
             }
-            foreach (var prop in propCollector.properties)
-            {
-                PropertyUtils.BuildProperties(container, blockBuilder, blockProperties, blockInputs, prop, generator.m_GraphData.graphDefaultConcretePrecision);
-                //PropertyUtils.BuildProperties(container, blockBuilder, blockInputs, prop, generator.m_GraphData.graphDefaultConcretePrecision);
-            }
+            propCollector.Sort();
+            PropertyUtils.BuildProperties(container, blockBuilder, blockInputs, propCollector, generator.m_GraphData.graphDefaultConcretePrecision);
+            //foreach (var prop in propCollector.properties)
+            //{
+            //    PropertyUtils.BuildProperties(container, blockBuilder, blockProperties, blockInputs, prop, generator.m_GraphData.graphDefaultConcretePrecision);
+            //    //PropertyUtils.BuildProperties(container, blockBuilder, blockInputs, prop, generator.m_GraphData.graphDefaultConcretePrecision);
+            //}
 
             var inputsStruct = BuildTypeBuilder(container, blockBuilder, inputsTypeName, blockInputs).Build();
             var outputsStruct = BuildTypeBuilder(container, blockBuilder, outputsTypeName, blockOutputs).Build();

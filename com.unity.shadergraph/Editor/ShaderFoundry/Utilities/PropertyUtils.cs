@@ -100,6 +100,158 @@ namespace UnityEditor.ShaderFoundry
             return propBuilder;
         }
 
+        static internal void BuildProp(ShaderContainer container, AbstractShaderProperty shaderProp, HLSLProperty hlslProp, HashSet<string> declaredHlslProps, List<BlockVariable> inputs)
+        {
+            if (declaredHlslProps.Contains(hlslProp.name))
+                return;
+            declaredHlslProps.Add(hlslProp.name);
+
+            string typeName = GetHlslType(hlslProp);
+            var fieldType = container.GetType(typeName);
+            bool isMaterialProperty = hlslProp.name == shaderProp.referenceName;
+            var declaration = hlslProp.declaration;
+            bool isExposed = true;
+            if (isMaterialProperty)
+            {
+                if (shaderProp.overrideHLSLDeclaration)
+                    declaration = shaderProp.hlslDeclarationOverride;
+                isExposed = shaderProp.isExposed;
+            }
+
+            var varBuilder = new ShaderFoundry.BlockVariable.Builder(container);
+            varBuilder.ReferenceName = hlslProp.name;
+            varBuilder.DisplayName = shaderProp.displayName;
+            varBuilder.Type = fieldType;
+
+            if (declaration == HLSLDeclaration.DoNotDeclare)
+            {
+
+            }
+            else if (declaration == HLSLDeclaration.Global)
+                varBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Global).Build());
+            else if (declaration == HLSLDeclaration.UnityPerMaterial)
+                varBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PerMaterial).Build());
+            else if (declaration == HLSLDeclaration.HybridPerInstance)
+                varBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Hybrid).Build());
+            else
+                AddPropertyDeclaration(container, varBuilder);
+
+            if(isMaterialProperty)
+            {
+                switch (shaderProp)
+                {
+                    case BooleanShaderProperty boolProp:
+                        {
+                            AddUniformDeclaration(container, varBuilder, "float");
+                            if (isExposed)
+                            {
+                                string defaultValue = boolProp.value == false ? "0" : "1";
+                                AddMaterialProperty(container, varBuilder, shaderProp, "Float");
+                                varBuilder.AddAttribute(new ShaderAttribute.Builder(container, "MaterialProperty").Param($"[ToggleUI]{shaderProp.referenceName}(\"{shaderProp.displayName}\", Float)").Build());
+                                AddMaterialPropertyDefault(container, varBuilder, defaultValue);
+                            }
+                            break;
+                        }
+                    case Vector1ShaderProperty vec1Prop:
+                        {
+                            AddUniformDeclaration(container, varBuilder, "float");
+                            if (isExposed)
+                            {
+                                string defaultValue = $"{vec1Prop.value}";
+                                AddMaterialProperty(container, varBuilder, shaderProp, "Float");
+                                AddMaterialPropertyDefault(container, varBuilder, defaultValue);
+                            }
+                            break;
+                        }
+                    case Vector2ShaderProperty vec2Prop:
+                        {
+                            AddUniformDeclaration(container, varBuilder, "float2");
+                            if (isExposed)
+                            {
+                                string defaultValue = $"({vec2Prop.value.x}, {vec2Prop.value.y}, 0, 0)";
+                                AddMaterialProperty(container, varBuilder, shaderProp, "Vector");
+                                AddMaterialPropertyDefault(container, varBuilder, defaultValue);
+                            }
+                            break;
+                        }
+                    case Vector3ShaderProperty vec3Prop:
+                        {
+                            AddUniformDeclaration(container, varBuilder, "float3");
+                            if (isExposed)
+                            {
+                                string defaultValue = $"({vec3Prop.value.x}, {vec3Prop.value.y}, {vec3Prop.value.z}, 0)";
+                                AddMaterialProperty(container, varBuilder, shaderProp, "Vector");
+                                AddMaterialPropertyDefault(container, varBuilder, defaultValue);
+                            }
+                            break;
+                        }
+                    case Vector4ShaderProperty vec4Prop:
+                        {
+                            AddUniformDeclaration(container, varBuilder, "float4");
+                            if(isExposed)
+                            {
+                                string defaultValue = $"({vec4Prop.value.x}, {vec4Prop.value.y}, {vec4Prop.value.z}, {vec4Prop.value.w})";
+                                AddMaterialProperty(container, varBuilder, shaderProp, "Vector");
+                                AddMaterialPropertyDefault(container, varBuilder, defaultValue);
+                            }
+                            break;
+                        }
+                    case ColorShaderProperty colorProp:
+                        {
+                            AddUniformDeclaration(container, varBuilder, "float4");
+                            if (isExposed)
+                            {
+                                AddMaterialProperty(container, varBuilder, shaderProp, "Color", colorProp.hdrTagString);
+                                string defaultValue = $"({colorProp.value.r}, {colorProp.value.g}, {colorProp.value.b}, {colorProp.value.a})";
+                                AddMaterialPropertyDefault(container, varBuilder, defaultValue);
+                            }
+                            break;
+                        }
+                    case Texture2DShaderProperty tex2DProp:
+                        {
+                            DeclareBasicUniform(container, varBuilder, hlslProp);
+                            var normalTagString = (tex2DProp.defaultType == Texture2DShaderProperty.DefaultType.NormalMap) ? "[Normal]" : "";
+                            string attributesString = $"{tex2DProp.hideTagString}{tex2DProp.modifiableTagString}{normalTagString}{tex2DProp.mainTextureString}{tex2DProp.useSTString}";
+                            AddMaterialProperty(container, varBuilder, shaderProp, "2D", attributesString);
+                            string defaultValue = $"\"{Texture2DShaderProperty.ToShaderLabString(tex2DProp.defaultType)}\" {{}}";
+                            AddMaterialPropertyDefault(container, varBuilder, defaultValue);
+                            break;
+                        }
+                    case Texture3DShaderProperty tex3DProp:
+                        DeclareBasicUniform(container, varBuilder, hlslProp);
+                        AddMaterialProperty(container, varBuilder, shaderProp, "3D");
+                        AddMaterialPropertyDefault(container, varBuilder, "\"\" {}");
+                        break;
+                    case CubemapShaderProperty cubeProp:
+                        DeclareBasicUniform(container, varBuilder, hlslProp);
+                        AddMaterialProperty(container, varBuilder, shaderProp, "CUBE");
+                        AddMaterialPropertyDefault(container, varBuilder, "\"\" {}");
+                        break;
+                    case Texture2DArrayShaderProperty tex2DArrayProp:
+                        DeclareBasicUniform(container, varBuilder, hlslProp);
+                        AddMaterialProperty(container, varBuilder, shaderProp, "2DArray");
+                        AddMaterialPropertyDefault(container, varBuilder, "\"\" {}");
+                        break;
+                }
+            }
+
+            inputs.Add(varBuilder.Build());
+        }
+
+        static internal void BuildProperties(ShaderContainer container, Block.Builder blockBuilder, List<BlockVariable> inputs, ShaderGraph.PropertyCollector propCollector, ConcretePrecision defaultConcretePrecision)
+        {
+            var declaredHlslProps = new HashSet<string>();
+
+            for(var i = 0; i < propCollector.propertyCount; ++i)
+            {
+                var shaderProp = propCollector.GetProperty(i);
+                shaderProp.ForeachHLSLProperty((HLSLProperty hlslProp) =>
+                    {
+                        BuildProp(container, shaderProp, hlslProp, declaredHlslProps, inputs);
+                    });
+            }
+        }
+
         static internal void BuildProperties(ShaderContainer container, Block.Builder blockBuilder, List<BlockVariable> inputs, AbstractShaderProperty shaderProp, ConcretePrecision defaultConcretePrecision)
         {
             shaderProp.ForeachHLSLProperty((HLSLProperty hlslProp) =>

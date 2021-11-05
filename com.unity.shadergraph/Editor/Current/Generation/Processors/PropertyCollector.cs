@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        private List<HLSLProperty> BuildHLSLPropertyList()
+        internal List<HLSLProperty> BuildHLSLPropertyList()
         {
             SetReadOnly();
             if (m_HLSLProperties == null)
