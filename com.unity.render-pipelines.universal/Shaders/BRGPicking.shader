@@ -17,12 +17,11 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             #pragma target 4.5
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma editor_sync_compilation
+            #pragma multi_compile DOTS_INSTANCING_ON
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -50,22 +49,12 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
             Varyings Vert(Attributes input)
             {
                 Varyings output = (Varyings)0;
-
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-                #ifdef DOTS_INSTANCING_ON
-
                 float3 positionWS = mul(UNITY_MATRIX_M, input.positionOS).xyz;
                 output.positionCS = mul(unity_BRGPickingProjMatrix, mul(unity_BRGPickingViewMatrix, float4(positionWS, 1)));
-
-                #else
-
-                VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
-                output.positionCS = vertexInput.positionCS;
-
-                #endif
 
                 return output;
             }
