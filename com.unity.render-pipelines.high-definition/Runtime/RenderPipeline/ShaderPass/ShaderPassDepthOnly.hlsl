@@ -2,12 +2,6 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#if defined(DOTS_INSTANCING_ON) && defined(SCENEPICKINGPASS)
-
-#include "Packages/com.unity.render-pipelines.high-definition/Editor/Material/BRGPicking.hlsl"
-
-#else
-
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 #if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
@@ -147,5 +141,3 @@ void Frag(  PackedVaryingsToPS packedInput
 
 #endif // SCENESELECTIONPASS
 }
-
-#endif // DOTS_INSTANCING_ON && SCENEPICKINGPASS
