@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the point distribution for the diffuse denoiser sometimes not being properly intialized.
 - Fixed the bad blending between the sun and the clouds (case 1373282).
 - Fixed and optimize distance shadowmask fade.
+- Fixed compilation errors when using Elipse, Rectangle, Polygon, Checkerboard, RoundedPolygon, RoundedRectangle in a ray tracing shader graph (case 1377610).
+- Fixed outdated documentation about supported GPUs for ray tracing (case 1375895).
+- Fixed outdated documentation about recursie ray tracing effects support (case 1374904).
 
 ### Changed
 - Maximum light count per fine prunned tile (opaque deferred) is now 63 instead of 23.
