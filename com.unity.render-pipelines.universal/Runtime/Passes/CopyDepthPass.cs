@@ -93,8 +93,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                     cameraSamples = MssaSamples;
 
-                // When auto resolve is supported or multisampled texture is not supported, set camera samples to 1
-                if (SystemInfo.supportsMultisampleAutoResolve || SystemInfo.supportsMultisampledTextures == 0 || m_CopyResolvedDepth)
+                // When depth resolve is supported or multisampled texture is not supported, set camera samples to 1
+                if (SystemInfo.supportsMultisampledTextures == 0 || m_CopyResolvedDepth)
                     cameraSamples = 1;
 
                 CameraData cameraData = renderingData.cameraData;
