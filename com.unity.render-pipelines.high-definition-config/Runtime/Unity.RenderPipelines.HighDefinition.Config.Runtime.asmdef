@@ -1,5 +1,6 @@
 {
     "name": "Unity.RenderPipelines.HighDefinition.Config.Runtime",
+    "rootNamespace": "",
     "references": [
         "GUID:df380645f10b7bc4b97d4f5eb6303d95"
     ],
@@ -9,6 +10,9 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": []
+    "defineConstraints": [
+        "!UNITY_DOTSRUNTIME"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

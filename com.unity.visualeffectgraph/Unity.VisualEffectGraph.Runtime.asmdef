@@ -12,7 +12,9 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [],
+    "defineConstraints": [
+        "!UNITY_DOTSRUNTIME"
+    ],
     "versionDefines": [
         {
             "name": "com.unity.timeline",
