@@ -49,12 +49,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static FieldDescriptor EnableShadowMatte = new FieldDescriptor(string.Empty, "EnableShadowMatte", "_ENABLE_SHADOW_MATTE");
 
-        void AddShadowMatteIncludes(ref PassCollection.Item unlitShadowPass)
+        void AddShadowMatteIncludes(ref PassCollection.Item unlitShadowPass, bool rayTracingPass)
         {
             unlitShadowPass.descriptor.includes.Add(CoreIncludes.kHDShadow, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
             unlitShadowPass.descriptor.includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
             unlitShadowPass.descriptor.includes.Add(CoreIncludes.kPunctualLightCommon, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
-            unlitShadowPass.descriptor.includes.Add(CoreIncludes.kHDShadowLoop, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
+            unlitShadowPass.descriptor.includes.Add(rayTracingPass ? CoreIncludes.kHDRaytracingShadowLoop : CoreIncludes.kHDShadowLoop, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
 
             // If we want shadow matte, we need the tangent to world as it is the way to have the normal.
             if (unlitData.enableShadowMatte)
@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // We need to add includes for shadow matte as it's a special case (Lighting includes in an unlit pass)
                 var forwardPass = descriptor.passes.FirstOrDefault(p => p.descriptor.lightMode == "ForwardOnly");
-                AddShadowMatteIncludes(ref forwardPass);
+                AddShadowMatteIncludes(ref forwardPass, false);
 
                 if (unlitData.enableShadowMatte)
                 {
@@ -95,11 +95,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descriptor = base.GetRaytracingSubShaderDescriptor();
 
             var gbufferDXRPass = descriptor.passes.FirstOrDefault(p => p.descriptor.lightMode == "GBufferDXR");
-            AddShadowMatteIncludes(ref gbufferDXRPass);
+            AddShadowMatteIncludes(ref gbufferDXRPass, true);
             var indirectDXRPass = descriptor.passes.FirstOrDefault(p => p.descriptor.lightMode == "IndirectDXR");
-            AddShadowMatteIncludes(ref indirectDXRPass);
+            AddShadowMatteIncludes(ref indirectDXRPass, true);
             var forwardDXRPass = descriptor.passes.FirstOrDefault(p => p.descriptor.lightMode == "ForwardDXR");
-            AddShadowMatteIncludes(ref forwardDXRPass);
+            AddShadowMatteIncludes(ref forwardDXRPass, true);
 
             return descriptor;
         }
