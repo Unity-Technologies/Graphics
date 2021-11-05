@@ -1,5 +1,6 @@
 {
     "name": "Unity.RenderPipelines.Core.Runtime",
+    "rootNamespace": "",
     "references": [
         "GUID:75469ad4d38634e559750d17036d5f7c"
     ],
@@ -9,7 +10,9 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [],
+    "defineConstraints": [
+        "!UNITY_DOTSRUNTIME"
+    ],
     "versionDefines": [
         {
             "name": "com.unity.modules.vr",

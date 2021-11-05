@@ -1,5 +1,6 @@
 {
     "name": "Unity.RenderPipelines.HighDefinition.Runtime",
+    "rootNamespace": "",
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.ugui",
@@ -12,7 +13,9 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [],
+    "defineConstraints": [
+        "!UNITY_DOTSRUNTIME"
+    ],
     "versionDefines": [
         {
             "name": "com.unity.render-pipelines.high-definition",
