@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.Universal
             if (DebugHandler != null)
             {
 #if UNITY_EDITOR
-                UnityEditorInternal.SpriteMaskUtility.EnableDebugMode(DebugHandler.DebugDisplaySettings.MaterialSettings.DebugMaterialModeData == DebugMaterialMode.SpriteMask);
+                UnityEditorInternal.SpriteMaskUtility.EnableDebugMode(DebugHandler.DebugDisplaySettings.materialSettings.materialDebugMode == DebugMaterialMode.SpriteMask);
 #endif
                 if (DebugHandler.AreAnySettingsActive)
                 {
@@ -193,7 +193,7 @@ namespace UnityEngine.Rendering.Universal
                     renderingData.cameraData.camera.orthographicSize = ppc.orthographicSize;
 
                     colorTextureFilterMode = FilterMode.Point;
-                    ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
+                    ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture || ppc.requiresUpscalePass;
                 }
             }
 

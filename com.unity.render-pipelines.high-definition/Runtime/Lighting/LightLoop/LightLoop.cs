@@ -929,12 +929,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 {
+                    ProbeReferenceVolume.instance.PerformPendingOperations();
                     if (hdCamera.camera.cameraType != CameraType.Reflection &&
                         hdCamera.camera.cameraType != CameraType.Preview)
                     {
-                        ProbeReferenceVolume.instance.SortPendingCells(hdCamera.camera.transform.position);
+                        // TODO: Move this to one call for all cameras
+                        ProbeReferenceVolume.instance.UpdateCellStreaming(hdCamera.camera);
                     }
-                    ProbeReferenceVolume.instance.PerformPendingOperations();
                 }
             }
         }

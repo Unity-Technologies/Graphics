@@ -581,7 +581,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #pragma warning restore 0618
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
-                    if ((m_Destination.nameID == BuiltinRenderTextureType.CameraTarget && !m_UseSwapBuffer) || m_ResolveToScreen)
+                    if ((m_Destination.nameID == BuiltinRenderTextureType.CameraTarget && !m_UseSwapBuffer) || (m_ResolveToScreen && m_UseSwapBuffer))
                         cmd.SetViewport(cameraData.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
