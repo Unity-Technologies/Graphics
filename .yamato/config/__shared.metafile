@@ -150,7 +150,7 @@ test_platforms:
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
 
       - [all]: --editor-location=.Editor
-      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
@@ -472,7 +472,7 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
@@ -487,6 +487,7 @@ platforms:
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
+                    set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
                     set unityVersion={{2021_2.changeset.id}}
                     set artifactPath=Boatattack/Quest
                     set jenkinsJob=SBR_Quest_RunTest

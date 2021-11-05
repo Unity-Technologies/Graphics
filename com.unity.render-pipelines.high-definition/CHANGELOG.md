@@ -4,8 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.2] - 2021-10-22
+
+### Fixed
+- Fixed issue with mixed cached shadow for area lights.
+- Fixed an exception happening when the user doesn't set one of the renderers of a given LOD (case 1372965).
+
 ## [12.1.1] - 2021-10-04
 
+### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
 - Fixed the clouds not taking properly into account the fog when in distant mode and with a close far plane (case 1367993).
 - Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.

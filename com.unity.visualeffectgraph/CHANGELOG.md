@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.2] - 2021-10-22
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [12.1.1] - 2021-10-04
 
 Version Updated
@@ -119,6 +124,7 @@ The version number for this package has increased due to a version update of a r
 - Fix undetermitism in space with LocalToWorld and WorldToLocal operators [Case 1355820](https://issuetracker.unity3d.com/product/unity/issues/guid/1355820/)
 - Added a missing paste option in the context menu for VFX contexts. Also the paste options is now disabled when uneffective
 - Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
+- No more performance drop when Windows screen DPI setting is set to custom values (like 125%)
 
 ## [11.0.0] - 2020-10-21
 ### Added
