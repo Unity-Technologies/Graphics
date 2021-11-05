@@ -3,6 +3,7 @@
 //#define DEBUG_LOG_CULLING_SPLITS
 //#define DEBUG_LOG_CULLING_RESULTS_SLOW
 //#define DEBUG_LOG_CULLING_PLANES
+//#define DEBUG_LOG_RECEIVER_PLANES
 
 using System;
 using System.Collections.Generic;
@@ -160,7 +161,6 @@ namespace UnityEngine.Rendering
         private BRGTransformUpdater m_BRGTransformUpdater = new BRGTransformUpdater();
         private GeometryPool m_GlobalGeoPool = null;
 
-
         private List<MeshRenderer> m_AddedRenderers;
 
         public static T* Malloc<T>(int count) where T : unmanaged
@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering
         private struct CullingJob : IJobParallelFor
         {
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<FrustumPlanes.PlanePacket4> planes;
-
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<FrustumPlanes.PlanePacket4> receiverPlanes;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> splitCounts;
 
             [ReadOnly] public NativeArray<DrawRenderer> renderers;
@@ -201,8 +201,23 @@ namespace UnityEngine.Rendering
                 ulong visibleBits = 0;
                 for (int i = start; i < end; i++)
                 {
-                    ulong splitMask = FrustumPlanes.Intersect2NoPartial(planes, splitCounts, renderers[i].bounds);
-                    visibleBits |= splitMask << (8 * (i - start));
+#if DEBUG_LOG_CULLING_RESULTS_SLOW
+                    bool receiverCulled = FrustumPlanes.Intersect2NoPartial(receiverPlanes, renderers[i].bounds) == FrustumPlanes.IntersectResult.Out;
+                    {
+                        ulong splitMask = FrustumPlanes.Intersect2NoPartialMulti(planes, splitCounts, renderers[i].bounds);
+                        if (receiverCulled && splitMask != 0)
+                        {
+                            splitMask = 0x80UL; // Use bit 8 to mark receiver culling for profiling output (only 6 bits needed for payload)
+                        }
+                        visibleBits |= splitMask << (8 * (i - start));
+                    }
+#else
+                    if (FrustumPlanes.Intersect2NoPartial(receiverPlanes, renderers[i].bounds) != FrustumPlanes.IntersectResult.Out)
+                    {
+                        ulong splitMask = FrustumPlanes.Intersect2NoPartialMulti(planes, splitCounts, renderers[i].bounds);
+                        visibleBits |= splitMask << (8 * (i - start));
+                    }
+#endif
                 }
 
                 rendererVisibility[index] = visibleBits;
@@ -222,11 +237,8 @@ namespace UnityEngine.Rendering
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<ulong> rendererVisibility;
 
             [ReadOnly] public NativeArray<int> instanceIndices;
-
             [ReadOnly] public NativeList<DrawBatch> drawBatches;
-
             [ReadOnly] public NativeList<DrawRange> drawRanges;
-
             [ReadOnly] public NativeArray<int> drawIndices;
 
             public NativeArray<BatchCullingOutputDrawCommands> drawCommands;
@@ -248,6 +260,10 @@ namespace UnityEngine.Rendering
                 int rangeStartIndex = 0;
 
                 uint visibleMaskPrev = 0;
+                
+#if DEBUG_LOG_CULLING_RESULTS_SLOW
+                uint receiverCulledCount = 0;
+#endif
 
                 for (int i = 0; i < instanceIndices.Length; i++)
                 {
@@ -255,6 +271,12 @@ namespace UnityEngine.Rendering
                         drawIndices[activeBatch]; // DrawIndices remap to get DrawCommands ordered by DrawRange
                     var rendererIndex = instanceIndices[i];
                     uint visibleMask = (uint)((rendererVisibility[rendererIndex / 8] >> ((rendererIndex % 8) * 8)) & 0xfful);
+
+#if DEBUG_LOG_CULLING_RESULTS_SLOW
+                    // Receiver culling statistics
+                    if ((visibleMask & 0x80U) != 0) receiverCulledCount++;
+                    visibleMask &= ~0x80U;
+#endif
 
                     if (visibleMask != 0)
                     {
@@ -333,12 +355,8 @@ namespace UnityEngine.Rendering
                                         layer = rangeKey.layer,
                                         motionMode = MotionVectorGenerationMode.Camera,
                                         shadowCastingMode = rangeKey.shadowCastingMode,
-                                        receiveShadows =
-                                            (rangeKey.shadowFlags & RangeShadowFlags.ReceiveShadows) ==
-                                            RangeShadowFlags.ReceiveShadows,
-                                        staticShadowCaster =
-                                            (rangeKey.shadowFlags & RangeShadowFlags.StaticShadowCaster) ==
-                                            RangeShadowFlags.StaticShadowCaster,
+                                        receiveShadows = (rangeKey.shadowFlags & RangeShadowFlags.ReceiveShadows) != 0,
+                                        staticShadowCaster = (rangeKey.shadowFlags & RangeShadowFlags.StaticShadowCaster) != 0,
                                         allDepthSorted = false
                                     }
                                 };
@@ -363,7 +381,8 @@ namespace UnityEngine.Rendering
                 " sliceID=" + sliceID +
                 " ranges=" + draws.drawRangeCount +
                 " draws=" + draws.drawCommandCount +
-                " instances=" + draws.visibleInstanceCount);
+                " instances=" + draws.visibleInstanceCount +
+                " (receiver culled=" + receiverCulledCount + ")");
 #endif
             }
         }
@@ -389,7 +408,9 @@ namespace UnityEngine.Rendering
             " layerMask=" + cc.cullingLayerMask +
             " sceneMask=" + cc.sceneCullingMask +
             " cullingSplits=" + cc.cullingSplits.Length +
-            " cullingPlanes=" + cc.cullingPlanes.Length);
+            " cullingPlanes=" + cc.cullingPlanes.Length +
+            " receiverPlanes (count=" + cc.receiverPlaneCount +
+            " offset=" + cc.receiverPlaneOffset + ")");
 #endif
 
             var splitCounts = new NativeArray<int>(cc.cullingSplits.Length, Allocator.TempJob,
@@ -422,7 +443,38 @@ namespace UnityEngine.Rendering
             }
 #endif
 
-            var planes = FrustumPlanes.BuildSOAPlanePackets(cc.cullingPlanes, splitCounts, Allocator.TempJob);
+            var planes = FrustumPlanes.BuildSOAPlanePacketsMulti(cc.cullingPlanes, splitCounts, Allocator.TempJob);
+
+            var receiverPlanes = new NativeArray<Plane>(cc.receiverPlaneCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var receiverPlaneCount = 0;
+
+            if (cc.viewType == BatchCullingViewType.Light)
+            {
+                var direction = cc.localToWorldMatrix.GetColumn(2);
+#if DEBUG_LOG_RECEIVER_PLANES
+                Debug.Log("[OnPerformCulling] light direction= (x=" + direction.x + " y=" + direction.y + " z=" + direction.z + ")");
+#endif
+                for (int i = 0; i < cc.receiverPlaneCount; ++i)
+                {
+                    var plane = cc.cullingPlanes[i + cc.receiverPlaneOffset];
+                    var d = Vector3.Dot(plane.normal, direction);
+
+                    if (d < 0.0)
+                    {
+                        receiverPlanes[receiverPlaneCount++] = plane;
+
+#if DEBUG_LOG_RECEIVER_PLANES
+                        Debug.Log(
+                            "[OnPerformCulling] back facing receiver plane=" + i +
+                            " normal(x=" + plane.normal.x + " y=" + plane.normal.y + " z=" + plane.normal.z + ")" +
+                            " dist=" + plane.distance);
+#endif
+                    }
+                }
+            }
+
+            var receiverPlanePackets = FrustumPlanes.BuildSOAPlanePackets(receiverPlanes, 0, receiverPlaneCount, Allocator.TempJob);
+            receiverPlanes.Dispose();
 
             BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
             drawCommands.drawRanges = Malloc<BatchDrawRange>(m_drawRanges.Length);
@@ -447,6 +499,7 @@ namespace UnityEngine.Rendering
             var cullingJob = new CullingJob
             {
                 planes = planes,
+                receiverPlanes = receiverPlanePackets,
                 splitCounts = splitCounts,
                 renderers = m_renderers,
                 rendererVisibility = rendererVisibility
@@ -467,9 +520,6 @@ namespace UnityEngine.Rendering
 
             var jobHandleCulling = cullingJob.Schedule(visibilityLength, 2);
             var jobHandleOutput = drawOutputJob.Schedule(jobHandleCulling);
-
-            //planes.Dispose(jobHandleCulling);
-            //splitCounts.Dispose(jobHandleCulling);
 
             return jobHandleOutput;
         }
