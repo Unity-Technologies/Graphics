@@ -267,6 +267,48 @@ namespace UnityEditor.ShaderFoundry
         }
     }
 
+    internal static class BlockBuilderExtesions
+    {
+        internal static void BuildInterface(this Block.Builder blockBuilder)
+        {
+            var entryPointFn = blockBuilder.GetEntryPointFunction();
+            var container = entryPointFn.Container;
+            var parameters = entryPointFn.Parameters.GetEnumerator();
+            if (!parameters.MoveNext())
+                return;
+
+            var inputType = parameters.Current.Type;
+            var outputType = entryPointFn.ReturnType;
+
+            BlockVariable.Builder BuildFromField(StructField field)
+            {
+                var varBuilder = new BlockVariable.Builder(container);
+                varBuilder.DisplayName = varBuilder.ReferenceName = field.Name;
+                varBuilder.Type = field.Type;
+                foreach (var attribute in field.Attributes)
+                    varBuilder.AddAttribute(attribute);
+                string defaultValueStr = field.Attributes.FindFirstAttributeParamValue(CommonShaderAttributes.DefaultValue, 0);
+                if (defaultValueStr != null)
+                    varBuilder.DefaultExpression = defaultValueStr;
+                return varBuilder;
+            }
+
+            foreach (var field in inputType.StructFields)
+            {
+                var builder = BuildFromField(field);
+                var input = builder.Build();
+                blockBuilder.AddInput(input);
+                if (input.Attributes.FindFirst(CommonShaderAttributes.Property).IsValid)
+                    blockBuilder.AddProperty(input);
+            }
+            foreach (var field in outputType.StructFields)
+            {
+                var builder = BuildFromField(field);
+                blockBuilder.AddOutput(builder.Build());
+            }
+        }
+    }
+
     static class BlockVariableLinkInstanceExtensions
     {
         internal static void Declare(this BlockVariableLinkInstance varInstance, ShaderBuilder builder)

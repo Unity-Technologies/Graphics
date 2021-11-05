@@ -100,6 +100,92 @@ namespace UnityEditor.ShaderFoundry
             return propBuilder;
         }
 
+        static internal void BuildProperties(ShaderContainer container, Block.Builder blockBuilder, List<BlockVariable> inputs, AbstractShaderProperty shaderProp, ConcretePrecision defaultConcretePrecision)
+        {
+            shaderProp.ForeachHLSLProperty((HLSLProperty hlslProp) =>
+            {
+                string typeName = GetHlslType(hlslProp);
+
+                var fieldType = container.GetType(typeName);
+                var inputBuilder = new ShaderFoundry.BlockVariable.Builder(container);
+                inputBuilder.ReferenceName = hlslProp.name;
+                inputBuilder.DisplayName = shaderProp.displayName;
+                inputBuilder.Type = fieldType;
+
+                bool isMaterialProperty = hlslProp.name == shaderProp.referenceName;
+                var declaration = hlslProp.declaration;
+                bool isExposed = true;
+                if (isMaterialProperty)
+                {
+                    if(shaderProp.overrideHLSLDeclaration)
+                        declaration = shaderProp.hlslDeclarationOverride;
+                    isExposed = shaderProp.isExposed;
+                }
+
+                if (declaration == HLSLDeclaration.DoNotDeclare)
+                {
+
+                }
+                else if (declaration == HLSLDeclaration.Global)
+                    inputBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Global).Build());
+                else if (declaration == HLSLDeclaration.UnityPerMaterial)
+                    inputBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PerMaterial).Build());
+                else if (declaration == HLSLDeclaration.HybridPerInstance)
+                    inputBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Hybrid).Build());
+                else
+                    AddPropertyDeclaration(container, inputBuilder);
+
+                if (shaderProp.referenceName == hlslProp.name)
+                {
+                    //string defaultValue = null;
+                    //string attributesString = null;
+                    //string propertyType = null;
+
+                    switch (shaderProp)
+                    {
+                        case ColorShaderProperty colorProp:
+                            {
+                                AddUniformDeclaration(container, inputBuilder, "float4");
+                                if(isExposed)
+                                {
+                                    AddMaterialProperty(container, inputBuilder, shaderProp, "Color", colorProp.hdrTagString);
+                                    string defaultValue = $"({colorProp.value.r}, {colorProp.value.g}, {colorProp.value.b}, {colorProp.value.a})";
+                                    AddMaterialPropertyDefault(container, inputBuilder, defaultValue);
+                                }
+                                break;
+                            }
+                        case Texture2DShaderProperty tex2DProp:
+                            {
+                                DeclareBasicUniform(container, inputBuilder, hlslProp);
+                                var normalTagString = (tex2DProp.defaultType == Texture2DShaderProperty.DefaultType.NormalMap) ? "[Normal]" : "";
+                                string attributesString = $"{tex2DProp.hideTagString}{tex2DProp.modifiableTagString}{normalTagString}{tex2DProp.mainTextureString}{tex2DProp.useSTString}";
+                                AddMaterialProperty(container, inputBuilder, shaderProp, "2D", attributesString);
+                                string defaultValue = $"\"{Texture2DShaderProperty.ToShaderLabString(tex2DProp.defaultType)}\" {{}}";
+                                AddMaterialPropertyDefault(container, inputBuilder, defaultValue);
+                                break;
+                            }
+                        case Texture3DShaderProperty tex3DProp:
+                            DeclareBasicUniform(container, inputBuilder, hlslProp);
+                            AddMaterialProperty(container, inputBuilder, shaderProp, "3D");
+                            AddMaterialPropertyDefault(container, inputBuilder, "\"\" {}");
+                            break;
+                        case CubemapShaderProperty cubeProp:
+                            DeclareBasicUniform(container, inputBuilder, hlslProp);
+                            AddMaterialProperty(container, inputBuilder, shaderProp, "CUBE");
+                            AddMaterialPropertyDefault(container, inputBuilder, "\"\" {}");
+                            break;
+                        case Texture2DArrayShaderProperty tex2DArrayProp:
+                            DeclareBasicUniform(container, inputBuilder, hlslProp);
+                            AddMaterialProperty(container, inputBuilder, shaderProp, "2DArray");
+                            AddMaterialPropertyDefault(container, inputBuilder, "\"\" {}");
+                            break;
+                    }
+                }
+
+                inputs.Add(inputBuilder.Build());
+            });
+        }
+
         static internal void BuildProperties(ShaderContainer container, Block.Builder blockBuilder, List<BlockVariable> properties, List<BlockVariable> inputs, AbstractShaderProperty shaderProp, ConcretePrecision defaultConcretePrecision)
         {
             switch (shaderProp)

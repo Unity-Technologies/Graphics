@@ -259,6 +259,7 @@ namespace UnityEditor.ShaderFoundry
             foreach (var prop in propCollector.properties)
             {
                 PropertyUtils.BuildProperties(container, blockBuilder, blockProperties, blockInputs, prop, generator.m_GraphData.graphDefaultConcretePrecision);
+                //PropertyUtils.BuildProperties(container, blockBuilder, blockInputs, prop, generator.m_GraphData.graphDefaultConcretePrecision);
             }
 
             var inputsStruct = BuildTypeBuilder(container, blockBuilder, inputsTypeName, blockInputs).Build();
@@ -267,7 +268,11 @@ namespace UnityEditor.ShaderFoundry
             blockBuilder.AddType(outputsStruct);
 
             foreach (var variable in blockInputs)
+            {
                 blockBuilder.AddInput(variable);
+                //if (variable.Attributes.FindFirst(CommonShaderAttributes.Property).IsValid)
+                //    blockBuilder.AddProperty(variable);
+            }
             foreach (var variable in blockOutputs)
                 blockBuilder.AddOutput(variable);
             foreach (var variable in blockProperties)
