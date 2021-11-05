@@ -101,6 +101,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle uiBuffer = m_RenderGraph.defaultResources.blackTextureXR;
                 TextureHandle sunOcclusionTexture = m_RenderGraph.defaultResources.whiteTexture;
 
+                var vBufferInfo = VBufferInformation.NewDefault();
+
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
                 {
                     // Stop Single Pass is after post process.
@@ -182,6 +184,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     var maxZMask = GenerateMaxZPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, hdCamera.depthBufferMipChainInfo);
 
                     var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
+
+                    vBufferInfo = VBufferTileClassification(m_RenderGraph, hdCamera, gpuLightListOutput.tileFeatureFlags, colorBuffer, prepassOutput.vbuffer);
+
+                    colorBuffer = RenderVBufferLighting(m_RenderGraph, cullingResults, hdCamera, vBufferInfo, colorBuffer, prepassOutput.depthBuffer, gpuLightListOutput);
 
                     var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 
@@ -311,7 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     postProcessDest = RenderDebug(m_RenderGraph,
                         hdCamera,
                         postProcessDest,
-                        prepassOutput.vbuffer.vbuffer,
+                        vBufferInfo,
                         prepassOutput.resolvedDepthBuffer,
                         prepassOutput.depthPyramidTexture,
                         colorPickerTexture,

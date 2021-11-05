@@ -11,6 +11,8 @@ namespace UnityEngine.Rendering
         public static int GeoPoolUV1ByteSize = 2 * 4;
         public static int GeoPoolNormalByteSize = 3 * 4;
         public static int GeoPoolTangentByteSize = 3 * 4;
+        public static int GeoPoolBatchInstanceDataByteSize = 2;
+        public static int GeoPoolBatchInstancesPerDword = 4 / GeoPoolBatchInstanceDataByteSize;
 
         public static int GeoPoolPosByteOffset = 0;
         public static int GeoPoolUV0ByteOffset = GeoPoolPosByteOffset + GeoPoolPosByteSize;
@@ -48,6 +50,7 @@ namespace UnityEngine.Rendering
         public int baseVertex;
         public int indexStart;
         public int indexCount;
+        public uint materialKey;
     }
 
     [GenerateHLSL]
@@ -56,6 +59,13 @@ namespace UnityEngine.Rendering
         public int vertexOffset;
         public int indexOffset;
         public int subMeshLookupOffset;
-        public int subMeshEntryOffset;
+        public int subMeshEntryOffset_VertexFlags; //16 bits for submesh entry, 16 bits for vertex flags.
+    }
+
+    [GenerateHLSL]
+    internal struct GeoPoolBatchTableEntry
+    {
+        public int offset;
+        public int count;
     }
 }

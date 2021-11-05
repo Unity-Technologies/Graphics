@@ -18,7 +18,7 @@ int _GeoHandle;
 int _GeoVertexOffset;
 int _GeoIndexOffset;
 int _GeoSubMeshLookupOffset;
-int _GeoSubMeshEntryOffset;
+int _GeoSubMeshEntryOffset_VertexFlags;
 RWStructuredBuffer<GeoPoolMetadataEntry> _OutputGeoMetadataBuffer;
 
 [numthreads(1,1,1)]
@@ -28,7 +28,7 @@ void MainUpdateMeshMetadata()
     entry.vertexOffset = _GeoVertexOffset;
     entry.indexOffset = _GeoIndexOffset;
     entry.subMeshLookupOffset = _GeoSubMeshLookupOffset;
-    entry.subMeshEntryOffset = _GeoSubMeshEntryOffset;
+    entry.subMeshEntryOffset_VertexFlags = _GeoSubMeshEntryOffset_VertexFlags;
     _OutputGeoMetadataBuffer[_GeoHandle] = entry;
 }
 
@@ -133,6 +133,7 @@ int _InputSubMeshIndexStart;
 int _InputSubMeshIndexCount;
 int _InputSubMeshBaseVertex;
 int _InputSubMeshDestIndex;
+int _InputSubMeshMaterialKey;
 
 int _InputSubmeshLookupDestOffset;
 int _InputSubmeshLookupBufferCount;
@@ -150,6 +151,7 @@ void MainUpdateSubMeshData(
         entry.indexStart = _InputSubMeshIndexStart;
         entry.indexCount = _InputSubMeshIndexCount;
         entry.baseVertex = _InputSubMeshBaseVertex;
+        entry.materialKey = (uint)_InputSubMeshMaterialKey;
         _OutputSubMeshEntryBuffer[_InputSubMeshDestIndex] = entry;
     }
 
