@@ -465,6 +465,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle backBuffer,
             TextureHandle uiBuffer,
             TextureHandle afterPostProcessBuffer,
+            TextureHandle sunOcclusionTexture,
             CullingResults cullResults,
             HDCamera hdCamera)
         {
@@ -551,7 +552,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // HDRP to reduce the amount of resolution lost at the center of the screen
                 source = PaniniProjectionPass(renderGraph, hdCamera, source);
 
-                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBuffer);
+                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBuffer, sunOcclusionTexture);
 
                 TextureHandle bloomTexture = BloomPass(renderGraph, hdCamera, source);
                 TextureHandle logLutOutput = ColorGradingPass(renderGraph);
@@ -3121,7 +3122,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer)
+        TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer, TextureHandle sunOcclusionTexture)
         {
             if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
