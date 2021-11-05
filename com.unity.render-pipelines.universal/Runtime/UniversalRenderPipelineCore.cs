@@ -332,6 +332,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int projectionParams = Shader.PropertyToID("_ProjectionParams");
         public static readonly int zBufferParams = Shader.PropertyToID("_ZBufferParams");
         public static readonly int orthoParams = Shader.PropertyToID("unity_OrthoParams");
+        public static readonly int globalMipBias = Shader.PropertyToID("_GlobalMipBias");
+        public static readonly int globalMipBiasPow2 = Shader.PropertyToID("_GlobalMipBiasPow2");
 
         public static readonly int screenSize = Shader.PropertyToID("_ScreenSize");
 
