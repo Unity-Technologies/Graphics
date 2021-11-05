@@ -99,14 +99,15 @@ CTYPE GetColorSample(float2 sampleTC, float lod)
 {
 #ifndef FORCE_POINT_SAMPLING
     float texelsToClamp = (1u << (uint)ceil(lod)) + 1;
-    float2 uv = ClampAndScaleUVPostProcessTexture(ResScale * sampleTC * _PostProcessScreenSize.zw, _PostProcessScreenSize.zw, texelsToClamp);
+    float2 uv = ClampAndScaleUVPostProcessTexture(ResScale * (sampleTC + 0.5) * _PostProcessScreenSize.zw, _PostProcessScreenSize.zw, texelsToClamp);
 
     // Trilinear sampling can introduce some "leaking" between in-focus and out-of-focus regions, hence why we force point
     // sampling. Ideally, this choice should be per-tile (use trilinear only in tiles without in-focus pixels), but until
     // we do this, it is more safe to point sample.
     return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, uv, lod).CTYPE_SWIZZLE;
 #else
-    float2 uv = ClampAndScaleUVPostProcessTextureForPoint((ResScale * sampleTC + 0.5) * _PostProcessScreenSize.zw);
+    float texelsToClamp = (1u << (uint)ceil(ResScale - 1.0)) + 1;
+    float2 uv = ClampAndScaleUVPostProcessTexture(ResScale * (sampleTC + 0.5) * _PostProcessScreenSize.zw, _PostProcessScreenSize.zw, texelsToClamp);
     return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, uv, ResScale - 1.0).CTYPE_SWIZZLE;
 #endif
 }
