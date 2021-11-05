@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added DebugFrameTiming class that can be used by render pipelines to display CPU/GPU frame timings and bottlenecks in Rendering Debugger.
 - Added new DebugUI widget types: ProgressBarValue and ValueTuple
 - Added common support code for FSR
+- Added blending for curves in post processing volumes.
 
 ## [13.1.0] - 2021-09-24
 
