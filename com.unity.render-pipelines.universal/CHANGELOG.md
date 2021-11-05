@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed an issue in where installing the Adaptive Performance package caused errors to the inspector UI [1368161](https://issuetracker.unity3d.com/issues/urp-package-throws-compilation-error-cs1525-when-imported-together-with-adaptive-performance-package)
 - Fixed post processing with Pixel Perfect camera [case 1363763](https://issuetracker.unity3d.com/product/unity/issues/guid/1363763/)
+- Fixed disabled debug lighting modes on Vulkan and OpenGL following a shader compiler fix. [case 1334240]
+- Fixed incorrect behavior of Reflections with Smoothness lighting debug mode. [case 1374181]
 
 ## [12.1.1] - 2021-10-04
 
