@@ -41,6 +41,8 @@ Shader "Hidden/HDRP/FinalPass"
         #define FSR_INPUT_TEXTURE _InputTexture
         #define FSR_INPUT_SAMPLER s_linear_clamp_sampler
         #if ENABLE_ALPHA
+            // When alpha is in use, activate the alpha-passthrough mode in the RCAS implementation.
+            // When this mode is active, ApplyRCAS returns a four component vector (rgba) instead of a three component vector (rgb).
             #define FSR_ENABLE_ALPHA 1
         #endif
         #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
