@@ -2,24 +2,24 @@
 
 ## Description
 
-Generates a refraction using [Sahl-Snell's Law](https://en.wikipedia.org/wiki/Snell%27s_law) and produces a new refracted vector. Based on an **Incident** vector, the **Normal** of the surface and **Eta** we produce the refracted vector.
+The Refract node generates a refraction using an **Incident** vector, a normalized **Normal** vector of the surface, and the refractive index ratio, or **Eta** and produces a new refracted vector. The node uses the principles described in [Sahl-Snell's Law](https://en.wikipedia.org/wiki/Snell%27s_law).
 
-Based on Ibn Sahl's Law, for a given refractive index of the medium, we can reach an angle where all the surface behave like a perfect mirror, that's why in **Safe** Mode generate a null vector, this implementation is here to not double the reflection intensity which is handle by Fresnel.
+Based on Sahl-Snell's Law, for a medium's given refractive index, there is an angle where the surface behaves like a perfect mirror. When you set the Refract node's Mode to **Safe**, the node generates a null vector when it reaches this critical angle.
 
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Incident      | Input | Vector | None | Incident normalied vector to the surface (From surface to source, for instance from pixel to eye). |
-| Normal      | Input | Vector | None | Normal normalized of the surface |
-| Eta      | Input | Float    | None | The ratio of refractive index (Eta == (source refractive index)/(medium refractive index)), For instance for an interaction from air to glass **Eta** will be 1.0/1.5 and for an interaction from glass to air **Eta** will be 1.5/1.0. |
+| Incident      | Input | Vector | None | The normalized vector of what should be refracted to the surface causing the refraction. For example, this could be from a light source to a pixel or the surface, or from the eye to the pixel or surface. |
+| Normal      | Input | Vector | None | The normalized normal of the surface that should cause the refraction. |
+| Eta      | Input | Float    | None | The refractive index ratio, which is defined by the Source Refractive Index (where the light is coming from) divided by the Medium Refractive Index (the medium causing the refraction). For example, the **Eta** for an air source and a glass medium would be 1.0/1/5, while a glass source to an air medium would be 1.5/1.0. |
 | Out | Output      |  Vector | None | The refracted vector |
 
 ## Controls
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| Mode      | Dropdown | CriticalAngle, Safe | Select if the implementation will protect against critical angle refraction which will produce a NaN (Square root of a negative number), if the Safe mode is used when we reach the critical angle a null vector is returned. |
+| Mode      | Dropdown | Select **Safe** to prevent the Refract node from returning a NaN result when there is a risk of critical angle refraction. **Safe** will return a null vector result, instead. Select **CriticalAngle** to avoid this check for a potential NaN result. |
 
 ## Generated Code Example
 
