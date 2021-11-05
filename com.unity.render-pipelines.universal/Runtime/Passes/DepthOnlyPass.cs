@@ -27,20 +27,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.profilingSampler = new ProfilingSampler(nameof(DepthOnlyPass));
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
-        }
-
-        /// <summary>
-        /// Configure the pass
-        /// </summary>
-        [Obsolete("Use RTHandles for depthAttachmentHandle")]
-        public void Setup(
-            RenderTextureDescriptor baseDescriptor,
-            RenderTargetHandle depthAttachmentHandle)
-        {
-            if (this.destination?.nameID != depthAttachmentHandle.Identifier())
-                this.destination = RTHandles.Alloc(depthAttachmentHandle.Identifier());
-            this.depthStencilFormat = baseDescriptor.depthStencilFormat;
-            this.shaderTagId = k_ShaderTagId;
+            useNativeRenderPass = false;
         }
 
         /// <summary>
@@ -61,13 +48,18 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // When depth priming is in use the camera target should not be overridden so the Camera's MSAA depth attachment is used.
             if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+            {
                 ConfigureTarget(renderingData.cameraData.renderer.cameraDepthTargetHandle, depthStencilFormat, desc.width, desc.height, 1, true);
+                // Only clear depth here so we don't clear any bound color target. It might be unused by this pass but that doesn't mean we can just clear it. (e.g. in case of overlay cameras + depth priming)
+                ConfigureClear(ClearFlag.Depth, Color.black);
+            }
             // When not using depth priming the camera target should be set to our non MSAA depth target.
             else
-                ConfigureTarget(destination, depthStencilFormat, desc.width, desc.height, 1, true);
-
-            // Only clear depth here so we don't clear any bound color target. It might be unused by this pass but that doesn't mean we can just clear it. (e.g. in case of overlay cameras + depth priming)
-            ConfigureClear(ClearFlag.Depth, Color.black);
+            {
+                useNativeRenderPass = true;
+                ConfigureTarget(destination, GraphicsFormat.R32_SFloat, desc.width, desc.height, 1);
+                ConfigureClear(ClearFlag.All, Color.black);
+            }
         }
 
         /// <inheritdoc/>

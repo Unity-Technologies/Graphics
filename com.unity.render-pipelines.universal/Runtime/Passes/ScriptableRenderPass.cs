@@ -257,14 +257,15 @@ namespace UnityEngine.Rendering.Universal
         internal NativeArray<int> m_InputAttachmentIndices;
 
         internal GraphicsFormat[] renderTargetFormat { get; set; }
+
         internal bool m_UsesRTHandles;
         RTHandle[] m_ColorAttachments;
-        // TODO: Replace with m_ColorAttachments when dropping backwards compatibility
         RenderTargetIdentifier[] m_ColorAttachmentIds;
         internal RTHandle[] m_InputAttachments = new RTHandle[8];
+        internal bool[] m_InputAttachmentIsTransient = new bool[8];
         RTHandle m_DepthAttachment;
-        // TODO: Replace with m_DepthAttachment when dropping backwards compatibility
         RenderTargetIdentifier m_DepthAttachmentId;
+
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
@@ -283,6 +284,8 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RTHandle[] { k_CameraTarget, null, null, null, null, null, null, null };
             m_InputAttachments = new RTHandle[] { null, null, null, null, null, null, null, null };
+            m_InputAttachmentIsTransient = new bool[] { false, false, false, false, false, false, false, false };
+            m_DepthAttachment = k_CameraTarget;
             m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store, 0, 0, 0, 0, 0, 0, 0 };
             m_DepthStoreAction = RenderBufferStoreAction.Store;
             m_OverriddenColorStoreActions = new bool[] { false, false, false, false, false, false, false, false };
@@ -354,9 +357,10 @@ namespace UnityEngine.Rendering.Universal
             m_OverriddenDepthStoreAction = true;
         }
 
-        internal void ConfigureInputAttachments(RTHandle input)
+        internal void ConfigureInputAttachments(RTHandle input, bool isTransient = false)
         {
             m_InputAttachments[0] = input;
+            m_InputAttachmentIsTransient[0] = isTransient;
         }
 
         [Obsolete("Use RTHandle for input")]
@@ -368,6 +372,22 @@ namespace UnityEngine.Rendering.Universal
         internal void ConfigureInputAttachments(RTHandle[] inputs)
         {
             m_InputAttachments = inputs;
+        }
+
+        internal void ConfigureInputAttachments(RTHandle[] inputs, bool[] isTransient)
+        {
+            ConfigureInputAttachments(inputs);
+            m_InputAttachmentIsTransient = isTransient;
+        }
+
+        internal void SetInputAttachmentTransient(int idx, bool isTransient)
+        {
+            m_InputAttachmentIsTransient[idx] = isTransient;
+        }
+
+        internal bool IsInputAttachmentTransient(int idx)
+        {
+            return m_InputAttachmentIsTransient[idx];
         }
 
         [Obsolete("Use RTHandles for inputs")]
