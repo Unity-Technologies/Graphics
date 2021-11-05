@@ -30,18 +30,17 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
 
             float4x4 unity_BRGPickingViewMatrix;
             float4x4 unity_BRGPickingProjMatrix;
-            float4 unity_BRGPickingCameraWorldPos;
-            float4 _SelectionID;
+            float4 unity_BRGPickingSelectionID;
 
             struct Attributes
             {
-                float4 positionOS   : POSITION;
+                float4 positionOS : POSITION;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
-                float4 positionCS               : SV_POSITION;
+                float4 positionCS : SV_POSITION;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -53,8 +52,9 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-                float3 positionWS = mul(UNITY_MATRIX_M, input.positionOS).xyz;
-                output.positionCS = mul(unity_BRGPickingProjMatrix, mul(unity_BRGPickingViewMatrix, float4(positionWS, 1)));
+                float4 positionWS = mul(UNITY_MATRIX_M, input.positionOS);
+                float4 positionVS = mul(unity_BRGPickingViewMatrix, positionWS);
+                output.positionCS = mul(unity_BRGPickingProjMatrix, positionVS);
 
                 return output;
             }
@@ -64,7 +64,7 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                return _SelectionID;
+                return unity_BRGPickingSelectionID;
             }
 
             ENDHLSL

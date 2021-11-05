@@ -25,8 +25,6 @@ Shader "Hidden/HDRP/BRGPicking"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 
             struct PickingAttributesMesh
             {
@@ -42,8 +40,7 @@ Shader "Hidden/HDRP/BRGPicking"
 
             float4x4 unity_BRGPickingViewMatrix;
             float4x4 unity_BRGPickingProjMatrix;
-            float4 unity_BRGPickingCameraWorldPos;
-            float4 _SelectionID;
+            float4 unity_BRGPickingSelectionID;
 
             #undef unity_ObjectToWorld
 
@@ -55,14 +52,10 @@ Shader "Hidden/HDRP/BRGPicking"
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
 
                 float4x4 objectToWorld = LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld));
-                float4x4 viewMatrix = unity_BRGPickingViewMatrix;
 
-            #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-                objectToWorld._m03_m13_m23 -= unity_BRGPickingCameraWorldPos.xyz;
-                viewMatrix._m03_m13_m23_m33 = float4(0,0,0,1);
-            #endif
-
-                output.positionCS = mul(unity_BRGPickingProjMatrix, mul(viewMatrix, mul(objectToWorld, float4(input.positionOS, 1.0))));
+                float4 positionWS = mul(objectToWorld, float4(input.positionOS, 1.0));
+                float4 positionVS = mul(unity_BRGPickingViewMatrix, positionWS);
+                output.positionCS = mul(unity_BRGPickingProjMatrix, positionVS);
 
                 return output;
             }
@@ -72,7 +65,7 @@ Shader "Hidden/HDRP/BRGPicking"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 UNITY_SETUP_INSTANCE_ID(input);
 
-                outColor = _SelectionID;
+                outColor = unity_BRGPickingSelectionID;
             }
 
             ENDHLSL
