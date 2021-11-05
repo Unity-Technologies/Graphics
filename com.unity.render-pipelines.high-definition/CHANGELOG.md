@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation errors when using Elipse, Rectangle, Polygon, Checkerboard, RoundedPolygon, RoundedRectangle in a ray tracing shader graph (case 1377610).
 - Fixed outdated documentation about supported GPUs for ray tracing (case 1375895).
 - Fixed outdated documentation about recursie ray tracing effects support (case 1374904).
+- Fixed Shadow Matte not appearing in ray tracing effects (case 1364005).
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.

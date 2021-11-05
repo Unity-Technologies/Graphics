@@ -32,6 +32,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         /// <summary>RayTracing Prepass pass name.</summary>
         public static readonly string s_RayTracingPrepassStr = "RayTracingPrepass";
+        /// <summary>GBuffer DXR pass name.</summary>
+        public static readonly string s_RayTracingGBufferStr = "GBufferDXR";
+        /// <summary>Forward DXR pass name.</summary>
+        public static readonly string s_RayTracingForwardStr = "ForwardDXR";
+        /// <summary>Indirect DXR pass name.</summary>
+        public static readonly string s_RayTracingIndirectStr = "IndirectDXR";
         /// <summary>Visibility DXR pass name.</summary>
         public static readonly string s_RayTracingVisibilityStr = "VisibilityDXR";
         /// <summary>PathTracing DXR pass name.</summary>

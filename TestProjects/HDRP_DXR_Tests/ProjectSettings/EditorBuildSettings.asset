@@ -252,6 +252,9 @@ EditorBuildSettings:
     path: Assets/Scenes/713_PointShadow_Matte.unity
     guid: 7e23108915e5705409db2943ac41fc38
   - enabled: 1
+    path: Assets/Scenes/714_AreaShadow_Matte.unity
+    guid: b4e3d982133c1c24cad67533f4a204ee
+  - enabled: 1
     path: Assets/Scenes/717_DirectionalLightTransmission.unity
     guid: ba799739088f73744873fb5720fcddd3
   - enabled: 1

@@ -23,7 +23,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs_SG_ShadowMatte
+  m_Name: Shader Graphs_SG_ShadowMatteNone
   m_Shader: {fileID: -6465566751694194690, guid: 97ddef8bad028f247b0a9f6bfd09e6f9,
     type: 3}
   m_ShaderKeywords: 
@@ -74,7 +74,7 @@ Material:
     - _EnableFogOnTransparent: 1
     - _OpaqueCullMode: 2
     - _RenderQueueType: 1
-    - _ShadowMatteFilter: 4.0357e-41
+    - _ShadowMatteFilter: 1.8e-43
     - _SrcBlend: 1
     - _StencilRef: 0
     - _StencilRefDepth: 0
@@ -102,5 +102,5 @@ Material:
     m_Colors:
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _ShadowTint: {r: 0.269, g: 0.545, b: 0.6, a: 1}
+    - _ShadowTint: {r: 1, g: 0.9580838, b: 0, a: 1}
   m_BuildTextureStacks: []
