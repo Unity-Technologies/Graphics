@@ -29,28 +29,31 @@ reuse_blocks:
     - [Linux_Vulkan]: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
     - [Linux_Vulkan]: sudo apt update
     - [Linux_Vulkan]: sudo apt install -y unity-config
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-    - [XRQuest_Vulkan, XRQuest_OpenGLES3]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.management@4.0.1 --project-path .
-    - [XRQuest_Vulkan, XRQuest_OpenGLES3]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.oculus@1.8.1 --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-    - [XRQuest_OpenGLES3, XRQuest_Vulkan]: cd TestProjects/BoatAttack && unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates" --project-path .
-    - [XRQuest_OpenGLES3, XRQuest_Vulkan]: cd TestProjects/BoatAttack && unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23 --project-path .
+
+    - [all]: unity-config settings project-path TestProjects/BoatAttack
+    - [all]: unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+    - [all]: unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+    - [all]: unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+    - [all]: unity-config project add dependency com.unity.addressables@1.16.7
+    - [all]: unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+    - [all]: unity-config project add dependency com.unity.test-framework@1.1.29
+    - [all]: unity-config project add dependency com.unity.test-framework.performance@2.4.0
+    - [all]: unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+    - [all]: unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+    - [all]: unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+    - [all]: unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+    - [all]: unity-config project add testable com.unity.cli-project-setup
+    - [all]: unity-config project add testable com.unity.test.performance.runtimesettings
+    - [all]: unity-config project add testable com.unity.test.metadata-manager
+    - [all]: unity-config project add testable com.unity.testing.graphics-performance
+    - [all]: unity-config project add testable com.unity.render-pipelines.core
+    - [all]: unity-config project add testable unity.graphictests.performance.universal
+    - [all]: unity-config project set project-update false
+    - [XRQuest_OpenGLES3, XRQuest_Vulkan]: unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates"
+    - [XRQuest_OpenGLES3, XRQuest_Vulkan]: unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23
+    - [XRQuest_Vulkan, XRQuest_OpenGLES3]: unity-config project add dependency com.unity.xr.management@4.0.1
+    - [XRQuest_Vulkan, XRQuest_OpenGLES3]: unity-config project add dependency com.unity.xr.oculus@1.8.1
+
   perf_utr_flags:
     - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
     - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
@@ -401,7 +404,7 @@ jobs:
         build_config: il2cpp
         color_space: Linear
         test_platforms:
-          - performance_playmode_runtime
+          #- performance_playmode_runtime https://fogbugz.unity3d.com/f/cases/1372763/
           - performance_build_editmode
       - platform: Linux
         api: Vulkan

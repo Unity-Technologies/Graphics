@@ -23,6 +23,11 @@ URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/Linux/2560x1440.bin --output 2560x1440.bin
+         retries: 2
+      -  command: sudo rm /etc/edid.txt
+      -  command: sudo mv 2560x1440.bin /etc/edid.txt
+      -  command: sudo pkill Xorg && sudo systemctl restart gdm3
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
@@ -164,6 +169,11 @@ URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/Linux/2560x1440.bin --output 2560x1440.bin
+         retries: 2
+      -  command: sudo rm /etc/edid.txt
+      -  command: sudo mv 2560x1440.bin /etc/edid.txt
+      -  command: sudo pkill Xorg && sudo systemctl restart gdm3
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
