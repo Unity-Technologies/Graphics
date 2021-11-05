@@ -61,6 +61,9 @@ The Branch On Input Connection node is compatible with all render pipelines.
 
 ## Example shader Sub Graph usage
 
-This Branch On Input Connection node uses the connection status of a Vector2 property in its parent graph. The connection status tells the Branch on Input Connection node whether to use the UV2 or UV0 channel to generate a checkerboard pattern:
+This Branch On Input Connection node specifies the default behavior for a Sub Graph input property. When the UV property is connected in the parent graph, then the value from that property is passed directly to the Checkerboard node. When the UV property isn't connected, then the Branch On Input Connection node passes the UV0 value from its connected UV node to the Checkerboard node:
 
-![An image of the Graph window, showing a Branch on Input Connection node connected to the UV2 property, and a UV node that outputs the UV0 channel. It outputs the UV channel to the UV input port on a Checkerboard node.](images/sg-branch-on-input-connection-node-example.png)
+> [!NOTE]
+> When previewing a Sub Graph, the Branch On Input Connection node always uses the NotConnected value.
+
+![An image of the Graph window, showing a Branch On Input Connection node that changes the behavior for the UV input property based on its connection status in the parent graph, which changes the result from a Checkerboard node.](images/sg-branch-on-input-connection-node-example.png)
