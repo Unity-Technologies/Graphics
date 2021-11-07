@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the point distribution for the diffuse denoiser sometimes not being properly intialized.
 - Fixed the bad blending between the sun and the clouds (case 1373282).
 - Fixed and optimize distance shadowmask fade.
+- Fixed Crash issue when adding an area light on its own.
 
 ### Changed
 - Maximum light count per fine prunned tile (opaque deferred) is now 63 instead of 23.
