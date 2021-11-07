@@ -653,7 +653,7 @@ namespace UnityEditor.VFX
             base.GenerateErrors(manager);
             var dataParticle = GetData() as VFXDataParticle;
 
-            if (dataParticle != null && dataParticle.boundsSettingMode != BoundsSettingMode.Manual)
+            if (dataParticle != null && dataParticle.boundsMode != BoundsSettingMode.Manual)
             {
                 var modifiedBounds = children
                     .SelectMany(b =>

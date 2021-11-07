@@ -1,3 +1,8 @@
+// SensorSDK support: in Lidar mode, an alternate computation is used, implemented in a separate file
+#ifdef SENSORSDK_ENABLE_LIDAR
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassSensorLidar.hlsl"
+#else
+
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
@@ -243,15 +248,15 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
     pathIntersection.value = computeDirect ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
 
-// Apply shadow matte if requested
-#ifdef _ENABLE_SHADOW_MATTE
+    // Apply shadow matte if requested
+    #ifdef _ENABLE_SHADOW_MATTE
     float3 shadowColor = lerp(pathIntersection.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
     float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
     pathIntersection.value = lerp(shadowColor, pathIntersection.value, visibility);
-#endif
+    #endif
 
-// Simulate opacity blending by simply continuing along the current ray
-#ifdef _SURFACE_TYPE_TRANSPARENT
+    // Simulate opacity blending by simply continuing along the current ray
+    #ifdef _SURFACE_TYPE_TRANSPARENT
     if (builtinData.opacity < 1.0)
     {
         RayDesc rayDescriptor;
@@ -268,7 +273,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
         pathIntersection.value = lerp(nextPathIntersection.value, pathIntersection.value, builtinData.opacity);
     }
-#endif
+    #endif
 
 #endif // SHADER_UNLIT
 }
@@ -301,6 +306,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     float3 lightPosition;
     bool sampleLocalLights, sampleVolume = false;
 
+    // Skip this code if getting out of a SSS random walk (currentDepth < 0)
     if (currentDepth >= 0)
     {
         // Generate a 4D unit-square sample for this depth, from our QMC sequence
@@ -324,25 +330,29 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
 #endif // HAS_LIGHTLOOP
 
-    // Apply volumetric attenuation
-    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
-
-    // Apply the volume/surface pdf
-    pathIntersection.value /= pdf;
-
-    if (currentDepth)
+    // Skip this code if getting out of a SSS random walk (currentDepth < 0)
+    if (currentDepth >= 0)
     {
-        // Bias the result (making it too dark), but reduces fireflies a lot
-        float intensity = Luminance(pathIntersection.value) * GetCurrentExposureMultiplier();
-        if (intensity > _RaytracingIntensityClamp)
-            pathIntersection.value *= _RaytracingIntensityClamp / intensity;
+        // Apply volumetric attenuation
+        ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
+
+        // Apply the volume/surface pdf
+        pathIntersection.value /= pdf;
+
+        if (currentDepth)
+        {
+            // Bias the result (making it too dark), but reduces fireflies a lot
+            float intensity = Luminance(pathIntersection.value) * GetCurrentExposureMultiplier();
+            if (intensity > _RaytracingIntensityClamp)
+                pathIntersection.value *= _RaytracingIntensityClamp / intensity;
+        }
     }
 }
 
 [shader("anyhit")]
 void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
-    // The first thing that we should do is grab the intersection vertice
+    // The first thing that we should do is grab the intersection vertex
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
 
@@ -384,3 +394,5 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
 #endif
     }
 }
+
+#endif // SENSORSDK_ENABLE_LIDAR
