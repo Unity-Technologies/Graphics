@@ -13,7 +13,7 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
         #pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB
 
-        #pragma multi_compile_local_fragment _ CATMULL_ROM_4 BYPASS
+        #pragma multi_compile_local_fragment _ CATMULL_ROM_4 RCAS BYPASS
         #define DEBUG_UPSCALE_POINT 0
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -37,6 +37,15 @@ Shader "Hidden/HDRP/FinalPass"
 
         SAMPLER(sampler_LinearClamp);
         SAMPLER(sampler_LinearRepeat);
+
+        #define FSR_INPUT_TEXTURE _InputTexture
+        #define FSR_INPUT_SAMPLER s_linear_clamp_sampler
+        #if ENABLE_ALPHA
+            // When alpha is in use, activate the alpha-passthrough mode in the RCAS implementation.
+            // When this mode is active, ApplyRCAS returns a four component vector (rgba) instead of a three component vector (rgb).
+            #define FSR_ENABLE_ALPHA 1
+        #endif
+        #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
 
         float2 _GrainParams;            // x: intensity, y: response
         float4 _GrainTextureParams;     // xy: _ScreenSize.xy / GrainTextureSize.xy, zw: (random offset in UVs) *  _GrainTextureParams.xy
@@ -95,6 +104,7 @@ Shader "Hidden/HDRP/FinalPass"
 
             float2 positionNDC = input.texcoord;
             uint2 positionSS = input.texcoord * _ScreenSize.xy;
+            uint2 scaledPositionSS = ((input.texcoord.xy * _UVTransform.xy) + _UVTransform.zw) * _ViewPortSize.xy;
 
             // Flip logic
             positionSS = positionSS * _UVTransform.xy + _UVTransform.zw * (_ScreenSize.xy - 1.0);
@@ -102,8 +112,10 @@ Shader "Hidden/HDRP/FinalPass"
 
             #ifdef CATMULL_ROM_4
             CTYPE outColor = UpscaledResult(positionNDC.xy);
+            #elif defined(RCAS)
+            CTYPE outColor = ApplyRCAS(scaledPositionSS);
             #elif defined(BYPASS)
-            CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, ((input.texcoord.xy * _UVTransform.xy) + _UVTransform.zw) * _ViewPortSize.xy).CTYPE_SWIZZLE;
+            CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, scaledPositionSS).CTYPE_SWIZZLE;
             #else
             CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).CTYPE_SWIZZLE;
             #endif

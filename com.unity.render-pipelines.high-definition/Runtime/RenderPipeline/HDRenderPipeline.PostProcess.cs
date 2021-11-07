@@ -572,7 +572,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // AMD Fidelity FX passes
                 source = ContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source);
                 source = EdgeAdaptiveSpatialUpsampling(renderGraph, hdCamera, source);
-                source = RobustContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source);
             }
 
             FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, uiBuffer, m_BlueNoise, flipYInPostProcess);
@@ -4793,58 +4792,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
-        #region RCAS
-        class RCASData
-        {
-            public ComputeShader rcasCS;
-            public int mainKernel;
-            public int viewCount;
-            public int outputWidth;
-            public int outputHeight;
-
-            public TextureHandle source;
-            public TextureHandle destination;
-        }
-
-        TextureHandle RobustContrastAdaptiveSharpeningPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
-        {
-            if (hdCamera.DynResRequest.enabled && hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres)
-            {
-                using (var builder = renderGraph.AddRenderPass<RCASData>("Robust Contrast Adaptive Sharpen", out var passData, ProfilingSampler.Get(HDProfileId.RobustContrastAdaptiveSharpen)))
-                {
-                    passData.rcasCS = defaultResources.shaders.robustContrastAdaptiveSharpenCS;
-                    if (PostProcessEnableAlpha())
-                        passData.rcasCS.EnableKeyword("ENABLE_ALPHA");
-                    else
-                        passData.rcasCS.DisableKeyword("ENABLE_ALPHA");
-                    passData.mainKernel = passData.rcasCS.FindKernel("KMain");
-                    passData.viewCount = hdCamera.viewCount;
-                    passData.outputWidth = Mathf.RoundToInt(hdCamera.finalViewport.width);
-                    passData.outputHeight = Mathf.RoundToInt(hdCamera.finalViewport.height);
-                    passData.source = builder.ReadTexture(source);
-                    passData.destination = builder.WriteTexture(GetPostprocessUpsampledOutputHandle(renderGraph, "Robust Contrast Adaptive Sharpen Destination"));
-
-                    builder.SetRenderFunc(
-                        (RCASData data, RenderGraphContext ctx) =>
-                        {
-                            FSRUtils.SetRcasConstants(ctx.cmd);
-                            ctx.cmd.SetComputeTextureParam(data.rcasCS, data.mainKernel, HDShaderIDs._InputTexture, data.source);
-                            ctx.cmd.SetComputeTextureParam(data.rcasCS, data.mainKernel, HDShaderIDs._OutputTexture, data.destination);
-
-                            int dispatchX = HDUtils.DivRoundUp(data.outputWidth, 8);
-                            int dispatchY = HDUtils.DivRoundUp(data.outputHeight, 8);
-
-                            ctx.cmd.DispatchCompute(data.rcasCS, data.mainKernel, dispatchX, dispatchY, data.viewCount);
-                        });
-
-                    source = passData.destination;
-                }
-            }
-            return source;
-        }
-
-        #endregion
-
         #region EASU
         class EASUData
         {
@@ -5014,8 +4961,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                         finalPassMaterial.EnableKeyword("CATMULL_ROM_4");
                                         break;
                                     case DynamicResUpscaleFilter.ContrastAdaptiveSharpen:
-                                    case DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres:
                                         finalPassMaterial.EnableKeyword("BYPASS");
+                                        break;
+                                    case DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres:
+                                        // The RCAS half of the FSR technique (EASU + RCAS) is merged into FinalPass instead of
+                                        // running it inside a separate compute shader. This allows us to avoid an additional
+                                        // round-trip through memory which improves performance.
+                                        finalPassMaterial.EnableKeyword("RCAS");
+                                        FSRUtils.SetRcasConstants(ctx.cmd);
                                         break;
                                 }
                             }
