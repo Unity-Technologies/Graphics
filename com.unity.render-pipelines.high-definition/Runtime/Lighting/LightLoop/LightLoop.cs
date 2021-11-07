@@ -107,8 +107,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // light list limits
         public static int s_LightListMaxCoarseEntries = 64;
-        public static int s_LightListMaxPrunedEntries = 24;
         public static int s_LightClusterMaxCoarseEntries = 128;
+
+        // We have room for ShaderConfig.FPTLMaxLightCount lights, plus 1 implicit value for length.
+        // We allocate only 16 bits per light index & length, thus we divide by 2, and store in a word buffer.
+        public static int s_LightDwordPerFptlTile = ((ShaderConfig.FPTLMaxLightCount + 1)) / 2;
+        public static int s_LightClusterPackingCountBits = (int)Mathf.Ceil(Mathf.Log(Mathf.NextPowerOfTwo(ShaderConfig.FPTLMaxLightCount), 2));
+        public static int s_LightClusterPackingCountMask = (1 << s_LightClusterPackingCountBits) - 1;
+        public static int s_LightClusterPackingOffsetBits = 32 - s_LightClusterPackingCountBits;
+        public static int s_LightClusterPackingOffsetMask = (1 << s_LightClusterPackingOffsetBits) - 1;
 
         // Following define the maximum number of bits use in each feature category.
         public static uint s_LightFeatureMaskFlags = 0xFFF000;
@@ -121,6 +128,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public static uint s_ScreenSpaceColorShadowFlag = 0x100;
         public static uint s_InvalidScreenSpaceShadow = 0xff;
         public static uint s_ScreenSpaceShadowIndexMask = 0xff;
+
+        //Contact shadow bit definitions
+        public static int s_ContactShadowFadeBits = 8;
+        public static int s_ContactShadowMaskBits = 32 - s_ContactShadowFadeBits;
+        public static int s_ContactShadowFadeMask = (1 << s_ContactShadowFadeBits) - 1;
+        public static int s_ContactShadowMaskMask = (1 << s_ContactShadowMaskBits) - 1;
+
     }
 
     [GenerateHLSL]
@@ -2130,6 +2144,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // The first rendered 24 lights that have contact shadow enabled have a mask used to select the bit that contains
         // the contact shadow shadowed information (occluded or not). Otherwise -1 is written
+        // 8 bits are reserved for the fading.
         void GetContactShadowMask(HDAdditionalLightData hdAdditionalLightData, BoolScalableSetting contactShadowEnabled, HDCamera hdCamera, bool isRasterization, ref int contactShadowMask, ref float rayTracingShadowFlag)
         {
             contactShadowMask = 0;
@@ -2137,7 +2152,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If contact shadows are not enabled or we already reached the manimal number of contact shadows
             // or this is not rasterization
             if ((!hdAdditionalLightData.useContactShadow.Value(contactShadowEnabled))
-                || m_ContactShadowIndex >= LightDefinitions.s_LightListMaxPrunedEntries
+                || m_ContactShadowIndex >= LightDefinitions.s_ContactShadowMaskMask
                 || !isRasterization)
                 return;
 
