@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed issue with mixed cached shadow for area lights.
 - Fixed an exception happening when the user doesn't set one of the renderers of a given LOD (case 1372965).
+- Fixed film grain & dithering when using spatial upscaling methods for DRS.
 
 ### Changed
 - Maximum light count per fine prunned tile (opaque deferred) is now 63 instead of 23.
@@ -35,7 +36,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support for interleaved tiling in path tracing.
 - Fixed robustness issues with the stacklit material in path tracing (case 1373971).
 - Fixed custom pass injection point not visible in the UI when using the Camera mode.
-- Fixed film grain & dithering when using spatial upscaling methods for DRS.
 
 ### Changed
 - Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
