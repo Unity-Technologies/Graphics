@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed serialization of DebugStateFlags, the internal Enum was not being serialized.
+- Fixed issue when changing volume profiles at runtime with a script (case 1364256).
 
 ## [12.1.1] - 2021-10-04
 
