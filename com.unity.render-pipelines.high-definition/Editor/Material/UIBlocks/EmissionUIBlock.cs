@@ -11,7 +11,9 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class EmissionUIBlock : MaterialUIBlock
     {
-        static float s_MaxEvValue = Mathf.Floor(LightUtils.ConvertLuminanceToEv(float.MaxValue));
+        // Max EV Value. Equals to LightUtils.ConvertLuminanceToEv(float.MaxValue)
+        // Literal value to avoid precision issue with max float and to be independent of ColorUtils.s_LightMeterCalibrationConstant.
+        static float s_MaxEvValue = 130.0f;
 
         [Flags]
         public enum Features
