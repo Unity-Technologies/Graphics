@@ -89,28 +89,5 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
             return (m_AdditionalData.type, m_AdditionalData.GetLightTypeAndShape());
         }
-
-        [Test]
-        public void HDLightUtils_IESProfileAPI()
-        {
-            IESObject ies = (IESObject)AssetDatabase.LoadAssetAtPath("Assets/GraphicTests/Scenes/2x_Lighting/2010_IES_Cookies/IES/1.ies", typeof(IESObject));
-            Assert.IsNotNull(ies, "IES profile not found");
-
-            GameObject lightGameObject = new GameObject("Light");
-            var additional = lightGameObject.AddHDLight(HDLightTypeAndShape.BoxSpot);
-
-            HDLightUtils.SetIESProfile(additional.legacyLight, ies);
-            Assert.AreEqual(ies, HDLightUtils.GetIESProfile(additional.legacyLight));
-
-            Assert.AreEqual(additional.IESSpot, additional.IESTexture);
-
-            additional.type = HDLightType.Point;
-
-            Assert.AreEqual(additional.IESPoint, additional.IESTexture);
-
-            additional.type = HDLightType.Directional;
-            Assert.IsNull(additional.IESTexture);
-            Assert.IsNull(HDLightUtils.GetIESProfile(additional.legacyLight));
-        }
     }
 }
