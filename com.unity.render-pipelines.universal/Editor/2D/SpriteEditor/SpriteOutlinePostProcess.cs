@@ -131,6 +131,18 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Submesh 0: Opaque, but degenerate if not split
+        /// Submesh 1: Translucent
+        ///
+        /// Sprite Renderer is always configured with 2 materials
+        /// 2 Materials
+        /// - Opaque
+        /// - Translucent
+        ///
+        /// </summary>
+        /// <param name="texture"></param>
+        /// <param name="sprites"></param>
         private void OnPostprocessSprites(Texture2D texture, Sprite[] sprites)
         {
             var ai = GetSpriteEditorDataProvider(assetPath);
@@ -146,23 +158,49 @@ namespace UnityEditor.Rendering.Universal
                 var spriteRect = spriteRects.First(s => s.spriteID == guid);
                 var clipper = new Clipper();
 
-                GenerateOutline(clipper, texture, spriteRect, detail, PolyType.ptSubject);
+                if (sprite.name.EndsWith("_split"))
+                {
+                    GenerateOutline(clipper, texture, spriteRect, detail, PolyType.ptSubject);
 
-                var translucentTexture = GenerateTranslucentTexture(texture);
-                var translucentPaths = GenerateOutline(clipper, translucentTexture, spriteRect, detail, PolyType.ptClip);
+                    var translucentTexture = GenerateTranslucentTexture(texture);
+                    var translucentPaths = GenerateOutline(clipper, translucentTexture, spriteRect, detail, PolyType.ptClip);
 
-                var solution = new List<List<IntPoint>>();
-                clipper.Execute(ClipType.ctDifference, solution);
+                    var solution = new List<List<IntPoint>>();
+                    clipper.Execute(ClipType.ctDifference, solution);
 
-                var opaqueTess = new Tess();
-                Tessellate(opaqueTess, solution, (pos) => new Vec3{X = pos.X/ClipperScale, Y = pos.Y/ClipperScale, Z=0});
-                opaqueTess.Tessellate(WindingRule.NonZero, ElementType.Polygons, 3);
+                    var opaqueTess = new Tess();
+                    Tessellate(opaqueTess, solution, (pos) => new Vec3 {X = pos.X / ClipperScale, Y = pos.Y / ClipperScale, Z = 0});
+                    opaqueTess.Tessellate(WindingRule.NonZero, ElementType.Polygons, 3);
 
-                var translucentTess = new Tess();
-                Tessellate(translucentTess, translucentPaths, (pos) => new Vec3{X = pos.x, Y = pos.y, Z=0});
-                translucentTess.Tessellate(WindingRule.NonZero, ElementType.Polygons, 3);
+                    var translucentTess = new Tess();
+                    Tessellate(translucentTess, translucentPaths, (pos) => new Vec3 {X = pos.x, Y = pos.y, Z = 0});
+                    translucentTess.Tessellate(WindingRule.NonZero, ElementType.Polygons, 3);
 
-                FillSprite(sprite, opaqueTess, translucentTess);
+                    FillSprite(sprite, opaqueTess, translucentTess);
+                }
+                else
+                {
+                    var indices = sprite.GetIndices();
+                    var newIndices = new NativeArray<ushort>(indices.Length + 3, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+                    // degenerate triangle for submesh 0
+                    var i = 0;
+                    newIndices[i++] = 0;
+                    newIndices[i++] = 0;
+                    newIndices[i++] = 0;
+
+                    // the rest of the proper mesh in submesh 1
+                    for(;i < indices.Length; i++)
+                    {
+                        newIndices[i] = indices[i-3];
+                    }
+
+                    sprite.SetSubMeshCount(2);
+                    // submesh 0, opaque and degenerate
+                    sprite.SetSubMesh(0, 0, 3, 0, 3);
+                    sprite.SetSubMesh(1, 0, sprite.GetVertexCount(), 3, indices.Length);
+                }
+
                 // FillSprite(sprite, translucentTess, opaqueTess);
             }
         }

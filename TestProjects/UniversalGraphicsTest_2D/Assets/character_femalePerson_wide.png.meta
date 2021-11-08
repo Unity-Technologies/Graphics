@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 229bb11fa78764bee9c7c9528c34ee44
+guid: df8edac4fca924c64a1789fc11dfeedb
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -20,7 +20,7 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
-  isReadable: 1
+  isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
@@ -52,7 +52,7 @@ TextureImporter:
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
-  spriteTessellationDetail: 0.5
+  spriteTessellationDetail: -1
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
@@ -68,7 +68,7 @@ TextureImporter:
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: 4
+    textureFormat: -1
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
@@ -92,93 +92,38 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: character_malePerson_idle_0_split
+      name: character_femalePerson_wide_0_split
       rect:
         serializedVersion: 2
-        x: 14
+        x: 3
         y: 0
-        width: 68
-        height: 94
+        width: 184
+        height: 192
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: 25, y: 0}
-        - {x: 33, y: 8}
-        - {x: 31, y: 42}
-        - {x: 25, y: 47}
-        - {x: -21, y: 47}
-        - {x: -26, y: 43}
-        - {x: -24, y: 22}
-        - {x: -32, y: 15}
-        - {x: -27, y: 1}
-        - {x: -31, y: -5}
-        - {x: -33, y: -10}
-        - {x: -34, y: -15}
-        - {x: -34, y: -38}
-        - {x: -30, y: -43}
-        - {x: -22, y: -47}
-        - {x: 22, y: -47}
-        - {x: 31, y: -43}
-        - {x: 34, y: -40}
-        - {x: 34, y: -8}
+      outline: []
       physicsShape: []
-      tessellationDetail: 0.3
+      tessellationDetail: 0
       bones: []
-      spriteID: 43b7618c122364937b80eb8ada415580
-      internalID: -1409764141
+      spriteID: 984e1188881dd4cb885f280b9839d6ac
+      internalID: -1915129964
       vertices: []
       indices: 
       edges: []
       weights: []
-    outline:
-    - - {x: 36, y: -36}
-      - {x: 34, y: -33}
-      - {x: 33, y: -26}
-      - {x: 29, y: -21}
-      - {x: 24, y: -17}
-      - {x: 30, y: -8}
-      - {x: 31, y: -1}
-      - {x: 26, y: 5}
-      - {x: 27, y: 13}
-      - {x: 29, y: 24}
-      - {x: 24, y: 30}
-      - {x: 19, y: 31}
-      - {x: 15, y: 28}
-      - {x: 12, y: 32}
-      - {x: -11, y: 32}
-      - {x: -18, y: 31}
-      - {x: -24, y: 28}
-      - {x: -25, y: 25}
-      - {x: -25, y: 18}
-      - {x: -23, y: 5}
-      - {x: -29, y: -2}
-      - {x: -28, y: -11}
-      - {x: -23, y: -14}
-      - {x: -24, y: -17}
-      - {x: -30, y: -20}
-      - {x: -34, y: -27}
-      - {x: -33, y: -30}
-      - {x: -36, y: -36}
-      - {x: -36, y: -52}
-      - {x: -35, y: -54}
-      - {x: -30, y: -60}
-      - {x: -22, y: -64}
-      - {x: 21, y: -64}
-      - {x: 21, y: -60}
-      - {x: 31, y: -60}
-      - {x: 36, y: -55}
+    outline: []
     physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    internalID: 0
     vertices: []
     indices: 
     edges: []
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      character_malePerson_idle_0_split: -1409764141
+      character_femalePerson_wide_0_split: -1915129964
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

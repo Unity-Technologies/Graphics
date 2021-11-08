@@ -70,3 +70,5 @@ MonoBehaviour:
     type: 2}
   m_DefaultMaskMaterial: {fileID: 2100000, guid: 15d0c3709176029428a0da2f8cecf0b5,
     type: 2}
+  m_DefaultOpaqueMaterial: {fileID: 2100000, guid: 39cfa80623edf4b75aee2d0a126b39e6,
+    type: 2}
