@@ -30,6 +30,18 @@ namespace UnityEngine.Rendering.Universal
         Downscaling
     }
 
+    /// <summary>
+    /// Enumeration that indicates what kind of upscaling filter is being used
+    /// </summary>
+    public enum ImageUpscalingFilter
+    {
+        /// Bilinear filtering
+        Linear,
+
+        /// Nearest-Neighbor filtering
+        Point
+    }
+
     public struct RenderingData
     {
         public CullingResults cullResults;
@@ -126,7 +138,7 @@ namespace UnityEngine.Rendering.Universal
         internal float aspectRatio;
         public float renderScale;
         public ImageScaling imageScaling;
-        public UpscalingFilter upscalingFilter;
+        public ImageUpscalingFilter upscalingFilter;
         public bool clearDepth;
         public CameraType cameraType;
         public bool isDefaultViewport;

@@ -1440,13 +1440,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                         // In the upscaling case, set material keywords based on the selected upscaling filter
                         switch (cameraData.upscalingFilter)
                         {
-                            case UpscalingFilter.Point:
+                            case ImageUpscalingFilter.Point:
                             {
                                 material.EnableKeyword(ShaderKeywordStrings.FilterPoint);
                                 break;
                             }
 
-                            case UpscalingFilter.Linear:
+                            case ImageUpscalingFilter.Linear:
                             {
                                 // Do nothing as linear is the default filter in the shader
                                 break;

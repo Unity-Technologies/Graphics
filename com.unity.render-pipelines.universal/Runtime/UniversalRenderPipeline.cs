@@ -848,7 +848,8 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.imageScaling = ImageScaling.Downscaling;
             }
 
-            cameraData.upscalingFilter = settings.upscalingFilter;
+            // Convert the upscaling filter selection from the pipeline asset into an image upscaling filter
+            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             cameraData.xr = m_XRSystem.emptyPass;
@@ -1271,6 +1272,63 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.cameraTargetDescriptor.graphicsFormat = MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, true);
                 cameraData.cameraTargetDescriptor.msaaSamples = msaaSamples;
             }
+        }
+
+        /// <summary>
+        /// Returns the best supported image upscaling filter based on the provided upscaling filter selection
+        /// </summary>
+        /// <param name="imageSize">Size of the final image</param>
+        /// <param name="renderScale">Scale being applied to the final image size</param>
+        /// <param name="selection">Upscaling filter selected by the user</param>
+        /// <returns>Either the original filter provided, or the best replacement available</returns>
+        static ImageUpscalingFilter ResolveUpscalingFilterSelection(Vector2 imageSize, float renderScale, UpscalingFilterSelection selection)
+        {
+            // By default we just use linear filtering since it's the most compatible choice
+            ImageUpscalingFilter filter = ImageUpscalingFilter.Linear;
+
+            switch (selection)
+            {
+                case UpscalingFilterSelection.Auto:
+                {
+                    // The user selected "auto" for their upscaling filter so we should attempt to choose the best filter
+                    // for the current situation. When the current resolution and render scale are compatible with integer
+                    // scaling we use the point sampling filter. Otherwise we just use the default filter (linear).
+                    float pixelScale = (1.0f / renderScale);
+                    bool isIntegerScale = ((pixelScale - Mathf.Floor(pixelScale)) == 0.0f);
+
+                    if (isIntegerScale)
+                    {
+                        float widthScale = (imageSize.x / pixelScale);
+                        float heightScale = (imageSize.y / pixelScale);
+
+                        bool isImageCompatible = (((widthScale - Mathf.Floor(widthScale)) == 0.0f) &&
+                                                  ((heightScale - Mathf.Floor(heightScale)) == 0.0f));
+
+                        if (isImageCompatible)
+                        {
+                            filter = ImageUpscalingFilter.Point;
+                        }
+                    }
+
+                    break;
+                }
+
+                case UpscalingFilterSelection.Linear:
+                {
+                    // Do nothing since linear is already the default
+
+                    break;
+                }
+
+                case UpscalingFilterSelection.Point:
+                {
+                    filter = ImageUpscalingFilter.Point;
+
+                    break;
+                }
+            }
+
+            return filter;
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
