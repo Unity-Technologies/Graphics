@@ -43,9 +43,10 @@ namespace UnityEngine.Rendering
             {
                 m_Sample.FullFrameTime = (float)m_Timing.First().cpuFrameTime;
                 m_Sample.FramesPerSecond = m_Sample.FullFrameTime > 0f ? 1000f / m_Sample.FullFrameTime : 0f;
-                m_Sample.MainThreadCPUFrameTime = (float)m_Timing.First().cpuMainThreadFrameTime;
-                m_Sample.MainThreadCPUPresentWaitTime = (float)m_Timing.First().cpuMainThreadPresentWaitTime;
-                m_Sample.RenderThreadCPUFrameTime = (float)m_Timing.First().cpuRenderThreadFrameTime;
+                // HDRP is supposed to work with the latest Alpha but broken at the moment.
+                //m_Sample.MainThreadCPUFrameTime = (float)m_Timing.First().cpuMainThreadFrameTime;
+                //m_Sample.MainThreadCPUPresentWaitTime = (float)m_Timing.First().cpuMainThreadPresentWaitTime;
+                //m_Sample.RenderThreadCPUFrameTime = (float)m_Timing.First().cpuRenderThreadFrameTime;
                 m_Sample.GPUFrameTime = (float)m_Timing.First().gpuFrameTime;
             }
 

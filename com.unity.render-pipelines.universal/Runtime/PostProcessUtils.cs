@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.Universal
             if (++index >= blueNoise.Length)
                 index = 0;
 
+            Random.InitState(Time.frameCount);
             float rndOffsetX = Random.value;
             float rndOffsetY = Random.value;
 #endif
@@ -61,6 +62,7 @@ namespace UnityEngine.Rendering.Universal
             float offsetX = 0f;
             float offsetY = 0f;
 #else
+            Random.InitState(Time.frameCount);
             float offsetX = Random.value;
             float offsetY = Random.value;
 #endif

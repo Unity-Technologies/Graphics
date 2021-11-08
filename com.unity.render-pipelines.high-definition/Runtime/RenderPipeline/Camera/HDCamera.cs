@@ -1821,8 +1821,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
-            // In XR mode, use a more generic matrix to account for asymmetry in the projection
-            var useGenericMatrix = xr.enabled;
+            // In XR or Cluster Display mode, use a more generic matrix to account for asymmetry in the projection
+            var useGenericMatrix = xr.enabled || frameSettings.IsEnabled(FrameSettingsField.AsymmetricProjection);
 
             // Asymmetry is also possible from a user-provided projection, so we must check for it too.
             // Note however, that in case of physical camera, the lens shift term is the only source of
