@@ -40,9 +40,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #pragma vertex WavingGrassVert
+            #pragma vertex WavingGrassBillboardVert
             #pragma fragment LitPassFragmentGrass
-            #define _BILLBOARD_VERT
             #define _ALPHATEST_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/WavingGrassInput.hlsl"
@@ -56,7 +55,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
             Cull Off
 
             HLSLPROGRAM
@@ -67,7 +66,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
 
             // -------------------------------------
             // Material Keywords
-            #define _BILLBOARD_VERT
             #define _ALPHATEST_ON
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
 
@@ -80,11 +78,10 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             ENDHLSL
         }
 
-        // This pass is used when drawing to a _CameraNormalsTexture texture with the forward renderer or the depthNormal prepass with the deferred renderer.
         Pass
         {
-            Name "DepthNormalsOnly"
-            Tags{"LightMode" = "DepthNormalsOnly"}
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
 
             ZWrite On
             Cull Off
@@ -97,13 +94,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
 
             // -------------------------------------
             // Material Keywords
-            #define _BILLBOARD_VERT
             #define _ALPHATEST_ON
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
-
-            // -------------------------------------
-            // Unity defined keywords
-            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT // forward-only variant
 
             //--------------------------------------
             // GPU Instancing

@@ -18,6 +18,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTargetHandle destination { get; set; }
         internal bool AllocateRT { get; set; }
         internal int MssaSamples { get; set; }
+        // In some cases (Scene view, XR and etc.) we actually want to output to depth buffer
+        // So this variable needs to be set to true to enable the correct copy shader semantic
+        internal bool CopyToDepth { get; set; }
         Material m_CopyDepthMaterial;
 
         internal bool m_CopyResolvedDepth;
@@ -26,6 +29,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
             AllocateRT = true;
+            CopyToDepth = false;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
             m_CopyResolvedDepth = false;
@@ -47,14 +51,25 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            descriptor.colorFormat = RenderTextureFormat.Depth;
-            descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
+            descriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
+#if UNITY_EDITOR
+            descriptor.depthBufferBits = 16;
+
+#else
+            descriptor.depthBufferBits = 0;
+
+#endif
             descriptor.msaaSamples = 1;
             if (this.AllocateRT)
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
+            var target = new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1);
+#if UNITY_EDITOR
+            ConfigureTarget(target, target, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples);
+#else
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), descriptor.depthStencilFormat, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
+            ConfigureTarget(target, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples, false);
+#endif
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
@@ -111,6 +126,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
                         break;
                 }
+
+                if (CopyToDepth)
+                    cmd.EnableShaderKeyword("_OUTPUT_DEPTH");
+                else
+                    cmd.DisableShaderKeyword("_OUTPUT_DEPTH");
 
                 cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
 

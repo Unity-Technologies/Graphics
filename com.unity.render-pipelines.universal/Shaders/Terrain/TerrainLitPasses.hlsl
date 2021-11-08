@@ -507,7 +507,7 @@ half4 DepthOnlyFragment(VaryingsLean IN) : SV_TARGET
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
     return half4(_ObjectId, _PassValue, 1.0, 1.0);
 #endif
-    return 0;
+    return IN.clipPos.z;
 }
 
 #endif

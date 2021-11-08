@@ -455,7 +455,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If this is a planar reflection, we need to compute the non oblique matrices
             cb._IsPlanarReflection = (cameraData.cameraType == TVolumetricCloudsCameraType.PlanarReflection) ? 1 : 0;
-            if (cameraData.cameraType == TVolumetricCloudsCameraType.PlanarReflection)
+            if (cb._IsPlanarReflection == 1)
             {
                 // Build a non-oblique projection matrix
                 var projectionMatrixNonOblique = Matrix4x4.Perspective(hdCamera.camera.fieldOfView, hdCamera.camera.aspect, hdCamera.camera.nearClipPlane, hdCamera.camera.farClipPlane);
