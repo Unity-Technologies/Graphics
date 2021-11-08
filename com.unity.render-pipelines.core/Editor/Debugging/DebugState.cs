@@ -104,8 +104,7 @@ namespace UnityEditor.Rendering
             {
                 int hash = 13;
                 hash = hash * 23 + m_QueryPath.GetHashCode();
-                if (m_Value != null)
-                    hash = hash * 23 + m_Value.GetHashCode();
+                hash = hash * 23 + value.GetHashCode();
                 return hash;
             }
         }
@@ -145,7 +144,32 @@ namespace UnityEditor.Rendering
     /// Flags Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.BitField))]
-    public sealed class DebugStateFlags : DebugState<Enum> { }
+    public sealed class DebugStateFlags : DebugState<Enum>
+    {
+        [SerializeField]
+        private SerializableEnum m_SerializableEnum;
+
+        /// <summary>
+        /// Value of the Debug Item
+        /// </summary>
+        public override Enum value
+        {
+            get => m_SerializableEnum?.value ?? default;
+            set => m_SerializableEnum.value = value;
+        }
+
+        /// <summary>
+        /// Set the value of the Debug Item.
+        /// </summary>
+        /// <param name="value">Input value.</param>
+        /// <param name="field">Debug Item field.</param>
+        public override void SetValue(object value, DebugUI.IValueField field)
+        {
+            if (m_SerializableEnum == null)
+                m_SerializableEnum = new SerializableEnum((field as DebugUI.BitField).enumType);
+            base.SetValue(value, field);
+        }
+    }
 
     /// <summary>
     /// Unsigned Integer Debug State.

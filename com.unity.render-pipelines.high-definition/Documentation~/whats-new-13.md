@@ -16,3 +16,6 @@ From HDRP 13, you can access the main light direction from a ShaderGraph using t
 For more information, see the [node documentation](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Main-Light-Direction-Node.html).
 
 ## Updated
+
+### Depth Of Field
+HDRP version 13 includes optimizations in the physically based depth of field implementation. In particular, image regions that are out-of-focus are now computed at lower resolution, while in-focus regions retain the full resolution. For many scenes this results in significant speedup, without any visible reduction in image quality.

@@ -4,15 +4,10 @@
     align-items:center;
 }
 
-#bounds-mode
+.bounds-mode
 {
-    width : 75px;
-    justify-content:flex-end;
-
-}
-#bounds-mode.text
-{
-   left:-10px;
+    width : 86px;
+    margin-right: 3px;
 }
 
 #system-field

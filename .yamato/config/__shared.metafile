@@ -367,6 +367,12 @@ platforms:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
           - command: chmod +x utr
+        set_screen_resolution:
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/Linux/2560x1440.bin --output 2560x1440.bin
+            retries: 2
+          - command: sudo rm /etc/edid.txt
+          - command: sudo mv 2560x1440.bin /etc/edid.txt
+          - command: sudo pkill Xorg && sudo systemctl restart gdm3
         call_utr:
           - command: DISPLAY=:0.0 ./utr <UTR_FLAGS> # TODO include git commands when needed
         call_utr_without_git:
