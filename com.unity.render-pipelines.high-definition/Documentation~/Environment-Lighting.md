@@ -72,7 +72,7 @@ The ambient Light Probe can be static (generated only once from the static light
 
 ### Limitation of Dynamic Ambient mode
 
-The Ambient Light Probe always affects your scene one frame late after HDRP calculates it. This is because HDRP calculates Ambient Light Probes on the GPU and then uses asynchronous readback on the CPU. 
+The Ambient Light Probe always affects your scene one frame late after HDRP calculates it. This is because HDRP calculates Ambient Light Probes on the GPU and then uses asynchronous readback on the CPU.
 
 As a result, the ambient lighting might not match the actual lighting and cause visual artifacts. This can happen when you use the dynamic ambient mode and use reflection probes that update on demand.
 
