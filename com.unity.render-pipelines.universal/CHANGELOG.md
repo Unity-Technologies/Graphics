@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Main light shadow, additional light shadow and additional light keywords are now enabled based on urp setting instead of existence in scene. This allows better variant stripping.
 - Now using the SpeedTree8 PBRLit shadergraph as the default SpeedTree8 shader for Universal.
+- Changed default target sorting layers of Light2D to "Everything". Newly added sorting layers will be included in Light2Ds that have target sorting layers already set to "Everything".
 
 ### Fixed
 - Fixed a regression where ShaderGraph screen position was not correct in game view and when using XR [1369450]

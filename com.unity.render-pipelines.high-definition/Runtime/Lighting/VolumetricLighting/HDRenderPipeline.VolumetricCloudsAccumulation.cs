@@ -162,6 +162,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.enableIntegration = true;
             UpdateShaderVariableslClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, false);
 
+            // If this is a default camera, we want the improved blending, otherwise we don't (in the case of a planar)
+            parameters.commonData.cloudsCB._ImprovedTransmittanceBlend = parameters.commonData.cameraType == TVolumetricCloudsCameraType.Default ? 1 : 0;
+            parameters.commonData.cloudsCB._CubicTransmittance = parameters.commonData.cameraType == TVolumetricCloudsCameraType.Default && hdCamera.msaaEnabled ? 1 : 0;
+
             return parameters;
         }
 
@@ -198,8 +202,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.commonData.cloudsCB._HistoryViewportSize = new Vector2(previousViewportSize.x, previousViewportSize.y);
             parameters.commonData.cloudsCB._HistoryBufferSize = new Vector2(previousHistory0Buffer.rt.width, previousHistory0Buffer.rt.height);
 
-            // Bind the constant buffer
-            ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
+            // Bind the constant buffer (global as we need it for the .shader as well)
+            ConstantBuffer.PushGlobal(cmd, parameters.commonData.cloudsCB, HDShaderIDs._ShaderVariablesClouds);
 
             RTHandle currentDepthBuffer = depthPyramid;
 
@@ -293,7 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     parameters.cloudCombinePass.SetTexture(HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateUpscaleBuffer);
 
                     // Composite the clouds into the MSAA target via hardware blending.
-                    HDUtils.DrawFullScreen(cmd, parameters.cloudCombinePass, colorBuffer);
+                    HDUtils.DrawFullScreen(cmd, parameters.cloudCombinePass, colorBuffer, null, 0);
 
                     CoreUtils.SetKeyword(cmd, "USE_INTERMEDIATE_BUFFER", false);
                 }

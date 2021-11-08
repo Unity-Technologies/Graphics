@@ -15,7 +15,8 @@ public struct RangeKey : IEquatable<RangeKey>
 
     public bool Equals(RangeKey other)
     {
-        return shadows == other.shadows;
+        return
+            shadows == other.shadows;
     }
 }
 
@@ -32,7 +33,6 @@ public struct DrawKey : IEquatable<DrawKey>
     public uint submeshIndex;
     public BatchMaterialID material;
     public ShadowCastingMode shadows;
-    public int pickableObjectInstanceID;
 
     public bool Equals(DrawKey other)
     {
@@ -40,8 +40,7 @@ public struct DrawKey : IEquatable<DrawKey>
             meshID == other.meshID &&
             submeshIndex == other.submeshIndex &&
             material == other.material &&
-            shadows == other.shadows &&
-            pickableObjectInstanceID == other.pickableObjectInstanceID;
+            shadows == other.shadows;
     }
 }
 
@@ -236,12 +235,6 @@ public unsafe class RenderBRG : MonoBehaviour
                             flags = BatchDrawCommandFlags.None,
                             sortingPosition = 0
                         };
-
-                        if (draws.drawCommandPickingInstanceIDs != null)
-                        {
-                            draws.drawCommandPickingInstanceIDs[outBatch] = drawBatches[remappedIndex].key.pickableObjectInstanceID;
-                        }
-
                         outBatch++;
                     }
 
@@ -268,8 +261,8 @@ public unsafe class RenderBRG : MonoBehaviour
                                     shadowCastingMode = drawRanges[activeRange].key.shadows,
                                     receiveShadows = true,
                                     staticShadowCaster = false,
-                                    allDepthSorted = false,
-                                },
+                                    allDepthSorted = false
+                                }
                             };
                             outRange++;
                         }
@@ -300,7 +293,6 @@ public unsafe class RenderBRG : MonoBehaviour
         BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
         drawCommands.drawRanges = Malloc<BatchDrawRange>(m_drawRanges.Length);
         drawCommands.drawCommands = Malloc<BatchDrawCommand>(m_drawBatches.Length);
-        drawCommands.drawCommandPickingInstanceIDs = Malloc<int>(m_drawBatches.Length);
         drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
 
         // Zero init: Culling job sets the values!
@@ -340,26 +332,11 @@ public unsafe class RenderBRG : MonoBehaviour
         return jobHandleOutput;
     }
 
-    public static Material LoadPickingFallbackMaterial()
-    {
-        Shader shader = Shader.Find("Hidden/HDRP/BRGPickingFallback");
-        Material material = new Material(shader);
-
-        // Prevent Material unloading when switching scene
-        material.hideFlags = HideFlags.HideAndDontSave;
-
-        return material;
-    }
-
-    Material m_pickingFallbackMaterial;
 
     // Start is called before the first frame update
     void Start()
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
-
-        m_pickingFallbackMaterial = LoadPickingFallbackMaterial();
-        m_BatchRendererGroup.SetPickingFallbackMaterial(m_pickingFallbackMaterial);
 
         // Create a batch...
         var renderers = FindObjectsOfType<MeshRenderer>();
@@ -449,13 +426,12 @@ public unsafe class RenderBRG : MonoBehaviour
             renderer.GetSharedMaterials(sharedMaterials);
 
             var shadows = renderer.shadowCastingMode;
-            int instanceID = renderer.gameObject.GetInstanceID();
 
             for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
             {
                 var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
 
-                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
+                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows };
                 var drawBatch = new DrawBatch
                 {
                     key = key,
@@ -482,7 +458,7 @@ public unsafe class RenderBRG : MonoBehaviour
                     {
                         key = rangeKey,
                         drawCount = 0,
-                        drawOffset = 0,
+                        drawOffset = 0
                     };
 
                     int drawRangeIndex;
@@ -627,8 +603,6 @@ public unsafe class RenderBRG : MonoBehaviour
             m_instances.Dispose();
             m_instanceIndices.Dispose();
             m_drawIndices.Dispose();
-
-            DestroyImmediate(m_pickingFallbackMaterial);
         }
     }
 }

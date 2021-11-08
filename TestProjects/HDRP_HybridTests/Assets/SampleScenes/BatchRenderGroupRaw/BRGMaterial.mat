@@ -12,7 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+<<<<<<< HEAD:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BRGGameObjects/LitTessellation.mat
+  version: 5
+=======
   version: 4
+>>>>>>> master:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BatchRenderGroupRaw/BRGMaterial.mat
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -20,8 +24,13 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< HEAD:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BRGGameObjects/LitTessellation.mat
+  m_Name: LitTessellation
+  m_Shader: {fileID: 4800000, guid: 756bac9090102564582875f4c7e30202, type: 3}
+=======
   m_Name: BRGMaterial
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
+>>>>>>> master:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BatchRenderGroupRaw/BRGMaterial.mat
   m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -29,12 +38,21 @@ Material:
   m_CustomRenderQueue: 2225
   stringTagMap: {}
   disabledShaderPasses:
+<<<<<<< HEAD:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BRGGameObjects/LitTessellation.mat
+  - DistortionVectors
+  - MOTIONVECTORS
+  - ForwardEmissiveForDeferred
+=======
+>>>>>>> master:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BatchRenderGroupRaw/BRGMaterial.mat
   - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
   - RayTracingPrepass
+<<<<<<< HEAD:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BRGGameObjects/LitTessellation.mat
+=======
   - MOTIONVECTORS
   - ForwardEmissiveForDeferred
+>>>>>>> master:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BatchRenderGroupRaw/BRGMaterial.mat
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -43,7 +61,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: b390493508e6b6449af01f6287c0bbf4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: b390493508e6b6449af01f6287c0bbf4, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap:
@@ -82,6 +104,14 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+<<<<<<< HEAD:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BRGGameObjects/LitTessellation.mat
+    - _DistortionVectorMap:
+=======
+    - _EmissionMap:
+>>>>>>> master:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BatchRenderGroupRaw/BRGMaterial.mat
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _EmissionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -103,7 +133,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: b390493508e6b6449af01f6287c0bbf4, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
@@ -158,6 +188,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _UnlitColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -209,6 +243,24 @@ Material:
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
+<<<<<<< HEAD:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BRGGameObjects/LitTessellation.mat
+    - _DistortionBlendMode: 0
+    - _DistortionBlurBlendMode: 0
+    - _DistortionBlurDstBlend: 1
+    - _DistortionBlurRemapMax: 1
+    - _DistortionBlurRemapMin: 0
+    - _DistortionBlurScale: 1
+    - _DistortionBlurSrcBlend: 1
+    - _DistortionDepthTest: 1
+    - _DistortionDstBlend: 1
+    - _DistortionEnable: 0
+    - _DistortionOnly: 0
+    - _DistortionScale: 1
+    - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
+=======
+>>>>>>> master:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BatchRenderGroupRaw/BRGMaterial.mat
     - _DoubleSidedEnable: 0
     - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 1
@@ -235,6 +287,7 @@ Material:
     - _HeightPoMAmplitude: 2
     - _HeightTessAmplitude: 2
     - _HeightTessCenter: 0.5
+    - _IncludeIndirectLighting: 1
     - _InvTilingScale: 1
     - _Ior: 1.5
     - _IridescenceMask: 1
@@ -260,7 +313,11 @@ Material:
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
+<<<<<<< HEAD:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BRGGameObjects/LitTessellation.mat
+    - _Smoothness: 0.475
+=======
     - _Smoothness: 0.5
+>>>>>>> master:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BatchRenderGroupRaw/BRGMaterial.mat
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
     - _SmoothnessTextureChannel: 0
@@ -303,9 +360,9 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.21960783, g: 0.21960783, b: 0.21960783, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
@@ -320,8 +377,14 @@ Material:
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
+    - _UnlitColor: {r: 1, g: 1, b: 1, a: 1}
+    - _UnlitColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
+<<<<<<< HEAD:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BRGGameObjects/LitTessellation.mat
+--- !u!114 &7722395950759564288
+=======
 --- !u!114 &7699928039876695989
+>>>>>>> master:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BatchRenderGroupRaw/BRGMaterial.mat
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
