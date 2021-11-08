@@ -72,6 +72,7 @@ struct DirectionalLightData
     real minRoughness;
     int screenSpaceShadowIndex;
     real4 shadowMaskSelector;
+    float2 cascadesBorderFadeScaleBias;
     float diffuseDimmer;
     float specularDimmer;
     float penumbraTint;
