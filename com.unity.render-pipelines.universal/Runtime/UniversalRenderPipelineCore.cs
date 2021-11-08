@@ -15,6 +15,21 @@ namespace UnityEngine.Rendering.Universal
         Subtractive,
     };
 
+    /// <summary>
+    /// Enumeration that indicates what kind of image scaling is occurring if any
+    /// </summary>
+    public enum ImageScaling
+    {
+        /// No scaling
+        None,
+
+        /// Upscaling to a larger image
+        Upscaling,
+
+        /// Downscaling to a smaller image
+        Downscaling
+    }
+
     public struct RenderingData
     {
         public CullingResults cullResults;
@@ -110,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
         internal int pixelHeight;
         internal float aspectRatio;
         public float renderScale;
-        public bool isScaledRender;
+        public ImageScaling imageScaling;
         public UpscalingFilter upscalingFilter;
         public bool clearDepth;
         public CameraType cameraType;
