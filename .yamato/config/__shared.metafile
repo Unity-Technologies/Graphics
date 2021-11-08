@@ -152,14 +152,15 @@ test_platforms:
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
 
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
-      - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
+      - [OSX_Metal, OSX_Apple_Silicon_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
 
       - [all]: --editor-location=.Editor
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
+      - [OSX_Apple_Silicon_Metal]: --editor-location=~/Graphics/.Editor
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
-      - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
+      - [OSX_Metal, OSX_Apple_Silicon_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
 
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
