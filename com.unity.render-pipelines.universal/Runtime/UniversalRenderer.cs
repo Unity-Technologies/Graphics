@@ -856,7 +856,7 @@ namespace UnityEngine.Rendering.Universal
             // 2. UberPost can only handle upscaling with linear filtering. All other filtering methods require the FinalPost pass.
             bool applyFinalPostProcessing = anyPostProcessing && lastCameraInTheStack &&
                 ((renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) ||
-                 ((renderingData.cameraData.imageScaling == ImageScaling.Upscaling) && (renderingData.cameraData.upscalingFilter != UpscalingFilter.Linear)));
+                 ((renderingData.cameraData.imageScaling == ImageScaling.Upscaling) && (renderingData.cameraData.upscalingFilter != ImageUpscalingFilter.Linear)));
 
             // When post-processing is enabled we can use the stack to resolve rendering to camera target (screen or RT).
             // However when there are render passes executing after post we avoid resolving to screen so rendering continues (before sRGBConversion etc)
