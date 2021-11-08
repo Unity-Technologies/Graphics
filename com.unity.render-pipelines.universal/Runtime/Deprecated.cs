@@ -78,6 +78,17 @@ namespace UnityEngine.Rendering.Universal
     }
     public partial class UniversalRenderPipelineAsset
     {
+        [SerializeField]
+        [Obsolete("Moved from URPAsset to URP Global Settings", false)]
+        ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
+
+        [Obsolete("Use logShaderVariants from URP Global Settings", false)]
+        public ShaderVariantLogLevel shaderVariantLogLevel
+        {
+            get { return m_ShaderVariantLogLevel; }
+            set { m_ShaderVariantLogLevel = value; }
+        }
+
 #pragma warning disable 618 // Obsolete warning
         [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
         [SerializeField] ShadowCascadesOption m_ShadowCascades = ShadowCascadesOption.NoCascades;

@@ -777,9 +777,6 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Misc.
 
         [SerializeField]
-        internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
-
-        [SerializeField]
         internal LensAttenuationMode lensAttenuationMode;
 
         [SerializeField]

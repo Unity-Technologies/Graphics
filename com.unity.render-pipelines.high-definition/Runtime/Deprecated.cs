@@ -1,7 +1,15 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
+    {
+        [SerializeField]
+        [FormerlySerializedAs("shaderVariantLogLevel"), Obsolete("Use logShaderVariants")]
+        internal ShaderVariantLogLevel m_ObsoleteShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
+    }
+
     /// <summary>Deprecated DensityVolume</summary>
     [Obsolete("DensityVolume has been deprecated (UnityUpgradable) -> LocalVolumetricFog", false)]
     public class DensityVolume : LocalVolumetricFog

@@ -5,11 +5,13 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditor(typeof(HDRenderPipelineGlobalSettings))]
     [CanEditMultipleObjects]
-    sealed class HDRenderPipelineGlobalSettingsEditor : Editor
+    sealed class HDRenderPipelineGlobalSettingsEditor : RenderPipelineGlobalSettingsInspector
     {
         SerializedHDRenderPipelineGlobalSettings m_SerializedHDRenderPipelineGlobalSettings;
 
         internal bool largeLabelWidth = true;
+
+        public override SerializedRenderPipelineGlobalSettings serializedGlobalSettings => m_SerializedHDRenderPipelineGlobalSettings;
 
         void OnEnable()
         {

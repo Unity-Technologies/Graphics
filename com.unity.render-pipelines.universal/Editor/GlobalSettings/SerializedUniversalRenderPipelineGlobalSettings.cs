@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.Rendering.Universal
 {
-    class SerializedUniversalRenderPipelineGlobalSettings
+    class SerializedUniversalRenderPipelineGlobalSettings : SerializedRenderPipelineGlobalSettings
     {
         public SerializedObject serializedObject;
         private List<UniversalRenderPipelineGlobalSettings> serializedSettings = new List<UniversalRenderPipelineGlobalSettings>();
@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty stripUnusedVariants;
 
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
+            : base(serializedObject)
         {
             this.serializedObject = serializedObject;
 

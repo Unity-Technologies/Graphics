@@ -227,7 +227,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_MaxPixelLights = 0;
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
-        [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
         [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
@@ -865,12 +864,6 @@ namespace UnityEngine.Rendering.Universal
             get { return m_SupportsLightLayers; }
         }
 
-        public ShaderVariantLogLevel shaderVariantLogLevel
-        {
-            get { return m_ShaderVariantLogLevel; }
-            set { m_ShaderVariantLogLevel = value; }
-        }
-
         /// <summary>
         /// Returns the selected update mode for volumes.
         /// </summary>
@@ -1160,6 +1153,22 @@ namespace UnityEngine.Rendering.Universal
 
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 9;
+            }
+
+            if (k_AssetVersion < 10)
+            {
+#if UNITY_EDITOR
+                if (this == GraphicsSettings.defaultRenderPipeline)
+                {
+#pragma warning disable 618 // Obsolete warning
+                    UniversalRenderPipelineGlobalSettings.instance.logShaderVariants = m_ShaderVariantLogLevel != ShaderVariantLogLevel.Disabled;
+                    UniversalRenderPipelineGlobalSettings.instance.exportShaderVariants = UniversalRenderPipelineGlobalSettings.instance.logShaderVariants;
+#pragma warning restore 618 // Obsolete warning
+                }
+#endif
+
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 10;
             }
 
 #if UNITY_EDITOR

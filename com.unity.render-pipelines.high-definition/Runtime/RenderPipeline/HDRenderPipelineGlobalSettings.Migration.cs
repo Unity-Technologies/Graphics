@@ -19,7 +19,8 @@ namespace UnityEngine.Rendering.HighDefinition
             First,
             UpdateMSAA,
             UpdateLensFlare,
-            MovedSupportRuntimeDebugDisplayToGlobalSettings
+            MovedSupportRuntimeDebugDisplayToGlobalSettings,
+            MoveLogShaderVariants,
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -50,6 +51,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     data.supportRuntimeDebugDisplay = activePipeline.currentPlatformRenderPipelineSettings.m_ObsoleteSupportRuntimeDebugDisplay;
                 }
+#pragma warning restore 618
+            }),
+            MigrationStep.New(Version.MoveLogShaderVariants, (HDRenderPipelineGlobalSettings data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                data.logShaderVariants = data.m_ObsoleteShaderVariantLogLevel != ShaderVariantLogLevel.Disabled;
+                data.exportShaderVariants = data.logShaderVariants;
 #pragma warning restore 618
             })
         );
@@ -113,7 +121,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 assetToUpgrade.decalLayerName7 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName7;
             }
 
-            assetToUpgrade.shaderVariantLogLevel = oldAsset.m_ObsoleteShaderVariantLogLevel;
+            assetToUpgrade.m_ObsoleteShaderVariantLogLevel = oldAsset.m_ObsoleteShaderVariantLogLevel;
+            assetToUpgrade.logShaderVariants = assetToUpgrade.m_ObsoleteShaderVariantLogLevel != ShaderVariantLogLevel.Disabled;
+
             assetToUpgrade.lensAttenuationMode = oldAsset.m_ObsoleteLensAttenuation;
 
             // we need to make sure the old diffusion profile had time to upgrade before moving it away

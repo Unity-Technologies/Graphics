@@ -48,6 +48,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedUniversalRenderPipelineGlobalSettings serializedSettings;
         UniversalRenderPipelineGlobalSettings settingsSerialized;
 
+        Editor m_Editor;
+
         public void OnTitleBarGUI()
         {
             if (GUILayout.Button(CoreEditorStyles.iconHelp, CoreEditorStyles.iconHelpStyle))
@@ -61,6 +63,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 serializedSettings = null;
                 settingsSerialized = null;
+                m_Editor = null;
             }
 
             if (serializedSettings == null || settingsSerialized != UniversalRenderPipelineGlobalSettings.instance)
@@ -75,6 +78,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     serializedSettings = null;
                     settingsSerialized = null;
+                    m_Editor = null;
                 }
             }
             else if (settingsSerialized != null && serializedSettings != null)
@@ -87,7 +91,12 @@ namespace UnityEditor.Rendering.Universal
             if (settingsSerialized != null && serializedSettings != null)
             {
                 EditorGUILayout.Space();
-                Inspector.Draw(serializedSettings, null);
+                if (m_Editor == null)
+                {
+                    Editor.CreateCachedEditor(serializedSettings.serializedObject.targetObject, typeof(UniversalGlobalSettingsEditor), ref m_Editor);
+                }
+
+                m_Editor.OnInspectorGUI();
                 serializedSettings.serializedObject?.ApplyModifiedProperties();
             }
         }
@@ -230,11 +239,9 @@ namespace UnityEditor.Rendering.Universal
             var oldWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = Styles.labelWidth;
 
-            using (new EditorGUI.IndentLevelScope())
+            if (owner is RenderPipelineGlobalSettingsInspector globalRPInspector)
             {
-                EditorGUILayout.PropertyField(serialized.stripDebugVariants, Styles.stripDebugVariantsLabel);
-                EditorGUILayout.PropertyField(serialized.stripUnusedPostProcessingVariants, Styles.stripUnusedPostProcessingVariantsLabel);
-                EditorGUILayout.PropertyField(serialized.stripUnusedVariants, Styles.stripUnusedVariantsLabel);
+                globalRPInspector.OnShaderStrippingGUI();
             }
 
             EditorGUIUtility.labelWidth = oldWidth;

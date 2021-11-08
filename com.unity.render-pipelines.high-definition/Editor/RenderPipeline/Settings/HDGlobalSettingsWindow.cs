@@ -78,6 +78,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Help.BrowseURL(Documentation.GetPageLink("Default-Settings-Window"));
         }
 
+        Editor m_Editor;
+
         internal static bool needRefreshVfxErrors = false;
 
         public void DoGUI(string searchContext)
@@ -87,6 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 serializedSettings = null;
                 settingsSerialized = null;
+                m_Editor = null;
             }
 
             if (serializedSettings == null || settingsSerialized != HDRenderPipelineGlobalSettings.instance)
@@ -101,6 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     serializedSettings = null;
                     settingsSerialized = null;
+                    m_Editor = null;
                 }
             }
             else if (settingsSerialized != null && serializedSettings != null)
@@ -113,7 +117,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (settingsSerialized != null && serializedSettings != null)
             {
                 EditorGUILayout.Space();
-                Inspector.Draw(serializedSettings, null);
+                if (m_Editor == null)
+                {
+                    Editor.CreateCachedEditor(serializedSettings.serializedObject.targetObject, typeof(HDRenderPipelineGlobalSettingsEditor), ref m_Editor);
+                }
+                m_Editor.OnInspectorGUI();
+
                 serializedSettings.serializedObject?.ApplyModifiedProperties();
                 VFXHDRPSettingsUtility.RefreshVfxErrorsIfNeeded(ref needRefreshVfxErrors);
             }
@@ -480,7 +489,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (new EditorGUI.IndentLevelScope())
             {
-                EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevelLabel);
                 EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.lensAttenuationModeContentLabel);
                 EditorGUILayout.PropertyField(serialized.colorGradingSpace, Styles.colorGradingSpaceContentLabel);
                 EditorGUILayout.PropertyField(serialized.rendererListCulling, Styles.rendererListCulling);
@@ -502,6 +510,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
             }
+
+            if (owner is RenderPipelineGlobalSettingsInspector globalRPInspector)
+            {
+                globalRPInspector.OnShaderStrippingGUI();
+            }
+
             EditorGUIUtility.labelWidth = oldWidth;
         }
 
