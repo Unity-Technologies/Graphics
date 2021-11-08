@@ -277,7 +277,7 @@ namespace UnityEngine.Experimental.Rendering
             loc.TexL0_L1rx.name = $"{name}_TexL0_L1rx";
             allocatedBytes += texelCount * 8;
 
-            loc.TexValidity = new Texture3D(width, height, depth, GraphicsFormat.R8_UNorm, TextureCreationFlags.None, 1); // TODO_FCC: Test values
+            loc.TexValidity = new Texture3D(width, height, depth, GraphicsFormat.R32_SFloat, TextureCreationFlags.None, 1); // TODO_FCC: Test values
             loc.TexValidity.hideFlags = HideFlags.HideAndDontSave;
             loc.TexValidity.name = $"{name}_Validity";
             allocatedBytes += texelCount * 1;
@@ -370,6 +370,12 @@ namespace UnityEngine.Experimental.Rendering
             data[index] = value;
         }
 
+        static void SetPixel(DynamicArray<float> data, int x, int y, int z, int dataLocWidth, int dataLocHeight, float value)
+        {
+            int index = x + dataLocWidth * (y + dataLocHeight * z);
+            data[index] = value;
+        }
+
         public static void FillDataLocation(ref DataLocation loc, Vector3[] positions, float[] validity, SphericalHarmonicsL2[] shl2, int startIndex, int count, ProbeVolumeSHBands bands)
         {
             int shidx = startIndex;
@@ -401,7 +407,7 @@ namespace UnityEngine.Experimental.Rendering
                                 SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, Color.black);
                                 SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, Color.black);
                                 SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, Color.black);
-                                s_Validity_locData[index] = 1.0f;
+                                SetPixel(s_Validity_locData, ix, iy, iz, loc.width, loc.height, 1.0f);
 
                                 if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                 {
@@ -413,7 +419,7 @@ namespace UnityEngine.Experimental.Rendering
                             }
                             else
                             {
-                                s_Validity_locData[index] = validity[shidx];
+                                SetPixel(s_Validity_locData, ix, iy, iz, loc.width, loc.height, validity[shidx]);
 
                                 c.r = shl2[shidx][0, 0]; // L0.r
                                 c.g = shl2[shidx][1, 0]; // L0.g

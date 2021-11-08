@@ -494,9 +494,12 @@ namespace UnityEngine.Experimental.Rendering
         bool m_SupportStreaming = false;
         RefVolTransform m_Transform;
         int m_MaxSubdivision;
-        ProbeBrickPool m_Pool;
-        ProbeBrickIndex m_Index;
-        ProbeCellIndices m_CellIndices;
+
+        // TODO_FCC: Revert the internal!
+        internal ProbeBrickPool m_Pool;
+        internal ProbeBrickIndex m_Index;
+        internal ProbeCellIndices m_CellIndices;
+
         List<Chunk> m_TmpSrcChunks = new List<Chunk>();
         float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
         Bounds m_CurrGlobalBounds = new Bounds();

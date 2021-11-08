@@ -41,12 +41,12 @@ namespace UnityEngine.Rendering
 
             if (m_Timing.Length > 0)
             {
-                m_Sample.FullFrameTime = (float)m_Timing.First().cpuFrameTime;
-                m_Sample.FramesPerSecond = m_Sample.FullFrameTime > 0f ? 1000f / m_Sample.FullFrameTime : 0f;
-                m_Sample.MainThreadCPUFrameTime = (float)m_Timing.First().cpuMainThreadFrameTime;
-                m_Sample.MainThreadCPUPresentWaitTime = (float)m_Timing.First().cpuMainThreadPresentWaitTime;
-                m_Sample.RenderThreadCPUFrameTime = (float)m_Timing.First().cpuRenderThreadFrameTime;
-                m_Sample.GPUFrameTime = (float)m_Timing.First().gpuFrameTime;
+                //m_Sample.FullFrameTime = (float)m_Timing.First().cpuFrameTime;
+                //m_Sample.FramesPerSecond = m_Sample.FullFrameTime > 0f ? 1000f / m_Sample.FullFrameTime : 0f;
+                //m_Sample.MainThreadCPUFrameTime = (float)m_Timing.First().cpuMainThreadFrameTime;
+                //m_Sample.MainThreadCPUPresentWaitTime = (float)m_Timing.First().cpuMainThreadPresentWaitTime;
+                //m_Sample.RenderThreadCPUFrameTime = (float)m_Timing.First().cpuRenderThreadFrameTime;
+                //m_Sample.GPUFrameTime = (float)m_Timing.First().gpuFrameTime;
             }
 
             m_FrameHistory.DiscardOldSamples(sampleHistorySize);

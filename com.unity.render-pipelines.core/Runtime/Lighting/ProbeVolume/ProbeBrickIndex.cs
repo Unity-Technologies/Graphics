@@ -528,5 +528,99 @@ namespace UnityEngine.Experimental.Rendering
                 UpdatePhysicalIndex(brick_min, brick_max, rbrick.flattenedIdx, cellInfo);
             }
         }
+
+
+
+        // TODO_FCC: REMOVE THESE
+        uint GetIndexData(Vector3 posWS)
+        {
+            float _CellInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
+            Vector3Int _CellIndicesDim = ProbeReferenceVolume.instance.m_CellIndices.GetCellIndexDimension();
+
+            Vector3Int cellPos = new Vector3Int(Mathf.FloorToInt(posWS.x / _CellInMeters),
+                Mathf.FloorToInt(posWS.y / _CellInMeters),
+                Mathf.FloorToInt(posWS.z / _CellInMeters));
+
+            Vector3 topLeftCellWS = (Vector3)cellPos * _CellInMeters;
+
+            Vector3Int _MinCellPosition = ProbeReferenceVolume.instance.m_CellIndices.GetCellMinPosition();
+
+            cellPos -= _MinCellPosition;
+
+            int flatIdx = cellPos.z * (_CellIndicesDim.x * _CellIndicesDim.y) + cellPos.y * _CellIndicesDim.x + cellPos.x;
+
+            Vector3Int minRelativeIdx = Vector3Int.zero;
+            Vector3Int maxRelativeIdx = Vector3Int.zero;
+
+            ProbeCellIndices.IndexMetaData metaData = ProbeReferenceVolume.instance.m_CellIndices.tmpIndexMetaData[flatIdx];
+
+            uint metaDataX = ProbeReferenceVolume.instance.m_CellIndices.m_IndexOfIndicesData[3 * flatIdx + 0];
+            uint metaDataY = ProbeReferenceVolume.instance.m_CellIndices.m_IndexOfIndicesData[3 * flatIdx + 1];
+            uint metaDataZ = ProbeReferenceVolume.instance.m_CellIndices.m_IndexOfIndicesData[3 * flatIdx + 2];
+
+            uint chunkIndex = metaDataX & 0x1FFFFFFF;
+            uint chunkIdx = chunkIndex;
+            uint stepSize = (uint)Mathf.Pow(3.0f, (metaDataX >> 29) & 0x7);
+
+            minRelativeIdx.x = (int)(metaDataY & 0x3FF);
+            minRelativeIdx.y = (int)((metaDataY >> 10) & 0x3FF);
+            minRelativeIdx.z = (int)((metaDataY >> 20) & 0x3FF);
+
+            maxRelativeIdx.x = (int)(metaDataZ & 0x3FF);
+            maxRelativeIdx.y = (int)((metaDataZ >> 10) & 0x3FF);
+            maxRelativeIdx.z = (int)((metaDataZ >> 20) & 0x3FF);
+
+            Vector3 residualPosWS = posWS - topLeftCellWS;
+
+            float _MinBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
+            Vector3Int localBrickIndex = Vector3Int.zero;
+            localBrickIndex.x = Mathf.FloorToInt(residualPosWS.x / (_MinBrickSize * stepSize));
+            localBrickIndex.y = Mathf.FloorToInt(residualPosWS.y / (_MinBrickSize * stepSize));
+            localBrickIndex.z = Mathf.FloorToInt(residualPosWS.z / (_MinBrickSize * stepSize));
+
+            Vector3Int sizeOfValid = maxRelativeIdx - minRelativeIdx;
+            Vector3Int localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
+            int flattenedLocationInCell = localRelativeIndexLoc.z * (sizeOfValid.x * sizeOfValid.y) + localRelativeIndexLoc.x * sizeOfValid.y + localRelativeIndexLoc.y;
+            uint locationInPhysicalBuffer = chunkIdx * (uint)ProbeBrickIndex.kIndexChunkSize + (uint)flattenedLocationInCell;
+
+            return (uint)m_PhysicalIndexBufferData[locationInPhysicalBuffer];
+        }
+
+        internal Vector3 GetUVW(Vector3 posWS)
+        {
+            Vector3 posRS = posWS / ProbeReferenceVolume.instance.MinBrickSize();
+
+            uint packed_pool_idx = GetIndexData(posWS);
+
+            uint subdiv = (packed_pool_idx >> 28) & 15;
+            float cellSize = Mathf.Pow(3.0f, subdiv);
+            uint flattened_pool_idx = packed_pool_idx & ((1 << 28) - 1);
+            Vector3Int pool_idx = Vector3Int.zero;
+
+            Vector3Int poolDim = ProbeReferenceVolume.instance.m_Pool.GetPoolDimensions();
+
+            pool_idx.z = (int)flattened_pool_idx / (poolDim.x * poolDim.y);
+            flattened_pool_idx -= (uint)(pool_idx.z * (poolDim.x * poolDim.y));
+            pool_idx.y = (int)flattened_pool_idx / poolDim.x;
+            pool_idx.x = (int)flattened_pool_idx - (pool_idx.y * poolDim.x);
+
+            Vector3 uvw = Vector3.zero;
+            uvw.x = ((float)pool_idx.x + 0.5f) / poolDim.x;
+            uvw.y = ((float)pool_idx.y + 0.5f) / poolDim.y;
+            uvw.z = ((float)pool_idx.z + 0.5f) / poolDim.z;
+
+            Vector3 offset = Vector3.zero;
+            offset.x = (posRS.x / (float)cellSize) % 1;  // [0;1] in brick space
+            offset.y = (posRS.y / (float)cellSize) % 1;  // [0;1] in brick space
+            offset.z = (posRS.z / (float)cellSize) % 1;  // [0;1] in brick space
+            offset.x *= 3.0f / poolDim.x;
+            offset.y *= 3.0f / poolDim.y;
+            offset.z *= 3.0f / poolDim.z;
+
+            uvw += offset;
+
+            return uvw;
+        }
+
     }
 }

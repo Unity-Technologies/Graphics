@@ -112,6 +112,7 @@ namespace UnityEngine.Experimental.Rendering
         static readonly int _APVResL2_1 = Shader.PropertyToID("_APVResL2_1");
         static readonly int _APVResL2_2 = Shader.PropertyToID("_APVResL2_2");
         static readonly int _APVResL2_3 = Shader.PropertyToID("_APVResL2_3");
+        static readonly int _APVResValidity = Shader.PropertyToID("_APVResValidity");
 
         static void PerformDilation(ProbeReferenceVolume.Cell cell, ProbeDilationSettings settings)
         {
@@ -147,6 +148,9 @@ namespace UnityEngine.Experimental.Rendering
                 cmd.SetGlobalTexture(_APVResL2_1, rr.L2_1);
                 cmd.SetGlobalTexture(_APVResL2_2, rr.L2_2);
                 cmd.SetGlobalTexture(_APVResL2_3, rr.L2_3);
+
+                cmd.SetGlobalTexture(_APVResValidity, rr.Validity);
+
             }
 
             ProbeVolumeShadingParameters parameters;

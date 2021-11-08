@@ -53,7 +53,10 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         ComputeBuffer m_IndexOfIndicesBuffer;
-        uint[] m_IndexOfIndicesData;
+
+        // TODO_FCC: REVERT THIS CHANGE.
+        internal uint[] m_IndexOfIndicesData;
+        internal IndexMetaData[] tmpIndexMetaData;
 
         Vector3Int m_CellCount;
         Vector3Int m_CellMin;
@@ -80,6 +83,7 @@ namespace UnityEngine.Experimental.Rendering
             int bufferSize = kUintPerEntry * flatCellCount;
             m_IndexOfIndicesBuffer = new ComputeBuffer(flatCellCount, kUintPerEntry * sizeof(uint));
             m_IndexOfIndicesData = new uint[bufferSize];
+            tmpIndexMetaData = new IndexMetaData[flatCellCount];
             m_NeedUpdateComputeBuffer = false;
             estimatedVMemCost = flatCellCount * kUintPerEntry * sizeof(uint);
         }
@@ -102,6 +106,7 @@ namespace UnityEngine.Experimental.Rendering
             metaData.firstChunkIndex = cellUpdateInfo.firstChunkIndex;
 
             metaData.Pack(out uint[] packedVals);
+            tmpIndexMetaData[cellFlatIdx] = metaData;
 
             for (int i = 0; i < kUintPerEntry; ++i)
             {

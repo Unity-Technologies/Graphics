@@ -9,7 +9,10 @@ namespace UnityEngine.Experimental.Rendering
         SH,
         Validity,
         ValidityOverDilationThreshold,
-        Size
+        Size,
+        // TODO_FCC: REMOVE
+        OcclusionWeights,
+        OcclusionNeighbours
     }
 
     class ProbeVolumeDebug
@@ -27,6 +30,7 @@ namespace UnityEngine.Experimental.Rendering
         public int maxSubdivToVisualize = ProbeBrickIndex.kMaxSubdivisionLevels;
         public float exposureCompensation;
         public bool freezeStreaming;
+        public Vector3 debugPosition;
     }
 
     public partial class ProbeReferenceVolume
@@ -155,6 +159,9 @@ namespace UnityEngine.Experimental.Rendering
                 if (debugDisplay.probeShading == DebugProbeShadingMode.SH)
                     probeContainer.children.Add(new DebugUI.FloatField { displayName = "Probe Exposure Compensation", getter = () => debugDisplay.exposureCompensation, setter = value => debugDisplay.exposureCompensation = value });
 
+                if (debugDisplay.probeShading == DebugProbeShadingMode.OcclusionWeights)
+                    probeContainer.children.Add(new DebugUI.Vector3Field { displayName = "TestPosition", getter = () => debugDisplay.debugPosition, setter = value => debugDisplay.debugPosition = value });
+
                 probeContainer.children.Add(new DebugUI.FloatField { displayName = "Culling Distance", getter = () => debugDisplay.probeCullingDistance, setter = value => debugDisplay.probeCullingDistance = value, min = () => 0.0f });
 
                 probeContainer.children.Add(new DebugUI.IntField
@@ -208,6 +215,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (debugDisplay.drawProbes)
             {
+                //   Debug.Log(m_Index.GetUVW(new Vector3(-74.73219f, 4.43126f, -1.79989f)));
                 // TODO: Update data on ref vol changes
                 if (m_CellDebugData.Count == 0)
                     CreateInstancedProbes();
@@ -219,6 +227,17 @@ namespace UnityEngine.Experimental.Rendering
                     m_DebugMaterial.EnableKeyword("PROBE_VOLUMES_L1");
                 else if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     m_DebugMaterial.EnableKeyword("PROBE_VOLUMES_L2");
+
+
+                var dbgObjs = GameObject.FindObjectsOfType<SphereCollider>();
+                if (dbgObjs.Length > 0)
+                {
+                    for (int i = 0; i < dbgObjs.Length; ++i)
+                    {
+                        if (dbgObjs[i].gameObject.name.Contains("TEST_VALUE"))
+                            debugDisplay.debugPosition = dbgObjs[i].transform.position;
+                    }
+                }
 
                 foreach (var debug in m_CellDebugData)
                 {
@@ -235,6 +254,7 @@ namespace UnityEngine.Experimental.Rendering
                         props.SetFloat("_CullDistance", debugDisplay.probeCullingDistance);
                         props.SetInt("_MaxAllowedSubdiv", debugDisplay.maxSubdivToVisualize);
                         props.SetFloat("_ValidityThreshold", dilationValidtyThreshold);
+                        props.SetVector("_DebugPosition", debugDisplay.debugPosition);
 
                         Graphics.DrawMeshInstanced(m_DebugMesh, 0, m_DebugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
                     }
@@ -266,6 +286,8 @@ namespace UnityEngine.Experimental.Rendering
                 Vector4[] texels = new Vector4[kProbesPerBatch];
                 float[] validity = new float[kProbesPerBatch];
                 float[] relativeSize = new float[kProbesPerBatch];
+
+                Vector3 relevantLoc = Vector3.zero;
 
                 List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
 
