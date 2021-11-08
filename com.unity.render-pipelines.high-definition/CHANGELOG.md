@@ -48,6 +48,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with path traced shadows and layer masks (case 1375638).
 - Fixed Z axis orientation when sampling 3D textures in local volumetric fog.
 - Fixed geometry scale issue with the Eye Shader.
+- Fixed motion vector buffer not accessible from custom passes in the BeforeTransparent, BeforePreRefraction and AfterDepthAndNormal injection points.
+- Fixed the point distribution for the diffuse denoiser sometimes not being properly intialized.
+- Fixed the bad blending between the sun and the clouds (case 1373282).
+- Fixed and optimize distance shadowmask fade.
+- Fixed compilation errors when using Elipse, Rectangle, Polygon, Checkerboard, RoundedPolygon, RoundedRectangle in a ray tracing shader graph (case 1377610).
+- Fixed outdated documentation about supported GPUs for ray tracing (case 1375895).
+- Fixed outdated documentation about recursie ray tracing effects support (case 1374904).
+- Fixed Shadow Matte not appearing in ray tracing effects (case 1364005).
+- Fixed Crash issue when adding an area light on its own.
+- Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
 - Fixed light unit conversion after changing mid gray value.
 
 ### Changed
@@ -60,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added controls for the users to manually feed the ray tracing acceleration structure that should be used for a given camera (case 1370678).
 - Depth of Field is now disabled in orthographic cameras - it was using the hidden perspective settings (case 1372582).
 - Modified HDRP to use common FSR logic from SRP core.
+- Optimized FSR by merging the RCAS logic into the FinalPass shader.
 
 ## [13.1.0] - 2021-09-24
 
@@ -73,6 +84,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+- Optimizations for the physically based depth of field.
 
 ### Fixed
 - Fixed the volume not being assigned on some scene templates.
