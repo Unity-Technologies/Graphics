@@ -211,6 +211,13 @@ namespace UnityEngine.Rendering.HighDefinition
             cullingConfig.lodParameters.cameraPosition = hdCamera.camera.transform.position;
             cullingConfig.lodParameters.cameraPixelHeight = hdCamera.camera.pixelHeight;
 
+            // If we have path tracing, the shadow inclusion constraints must be aggregated with the layer masks of the path tracing.
+            if (parameters.pathTracing)
+            {
+                ShO_CT.layerMask = parameters.ptLayerMask;
+                ShT_CT.layerMask = parameters.ptLayerMask;
+            }
+
             if (parameters.shadows || parameters.pathTracing)
             {
                 instanceTestArray.Add(ShO_CT);

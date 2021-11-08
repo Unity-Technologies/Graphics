@@ -167,6 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderEVSMShadowMaps,
         RenderEVSMShadowMapsBlur,
         RenderEVSMShadowMapsCopyToAtlas,
+        BlitDirectionalMixedCachedShadowMaps,
         BlitPunctualMixedCachedShadowMaps,
         BlitAreaMixedCachedShadowMaps,
 
@@ -240,7 +241,6 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
         ContrastAdaptiveSharpen,
-        RobustContrastAdaptiveSharpen,
         EdgeAdaptiveSpatialUpsampling,
         PrepareProbeVolumeList,
         ProbeVolumeDebug,
