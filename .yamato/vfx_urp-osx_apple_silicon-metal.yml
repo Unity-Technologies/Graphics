@@ -94,7 +94,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
+              ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -126,7 +126,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
+              ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -286,7 +286,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
+              ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -318,7 +318,7 @@ VFX_URP_OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear_CUSTOM-REV
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
+              ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
