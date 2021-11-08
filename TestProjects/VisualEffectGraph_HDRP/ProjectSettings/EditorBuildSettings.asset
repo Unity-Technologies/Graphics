@@ -269,4 +269,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/37_DecalsHDRP/37_DecalsHDRP.unity
     guid: b1a2d5cb5366cc14c84167107a4c11c9
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/38_ActivationSlots.unity
+    guid: 8aced075b2dfd7c45ac17a7a25368937
   m_configObjects: {}

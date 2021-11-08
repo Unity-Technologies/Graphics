@@ -410,6 +410,7 @@ namespace UnityEditor.VFX.Test
                 typeof(float),
                 typeof(int),
                 typeof(uint),
+                typeof(bool)
             };
 
             var inputTypeHeurisicalDict = inputType.Select(o =>
