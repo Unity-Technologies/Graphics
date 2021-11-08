@@ -1,10 +1,18 @@
-# High Definition Range (HDR) Output in HDRP
+# High Dynamic Range (HDR) Output in HDRP
 
-With HDRP it is possible to output to High Dynamic Range (HDR) devices that allows for wider color gamut and higher brightness range.
+[High Dynamic Range](https://en.wikipedia.org/wiki/High-dynamic-range_imaging) content has a wider color gamut and greater luminosity range than standard definition content.
 
-HDR Output can be enabled for a given platform in **Player Settings > Other Settings > Use display in HDR mode**.  When this option is enabled, HDRP will process the frame so that when an HDR screen is used as output device it is presented correctly.
+HDRP can output HDRP content for devices which support that functionality.
 
-## Tonemapping for HDR Output
+## Enabling HDR Output
+
+To enable HDR output, navigate to **Project Settings > **Player** > **Other Settings** and enable **Use display in HDR mode**.
+
+## Configuring Tonemapping settings for HDR displays
+
+Enable **Use display in HDR mode** to reveal HDR-related options in the [Tonemapping](https://github.com/Unity-Technologies/Graphics/pull/Post-Processing-Tonemapping.md) [Volume](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@13.0/manual/Volumes.html) component.
+
+Each **[Tonemapping](Post-Processing-Tonemapping.md)** mode might have different available set of properties.
 
 When the *Use display in HDR mode* option is set in the player settings, all the HDR related options appear in the  [Tonemapping](Post-Processing-Tonemapping.md) volume component. The available options depend on the Tonemapping mode selected.
 
@@ -22,17 +30,15 @@ Specifically, detected Paper white values are often going to produce dimmer resu
 
 #### Neutral
 
-![HDR-Output-Neutral](C:\Users\franc\Documents\Github\SRP\com.unity.render-pipelines.high-definition\Documentation~\Images\HDR-Output-Neutral.png)
-
 | **Property**                         | **Description**                                              |
 | ------------------------------------ | ------------------------------------------------------------ |
-| **Neutral HDR Range Reduction Mode** | The tonemapping curve used for the Neutral tonemapper. The options are:<br />- BT2390: Uses a curve defined by the BT2390 broadcasting recommendations. (Default)<br />- Reinhard: A very simple tonemapping operator.<br /><br />This option is available only when Additional Properties are displayed. |
+| **Neutral HDR Range Reduction Mode** | The curve that the Player uses for tone mapping. The options are:<br />- BT2390: The default. Defined by the [BT.2390](https://www.itu.int/pub/R-REP-BT.2390) broadcasting recommendations.<br />- Reinhard: A very simple tonemapping operator.<br /><br />This option is available only when Additional Properties are displayed. |
 | **Hue Shift Amount**                 | Determines how much hue preservation is desired. When the value is 0, the tonemapper will try to preserve the hue of the content as much as possible, tonemapping only the luminance. However, some content might have been authored assuming that hue-shift will happen when all color channels are tonemapped independently. To recover the hue-shift behaviour this slider can be moved toward See note below for more information. |
-| **Detect Paper White**               | Whether the paper white value is detected from the data communicated by the display device. We strongly suggest to provide a calibration screen to let the user set this value depending on their screen and viewing experience. |
-| **- Paper White**                    | Paper white value (in nits) set when it is not automatically detected from the display. |
-| **Detect Brightness Limits**         | Whether the minimum and maximum brightness values are detected from the data communicated by the display device. While using these values as detected lead to more precise results than detecting paperwhite values, we still suggest to use a calibration screen. |
-| **- Min Nits**                       | Minimum brightness supported by the device.                  |
-| **- Max Nits**                       | Maximum brightness supported by the device.                  |
+| **Detect Paper White**               | Enable this property if you want HDRP to use the Paper White value that the device communicates. In many cases, this value may be not accurate. It is best practice to implement a calibration menu for your application to allow for these situations. |
+| **- Paper White**                    | Paper White value for situations in which you do not use the display-provided value or the display does not provide a value. |
+| **Detect Brightness Limits**         | Enable this property if you want HDRP to use the minimum and maximum nit values that the device communicates. In some cases, this value may be incorrect. It is best practice to implement a calibration menu for your application to allow for these situations |
+| **- Min Nits**                       | The minimum brightness value for situations in which you do not use the display-provided value or the display does not provide a value. |
+| **- Max Nits**                       | The maximum brightness value for situations in which you do not use the display-provided value or the display does not provide a value. |
 
 While Hue-preserving tonemapping (i.e. Hue Shift Amount set to 0) will better preserve the content colors, sometimes content is authored to rely on the hue shifts that high brightness will produce. A typical example can be for example a very bright flame VFX. The image below shows on the left a flame with Hue Shift Amount set to 0 and on the right the same flame with the hue shift preserved (Hue Shift Amount set to 1).
 
@@ -43,17 +49,13 @@ The right choice depends on your content, but we suggest to make sure your conte
 
 #### ACES
 
-Contrary to the neutral version, the ACES tonemapping option has fixed presets. These are meant to target screens with 1000, 2000 and 4000 nits maximum brightness. We suggest to use calibration screen to detect the right preset for the user consuming the content.
-
-![HDR-Output-ACES](C:\Users\franc\Documents\Github\SRP\com.unity.render-pipelines.high-definition\Documentation~\Images\HDR-Output-ACES.png)
-
-##
+This mode has fixed presets to target 1000, 2000, and 4000 nit displays. It is best practice to implement a calibration menu for your application to select the right preset.
 
 | **Property**           | **Description**                                              |
 | ---------------------- | ------------------------------------------------------------ |
-| **ACES Preset**        | The tonemapper preset to use. The options are:<br />- ACES 1000 Nits: Curve used to target 1000 nits displays (Default)<br />- ACES 2000 Nits: Curve used to target 2000 nits displays <br />- ACES 4000 Nits: Curve used to target 4000 nits displays |
-| **Detect Paper White** | Whether the paper white value is detected from the data communicated by the display device. We strongly suggest to provide a calibration screen to let the user set this value depending on their screen and viewing experience. |
-| **- Paper White**      | Paper white value (in nits) set when it is not automatically detected from the display. |
+| **ACES Preset**        | The tonemapper preset to use. The options are:<br />- ACES 1000 Nits: The default. Curve that targets 1000 nits displays<br />- ACES 2000 Nits: Curve that targets 2000 nits displays<br />- ACES 4000 Nits: Curve that targets 4000 nits displays |
+| **Detect Paper White** | Enable this property if you want HDRP to use the Paper White value that the device communicates. In many cases, this value may be not accurate. It is best practice to implement a calibration menu for your application to allow for these situations. |
+| **- Paper White**      | Paper White value for situations in which you do not use the display-provided value or the display does not provide a value. |
 
 #### Custom
 
@@ -63,7 +65,7 @@ Currently not supported by HDR Output. It is possible to decide whether to fallb
 
 Not supported. Mostly because every different HDR screen used to display the content would need a different LUT. It is possible to decide whether to fallback on Neutral or ACES for outputting to an HDR device.
 
-## Control HDR via script
+## Scripting Tonemapping settings for HDR displays
 
 In addition to controlling the above described Volume Component parameters through the camera volume stack, it is also possible to query the [HDROutputSettings](https://docs.unity3d.com/ScriptReference/HDROutputSettings.html). This can be used for example to:
 
@@ -72,24 +74,23 @@ In addition to controlling the above described Volume Component parameters throu
 
 ## HDR Debug Views
 
-HDRP offers three debug views for HDR rendering. These can be found in **Window > Analysis > Render Pipeline Debugger > Lighting > HDR**
+HDRP offers three debug views for HDR rendering. To access them, navigate to **Window > Analysis > Render Pipeline Debugger > Lighting > HDR**
 
 #### Gamut View
 
-Will display on the bottom left of the screen two triangles representing the Rec709 and Rec2020 color gamuts and display what parts of the gamut are covered by the scene.
-![HDR-Output-GamutView](C:\Users\franc\Documents\Github\SRP\com.unity.render-pipelines.high-definition\Documentation~\Images\HDR-Output-GamutView.png)
+This debug view displays two triangles that indicate which parts of the [Rec709](https://en.wikipedia.org/wiki/Rec._709) and [Rec2020](https://en.wikipedia.org/wiki/Rec._2020) color gamuts the Scene covers.
 
-This can be very useful to verify that you are taking advantage of the wider color gamut and is a way to see how color plot changes as you perform color grading.
+This view enables you check color plot changes during color grading, and to ensure that you are making use of the wider color gamut available in HDR.![HDR-Output-GamutView](C:\Users\franc\Documents\Github\SRP\com.unity.render-pipelines.high-definition\Documentation~\Images\HDR-Output-GamutView.png)
 
 #### Gamut Clip
 
-Very similar to the above, except it shows red for areas of the screen that are outside the sRGB/Rec709 color gamut and green for anything that is in both the Rec709 and Rec2020 color gamut.
+This debug view indicates values that exceed or remain within specific color gamuts. Areas of the screen outside of the sRGB/Rec709 color gamut are red, and areas within the Rec709 and Rec2020 gamuts are green.
 
 ![HDR-Output-GamutClip](C:\Users\franc\Documents\Github\SRP\com.unity.render-pipelines.high-definition\Documentation~\Images\HDR-Output-GamutClip.png)
 
 
 
-#### Values over Paperwhite value
+#### Values exceeding Paper White
 
 This debug view shows the scene as luminance values except for parts of the scene that are over the paper white value that are displayed as a gradient from yellow (paperwhite +1) value to red (max brightness nits)
 

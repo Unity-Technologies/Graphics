@@ -4,7 +4,4 @@ In the High Definition Render Pipeline (HDRP), some features work differently be
 
 ## Color Grading
 
-Starting from HDRP 13.x, HDRP will use ACEScg as a default color space to perform color grading even when using a non-ACES  if  unlike the previously used sRGB color space.  It is possible to go back to sRGB in the Global Settings Asset.
-
-## Shader code
-
+ACEScg is now the default color space for color grading for all HDRP projects. When you upgrade a project from an earlier version of HDRP, that project's color space for grading automatically changes to ACEScg. To revert your project's grading color space to sRGB, navigate to **Edit > Project Settings > Graphics > [HDRP Global Settings](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@13.0/manual/Default-Settings-Window.html)** > Color Grading Space.
