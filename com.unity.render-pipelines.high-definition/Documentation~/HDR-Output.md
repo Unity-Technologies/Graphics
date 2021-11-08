@@ -12,17 +12,18 @@ To enable HDR output, navigate to **Project Settings > **Player** > **Other Sett
 
 Enable **Use display in HDR mode** to reveal HDR-related options in the [Tonemapping](https://github.com/Unity-Technologies/Graphics/pull/Post-Processing-Tonemapping.md) [Volume](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@13.0/manual/Volumes.html) component.
 
-Each **[Tonemapping](Post-Processing-Tonemapping.md)** mode might have different available set of properties.
+Each **[Tonemapping](Post-Processing-Tonemapping.md)** mode has some unique properties.
 
 When the *Use display in HDR mode* option is set in the player settings, all the HDR related options appear in the  [Tonemapping](Post-Processing-Tonemapping.md) volume component. The available options depend on the Tonemapping mode selected.
 
-Unlike tonemapping for LDR displays, the tonemapping for HDR screens require to take into account the capabilities of the device. In particular it is important to adapt to three values:
+To properly make use of the capabilities of HDR displays, your **Tonemapping** configuration must take into account the capabilities of the target device, specifically these three values in [nits](https://en.wikipedia.org/wiki/Candela_per_square_metre):
+
+- Minimum supported brightness.
+- Maximum supported brightness.
 
 - Paper white value: determines the brightness value of a paper-white surface. In practice this will determines the overall screen brightness and what brightness the UI will map to. This latter point is important as usually unlit UI is rendered assuming that a value of 1 corresponds to a white color; this assumption is not true when it comes to HDR, so HDRP uses the paper white to tune the UI so that white UI will map to a white value on screen.
-- Minimum Brightness: the minimum brightness that the display can display.
-- Maximum Brightness: the maximum brightness that the display can display before saturating the values.
 
-All the above values are in nits (candela per square meters).
+
 
 While it is possible to detect the above three values from the screen outputting your content, it is possible that the values communicated by the device are going to be inaccurate. For this reason, we suggest to implement a calibration menu for your application.
 
