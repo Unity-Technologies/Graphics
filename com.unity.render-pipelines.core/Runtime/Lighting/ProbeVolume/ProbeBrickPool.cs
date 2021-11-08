@@ -83,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering
         static DynamicArray<Color> s_L0L1Rx_locData = new DynamicArray<Color>();
         static DynamicArray<Color> s_L1GL1Ry_locData = new DynamicArray<Color>();
         static DynamicArray<Color> s_L1BL1Rz_locData = new DynamicArray<Color>();
-        static DynamicArray<float> s_Validity_locData = new DynamicArray<float>();  // TODO_FCC TMP: Test
+        static DynamicArray<Vector4> s_Validity_locData = new DynamicArray<Vector4>();  // TODO_FCC TMP: Test
 
         static DynamicArray<Color> s_L2_0_locData = null;
         static DynamicArray<Color> s_L2_1_locData = null;
@@ -277,7 +277,7 @@ namespace UnityEngine.Experimental.Rendering
             loc.TexL0_L1rx.name = $"{name}_TexL0_L1rx";
             allocatedBytes += texelCount * 8;
 
-            loc.TexValidity = new Texture3D(width, height, depth, GraphicsFormat.R32_SFloat, TextureCreationFlags.None, 1); // TODO_FCC: Test values
+            loc.TexValidity = new Texture3D(width, height, depth, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None, 1); // TODO_FCC: Test values. revert to a single float.
             loc.TexValidity.hideFlags = HideFlags.HideAndDontSave;
             loc.TexValidity.name = $"{name}_Validity";
             allocatedBytes += texelCount * 1;
@@ -376,6 +376,12 @@ namespace UnityEngine.Experimental.Rendering
             data[index] = value;
         }
 
+        static void SetPixel(DynamicArray<Vector4> data, int x, int y, int z, int dataLocWidth, int dataLocHeight, Vector4 value)
+        {
+            int index = x + dataLocWidth * (y + dataLocHeight * z);
+            data[index] = value;
+        }
+
         public static void FillDataLocation(ref DataLocation loc, Vector3[] positions, float[] validity, SphericalHarmonicsL2[] shl2, int startIndex, int count, ProbeVolumeSHBands bands)
         {
             int shidx = startIndex;
@@ -407,7 +413,7 @@ namespace UnityEngine.Experimental.Rendering
                                 SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, Color.black);
                                 SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, Color.black);
                                 SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, Color.black);
-                                SetPixel(s_Validity_locData, ix, iy, iz, loc.width, loc.height, 1.0f);
+                                SetPixel(s_Validity_locData, ix, iy, iz, loc.width, loc.height, new Vector4(positions[0].x, positions[0].y, positions[0].z, 1.0f));
 
                                 if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                 {
@@ -419,7 +425,7 @@ namespace UnityEngine.Experimental.Rendering
                             }
                             else
                             {
-                                SetPixel(s_Validity_locData, ix, iy, iz, loc.width, loc.height, validity[shidx]);
+                                SetPixel(s_Validity_locData, ix, iy, iz, loc.width, loc.height, new Vector4(positions[shidx].x, positions[shidx].y, positions[shidx].z, validity[shidx]));
 
                                 c.r = shl2[shidx][0, 0]; // L0.r
                                 c.g = shl2[shidx][1, 0]; // L0.g
@@ -491,7 +497,7 @@ namespace UnityEngine.Experimental.Rendering
             loc.TexL1_G_ry.Apply(false);
             loc.TexL1_B_rz.SetPixels(s_L1BL1Rz_locData);
             loc.TexL1_B_rz.Apply(false);
-            loc.TexValidity.SetPixelData<float>(s_Validity_locData, 0);
+            loc.TexValidity.SetPixelData<Vector4>(s_Validity_locData, 0);
             loc.TexValidity.Apply(false);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
