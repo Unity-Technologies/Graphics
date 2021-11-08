@@ -1,0 +1,9 @@
+{
+    "ErrorExceptions": [
+        {
+            "ValidationTest": "API Validation",
+            "ExceptionMessage": "Additions require a new minor or major version.",
+            "PackageVersion": "3.1.2"
+        }
+    ]
+}
