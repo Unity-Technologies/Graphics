@@ -848,39 +848,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         // Here are the Pragma Collection we can add on top of the Basic one
-        public static PragmaCollection DotsInstancedInV2Only = new PragmaCollection
+        public static PragmaCollection DotsInstanced = new PragmaCollection
         {
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            #endif
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
         };
 
-        public static PragmaCollection DotsInstancedInV1AndV2 = new PragmaCollection
+        public static PragmaCollection DotsInstancedEditorSync = new PragmaCollection
         {
-            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
-            #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #else
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer), new FieldCondition[]
-              {
-                  new FieldCondition(HDFields.DotsInstancing, false),
-                  new FieldCondition(HDFields.DotsProperties, false),
-              } },
-            #endif
-        };
-
-        public static PragmaCollection DotsInstancedInV1AndV2EditorSync = new PragmaCollection
-        {
-            { DotsInstancedInV1AndV2 },
             { Pragma.EditorSyncCompilation },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
         };
     }
     #endregion
