@@ -3,7 +3,7 @@ project:
   folder: BoatAttack
   variables:
     BOAT_ATTACK_BRANCH: master
-    BOAT_ATTACK_REVISION: 42f9e9e6f2877573382244f8a07968848dbab9b0
+    BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
 
 reuse_blocks:
   unity_config:
@@ -474,7 +474,7 @@ jobs:
         build_config: il2cpp
         color_space: Linear
         test_platforms:
-          - performance_playmode_runtime
+          #- performance_playmode_runtime
           - performance_build_editmode
       - platform: iPhone
         api: Metal
@@ -497,9 +497,9 @@ jobs:
         color_space: Linear
         test_platforms:
           - performance_playmode_runtime
-      - platform: XRQuest
-        api: Vulkan
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - performance_playmode_runtime
+      #- platform: XRQuest
+      #  api: Vulkan
+      #  build_config: il2cpp
+      #  color_space: Linear
+      #  test_platforms:
+      #    - performance_playmode_runtime

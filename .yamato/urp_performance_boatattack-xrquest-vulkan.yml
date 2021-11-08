@@ -17,7 +17,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Li
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 42f9e9e6f2877573382244f8a07968848dbab9b0
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -73,7 +73,7 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 42f9e9e6f2877573382244f8a07968848dbab9b0
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -159,7 +159,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Line
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 42f9e9e6f2877573382244f8a07968848dbab9b0
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -244,7 +244,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Li
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 42f9e9e6f2877573382244f8a07968848dbab9b0
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -300,7 +300,7 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 42f9e9e6f2877573382244f8a07968848dbab9b0
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -386,7 +386,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Line
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 42f9e9e6f2877573382244f8a07968848dbab9b0
+        BOAT_ATTACK_REVISION: 1ebee168f3c649252ef0947bc482ffb3fc41fede
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
