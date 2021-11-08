@@ -431,8 +431,9 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-          - performance_playmode_runtime
-          - performance_playmode_editor
+          # https://fogbugz.unity3d.com/f/cases/1375124/
+          # - performance_playmode_runtime
+          # - performance_playmode_editor
           - performance_build_editmode
       - platform: Android
         api: OpenGLES3
