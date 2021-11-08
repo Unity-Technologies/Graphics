@@ -4,7 +4,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/UberPostFeatures.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/BloomCommon.hlsl"
-
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel Uber
@@ -14,8 +13,12 @@
 #pragma multi_compile _ LENS_DISTORTION
 #pragma multi_compile _ ENABLE_ALPHA
 #pragma multi_compile _ GAMMA2_OUTPUT
+#pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
+#if defined(HDR_OUTPUT_REC2020) || defined(HDR_OUTPUT_SCRGB)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
+#endif
 
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_BloomTexture);
@@ -221,8 +224,16 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
         // Move from linear to LogC
         float3 colorLutSpace = saturate(LinearToLogC(color.xyz));
 
+#ifndef HDR_OUTPUT
         // Color lookup in the LogC lut
         color.xyz = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
+#else
+        // We use the Gran Turismo Approx which has a somewhat small error vs accurate https://www.desmos.com/calculator/5jdfc4pgtk
+        // TODO: Evaluate whether we should use accurate version as it is not *that* more expensive. Also, consider using Patry if max nits is below 1400
+        // We multiply by 100 as in lut space 1 = 100 nits.
+        colorLutSpace = LinearToPQForLUT(color.xyz * 100.0f);
+        color.xyz = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
+#endif
     }
 
     // Alpha mask

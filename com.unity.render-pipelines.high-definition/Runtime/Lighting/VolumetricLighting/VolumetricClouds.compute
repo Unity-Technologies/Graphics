@@ -1,3 +1,5 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 // Depth related kernels
 #pragma kernel ConvertObliqueDepth
 #pragma kernel DownscaleDepth
@@ -1399,13 +1401,13 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     cloudPosInput.positionWS = -viewDir * cloudDistance;
 #endif
 
+#ifdef USE_INTERMEDIATE_BUFFER
     // Compute the fog attenuation of the clouds
     float3 fogColor;
     float3 fogOpacity;
     EvaluateAtmosphericScattering(cloudPosInput, viewDir, fogColor, fogOpacity);
-    currentClouds.xyz = currentClouds.xyz * (1 - fogOpacity) + fogColor * (1.0 - currentClouds.a);
+    currentClouds.xyz = currentClouds.xyz * (1 - fogOpacity) + fogColor * (1.0 - (_CubicTransmittance ? currentClouds.a * currentClouds.a : currentClouds.a));
 
-#ifdef USE_INTERMEDIATE_BUFFER
     // Store the upscaled result only, composite in later pass.
     _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
 #else
@@ -1415,8 +1417,18 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
 #else
     float4 currentColor = _CameraColorTexture[COORD_TEXTURE2D_X(finalCoord.xy)];
 #endif
-    // If this is a background pixel, we want the cloud value, otherwise we do not.
-    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentColor.xyz * currentClouds.a + currentClouds.xyz, currentColor.a);
+
+    // Estimate the transmittance that shall be used
+    float finalTransmittance = EvaluateFinalTransmittance(currentColor, currentClouds.w);
+
+    // Compute the fog attenuation of the clouds
+    float3 fogColor;
+    float3 fogOpacity;
+    EvaluateAtmosphericScattering(cloudPosInput, viewDir, fogColor, fogOpacity);
+    currentClouds.xyz = currentClouds.xyz * (1 - fogOpacity) + fogColor * (1.0 - finalTransmittance);
+
+    // Apply the transmittance
+    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentColor.xyz * finalTransmittance + currentClouds.xyz, currentColor.a);
 #endif
 }
 
