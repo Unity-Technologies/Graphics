@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Maximum light count per fine prunned tile (opaque deferred) is now 63 instead of 23.
 - Depth of Field is now disabled in orthographic cameras - it was using the hidden perspective settings (case 1372582).
+- Integrate a help box to inform users of the potential dependency to directional lights when baking.
 
 ## [12.1.1] - 2021-10-04
 
