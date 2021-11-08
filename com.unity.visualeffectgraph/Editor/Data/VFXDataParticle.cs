@@ -7,6 +7,8 @@ using UnityEditor.VFX;
 using UnityEngine.VFX;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
+using static UnityEditor.VFX.VFXSortingUtility;
+
 
 namespace UnityEditor.VFX
 {
@@ -211,7 +213,8 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected DataType dataType = DataType.Particle;
-        [VFXSetting, Delayed, SerializeField, FormerlySerializedAs("m_Capacity")][Tooltip("Sets the maximum particle capacity of this system. Particles spawned after the capacity has been reached are discarded.")]
+        [VFXSetting, Delayed, SerializeField, FormerlySerializedAs("m_Capacity")]
+        [Tooltip("Sets the maximum particle capacity of this system. Particles spawned after the capacity has been reached are discarded.")]
         protected uint capacity = 128;
         [VFXSetting, Delayed, SerializeField]
         protected uint stripCapacity = 1;
@@ -222,10 +225,11 @@ namespace UnityEditor.VFX
 
         public bool NeedsComputeBounds() => needsComputeBounds;
 
+        [FormerlySerializedAs("boundsSettingMode")]
         [VFXSetting(VFXSettingAttribute.VisibleFlags.All),
          Tooltip("Specifies how the bounds are set. They can be set manually, recorded in the Target GameObject window, or computed automatically at a small performance cost."),
          SerializeField]
-        public BoundsSettingMode boundsSettingMode = BoundsSettingMode.Recorded;
+        public BoundsSettingMode boundsMode = BoundsSettingMode.Recorded;
 
         public bool hasStrip { get { return dataType == DataType.ParticleStrip; } }
 
@@ -239,7 +243,7 @@ namespace UnityEditor.VFX
                 stripCapacity = 1;
             else if (setting.name == "particlePerStripCount" && particlePerStripCount == 0)
                 particlePerStripCount = 1;
-            else if (setting.name == "boundsSettingMode")
+            else if (setting.name == "boundsMode")
             {
                 //Refresh errors on Output contexts
                 var allSystemOutputContexts = owners.Where(ctx => ctx is VFXAbstractParticleOutput);
@@ -247,11 +251,14 @@ namespace UnityEditor.VFX
                 {
                     ctx.RefreshErrors(GetGraph());
                 }
-                if (boundsSettingMode == BoundsSettingMode.Automatic)
+
+                if (boundsMode == BoundsSettingMode.Automatic)
+                {
                     needsComputeBounds = true;
+                    var graph = GetGraph();
+                    graph.visualEffectResource.cullingFlags = VFXCullingFlags.CullNone;
+                }
             }
-
-
             if (hasStrip)
             {
                 if (setting.name == "dataType") // strip has just been set
@@ -511,34 +518,42 @@ namespace UnityEditor.VFX
         {
             var contexts = compilableOwners.ToList();
 
-            if (!NeedsGlobalSort() &&
-                !contexts.OfType<VFXAbstractParticleOutput>().Any(o => o.NeedsOutputUpdate()))
-            {
-                //Early out with the most common case
-                m_Contexts = contexts;
-                return Enumerable.Empty<VFXContext>();
-            }
-
             m_Contexts = new List<VFXContext>(contexts.Count + 2); // Allocate max number
             int index = 0;
 
+            bool hasMainUpdate = false;
             // First add init and updates
             for (index = 0; index < contexts.Count; ++index)
             {
+                if (contexts[index].contextType == VFXContextType.Update)
+                    hasMainUpdate = true;
                 if ((contexts[index].contextType == VFXContextType.Output))
                     break;
                 m_Contexts.Add(contexts[index]);
             }
-
-            var implicitContext = new List<VFXContext>();
-            if (NeedsGlobalSort())
+            //Reset needsOwnSort flags
+            for (int outputIndex = index; outputIndex < contexts.Count; ++outputIndex)
             {
-                // Then the camera sort
-                var cameraSort = VFXContext.CreateImplicitContext<VFXCameraSort>(this);
-                implicitContext.Add(cameraSort);
-                m_Contexts.Add(cameraSort);
+                var currentOutputContext = contexts[outputIndex];
+                var abstractParticleOutput = currentOutputContext as VFXAbstractParticleOutput;
+                if (abstractParticleOutput == null)
+                    continue;
+                abstractParticleOutput.needsOwnSort = false;
             }
 
+            var implicitContext = new List<VFXContext>();
+
+            bool needsGlobalSort = NeedsGlobalSort(out var globalSortCriterion);
+            //Issues a global sort when at least two outputs have the same criterion.
+            //If others don't match the criterion, or have a compute cull pass, they need a per output sort.
+            if (needsGlobalSort)
+            {
+                // Then the camera sort
+                var globalSort = VFXContext.CreateImplicitContext<VFXGlobalSort>(this);
+                SetContextSortCriteria(ref globalSort, globalSortCriterion);
+                implicitContext.Add(globalSort);
+                m_Contexts.Add(globalSort);
+            }
             //additional update
             for (int outputIndex = index; outputIndex < contexts.Count; ++outputIndex)
             {
@@ -547,6 +562,7 @@ namespace UnityEditor.VFX
                 if (abstractParticleOutput == null)
                     continue;
 
+                abstractParticleOutput.needsOwnSort = OutputNeedsOwnSort(abstractParticleOutput, globalSortCriterion, hasMainUpdate);
                 if (abstractParticleOutput.NeedsOutputUpdate())
                 {
                     var update = VFXContext.CreateImplicitContext<VFXOutputUpdate>(this);
@@ -575,7 +591,37 @@ namespace UnityEditor.VFX
 
         public bool NeedsGlobalSort()
         {
-            return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
+            bool hasMainUpdate = compilableOwners.OfType<VFXBasicUpdate>().Any();
+            int sharedCriterionCount = GetGlobalSortingCriterionAndVoteCount(out var globalSortCriterion);
+            return hasMainUpdate && sharedCriterionCount >= 2;
+        }
+
+        public bool NeedsGlobalSort(out SortingCriterion globalSortCriterion)
+        {
+            bool hasMainUpdate = compilableOwners.OfType<VFXBasicUpdate>().Any();
+            if (!hasMainUpdate)
+            {
+                globalSortCriterion = null;
+                return false;
+            }
+            int sharedCriterionCount = GetGlobalSortingCriterionAndVoteCount(out globalSortCriterion);
+            return sharedCriterionCount >= 2;
+        }
+
+        int GetGlobalSortingCriterionAndVoteCount(out SortingCriterion globalSortCriterion)
+        {
+            var globalSortedCandidates = compilableOwners.OfType<VFXAbstractParticleOutput>()
+                .Where(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)).ToArray();
+            if (!globalSortedCandidates.Any())
+            {
+                globalSortCriterion = null;
+                return 0;
+            }
+
+            Func<VFXAbstractParticleOutput, SortingCriterion> getVoteFunc = VFXSortingUtility.GetVoteFunc;
+            var voteResult = MajorityVote(globalSortedCandidates, getVoteFunc, new SortingCriteriaComparer());
+            globalSortCriterion = voteResult.Value >= 2 ? voteResult.Key : null;
+            return voteResult.Value;
         }
 
         public override void FillDescs(
@@ -673,7 +719,7 @@ namespace UnityEditor.VFX
                 systemFlag |= VFXSystemFlag.SystemHasDirectLink;
             }
 
-            if (needsComputeBounds || boundsSettingMode == BoundsSettingMode.Automatic)
+            if (needsComputeBounds || boundsMode == BoundsSettingMode.Automatic)
             {
                 systemFlag |= VFXSystemFlag.SystemNeedsComputeBounds;
 
@@ -681,7 +727,7 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXMapping("boundsBuffer", boundsBufferIndex));
             }
 
-            if (boundsSettingMode == BoundsSettingMode.Automatic)
+            if (boundsMode == BoundsSettingMode.Automatic)
             {
                 systemFlag |= VFXSystemFlag.SystemAutomaticBounds;
             }
@@ -772,8 +818,8 @@ namespace UnityEditor.VFX
             // sort buffers
             int sortBufferAIndex = -1;
             int sortBufferBIndex = -1;
-            bool needsSort = NeedsGlobalSort();
-            if (needsSort)
+            bool needsGlobalSort = NeedsGlobalSort();
+            if (needsGlobalSort)
             {
                 sortBufferAIndex = outBufferDescs.Count;
                 sortBufferBIndex = sortBufferAIndex + 1;
@@ -882,7 +928,7 @@ namespace UnityEditor.VFX
 
                     if (context.contextType == VFXContextType.Filter)
                     {
-                        if (context.taskType == VFXTaskType.CameraSort && needsGlobalIndirectBuffer)
+                        if (context.taskType == VFXTaskType.GlobalSort && needsGlobalIndirectBuffer)
                             bufferMappings.Add(new VFXMapping("inputBuffer", globalIndirectBufferIndex));
                         else if (context is VFXOutputUpdate)
                         {
@@ -898,7 +944,7 @@ namespace UnityEditor.VFX
                 if (deadListBufferIndex != -1 && context.contextType == VFXContextType.Output && (context as VFXAbstractParticleOutput).NeedsDeadListCount())
                     bufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
 
-                if (context.taskType == VFXTaskType.CameraSort)
+                if (context.taskType == VFXTaskType.GlobalSort)
                 {
                     bufferMappings.Add(new VFXMapping("outputBuffer", sortBufferAIndex));
                     if (deadListCountIndex != -1)
@@ -936,7 +982,7 @@ namespace UnityEditor.VFX
                 {
                     if (mapping.index < 0)
                     {
-                        reporter?.RegisterError(context.GetSlotByPath(true, mapping.name), "GPUNodeLinkedTOCPUSlot", VFXErrorType.Error, "Can not link a GPU operator to a system wide (CPU) input.");;
+                        reporter?.RegisterError(context.GetSlotByPath(true, mapping.name), "GPUNodeLinkedTOCPUSlot", VFXErrorType.Error, "Can not link a GPU operator to a system wide (CPU) input."); ;
                         throw new InvalidOperationException("Unable to compute CPU expression for mapping : " + mapping.name);
                     }
                 }
@@ -962,17 +1008,17 @@ namespace UnityEditor.VFX
                 else
                     taskDescs.Add(taskDesc);
 
-                // if task is a per camera update with sorting, add sort tasks
+                // if task is a per output update with sorting, add sort tasks
                 if (context is VFXOutputUpdate)
                 {
                     var update = (VFXOutputUpdate)context;
 
-                    if (update.HasFeature(VFXOutputUpdate.Features.Sort))
+                    if (update.HasFeature(VFXOutputUpdate.Features.CameraSort) || update.HasFeature(VFXOutputUpdate.Features.Sort))
                     {
                         for (int j = 0; j < update.bufferCount; ++j)
                         {
                             VFXEditorTaskDesc sortTaskDesc = new VFXEditorTaskDesc();
-                            sortTaskDesc.type = UnityEngine.VFX.VFXTaskType.PerCameraSort;
+                            sortTaskDesc.type = UnityEngine.VFX.VFXTaskType.PerOutputSort;
                             sortTaskDesc.externalProcessor = null;
                             sortTaskDesc.model = context;
 
@@ -987,8 +1033,9 @@ namespace UnityEditor.VFX
                                 sortTaskDesc.buffers[1] = new VFXMapping("scratchBuffer", -1); // No scratchBuffer needed
                             sortTaskDesc.buffers[2] = new VFXMapping("dstBuffer", update.sortedBufferIndex + j);
 
-                            sortTaskDesc.parameters = new VFXMapping[1];
+                            sortTaskDesc.parameters = new VFXMapping[2];
                             sortTaskDesc.parameters[0] = new VFXMapping("globalSort", 0);
+                            sortTaskDesc.parameters[1] = new VFXMapping("isPerCameraSort", update.isPerCamera ? 1 : 0);
 
                             taskDescs.Add(sortTaskDesc);
                         }
@@ -1019,7 +1066,7 @@ namespace UnityEditor.VFX
         {
             if (version < 8)
             {
-                SetSettingValue("boundsSettingMode", BoundsSettingMode.Manual);
+                SetSettingValue("boundsMode", BoundsSettingMode.Manual);
             }
             base.Sanitize(version);
         }

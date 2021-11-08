@@ -99,9 +99,9 @@ namespace UnityEditor.Rendering.LookDev
 
         class MultipleDifferentValue : TextElement
         {
-            public new class UxmlFactory : UxmlFactory<MultipleDifferentValue, UxmlTraits> {}
+            public new class UxmlFactory : UxmlFactory<MultipleDifferentValue, UxmlTraits> { }
 
-            public new class UxmlTraits : TextElement.UxmlTraits {}
+            public new class UxmlTraits : TextElement.UxmlTraits { }
 
             public new static readonly string ussClassName = "unity-multipledifferentevalue";
 
@@ -159,12 +159,12 @@ namespace UnityEditor.Rendering.LookDev
             public override bool value
             {
                 get => inMultipleValueState ? default : base.value;
-                    set
-                    {
-                        if (inMultipleValueState)
-                            inMultipleValueState = false;
-                        base.value = value;
-                    }
+                set
+                {
+                    if (inMultipleValueState)
+                        inMultipleValueState = false;
+                    base.value = value;
+                }
             }
         }
 
@@ -211,13 +211,13 @@ namespace UnityEditor.Rendering.LookDev
             public override string value
             {
                 get => inMultipleValueState ? default : base.value;
-                    set
-                    {
-                        //when actively changing in the drop down, quit mixed value state
-                        if (inMultipleValueState)
-                            inMultipleValueState = false;
-                        base.value = value;
-                    }
+                set
+                {
+                    //when actively changing in the drop down, quit mixed value state
+                    if (inMultipleValueState)
+                        inMultipleValueState = false;
+                    base.value = value;
+                }
             }
         }
 

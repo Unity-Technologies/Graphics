@@ -8,8 +8,19 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Defines if Unity will copy the depth that can be bound in shaders as _CameraDepthTexture after the opaques pass or after the transparents pass.
+    /// </summary>
+    public enum CopyDepthMode
+    {
+        /// <summary>Depth will be copied after the opaques pass</summary>
+        AfterOpaques,
+        /// <summary>Depth will be copied after the transparents pass</summary>
+        AfterTransparents
+    }
+
     [Serializable, ReloadGroup, ExcludeFromPreset]
-    public class UniversalRendererData : ScriptableRendererData
+    public class UniversalRendererData : ScriptableRendererData, ISerializationCallbackReceiver
     {
 #if UNITY_EDITOR
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
@@ -18,15 +29,14 @@ namespace UnityEngine.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType.UniversalRenderer, false) as UniversalRendererData;
-                ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
                 Selection.activeObject = instance;
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/URP Universal Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
+        [MenuItem("Assets/Create/Rendering/URP Universal Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 2)]
         static void CreateUniversalRendererData()
         {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalRendererAsset>(), "CustomUniversalRendererData.asset", null, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalRendererAsset>(), "New Custom Universal Renderer Data.asset", null, null);
         }
 
 #endif
@@ -57,10 +67,10 @@ namespace UnityEngine.Rendering.Universal
 
             // Core blitter shaders, adapted from HDRP
             // TODO: move to core and share with HDRP
-            [Reload("Shaders/Utils/CoreBlit.shader")]
-            public Shader coreBlitPS;
-            [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader")]
-            public Shader coreBlitColorAndDepthPS;
+            [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
+            internal Shader coreBlitPS;
+            [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
+            internal Shader coreBlitColorAndDepthPS;
 
 
             [Reload("Shaders/CameraMotionVectors.shader")]
@@ -79,17 +89,20 @@ namespace UnityEngine.Rendering.Universal
 
         public ShaderResources shaders = null;
 
+        const int k_LatestAssetVersion = 2;
+        [SerializeField] int m_AssetVersion = 0;
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
+        [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterOpaques;  // TODO: the new default should be CopyDepthMode.AfterTransparents.
         [SerializeField] bool m_AccurateGbufferNormals = false;
-        //[SerializeField] bool m_TiledDeferredShading = false;
         [SerializeField] bool m_ClusteredRendering = false;
         const TileSize k_DefaultTileSize = TileSize._32;
         [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
+        [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Auto;
 
         protected override ScriptableRenderer Create()
         {
@@ -176,6 +189,19 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Copy depth mode.
+        /// </summary>
+        public CopyDepthMode copyDepthMode
+        {
+            get => m_CopyDepthMode;
+            set
+            {
+                SetDirty();
+                m_CopyDepthMode = value;
+            }
+        }
+
+        /// <summary>
         /// Use Octaedron Octahedron normal vector encoding for gbuffer normals.
         /// The overhead is negligible from desktop GPUs, while it should be avoided for mobile GPUs.
         /// </summary>
@@ -188,18 +214,6 @@ namespace UnityEngine.Rendering.Universal
                 m_AccurateGbufferNormals = value;
             }
         }
-
-        /*
-        public bool tiledDeferredShading
-        {
-            get => m_TiledDeferredShading;
-            set
-            {
-                SetDirty();
-                m_TiledDeferredShading = value;
-            }
-        }
-        */
 
         internal bool clusteredRendering
         {
@@ -219,6 +233,19 @@ namespace UnityEngine.Rendering.Universal
                 Assert.IsTrue(value.IsValid());
                 SetDirty();
                 m_TileSize = value;
+            }
+        }
+
+        /// <summary>
+        /// Controls when URP renders via an intermediate texture.
+        /// </summary>
+        public IntermediateTextureMode intermediateTextureMode
+        {
+            get => m_IntermediateTextureMode;
+            set
+            {
+                SetDirty();
+                m_IntermediateTextureMode = value;
             }
         }
 
@@ -253,6 +280,50 @@ namespace UnityEngine.Rendering.Universal
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif
 #endif
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            m_AssetVersion = k_LatestAssetVersion;
+        }
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (m_AssetVersion <= 0)
+            {
+                var anyNonUrpRendererFeatures = false;
+
+                foreach (var feature in m_RendererFeatures)
+                {
+                    try
+                    {
+                        if (feature.GetType().Assembly == typeof(UniversalRendererData).Assembly)
+                        {
+                            continue;
+                        }
+                    }
+                    catch
+                    {
+                        // If we hit any exceptions while poking around assemblies,
+                        // conservatively assume there was a non URP renderer feature.
+                    }
+
+                    anyNonUrpRendererFeatures = true;
+                }
+
+                // Replicate old intermediate texture behaviour in case of any non-URP renderer features,
+                // where we cannot know if they properly declare needed inputs.
+                m_IntermediateTextureMode = anyNonUrpRendererFeatures ? IntermediateTextureMode.Always : IntermediateTextureMode.Auto;
+            }
+
+            if (m_AssetVersion <= 1)
+            {
+                // To avoid breaking existing projects, keep the old AfterOpaques behaviour. The new AfterTransparents default will only apply to new projects.
+                m_CopyDepthMode = CopyDepthMode.AfterOpaques;
+            }
+
+
+            m_AssetVersion = k_LatestAssetVersion;
         }
     }
 }

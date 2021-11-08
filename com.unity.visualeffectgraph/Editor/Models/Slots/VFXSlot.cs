@@ -17,9 +17,9 @@ namespace UnityEditor.VFX
             kOutput,
         }
 
-        public Direction direction      { get { return m_Direction; } }
-        public VFXProperty property     { get { return m_Property; } }
-        public override string name     { get { return m_Property.name; } }
+        public Direction direction { get { return m_Direction; } }
+        public VFXProperty property { get { return m_Property; } }
+        public override string name { get { return m_Property.name; } }
 
         private FieldInfo m_FieldInfoCache;
 
@@ -47,9 +47,9 @@ namespace UnityEditor.VFX
                         slotValue = m_FieldInfoCache.GetValue(parentValue);
                     }
 
-                    if (slotValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type))
+                    if (slotValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type) && property.type != typeof(GraphicsBuffer))
                     {
-                        Debug.Log("null value in slot of type" + property.type.UserFriendlyName());
+                        Debug.Log("null value in slot of type " + property.type.UserFriendlyName());
                     }
                     return slotValue;
                 }
@@ -308,9 +308,9 @@ namespace UnityEditor.VFX
 
         public IVFXSlotContainer owner { get { return GetMasterData().m_Owner as IVFXSlotContainer; } }
 
-        public bool IsMasterSlot()          { return m_MasterSlot == this; }
-        public VFXSlot GetMasterSlot()      { return m_MasterSlot; }
-        private MasterData GetMasterData()  { return GetMasterSlot().m_MasterData; }
+        public bool IsMasterSlot() { return m_MasterSlot == this; }
+        public VFXSlot GetMasterSlot() { return m_MasterSlot; }
+        private MasterData GetMasterData() { return GetMasterSlot().m_MasterData; }
 
         // Never call this directly ! Called only by VFXSlotContainerModel
         public void SetOwner(VFXModel owner)
@@ -381,6 +381,11 @@ namespace UnityEditor.VFX
                 foreach (var subInfo in property.SubProperties())
                 {
                     var subSlot = CreateSub(subInfo, direction);
+                    if (slot.property.attributes.attributes.OfType<MinMaxAttribute>().Any())
+                    {
+                        var parentRange = property.attributes.FindRange();
+                        subSlot.UpdateAttributes(new VFXPropertyAttributes(new RangeAttribute(parentRange.x, parentRange.y)), false);
+                    }
                     if (subSlot != null)
                     {
                         subSlot.Attach(slot, false);
@@ -475,11 +480,28 @@ namespace UnityEditor.VFX
                 dst = dst.children.First();
             }
 
-            if (copySubLinks && src.GetNbChildren() == dst.GetNbChildren())
+            if (copySubLinks)
             {
-                int nbSubSlots = src.GetNbChildren();
-                for (int i = 0; i < nbSubSlots; ++i)
-                    CopyLinks(dst[i], src[i], notify);
+                if (src.GetNbChildren() == dst.GetNbChildren())
+                {
+                    //If number of slot is equal, copy index by index (OrientedBox <=> Transform)
+                    foreach (var srcSlot in src.children)
+                    {
+                        int nbSubSlots = src.GetNbChildren();
+                        for (int i = 0; i < nbSubSlots; ++i)
+                            CopyLinks(dst[i], src[i], notify);
+                    }
+                }
+                else
+                {
+                    //If number slot is different, try matching by name (Sphere without angles during sanitize)
+                    foreach (var srcSlot in src.children)
+                    {
+                        var dstSlot = dst.children.FirstOrDefault(o => o.name == srcSlot.name);
+                        if (dstSlot != null)
+                            CopyLinks(dstSlot, srcSlot, notify);
+                    }
+                }
             }
         }
 
@@ -584,9 +606,7 @@ namespace UnityEditor.VFX
                 var owner = this.owner;
                 if (owner != null)
                 {
-                    int index = owner.GetSlotIndex(this);
-                    owner.RemoveSlot(this);
-                    owner.AddSlot(newSlot, index);
+                    owner.ReplaceSlot(this, newSlot);
                 }
             }
             else
@@ -849,13 +869,27 @@ namespace UnityEditor.VFX
             PropagateToChildren(func);
         }
 
+        virtual protected void ConvertExpressionsFromLink(VFXSlot fromSlot)
+        {
+            throw new NotImplementedException(string.Format("Missing slot conversion implementation from {0} to {1}", fromSlot.property.type, property.type));
+        }
+
+        protected static void UpdateLinkedInExpression(VFXSlot destSlot, VFXExpression expression, VFXSlot refSlot)
+        {
+            if (expression == null)
+                throw new NullReferenceException("Unexpected null expression");
+
+            destSlot.m_LinkedInExpression = expression;
+            //refSlot can be null if it corresponds to a compute expression (see VFXSlotSphere.UpdateLinkSlotManualConversion)
+            destSlot.m_LinkedInSlot = refSlot;
+        }
+
         private static void UpdateLinkedInExpression(VFXSlot destSlot, VFXSlot refSlot)
         {
             var expression = refSlot.GetExpression();
             if (expression != null)
             {
-                destSlot.m_LinkedInExpression = expression;
-                destSlot.m_LinkedInSlot = refSlot;
+                UpdateLinkedInExpression(destSlot, expression, refSlot);
             }
             else if (destSlot.GetType() == refSlot.GetType())
             {
@@ -863,6 +897,10 @@ namespace UnityEditor.VFX
                 {
                     UpdateLinkedInExpression(destSlot.children.ElementAt(i), refSlot.children.ElementAt(i));
                 }
+            }
+            else
+            {
+                destSlot.ConvertExpressionsFromLink(refSlot);
             }
         }
 
@@ -939,7 +977,8 @@ namespace UnityEditor.VFX
             {
                 var inExpressionPatched = ApplySpaceConversion(startSlot.m_LinkedInExpression, startSlot, startSlot.m_LinkedInSlot);
                 startSlot.m_InExpression = startSlot.ConvertExpression(inExpressionPatched, startSlot.m_LinkedInSlot); // TODO Handle structural modification
-                startSlot.PropagateToChildren(s => {
+                startSlot.PropagateToChildren(s =>
+                {
                     var exp = s.ExpressionToChildren(s.m_InExpression);
                     for (int i = 0; i < s.GetNbChildren(); ++i)
                         s[i].m_InExpression = exp != null ? exp[i] : s.refSlot[i].GetExpression();     // Not sure about that
@@ -968,7 +1007,7 @@ namespace UnityEditor.VFX
         {
             if (sourceSlot != null
                 && destSlot.spaceable && sourceSlot.spaceable
-                &&  destSlot.space != sourceSlot.space)
+                && destSlot.space != sourceSlot.space)
             {
                 var destSpaceableType = destSlot.GetSpaceTransformationType();
                 var sourceSpaceableType = sourceSlot.GetSpaceTransformationType();
@@ -1025,7 +1064,8 @@ namespace UnityEditor.VFX
         {
             var masterSlot = GetMasterSlot();
 
-            masterSlot.PropagateToChildren(s => {
+            masterSlot.PropagateToChildren(s =>
+            {
                 if (s.m_ExpressionTreeUpToDate)
                 {
                     s.m_ExpressionTreeUpToDate = false;
@@ -1123,7 +1163,7 @@ namespace UnityEditor.VFX
             return expression;
         }
 
-        protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp)   { return null; }
+        protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp) { return null; }
         protected virtual VFXExpression ExpressionFromChildren(VFXExpression[] exp) { return null; }
 
         public virtual VFXValue DefaultExpression(VFXValue.Mode mode)

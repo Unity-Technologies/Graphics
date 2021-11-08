@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.BuiltIn
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderID>[] k_Upgraders = {};
+        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { };
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
@@ -104,7 +104,7 @@ namespace UnityEditor.Rendering.BuiltIn
                     }
                     else if (shaderID.IsShaderGraph())
                     {
-                        // Assumed to be version 0 since to asset version was found
+                        // Assumed to be version 0 since no asset version was found
                         assetVersion.version = 0;
                     }
 

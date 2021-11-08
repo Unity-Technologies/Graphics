@@ -78,6 +78,16 @@ public class OutputTextureFeature : ScriptableRendererFeature
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
+                // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
+                CameraData cameraData = renderingData.cameraData;
+                bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && m_Renderer.cameraColorTarget == BuiltinRenderTextureType.CameraTarget);
+                bool yflip = (cameraData.IsCameraProjectionMatrixFlipped()) && !isGameViewFinalTarget;
+                float flipSign = yflip ? -1.0f : 1.0f;
+                Vector4 scaleBiasRt = (flipSign < 0.0f)
+                    ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
+                    : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+                cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
+
                 cmd.SetRenderTarget(m_Renderer.cameraColorTarget,
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth

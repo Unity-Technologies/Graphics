@@ -1,4 +1,5 @@
 #pragma kernel CSMain
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 
@@ -108,19 +109,22 @@ void CSMain(uint3 groupId          : SV_GroupID,
             while (left <= right)
             {
                 sourceIndex = (int)((left + right) / 2);
-                if (id < prefixSumSpawnCount[sourceIndex] && (sourceIndex == 0 || id >= prefixSumSpawnCount[sourceIndex-1]))
-                    break;
-
-                if (id < prefixSumSpawnCount[sourceIndex])
+                if (id.x < prefixSumSpawnCount[sourceIndex])
+                {
+                    if (sourceIndex == 0 || id.x >= prefixSumSpawnCount[max(sourceIndex - 1, 0)])
+                        break;
                     right = sourceIndex - 1;
+                }
                 else
+                {
                     left = sourceIndex + 1;
+                }
             }
         #endif
 #endif
 
-		Attributes attributes = (Attributes)0;
-		SourceAttributes sourceAttributes = (SourceAttributes)0;
+		VFXAttributes attributes = (VFXAttributes)0;
+		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 		
         ${VFXLoadAttributes}
 #if VFX_USE_PARTICLEID_CURRENT

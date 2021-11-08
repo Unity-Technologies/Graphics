@@ -33,9 +33,9 @@ namespace UnityEngine.Rendering.Universal
 
         public override void SetCapacity(int newCapacity)
         {
-            ResizeNativeArray(ref decalToWorlds, newCapacity);
-            ResizeNativeArray(ref normalToDecals, newCapacity);
-            ResizeNativeArray(ref subCalls, newCapacity);
+            decalToWorlds.ResizeArray(newCapacity);
+            normalToDecals.ResizeArray(newCapacity);
+            subCalls.ResizeArray(newCapacity);
             capacity = newCapacity;
         }
 

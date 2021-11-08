@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.Universal
                 (serialized, owner) => (CameraRenderType)serialized.cameraType.intValue == CameraRenderType.Base,
                 CED.FoldoutGroup(
                     CameraUI.Output.Styles.header,
-                    CameraUI.Expandable.Output,
+                    Expandable.Output,
                     k_ExpandedState,
                     FoldoutOption.Indent,
                     CED.Group(

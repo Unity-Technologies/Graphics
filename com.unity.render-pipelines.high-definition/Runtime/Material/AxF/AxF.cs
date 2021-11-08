@@ -23,15 +23,15 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact)]
         public enum FeatureFlags
         {
-            AxfAnisotropy           = 1 << 0,
-            AxfClearCoat            = 1 << 1,
-            AxfClearCoatRefraction  = 1 << 2,
-            AxfUseHeightMap         = 1 << 3,
+            AxfAnisotropy = 1 << 0,
+            AxfClearCoat = 1 << 1,
+            AxfClearCoatRefraction = 1 << 2,
+            AxfUseHeightMap = 1 << 3,
             AxfBRDFColorDiagonalClamp = 1 << 4,
             //Some TODO:
-            AxfHonorMinRoughness    = 1 << 8,
+            AxfHonorMinRoughness = 1 << 8,
             AxfHonorMinRoughnessCoat = 1 << 9,  // the X-Rite viewer never shows a specular highlight on coat for dirac lights
-            AxfDebugTest             = 1 << 23,
+            AxfDebugTest = 1 << 23,
             //Experimental:
             //
             // Warning: don't go over 23, or need to use float and bitcast on the UI side, and in the shader,
@@ -58,83 +58,83 @@ namespace UnityEngine.Rendering.HighDefinition
             public float specularOcclusion;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true, checkIsNormalized = true)]
-            public Vector3  normalWS;
+            [SurfaceDataAttributes(new string[] { "Normal", "Normal View Space" }, true, checkIsNormalized = true)]
+            public Vector3 normalWS;
 
             [SurfaceDataAttributes("Tangent", true)]
-            public Vector3  tangentWS;
+            public Vector3 tangentWS;
 
             // SVBRDF Variables
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("Diffuse Color", false, true)]
-            public Vector3  diffuseColor;
+            public Vector3 diffuseColor;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Specular)]
             [SurfaceDataAttributes("Specular Color", false, true)]
-            public Vector3  specularColor;
+            public Vector3 specularColor;
 
             [SurfaceDataAttributes("Fresnel F0")]
-            public Vector3  fresnel0;
+            public Vector3 fresnel0;
 
             [SurfaceDataAttributes("Specular Lobe")]
-            public Vector3  specularLobe; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
+            public Vector3 specularLobe; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
 
             [SurfaceDataAttributes("Height")]
-            public float    height_mm;
+            public float height_mm;
 
             [SurfaceDataAttributes("Anisotropic Angle")]
-            public float    anisotropyAngle;
+            public float anisotropyAngle;
 
             // Car Paint Variables
             [SurfaceDataAttributes("Flakes UV (or PlanarZY)")]
-            public Vector2  flakesUVZY;
+            public Vector2 flakesUVZY;
             [SurfaceDataAttributes("Flakes PlanarXZ")]
-            public Vector2  flakesUVXZ;
+            public Vector2 flakesUVXZ;
             [SurfaceDataAttributes("Flakes PlanarXY")]
-            public Vector2  flakesUVXY;
+            public Vector2 flakesUVXY;
 
             [SurfaceDataAttributes("Flakes Mip (and for PlanarZY)")]
-            public float    flakesMipLevelZY;
+            public float flakesMipLevelZY;
             [SurfaceDataAttributes("Flakes Mip for PlanarXZ")]
-            public float    flakesMipLevelXZ;
+            public float flakesMipLevelXZ;
             [SurfaceDataAttributes("Flakes Mip for PlanarXY")]
-            public float    flakesMipLevelXY;
+            public float flakesMipLevelXY;
             [SurfaceDataAttributes("Flakes Triplanar Weights")]
-            public Vector3  flakesTriplanarWeights;
+            public Vector3 flakesTriplanarWeights;
 
             // if non null, we will prefer gradients (to be used statically only!)
             [SurfaceDataAttributes("Flakes ddx (and for PlanarZY)")]
-            public Vector2  flakesDdxZY;
+            public Vector2 flakesDdxZY;
             [SurfaceDataAttributes("Flakes ddy (and for PlanarZY)")]
-            public Vector2  flakesDdyZY;
+            public Vector2 flakesDdyZY;
             [SurfaceDataAttributes("Flakes ddx for PlanarXZ")]
-            public Vector2  flakesDdxXZ;
+            public Vector2 flakesDdxXZ;
             [SurfaceDataAttributes("Flakes ddy for PlanarXZ")]
-            public Vector2  flakesDdyXZ;
+            public Vector2 flakesDdyXZ;
             [SurfaceDataAttributes("Flakes ddx for PlanarXY")]
-            public Vector2  flakesDdxXY;
+            public Vector2 flakesDdxXY;
             [SurfaceDataAttributes("Flakes ddy for PlanarXY")]
-            public Vector2  flakesDdyXY;
+            public Vector2 flakesDdyXY;
             // BTF Variables
 
             // Clearcoat
             [SurfaceDataAttributes("Clearcoat Color")]
-            public Vector3  clearcoatColor;
+            public Vector3 clearcoatColor;
 
             [SurfaceDataAttributes("Clearcoat Normal", true)]
-            public Vector3  clearcoatNormalWS;
+            public Vector3 clearcoatNormalWS;
 
             [SurfaceDataAttributes("Clearcoat IOR")]
-            public float    clearcoatIOR;
+            public float clearcoatIOR;
 
-            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space" }, true, checkIsNormalized = true)]
-            public Vector3  geomNormalWS;
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, checkIsNormalized = true)]
+            public Vector3 geomNormalWS;
 
             // Needed for raytracing.
             // TODO: should just modify FitToStandardLit in ShaderPassRaytracingGBuffer.hlsl and callee
             // to have "V" (from -incidentDir)
             [SurfaceDataAttributes("View Direction", true)]
-            public Vector3  viewWS;
+            public Vector3 viewWS;
         };
 
         //-----------------------------------------------------------------------------
@@ -148,45 +148,51 @@ namespace UnityEngine.Rendering.HighDefinition
             public float specularOcclusion;
 
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true, checkIsNormalized = true)]
-            public Vector3  normalWS;
+            public Vector3 normalWS;
             [SurfaceDataAttributes("", true)]
-            public Vector3  tangentWS;
+            public Vector3 tangentWS;
             [SurfaceDataAttributes("", true)]
-            public Vector3  bitangentWS;
+            public Vector3 bitangentWS;
 
             // SVBRDF Variables
-            public Vector3  diffuseColor;
-            public Vector3  specularColor;
-            public Vector3  fresnel0;
+            public Vector3 diffuseColor;
+            public Vector3 specularColor;
+            public Vector3 fresnel0;
             public float perceptualRoughness; // approximated for SSAO
-            public Vector3  roughness; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
-            public float    height_mm;
+            public Vector3 roughness; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
+            public float height_mm;
 
             // Car Paint Variables
-            public Vector2  flakesUVZY;
-            public Vector2  flakesUVXZ;
-            public Vector2  flakesUVXY;
-            public float    flakesMipLevelZY;
-            public float    flakesMipLevelXZ;
-            public float    flakesMipLevelXY;
-            public Vector3  flakesTriplanarWeights;
-            public Vector2  flakesDdxZY; // if non null, we will prefer gradients (to be used statically only!)
-            public Vector2  flakesDdyZY;
-            public Vector2  flakesDdxXZ;
-            public Vector2  flakesDdyXZ;
-            public Vector2  flakesDdxXY;
-            public Vector2  flakesDdyXY;
+            public Vector2 flakesUVZY;
+            public Vector2 flakesUVXZ;
+            public Vector2 flakesUVXY;
+            public float flakesMipLevelZY;
+            public float flakesMipLevelXZ;
+            public float flakesMipLevelXY;
+            public Vector3 flakesTriplanarWeights;
+            public Vector2 flakesDdxZY; // if non null, we will prefer gradients (to be used statically only!)
+            public Vector2 flakesDdyZY;
+            public Vector2 flakesDdxXZ;
+            public Vector2 flakesDdyXZ;
+            public Vector2 flakesDdxXY;
+            public Vector2 flakesDdyXY;
 
             // BTF Variables
 
             // Clearcoat
-            public Vector3  clearcoatColor;
+            public Vector3 clearcoatColor;
             [SurfaceDataAttributes("", true)]
-            public Vector3  clearcoatNormalWS;
-            public float    clearcoatIOR;
+            public Vector3 clearcoatNormalWS;
+            public float clearcoatIOR;
 
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3 geomNormalWS;
+
+            // Needed for raytracing.
+            // TODO: should just modify FitToStandardLit in ShaderPassRaytracingGBuffer.hlsl and callee
+            // to have "V" (from -incidentDir)
+            [SurfaceDataAttributes("View Direction", true)]
+            public Vector3 viewWS;
         };
 
         //-----------------------------------------------------------------------------
@@ -196,10 +202,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // For area lighting - We pack all texture inside a texture array to reduce the number of resource required
         Texture2DArray m_LtcData; // 0: m_LtcGGXMatrix - RGBA;
 
-        Material        m_preIntegratedFGDMaterial_Ward = null;
-        Material        m_preIntegratedFGDMaterial_CookTorrance = null;
-        RenderTexture   m_preIntegratedFGD_Ward = null;
-        RenderTexture   m_preIntegratedFGD_CookTorrance = null;
+        Material m_preIntegratedFGDMaterial_Ward = null;
+        Material m_preIntegratedFGDMaterial_CookTorrance = null;
+        RenderTexture m_preIntegratedFGD_Ward = null;
+        RenderTexture m_preIntegratedFGD_CookTorrance = null;
 
         private bool m_precomputedFGDTablesAreInit = false;
 
@@ -207,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _PreIntegratedFGD_CookTorrance = Shader.PropertyToID("_PreIntegratedFGD_CookTorrance");
         public static readonly int _AxFLtcData = Shader.PropertyToID("_AxFLtcData");
 
-        public AxF() {}
+        public AxF() { }
 
         public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
         {
@@ -285,6 +291,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            if (GL.wireframe)
+            {
+                m_preIntegratedFGD_Ward.Create();
+                m_preIntegratedFGD_CookTorrance.Create();
+                return;
+            }
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PreIntegradeWardCookTorrance)))
             {
                 CoreUtils.DrawFullScreen(cmd, m_preIntegratedFGDMaterial_Ward, new RenderTargetIdentifier(m_preIntegratedFGD_Ward));
@@ -296,7 +309,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Bind(CommandBuffer cmd)
         {
-            if (m_preIntegratedFGD_Ward == null ||  m_preIntegratedFGD_CookTorrance == null)
+            if (m_preIntegratedFGD_Ward == null || m_preIntegratedFGD_CookTorrance == null)
             {
                 throw new Exception("Ward & Cook-Torrance BRDF pre-integration table not available!");
             }

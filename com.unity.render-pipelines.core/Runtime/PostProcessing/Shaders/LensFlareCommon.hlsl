@@ -3,12 +3,26 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
+#if SHADER_API_GLES
+struct AttributesLensFlare
+{
+    float4 positionCS       : POSITION;
+    float2 uv               : TEXCOORD0;
+
+#ifndef FLARE_PREVIEW
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+#endif
+};
+#else
 struct AttributesLensFlare
 {
     uint vertexID : SV_VertexID;
 
+#ifndef FLARE_PREVIEW
     UNITY_VERTEX_INPUT_INSTANCE_ID
+#endif
 };
+#endif
 
 struct VaryingsLensFlare
 {
@@ -16,35 +30,54 @@ struct VaryingsLensFlare
     float2 texcoord : TEXCOORD0;
     float occlusion : TEXCOORD1;
 
+#ifndef FLARE_PREVIEW
     UNITY_VERTEX_OUTPUT_STEREO
+#endif
 };
 
 TEXTURE2D(_FlareTex);
 SAMPLER(sampler_FlareTex);
 
+#if defined(HDRP_FLARE) && defined(FLARE_OCCLUSION)
+TEXTURE2D_X(_FlareOcclusionTex);
+SAMPLER(sampler_FlareOcclusionTex);
+#endif
+
 float4 _FlareColorValue;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
 float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
 float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
-float4 _FlareData3; // xy: RayOffset, z: invSideCount
-float4 _FlareData4; // x: SDF Roundness, y: SDF Frequency
-float4 _FlareData5; // x: Allow Offscreen, y: Edge Offset, z: Falloff
+float4 _FlareData3; // x: Allow Offscreen, y: Edge Offset, z: Falloff, w: invSideCount
+float4 _FlareData4; // x: SDF Roundness, y: Poly Radius, z: PolyParam0, w: PolyParam1
+
+#ifdef FLARE_PREVIEW
+float4 _FlarePreviewData;
+
+#define _ScreenSize         _FlarePreviewData.xy;
+#define _FlareScreenRatio   _FlarePreviewData.z;
+#endif
+
+float4 _FlareOcclusionIndex;
 
 #define _FlareColor             _FlareColorValue
 
 #define _LocalCos0              _FlareData0.x
 #define _LocalSin0              _FlareData0.y
-#define _PositionOffset         _FlareData0.zw
+#define _PositionTranslate      _FlareData0.zw
 
 #define _OcclusionRadius        _FlareData1.x
 #define _OcclusionSampleCount   _FlareData1.y
 #define _ScreenPosZ             _FlareData1.z
-#define _ScreenRatio            _FlareData1.w
+#ifndef _FlareScreenRatio
+#define _FlareScreenRatio       _FlareData1.w
+#endif
 
 #define _ScreenPos              _FlareData2.xy
 #define _FlareSize              _FlareData2.zw
 
-#define _FlareRayOffset         _FlareData3.xy
+#define _OcclusionOffscreen     _FlareData3.x
+#define _FlareEdgeOffset        _FlareData3.y
+#define _FlareFalloff           _FlareData3.z
 #define _FlareShapeInvSide      _FlareData3.z
 
 #define _FlareSDFRoundness      _FlareData4.x
@@ -52,20 +85,16 @@ float4 _FlareData5; // x: Allow Offscreen, y: Edge Offset, z: Falloff
 #define _FlareSDFPolyParam0     _FlareData4.z
 #define _FlareSDFPolyParam1     _FlareData4.w
 
-#define _OcclusionOffscreen     _FlareData5.x
-#define _FlareEdgeOffset        _FlareData5.y
-#define _FlareFalloff           _FlareData5.z
-
 float2 Rotate(float2 v, float cos0, float sin0)
 {
     return float2(v.x * cos0 - v.y * sin0,
                   v.x * sin0 + v.y * cos0);
 }
 
-#if FLARE_OCCLUSION
+#if defined(FLARE_OCCLUSION) || defined(FLARE_COMPUTE_OCCLUSION)
 float GetLinearDepthValue(float2 uv)
 {
-#ifdef HDRP_FLARE
+#if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
     float depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).x;
 #else
     float depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * GetScaledScreenParams().xy), 0).x;
@@ -74,7 +103,7 @@ float GetLinearDepthValue(float2 uv)
     return LinearEyeDepth(depth, _ZBufferParams);
 }
 
-float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
+float GetOcclusion(float ratio)
 {
     if (_OcclusionSampleCount == 0.0f)
         return 1.0f;
@@ -85,8 +114,8 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 
     for (uint i = 0; i < (uint)_OcclusionSampleCount; i++)
     {
-        float2 dir = _OcclusionRadius * SampleDiskUniform(Hash(2 * i + 0 + 1), Hash(2 * i + 1 + 1));
-        float2 pos = screenPos + dir;
+        float2 dir = _OcclusionRadius * SampleDiskUniform(Hash(2 * i + 0), Hash(2 * i + 1));
+        float2 pos = _ScreenPos.xy + dir;
         pos.xy = pos * 0.5f + 0.5f;
 #ifdef UNITY_UV_STARTS_AT_TOP
         pos.y = 1.0f - pos.y;
@@ -95,10 +124,10 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
         if (all(pos >= 0) && all(pos <= 1))
         {
             float depth0 = GetLinearDepthValue(pos);
-#ifdef UNITY_REVERSED_Z
-            if (flareDepth < depth0)
+#if defined(UNITY_REVERSED_Z)
+            if (depth0 > _ScreenPosZ)
 #else
-            if (flareDepth > depth0)
+            if (depth0 < _ScreenPosZ)
 #endif
                 contrib += sample_Contrib;
         }
@@ -112,15 +141,61 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 }
 #endif
 
-VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceID)
+#if defined(FLARE_COMPUTE_OCCLUSION)
+VaryingsLensFlare vertOcclusion(AttributesLensFlare input, uint instanceID : SV_InstanceID)
 {
     VaryingsLensFlare output;
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-#ifdef HDRP_FLARE
-    float screenRatio = _ScreenRatio;
+#if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
+    float screenRatio = _FlareScreenRatio;
+#else
+    float2 screenParam = GetScaledScreenParams().xy;
+    float screenRatio = screenParam.y / screenParam.x;
+#endif
+
+    //float2 quadPos = float2(2.0f, -2.0f) * GetQuadVertexPosition(input.vertexID).xy + float2(-1.0f, 1.0f);
+    float2 quadPos = 2.0f * GetQuadVertexPosition(input.vertexID).xy - 1.0f;
+    float2 uv = GetQuadTexCoord(input.vertexID);
+    uv.x = 1.0f - uv.x;
+    output.positionCS.xy = quadPos;
+
+    output.texcoord.xy = uv;
+
+    output.positionCS.z = 1.0f;
+    output.positionCS.w = 1.0f;
+
+    float occlusion = GetOcclusion(screenRatio);
+
+    if (_OcclusionOffscreen < 0.0f && // No lens flare off screen
+        (any(_ScreenPos.xy < -1) || any(_ScreenPos.xy >= 1)))
+        occlusion = 0.0f;
+
+    output.occlusion = occlusion;
+
+    return output;
+}
+
+float4 fragOcclusion(VaryingsLensFlare input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    return float4(input.occlusion.xxx, 1.0f);
+}
+#else
+VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceID)
+{
+    VaryingsLensFlare output;
+
+#ifndef FLARE_PREVIEW
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+#endif
+
+#if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
+    float screenRatio = _FlareScreenRatio;
 #else
     float2 screenParam = GetScaledScreenParams().xy;
     float screenRatio = screenParam.y / screenParam.x;
@@ -142,29 +217,25 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
 
     local.x *= screenRatio;
 
-    output.positionCS.xy = local + _ScreenPos + _FlareRayOffset + _PositionOffset;
+    output.positionCS.xy = local + _ScreenPos + _PositionTranslate;
     output.positionCS.z = 1.0f;
     output.positionCS.w = 1.0f;
 
-#ifdef HDRP_FLARE
-    output.positionCS.x = (output.positionCS.x + 1.0f) * _RTHandleScale.x - 1.0f;
-    output.positionCS.y = (output.positionCS.y - 1.0f) * _RTHandleScale.y + 1.0f;
-#endif
-
 #if FLARE_OCCLUSION
-    float occlusion = GetOcclusion(_ScreenPos.xy, _ScreenPosZ, screenRatio);
-#else
-    float occlusion = 1.0f;
-#endif
+    float occlusion = GetOcclusion(screenRatio);
 
     if (_OcclusionOffscreen < 0.0f && // No lens flare off screen
         (any(_ScreenPos.xy < -1) || any(_ScreenPos.xy >= 1)))
         occlusion = 0.0f;
+#else
+    float occlusion = 1.0f;
+#endif
 
     output.occlusion = occlusion;
 
     return output;
 }
+#endif
 
 float InverseGradient(float x)
 {
@@ -183,7 +254,7 @@ float4 ComputeCircle(float2 uv)
 
     float sdf = saturate((x - 1.0f) / ((_FlareEdgeOffset - 1.0f)));
 
-#if FLARE_INVERSE_SDF
+#if defined(FLARE_INVERSE_SDF)
     sdf = saturate(sdf);
     sdf = InverseGradient(sdf);
 #endif
@@ -212,7 +283,7 @@ float4 ComputePolygon(float2 uv_)
 
     sdf *= _FlareEdgeOffset;
 
-#if FLARE_INVERSE_SDF
+#if defined(FLARE_INVERSE_SDF)
     sdf = saturate(-sdf);
     sdf = InverseGradient(sdf);
 #else
@@ -224,12 +295,10 @@ float4 ComputePolygon(float2 uv_)
 
 float4 GetFlareShape(float2 uv)
 {
-#if FLARE_CIRCLE
+#ifdef FLARE_CIRCLE
     return ComputeCircle(uv);
-#elif FLARE_POLYGON
+#elif defined(FLARE_POLYGON)
     return ComputePolygon(uv);
-#elif FLARE_SHIMMER
-    return ComputeShimmer(uv);
 #else
     return SAMPLE_TEXTURE2D(_FlareTex, sampler_FlareTex, uv);
 #endif
@@ -237,8 +306,19 @@ float4 GetFlareShape(float2 uv)
 
 float4 frag(VaryingsLensFlare input) : SV_Target
 {
+#ifndef FLARE_PREVIEW
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+#endif
 
     float4 col = GetFlareShape(input.texcoord);
+
+#if defined(HDRP_FLARE) && defined(FLARE_OCCLUSION)
+    float occ = SAMPLE_TEXTURE2D_X_LOD(_FlareOcclusionTex, sampler_FlareOcclusionTex, float2(_FlareOcclusionIndex.x, 0.0f), 0).x;
+
+    return col * _FlareColor * occ;
+#elif !defined(FLARE_OCCLUSION)
+    return col * _FlareColor;
+#else
     return col * _FlareColor * input.occlusion;
+#endif
 }

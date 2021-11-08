@@ -64,10 +64,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Packing order depends on chronological access to avoid cache misses
         // Make sure to respect the 16-byte alignment
         public Vector3 positionRWS;
-        public uint    lightLayers;
+        public uint lightLayers;
 
-        public float   lightDimmer;
-        public float   volumetricLightDimmer;   // Replaces 'lightDimer'
+        public float lightDimmer;
+        public float volumetricLightDimmer;   // Replaces 'lightDimer'
 
         public Vector3 forward;
         public CookieMode cookieMode;
@@ -75,38 +75,40 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 cookieScaleOffset;
 
         public Vector3 right;                   // Rescaled by (2 / shapeWidth)
-        public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
+        public int shadowIndex;             // -1 if unused (TODO: 16 bit)
 
         public Vector3 up;                      // Rescaled by (2 / shapeHeight)
-        public int     contactShadowIndex;      // -1 if unused (TODO: 16 bit)
+        public int contactShadowIndex;      // -1 if unused (TODO: 16 bit)
 
         public Vector3 color;
-        public int     contactShadowMask;       // 0 if unused (TODO: 16 bit)
+        public int contactShadowMask;       // 0 if unused (TODO: 16 bit)
 
         public Vector3 shadowTint;              // Use to tint shadow color
-        public float   shadowDimmer;
+        public float shadowDimmer;
 
-        public float   volumetricShadowDimmer;  // Replaces 'shadowDimmer'
-        public int     nonLightMappedOnly;      // Used with ShadowMask (TODO: use a bitfield)
+        public float volumetricShadowDimmer;  // Replaces 'shadowDimmer'
+        public int nonLightMappedOnly;      // Used with ShadowMask (TODO: use a bitfield)
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
-        public float   minRoughness;            // Hack
-        public int     screenSpaceShadowIndex;  // -1 if unused (TODO: 16 bit)
+        public float minRoughness;            // Hack
+        public int screenSpaceShadowIndex;  // -1 if unused (TODO: 16 bit)
 
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4 shadowMaskSelector;      // Used with ShadowMask feature
 
-        public float   diffuseDimmer;
-        public float   specularDimmer;
-        public float   penumbraTint;
-        public float   isRayTracedContactShadow;
+        public Vector2 cascadesBorderFadeScaleBias;
 
-        public float   distanceFromCamera;      // -1 -> no sky interaction
-        public float   angularDiameter;         // Units: radians
-        public float   flareFalloff;
-        public float   __unused__;
+        public float diffuseDimmer;
+        public float specularDimmer;
+        public float penumbraTint;
+        public float isRayTracedContactShadow;
+
+        public float distanceFromCamera;      // -1 -> no sky interaction
+        public float angularDiameter;         // Units: radians
+        public float flareFalloff;
+        public float __unused__;
 
         public Vector3 flareTint;
-        public float   flareSize;               // Units: radians
+        public float flareSize;               // Units: radians
 
         public Vector3 surfaceTint;
 
@@ -119,44 +121,44 @@ namespace UnityEngine.Rendering.HighDefinition
         // Packing order depends on chronological access to avoid cache misses
         // Make sure to respect the 16-byte alignment
         public Vector3 positionRWS;
-        public uint    lightLayers;
+        public uint lightLayers;
 
-        public float   lightDimmer;
-        public float   volumetricLightDimmer;   // Replaces 'lightDimer'
+        public float lightDimmer;
+        public float volumetricLightDimmer;   // Replaces 'lightDimer'
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
-        public float   angleScale;              // Spot light
+        public float angleScale;              // Spot light
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
-        public float   angleOffset;             // Spot light
+        public float angleOffset;             // Spot light
 
         public Vector3 forward;
-        public float   iesCut;                  // Spot light
+        public float iesCut;                  // Spot light
 
         public GPULightType lightType;          // TODO: move this up?
         public Vector3 right;                   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
 
-        public float   penumbraTint;
+        public float penumbraTint;
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
-        public float   range;
+        public float range;
         public CookieMode cookieMode;
-        public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
+        public int shadowIndex;             // -1 if unused (TODO: 16 bit)
 
         public Vector3 up;                      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeHeight)
-        public float   rangeAttenuationScale;
+        public float rangeAttenuationScale;
 
         public Vector3 color;
-        public float   rangeAttenuationBias;
+        public float rangeAttenuationBias;
 
         public Vector4 cookieScaleOffset;       // coordinates of the cookie texture in the atlas
 
         public Vector3 shadowTint;              // Use to tint shadow color
-        public float   shadowDimmer;
+        public float shadowDimmer;
 
-        public float   volumetricShadowDimmer;  // Replaces 'shadowDimmer'
-        public int     nonLightMappedOnly;      // Used with ShadowMask feature (TODO: use a bitfield)
+        public float volumetricShadowDimmer;  // Replaces 'shadowDimmer'
+        public int nonLightMappedOnly;      // Used with ShadowMask feature (TODO: use a bitfield)
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
-        public float   minRoughness;            // This is use to give a small "area" to punctual light, as if we have a light with a radius.
+        public float minRoughness;            // This is use to give a small "area" to punctual light, as if we have a light with a radius.
         // TODO: Instead of doing this, we should pack the ray traced shadow index into the tile cookie for instance
-        public int     screenSpaceShadowIndex;  // -1 if unused (TODO: 16 bit)
+        public int screenSpaceShadowIndex;  // -1 if unused (TODO: 16 bit)
 
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4 shadowMaskSelector;      // Used with ShadowMask feature
@@ -164,14 +166,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4 size;                    // Used by area (X = length or width, Y = height, Z = CosBarnDoorAngle, W = BarnDoorLength) and punctual lights (X = radius)
 
-        public int     contactShadowMask;       // negative if unused (TODO: 16 bit)
-        public float   diffuseDimmer;
-        public float   specularDimmer;
-        public float   __unused__;
+        public int contactShadowMask;       // negative if unused (TODO: 16 bit)
+        public float diffuseDimmer;
+        public float specularDimmer;
+        public float __unused__;
 
         public Vector2 padding;
-        public float   isRayTracedContactShadow;
-        public float   boxLightSafeExtent;
+        public float isRayTracedContactShadow;
+        public float boxLightSafeExtent;
     };
 
 
@@ -244,6 +246,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public float distanceBasedRoughness;
         // Sampling properties
         public int envIndex;
+
+        // The luma SH for irradiance at probe location.
+        public Vector4 L0L1;
+        public Vector4 L2_1; // First 4 coeffs of L2 {-2, -1, 0, 1}
+        public float L2_2;   // Last L2 coeff {2}
+        // Whether the probe is normalized by probe volume content.
+        public int normalizeWithAPV;
+        public Vector2 padding;
     };
 
     [GenerateHLSL]

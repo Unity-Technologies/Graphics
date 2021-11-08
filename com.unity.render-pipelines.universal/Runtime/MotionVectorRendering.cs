@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         static MotionVectorRendering s_Instance;
 
         Dictionary<Camera, PreviousFrameData> m_CameraFrameData;
-        uint  m_FrameCount;
+        uint m_FrameCount;
         float m_LastTime;
         float m_Time;
         #endregion
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 // Make sure both are never 0.
                 m_LastTime = (m_Time > 0) ? m_Time : t;
-                m_Time  = t;
+                m_Time = t;
             }
         }
 

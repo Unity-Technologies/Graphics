@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph
         public SampleTexture3DNode()
         {
             name = "Sample Texture 3D";
+            synonyms = new string[] { "volume", "tex3d" };
             UpdateNodeAfterDeserialization();
         }
 

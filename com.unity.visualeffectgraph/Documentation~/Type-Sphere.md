@@ -1,10 +1,10 @@
 # Sphere
 
-A sphere defined by a center position and a radius.
+A sphere defined by a transform and a radius.
 
 ## Properties
 
-| **Property** | **Description**             |
-| ------------ | --------------------------- |
-| **Center**   | The position of the sphere. |
-| **Radius**   | The radius of the sphere.   |
+| **Property**  | **Description**              |
+| ------------- | ---------------------------- |
+| **Transform** | The transform of the sphere. |
+| **Radius**    | The radius of the sphere.    |

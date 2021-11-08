@@ -136,11 +136,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 442609907006369582, guid: c4f504f6bda43ba4293b81fd5c96dc2b,
-        type: 3}
-      propertyPath: XRCompatible
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 442609907006369583, guid: c4f504f6bda43ba4293b81fd5c96dc2b,
         type: 3}
       propertyPath: orthographic

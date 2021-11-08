@@ -89,34 +89,158 @@ namespace UnityEditor.Rendering
             return tex2;
         }
 
-        /// <summary>Draw a help box with the Fix button.</summary>
-        /// <param name="text">The message text.</param>
-        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
-        public static void DrawFixMeBox(string text, Action action)
+        const float k_IndentMargin = 15.0f;
+        const float k_HighlightDuration = 2.0f;
+
+        static float s_HighlightStart = -1.0f;
+        static Texture2D s_HighlightBackground;
+        static object s_View;
+
+        static readonly FieldInfo k_ViewInfo = typeof(Highlighter).GetField("s_View", BindingFlags.Static | BindingFlags.NonPublic);
+        static readonly FieldInfo k_HighlightStyleInfo = typeof(Highlighter).GetField("s_HighlightStyle", BindingFlags.Static | BindingFlags.NonPublic);
+        static readonly FieldInfo k_WindowBackendInfo = Type.GetType("UnityEditor.GUIView,UnityEditor").GetField("m_WindowBackend", BindingFlags.NonPublic | BindingFlags.Instance);
+        static readonly EventInfo k_GUIHandlerInfo = Type.GetType("UnityEditor.UIElements.DefaultEditorWindowBackend,UnityEditor").GetEvent("overlayGUIHandler", (BindingFlags)(-1));
+        static readonly MethodInfo k_Repaint = Type.GetType("UnityEditor.GUIView,UnityEditor").GetMethod("Repaint", (BindingFlags)(-1));
+
+        static void HighlightTimeout()
         {
-            DrawFixMeBox(text, MessageType.Warning, action);
+            if (!Highlighter.active)
+            {
+                if (s_HighlightBackground != null)
+                    (k_HighlightStyleInfo.GetValue(null) as GUIStyle).normal.background = s_HighlightBackground;
+                s_HighlightBackground = null;
+
+                EditorApplication.update -= HighlightTimeout;
+                s_HighlightStart = -1.0f;
+                return;
+            }
+
+            // Item is in view for the first time, register highlight drawer delegate
+            if (Highlighter.activeVisible && s_HighlightStart <= 0.0f)
+            {
+                s_HighlightStart = Time.realtimeSinceStartup;
+
+                s_View = k_ViewInfo.GetValue(null);
+                if (s_View != null)
+                {
+                    var windowBackend = k_WindowBackendInfo.GetValue(s_View);
+                    k_GUIHandlerInfo.AddEventHandler(windowBackend, (Action)ControlHighlightGUI);
+                    var style = k_HighlightStyleInfo.GetValue(null) as GUIStyle;
+                    s_HighlightBackground = style.normal.background;
+                    style.normal.background = null;
+                }
+                else
+                {
+                    Highlighter.Stop();
+                }
+            }
+
+            if (s_HighlightStart > 0.0f)
+            {
+                if (Time.realtimeSinceStartup - s_HighlightStart > k_HighlightDuration)
+                {
+                    Highlighter.Stop();
+
+                    var windowBackend = k_WindowBackendInfo.GetValue(s_View);
+                    k_GUIHandlerInfo.RemoveEventHandler(windowBackend, (Action)ControlHighlightGUI);
+                }
+            }
         }
 
-        // UI Helpers
+        static void ControlHighlightGUI()
+        {
+            if (Event.current.type != EventType.Repaint)
+                return;
+
+            var color = CoreEditorStyles.backgroundHighlightColor;
+            color.a = Mathf.Min(1.0f - (Time.realtimeSinceStartup - s_HighlightStart) / k_HighlightDuration, 0.8f);
+
+            EditorGUI.DrawRect(GUIUtility.ScreenToGUIRect(Highlighter.activeRect), color);
+        }
+
+        /// <summary>Highlights an element in the editor for a short period of time.</summary>
+        /// <param name="windowTitle">The title of the window the element is inside.</param>
+        /// <param name="text">The text to identify the element with.</param>
+        /// <param name="mode">Optional mode to specify how to search for the element.</param>
+        public static void Highlight(string windowTitle, string text, HighlightSearchMode mode = HighlightSearchMode.Auto)
+        {
+            if (s_HighlightStart >= 0.0f)
+                return;
+
+            s_HighlightStart = 0.0f;
+            Highlighter.Highlight(windowTitle, text, mode);
+            EditorApplication.update += HighlightTimeout;
+        }
+
         /// <summary>Draw a help box with the Fix button.</summary>
-        /// <param name="text">The message text.</param>
+        /// <param name="message">The message text.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
+        public static void DrawFixMeBox(string message, Action action)
+        {
+            DrawFixMeBox(message, MessageType.Warning, "Fix", action);
+        }
+
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="message">The message text.</param>
         /// <param name="messageType">The type of the message.</param>
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
-        public static void DrawFixMeBox(string text, MessageType messageType, Action action)
+        public static void DrawFixMeBox(string message, MessageType messageType, Action action)
         {
-            EditorGUILayout.HelpBox(text, messageType);
+            DrawFixMeBox(EditorGUIUtility.TrTextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(messageType)), "Fix", action);
+        }
 
-            GUILayout.Space(-32);
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.FlexibleSpace();
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="message">The message text.</param>
+        /// <param name="messageType">The type of the message.</param>
+        /// <param name="buttonLabel">The button text.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
+        public static void DrawFixMeBox(string message, MessageType messageType, string buttonLabel, Action action)
+        {
+            DrawFixMeBox(EditorGUIUtility.TrTextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(messageType)), buttonLabel, action);
+        }
 
-                if (GUILayout.Button("Fix", GUILayout.Width(60)))
-                    action();
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="message">The message with icon if needed.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
+        public static void DrawFixMeBox(GUIContent message, Action action)
+        {
+            DrawFixMeBox(message, "Fix", action);
+        }
 
-                GUILayout.Space(8);
-            }
-            GUILayout.Space(11);
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="message">The message with icon if needed.</param>
+        /// <param name="buttonLabel">The button text.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
+        public static void DrawFixMeBox(GUIContent message, string buttonLabel, Action action)
+        {
+            EditorGUILayout.BeginHorizontal();
+
+            float indent = EditorGUI.indentLevel * k_IndentMargin - EditorStyles.helpBox.margin.left;
+            GUILayoutUtility.GetRect(indent, EditorGUIUtility.singleLineHeight, EditorStyles.helpBox, GUILayout.ExpandWidth(false));
+
+            Rect leftRect = GUILayoutUtility.GetRect(new GUIContent(buttonLabel), EditorStyles.miniButton, GUILayout.MinWidth(60));
+            Rect rect = GUILayoutUtility.GetRect(message, EditorStyles.helpBox);
+            Rect boxRect = new Rect(leftRect.x, rect.y, rect.xMax - leftRect.xMin, rect.height);
+
+            int oldIndent = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+
+            if (Event.current.type == EventType.Repaint)
+                EditorStyles.helpBox.Draw(boxRect, false, false, false, false);
+
+            Rect labelRect = new Rect(boxRect.x + 4, boxRect.y + 3, rect.width - 8, rect.height);
+            EditorGUI.LabelField(labelRect, message, CoreEditorStyles.helpBox);
+
+            var buttonRect = leftRect;
+            buttonRect.x += rect.width - 2;
+            buttonRect.y = rect.yMin + (rect.height - EditorGUIUtility.singleLineHeight) / 2;
+            bool clicked = GUI.Button(buttonRect, buttonLabel);
+
+            EditorGUI.indentLevel = oldIndent;
+            EditorGUILayout.EndHorizontal();
+
+            if (clicked)
+                action();
         }
 
         /// <summary>
@@ -124,17 +248,42 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="label">Label of the whole</param>
         /// <param name="ppts">Properties</param>
-        /// <param name="lbls">Sub-labels</param>
-        public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] lbls)
-            => DrawMultipleFields(EditorGUIUtility.TrTextContent(label), ppts, lbls);
+        /// <param name="labels">Sub-labels</param>
+        public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] labels)
+            => DrawMultipleFields(EditorGUIUtility.TrTextContent(label), ppts, labels);
+
+        private static float GetLongestLabelWidth(GUIContent[] labels)
+        {
+            float labelWidth = 0.0f;
+            for (var i = 0; i < labels.Length; ++i)
+                labelWidth = Mathf.Max(EditorStyles.label.CalcSize(labels[i]).x, labelWidth);
+            return labelWidth;
+        }
+
+        /// <summary>
+        /// Draws an <see cref="EditorGUI.EnumPopup"/> for the given property
+        /// </summary>
+        /// <typeparam name="TEnum"></typeparam>
+        /// <param name="rect">The rect where the drop down will be drawn</param>
+        /// <param name="label">The label for the drop down</param>
+        /// <param name="serializedProperty">The <see cref="SerializedProperty"/> to modify</param>
+        public static void DrawEnumPopup<TEnum>(Rect rect, GUIContent label, SerializedProperty serializedProperty)
+            where TEnum : Enum
+        {
+            EditorGUI.BeginChangeCheck();
+            var newValue = (TEnum)EditorGUI.EnumPopup(rect, label, serializedProperty.GetEnumValue<TEnum>());
+            if (EditorGUI.EndChangeCheck())
+                serializedProperty.SetEnumValue(newValue);
+            EditorGUI.EndProperty();
+        }
 
         /// <summary>
         /// Draw a multiple field property
         /// </summary>
         /// <param name="label">Label of the whole</param>
         /// <param name="ppts">Properties</param>
-        /// <param name="lbls">Sub-labels</param>
-        public static void DrawMultipleFields(GUIContent label, SerializedProperty[] ppts, GUIContent[] lbls)
+        /// <param name="labels">Sub-labels</param>
+        public static void DrawMultipleFields(GUIContent label, SerializedProperty[] ppts, GUIContent[] labels)
         {
             var labelWidth = EditorGUIUtility.labelWidth;
 
@@ -144,11 +293,52 @@ namespace UnityEditor.Rendering
 
                 using (new EditorGUILayout.VerticalScope())
                 {
-                    EditorGUIUtility.labelWidth = 40;
+                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(labels) + CoreEditorConstants.standardHorizontalSpacing;
                     int oldIndentLevel = EditorGUI.indentLevel;
                     EditorGUI.indentLevel = 0;
                     for (var i = 0; i < ppts.Length; ++i)
-                        EditorGUILayout.PropertyField(ppts[i], lbls[i]);
+                        EditorGUILayout.PropertyField(ppts[i], labels[i]);
+                    EditorGUI.indentLevel = oldIndentLevel;
+                }
+            }
+
+            EditorGUIUtility.labelWidth = labelWidth;
+        }
+
+        /// <summary>
+        /// Draw a multiple field property
+        /// </summary>
+        /// <param name="label">Label of the whole</param>
+        /// <param name="labels">The labels mapping the values</param>
+        /// <param name="values">The values to be displayed</param>
+        public static void DrawMultipleFields<T>(GUIContent label, GUIContent[] labels, T[] values)
+            where T : struct
+        {
+            var labelWidth = EditorGUIUtility.labelWidth;
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.PrefixLabel(label);
+
+                using (new EditorGUILayout.VerticalScope())
+                {
+                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(labels) + CoreEditorConstants.standardHorizontalSpacing;
+                    int oldIndentLevel = EditorGUI.indentLevel;
+                    EditorGUI.indentLevel = 0;
+                    for (var i = 0; i < values.Length; ++i)
+                    {
+                        // Draw the right field depending on its type.
+                        if (typeof(T) == typeof(int))
+                            values[i] = (T)(object)EditorGUILayout.DelayedIntField(labels[i], (int)(object)values[i]);
+                        else if (typeof(T) == typeof(bool))
+                            values[i] = (T)(object)EditorGUILayout.Toggle(labels[i], (bool)(object)values[i]);
+                        else if (typeof(T) == typeof(float))
+                            values[i] = (T)(object)EditorGUILayout.FloatField(labels[i], (float)(object)values[i]);
+                        else if (typeof(T).IsEnum)
+                            values[i] = (T)(object)EditorGUILayout.EnumPopup(labels[i], (Enum)(object)values[i]);
+                        else
+                            throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a supported type for multi field");
+                    }
                     EditorGUI.indentLevel = oldIndentLevel;
                 }
             }
@@ -229,8 +419,10 @@ namespace UnityEditor.Rendering
         /// <param name="isBoxed"> [optional] is the eader contained in a box style ? </param>
         /// <param name="hasMoreOptions"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="toggleMoreOptions"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
+        /// <param name="documentationURL">[optional] The URL that the Unity Editor opens when the user presses the help button on the header.</param>
+        /// <param name="contextAction">[optional] The callback that the Unity Editor executes when the user presses the burger menu on the header.</param>
         /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = "")
+        public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = "", Action<Vector2> contextAction = null)
         {
             const float height = 17f;
             var backgroundRect = GUILayoutUtility.GetRect(1f, height);
@@ -244,7 +436,7 @@ namespace UnityEditor.Rendering
             foldoutRect.y += 1f;
             foldoutRect.width = 13f;
             foldoutRect.height = 13f;
-            foldoutRect.x = labelRect.xMin + 15 * (EditorGUI.indentLevel - 1); //fix for presset
+            foldoutRect.x = labelRect.xMin + k_IndentMargin * (EditorGUI.indentLevel - 1); //fix for presset
 
             // Background rect should be full-width
             backgroundRect.xMin = 0f;
@@ -273,8 +465,7 @@ namespace UnityEditor.Rendering
             var menuRect = new Rect(labelRect.xMax + 3f, labelRect.y + 1f, 16, 16);
 
             // Add context menu for "Additional Properties"
-            Action<Vector2> contextAction = null;
-            if (hasMoreOptions != null)
+            if (contextAction == null && hasMoreOptions != null)
             {
                 contextAction = pos => OnContextClick(pos, hasMoreOptions, toggleMoreOptions);
             }
@@ -359,7 +550,7 @@ namespace UnityEditor.Rendering
 
             var foldoutRect = backgroundRect;
             foldoutRect.y += 1f;
-            foldoutRect.x += 15 * EditorGUI.indentLevel; //GUI do not handle indent. Handle it here
+            foldoutRect.x += k_IndentMargin * EditorGUI.indentLevel; //GUI do not handle indent. Handle it here
             foldoutRect.width = 13f;
             foldoutRect.height = 13f;
 
@@ -513,6 +704,48 @@ namespace UnityEditor.Rendering
             }
 
             return group.isExpanded;
+        }
+
+        /// <summary>Draw a header section like in Global Settings</summary>
+        /// <param name="title"> The title of the header </param>
+        /// <param name="documentationURL">Documentation URL</param>
+        /// <param name="contextAction">The context action</param>
+        /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
+        /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
+        /// <returns>return the state of the foldout header</returns>
+        public static void DrawSectionHeader(GUIContent title, string documentationURL = null, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
+        {
+            var backgroundRect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(1f, 17f));
+            float iconSize = 16f;
+
+            var contextMenuRect = new Rect(backgroundRect.xMax - (iconSize + 5), backgroundRect.y + iconSize + 8f, iconSize, iconSize);
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField(title, CoreEditorStyles.sectionHeaderStyle);
+
+                // Context menu
+                var contextMenuIcon = CoreEditorStyles.contextMenuIcon.image;
+                if (contextAction != null)
+                {
+                    if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
+                        contextAction(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
+                }
+                ShowHelpButton(contextMenuRect, documentationURL, title);
+            }
+
+            // Handle events
+            var e = Event.current;
+
+            if (e.type == EventType.MouseDown)
+            {
+                if (contextMenuRect.Contains(e.mousePosition))
+                {
+                    // Right click: Context menu
+                    contextAction?.Invoke(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
+                    e.Use();
+                }
+            }
         }
 
         static void ShowHelpButton(Rect contextMenuRect, string documentationURL, GUIContent title)
@@ -726,7 +959,7 @@ namespace UnityEditor.Rendering
             //Suffix is a hack as sublabel only work with 1 character
             if (addMinusPrefix)
             {
-                Rect suffixRect = new Rect(rect.x - 4 - 15 * EditorGUI.indentLevel, rect.y, 100, rect.height);
+                Rect suffixRect = new Rect(rect.x - 4 - k_IndentMargin * EditorGUI.indentLevel, rect.y, 100, rect.height);
                 for (int i = 0; i < 3; ++i)
                 {
                     EditorGUI.LabelField(suffixRect, "-");
@@ -740,7 +973,7 @@ namespace UnityEditor.Rendering
                 if (colors.Length != 3)
                     throw new System.ArgumentException("colors must have 3 elements.");
 
-                Rect suffixRect = new Rect(rect.x + 7 - 15 * EditorGUI.indentLevel, rect.y, 100, rect.height);
+                Rect suffixRect = new Rect(rect.x + 7 - k_IndentMargin * EditorGUI.indentLevel, rect.y, 100, rect.height);
                 GUIStyle colorMark = new GUIStyle(EditorStyles.label);
                 colorMark.normal.textColor = colors[0];
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
@@ -779,9 +1012,9 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Draw an EnumPopup handling multiEdition
         /// </summary>
-        /// <param name="property"></param>
-        /// <param name="type"></param>
-        /// <param name="label"></param>
+        /// <param name="property">The data displayed</param>
+        /// <param name="type">Type of the property</param>
+        /// <param name="label">The label</param>
         public static void DrawEnumPopup(SerializedProperty property, System.Type type, GUIContent label = null)
         {
             EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
@@ -855,7 +1088,7 @@ namespace UnityEditor.Rendering
         /// <param name="name">The wanted name (can be updated with a number if a sibling with same name exist</param>
         /// <param name="types">Required component on this object in addition to Transform</param>
         /// <returns>The created object</returns>
-        static public GameObject CreateGameObject(GameObject parent, string name, params Type[] types)
+        public static GameObject CreateGameObject(GameObject parent, string name, params Type[] types)
             => ObjectFactory.CreateGameObject(GameObjectUtility.GetUniqueNameForSibling(parent != null ? parent.transform : null, name), types);
 
         /// <summary>
@@ -871,7 +1104,16 @@ namespace UnityEditor.Rendering
             GameObjectUtility.SetParentAndAlign(go, context as GameObject);
             Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
             Selection.activeObject = go;
-            EditorApplication.ExecuteMenuItem("GameObject/Move To View");
+
+            if (parent != null)
+                go.transform.localPosition = Vector3.zero;
+            else
+            {
+                if (EditorPrefs.GetBool("Create3DObject.PlaceAtWorldOrigin", false))
+                    go.transform.localPosition = Vector3.zero;
+                else
+                    EditorApplication.ExecuteMenuItem("GameObject/Move To View");
+            }
             return go;
         }
 
@@ -957,7 +1199,7 @@ namespace UnityEditor.Rendering
         //forceLowRes should be deprecated as soon as this is fixed in UIElement
         internal static Texture2D LoadIcon(string path, string name, string extention = ".png", bool forceLowRes = false)
         {
-            if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(name))
                 return null;
 
             string prefix = "";
@@ -970,27 +1212,44 @@ namespace UnityEditor.Rendering
             float pixelsPerPoint = GetGUIStatePixelsPerPoint();
             if (pixelsPerPoint > 1.0f && !forceLowRes)
             {
-                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}@2x{3}", path, prefix, name, extention)) as Texture2D;
+                icon = EditorGUIUtility.Load($"{path}/{prefix}{name}@2x{extention}") as Texture2D;
                 if (icon == null && !string.IsNullOrEmpty(prefix))
-                    icon = EditorGUIUtility.Load(String.Format("{0}/{1}@2x{2}", path, name, extention)) as Texture2D;
+                    icon = EditorGUIUtility.Load($"{path}/{name}@2x{extention}") as Texture2D;
                 if (icon != null)
                     SetTexturePixelPerPoint(icon, 2.0f);
             }
 
             if (icon == null)
-                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}{3}", path, prefix, name, extention)) as Texture2D;
+                icon = EditorGUIUtility.Load($"{path}/{prefix}{name}{extention}") as Texture2D;
 
             if (icon == null && !string.IsNullOrEmpty(prefix))
-                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}", path, name, extention)) as Texture2D;
+                icon = EditorGUIUtility.Load($"{path}/{name}{extention}") as Texture2D;
 
+            TryToFixFilterMode(pixelsPerPoint, icon);
+
+            return icon;
+        }
+
+        internal static Texture2D FindTexture(string name)
+        {
+            float pixelsPerPoint = GetGUIStatePixelsPerPoint();
+            Texture2D icon = pixelsPerPoint > 1.0f
+                ? EditorGUIUtility.FindTexture($"{name}@2x")
+                : EditorGUIUtility.FindTexture(name);
+
+            TryToFixFilterMode(pixelsPerPoint, icon);
+
+            return icon;
+        }
+
+        internal static void TryToFixFilterMode(float pixelsPerPoint, Texture2D icon)
+        {
             if (icon != null &&
                 !Mathf.Approximately(GetTexturePixelPerPoint(icon), pixelsPerPoint) && //scaling are different
                 !Mathf.Approximately(pixelsPerPoint % 1, 0)) //screen scaling is non-integer
             {
                 icon.filterMode = FilterMode.Bilinear;
             }
-
-            return icon;
         }
 
         #endregion

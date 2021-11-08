@@ -1,23 +1,38 @@
 using System;
 using UnityEngine;
+using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
 namespace UnityEngine.Rendering.Universal
 {
-    class DebugDisplaySettingsRendering : IDebugDisplaySettingsData
+    /// <summary>
+    /// Debug wireframe modes.
+    /// </summary>
+    public enum DebugWireframeMode
     {
-        // Under the hood, the implementation uses a single enum (DebugSceneOverrideMode). For UI, we have split
-        // this enum into WireframeMode and a separate Overdraw boolean.
+        /// <summary>No wireframe.</summary>
+        None,
+        /// <summary>Unfilled wireframe.</summary>
+        Wireframe,
+        /// <summary>Solid, filled wireframe.</summary>
+        SolidWireframe,
+        /// <summary>Solid, shaded wireframe.</summary>
+        ShadedWireframe,
+    }
 
-        enum WireframeMode
-        {
-            None,
-            Wireframe,
-            SolidWireframe,
-            ShadedWireframe,
-        }
+    /// <summary>
+    /// Rendering-related Rendering Debugger settings.
+    /// </summary>
+    public class DebugDisplaySettingsRendering : IDebugDisplaySettingsData
+    {
+        // Under the hood, the implementation uses a single enum (DebugSceneOverrideMode). For UI & public API,
+        // we have split this enum into WireframeMode and a separate Overdraw boolean.
 
-        WireframeMode m_WireframeMode = WireframeMode.None;
-        WireframeMode wireframeMode
+        DebugWireframeMode m_WireframeMode = DebugWireframeMode.None;
+
+        /// <summary>
+        /// Current debug wireframe mode.
+        /// </summary>
+        public DebugWireframeMode wireframeMode
         {
             get => m_WireframeMode;
             set
@@ -29,7 +44,10 @@ namespace UnityEngine.Rendering.Universal
 
         bool m_Overdraw = false;
 
-        bool overdraw
+        /// <summary>
+        /// Whether debug overdraw mode is active.
+        /// </summary>
+        public bool overdraw
         {
             get => m_Overdraw;
             set
@@ -43,61 +61,89 @@ namespace UnityEngine.Rendering.Universal
         {
             switch (wireframeMode)
             {
-                case WireframeMode.Wireframe:
-                    debugSceneOverrideMode = DebugSceneOverrideMode.Wireframe;
+                case DebugWireframeMode.Wireframe:
+                    sceneOverrideMode = DebugSceneOverrideMode.Wireframe;
                     break;
-                case WireframeMode.SolidWireframe:
-                    debugSceneOverrideMode = DebugSceneOverrideMode.SolidWireframe;
+                case DebugWireframeMode.SolidWireframe:
+                    sceneOverrideMode = DebugSceneOverrideMode.SolidWireframe;
                     break;
-                case WireframeMode.ShadedWireframe:
-                    debugSceneOverrideMode = DebugSceneOverrideMode.ShadedWireframe;
+                case DebugWireframeMode.ShadedWireframe:
+                    sceneOverrideMode = DebugSceneOverrideMode.ShadedWireframe;
                     break;
                 default:
-                    debugSceneOverrideMode = overdraw ? DebugSceneOverrideMode.Overdraw : DebugSceneOverrideMode.None;
+                    sceneOverrideMode = overdraw ? DebugSceneOverrideMode.Overdraw : DebugSceneOverrideMode.None;
                     break;
             }
         }
 
-        internal DebugFullScreenMode debugFullScreenMode { get; private set; } = DebugFullScreenMode.None;
-        internal int debugFullScreenModeOutputSize { get; private set; } = 480;
-        internal DebugSceneOverrideMode debugSceneOverrideMode { get; private set; } = DebugSceneOverrideMode.None;
-        internal DebugMipInfoMode debugMipInfoMode { get; private set; } = DebugMipInfoMode.None;
+        /// <summary>
+        /// Current debug fullscreen overlay mode.
+        /// </summary>
+        public DebugFullScreenMode fullScreenDebugMode { get; set; } = DebugFullScreenMode.None;
 
-        internal DebugPostProcessingMode debugPostProcessingMode { get; private set; } = DebugPostProcessingMode.Auto;
-        internal bool enableMsaa { get; private set; } = true;
-        internal bool enableHDR { get; private set; } = true;
+        /// <summary>
+        /// Size of the debug fullscreen overlay, as percentage of the screen size.
+        /// </summary>
+        public int fullScreenDebugModeOutputSizeScreenPercent { get; set; } = 50;
+
+        internal DebugSceneOverrideMode sceneOverrideMode { get; set; } = DebugSceneOverrideMode.None;
+        internal DebugMipInfoMode mipInfoMode { get; set; } = DebugMipInfoMode.None;
+
+        /// <summary>
+        /// Current debug post processing mode.
+        /// </summary>
+        public DebugPostProcessingMode postProcessingDebugMode { get; set; } = DebugPostProcessingMode.Auto;
+
+        /// <summary>
+        /// Whether MSAA is enabled.
+        /// </summary>
+        public bool enableMsaa { get; set; } = true;
+
+        /// <summary>
+        /// Whether HDR is enabled.
+        /// </summary>
+        public bool enableHDR { get; set; } = true;
 
         #region Pixel validation
 
-        internal DebugValidationMode validationMode { get; private set; }
-        internal PixelValidationChannels validationChannels { get; private set; } = PixelValidationChannels.RGB;
-        internal float ValidationRangeMin { get; private set; } = 0.0f;
-        internal float ValidationRangeMax { get; private set; } = 1.0f;
+        /// <summary>
+        /// Current debug pixel validation mode.
+        /// </summary>
+        public DebugValidationMode validationMode { get; set; }
 
-        const string k_RangeValidationSettingsContainerName = "Pixel Range Settings";
+        /// <summary>
+        /// Current validation channels for DebugValidationMode.HighlightOutsideOfRange.
+        /// </summary>
+        public PixelValidationChannels validationChannels { get; set; } = PixelValidationChannels.RGB;
 
-        static void DebugPixelValidationModeChanged(DebugUI.Field<int> field, int value)
+        /// <summary>
+        /// Current minimum threshold value for pixel validation.
+        /// Any values below this value will be considered invalid and will appear red on screen.
+        /// </summary>
+        public float validationRangeMin { get; set; } = 0.0f;
+
+        /// <summary>
+        /// Current maximum threshold value for pixel validation.
+        /// Any values above this value will be considered invalid and will appear blue on screen.
+        /// </summary>
+        public float validationRangeMax { get; set; } = 1.0f;
+
+        static class Strings
         {
-            // Hacky way to hide non-relevant UI options based on displayNames.
-            var mode = (DebugValidationMode)value;
-            var validationWidgets = field.parent.children;
-            foreach (var widget in validationWidgets)
-            {
-                if ((mode == DebugValidationMode.None || mode == DebugValidationMode.HighlightNanInfNegative) &&
-                    widget.displayName == k_RangeValidationSettingsContainerName)
-                {
-                    widget.isHidden = true;
-                }
-                else if (mode == DebugValidationMode.HighlightOutsideOfRange && widget.displayName == k_RangeValidationSettingsContainerName)
-                {
-                    widget.isHidden = false;
-                }
-                else
-                {
-                    widget.isHidden = false;
-                }
-            }
-            DebugManager.instance.ReDrawOnScreenDebug();
+            public const string RangeValidationSettingsContainerName = "Pixel Range Settings";
+
+            public static readonly NameAndTooltip MapOverlays = new() { name = "Map Overlays", tooltip = "Overlays render pipeline textures to validate the scene." };
+            public static readonly NameAndTooltip MapSize = new() { name = "Map Size", tooltip = "Set the size of the render pipeline texture in the scene." };
+            public static readonly NameAndTooltip AdditionalWireframeModes = new() { name = "Additional Wireframe Modes", tooltip = "Debug the scene with additional wireframe shader views that are different from those in the scene view." };
+            public static readonly NameAndTooltip WireframeNotSupportedWarning = new() { name = "Warning: This platform might not support wireframe rendering.", tooltip = "Some platforms, for example, mobile platforms using OpenGL ES and Vulkan, might not support wireframe rendering." };
+            public static readonly NameAndTooltip Overdraw = new() { name = "Overdraw", tooltip = "Debug anywhere pixels are overdrawn on top of each other." };
+            public static readonly NameAndTooltip PostProcessing = new() { name = "Post-processing", tooltip = "Override the controls for Post Processing in the scene." };
+            public static readonly NameAndTooltip MSAA = new() { name = "MSAA", tooltip = "Use the checkbox to disable MSAA in the scene." };
+            public static readonly NameAndTooltip HDR = new() { name = "HDR", tooltip = "Use the checkbox to disable High Dynamic Range in the scene." };
+            public static readonly NameAndTooltip PixelValidationMode = new() { name = "Pixel Validation Mode", tooltip = "Choose between modes that validate pixel on screen." };
+            public static readonly NameAndTooltip Channels = new() { name = "Channels", tooltip = "Choose the texture channel used to validate the scene." };
+            public static readonly NameAndTooltip ValueRangeMin = new() { name = "Value Range Min", tooltip = "Any values set below this field will be considered invalid and will appear red on screen." };
+            public static readonly NameAndTooltip ValueRangeMax = new() { name = "Value Range Max", tooltip = "Any values set above this field will be considered invalid and will appear blue on screen." };
         }
 
         #endregion
@@ -106,12 +152,12 @@ namespace UnityEngine.Rendering.Universal
         {
             internal static DebugUI.Widget CreateMapOverlays(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
             {
-                displayName = "Map Overlays",
+                nameAndTooltip = Strings.MapOverlays,
                 autoEnum = typeof(DebugFullScreenMode),
-                getter = () => (int)data.debugFullScreenMode,
-                setter = (value) => {},
-                getIndex = () => (int)data.debugFullScreenMode,
-                setIndex = (value) => data.debugFullScreenMode = (DebugFullScreenMode)value
+                getter = () => (int)data.fullScreenDebugMode,
+                setter = (value) => { },
+                getIndex = () => (int)data.fullScreenDebugMode,
+                setIndex = (value) => data.fullScreenDebugMode = (DebugFullScreenMode)value
             };
 
             internal static DebugUI.Widget CreateMapOverlaySize(DebugDisplaySettingsRendering data) => new DebugUI.Container()
@@ -120,101 +166,114 @@ namespace UnityEngine.Rendering.Universal
                 {
                     new DebugUI.IntField
                     {
-                        displayName = "Map Size",
-                        getter = () => data.debugFullScreenModeOutputSize,
-                        setter = value => data.debugFullScreenModeOutputSize = value,
+                        nameAndTooltip = Strings.MapSize,
+                        getter = () => data.fullScreenDebugModeOutputSizeScreenPercent,
+                        setter = value => data.fullScreenDebugModeOutputSizeScreenPercent = value,
                         incStep = 10,
-                        min = () => 100,
-                        max = () => 2160
+                        min = () => 0,
+                        max = () => 100
                     }
                 }
             };
 
             internal static DebugUI.Widget CreateAdditionalWireframeShaderViews(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
             {
-                displayName = "Additional Wireframe Modes",
-                autoEnum = typeof(WireframeMode),
+                nameAndTooltip = Strings.AdditionalWireframeModes,
+                autoEnum = typeof(DebugWireframeMode),
                 getter = () => (int)data.wireframeMode,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.wireframeMode,
-                setIndex = (value) => data.wireframeMode = (WireframeMode)value
+                setIndex = (value) => data.wireframeMode = (DebugWireframeMode)value,
+                onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
+            };
+
+            internal static DebugUI.Widget CreateWireframeNotSupportedWarning(DebugDisplaySettingsRendering data) => new DebugUI.MessageBox
+            {
+                nameAndTooltip = Strings.WireframeNotSupportedWarning,
+                style = DebugUI.MessageBox.Style.Warning,
+                isHiddenCallback = () =>
+                {
+#if UNITY_EDITOR
+                    return true;
+#else
+                    switch (SystemInfo.graphicsDeviceType)
+                    {
+                        case GraphicsDeviceType.OpenGLES2:
+                        case GraphicsDeviceType.OpenGLES3:
+                        case GraphicsDeviceType.Vulkan:
+                            return data.wireframeMode == DebugWireframeMode.None;
+                        default:
+                            return true;
+                    }
+#endif
+                }
             };
 
             internal static DebugUI.Widget CreateOverdraw(DebugDisplaySettingsRendering data) => new DebugUI.BoolField
             {
-                displayName = "Overdraw",
+                nameAndTooltip = Strings.Overdraw,
                 getter = () => data.overdraw,
                 setter = (value) => data.overdraw = value
             };
 
-            internal static DebugUI.Widget CreateMipModesDebug(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
-            {
-                displayName = "Mipmap Debug Mode",
-                autoEnum = typeof(DebugMipInfoMode),
-                getter = () => (int)data.debugMipInfoMode,
-                setter = (value) => {},
-                getIndex = () => (int)data.debugMipInfoMode,
-                setIndex = (value) => data.debugMipInfoMode = (DebugMipInfoMode)value
-            };
-
             internal static DebugUI.Widget CreatePostProcessing(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
             {
-                displayName = "Post-processing",
+                nameAndTooltip = Strings.PostProcessing,
                 autoEnum = typeof(DebugPostProcessingMode),
-                getter = () => (int)data.debugPostProcessingMode,
-                setter = (value) => data.debugPostProcessingMode = (DebugPostProcessingMode)value,
-                getIndex = () => (int)data.debugPostProcessingMode,
-                setIndex = (value) => data.debugPostProcessingMode = (DebugPostProcessingMode)value
+                getter = () => (int)data.postProcessingDebugMode,
+                setter = (value) => data.postProcessingDebugMode = (DebugPostProcessingMode)value,
+                getIndex = () => (int)data.postProcessingDebugMode,
+                setIndex = (value) => data.postProcessingDebugMode = (DebugPostProcessingMode)value
             };
 
             internal static DebugUI.Widget CreateMSAA(DebugDisplaySettingsRendering data) => new DebugUI.BoolField
             {
-                displayName = "MSAA",
+                nameAndTooltip = Strings.MSAA,
                 getter = () => data.enableMsaa,
                 setter = (value) => data.enableMsaa = value
             };
 
             internal static DebugUI.Widget CreateHDR(DebugDisplaySettingsRendering data) => new DebugUI.BoolField
             {
-                displayName = "HDR",
+                nameAndTooltip = Strings.HDR,
                 getter = () => data.enableHDR,
                 setter = (value) => data.enableHDR = value
             };
 
             internal static DebugUI.Widget CreatePixelValidationMode(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
             {
-                displayName = "Pixel Validation Mode",
+                nameAndTooltip = Strings.PixelValidationMode,
                 autoEnum = typeof(DebugValidationMode),
                 getter = () => (int)data.validationMode,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.validationMode,
                 setIndex = (value) => data.validationMode = (DebugValidationMode)value,
-                onValueChanged = DebugPixelValidationModeChanged
+                onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
             };
 
             internal static DebugUI.Widget CreatePixelValidationChannels(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
             {
-                displayName = "Channels",
+                nameAndTooltip = Strings.Channels,
                 autoEnum = typeof(PixelValidationChannels),
                 getter = () => (int)data.validationChannels,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.validationChannels,
                 setIndex = (value) => data.validationChannels = (PixelValidationChannels)value
             };
 
             internal static DebugUI.Widget CreatePixelValueRangeMin(DebugDisplaySettingsRendering data) => new DebugUI.FloatField
             {
-                displayName = "Value Range Min",
-                getter = () => data.ValidationRangeMin,
-                setter = (value) => data.ValidationRangeMin = value,
+                nameAndTooltip = Strings.ValueRangeMin,
+                getter = () => data.validationRangeMin,
+                setter = (value) => data.validationRangeMin = value,
                 incStep = 0.01f
             };
 
             internal static DebugUI.Widget CreatePixelValueRangeMax(DebugDisplaySettingsRendering data) => new DebugUI.FloatField
             {
-                displayName = "Value Range Max",
-                getter = () => data.ValidationRangeMax,
-                setter = (value) => data.ValidationRangeMax = value,
+                nameAndTooltip = Strings.ValueRangeMax,
+                getter = () => data.validationRangeMax,
+                setter = (value) => data.validationRangeMax = value,
                 incStep = 0.01f
             };
         }
@@ -225,6 +284,8 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel(DebugDisplaySettingsRendering data)
             {
+                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
+
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Rendering Debug",
@@ -235,11 +296,10 @@ namespace UnityEngine.Rendering.Universal
                         WidgetFactory.CreateMapOverlays(data),
                         WidgetFactory.CreateMapOverlaySize(data),
                         WidgetFactory.CreateHDR(data),
-                        // Mipmap debug modes are unsupported by ShaderGraph and cannot be enabled unless that is addressed.
-                        //WidgetFactory.CreateMipModesDebug(data),
                         WidgetFactory.CreateMSAA(data),
                         WidgetFactory.CreatePostProcessing(data),
                         WidgetFactory.CreateAdditionalWireframeShaderViews(data),
+                        WidgetFactory.CreateWireframeNotSupportedWarning(data),
                         WidgetFactory.CreateOverdraw(data)
                     }
                 });
@@ -254,8 +314,8 @@ namespace UnityEngine.Rendering.Universal
                         WidgetFactory.CreatePixelValidationMode(data),
                         new DebugUI.Container()
                         {
-                            displayName = k_RangeValidationSettingsContainerName,
-                            isHidden = true,
+                            displayName = Strings.RangeValidationSettingsContainerName,
+                            isHiddenCallback = () => data.validationMode != DebugValidationMode.HighlightOutsideOfRange,
                             children =
                             {
                                 WidgetFactory.CreatePixelValidationChannels(data),
@@ -269,24 +329,24 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region IDebugDisplaySettingsData
-        public bool AreAnySettingsActive => (debugPostProcessingMode != DebugPostProcessingMode.Auto) ||
-        (debugFullScreenMode != DebugFullScreenMode.None) ||
-        (debugSceneOverrideMode != DebugSceneOverrideMode.None) ||
-        (debugMipInfoMode != DebugMipInfoMode.None) ||
+        public bool AreAnySettingsActive => (postProcessingDebugMode != DebugPostProcessingMode.Auto) ||
+        (fullScreenDebugMode != DebugFullScreenMode.None) ||
+        (sceneOverrideMode != DebugSceneOverrideMode.None) ||
+        (mipInfoMode != DebugMipInfoMode.None) ||
         (validationMode != DebugValidationMode.None) ||
         !enableMsaa ||
         !enableHDR;
 
-        public bool IsPostProcessingAllowed => (debugPostProcessingMode != DebugPostProcessingMode.Disabled) &&
-        (debugSceneOverrideMode == DebugSceneOverrideMode.None) &&
-        (debugMipInfoMode == DebugMipInfoMode.None);
+        public bool IsPostProcessingAllowed => (postProcessingDebugMode != DebugPostProcessingMode.Disabled) &&
+        (sceneOverrideMode == DebugSceneOverrideMode.None) &&
+        (mipInfoMode == DebugMipInfoMode.None);
 
-        public bool IsLightingActive => (debugSceneOverrideMode == DebugSceneOverrideMode.None) &&
-        (debugMipInfoMode == DebugMipInfoMode.None);
+        public bool IsLightingActive => (sceneOverrideMode == DebugSceneOverrideMode.None) &&
+        (mipInfoMode == DebugMipInfoMode.None);
 
         public bool TryGetScreenClearColor(ref Color color)
         {
-            switch (debugSceneOverrideMode)
+            switch (sceneOverrideMode)
             {
                 case DebugSceneOverrideMode.None:
                 case DebugSceneOverrideMode.ShadedWireframe:
@@ -303,10 +363,10 @@ namespace UnityEngine.Rendering.Universal
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(color));
-            }       // End of switch.
+            }
         }
 
-        public IDebugDisplaySettingsPanelDisposable CreatePanel()
+        IDebugDisplaySettingsPanelDisposable IDebugDisplaySettingsData.CreatePanel()
         {
             return new SettingsPanel(this);
         }

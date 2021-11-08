@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering.Universal
         // for ShaderGraph shaders only
         public static readonly string ZTest = "_ZTest";
         public static readonly string ZWriteControl = "_ZWriteControl";
+        public static readonly string QueueControl = "_QueueControl";
 
         // Global Illumination requires some properties to be named specifically:
         public static readonly string EmissionMap = "_EmissionMap";

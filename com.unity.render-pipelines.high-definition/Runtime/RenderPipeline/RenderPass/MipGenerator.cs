@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             HDUtils.CheckRTCreated(texture);
 
-            var cs     = m_DepthPyramidCS;
+            var cs = m_DepthPyramidCS;
             int kernel = m_DepthDownsampleKernel;
 
             // TODO: Do it 1x MIP at a time for now. In the future, do 4x MIPs per pass, or even use a single pass.
@@ -70,11 +70,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (mip1AlreadyComputed && i == 1) continue;
 
-                Vector2Int dstSize   = info.mipLevelSizes[i];
+                Vector2Int dstSize = info.mipLevelSizes[i];
                 Vector2Int dstOffset = info.mipLevelOffsets[i];
-                Vector2Int srcSize   = info.mipLevelSizes[i - 1];
+                Vector2Int srcSize = info.mipLevelSizes[i - 1];
                 Vector2Int srcOffset = info.mipLevelOffsets[i - 1];
-                Vector2Int srcLimit  = srcOffset + srcSize - Vector2Int.one;
+                Vector2Int srcLimit = srcOffset + srcSize - Vector2Int.one;
 
                 m_SrcOffset[0] = srcOffset.x;
                 m_SrcOffset[1] = srcOffset.y;
@@ -86,9 +86,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DstOffset[2] = 0;
                 m_DstOffset[3] = 0;
 
-                cmd.SetComputeIntParams(cs,         HDShaderIDs._SrcOffsetAndLimit, m_SrcOffset);
-                cmd.SetComputeIntParams(cs,         HDShaderIDs._DstOffset,         m_DstOffset);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMipChain,     texture);
+                cmd.SetComputeIntParams(cs, HDShaderIDs._SrcOffsetAndLimit, m_SrcOffset);
+                cmd.SetComputeIntParams(cs, HDShaderIDs._DstOffset, m_DstOffset);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMipChain, texture);
 
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(dstSize.x, 8), HDUtils.DivRoundUp(dstSize.y, 8), texture.volumeDepth);
             }
@@ -132,8 +132,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 );
             }
 
-            int srcMipLevel  = 0;
-            int srcMipWidth  = size.x;
+            int srcMipLevel = 0;
+            int srcMipWidth = size.x;
             int srcMipHeight = size.y;
             int slices = destination.volumeDepth;
 
@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // on 8x8 blocks
             while (srcMipWidth >= 8 || srcMipHeight >= 8)
             {
-                int dstMipWidth  = Mathf.Max(1, srcMipWidth  >> 1);
+                int dstMipWidth = Mathf.Max(1, srcMipWidth >> 1);
                 int dstMipHeight = Mathf.Max(1, srcMipHeight >> 1);
 
                 // Scale for downsample
@@ -212,8 +212,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 // So in the end we compute a specific scale for downscale and blur passes at each mip level.
 
                 // Scales for Blur
-                float blurSourceTextureWidth = (float)m_TempDownsamplePyramid[rtIndex].rt.width; // Same size as m_TempColorTargets which is the source for vertical blur
-                float blurSourceTextureHeight = (float)m_TempDownsamplePyramid[rtIndex].rt.height;
+                // Same size as m_TempColorTargets which is the source for vertical blur
+                var hardwareBlurSourceTextureSize = new Vector2Int(m_TempDownsamplePyramid[rtIndex].rt.width, m_TempDownsamplePyramid[rtIndex].rt.height);
+                if (isHardwareDrsOn)
+                    hardwareBlurSourceTextureSize = DynamicResolutionHandler.instance.ApplyScalesOnSize(hardwareBlurSourceTextureSize);
+
+                float blurSourceTextureWidth = (float)hardwareBlurSourceTextureSize.x;
+                float blurSourceTextureHeight = (float)hardwareBlurSourceTextureSize.y;
+
                 scaleX = ((float)dstMipWidth / blurSourceTextureWidth);
                 scaleY = ((float)dstMipHeight / blurSourceTextureHeight);
 
@@ -236,7 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DrawProcedural(Matrix4x4.identity, m_ColorPyramidPSMat, rtIndex, MeshTopology.Triangles, 3, 1, m_PropertyBlock);
 
                 srcMipLevel++;
-                srcMipWidth  = srcMipWidth  >> 1;
+                srcMipWidth = srcMipWidth >> 1;
                 srcMipHeight = srcMipHeight >> 1;
 
                 finalTargetMipWidth = finalTargetMipWidth >> 1;

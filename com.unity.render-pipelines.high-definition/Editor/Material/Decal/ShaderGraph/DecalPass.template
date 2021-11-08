@@ -56,8 +56,6 @@ Pass
 
     $splice(GraphDefines)
 
-    $splice(HybridV1InjectedBuiltinProperties)
-
     // -- Properties used by ScenePickingPass
     #ifdef SCENEPICKINGPASS
     float4 _SelectionID;
@@ -79,8 +77,8 @@ Pass
     // Graph Properties
     $splice(GraphProperties)
 
-	// Graph Includes
-	$splice(GraphIncludes)
+    // Graph Includes
+    $splice(GraphIncludes)
 
     // Graph Functions
     $splice(GraphFunctions)
@@ -140,15 +138,13 @@ Pass
 
         #ifdef _MATERIAL_AFFECTS_NORMAL
             #ifdef DECAL_SURFACE_GRADIENT
-                $SurfaceDescription.NormalTS:   float rcpZ = rsqrt(max(1 - Sq(surfaceDescription.NormalTS.x) - Sq(surfaceDescription.NormalTS.y), HALF_MIN_SQRT));
-                $SurfaceDescription.NormalTS:   float2 deriv = ConvertTangentSpaceNormalToHeightMapGradient(surfaceDescription.NormalTS.xy, rcpZ, 1.0);
                 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
                     $SurfaceDescription.NormalTS:   float3x3 tangentToWorld = transpose((float3x3)normalToWorld);
                 #else
                     $SurfaceDescription.NormalTS:   float3x3 tangentToWorld = fragInputs.tangentToWorld;
                 #endif
 
-                $SurfaceDescription.NormalTS:       surfaceData.normalWS.xyz = SurfaceGradientFromTBN(deriv, tangentToWorld[0], tangentToWorld[1]);
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = SurfaceGradientFromTangentSpaceNormalAndFromTBN(surfaceDescription.NormalTS.xyz, tangentToWorld[0], tangentToWorld[1]);
             #else
                 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
                     $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.NormalTS);

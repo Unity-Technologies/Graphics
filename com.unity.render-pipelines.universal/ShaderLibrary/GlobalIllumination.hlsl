@@ -64,8 +64,7 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 #if defined(EVALUATE_SH_VERTEX)
     return L2Term;
 #elif defined(EVALUATE_SH_MIXED)
-    half3 L0L1Term = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
-    half3 res = L2Term + L0L1Term;
+    half3 res = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
 #ifdef UNITY_COLORSPACE_GAMMA
     res = LinearToSRGB(res);
 #endif
@@ -221,11 +220,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
 
         half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
 
-#if defined(UNITY_USE_NATIVE_HDR)
-        irradiance += weightProbe0 * encodedIrradiance.rbg;
-#else
         irradiance += weightProbe0 * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#endif // UNITY_USE_NATIVE_HDR
     }
 
     // Sample the second reflection probe
@@ -236,11 +231,11 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
 #endif // _REFLECTION_PROBE_BOX_PROJECTION
         half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip));
 
-#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if defined(UNITY_DOTS_INSTANCING_ENABLED)
         irradiance += weightProbe1 * encodedIrradiance.rbg;
 #else
         irradiance += weightProbe1 * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
-#endif // UNITY_USE_NATIVE_HDR || UNITY_DOTS_INSTANCING_ENABLED
+#endif // UNITY_DOTS_INSTANCING_ENABLED
     }
 
     // Use any remaining weight to blend to environment reflection cube map
@@ -248,11 +243,11 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
     {
         half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(_GlossyEnvironmentCubeMap, sampler_GlossyEnvironmentCubeMap, originalReflectVector, mip));
 
-#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if defined(UNITY_DOTS_INSTANCING_ENABLED)
         irradiance += (1.0f - totalWeight) * encodedIrradiance.rbg;
 #else
         irradiance += (1.0f - totalWeight) * DecodeHDREnvironment(encodedIrradiance, _GlossyEnvironmentCubeMap_HDR);
-#endif // UNITY_USE_NATIVE_HDR || UNITY_DOTS_INSTANCING_ENABLED
+#endif // UNITY_DOTS_INSTANCING_ENABLED
     }
 
     return irradiance;
@@ -272,11 +267,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half p
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
 
-#if defined(UNITY_USE_NATIVE_HDR)
-    irradiance = encodedIrradiance.rgb;
-#else
     irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#endif // UNITY_USE_NATIVE_HDR
 #endif // _REFLECTION_PROBE_BLENDING
     return irradiance * occlusion;
 #else
@@ -291,11 +282,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
 
-#if defined(UNITY_USE_NATIVE_HDR)
-    irradiance = encodedIrradiance.rgb;
-#else
     irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#endif // UNITY_USE_NATIVE_HDR
 
     return irradiance * occlusion;
 #else

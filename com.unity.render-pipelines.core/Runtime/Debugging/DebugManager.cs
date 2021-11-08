@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.UI;
 using UnityEngine.UI;
@@ -57,11 +58,11 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Callback called when the runtime UI changed.
         /// </summary>
-        public event Action<bool> onDisplayRuntimeUIChanged = delegate {};
+        public event Action<bool> onDisplayRuntimeUIChanged = delegate { };
         /// <summary>
         /// Callback called when the debug window is dirty.
         /// </summary>
-        public event Action onSetDirty = delegate {};
+        public event Action onSetDirty = delegate { };
 
         event Action resetData;
 
@@ -90,6 +91,25 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="open">State of the debug window.</param>
         public void ToggleEditorUI(bool open) => m_EditorOpen = open;
+
+        private bool m_EnableRuntimeUI = true;
+
+        /// <summary>
+        /// Controls whether runtime UI can be enabled. When this is set to false, there will be no overhead
+        /// from debug GameObjects or runtime initialization.
+        /// </summary>
+        public bool enableRuntimeUI
+        {
+            get => m_EnableRuntimeUI;
+            set
+            {
+                if (value != m_EnableRuntimeUI)
+                {
+                    m_EnableRuntimeUI = value;
+                    DebugUpdater.SetEnabled(value);
+                }
+            }
+        }
 
         /// <summary>
         /// Displays the runtime version of the debug window.
@@ -121,6 +141,7 @@ namespace UnityEngine.Rendering
                 }
 
                 onDisplayRuntimeUIChanged(value);
+                DebugUpdater.HandleInternalEventSystemComponents(value);
             }
         }
 
@@ -132,18 +153,41 @@ namespace UnityEngine.Rendering
             get => m_RootUIPersistentCanvas != null && m_PersistentRoot.activeInHierarchy;
             set
             {
-                CheckPersistentCanvas();
-                m_PersistentRoot.SetActive(value);
+                if (value)
+                {
+                    EnsurePersistentCanvas();
+                }
+                else
+                {
+                    CoreUtils.Destroy(m_PersistentRoot);
+                    m_PersistentRoot = null;
+                    m_RootUIPersistentCanvas = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Is any debug window or UI currently active.
+        /// </summary>
+        public bool isAnyDebugUIActive
+        {
+            get
+            {
+                return
+                    displayRuntimeUI || displayPersistentRuntimeUI
+#if UNITY_EDITOR
+                    || displayEditorUI
+#endif
+                    ;
             }
         }
 
         DebugManager()
         {
-            if (!Debug.isDebugBuild)
-                return;
-
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             RegisterInputs();
             RegisterActions();
+#endif
         }
 
         /// <summary>
@@ -216,7 +260,7 @@ namespace UnityEngine.Rendering
                 m_RootUICanvas.SetScrollTarget(widget);
         }
 
-        void CheckPersistentCanvas()
+        void EnsurePersistentCanvas()
         {
             if (m_RootUIPersistentCanvas == null)
             {
@@ -237,20 +281,34 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void TogglePersistent(DebugUI.Widget widget)
+        internal void TogglePersistent(DebugUI.Widget widget, int? forceTupleIndex = null)
         {
             if (widget == null)
                 return;
 
-            var valueWidget = widget as DebugUI.Value;
-            if (valueWidget == null)
-            {
-                Debug.Log("Only DebugUI.Value items can be made persistent.");
-                return;
-            }
+            EnsurePersistentCanvas();
 
-            CheckPersistentCanvas();
-            m_RootUIPersistentCanvas.Toggle(valueWidget);
+            switch (widget)
+            {
+                case DebugUI.Value value:
+                    m_RootUIPersistentCanvas.Toggle(value);
+                    break;
+                case DebugUI.ValueTuple valueTuple:
+                    m_RootUIPersistentCanvas.Toggle(valueTuple, forceTupleIndex);
+                    break;
+                case DebugUI.Container container:
+                    // When container is toggled, we make sure that if there are ValueTuples, they all get the same element index.
+                    int pinnedIndex = container.children.Max(w => (w as DebugUI.ValueTuple)?.pinnedElementIndex ?? -1);
+                    foreach (var child in container.children)
+                    {
+                        if (child is DebugUI.Value || child is DebugUI.ValueTuple)
+                            TogglePersistent(child, pinnedIndex);
+                    }
+                    break;
+                default:
+                    Debug.Log("Only readonly items can be made persistent.");
+                    break;
+            }
         }
 
         void OnPanelDirty(DebugUI.Panel panel)

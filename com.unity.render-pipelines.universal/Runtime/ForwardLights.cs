@@ -13,9 +13,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class ForwardLights
     {
-        /// <summary>Default UniversalAdditionalLightData</summary>
-        static internal UniversalAdditionalLightData s_DefaultAdditionalLightData { get { return ComponentSingleton<UniversalAdditionalLightData>.instance; } }
-
         static class LightConstantBuffer
         {
             public static int _MainLightPosition;   // DeferredLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
@@ -91,7 +88,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        public ForwardLights() : this(InitParams.GetDefault()) {}
+        public ForwardLights() : this(InitParams.GetDefault()) { }
 
         internal ForwardLights(InitParams initParams)
         {
@@ -356,10 +353,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 SetupShaderLightConstants(cmd, ref renderingData);
 
+                bool lightCountCheck = (renderingData.cameraData.renderer.stripAdditionalLightOffVariants && renderingData.lightData.supportsAdditionalLights) || additionalLightsCount > 0;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
-                    additionalLightsCount > 0 && additionalLightsPerVertex && !useClusteredRendering);
+                    lightCountCheck && additionalLightsPerVertex && !useClusteredRendering);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
-                    additionalLightsCount > 0 && !additionalLightsPerVertex && !useClusteredRendering);
+                    lightCountCheck && !additionalLightsPerVertex && !useClusteredRendering);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ClusteredRendering,
                     useClusteredRendering);
 
@@ -389,21 +387,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_ZBinBuffer.Dispose();
                 m_TileBuffer.Dispose();
             }
-        }
-
-        static internal UniversalAdditionalLightData GetAdditionalLightData(Light light)
-        {
-            UniversalAdditionalLightData add = null;
-
-            // Light reference can be null for particle lights.
-            if (light != null)
-                light.TryGetComponent<UniversalAdditionalLightData>(out add);
-
-            // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
-            if (add == null)
-                add = s_DefaultAdditionalLightData;
-
-            return add;
         }
 
         void InitializeLightConstants(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel, out uint lightLayerMask)
@@ -437,7 +420,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
-            UniversalAdditionalLightData additionalLightData = GetAdditionalLightData(light);
+            var additionalLightData = light.GetUniversalAdditionalLightData();
             lightLayerMask = (uint)additionalLightData.lightLayerMask;
         }
 

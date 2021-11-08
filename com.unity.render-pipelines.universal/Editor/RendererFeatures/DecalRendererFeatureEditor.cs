@@ -24,9 +24,6 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_ScreenSpaceNormalBlend;
         private SerializedProperty m_ScreenSpaceUseGBuffer;
 
-        // TODO: Remove once decals stable with XR
-        private bool m_IsXREnabled;
-
         private bool m_IsInitialized = false;
 
         private void Init()
@@ -41,9 +38,6 @@ namespace UnityEditor.Rendering.Universal
             m_ScreenSpaceSettings = settings.FindPropertyRelative("screenSpaceSettings");
             m_ScreenSpaceNormalBlend = m_ScreenSpaceSettings.FindPropertyRelative("normalBlend");
             m_ScreenSpaceUseGBuffer = m_ScreenSpaceSettings.FindPropertyRelative("useGBuffer");
-#if ENABLE_VR && ENABLE_XR_MODULE
-            m_IsXREnabled = UniversalRenderPipeline.m_XRSystem.RefreshXrSdk();
-#endif
             m_IsInitialized = true;
         }
 
@@ -84,9 +78,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.HelpBox("Decals are not supported with OpenGLES2.", MessageType.Warning);
             }
-
-            if (m_IsXREnabled)
-                EditorGUILayout.HelpBox("Decals are currently not supported with XR.", MessageType.Warning);
         }
     }
 }

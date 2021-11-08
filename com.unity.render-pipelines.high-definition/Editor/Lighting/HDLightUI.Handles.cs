@@ -274,7 +274,7 @@ namespace UnityEditor.Rendering.HighDefinition
         //TODO: decompose arguments (or tuples) + put back to CoreLightEditorUtilities
         // Same as Gizmo.DrawFrustum except that when aspect is below one, fov represent fovX instead of fovY
         // Use to match our light frustum pyramid behavior
-        static void DrawSpherePortionWireframe(Vector4 aspectFovMaxRangeMinRange, float distanceTruncPlane = 0f)
+        static void DrawSpherePortionWireframe(Vector4 aspectFovMaxRangeMinRange, float distanceTruncPlane = 0f, bool drawApex = true)
         {
             float aspect = aspectFovMaxRangeMinRange.x;
             float fov = aspectFovMaxRangeMinRange.y;
@@ -292,6 +292,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Handles.DrawLine(startAngles[3], startAngles[0]);
             }
 
+            var endAngles = GetSphericalProjectedRectAngles(maxRange, aspect, tanfov);
+
             if (distanceTruncPlane > 0f)
             {
                 var truncAngles = GetFrustrumProjectedRectAngles(distanceTruncPlane, aspect, tanfov);
@@ -299,9 +301,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 Handles.DrawLine(truncAngles[1], truncAngles[2]);
                 Handles.DrawLine(truncAngles[2], truncAngles[3]);
                 Handles.DrawLine(truncAngles[3], truncAngles[0]);
+
+                if (!drawApex)
+                {
+                    Handles.DrawLine(truncAngles[0], endAngles[0]);
+                    Handles.DrawLine(truncAngles[1], endAngles[1]);
+                    Handles.DrawLine(truncAngles[2], endAngles[2]);
+                    Handles.DrawLine(truncAngles[3], endAngles[3]);
+                }
             }
 
-            var endAngles = GetSphericalProjectedRectAngles(maxRange, aspect, tanfov);
             var planProjectedCrossNormal0 = new Vector3(endAngles[0].y, -endAngles[0].x, 0).normalized;
             var planProjectedCrossNormal1 = new Vector3(endAngles[1].y, -endAngles[1].x, 0).normalized;
             Vector3[] faceNormals = new[]
@@ -332,10 +341,13 @@ namespace UnityEditor.Rendering.HighDefinition
             Handles.DrawWireArc(Vector3.zero, faceNormals[4], endAngles[0], faceAngles[4], maxRange);
             Handles.DrawWireArc(Vector3.zero, faceNormals[5], endAngles[1], faceAngles[5], maxRange);
 
-            Handles.DrawLine(startAngles[0], endAngles[0]);
-            Handles.DrawLine(startAngles[1], endAngles[1]);
-            Handles.DrawLine(startAngles[2], endAngles[2]);
-            Handles.DrawLine(startAngles[3], endAngles[3]);
+            if (drawApex)
+            {
+                Handles.DrawLine(startAngles[0], endAngles[0]);
+                Handles.DrawLine(startAngles[1], endAngles[1]);
+                Handles.DrawLine(startAngles[2], endAngles[2]);
+                Handles.DrawLine(startAngles[3], endAngles[3]);
+            }
         }
 
         static Vector3[] GetSphericalProjectedRectAngles(float distance, float aspect, float tanFOV)
@@ -625,7 +637,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                     light.range = widthHeightMaxRangeMinRange.z;
                                 }
 
-                                // Handles.color reseted at end of scope
+                                // Handles.color reset at end of scope
                             }
                             break;
                     }
@@ -640,22 +652,47 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 Vector2 widthHeight = new Vector4(additionalData.shapeWidth, withYAxis ? additionalData.shapeHeight : 0f);
                                 float range = light.range;
+                                float aspect = additionalData.shapeWidth / additionalData.shapeHeight;
+                                float angle = additionalData.areaLightShadowCone;
+                                float offset = -Mathf.Min(additionalData.shapeWidth, additionalData.shapeHeight) * 0.5f / Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad);
+                                Vector4 aspectFovMaxRangeMinRange = new Vector4(aspect, angle, range - offset);
+                                Matrix4x4 shadowFrustumMatrix = Matrix4x4.TRS(light.transform.position + light.transform.forward * offset, light.transform.rotation, Vector3.one);
+                                float nearPlane = additionalData.shadowNearPlane - offset;
+
                                 EditorGUI.BeginChangeCheck();
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = wireframeColorBehind;
                                 DrawAreaLightWireframe(widthHeight);
-                                range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range); //also draw handles
+                                if (light.shadows != LightShadows.None)
+                                {
+                                    using (new Handles.DrawingScope(shadowFrustumMatrix))
+                                        DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, nearPlane, drawApex: false);
+                                    range = SliderLineHandle(Vector3.zero, Vector3.forward, range);
+                                }
+                                else
+                                {
+                                    range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range);
+                                }
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                 Handles.color = wireframeColorAbove;
                                 DrawAreaLightWireframe(widthHeight);
-                                range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range); //also draw handles
+                                if (light.shadows != LightShadows.None)
+                                {
+                                    using (new Handles.DrawingScope(shadowFrustumMatrix))
+                                        DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, nearPlane, drawApex: false);
+                                    range = SliderLineHandle(Vector3.zero, Vector3.forward, range);
+                                }
+                                else
+                                {
+                                    range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range);
+                                }
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = handleColorBehind;
                                 widthHeight = DrawAreaLightHandle(widthHeight, withYAxis);
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                 Handles.color = handleColorAbove;
                                 widthHeight = DrawAreaLightHandle(widthHeight, withYAxis);
-                                widthHeight = Vector2.Max(Vector2.one * k_MinLightSize, widthHeight);
+                                widthHeight = Vector2.Max(Vector2.one * HDAdditionalLightData.k_MinLightSize, widthHeight);
                                 if (EditorGUI.EndChangeCheck())
                                 {
                                     Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Tube Light");
@@ -667,7 +704,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                     light.range = range;
                                 }
 
-                                // Handles.color reseted at end of scope
+                                // Handles.color reset at end of scope
                             }
                             break;
                         case AreaLightShape.Disc:

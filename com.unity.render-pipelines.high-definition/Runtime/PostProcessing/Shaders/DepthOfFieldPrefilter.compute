@@ -6,7 +6,7 @@
 
 #pragma multi_compile _ NEAR
 #pragma multi_compile _ FAR
-#pragma multi_compile _ FULL_RES
+#pragma multi_compile LOW_QUALITY HIGH_QUALITY FULL_RES
 #pragma multi_compile _ ENABLE_ALPHA
 
 #pragma kernel KMain
@@ -56,7 +56,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 #else
 
-#if 0
+#if LOW_QUALITY
     const uint kTapCount = 1;
 #else
     // Use a rotated grid to minimize artifacts coming from horizontal and vertical boundaries

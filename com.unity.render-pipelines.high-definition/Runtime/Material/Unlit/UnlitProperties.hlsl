@@ -37,11 +37,12 @@ float3 _EmissionColor;
 // By default, the emissive is contributing
 float _IncludeIndirectLighting;
 
+CBUFFER_END
+
 // Following two variables are feeded by the C++ Editor for Scene selection
+// Following three variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
 int _PassValue;
-
-CBUFFER_END
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 
@@ -51,8 +52,8 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float , _AlphaCutoff);
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
-#define _UnlitColor     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__UnlitColor)
-#define _EmissiveColor  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float3, Metadata__EmissiveColor)
-#define _AlphaCutoff    UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AlphaCutoff)
+#define _UnlitColor     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _UnlitColor)
+#define _EmissiveColor  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float3, _EmissiveColor)
+#define _AlphaCutoff    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _AlphaCutoff)
 
 #endif

@@ -115,16 +115,15 @@ class VisualEffectAssetEditor : Editor
             Selection.activeInstanceID = instanceID;
             return true;
         }
-        else if (obj is VisualEffectAsset)
+        else if (obj is VisualEffectAsset vfxAsset)
         {
-            VFXViewWindow.GetWindow<VFXViewWindow>().LoadAsset(obj as VisualEffectAsset, null);
+            VFXViewWindow.GetWindow(vfxAsset, true).LoadAsset(obj as VisualEffectAsset, null);
             return true;
         }
         else if (obj is VisualEffectSubgraph)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(obj));
-
-            VFXViewWindow.GetWindow<VFXViewWindow>().LoadResource(resource, null);
+            VFXViewWindow.GetWindow(resource, true).LoadResource(resource, null);
             return true;
         }
         else if (obj is Material || obj is ComputeShader)
@@ -153,7 +152,7 @@ class VisualEffectAssetEditor : Editor
     {
         for (int i = 0; i < m_OutputContexts.Count(); ++i)
         {
-            m_OutputContexts[i].sortPriority = i;
+            m_OutputContexts[i].vfxSystemSortPriority = i;
         }
     }
 
@@ -184,7 +183,7 @@ class VisualEffectAssetEditor : Editor
         {
             m_CurrentGraph = resource.GetOrCreateGraph();
             m_CurrentGraph.systemNames.Sync(m_CurrentGraph);
-            m_OutputContexts.AddRange(m_CurrentGraph.children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+            m_OutputContexts.AddRange(m_CurrentGraph.children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
         }
 
         m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
@@ -526,17 +525,37 @@ class VisualEffectAssetEditor : Editor
                 }
             }
         }
+        VisualEffectAsset asset = (VisualEffectAsset)target;
+        VisualEffectResource resource = asset.GetResource();
 
-        EditorGUILayout.BeginHorizontal();
-        EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
-        EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen."));
-        EditorGUI.BeginChangeCheck();
-        int newOption = EditorGUILayout.Popup(Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue), k_CullingOptionsContents);
-        if (EditorGUI.EndChangeCheck())
+        //The following should be working, and works for newly created systems, but fails for old systems,
+        //due probably to incorrectly pasting the VFXData when creating them.
+        // bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+        //     .OfType<VFXDataParticle>().Any(d => d.boundsMode == BoundsSettingMode.Automatic);
+
+        bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+            .OfType<VFXBasicInitialize>().Any(d => (d.GetData() as VFXDataParticle).boundsMode == BoundsSettingMode.Automatic);
+        using (new EditorGUI.DisabledScope(hasAutomaticBoundsSystems))
         {
-            cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
-            resourceObject.ApplyModifiedProperties();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
+            string forceSimulateTooltip = hasAutomaticBoundsSystems
+                ? " When using systems with Bounds Mode set to Automatic, this has to be set to Always recompute bounds and simulate."
+                : "";
+            EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen." + forceSimulateTooltip));
+            EditorGUI.BeginChangeCheck();
+
+            int newOption =
+                EditorGUILayout.Popup(
+                    Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue),
+                    k_CullingOptionsContents);
+            if (EditorGUI.EndChangeCheck())
+            {
+                cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
+                resourceObject.ApplyModifiedProperties();
+            }
         }
+
         EditorGUILayout.EndHorizontal();
 
         VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Initial state"), false, false);
@@ -643,15 +662,15 @@ class VisualEffectAssetEditor : Editor
 
         if (!serializedObject.isEditingMultipleObjects)
         {
-            VisualEffectAsset asset = (VisualEffectAsset)target;
-            VisualEffectResource resource = asset.GetResource();
+            asset = (VisualEffectAsset)target;
+            resource = asset.GetResource();
 
             m_OutputContexts.Clear();
-            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
 
             m_ReorderableList.DoLayoutList();
 
-            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"),  false, false);
+            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), false, false);
 
             string assetPath = AssetDatabase.GetAssetPath(asset);
             UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);

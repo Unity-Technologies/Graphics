@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System;
@@ -27,8 +27,7 @@ public sealed class GreenPP : CustomPostProcessVolumeComponent, IPostProcessComp
             return;
 
         m_Material.SetFloat("_Intensity", intensity.value);
-        m_Material.SetTexture("_InputTexture", source);
-        HDUtils.DrawFullScreen(cmd, m_Material, destination);
+        cmd.Blit(source, destination, m_Material);
     }
 
     public override void Cleanup()

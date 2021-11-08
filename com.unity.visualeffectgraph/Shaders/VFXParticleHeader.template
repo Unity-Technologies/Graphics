@@ -43,6 +43,7 @@ ByteAddressBuffer elementToVFXBufferPrevious;
 CBUFFER_START(outputParams)
 	float nbMax;
 	float systemSeed;
+	float3 cameraXRSettings;
 CBUFFER_END
 
 // Helper macros to always use a valid instanceID

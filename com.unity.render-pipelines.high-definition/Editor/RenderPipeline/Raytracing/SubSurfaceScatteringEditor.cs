@@ -21,23 +21,31 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
+
+            if (currentAsset == null)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, wide: true);
+                EditorGUILayout.HelpBox("The current pipeline is not HDRP", MessageType.Error, wide: true);
+                return;
+            }
+
+            if (!currentAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+            {
+                EditorGUILayout.Space();
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportRayTracing");
                 return;
             }
 
             // If ray tracing is supported display the content of the volume component
-            if (RenderPipelineManager.currentPipeline != null && (RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+            if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
+                return;
+
+            PropertyField(m_RayTracing);
+            if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
-                PropertyField(m_RayTracing);
-                if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+                using (new IndentLevelScope())
                 {
-                    using (new HDEditorUtils.IndentScope())
-                    {
-                        PropertyField(m_SampleCount);
-                    }
+                    PropertyField(m_SampleCount);
                 }
             }
         }

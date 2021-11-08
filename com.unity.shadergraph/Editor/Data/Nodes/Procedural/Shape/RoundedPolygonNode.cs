@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph
         public RoundedPolygonNode()
         {
             name = "Rounded Polygon";
+            synonyms = new string[] { "shape" };
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -78,7 +79,11 @@ namespace UnityEditor.ShaderGraph
     float chamferZone = ( halfAngle - polaruv.x ) < chamferAngle;
     Out = lerp( UV.x, polaruv.y / distC, chamferZone );
     // Output this to have the shape mask instead of the distance field
+#if defined(SHADER_STAGE_RAY_TRACING)
+    Out = saturate((1 - Out) * FLT_MAX);
+#else
     Out = saturate((1 - Out) / fwidth(Out));
+#endif
 }
 ";
         }

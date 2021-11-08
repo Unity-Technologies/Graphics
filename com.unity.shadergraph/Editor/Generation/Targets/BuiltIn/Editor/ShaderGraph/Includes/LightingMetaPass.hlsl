@@ -20,6 +20,7 @@ SurfaceData SurfaceDescriptionToSurfaceData(SurfaceDescription surfaceDescriptio
     surface.alpha               = saturate(alpha);
     surface.clearCoatMask       = 0;
     surface.clearCoatSmoothness = 1;
+    surface.emission            = surfaceDescription.Emission;
     return surface;
 }
 

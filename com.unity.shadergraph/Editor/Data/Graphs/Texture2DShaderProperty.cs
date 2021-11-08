@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return "TEXTURE2D(" + referenceName + ")";
         }
 
-        internal override string GetHLSLVariableName(bool isSubgraphProperty)
+        internal override string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
         {
             if (isSubgraphProperty)
                 return referenceName;

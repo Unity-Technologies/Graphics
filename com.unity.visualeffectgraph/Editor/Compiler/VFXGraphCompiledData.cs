@@ -12,6 +12,7 @@ using UnityEngine.Rendering;
 
 using Object = UnityEngine.Object;
 using System.IO;
+using System.Collections.ObjectModel;
 
 namespace UnityEditor.VFX
 {
@@ -20,6 +21,7 @@ namespace UnityEditor.VFX
         public VFXExpressionMapper cpuMapper;
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
+        public ReadOnlyDictionary<VFXExpression, Type> graphicsBufferUsage;
         public VFXMapping[] parameters;
         public int indexInShaderSource;
     }
@@ -41,7 +43,8 @@ namespace UnityEditor.VFX
     class VFXGraphCompiledData
     {
         // 3: Serialize material
-        public const uint compiledVersion = 3;
+        // 4: Bounds helper change
+        public const uint compiledVersion = 4;
 
         public VFXGraphCompiledData(VFXGraph graph)
         {
@@ -144,7 +147,8 @@ namespace UnityEditor.VFX
                         case VFXValueType.Mesh: value = CreateObjectValueDesc<Mesh>(exp, i); break;
                         case VFXValueType.SkinnedMeshRenderer: value = CreateObjectValueDesc<SkinnedMeshRenderer>(exp, i); break;
                         case VFXValueType.Boolean: value = CreateValueDesc<bool>(exp, i); break;
-                        default: throw new InvalidOperationException("Invalid type");
+                        case VFXValueType.Buffer: value = CreateValueDesc<GraphicsBuffer>(exp, i); break;
+                        default: throw new InvalidOperationException("Invalid type : " + exp.valueType);
                     }
                     value.expressionIndex = (uint)i;
                     outValueDescs.Add(value);
@@ -436,17 +440,6 @@ namespace UnityEditor.VFX
             return result;
         }
 
-        private static void CollectParentExpressionRecursively(VFXExpression entry, HashSet<VFXExpression> processed)
-        {
-            if (processed.Contains(entry))
-                return;
-
-            foreach (var parent in entry.parents)
-                CollectParentExpressionRecursively(parent, processed);
-
-            processed.Add(entry);
-        }
-
         private class ProcessChunk
         {
             public int startIndex;
@@ -457,7 +450,7 @@ namespace UnityEditor.VFX
         {
             var allExpressions = new HashSet<VFXExpression>();
             foreach (var expression in expressionPerSpawnToProcess)
-                CollectParentExpressionRecursively(expression, allExpressions);
+                VFXExpression.CollectParentExpressionRecursively(expression, allExpressions);
 
             var expressionIndexes = allExpressions.
                 Where(o => o.Is(VFXExpression.Flags.PerSpawn)) //Filter only per spawn part of graph
@@ -704,7 +697,7 @@ namespace UnityEditor.VFX
                 new EventDesc() { name = VisualEffectAsset.StopEventName, startSystems = new List<VFXContext>(), stopSystems = allStopNotLinked, initSystems = new List<VFXContext>() },
             }.ToList();
 
-            var specialNames = new HashSet<string>(new string[] {VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName});
+            var specialNames = new HashSet<string>(new string[] { VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName });
 
             var events = contexts.Where(o => o.contextType == VFXContextType.Event);
             foreach (var evt in events)
@@ -775,6 +768,7 @@ namespace UnityEditor.VFX
                     var contextData = contextToCompiledData[context];
                     contextData.gpuMapper = gpuMapper;
                     contextData.uniformMapper = uniformMapper;
+                    contextData.graphicsBufferUsage = graph.GraphicsBufferTypeUsage;
                     contextToCompiledData[context] = contextData;
 
                     if (context.doesGenerateShader)
@@ -904,9 +898,9 @@ namespace UnityEditor.VFX
                 if (data.NeedsComputeBounds())
                 {
                     boundsBufferIndex = bufferDescs.Count;
-                    bufferDescs.Add(new VFXGPUBufferDesc(){type = ComputeBufferType.Default, size = 6, stride = 4});
+                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = 6, stride = 4 });
                 }
-                buffers.boundsBuffers.Add(data, boundsBufferIndex); // TODO Ludovic : Fill the data index and stuff
+                buffers.boundsBuffers.Add(data, boundsBufferIndex);
             }
 
             //Prepare GPU event buffer
@@ -935,7 +929,7 @@ namespace UnityEditor.VFX
         {
             private VFXExpressionMapper mapper;
 
-            public VFXImplicitContextOfExposedExpression() : base(VFXContextType.None, VFXDataType.None, VFXDataType.None) {}
+            public VFXImplicitContextOfExposedExpression() : base(VFXContextType.None, VFXDataType.None, VFXDataType.None) { }
 
             private static void CollectExposedExpression(List<VFXExpression> expressions, VFXSlot slot)
             {
@@ -998,7 +992,7 @@ namespace UnityEditor.VFX
                 m_Graph.visualEffectResource.ClearRuntimeData();
 
             m_ExpressionGraph = new VFXExpressionGraph();
-            m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
+            m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
         }
 
         public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)
@@ -1266,6 +1260,7 @@ namespace UnityEditor.VFX
                         case VFXValueType.Mesh: SetObjectValueDesc<Mesh>(desc, exp); break;
                         case VFXValueType.SkinnedMeshRenderer: SetObjectValueDesc<SkinnedMeshRenderer>(desc, exp); break;
                         case VFXValueType.Boolean: SetValueDesc<bool>(desc, exp); break;
+                        case VFXValueType.Buffer: break; //The GraphicsBuffer type isn't serialized
                         default: throw new InvalidOperationException("Invalid type");
                     }
                 }

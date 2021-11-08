@@ -17,6 +17,7 @@ namespace UnityEditor
         float m_Pitch;
         float m_Roll;
         float m_Distance;
+        LightAnchor.UpDirection m_FrameSpace;
 
         // used for cache invalidation
         Vector3 m_CamToLight;
@@ -28,6 +29,11 @@ namespace UnityEditor
 
         VisualElement m_GameViewRootElement;
         VisualElement m_ClickCatcher;
+
+        SerializedProperty m_DistanceProperty;
+        SerializedProperty m_FrameSpaceProperty;
+        SerializedProperty m_AnchorPositionOverrideProperty;
+        SerializedProperty m_AnchorPositionOffsetProperty;
 
         LightAnchor manipulator
         {
@@ -43,7 +49,7 @@ namespace UnityEditor
 
             if (camera == null)
             {
-                Debug.LogError("Light Anchor: At least one camera must be tagged as MainCamera");
+                EditorGUILayout.HelpBox("Light Anchor: At least one camera must be tagged as MainCamera", MessageType.Error);
                 return;
             }
 
@@ -61,7 +67,7 @@ namespace UnityEditor
             bool pitchChanged = false;
             bool rollChanged = false;
             bool distanceChanged = false;
-            bool frameChanged = false;
+            bool positionOverrideChanged = false;
             bool upChanged = false;
 
             using (var change = new EditorGUI.ChangeCheckScope())
@@ -69,36 +75,35 @@ namespace UnityEditor
                 EditorGUILayout.Space();
 
                 float widgetHeight = EditorGUIUtility.singleLineHeight * 5f;
-                float oldValue;
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     Color usedColor;
+                    EditorGUI.BeginChangeCheck();
                     {
                         var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
-                        oldValue = m_Yaw;
                         usedColor = Color.green;
                         usedColor.a = 0.2f;
                         m_Yaw = AngleField(localRect, "Yaw", m_Yaw, 90, usedColor, true);
                     }
-                    yawChanged = oldValue != m_Yaw;
+                    yawChanged = EditorGUI.EndChangeCheck();
+                    EditorGUI.BeginChangeCheck();
                     {
                         var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
-                        oldValue = m_Pitch;
                         usedColor = Color.blue;
                         usedColor.a = 0.2f;
                         m_Pitch = AngleField(localRect, "Pitch", m_Pitch, 180, usedColor, true);
                     }
-                    pitchChanged = oldValue != m_Pitch;
+                    pitchChanged = EditorGUI.EndChangeCheck();
+                    EditorGUI.BeginChangeCheck();
                     {
                         var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
-                        oldValue = m_Roll;
                         usedColor = Color.grey;
                         usedColor.a = 0.2f;
                         bool enabledKnob = true;
                         m_Roll = AngleField(localRect, "Roll", m_Roll, -90, usedColor, enabledKnob);
                     }
-                    rollChanged = oldValue != m_Roll;
+                    rollChanged = EditorGUI.EndChangeCheck();
                 }
                 EditorGUILayout.Space();
                 Rect angleRect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector3, EditorGUIUtility.TrTextContent("")));
@@ -126,21 +131,27 @@ namespace UnityEditor
                 }
                 EditorGUILayout.Space();
 
-                oldValue = manipulator.distance;
-                m_Distance = EditorGUILayout.FloatField(LightAnchorStyles.distanceProperty, manipulator.distance);
-                distanceChanged = oldValue != m_Distance;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_DistanceProperty, LightAnchorStyles.distanceProperty);
+                if (distanceChanged = EditorGUI.EndChangeCheck())
+                    m_DistanceProperty.floatValue = Mathf.Min(m_DistanceProperty.floatValue, LightAnchor.k_MaxDistance);
 
-                var dropRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
-                LightAnchor.UpDirection newSpace = (LightAnchor.UpDirection)EditorGUI.EnumPopup(dropRect, LightAnchorStyles.upDirectionProperty, manipulator.frameSpace);
-                upChanged = manipulator.frameSpace != newSpace;
-                manipulator.frameSpace = newSpace;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_FrameSpaceProperty, LightAnchorStyles.upDirectionProperty);
+                upChanged = EditorGUI.EndChangeCheck();
 
-                if (upChanged)
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_AnchorPositionOverrideProperty, LightAnchorStyles.anchorPositionOverrideProperty);
+                positionOverrideChanged = EditorGUI.EndChangeCheck();
+
+                if (m_AnchorPositionOverrideProperty.objectReferenceValue != null)
                 {
-                    manipulator.SynchronizeOnTransform(camera);
-                    UpdateCache();
+                    EditorGUI.indentLevel++;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(m_AnchorPositionOffsetProperty, LightAnchorStyles.anchorPositionOffsetProperty);
+                    positionOverrideChanged |= EditorGUI.EndChangeCheck();
+                    EditorGUI.indentLevel--;
                 }
-                frameChanged = yawChanged || pitchChanged || rollChanged || distanceChanged;
 
                 if (m_FoldoutPreset = EditorGUILayout.Foldout(m_FoldoutPreset, "Common"))
                 {
@@ -159,7 +170,6 @@ namespace UnityEditor
                             m_Pitch = 0;
                             yawChanged = true;
                             pitchChanged = true;
-                            frameChanged = true;
                         }
                         if (Mathf.Abs(m_Yaw - 135.0f) < eps && Mathf.Abs(m_Pitch - 0.0f) < eps)
                         {
@@ -172,7 +182,6 @@ namespace UnityEditor
                             m_Pitch = 10;
                             yawChanged = true;
                             pitchChanged = true;
-                            frameChanged = true;
                         }
                         if (Mathf.Abs(m_Yaw - 100.0f) < eps && Mathf.Abs(m_Pitch - 10.0f) < eps)
                         {
@@ -185,7 +194,6 @@ namespace UnityEditor
                             m_Pitch = -30;
                             yawChanged = true;
                             pitchChanged = true;
-                            frameChanged = true;
                         }
                         if (Mathf.Abs(m_Yaw - 30.0f) < eps && Mathf.Abs(m_Pitch + 30.0f) < eps)
                         {
@@ -198,7 +206,6 @@ namespace UnityEditor
                             m_Pitch = 35;
                             yawChanged = true;
                             pitchChanged = true;
-                            frameChanged = true;
                         }
                         if (Mathf.Abs(m_Yaw - 35.0f) < eps && Mathf.Abs(m_Pitch - 35.0f) < eps)
                         {
@@ -211,7 +218,6 @@ namespace UnityEditor
                             m_Pitch = 110;
                             yawChanged = true;
                             pitchChanged = true;
-                            frameChanged = true;
                         }
                         if (Mathf.Abs(m_Yaw - 0.0f) < eps && Mathf.Abs(m_Pitch - 110.0f) < eps)
                         {
@@ -224,7 +230,6 @@ namespace UnityEditor
                             m_Pitch = 35;
                             yawChanged = true;
                             pitchChanged = true;
-                            frameChanged = true;
                         }
                         if (Mathf.Abs(m_Yaw + 35.0f) < eps && Mathf.Abs(m_Pitch - 35.0f) < eps)
                         {
@@ -237,7 +242,6 @@ namespace UnityEditor
                             m_Pitch = -30;
                             yawChanged = true;
                             pitchChanged = true;
-                            frameChanged = true;
                         }
                         if (Mathf.Abs(m_Yaw + 30.0f) < eps && Mathf.Abs(m_Pitch + 30.0f) < eps)
                         {
@@ -250,7 +254,6 @@ namespace UnityEditor
                             m_Pitch = 10;
                             yawChanged = true;
                             pitchChanged = true;
-                            frameChanged = true;
                         }
                         if (Mathf.Abs(m_Yaw + 100.0f) < eps && Mathf.Abs(m_Pitch - 10.0f) < eps)
                         {
@@ -263,7 +266,6 @@ namespace UnityEditor
                             m_Pitch = 0;
                             yawChanged = true;
                             pitchChanged = true;
-                            frameChanged = true;
                         }
                         if (Mathf.Abs(m_Yaw + 135.0f) < eps && Mathf.Abs(m_Pitch - 0.0f) < eps)
                         {
@@ -279,16 +281,18 @@ namespace UnityEditor
                     GUI.backgroundColor = cachedColor;
                 }
 
-                if (frameChanged)
+                if (upChanged)
                 {
-                    LightAnchor manipulator = target as LightAnchor;
+                    Undo.RecordObjects(new UnityEngine.Object[] { target, manipulator.transform }, "Light Anchor Change");
 
-                    if (upChanged)
-                    {
-                        manipulator.SynchronizeOnTransform(camera);
-                    }
+                    manipulator.frameSpace = (LightAnchor.UpDirection)m_FrameSpaceProperty.intValue;
+                    manipulator.SynchronizeOnTransform(camera);
+                    UpdateCache();
+                }
+                if (yawChanged || pitchChanged || rollChanged || distanceChanged || positionOverrideChanged)
+                {
+                    Undo.RecordObjects(new UnityEngine.Object[] { target, manipulator.transform }, "Light Anchor Change");
 
-                    Undo.RecordObjects(new UnityEngine.Object[] { manipulator.transform }, "Reset Light Anchor Transform");
                     if (yawChanged)
                         manipulator.yaw = m_Yaw;
                     if (pitchChanged)
@@ -296,7 +300,33 @@ namespace UnityEditor
                     if (rollChanged)
                         manipulator.roll = m_Roll;
                     if (distanceChanged)
-                        manipulator.distance = m_Distance;
+                        manipulator.distance = m_DistanceProperty.floatValue;
+                    if (positionOverrideChanged)
+                    {
+                        var newTransform = m_AnchorPositionOverrideProperty.objectReferenceValue as Transform;
+
+                        if (newTransform != null)
+                        {
+                            // Check that the assigned transform is not child of the light anchor, otherwise it would cause problems when moving the light position
+                            if (newTransform.IsChildOf(manipulator.transform))
+                                Debug.LogError($"Can't assign '{newTransform.name}' because it's a child of the Light Anchor component");
+                            else
+                            {
+                                manipulator.anchorPositionOverride = newTransform;
+                                manipulator.anchorPositionOffset = m_AnchorPositionOffsetProperty.vector3Value;
+                                float newDistance = Vector3.Distance(manipulator.transform.position, manipulator.anchorPosition);
+                                // Orient the object to face the new override position
+                                manipulator.SynchronizeOnTransform(camera);
+                                // And adjust it's distance to avoid modifying it's position.
+                                manipulator.distance = newDistance;
+                            }
+                        }
+                        else
+                            manipulator.anchorPositionOverride = newTransform;
+                    }
+
+                    if (manipulator.anchorPositionOverride != null)
+                        anchor = manipulator.anchorPosition;
 
                     manipulator.UpdateTransform(camera, anchor);
                     IsCacheInvalid(manipulator);
@@ -336,6 +366,11 @@ namespace UnityEditor
                     EnableClickCatcher(m_EnableClickCatcher);
                 }
             }
+
+            m_DistanceProperty = serializedObject.FindProperty("m_Distance");
+            m_FrameSpaceProperty = serializedObject.FindProperty("m_FrameSpace");
+            m_AnchorPositionOverrideProperty = serializedObject.FindProperty("m_AnchorPositionOverride");
+            m_AnchorPositionOffsetProperty = serializedObject.FindProperty("m_AnchorPositionOffset");
         }
 
         void EditorToolsOnactiveToolChanged()
@@ -377,6 +412,7 @@ namespace UnityEditor
                 m_Pitch = manipulator.pitch;
                 m_Roll = manipulator.roll;
                 m_Distance = manipulator.distance;
+                m_FrameSpace = manipulator.frameSpace;
             }
         }
 
@@ -390,7 +426,7 @@ namespace UnityEditor
             var camLightForwardDot = Vector3.Dot(manipulatorTransform.forward, cameraTransform.forward);
             var camLightRightDot = Vector3.Dot(manipulatorTransform.right, cameraTransform.right);
             var dirty = camToLight != m_CamToLight || Math.Abs(camLightForwardDot - m_CamLightForwardDot) > float.Epsilon
-                || Math.Abs(camLightRightDot - m_CamLightRightDot) > float.Epsilon;
+                || Math.Abs(camLightRightDot - m_CamLightRightDot) > float.Epsilon || m_FrameSpace != manipulator.frameSpace;
             m_CamToLight = camToLight;
             m_CamLightForwardDot = camLightForwardDot;
             m_CamLightRightDot = camLightRightDot;
@@ -569,12 +605,14 @@ namespace UnityEditor
         static public GUIContent presetTextureBounceLeft = EditorGUIUtility.TrTextContent("", "Bounce Left", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Left", ".png", false));
         static public GUIContent presetTextureFillLeft = EditorGUIUtility.TrTextContent("", "Fill Left", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetFill_Left", ".png", false));
         static public GUIContent presetTextureHair = EditorGUIUtility.TrTextContent("", "Hair", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetHair", ".png", false));
-        static public GUIContent presetTextureRimRight = EditorGUIUtility.TrTextContent("", "Rim Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetRim_Right", ".png", false));
-        static public GUIContent presetTextureKickRight = EditorGUIUtility.TrTextContent("", "Kick Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetKick_Right", ".png", false));
-        static public GUIContent presetTextureBounceRight = EditorGUIUtility.TrTextContent("", "Bounce Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Right", ".png", false));
         static public GUIContent presetTextureFillRight = EditorGUIUtility.TrTextContent("", "Fill Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetFill_Right", ".png", false));
+        static public GUIContent presetTextureBounceRight = EditorGUIUtility.TrTextContent("", "Bounce Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Right", ".png", false));
+        static public GUIContent presetTextureKickRight = EditorGUIUtility.TrTextContent("", "Kick Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetKick_Right", ".png", false));
+        static public GUIContent presetTextureRimRight = EditorGUIUtility.TrTextContent("", "Rim Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetRim_Right", ".png", false));
         static public GUIContent distanceProperty = EditorGUIUtility.TrTextContent("Distance", "Controls how far 'back', the light is placed from its anchor");
         static public GUIContent upDirectionProperty = EditorGUIUtility.TrTextContent("Up direction", "Specifies the space in which the up direction of the anchor is defined. Local is relative to the camera.");
+        static public GUIContent anchorPositionOverrideProperty = EditorGUIUtility.TrTextContent("Anchor Position Override", "Specifies the anchor position manually instead of relying on the angles, distance and transform position to compute the anchor position.");
+        static public GUIContent anchorPositionOffsetProperty = EditorGUIUtility.TrTextContent("Anchor Position Offset", "Specifies the anchor position offset relative to the anchor position override.");
         static public GUIContent[] angleSubContent = new[]
         {
             EditorGUIUtility.TrTextContent("Orbit"),

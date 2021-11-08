@@ -72,7 +72,11 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     // Sample the history buffer with the motion vector at the closest point
     float2 motionVector;
-    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, max(int2(posInputs.positionSS) + int2(closest.xy), 0)), motionVector);
+    float2 motionVecUV = FromOutputPosSSToPreupsampleUV(max(int2(posInputs.positionSS) + int2(closest.xy), 0));
+    motionVecUV = ClampAndScaleUVForPoint(motionVecUV);
+
+    float4 encodedMV = SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_point_clamp_sampler, motionVecUV, 0);
+    DecodeMotionVector(encodedMV, motionVector);
     float cocHis = SAMPLE_TEXTURE2D_X_LOD(_InputHistoryCoCTexture, SAMPLER_STATE, (uv - motionVector) * ScreenToTargetScaleHistory.xy, 0.0).x;
 
     // Neighborhood clamping

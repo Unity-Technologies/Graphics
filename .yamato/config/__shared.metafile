@@ -12,22 +12,19 @@ editors: # applied for all yml files
     ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
       enabled: True
-      green_abv_required: False
-    ci_triggers:
-      pr_triggers_allowed: True # if expression_triggers on PRs allowed
-      nightly_job_trigger: True # if true, adds recurrent trigger to nightly job
-      weekly_job_trigger: False # if true, adds recurrent trigger to weekly job
+      nr_commits_to_retrieve: 100
+    allow_triggers: True
+    variables:
+      CACHE_ARGS: '{{cache.flags}}'
   - track: CUSTOM-REVISION
     name: CUSTOM-REVISION
     rerun_strategy: on_new_revision
     editor_pinning:
       enabled: False
-      green_abv_required: False
     fast: False
-    ci_triggers:
-      pr_triggers_allowed: False
-      nightly_job_trigger: False
-      weekly_job_trigger: False
+    allow_triggers: False
+    variables:
+      CACHE_ARGS: '{{cache.flags}}'
 build_configs:
   - name: il2cpp_apiNet2
     scripting_backend: IL2CPP
@@ -52,7 +49,9 @@ color_spaces:
   - gamma
 test_platforms:
   - type: Standalone
+    allow_cache: True
     utr_flags:
+      - [OSX_Metal]: '%CACHE_ARGS%'
       - [all]: --suite=playmode
       - [all]: --timeout=1200
       # - [all]: --reruncount=2
@@ -64,7 +63,7 @@ test_platforms:
       - [iPhone_Metal]: --platform=iOS
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal,Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --player-load-path=players
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal,Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, OSX_OpenGlCore]: --player-load-path=players
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
@@ -79,6 +78,7 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto
 
     utr_flags_build:
+      - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
       - [all]: --suite=playmode
       - [all]: --build-only
@@ -99,7 +99,7 @@ test_platforms:
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --player-save-path=players
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, OSX_OpenGlCore]: --player-save-path=players
 
       - [all]: --timeout=1200
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --timeout=2700
@@ -131,8 +131,14 @@ test_platforms:
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
+    after:
+      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
+    after_build:
+      - [OSX_OpenGlCore, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
   - type: playmode
+    allow_cache: True
     utr_flags:
+      - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
       - [all]: --zero-tests-are-ok=1
       - [all]: --suite=playmode
@@ -144,7 +150,7 @@ test_platforms:
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
 
       - [all]: --editor-location=.Editor
-      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
@@ -159,9 +165,13 @@ test_platforms:
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
+    after:
+      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
 
   - type: editmode
+    allow_cache: False
     utr_flags:
+      - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
       - [all]: --zero-tests-are-ok=1
       - [all]: --suite=editor
@@ -169,14 +179,14 @@ test_platforms:
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
       - [all]: --platform=editmode
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
-      - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
       - [iPhone_Metal]: --platform=iOS
 
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
 
       - [all]: --editor-location=.Editor
-      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
@@ -189,14 +199,16 @@ test_platforms:
 
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
-      - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
+      - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
       - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
     commands:
       - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
+    after:
+      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
 
 platforms:
   Win:
@@ -227,28 +239,34 @@ platforms:
     commands:
       [DX11, DX12, Vulkan, '']:
         setup_utr:
-          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+            retries: 2
         call_utr:
-          - |5-
+          - command: |5-
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
                     utr <UTR_FLAGS>
         call_utr_without_git:
-          - utr <UTR_FLAGS>
+          - command: utr <UTR_FLAGS>
         call_utr_and_exit_0:
-          - |5-
+          - command: |5-
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
                     utr <UTR_FLAGS> & exit 0
         unity_downloader_cli:
-          - choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-          - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+          - command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+            retries: 2
+          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+            retries: 2
         turn_off_firewall:
-          - NetSh Advfirewall set allprofiles state off
+          - command: NetSh Advfirewall set allprofiles state off
+        log_parser:
+          - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 
   OSX:
     name: OSX
@@ -264,7 +282,7 @@ platforms:
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: graphics-foundation/mac-10.15:latest
+        image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
@@ -275,39 +293,53 @@ platforms:
     commands:
       [Metal]:
         setup_utr:
-          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+            retries: 2
           - chmod +x utr
-          - scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-          - scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+          - command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+            retries: 2
+          - command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+            retries: 2
         call_utr: # TODO add git commands when needed
-          - |5-
+          - command: |5-
                     ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  <UTR_FLAGS> "
                     UTR_RESULT=$?
-                    mkdir -p TestProjects/<PROJECT_FOLDER>/test-results/
-                    scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>/test-results/
+                    scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>
                     exit $UTR_RESULT
         call_utr_without_git:
-          - |5-
+          - command: |5-
                     ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  <UTR_FLAGS> "
                     UTR_RESULT=$?
-                    mkdir -p TestProjects/<PROJECT_FOLDER>/test-results/
-                    scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>/test-results/
+                    scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>
                     exit $UTR_RESULT
         unity_downloader_cli:
-          - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-          - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only'
+          - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
+            retries: 2
+          - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only'
+            retries: 2
+        log_parser:
+          - command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
       [OpenGlCore]:
         setup_utr:
-          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+            retries: 2
           - chmod +x utr
         call_utr: # TODO add git commands when needed
-          - ./utr  <UTR_FLAGS>
+          - command: ./utr <UTR_FLAGS>
+            retries: 2
         call_utr_without_git:
-          - ./utr  <UTR_FLAGS>
+          - command: ./utr <UTR_FLAGS>
+            retries: 2
         unity_downloader_cli:
-          - brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-          - brew install unity-downloader-cli
-          - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+          - command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+          - command: brew install unity-downloader-cli
+            retries: 2
+          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+            retries: 2
+        log_parser:
+          - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 
 
   Linux:
@@ -332,19 +364,31 @@ platforms:
     commands:
       [OpenGlCore, Vulkan]:
         setup_utr:
-          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-          - chmod +x utr
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+            retries: 2
+          - command: chmod +x utr
+        set_screen_resolution:
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/Linux/2560x1440.bin --output 2560x1440.bin
+            retries: 2
+          - command: sudo rm /etc/edid.txt
+          - command: sudo mv 2560x1440.bin /etc/edid.txt
+          - command: sudo pkill Xorg && sudo systemctl restart gdm3
         call_utr:
-          - DISPLAY=:0.0 ./utr <UTR_FLAGS> # TODO include git commands when needed
+          - command: DISPLAY=:0.0 ./utr <UTR_FLAGS> # TODO include git commands when needed
         call_utr_without_git:
-          - DISPLAY=:0.0 ./utr <UTR_FLAGS>
+          - command: DISPLAY=:0.0 ./utr <UTR_FLAGS>
         unity_downloader_cli:
-          - sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
-          - curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
-          - sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
-          - sudo apt update
-          - sudo apt install unity-downloader-cli
-          - sudo unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+          - command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+          - command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+          - command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+          - command: sudo apt update
+          - command: sudo apt install unity-downloader-cli
+            retries: 2
+          - command: sudo unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+            retries: 2
+        log_parser:
+          - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 
 
   Android:
@@ -356,37 +400,66 @@ platforms:
       - android
     agents_project:
       default:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
         setup_utr:
-          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-        call_utr:
-          - |5-
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+            retries: 2
+        call_utr_hikey:
+          - command: |5-
                     set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
                     utr <UTR_FLAGS>
+        call_utr:
+          - command: |5-
+                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                    set /p GIT_REVISIONDATE=<revdate.tmp
+                    echo %GIT_REVISIONDATE%
+                    del revdate.tmp
+                    utr <UTR_FLAGS>
+        call_utr_hikey_android_sdk_root:
+          - command: |5-
+                    set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                    set /p GIT_REVISIONDATE=<revdate.tmp
+                    echo %GIT_REVISIONDATE%
+                    del revdate.tmp
+                    set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
+                    utr <UTR_FLAGS>
         call_utr_without_git:
-          - utr <UTR_FLAGS>
+          - command: utr <UTR_FLAGS>
         unity_downloader_cli:
-          - choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-          - unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+          - command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+            retries: 2
+          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+            retries: 2
         turn_off_firewall:
-          - NetSh Advfirewall set allprofiles state off
+          - command: NetSh Advfirewall set allprofiles state off
+        connect_bokken_hikey:
+          - command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
+            retries: 2
+          - command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
+            retries: 2
         connect_bokken:
-          - '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-          - powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
+          - command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
+            retries: 2
         kill_server:
-          - start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+          - command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+            retries: 2
+        log_parser:
+          - command: pip install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 
 
   XRQuest:
@@ -403,20 +476,22 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
         setup_utr:
-          - pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-          - pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-          - git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
+          - command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+          - command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple || exit 0
+          - command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
+            retries: 2
         call_utr:
-          - |5-
+          - command: |5-
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
+                    set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
                     set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
                     set artifactPath=Boatattack/Quest
                     set jenkinsJob=SBR_Quest_RunTest
@@ -424,15 +499,23 @@ platforms:
                     set cmd=<UTR_FLAGS>
                     python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
         unity_downloader_cli:
-          - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-          - unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+          - command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+            retries: 2
+          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+            retries: 2
         turn_off_firewall:
-          - NetSh Advfirewall set allprofiles state off
+          - command: NetSh Advfirewall set allprofiles state off
         connect_bokken:
-          - '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-          - powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
+          - command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
+            retries: 2
+          - command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
+            retries: 2
         kill_server:
-          - start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+          - command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+            retries: 2
+        log_parser:
+          - command: pip install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 
   iPhone:
     name: iPhone
@@ -453,18 +536,25 @@ platforms:
     commands:
       [Metal]:
         setup_utr:
-          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-          - chmod +x ./utr
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+            retries: 2
+          - command: chmod +x ./utr
         call_utr:
-          - |5-
+          - command: |5-
                     export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                     ./utr <UTR_FLAGS>
         call_utr_without_git:
-          - ./utr <UTR_FLAGS>
+          - command: ./utr <UTR_FLAGS>
         unity_downloader_cli:
-          - brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-          - brew install unity/unity/unity-downloader-cli
-          - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp  --wait --published-only
+          - command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+            retries: 2
+          - command: brew install unity/unity/unity-downloader-cli
+            retries: 2
+          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp  --wait --published-only
+            retries: 2
+        log_parser:
+          - command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 non_project_agents:
   package_ci_ubuntu_large:
     type: Unity::VM

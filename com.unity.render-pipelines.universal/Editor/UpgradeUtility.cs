@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Asset is used by objects that have materials which may have been upgraded, but there is no unambiguous upgrade path.
         /// </summary>
-        UsedByAmbiguouslyUpgraded = 8
+        UsedByAmbiguouslyUpgraded = 8,
     }
 
     /// <summary>
@@ -163,20 +163,29 @@ namespace UnityEditor.Rendering
                 else
                 {
                     // narrow possible upgraders to those which specify a rename for the bound property
-                    possibleUpgraders = possibleUpgraders.Where(
+                    var matchingUpgraders = possibleUpgraders.Where(
                         u => u.GetPropertyRenameMap(materialPropertyType).ContainsKey(shaderPropertyName)
                         ).ToList();
 
                     // if there are any, assume the material has been upgraded
-                    if (possibleUpgraders.Any())
+                    if (matchingUpgraders.Any())
                     {
                         result |= SerializedShaderPropertyUsage.UsedByUpgraded;
 
                         // if there are many possible upgrade paths to take, mark the upgrade as ambiguous
-                        newPropertyName = possibleUpgraders[0].GetPropertyRenameMap(materialPropertyType)[shaderPropertyName];
+                        newPropertyName = matchingUpgraders[0].GetPropertyRenameMap(materialPropertyType)[shaderPropertyName];
                         var name = newPropertyName; // cannot use out param inside lambda
-                        if (possibleUpgraders.Any(u => u.GetPropertyRenameMap(materialPropertyType)[shaderPropertyName] != name))
+                        if (matchingUpgraders.Any(u => u.GetPropertyRenameMap(materialPropertyType)[shaderPropertyName] != name))
                             result |= SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded;
+                    }
+                    else
+                    {
+                        var alreadyUpgraded = possibleUpgraders.Any(u => u.GetPropertyRenameMap(materialPropertyType).Values.Contains(shaderPropertyName));
+
+                        if (alreadyUpgraded)
+                        {
+                            result |= SerializedShaderPropertyUsage.UsedByUpgraded;
+                        }
                     }
                 }
             }

@@ -38,13 +38,12 @@ MonoBehaviour:
       m_Values: 000100000004000000080000
       m_SchemaId:
         m_Id: With3Levels
-    supportDecals: 0
-    supportDecalLayers: 0
-    supportSurfaceGradient: 0
-    decalNormalBufferHP: 0
+    supportDecals: 1
+    supportDecalLayers: 1
+    supportSurfaceGradient: 1
+    decalNormalBufferHP: 1
     msaaSampleCount: 1
     supportMotionVectors: 1
-    supportRuntimeDebugDisplay: 1
     supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
@@ -113,7 +112,7 @@ MonoBehaviour:
       drawDistance: 1000
       atlasWidth: 4096
       atlasHeight: 4096
-      perChannelMask: 0
+      perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48
@@ -131,6 +130,8 @@ MonoBehaviour:
       upsampleFilter: 1
       forceResolution: 0
       forcedPercentage: 100
+      lowResTransparencyMinimumThreshold: 0
+      rayTracingHalfResThreshold: 50
     lowresTransparentSettings:
       enabled: 1
       checkerboardDepthBuffer: 1
@@ -183,7 +184,13 @@ MonoBehaviour:
       ContactShadowSampleCount: 060000000a00000010000000
       SSRMaxRaySteps: 100000002000000040000000
       SSGIRaySteps: 200000004000000080000000
-      SSGIFilterRadius: 100000000e0000000c000000
+      SSGIDenoise: 010101
+      SSGIHalfResDenoise: 010000
+      SSGIDenoiserRadius:
+      - 0.75
+      - 0.5
+      - 0.5
+      SSGISecondDenoise: 010101
       RTAORayLength:
       - 0.5
       - 3
@@ -203,7 +210,6 @@ MonoBehaviour:
       - 0.5
       - 0.8
       - 1.5
-      RTGIUpScaleRadius: 040000000400000004000000
       RTGIRaySteps: 200000003000000040000000
       RTGIDenoise: 010101
       RTGIHalfResDenoise: 010000
@@ -258,8 +264,9 @@ MonoBehaviour:
     m_ObsoleteDecalLayerName5: 
     m_ObsoleteDecalLayerName6: 
     m_ObsoleteDecalLayerName7: 
+    m_ObsoleteSupportRuntimeDebugDisplay: 1
   allowShaderVariantStripping: 1
-  enableSRPBatcher: 0
+  enableSRPBatcher: 1
   availableMaterialQualityLevels: -1
   m_DefaultMaterialQualityLevel: 4
   diffusionProfileSettings: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -270,7 +277,7 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
-  m_Version: 20
+  m_Version: 21
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0

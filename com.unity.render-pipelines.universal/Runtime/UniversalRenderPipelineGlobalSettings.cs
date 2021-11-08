@@ -1,4 +1,6 @@
+using System;
 using UnityEditor;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -7,28 +9,48 @@ namespace UnityEngine.Rendering.Universal
     /// Global settings are unique per Render Pipeline type. In URP, Global Settings contain:
     /// - light layer names
     /// </summary>
-    partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
+    [URPHelpURL("URP-Global-Settings")]
+    partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings, ISerializationCallbackReceiver
     {
         #region Version system
 
-        #pragma warning disable CS0414
-        [SerializeField] int k_AssetVersion = 1;
-        [SerializeField] int k_AssetPreviousVersion = 1;
-        #pragma warning restore CS0414
+#pragma warning disable CS0414
+        [SerializeField] int k_AssetVersion = 2;
+#pragma warning restore CS0414
+
+        public void OnBeforeSerialize()
+        {
+        }
 
         public void OnAfterDeserialize()
         {
 #if UNITY_EDITOR
-            if (k_AssetPreviousVersion != k_AssetVersion)
+            if (k_AssetVersion != 2)
             {
-                EditorApplication.delayCall += () => UpgradeAsset(this);
+                EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
             }
 #endif
         }
 
 #if UNITY_EDITOR
-        static void UpgradeAsset(UniversalRenderPipelineGlobalSettings asset)
+        static void UpgradeAsset(int assetInstanceID)
         {
+            UniversalRenderPipelineGlobalSettings asset = EditorUtility.InstanceIDToObject(assetInstanceID) as UniversalRenderPipelineGlobalSettings;
+
+            if (asset.k_AssetVersion < 2)
+            {
+#pragma warning disable 618 // Obsolete warning
+                // Renamed supportRuntimeDebugDisplay => stripDebugVariants, which results in inverted logic
+                asset.m_StripDebugVariants = !asset.supportRuntimeDebugDisplay;
+                asset.k_AssetVersion = 2;
+#pragma warning restore 618 // Obsolete warning
+
+                // For old test projects lets keep post processing stripping enabled, as huge chance they did not used runtime profile creating
+#if UNITY_INCLUDE_TESTS
+                asset.m_StripUnusedPostProcessingVariants = true;
+#endif
+            }
+
             EditorUtility.SetDirty(asset);
         }
 
@@ -36,11 +58,18 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         private static UniversalRenderPipelineGlobalSettings cachedInstance = null;
+        /// <summary>
+        /// Active URP Global Settings asset. If the value is null then no UniversalRenderPipelineGlobalSettings has been registered to the Graphics Settings with the UniversalRenderPipeline.
+        /// </summary>
         public static UniversalRenderPipelineGlobalSettings instance
         {
             get
             {
+#if !UNITY_EDITOR
+                // The URP Global Settings could have been changed by script, undo/redo (case 1342987), or file update - file versioning, let us make sure we display the correct one
+                // In a Player, we do not need to worry about those changes as we only support loading one
                 if (cachedInstance == null)
+#endif
                     cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<UniversalRenderPipeline>() as UniversalRenderPipelineGlobalSettings;
                 return cachedInstance;
             }
@@ -48,12 +77,16 @@ namespace UnityEngine.Rendering.Universal
 
         static internal void UpdateGraphicsSettings(UniversalRenderPipelineGlobalSettings newSettings)
         {
-            if (newSettings == null || newSettings == cachedInstance)
+            if (newSettings == cachedInstance)
                 return;
-            GraphicsSettings.RegisterRenderPipelineSettings<UniversalRenderPipeline>(newSettings as RenderPipelineGlobalSettings);
+            if (newSettings != null)
+                GraphicsSettings.RegisterRenderPipelineSettings<UniversalRenderPipeline>(newSettings as RenderPipelineGlobalSettings);
+            else
+                GraphicsSettings.UnregisterRenderPipelineSettings<UniversalRenderPipeline>();
             cachedInstance = newSettings;
         }
 
+        /// <summary>Default name when creating an URP Global Settings asset.</summary>
         public static readonly string defaultAssetName = "UniversalRenderPipelineGlobalSettings";
 
 #if UNITY_EDITOR
@@ -104,11 +137,12 @@ namespace UnityEngine.Rendering.Universal
             if (assetCreated == null)
             {
                 assetCreated = ScriptableObject.CreateInstance<UniversalRenderPipelineGlobalSettings>();
-                AssetDatabase.CreateAsset(assetCreated, path);
                 if (assetCreated != null)
                 {
                     assetCreated.name = System.IO.Path.GetFileName(path);
                 }
+                AssetDatabase.CreateAsset(assetCreated, path);
+                Debug.Assert(assetCreated);
             }
 
             if (assetCreated)
@@ -146,16 +180,28 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (m_RenderingLayerNames == null)
-                {
                     UpdateRenderingLayerNames();
-                }
-
                 return m_RenderingLayerNames;
             }
         }
+        [System.NonSerialized]
+        string[] m_PrefixedRenderingLayerNames;
+        string[] prefixedRenderingLayerNames
+        {
+            get
+            {
+                if (m_PrefixedRenderingLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_PrefixedRenderingLayerNames;
+            }
+        }
+        /// <summary>Names used for display of rendering layer masks.</summary>
         public string[] renderingLayerMaskNames => renderingLayerNames;
+        /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
+        public string[] prefixedRenderingLayerMaskNames => prefixedRenderingLayerNames;
 
-        void UpdateRenderingLayerNames()
+        /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
+        internal void UpdateRenderingLayerNames()
         {
             if (m_RenderingLayerNames == null)
                 m_RenderingLayerNames = new string[32];
@@ -175,27 +221,56 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
             }
+
+            // Update prefixed
+            if (m_PrefixedRenderingLayerNames == null)
+                m_PrefixedRenderingLayerNames = new string[32];
+            if (m_PrefixedLightLayerNames == null)
+                m_PrefixedLightLayerNames = new string[8];
+            for (int i = 0; i < m_PrefixedRenderingLayerNames.Length; ++i)
+            {
+                m_PrefixedRenderingLayerNames[i] = string.Format("{0}: {1}", i, m_RenderingLayerNames[i]);
+                if (i < 8)
+                    m_PrefixedLightLayerNames[i] = m_PrefixedRenderingLayerNames[i];
+            }
+        }
+
+        [System.NonSerialized]
+        string[] m_PrefixedLightLayerNames = null;
+        /// <summary>
+        /// Names used for display of light layers with Layer's index as prefix.
+        /// For example: "0: Light Layer Default"
+        /// </summary>
+        public string[] prefixedLightLayerNames
+        {
+            get
+            {
+                if (m_PrefixedLightLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_PrefixedLightLayerNames;
+            }
         }
 
         #region Light Layer Names [3D]
 
-        /// <summary>Name for light layer 0.</summary>
-        public string lightLayerName0 = "Light Layer default";
-        /// <summary>Name for light layer 1.</summary>
-        public string lightLayerName1 = "Light Layer 1";
-        /// <summary>Name for light layer 2.</summary>
-        public string lightLayerName2 = "Light Layer 2";
-        /// <summary>Name for light layer 3.</summary>
-        public string lightLayerName3 = "Light Layer 3";
-        /// <summary>Name for light layer 4.</summary>
-        public string lightLayerName4 = "Light Layer 4";
-        /// <summary>Name for light layer 5.</summary>
-        public string lightLayerName5 = "Light Layer 5";
-        /// <summary>Name for light layer 6.</summary>
-        public string lightLayerName6 = "Light Layer 6";
-        /// <summary>Name for light layer 7.</summary>
-        public string lightLayerName7 = "Light Layer 7";
+        static readonly string[] k_DefaultLightLayerNames = { "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7" };
 
+        /// <summary>Name for light layer 0.</summary>
+        public string lightLayerName0 = k_DefaultLightLayerNames[0];
+        /// <summary>Name for light layer 1.</summary>
+        public string lightLayerName1 = k_DefaultLightLayerNames[1];
+        /// <summary>Name for light layer 2.</summary>
+        public string lightLayerName2 = k_DefaultLightLayerNames[2];
+        /// <summary>Name for light layer 3.</summary>
+        public string lightLayerName3 = k_DefaultLightLayerNames[3];
+        /// <summary>Name for light layer 4.</summary>
+        public string lightLayerName4 = k_DefaultLightLayerNames[4];
+        /// <summary>Name for light layer 5.</summary>
+        public string lightLayerName5 = k_DefaultLightLayerNames[5];
+        /// <summary>Name for light layer 6.</summary>
+        public string lightLayerName6 = k_DefaultLightLayerNames[6];
+        /// <summary>Name for light layer 7.</summary>
+        public string lightLayerName7 = k_DefaultLightLayerNames[7];
 
         [System.NonSerialized]
         string[] m_LightLayerNames = null;
@@ -223,6 +298,50 @@ namespace UnityEngine.Rendering.Universal
                 return m_LightLayerNames;
             }
         }
+
+        internal void ResetRenderingLayerNames()
+        {
+            lightLayerName0 = k_DefaultLightLayerNames[0];
+            lightLayerName1 = k_DefaultLightLayerNames[1];
+            lightLayerName2 = k_DefaultLightLayerNames[2];
+            lightLayerName3 = k_DefaultLightLayerNames[3];
+            lightLayerName4 = k_DefaultLightLayerNames[4];
+            lightLayerName5 = k_DefaultLightLayerNames[5];
+            lightLayerName6 = k_DefaultLightLayerNames[6];
+            lightLayerName7 = k_DefaultLightLayerNames[7];
+        }
+
+        #endregion
+
+        #region Misc Settings
+
+        [SerializeField] bool m_StripDebugVariants = true;
+
+        [SerializeField] bool m_StripUnusedPostProcessingVariants = false;
+
+        [SerializeField] bool m_StripUnusedVariants = true;
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        [Obsolete("Please use stripRuntimeDebugShaders instead.", false)]
+        public bool supportRuntimeDebugDisplay = false;
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        public bool stripDebugVariants { get => m_StripDebugVariants; set { m_StripDebugVariants = value; } }
+
+        /// <summary>
+        /// Controls whether strips automatically post processing shader variants based on <see cref="VolumeProfile"/> components.
+        /// It strips based on VolumeProfiles in project and not scenes that actually uses it.
+        /// </summary>
+        public bool stripUnusedPostProcessingVariants { get => m_StripUnusedPostProcessingVariants; set { m_StripUnusedPostProcessingVariants = value; } }
+
+        /// <summary>
+        /// Controls whether strip off variants if the feature is enabled.
+        /// </summary>
+        public bool stripUnusedVariants { get => m_StripUnusedVariants; set { m_StripUnusedVariants = value; } }
 
         #endregion
     }

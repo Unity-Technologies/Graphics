@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
         public NegateNode()
         {
             name = "Negate";
+            synonyms = new string[] { "invert", "opposite" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

@@ -20,12 +20,15 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 	uint index = id;
-	
+
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}
-			
+
 	if (!attributes.alive)
-		return o;
+	{
+		o.pos.x = VFX_NAN;
+		return o; // cull
+	}
 
 	float3 inputVertexPosition = float3(0.0f, 0.0f, 0.0f);
 	float3 vPos = attributes.position;
@@ -34,8 +37,8 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXVertexComputeCurrentAndPreviousClipPos}
 	${VFXVertexCommonProcess}
 	${VFXVertexAdditionalProcess}
-    
+
     o.pointSize = 1;
-			
+
 	return o;
 }

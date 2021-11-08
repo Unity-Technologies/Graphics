@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         class Styles
         {
-            public static GUIContent materialType = new GUIContent("Material Type", "TODO");
+            public static GUIContent materialType = new GUIContent("Material Type", "Indicates the type of Shading Model used to evaluate lighting.");
         }
 
         HairData hairData;
@@ -27,8 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CreatePropertyGUI()
         {
-            // TODO: Un-hide me when Marschner BSDF is available.
-            // AddProperty(Styles.materialType, () => hairData.materialType, (newValue) => hairData.materialType = newValue);
+            AddProperty(Styles.materialType, () => hairData.materialType, (newValue) => hairData.materialType = newValue);
 
             base.CreatePropertyGUI();
         }
@@ -38,8 +37,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         class Styles
         {
-            public static GUIContent useLightFacingNormal = new GUIContent("Use Light Facing Normal", "TODO");
-            public static GUIContent scatteringMode = new GUIContent("Scattering Mode", "");
+            public static GUIContent colorParameterization = new GUIContent("Color Mode", "Indicates the way the hair fiber cortex color is parameterized.");
+            public static GUIContent geometryType = new GUIContent("Geometry Type", "Indicates the type of geometry being used to represent the hair, allowing the shading model to make informed approximations.");
+            public static GUIContent scatteringMode = new GUIContent("Scattering Mode", "Indicates the light scattering method in a volume of hair.");
         }
 
         HairData hairData;
@@ -50,11 +50,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.CreatePropertyGUI();
 
-            // Hair specific properties GUI
-            AddProperty(Styles.useLightFacingNormal, () => hairData.useLightFacingNormal, (newValue) => hairData.useLightFacingNormal = newValue);
+            // Hide the color mode for now and let it silently default to Base Color. We will discuss with artists before we expose it.
+            // AddProperty(Styles.colorParameterization, () => hairData.colorParameterization, (newValue) => hairData.colorParameterization = newValue);
 
-            if (hairData.materialType == HairData.MaterialType.Marschner)
-                AddProperty(Styles.scatteringMode, () => hairData.scatteringMode, (newValue) => hairData.scatteringMode = newValue);
+            // Hair specific properties GUI
+            AddProperty(Styles.geometryType, () => hairData.geometryType, (newValue) => hairData.geometryType = newValue);
+
+            if (hairData.materialType == HairData.MaterialType.Physical)
+            {
+                // For now only allow scattering mode for strands, as the multiple scattering was developed against this for 21.2.
+                if (hairData.geometryType == HairData.GeometryType.Strands)
+                    AddProperty(Styles.scatteringMode, () => hairData.scatteringMode, (newValue) => hairData.scatteringMode = newValue);
+            }
         }
     }
 }

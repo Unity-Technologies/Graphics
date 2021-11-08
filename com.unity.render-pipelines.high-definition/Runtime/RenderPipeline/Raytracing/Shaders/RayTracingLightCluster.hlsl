@@ -69,3 +69,48 @@ EnvLightData FetchClusterEnvLightIndex(int cellIndex, uint lightIndex)
     int absoluteLightIndex = GetLightClusterCellLightByIndex(cellIndex, lightIndex);
     return _EnvLightDatasRT[absoluteLightIndex];
 }
+
+#ifdef HAS_LIGHTLOOP
+float3 RayTraceReflectionProbes(float3 rayOrigin, float3 rayDirection, inout float totalWeight)
+{
+    float3 result = 0.0;
+    totalWeight = 0.0;
+
+    uint lightStart = 0, lightEnd = 0, cellIndex = 0;
+    #ifdef USE_LIGHT_CLUSTER
+    // Get the punctual light count
+    GetLightCountAndStartCluster(rayOrigin, LIGHTCATEGORY_ENV, lightStart, lightEnd, cellIndex);
+    #else
+    lightStart = 0;
+    lightEnd = _EnvLightCountRT;
+    #endif
+    // Scalarized loop, same rationale of the punctual light version
+    uint envLightIdx = lightStart;
+    while (envLightIdx < lightEnd)
+    {
+        #ifdef USE_LIGHT_CLUSTER
+        EnvLightData envLightData = FetchClusterEnvLightIndex(cellIndex, envLightIdx);
+        #else
+        EnvLightData envLightData = _EnvLightDatasRT[envLightIdx];
+        #endif
+
+        if (IsEnvIndexCubemap(envLightData.envIndex) && totalWeight < 1.0)
+        {
+            float weight = 1.0;
+            float3 R = rayDirection;
+            float intersectionDistance = EvaluateLight_EnvIntersection(rayOrigin, rayDirection, envLightData, envLightData.influenceShapeType, R, weight);
+
+            int index = abs(envLightData.envIndex) - 1;
+            float3 probeResult = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, R, _EnvSliceSize * index, 0).rgb * envLightData.rangeCompressionFactorCompensation;
+            probeResult = ClampToFloat16Max(probeResult);
+
+            UpdateLightingHierarchyWeights(totalWeight, weight);
+            result += weight * probeResult * envLightData.multiplier;
+        }
+
+        envLightIdx++;
+    }
+    totalWeight = saturate(totalWeight);
+    return result;
+}
+#endif

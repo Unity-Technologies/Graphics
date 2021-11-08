@@ -66,7 +66,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_O
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma vertex BakedLitForwardPassVertex
             #pragma fragment BakedLitForwardPassFragment
@@ -82,7 +82,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
@@ -192,7 +192,8 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
-            #pragma fragment UniversalFragmentMetaBakedLit
+            #pragma fragment UniversalFragmentMetaUnlit
+            #pragma shader_feature EDITOR_VISUALIZATION
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitMetaPass.hlsl"
@@ -279,7 +280,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11
@@ -344,7 +345,8 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
-            #pragma fragment UniversalFragmentMetaBakedLit
+            #pragma fragment UniversalFragmentMetaUnlit
+            #pragma shader_feature EDITOR_VISUALIZATION
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitMetaPass.hlsl"

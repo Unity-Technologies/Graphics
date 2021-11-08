@@ -36,24 +36,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
-            TextureHandle result;
+            // Trace the signal
+            var traceResult = TraceAO(renderGraph, hdCamera, depthBuffer, normalBuffer, rayCountTexture, shaderVariablesRaytracing);
 
-            if (GetRayTracingState())
-            {
-                // Trace the signal
-                var traceResult = TraceAO(renderGraph, hdCamera, depthBuffer, normalBuffer, rayCountTexture, shaderVariablesRaytracing);
+            // Denoise if required
+            TextureHandle denoisedAO = DenoiseAO(renderGraph, hdCamera, traceResult, depthBuffer, normalBuffer, motionVectors, historyValidationBuffer);
 
-                // Denoise if required
-                result = DenoiseAO(renderGraph, hdCamera, traceResult, depthBuffer, normalBuffer, motionVectors, historyValidationBuffer);
-
-                // Compose the result to be done
-                result = ComposeAO(renderGraph, hdCamera, result);
-            }
-            else
-            {
-                result = renderGraph.defaultResources.blackTextureXR;
-            }
-            return result;
+            // Compose the result to be done
+            return ComposeAO(renderGraph, hdCamera, denoisedAO);
         }
 
         struct TraceAmbientOcclusionResult
@@ -73,6 +63,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float rayLength;
             public int sampleCount;
             public bool denoise;
+            public bool occluderMotionRejection;
+            public bool receiverMotionRejection;
 
             // Other parameters
             public RayTracingShader aoShaderRT;
@@ -106,11 +98,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayLength = aoSettings.rayLength;
                 passData.sampleCount = aoSettings.sampleCount;
                 passData.denoise = aoSettings.denoise;
+                passData.occluderMotionRejection = aoSettings.occluderMotionRejection.value;
+                passData.receiverMotionRejection = aoSettings.receiverMotionRejection.value;
 
                 // Other parameters
                 passData.raytracingCB = shaderVariablesRaytracing;
                 passData.aoShaderRT = m_GlobalSettings.renderPipelineRayTracingResources.aoRaytracingRT;
-                passData.rayTracingAccelerationStructure = RequestAccelerationStructure();
+                passData.rayTracingAccelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
 
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
@@ -118,9 +112,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
                 // Depending of if we will have to denoise (or not), we need to allocate the final format, or a bigger texture
                 passData.outputTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "Ray Traced Ambient Occlusion" }));
+                { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "Ray Traced Ambient Occlusion" }));
                 passData.velocityBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R8_SNorm, enableRandomWrite = true, name = "Velocity Buffer" }));
+                { colorFormat = GraphicsFormat.R8_SNorm, enableRandomWrite = true, name = "Velocity Buffer" }));
 
                 builder.SetRenderFunc(
                     (TraceRTAOPassData data, RenderGraphContext ctx) =>
@@ -168,11 +162,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Run the temporal denoiser
                 TextureHandle historyBuffer = renderGraph.ImportTexture(RequestAmbientOcclusionHistoryTexture(hdCamera));
-                TextureHandle denoisedRTAO = GetTemporalFilter().Denoise(renderGraph, hdCamera, singleChannel: true, historyValidity, traceAOResult.signalBuffer, traceAOResult.velocityBuffer, historyBuffer, depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);
+                HDTemporalFilter.TemporalFilterParameters filterParams;
+                filterParams.singleChannel = true;
+                filterParams.historyValidity = historyValidity;
+                filterParams.occluderMotionRejection = aoSettings.occluderMotionRejection.value;
+                filterParams.receiverMotionRejection = aoSettings.receiverMotionRejection.value;
+                filterParams.exposureControl = false;
+                filterParams.fullResolution = true;
+
+                TextureHandle denoisedRTAO = GetTemporalFilter().Denoise(renderGraph, hdCamera, filterParams,
+                    traceAOResult.signalBuffer, traceAOResult.velocityBuffer, historyBuffer,
+                    depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);
 
                 // Apply the diffuse denoiser
                 HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
-                return diffuseDenoiser.Denoise(renderGraph, hdCamera, singleChannel: true, kernelSize: aoSettings.denoiserRadius, halfResolutionFilter: false, jitterFilter: false, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
+                HDDiffuseDenoiser.DiffuseDenoiserParameters ddParams;
+                ddParams.singleChannel = true;
+                ddParams.kernelSize = aoSettings.denoiserRadius;
+                ddParams.halfResolutionFilter = false;
+                ddParams.jitterFilter = false;
+                ddParams.fullResolutionInput = true;
+                return diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
             }
             else
                 return traceAOResult.signalBuffer;

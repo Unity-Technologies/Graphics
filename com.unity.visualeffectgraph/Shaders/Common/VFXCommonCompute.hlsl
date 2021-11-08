@@ -54,7 +54,12 @@ float3 VFXGetViewWorldPosition()
     return (float3)0.0f;
 }
 
-float VFXLinearEyeDepth(float4 posSS)
+float VFXLinearEyeDepth(float depth)
+{
+    return 0.0f;
+}
+
+float VFXLinearEyeDepthOrthographic(float depth)
 {
     return 0.0f;
 }

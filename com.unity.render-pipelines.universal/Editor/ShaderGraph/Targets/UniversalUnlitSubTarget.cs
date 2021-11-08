@@ -29,12 +29,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var universalRPType = typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset);
             if (!context.HasCustomEditorForRenderPipeline(universalRPType))
             {
-                context.AddCustomEditorForRenderPipeline(typeof(ShaderGraphUnlitGUI).FullName, universalRPType);
+                var gui = typeof(ShaderGraphUnlitGUI);
+#if HAS_VFX_GRAPH
+                if (TargetsVFX())
+                    gui = typeof(VFXShaderGraphUnlitGUI);
+#endif
+                context.AddCustomEditorForRenderPipeline(gui.FullName, universalRPType);
             }
-
             // Process SubShaders
-            context.AddSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue));
-            context.AddSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue));
+            context.AddSubShader(PostProcessSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue)));
+            context.AddSubShader(PostProcessSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue)));
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -54,12 +58,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 material.SetFloat(Property.ZTest, (float)target.zTestMode);
             }
 
+            // We always need these properties regardless of whether the material is allowed to override
+            // Queue control & offset enable correct automatic render queue behavior
+            // Control == 0 is automatic, 1 is user-specified render queue
+            material.SetFloat(Property.QueueOffset, 0.0f);
+            material.SetFloat(Property.QueueControl, (float)BaseShaderGUI.QueueControl.Auto);
+
             // call the full unlit material setup function
             ShaderGraphUnlitGUI.UpdateMaterial(material, MaterialUpdateType.CreatedNewMaterial);
         }
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            base.GetFields(ref context);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -84,6 +95,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
                 collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
             }
+
+            // We always need these properties regardless of whether the material is allowed to override other shader properties.
+            // Queue control & offset enable correct automatic render queue behavior.  Control == 0 is automatic, 1 is user-specified.
+            // We initialize queue control to -1 to indicate to UpdateMaterial that it needs to initialize it properly on the material.
+            collector.AddFloatProperty(Property.QueueOffset, 0.0f);
+            collector.AddFloatProperty(Property.QueueControl, -1.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -138,6 +155,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(CorePasses.ShadowCaster(target));
 
+                // Currently neither of these passes (selection/picking) can be last for the game view for
+                // UI shaders to render correctly. Verify [1352225] before changing this order.
+                result.passes.Add(CorePasses.SceneSelection(target));
+                result.passes.Add(CorePasses.ScenePicking(target));
+
                 result.passes.Add(UnlitPasses.DepthNormalOnly(target));
 
                 return result;
@@ -164,6 +186,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
+
+                // Currently neither of these passes (selection/picking) can be last for the game view for
+                // UI shaders to render correctly. Verify [1352225] before changing this order.
+                result.passes.Add(CorePasses.SceneSelection(target));
+                result.passes.Add(CorePasses.ScenePicking(target));
 
                 result.passes.Add(UnlitPasses.DepthNormalOnly(target));
 

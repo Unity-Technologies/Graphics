@@ -18,7 +18,7 @@ MonoBehaviour:
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 140651589009244
-      data2: 4539628434053070872
+      data2: 13763000477350330392
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -48,7 +48,7 @@ MonoBehaviour:
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
       data1: 140060864290589
-      data2: 4539628424657895448
+      data2: 4539628426805411864
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -62,10 +62,10 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
-  m_RenderPipelineRayTracingResources: {fileID: 11400000, guid: ba6e7f30e5cffc249a8bf7ee5756c196,
-    type: 2}
+  m_RenderPipelineRayTracingResources: {fileID: 0}
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
+  afterPostProcessBlursCustomPostProcesses: []
   afterPostProcessCustomPostProcesses: []
   beforeTAACustomPostProcesses: []
   lightLayerName0: 
@@ -86,6 +86,7 @@ MonoBehaviour:
   decalLayerName7: 
   shaderVariantLogLevel: 0
   lensAttenuationMode: 0
+  colorGradingSpace: 1
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
   - {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
@@ -102,4 +103,64 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8471a5bfcdb8fff4f9406cd8079b8554, type: 2}
   - {fileID: 11400000, guid: fcb8f92518ca5d14bbd7e6751b28cd24, type: 2}
   - {fileID: 11400000, guid: 768484f758b6f7b4daf53a7d9949f5af, type: 2}
-  m_Version: 2
+  rendererListCulling: 0
+  DLSSProjectId: 000000
+  useDLSSCustomProjectId: 0
+  supportProbeVolumes: 1
+  supportRuntimeDebugDisplay: 0
+  apvScenesData:
+    serializedBounds:
+    - sceneGUID: 5028fc98db6fe304c90852113dca5b00
+      bounds:
+        m_Center: {x: 0, y: 0, z: 0}
+        m_Extent: {x: 40.5, y: 40.5, z: 40.5}
+    serializedHasVolumes:
+    - sceneGUID: 5028fc98db6fe304c90852113dca5b00
+      hasProbeVolumes: 1
+    serializedProfiles:
+    - sceneGUID: 5028fc98db6fe304c90852113dca5b00
+      profile: {fileID: 11400000, guid: c70ba2f8270ecc54fa63963d2f32413d, type: 2}
+    serializedBakeSettings:
+    - sceneGUID: 5028fc98db6fe304c90852113dca5b00
+      settings:
+        dilationSettings:
+          enableDilation: 1
+          dilationDistance: 1
+          dilationValidityThreshold: 0.25
+          dilationIterations: 1
+          squaredDistWeighting: 1
+        virtualOffsetSettings:
+          useVirtualOffset: 1
+          outOfGeoOffset: 0.01
+          searchMultiplier: 0.2
+    serializedBakingSets:
+    - name: Default
+      sceneGUIDs: []
+      settings:
+        dilationSettings:
+          enableDilation: 1
+          dilationDistance: 1
+          dilationValidityThreshold: 0.25
+          dilationIterations: 1
+          squaredDistWeighting: 1
+        virtualOffsetSettings:
+          useVirtualOffset: 1
+          outOfGeoOffset: 0.01
+          searchMultiplier: 0.2
+      profile: {fileID: 11400000, guid: c5b7fcbfc6aa87e458cb1c1893973b7c, type: 2}
+    - name: Test
+      sceneGUIDs:
+      - 5028fc98db6fe304c90852113dca5b00
+      settings:
+        dilationSettings:
+          enableDilation: 1
+          dilationDistance: 1
+          dilationValidityThreshold: 0.25
+          dilationIterations: 1
+          squaredDistWeighting: 1
+        virtualOffsetSettings:
+          useVirtualOffset: 1
+          outOfGeoOffset: 0.01
+          searchMultiplier: 0.2
+      profile: {fileID: 11400000, guid: c70ba2f8270ecc54fa63963d2f32413d, type: 2}
+  m_Version: 3

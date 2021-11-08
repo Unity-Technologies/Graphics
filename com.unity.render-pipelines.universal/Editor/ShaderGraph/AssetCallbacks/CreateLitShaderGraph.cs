@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.Occlusion,
             };
 
-            GraphUtil.CreateNewGraphWithOutputs(new[] {target}, blockDescriptors);
+            GraphUtil.CreateNewGraphWithOutputs(new[] { target }, blockDescriptors);
         }
     }
 }

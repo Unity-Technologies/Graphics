@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.Universal
 
                 extrusionData = new Color(shapePath[i].x, shapePath[i].y, shapePath[nextPoint].x, shapePath[nextPoint].y);
                 Vector2 midPoint = 0.5f * (shapePath[i] + shapePath[nextPoint]);
-                inputs[2 * i + 1] = new ContourVertex() { Position = new Vec3() { X = midPoint.x, Y = midPoint.y, Z = 0}, Data = extrusionData };
+                inputs[2 * i + 1] = new ContourVertex() { Position = new Vec3() { X = midPoint.x, Y = midPoint.y, Z = 0 }, Data = extrusionData };
             }
 
             Tess tessI = new Tess();

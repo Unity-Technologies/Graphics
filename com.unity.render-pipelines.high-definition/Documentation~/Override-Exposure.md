@@ -94,7 +94,7 @@ To configure **Automatic Mode**, select the **Metering Mode**. This tells the Ca
   | **Center Around Exposure target** | Whether the procedural mask will be centered around the GameObject set as Exposure Target in the [Camera](HDRP-Camera.md). |
   | **Center**                        | Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen). Available only when **Center Around Exposure target**  is disabled. |
   | **Offset**                        | Sets an offset to where mask is centered . Available only when **Center Around Exposure target**  is enabled. |
-  | **Radii**                         | Sets the radii (horizontal and vertical) of the procedural mask, in terms of fraction of half the screen (i.e. 0.5 means a mask that stretch half of the screen in both directions). |
+  | **Radius**                        | Sets the radiuses (horizontal and vertical) of the procedural mask, in terms of fraction of half the screen (i.e. 0.5 means a mask that stretch half of the screen in both directions). |
   | **Softness**                      | Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask. |
   | **Mask Min Intensity**            | All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. |
   | **Mask Max Intensity**            | All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. |

@@ -5,7 +5,7 @@ Shader "Hidden/VoxelizeShader"
     {
 
         HLSLINCLUDE
-        #include "SdfUtils.hlsl"
+        #include "Packages/com.unity.visualeffectgraph/Shaders/SDFBaker/SdfUtils.hlsl"
         #define AABB_EPS 1e-5
 
     // Vertex input attributes
@@ -20,12 +20,14 @@ Shader "Hidden/VoxelizeShader"
         float4 position : SV_POSITION;
         uint triangleID : TEXCOORD0;
     };
-    RWStructuredBuffer<float4> voxels : register(u1);
     StructuredBuffer<float4> vertices;
     StructuredBuffer<int> coordFlip;
+
+    RWStructuredBuffer<float4> voxels : register(u1);
     RWStructuredBuffer<float4> aabb : register(u4);
     RWStructuredBuffer<uint> counter : register(u2);
     RWStructuredBuffer<uint> triangleIDs : register(u3);
+
     int currentAxis;
 
     int dimX, dimY, dimZ;

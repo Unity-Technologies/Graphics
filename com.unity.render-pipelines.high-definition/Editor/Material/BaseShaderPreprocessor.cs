@@ -58,8 +58,14 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_ProbeVolumesL1;
         protected ShaderKeyword m_ProbeVolumesL2;
         protected ShaderKeyword m_DecalSurfaceGradient;
+        protected ShaderKeyword m_EditorVisualization;
 
         protected ShadowKeywords m_ShadowKeywords;
+
+#if !ENABLE_SENSOR_SDK
+        protected ShaderKeyword m_SensorEnableLidar;
+        protected ShaderKeyword m_SensorOverrideReflectance;
+#endif
 
         protected Dictionary<HDShadowFilteringQuality, ShaderKeyword> m_ShadowVariants;
 
@@ -91,7 +97,13 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
             m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
             m_DecalSurfaceGradient = new ShaderKeyword("DECAL_SURFACE_GRADIENT");
+            m_EditorVisualization = new ShaderKeyword("EDITOR_VISUALIZATION");
             m_ShadowKeywords = new ShadowKeywords();
+
+#if !ENABLE_SENSOR_SDK
+            m_SensorEnableLidar = new ShaderKeyword("SENSORSDK_ENABLE_LIDAR");
+            m_SensorOverrideReflectance = new ShaderKeyword("SENSORSDK_OVERRIDE_REFLECTANCE");
+#endif
         }
 
         public bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet,

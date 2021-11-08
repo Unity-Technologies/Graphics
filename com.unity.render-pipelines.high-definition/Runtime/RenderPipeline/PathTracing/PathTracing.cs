@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Path Tracing effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing (Preview)")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Ray Tracing/Path Tracing (Preview)", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Ray-Tracing-Path-Tracing")]
     public sealed class PathTracing : VolumeComponent
     {
@@ -52,6 +52,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter maximumIntensity = new MinFloatParameter(10f, 0f);
 
         /// <summary>
+        /// Defines the number of tiles (X: width, Y: height) and the indices of the current tile (Z: i in [0, width[, W: j in [0, height[) for interleaved tiled rendering.
+        /// </summary>
+        [Tooltip("Defines the number of tiles (X: width, Y: height) and the indices of the current tile (Z: i in [0, width[, W: j in [0, height[) for interleaved tiled rendering.")]
+        public Vector4Parameter tilingParameters = new Vector4Parameter(new Vector4(1, 1, 0, 0));
+
+        /// <summary>
         /// Default constructor for the path tracing volume component.
         /// </summary>
         public PathTracing()
@@ -68,9 +74,9 @@ namespace UnityEngine.Rendering.HighDefinition
         uint  m_CacheMaxIteration = 0;
 #endif // UNITY_EDITOR
         ulong m_CacheAccelSize = 0;
-        uint  m_CacheLightCount = 0;
-        int   m_CameraID = 0;
-        bool  m_RenderSky = true;
+        uint m_CacheLightCount = 0;
+        int m_CameraID = 0;
+        bool m_RenderSky = true;
 
         TextureHandle m_FrameTexture; // stores the per-pixel results of path tracing for one frame
         TextureHandle m_SkyTexture; // stores the sky background
@@ -106,17 +112,33 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif // UNITY_EDITOR
         }
 
-        internal void ResetPathTracing()
+        /// <summary>
+        /// Resets path tracing accumulation for all cameras.
+        /// </summary>
+        public void ResetPathTracing()
         {
             m_RenderSky = true;
             m_SubFrameManager.Reset();
         }
 
-        internal void ResetPathTracing(int camID, CameraData camData)
+        /// <summary>
+        /// Resets path tracing accumulation for a specific camera.
+        /// </summary>
+        /// <param name="hdCamera">Camera for which the accumulation is reset.</param>
+        public void ResetPathTracing(HDCamera hdCamera)
+        {
+            int camID = hdCamera.camera.GetInstanceID();
+            CameraData camData = m_SubFrameManager.GetCameraData(camID);
+            ResetPathTracing(camID, camData);
+        }
+
+        internal CameraData ResetPathTracing(int camID, CameraData camData)
         {
             m_RenderSky = true;
             camData.ResetIteration();
             m_SubFrameManager.SetCameraData(camID, camData);
+
+            return camData;
         }
 
         private Vector4 ComputeDoFConstants(HDCamera hdCamera, PathTracing settings)
@@ -160,24 +182,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif // UNITY_EDITOR
 
-        private void CheckDirtiness(HDCamera hdCamera)
+        private CameraData CheckDirtiness(HDCamera hdCamera, int camID, CameraData camData)
         {
-            if (m_SubFrameManager.isRecording)
-            {
-                return;
-            }
-
-            // Grab the cached data for the current camera
-            int camID = hdCamera.camera.GetInstanceID();
-            CameraData camData = m_SubFrameManager.GetCameraData(camID);
-
             // Check camera resolution dirtiness
             if (hdCamera.actualWidth != camData.width || hdCamera.actualHeight != camData.height)
             {
                 camData.width = (uint)hdCamera.actualWidth;
                 camData.height = (uint)hdCamera.actualHeight;
-                ResetPathTracing(camID, camData);
-                return;
+                return ResetPathTracing(camID, camData);
             }
 
             // Check camera sky dirtiness
@@ -185,8 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.skyEnabled)
             {
                 camData.skyEnabled = enabled;
-                ResetPathTracing(camID, camData);
-                return;
+                return ResetPathTracing(camID, camData);
             }
 
             // Check camera fog dirtiness
@@ -194,31 +205,29 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.fogEnabled)
             {
                 camData.fogEnabled = enabled;
-                ResetPathTracing(camID, camData);
-                return;
+                return ResetPathTracing(camID, camData);
             }
 
             // Check camera matrix dirtiness
             if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
             {
-                ResetPathTracing(camID, camData);
-                return;
+                return ResetPathTracing(camID, camData);
             }
 
             // Check materials dirtiness
-            if (m_MaterialsDirty)
+            if (GetMaterialDirtiness(hdCamera))
             {
-                m_MaterialsDirty = false;
+                ResetMaterialDirtiness(hdCamera);
                 ResetPathTracing();
-                return;
+                return camData;
             }
 
             // Check light or geometry transforms dirtiness
-            if (m_TransformDirty)
+            if (GetTransformDirtiness(hdCamera))
             {
-                m_TransformDirty = false;
+                ResetTransformDirtiness(hdCamera);
                 ResetPathTracing();
-                return;
+                return camData;
             }
 
             // Check lights dirtiness
@@ -226,11 +235,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_CacheLightCount = (uint)m_RayTracingLights.lightCount;
                 ResetPathTracing();
-                return;
+                return camData;
             }
 
             // Check geometry dirtiness
-            ulong accelSize = m_CurrentRAS.GetSize();
+            ulong accelSize = RequestAccelerationStructure(hdCamera).GetSize();
             if (accelSize != m_CacheAccelSize)
             {
                 m_CacheAccelSize = accelSize;
@@ -243,6 +252,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_RenderSky = true;
                 m_CameraID = camID;
             }
+
+            return camData;
         }
 
         static RTHandle PathTracingHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
@@ -262,34 +273,49 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture skyReflection;
             public Matrix4x4 pixelCoordToViewDirWS;
             public Vector4 dofParameters;
+            public Vector4 tilingParameters;
             public int width, height;
             public RayTracingAccelerationStructure accelerationStructure;
             public HDRaytracingLightCluster lightCluster;
 
             public TextureHandle output;
             public TextureHandle sky;
+
+#if ENABLE_SENSOR_SDK
+            public Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays;
+#endif
         }
 
         TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, in CameraData cameraData, TextureHandle pathTracingBuffer, TextureHandle skyBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render PathTracing", out var passData))
             {
+#if ENABLE_SENSOR_SDK
+                passData.pathTracingShader = hdCamera.pathTracingShaderOverride ? hdCamera.pathTracingShaderOverride : m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
+                passData.prepareDispatchRays = hdCamera.prepareDispatchRays;
+#else
                 passData.pathTracingShader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
+#endif
                 passData.cameraData = cameraData;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
                 passData.backgroundColor = hdCamera.backgroundColorHDR;
                 passData.skyReflection = m_SkyManager.GetSkyReflection(hdCamera);
                 passData.pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
                 passData.dofParameters = ComputeDoFConstants(hdCamera, m_PathTracingSettings);
+                passData.tilingParameters = m_PathTracingSettings.tilingParameters.value;
                 passData.width = hdCamera.actualWidth;
                 passData.height = hdCamera.actualHeight;
-                passData.accelerationStructure = RequestAccelerationStructure();
+                passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
 
                 passData.shaderVariablesRaytracingCB = m_ShaderVariablesRayTracingCB;
                 passData.shaderVariablesRaytracingCB._RaytracingNumSamples = (int)m_SubFrameManager.subFrameCount;
                 passData.shaderVariablesRaytracingCB._RaytracingMinRecursion = m_PathTracingSettings.minimumDepth.value;
+#if NO_RAY_RECURSION
+                passData.shaderVariablesRaytracingCB._RaytracingMaxRecursion = 1;
+#else
                 passData.shaderVariablesRaytracingCB._RaytracingMaxRecursion = m_PathTracingSettings.maximumDepth.value;
+#endif
                 passData.shaderVariablesRaytracingCB._RaytracingIntensityClamp = m_PathTracingSettings.maximumIntensity.value;
                 passData.shaderVariablesRaytracingCB._RaytracingSampleIndex = (int)cameraData.currentIteration;
 
@@ -324,8 +350,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Additional data for path tracing
                         ctx.cmd.SetRayTracingTextureParam(data.pathTracingShader, HDShaderIDs._FrameTexture, data.output);
                         ctx.cmd.SetRayTracingMatrixParam(data.pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDirWS);
-                        ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracedDoFConstants, data.dofParameters);
+                        ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracingDoFParameters, data.dofParameters);
+                        ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracingTilingParameters, data.tilingParameters);
 
+#if ENABLE_SENSOR_SDK
+                        // SensorSDK can do its own camera rays generation
+                        data.prepareDispatchRays?.Invoke(ctx.cmd);
+#endif
                         // Run the computation
                         ctx.cmd.DispatchRays(data.pathTracingShader, "RayGen", (uint)data.width, (uint)data.height, 1);
                     });
@@ -343,7 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky for Path Tracing", out var passData))
             {
                 passData.visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-                passData.sunLight = GetCurrentSunLight();
+                passData.sunLight = GetMainLight();
                 passData.hdCamera = hdCamera;
                 passData.colorBuffer = builder.WriteTexture(skyBuffer);
                 passData.depthTexture = builder.WriteTexture(CreateDepthBuffer(renderGraph, true, MSAASamples.None));
@@ -367,12 +398,29 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!pathTracingShader || !m_PathTracingSettings.enable.value)
                 return TextureHandle.nullHandle;
 
-            CheckDirtiness(hdCamera);
+            int camID = hdCamera.camera.GetInstanceID();
+            CameraData camData = m_SubFrameManager.GetCameraData(camID);
+
+            // Check if the camera has a valid history buffer and if not reset the accumulation.
+            // This can happen if a script disables and re-enables the camera (case 1337843).
+            if (!hdCamera.isPersistent && hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing) == null)
+            {
+                m_SubFrameManager.Reset(camID);
+            }
 
             if (!m_SubFrameManager.isRecording)
             {
+                // Check if things have changed and if we need to restart the accumulation
+                camData = CheckDirtiness(hdCamera, camID, camData);
+
                 // If we are recording, the max iteration is set/overridden by the subframe manager, otherwise we read it from the path tracing volume
                 m_SubFrameManager.subFrameCount = (uint)m_PathTracingSettings.maximumSamples.value;
+            }
+            else
+            {
+                // When recording, as be bypass dirtiness checks which update camData, we need to indicate whether we want to render a sky or not
+                camData.skyEnabled = (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky);
+                m_SubFrameManager.SetCameraData(camID, camData);
             }
 
 #if UNITY_HDRP_DXR_TESTS_DEFINE
@@ -380,8 +428,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SubFrameManager.subFrameCount = 1;
 #endif
 
-            var cameraData = m_SubFrameManager.GetCameraData(hdCamera.camera.GetInstanceID());
-            if (cameraData.currentIteration < m_SubFrameManager.subFrameCount)
+            if (camData.currentIteration < m_SubFrameManager.subFrameCount)
             {
                 // Keep a sky texture around, that we compute only once per accumulation (except when recording, with potential camera motion blur)
                 if (m_RenderSky || m_SubFrameManager.isRecording)
@@ -390,7 +437,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_RenderSky = false;
                 }
 
-                RenderPathTracing(m_RenderGraph, hdCamera, cameraData, m_FrameTexture, m_SkyTexture);
+                RenderPathTracing(m_RenderGraph, hdCamera, camData, m_FrameTexture, m_SkyTexture);
             }
 
             RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, true);

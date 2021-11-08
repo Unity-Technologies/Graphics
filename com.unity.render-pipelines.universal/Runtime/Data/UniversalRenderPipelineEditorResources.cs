@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Nature/SpeedTree7.shader")]
             public Shader defaultSpeedTree7PS;
 
-            [Reload("Shaders/Nature/SpeedTree8.shader")]
+            [Reload("Shaders/Nature/SpeedTree8_PBRLit.shadergraph")]
             public Shader defaultSpeedTree8PS;
         }
 

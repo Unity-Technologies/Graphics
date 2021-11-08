@@ -8,14 +8,14 @@ public class GraphicTestTools
     [MenuItem("Internal/GraphicTest Tools/Make Material Scene Instance")]
     public static void MakeMaterialSceneInstance()
     {
-        foreach(Object obj in Selection.objects)
+        foreach (Object obj in Selection.objects)
         {
             Renderer rndr = ((GameObject)obj).GetComponent<Renderer>();
-            if(rndr!=null)
+            if (rndr != null)
             {
                 Material[] mats = rndr.sharedMaterials;
 
-                for (int i=0; i< mats.Length; ++i)
+                for (int i = 0; i < mats.Length; ++i)
                 {
                     if (mats[i] != null)
                     {
@@ -35,7 +35,7 @@ public class GraphicTestTools
     {
         MultiMaterialPlacer[] placers = Object.FindObjectsOfType<MultiMaterialPlacer>();
 
-        for (int i=0; i<placers.Length; ++i)
+        for (int i = 0; i < placers.Length; ++i)
         {
             MultiMaterialPlacerEditor.PlaceObjects(placers[i]);
         }
@@ -44,11 +44,11 @@ public class GraphicTestTools
     [MenuItem("Internal/GraphicTest Tools/Auto name Text Objects")]
     public static void AutoNameTextObjects()
     {
-        foreach( Object obj in Resources.FindObjectsOfTypeAll( typeof(TextMesh) ) )
+        foreach (Object obj in Resources.FindObjectsOfTypeAll(typeof(TextMesh)))
         {
             TextMesh tm = obj as TextMesh;
             string name = tm.text;
-            name = name.Replace( System.Environment.NewLine, " " );
+            name = name.Replace(System.Environment.NewLine, " ");
             tm.gameObject.name = name;
         }
     }

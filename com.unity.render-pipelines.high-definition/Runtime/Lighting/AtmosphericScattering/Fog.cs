@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Fog Volume Component.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Fog")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Fog", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Override-Fog")]
     public class Fog : VolumeComponentWithQuality
     {
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private ClampedFloatParameter m_VolumetricFogBudget = new ClampedFloatParameter(0.25f, 0.0f, 1.0f);
 
         /// <summary>Controls how Unity shares resources between Screen (XY) and Depth (Z) resolutions.</summary>
-        /// <remarks>A value of 0 means Unity allocates all of the resources to the XY resolution, which reduces aliasing, but increases noise. A value of 1 means Unity allocates all of the resources to the Z resolution, which reduces noise, but increases aliasing. This property allows for linear interpolation between the two configurations.<remarks>
+        /// <remarks>A value of 0 means Unity allocates all of the resources to the XY resolution, which reduces aliasing, but increases noise. A value of 1 means Unity allocates all of the resources to the Z resolution, which reduces noise, but increases aliasing. This property allows for linear interpolation between the two configurations.</remarks>
         public float resolutionDepthRatio
         {
             get
@@ -138,6 +138,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_ResolutionDepthRatio.value = value; }
         }
+
+        /// <summary>Controls how Unity shares resources between Screen (XY) and Depth (Z) resolutions.</summary>
         [AdditionalProperty]
         [SerializeField, FormerlySerializedAs("resolutionDepthRatio")]
         [Tooltip("Controls how Unity shares resources between Screen (x-axis and y-axis) and Depth (z-axis) resolutions.")]
@@ -218,7 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Color fogColor = (colorMode.value == FogColorMode.ConstantColor) ? color.value : tint.value;
             cb._FogColorMode = (float)colorMode.value;
             cb._FogColor = new Color(fogColor.r, fogColor.g, fogColor.b, 0.0f);
-            cb._MipFogParameters  = new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f);
+            cb._MipFogParameters = new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f);
 
             LocalVolumetricFogArtistParameters param = new LocalVolumetricFogArtistParameters(albedo.value, meanFreePath.value, anisotropy.value);
             LocalVolumetricFogEngineData data = param.ConvertToEngineData();
@@ -239,6 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._HeightFogBaseHeight = crBaseHeight;
             cb._GlobalFogAnisotropy = anisotropy.value;
             cb._VolumetricFilteringEnabled = ((int)denoisingMode.value & (int)FogDenoisingMode.Gaussian) != 0 ? 1 : 0;
+            cb._FogDirectionalOnly = directionalLightsOnly.value ? 1 : 0;
         }
     }
 
@@ -257,7 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
     sealed class FogTypeParameter : VolumeParameter<FogType>
     {
         public FogTypeParameter(FogType value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -272,7 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">Fog Color Parameter.</param>
         /// <param name="overrideState">Initial override state.</param>
         public FogColorParameter(FogColorMode value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -302,7 +305,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public FogControlParameter(FogControl value, bool overrideState = false) : base(value, overrideState) {}
+        public FogControlParameter(FogControl value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -339,6 +342,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public FogDenoisingModeParameter(FogDenoisingMode value, bool overrideState = false) : base(value, overrideState) {}
+        public FogDenoisingModeParameter(FogDenoisingMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

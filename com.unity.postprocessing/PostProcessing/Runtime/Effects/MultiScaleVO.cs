@@ -200,10 +200,10 @@ namespace UnityEngine.Rendering.PostProcessing
             PushRenderCommands(cmd, ShaderIDs.TiledDepth3, ShaderIDs.Occlusion3, GetSizeArray(MipLevel.L5), tanHalfFovH, isMSAA);
             PushRenderCommands(cmd, ShaderIDs.TiledDepth4, ShaderIDs.Occlusion4, GetSizeArray(MipLevel.L6), tanHalfFovH, isMSAA);
 
-            PushUpsampleCommands(cmd, ShaderIDs.LowDepth4, ShaderIDs.Occlusion4, ShaderIDs.LowDepth3,   ShaderIDs.Occlusion3, ShaderIDs.Combined3, GetSize(MipLevel.L4), GetSize(MipLevel.L3), isMSAA);
-            PushUpsampleCommands(cmd, ShaderIDs.LowDepth3, ShaderIDs.Combined3,  ShaderIDs.LowDepth2,   ShaderIDs.Occlusion2, ShaderIDs.Combined2, GetSize(MipLevel.L3), GetSize(MipLevel.L2), isMSAA);
-            PushUpsampleCommands(cmd, ShaderIDs.LowDepth2, ShaderIDs.Combined2,  ShaderIDs.LowDepth1,   ShaderIDs.Occlusion1, ShaderIDs.Combined1, GetSize(MipLevel.L2), GetSize(MipLevel.L1), isMSAA);
-            PushUpsampleCommands(cmd, ShaderIDs.LowDepth1, ShaderIDs.Combined1,  ShaderIDs.LinearDepth, null,                 destination,         GetSize(MipLevel.L1), GetSize(MipLevel.Original), isMSAA, invert);
+            PushUpsampleCommands(cmd, ShaderIDs.LowDepth4, ShaderIDs.Occlusion4, ShaderIDs.LowDepth3, ShaderIDs.Occlusion3, ShaderIDs.Combined3, GetSize(MipLevel.L4), GetSize(MipLevel.L3), isMSAA);
+            PushUpsampleCommands(cmd, ShaderIDs.LowDepth3, ShaderIDs.Combined3, ShaderIDs.LowDepth2, ShaderIDs.Occlusion2, ShaderIDs.Combined2, GetSize(MipLevel.L3), GetSize(MipLevel.L2), isMSAA);
+            PushUpsampleCommands(cmd, ShaderIDs.LowDepth2, ShaderIDs.Combined2, ShaderIDs.LowDepth1, ShaderIDs.Occlusion1, ShaderIDs.Combined1, GetSize(MipLevel.L2), GetSize(MipLevel.L1), isMSAA);
+            PushUpsampleCommands(cmd, ShaderIDs.LowDepth1, ShaderIDs.Combined1, ShaderIDs.LinearDepth, null, destination, GetSize(MipLevel.L1), GetSize(MipLevel.Original), isMSAA, invert);
 
             // Cleanup
             PushReleaseCommands(cmd);

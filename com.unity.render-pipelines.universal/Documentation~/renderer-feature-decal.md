@@ -22,6 +22,14 @@ The following illustration shows a Decal Projector in the Scene.
 
 For more information, see also [Decal Projector component](#decal-projector-component).
 
+<a name="decal-gameobject"></a>An alternative way to add decals to a Scene:
+
+1. Create a Quad GameObject.
+
+2. Assign a Decal Material to the GameObject.
+
+3. Position the Quad on the surface where you want the decal to be. If necessary, adjust the [mesh bias](decal-shader.md#mesh-bias-type) value to prevent z-fighting.
+
 ## Limitations
 
 This feature has the following limitations:
@@ -56,7 +64,7 @@ Selecting this technique reveals the **Surface Data** property. The Surface Data
 
 **Limitations:**
 
-* This technique requires the DepthNormal prepass, which does not work with tile-based rendering.
+* This technique requires the DepthNormal prepass, which makes the technique less efficient on GPUs that implement tile-based rendering.
 
 * This technique does not work on particles and terrain details.
 
@@ -87,6 +95,8 @@ For more information on how to use the Decal Projector, see section [How to use 
 The Decal Projector component contains the Scene view editing tools and the Decal Projector properties.
 
 ![Decal Projector component in the Inspector.](Images/decal/decal-projector-component-inspector.png)<br/>*Decal Projector component in the Inspector.*
+
+> **NOTE**: If you assign a Decal Material to a GameObject directly (not via a Decal Projector component), then Decal Projectors do not project decals on such GameObject.
 
 ### Decal Scene view editing tools
 
@@ -119,7 +129,7 @@ This section describes the Decal Projector component properties.
 | __Height__              | The height of the projector bounding box. The projector scales the decal to match this value along the local Y axis. |
 | __Projection Depth__    | The depth of the projector bounding box. The projector projects decals along the local Z axis. |
 | __Pivot__               | The offset position of the center of the projector bounding box relative to the origin of the root GameObject. |
-| __Material__            | The Material to project. The Material must use the [Decal Shader Graph](decal-shader.md). |
+| __Material__            | The Material to project. The Material must use a Shader Graph that has the Decal Material type. For more information, see the page [Decal Shader Graph](decal-shader.md). |
 | __Tiling__              | The tiling values for the decal Material along its UV axes. |
 | __Offset__              | The offset values for the decal Material along its UV axes. |
 | __Opacity__             | This property lets you specify the opacity value. A value of 0 makes the decal fully transparent, a value of 1 makes the decal as opaque as defined by the __Material__. |

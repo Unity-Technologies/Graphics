@@ -30,9 +30,29 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
 
 #ifdef _MATERIAL_AFFECTS_EMISSION
     surfaceData.emissive = _EmissiveColor.rgb * fadeFactor;
-    #ifdef _EMISSIVEMAP
+#ifdef _EMISSIVEMAP
+    #if (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
+    // Fogbugzz 1359282. With projector emissive we can have issue with mips evaluation at the silhouette
+    // so perform the processing ourselve. But not all paltform support GetDimensions() so in case it is not
+    // supported we just used lof 0
+    #if defined(MIP_COUNT_SUPPORTED)
+    float2 emissiveColorMapSize;
+    float emissiveColorMapLODs;
+    _EmissiveColorMap.GetDimensions(0, emissiveColorMapSize.x, emissiveColorMapSize.y, emissiveColorMapLODs);
+    float2 uvdx = ddx(texCoords * emissiveColorMapSize), uvdy = ddy(texCoords * emissiveColorMapSize);
+    // float lod = 0.5f * log2(dot(uvdx, uvdx) + dot(uvdy, uvdy)) - 1.0f;
+    float lod = 0.5f * log2(max(dot(uvdx, uvdx), dot(uvdy, uvdy))) - 1.0f;
+    float lddx = ddx(posInput.linearDepth), lddy  = ddy(posInput.linearDepth);
+    float ldd = max(dot(lddx, lddx), dot(lddy, lddy));
+    float maxlod = emissiveColorMapLODs * (1.0f - 4.0f * ldd);
+    surfaceData.emissive *= SAMPLE_TEXTURE2D_LOD(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords, min(lod, maxlod)).rgb;
+    #else
+    surfaceData.emissive *= SAMPLE_TEXTURE2D_LOD(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords, 0.0).rgb;
+    #endif // defined(MIP_COUNT_SUPPORTED)
+    #else
     surfaceData.emissive *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords).rgb;
-    #endif
+    #endif // (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
+#endif // _EMISSIVEMAP
 
     // Inverse pre-expose using _EmissiveExposureWeight weight
     float3 emissiveRcpExposure = surfaceData.emissive * GetInverseCurrentExposureMultiplier();
@@ -92,8 +112,21 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
     float3x3 tangentToWorld = input.tangentToWorld;
     #endif
 
-    // consider oriented decal a volume bump map and use equation 2. in "Bump Mapping Unparametrized Surfaces on the GPU"
-    // since the volume gradient is a linear operator. (eq. 2 is used in gbuffer pass)
+    // Consider oriented decal a volume bump map and use equation 2. in "Bump Mapping Unparametrized Surfaces on the GPU"
+    // since the volume gradient is a linear operator (eq. 2 is used in gbuffer pass).
+    //
+    // For decal projectors, the heightmap can conceptually be thought of being directly (trivially) embedded in the (ambient)
+    // world space, with the orthogonal projection direction of the projector being the dimension in which the volume texture
+    // doesn't change (is a constant - we only have a 2D map after all) and thus the volume gradient is zero.
+    // For mesh projectors, the heightmap is warped along the mesh surface and the volume gradient is zero along each normal.
+    // Note: Since we sum volume gradients each having different directions and more importantly, the resulting gradient will most
+    // probably have a component colinear with the direction of the mesh (vertex) surface normal of the final decal receiver,
+    // it is important to extract from the volume gradient a surface gradient with regard to that final receiver mesh (vertex) normal
+    // by removing any component colinear to the later (this is done with SurfaceGradientFromVolumeGradient).
+    //
+    // This must be done regardless if the shader of the receiver supports surface gradients or not (see DecalUtilities.hlsl:
+    // GetDecalSurfaceData will resolve the gradient immediately in that case to return a corresponding perturbed normal from
+    // the receiver unperturbed (vertex) surface normal)
     surfaceData.normalWS.xyz = SurfaceGradientFromTBN(deriv, tangentToWorld[0], tangentToWorld[1]);
 
 #else // DECAL_SURFACE_GRADIENT

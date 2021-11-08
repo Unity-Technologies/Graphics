@@ -52,6 +52,13 @@ namespace UnityEngine.VFX.SDF
 
         internal static uint kMaxGridSize = 1 << 24;
 
+        //TODO: Use PLATFORM_UAVS_SEPARATE_TO_RTS (or equivalent) when it will be available
+#if (UNITY_PS4 || UNITY_PS5) && (!UNITY_EDITOR)
+        private static int kNbActualRT = 1;
+#else
+        private static int kNbActualRT = 0;
+#endif
+
         internal VFXRuntimeResources m_RuntimeResources;
 
         private struct Triangle
@@ -420,7 +427,7 @@ namespace UnityEngine.VFX.SDF
 
         void UpdateCameras()
         {
-            Vector3 pos =  m_Center + Vector3.back * (m_SizeBox.z * 0.5f + 1f);
+            Vector3 pos = m_Center + Vector3.back * (m_SizeBox.z * 0.5f + 1f);
             Quaternion rot = Quaternion.identity;
             float near = 1.0f;
             float far = near + m_SizeBox.z;
@@ -433,7 +440,7 @@ namespace UnityEngine.VFX.SDF
 
             pos = m_Center + Vector3.left * (m_SizeBox.x * 0.5f + 1f);
             rot = Quaternion.Euler(0, 90, 90);
-            far =  near + m_SizeBox.x;
+            far = near + m_SizeBox.x;
             m_WorldToClip[2] = ComputeOrthographicWorldToClip(pos, rot, m_SizeBox.y, m_SizeBox.z, near, far, out m_ProjMat[2], out m_ViewMat[2]);
         }
 
@@ -463,7 +470,7 @@ namespace UnityEngine.VFX.SDF
                 Mathf.CeilToInt((float)nVoxels / m_ThreadGroupSize), 1, 1);
 
 
-            int nBlocks = iDivUp(nVoxels , m_ThreadGroupSize);
+            int nBlocks = iDivUp(nVoxels, m_ThreadGroupSize);
             if (nBlocks > m_ThreadGroupSize) //If the number of cells is bigger than m_ThreadGroupSize^2, (512^2, 64^3), apply prefix sum recursively
             {
                 m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.toBlockSumBuffer, ShaderProperties.inputCounter, m_CounterBuffer);
@@ -739,10 +746,10 @@ namespace UnityEngine.VFX.SDF
             for (var i = 0; i < 3; i++)
             {
                 m_Cmd.SetRenderTarget(m_RenderTextureViews[i]);
-                m_Cmd.SetRandomWriteTarget(3, m_TrianglesInVoxels, false);
-                m_Cmd.SetRandomWriteTarget(2, m_AccumCounterBuffer, false);
-                m_Cmd.SetViewProjectionMatrices(m_ViewMat[i], m_ProjMat[i]);
                 m_Cmd.ClearRenderTarget(true, true, Color.black, 1.0f);
+                m_Cmd.SetRandomWriteTarget(3 + kNbActualRT, m_TrianglesInVoxels, false);
+                m_Cmd.SetRandomWriteTarget(2 + kNbActualRT, m_AccumCounterBuffer, false);
+                m_Cmd.SetViewProjectionMatrices(m_ViewMat[i], m_ProjMat[i]);
                 m_Cmd.DrawProcedural(Matrix4x4.identity, m_Material[i], 1, MeshTopology.Triangles, nTriangles * 3);
             }
 
@@ -767,11 +774,11 @@ namespace UnityEngine.VFX.SDF
             {
                 m_Cmd.ClearRandomWriteTargets();
                 m_Cmd.SetRenderTarget(m_RenderTextureViews[i]);
-                m_Cmd.SetRandomWriteTarget(4, m_AabbBuffer, false);
-                m_Cmd.SetRandomWriteTarget(1, m_bufferVoxel, false);
-                m_Cmd.SetRandomWriteTarget(2, m_CounterBuffer, false);
-                m_Cmd.SetViewProjectionMatrices(m_ViewMat[i], m_ProjMat[i]);
                 m_Cmd.ClearRenderTarget(true, true, Color.black, 1.0f);
+                m_Cmd.SetRandomWriteTarget(4 + kNbActualRT, m_AabbBuffer, false);
+                m_Cmd.SetRandomWriteTarget(1 + kNbActualRT, m_bufferVoxel, false);
+                m_Cmd.SetRandomWriteTarget(2 + kNbActualRT, m_CounterBuffer, false);
+                m_Cmd.SetViewProjectionMatrices(m_ViewMat[i], m_ProjMat[i]);
                 m_Cmd.DrawProcedural(Matrix4x4.identity, m_Material[i], 0, MeshTopology.Triangles, nTriangles * 3);
             }
 

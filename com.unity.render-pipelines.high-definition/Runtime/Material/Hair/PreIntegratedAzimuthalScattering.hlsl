@@ -1,10 +1,12 @@
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/PreIntegratedAzimuthalScattering.cs.hlsl"
+TEXTURE3D(_PreIntegratedAverageHairFiberScattering);
 
-TEXTURE2D(_PreIntegratedAzimuthalScattering);
-
-// Returns the azimuthal scattering distribution term.
-float GetPreIntegratedAzimuthalScattering(float beta, float theta, float phi)
+// Returns the roughened azimuthal scattering distribution term for all three lobes.
+float3 GetRoughenedAzimuthalScatteringDistribution(float phi, float cosThetaD, float beta)
 {
-    // TODO: Evaluate a gaussian with the sampled weights from the LUT and Phi.
-    return 0;
+    const float X = (phi + TWO_PI) / FOUR_PI;
+    const float Y = cosThetaD;
+    const float Z = beta;
+
+    // TODO: It should be possible to reduce the domain of the integration to 0 -> HALF/PI as it repeats. This will save memory.
+    return SAMPLE_TEXTURE3D_LOD(_PreIntegratedAverageHairFiberScattering, s_linear_clamp_sampler, float3(X, Y, Z), 0).xyz;
 }

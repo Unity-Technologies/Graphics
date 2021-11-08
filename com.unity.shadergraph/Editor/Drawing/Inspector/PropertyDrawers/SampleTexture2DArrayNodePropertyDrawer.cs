@@ -18,8 +18,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             var node = nodeBase as SampleTexture2DArrayNode;
             PropertyDrawerUtils.AddCustomCheckboxProperty(
                 parentElement, nodeBase, setNodesAsDirtyCallback, updateNodeViewsCallback,
-                "Disable Global Mip Bias", "Change Disable Global Mip Bias",
-                () => node.disableGlobalMipBias, (val) => node.disableGlobalMipBias = val);
+                "Use Global Mip Bias", "Change Enable Global Mip Bias",
+                () => node.enableGlobalMipBias, (val) => node.enableGlobalMipBias = val);
         }
     }
 }

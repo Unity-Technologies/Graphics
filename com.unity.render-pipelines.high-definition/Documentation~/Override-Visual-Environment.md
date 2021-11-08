@@ -27,6 +27,13 @@ The **Visual Environment** override comes as default when you create a **Scene S
 | **Background Clouds**   | Use the drop-down to select the type of clouds that HDRP renders when this Volume affects a Camera. The options are:<br/>&#8226; **None**: Does not render any clouds.<br/>&#8226; **Cloud Layer**: Renders clouds using the [Cloud Layer system](Override-Cloud-Layer.md).<br/>This list automatically updates when you [create custom clouds](Creating-Custom-Clouds.md).<br/>For more information, refer to the [clouds in HDRP documentation](Clouds-In-HDRP.md). |
 | **Ambient Mode** | Use the drop-down to select the mode this Volume uses to process ambient light.<br />&#8226; **Static**: Ambient light comes from the baked sky assigned to the **Static Lighting Sky** property in the Lighting window. This light affects both real-time and baked global illumination. For information on how to set up environment lighting, see the [Environment Lighting documentation](Environment-Lighting.md#lighting-environment).<br />&#8226; **Dynamic**: Ambient light comes from the sky that is set in the **Sky** > **Type** property of this override. This means that ambient light can change in real time depending on the current Volume affecting the Camera. If you use baked global illumination, changes to the environment lighting only affect GameObjects exclusively lit using Ambient Probes. If you use real-time global illumination, changes to the environment lighting affect both lightmaps and Ambient Probes. |
 
+### Wind
+
+| **Property**     | **Description**                                              |
+| ---------------- | ------------------------------------------------------------ |
+| **Global Orientation** | Controls the orientation of the wind relative to the world-space direction x-axis. |
+| **Global Speed**       | Sets the global wind speed in kilometers per hour. |
+
 ## Changing sky settings
 
 After you have set your **Sky Type**, if you want to override the default settings, you need to create an override for them in a Volume. For example, if you set the **Sky Type** to **Gradient Sky**, click **Add Override** on your Volume and add a **Gradient Sky** override. Then you can disable, or remove, the **Procedural Sky** override because the Visual Environment ignores it and uses the **Gradient Sky** instead. To disable the override, disable the checkbox to the left of the **Procedural Sky** title . To remove the override, click the drop-down menu to the right of the title and select **Remove** .

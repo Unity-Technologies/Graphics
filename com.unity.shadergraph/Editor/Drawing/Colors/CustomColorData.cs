@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
         public SerializableUserColor(KeyValuePair<string, Color> pair) { Key = pair.Key; Value = pair.Value; }
 
         // Empty constructor required by serialization system
-        public SerializableUserColor() {}
+        public SerializableUserColor() { }
     }
 
     [Serializable]
