@@ -1157,16 +1157,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (k_AssetVersion < 10)
             {
-#if UNITY_EDITOR
-                if (this == GraphicsSettings.defaultRenderPipeline)
-                {
-#pragma warning disable 618 // Obsolete warning
-                    UniversalRenderPipelineGlobalSettings.instance.logShaderVariants = m_ShaderVariantLogLevel != ShaderVariantLogLevel.Disabled;
-                    UniversalRenderPipelineGlobalSettings.instance.exportShaderVariants = UniversalRenderPipelineGlobalSettings.instance.logShaderVariants;
-#pragma warning restore 618 // Obsolete warning
-                }
-#endif
-
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 10;
             }
@@ -1207,6 +1197,23 @@ namespace UnityEngine.Rendering.Universal
             {
                 // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
                 asset.k_AssetPreviousVersion = 9;
+            }
+
+
+            if (asset.k_AssetPreviousVersion < 10)
+            {
+#if UNITY_EDITOR
+                if (asset == GraphicsSettings.defaultRenderPipeline)
+                {
+#pragma warning disable 618 // Obsolete warningm_ObsoleteShaderVariantLogLevel
+                    UniversalRenderPipelineGlobalSettings.instance.logShaderVariants = asset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled;
+                    UniversalRenderPipelineGlobalSettings.instance.exportShaderVariants = UniversalRenderPipelineGlobalSettings.instance.logShaderVariants;
+#pragma warning restore 618 // Obsolete warning
+                }
+#endif
+
+                // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
+                asset.k_AssetPreviousVersion = 10;
             }
 
             EditorUtility.SetDirty(asset);
