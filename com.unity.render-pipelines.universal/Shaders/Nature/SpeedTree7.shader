@@ -168,7 +168,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
 

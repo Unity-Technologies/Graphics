@@ -299,7 +299,7 @@ namespace UnityEditor.VFX
             SetSettingValue(name, value, true);
         }
 
-        public void SetSettingValues(IEnumerable<KeyValuePair<string, object>> nameValues)
+        public void SetSettingValues(IEnumerable<KeyValuePair<string, object>> nameValues, bool notify = true)
         {
             bool hasChanged = false;
             foreach (var kvp in nameValues)
@@ -308,7 +308,7 @@ namespace UnityEditor.VFX
                     hasChanged = true;
             }
 
-            if (hasChanged)
+            if (hasChanged && notify)
                 Invalidate(InvalidationCause.kSettingChanged);
         }
 

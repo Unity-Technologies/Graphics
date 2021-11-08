@@ -156,6 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportRuntimeDebugDisplayContentLabel = EditorGUIUtility.TrTextContent("Runtime Debug Shaders", "When disabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but prevents the use of Rendering Debugger in Player builds.");
             public static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
             public static readonly GUIContent probeVolumeMemoryBudget = EditorGUIUtility.TrTextContent("Memory Budget", "Determines the width and height of the textures used to store GI data from probes. Note that the textures also have a fixed depth dimension.");
+            public static readonly GUIContent supportProbeVolumeStreaming = EditorGUIUtility.TrTextContent("Enable Streaming", "Enable cell streaming for probe volume.");
             public static readonly GUIContent probeVolumeSHBands = EditorGUIUtility.TrTextContent("SH Bands", "Determines up to what SH bands the Probe Volume will use. Choosing L2 will lead to better quality, but also higher memory and runtime cost.");
             public static readonly GUIContent maxLocalVolumetricFogSizeStyle = EditorGUIUtility.TrTextContent("Max Local Fog Size", "Specifies the maximum size for the individual 3D Local Volumetric Fog texture that HDRP uses for Local Volumetric Fog. This settings will affect your memory consumption.");
             public static readonly GUIContent maxLocalVolumetricFogOnScreenStyle = EditorGUIUtility.TrTextContent("Max Local Fog On Screen", "Sets the maximum number of Local Volumetric Fog can handle on screen at once. This settings will affect your memory consumption.");
@@ -211,6 +212,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent mediumQualityContent = EditorGUIUtility.TrTextContent("Medium", "Specifies the resolution of the shadows set to medium quality.");
             public static readonly GUIContent highQualityContent = EditorGUIUtility.TrTextContent("High", "Specifies the resolution of the shadows set to high quality.");
             public static readonly GUIContent veryHighQualityContent = EditorGUIUtility.TrTextContent("Very High", "Specifies the resolution of the shadows set to very high quality.");
+            public static readonly GUIContent allowMixedCachedCascadeShadows = EditorGUIUtility.TrTextContent("Allow Mixed Cached Shadows", "Allow mixed cached shadows for directional lights, it will incurr in further memory cost.");
 
             public static readonly GUIContent useContactShadows = EditorGUIUtility.TrTextContent("Use Contact Shadows", "Use contact shadows for lights.");
             public static readonly GUIContent supportScreenSpaceShadows = EditorGUIUtility.TrTextContent("Screen Space Shadows", "Enables the support of screen space shadows in HDRP.");

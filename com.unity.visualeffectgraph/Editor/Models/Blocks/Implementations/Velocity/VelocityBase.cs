@@ -1,20 +1,18 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+
 using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
     class VelocityBaseProvider : VariantProvider
     {
-        public override IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
+        public override IEnumerable<Variant> ComputeVariants()
         {
-            var compositions = new[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add };
-
-            foreach (var composition in compositions)
-            {
-                yield return new[] { new KeyValuePair<string, object>("composition", composition) };
-            }
+            return Enum.GetValues(typeof(AttributeCompositionMode))
+                .OfType<AttributeCompositionMode>()
+                .Select(x => new Variant(new[] { new KeyValuePair<string, object>("composition", x) }, new[] { "velocity", VFXBlockUtility.GetNameString(x) }));
         }
     }
 

@@ -9,6 +9,7 @@
   * [Install URP into an existing Project](InstallURPIntoAProject.md)
   * [Package samples](package-samples.md)
     * [URP Package Samples](package-sample-urp-package-samples.md)
+  * [Scene Templates](scene-templates.md)
 * [Render Pipeline Concepts](urp-concepts.md)
   * [The URP Asset](universalrp-asset.md)
   * [URP Global Settings](urp-global-settings.md)
@@ -105,7 +106,8 @@
   * [Use Render Objects Renderer Feature](containers/how-to-custom-effect-render-objects.md)
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
-
+* [Optimization](urp-optimization.md)
+  * [Rendering Debugger](features/rendering-debugger.md)
 * [2D graphic features](2d-index.md)
   * [Introduction to Lights 2D](Lights-2D-intro.md)
     * [Requirements and setup](Setup.md)
