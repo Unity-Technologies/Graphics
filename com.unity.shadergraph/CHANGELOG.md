@@ -14,14 +14,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
  - Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
+ - Updated searcher package dependency version to 4.9.1
 
 ### Fixed
+ - Fixed a usability issue where in some cases searcher would suggest one collapsed category of results that user would have to manually expand anyway
+ - Fixed bug that causes search results to not be visible sometimes in the searcher window [1366061]
+ - Fixed bug that causes exceptions to be thrown when using the up/down arrow keys with search list focused [1358016]
+ - Fixed bug that causes some searcher items to be irreversibly collapsed due to expand icon disappearing on collapsing those items [1366074]
+ - Fixed bug that caused incorrect search results with non whitespaced queries for nodes with spaces in their name and for subgraphs [1359158]
  - Fixed Triplanar ShaderGraph node to handle arbitrary input and output coordinate spaces [1346477] (https://issuetracker.unity3d.com/issues/shader-graph-rotating-gameobject-get-material-stretched-when-using-triplanar-node)
  - Fixed a bug that Parallax Mapping and Parallax Occlusion Mapping nodes don't use the same channel to sample heightmap by adding drop-downs for channel selecting to both of the nodes. [1347270] (https://fogbugz.unity3d.com/f/cases/1347270/)
  - Fixed errors in the ShaderGraph Transform node [1368082]
  - Fixed the Scene Depth node so it returns proper results in Eye space when using an orthographic camera [1311272]
+ - Fixed a bug where node preview doesn't update when a texture is changed in the explorer [1363784](https://issuetracker.unity3d.com/product/unity/issues/guid/1363784/)
  - Fixed missing shader keyword stage during keyword copying.
  - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+ - Fixed upgrade warnings on SpeedTree8 subgraphs.
 
 ## [13.1.0] - 2021-09-24
 

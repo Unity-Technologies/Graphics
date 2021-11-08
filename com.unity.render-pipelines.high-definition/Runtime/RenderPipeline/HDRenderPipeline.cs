@@ -107,6 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_SsrAccumulateKernel = -1;
 
         Material m_ApplyDistortionMaterial;
+        Material m_FinalBlitWithOETF;
 
         Material m_ClearStencilBufferMaterial;
 
@@ -196,6 +197,31 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int GetMaxScreenSpaceShadows()
         {
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
+        }
+
+        static bool HDROutputIsActive()
+        {
+            // TODO: Until we can test it, disable on Mac.
+            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal && HDROutputSettings.main.active;
+        }
+
+        void SetHDRState(HDCamera camera)
+        {
+#if UNITY_EDITOR
+            bool hdrInPlayerSettings = UnityEditor.PlayerSettings.useHDRDisplay;
+            if (hdrInPlayerSettings && HDROutputSettings.main.available)
+            {
+                if (camera.camera.cameraType != CameraType.Game)
+                    HDROutputSettings.main.RequestHDRModeChange(false);
+                else
+                    HDROutputSettings.main.RequestHDRModeChange(true);
+            }
+#endif
+            // Make sure HDR auto tonemap is off
+            if (HDROutputSettings.main.active)
+            {
+                HDROutputSettings.main.automaticHDRTonemapping = false;
+            }
         }
 
         readonly SkyManager m_SkyManager = new SkyManager();
@@ -321,6 +347,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             VirtualTexturing.Streaming.SetGPUCacheSettings(gpuCacheSettings);
+
+            colorMaskTransparentVel = HDShaderIDs._ColorMaskTransparentVelTwo;
+            colorMaskAdditionalTarget = HDShaderIDs._ColorMaskTransparentVelOne;
+#else
+            colorMaskTransparentVel = HDShaderIDs._ColorMaskTransparentVelOne;
+            colorMaskAdditionalTarget = HDShaderIDs._ColorMaskTransparentVelTwo;
 #endif
 
             // Initial state of the RTHandle system.
@@ -348,6 +380,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
 
             m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.applyDistortionPS);
+            m_FinalBlitWithOETF = CoreUtils.CreateEngineMaterial(defaultResources.shaders.compositeUIAndOETFApplyPS);
+
 
             m_ClearStencilBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.clearStencilBufferPS);
 
@@ -498,7 +532,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseColorTemperature = true;
             m_PreviousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
-#if  UNITY_2020_2_OR_NEWER
+#if UNITY_2020_2_OR_NEWER
             m_PreviousDefaultRenderingLayerMask = GraphicsSettings.defaultRenderingLayerMask;
             GraphicsSettings.defaultRenderingLayerMask = ShaderVariablesGlobal.DefaultRenderingLayerMask;
 #endif
@@ -530,8 +564,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 ,
                 overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
                 ,
-                overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
-                ,
                 overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
                 ,
                 autoAmbientProbeBaking = false
@@ -539,6 +571,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 autoDefaultReflectionProbeBaking = false
                 ,
                 enlightenLightmapper = false
+                ,
+                rendersUIOverlay = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -715,6 +749,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_UpsampleTransparency);
             CoreUtils.Destroy(m_ApplyDistortionMaterial);
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
+            CoreUtils.Destroy(m_FinalBlitWithOETF);
 
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
@@ -840,7 +875,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 UpdateShaderVariablesRaytracingCB(hdCamera, cmd);
 
                 // This one is not in a constant buffer because it's only used as a parameter for some shader's render states. It's not actually used inside shader code.
-                cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, (int)ColorWriteMask.All);
+                cmd.SetGlobalInt(colorMaskTransparentVel, (int)ColorWriteMask.All);
+                cmd.SetGlobalInt(colorMaskAdditionalTarget, (int)ColorWriteMask.All);
             }
         }
 
@@ -1024,6 +1060,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct HDCullingResults
         {
             public CullingResults cullingResults;
+            public CullingResults uiCullingResults;
             public CullingResults? customPassCullingResults;
             public HDProbeCullingResults hdProbeCullingResults;
             public DecalSystem.CullResult decalCullResults;
@@ -1273,7 +1310,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         if (needCulling)
+                        {
                             skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, ref cullingResults);
+                        }
                     }
 
                     if (additionalCameraData.hasCustomRender && additionalCameraData.fullscreenPassthrough)
@@ -1950,12 +1989,15 @@ namespace UnityEngine.Rendering.HighDefinition
             var camera = hdCamera.camera;
             var cullingResults = renderRequest.cullingResults.cullingResults;
             var customPassCullingResults = renderRequest.cullingResults.customPassCullingResults ?? cullingResults;
+            var uiCullingResults = renderRequest.cullingResults.uiCullingResults;
             var hdProbeCullingResults = renderRequest.cullingResults.hdProbeCullingResults;
             var decalCullingResults = renderRequest.cullingResults.decalCullResults;
             var target = renderRequest.target;
 
             // Updates RTHandle
             hdCamera.BeginRender(cmd);
+
+            SetHDRState(hdCamera);
 
             if (m_RayTracingSupported)
             {
