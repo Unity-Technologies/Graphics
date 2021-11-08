@@ -149,6 +149,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // Flag that defines if the current camera is a planar reflection
         public int _IsPlanarReflection;
 
+        // Flag that allows us to know if the maxZMask texture is valid
+        public int _ValidMaxZMask;
+        // Flag that allows to know if we should be using the improved transmittance blending
+        public int _ImprovedTransmittanceBlend;
+        // Flag that defines if the transmittance should follow a cubic profile (For MSAA)
+        public int _CubicTransmittance;
+        public int _Padding1;
+
         [HLSLArray(3 * 4, typeof(Vector4))]
         public fixed float _DistanceBasedWeights[12 * 4];
     }

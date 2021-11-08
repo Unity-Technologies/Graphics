@@ -40,6 +40,7 @@ namespace UnityEngine.Rendering.Universal
         internal float orthoSize = 1.0f;
         internal float unitsPerPixel = 0.0f;
         internal int cinemachineVCamZoom = 1;
+        internal bool requiresUpscaling = false;
 
         internal PixelPerfectCameraInternal(IPixelPerfectCamera component)
         {
@@ -71,6 +72,7 @@ namespace UnityEngine.Rendering.Universal
             cropFrameXAndY = cropFrameY && cropFrameX;
             cropFrameXOrY = cropFrameY || cropFrameX;
             useStretchFill = cropFrameXAndY && stretchFill;
+            requiresUpscaling = useStretchFill;
 
             // zoom level (PPU scale)
             int verticalZoom = screenHeight / refResolutionY;
@@ -187,6 +189,16 @@ namespace UnityEngine.Rendering.Universal
                     pixelRect.height = screenWidth / cameraAspect;
                     pixelRect.y = (screenHeight - (int)pixelRect.height) / 2;
                     pixelRect.x = 0;
+                }
+
+                // Doesn't require scaling if ref resolution is a multiple of target resolution
+                if (screenWidth % m_Component.refResolutionX == 0)
+                {
+                    requiresUpscaling = cameraAspect < screenAspect;
+                }
+                else if (screenHeight % m_Component.refResolutionY == 0)
+                {
+                    requiresUpscaling = cameraAspect > screenAspect;
                 }
             }
             else

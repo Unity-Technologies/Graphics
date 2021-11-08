@@ -11,8 +11,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ReprojectGlobalIlluminationKernel;
         int m_ReprojectGlobalIlluminationHalfKernel;
         int m_BilateralUpSampleColorKernel;
-        int m_ConvertSSGIKernel;
-        int m_ConvertSSGIHalfKernel;
 
         void InitScreenSpaceGlobalIllumination()
         {
@@ -28,8 +26,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ReprojectGlobalIlluminationKernel = ssGICS.FindKernel("ReprojectGlobalIllumination");
                 m_ReprojectGlobalIlluminationHalfKernel = ssGICS.FindKernel("ReprojectGlobalIlluminationHalf");
                 m_BilateralUpSampleColorKernel = bilateralUpsampleCS.FindKernel("BilateralUpSampleColor");
-                m_ConvertSSGIKernel = ssGICS.FindKernel("ConvertSSGI");
-                m_ConvertSSGIHalfKernel = ssGICS.FindKernel("ConvertSSGIHalf");
             }
         }
 
@@ -44,8 +40,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (settings.enable.value)
                 {
                     bool allowSsgi = hdCamera.colorPyramidHistoryIsValid && !hdCamera.isFirstFrame;
-                    // RTGI is only valid if raytracing is enabled
-                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.tracing.value != RayCastingMode.RayMarching;
+
+                    // We can use the ray tracing version of the effect if:
+                    // - It is enabled in the frame settings
+                    // - It is enabled in the volume
+                    // - The RTAS has been build validated
+                    // - The RTLightCluster has been validated
+                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.tracing.value != RayCastingMode.RayMarching && GetRayTracingState() && GetRayTracingClusterState();
                     mode = raytracing ? IndirectDiffuseMode.Raytrace : (allowSsgi ? IndirectDiffuseMode.ScreenSpace : IndirectDiffuseMode.Off);
                 }
             }
@@ -193,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 BlueNoise blueNoise = GetBlueNoiseManager();
                 passData.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
-                passData.offsetBuffer = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+                passData.offsetBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
                 passData.lightList = builder.ReadComputeBuffer(lightList);
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
@@ -221,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Output textures
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Color" }));
+                { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "SSGI Color" }));
 
                 builder.SetRenderFunc(
                     (TraceSSGIPassData data, RenderGraphContext ctx) =>
@@ -295,9 +296,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int texHeight;
             public int viewCount;
             public Vector4 halfScreenSize;
-
-            // Generation parameters
-            public Vector2 firstMipOffset;
+            public ShaderVariablesBilateralUpsample shaderVariablesBilateralUpsampleCB;
 
             // Compute Shader
             public ComputeShader bilateralUpsampleCS;
@@ -318,10 +317,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.texWidth = hdCamera.actualWidth;
                 passData.texHeight = hdCamera.actualHeight;
                 passData.viewCount = hdCamera.viewCount;
-                passData.halfScreenSize.Set(passData.texWidth / 2, passData.texHeight / 2, 1.0f / (passData.texWidth * 0.5f), 1.0f / (passData.texHeight * 0.5f));
 
-                // Set the generation parameters
-                passData.firstMipOffset.Set(HDShadowUtils.Asfloat((uint)info.mipLevelOffsets[1].x), HDShadowUtils.Asfloat((uint)info.mipLevelOffsets[1].y));
+                passData.shaderVariablesBilateralUpsampleCB._HalfScreenSize = new Vector4(passData.texWidth / 2, passData.texHeight / 2, 1.0f / (passData.texWidth * 0.5f), 1.0f / (passData.texHeight * 0.5f));
+                unsafe
+                {
+                    for (int i = 0; i < 16; ++i)
+                        passData.shaderVariablesBilateralUpsampleCB._DistanceBasedWeights[i] = BilateralUpsample.distanceBasedWeights_2x2[i];
+
+                    for (int i = 0; i < 32; ++i)
+                        passData.shaderVariablesBilateralUpsampleCB._TapOffsets[i] = BilateralUpsample.tapOffsets_2x2[i];
+                }
 
                 // Grab the right kernel
                 passData.bilateralUpsampleCS = m_Asset.renderPipelineResources.shaders.bilateralUpsampleCS;
@@ -330,7 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.inputBuffer = builder.ReadTexture(inputBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Final" }));
+                { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "SSGI Final" }));
 
                 builder.SetRenderFunc(
                     (UpscaleSSGIPassData data, RenderGraphContext ctx) =>
@@ -340,9 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         int numTilesXHR = (data.texWidth + (ssgiTileSize - 1)) / ssgiTileSize;
                         int numTilesYHR = (data.texHeight + (ssgiTileSize - 1)) / ssgiTileSize;
 
-                        // Inject the input scalars
-                        ctx.cmd.SetComputeVectorParam(data.bilateralUpsampleCS, HDShaderIDs._HalfScreenSize, data.halfScreenSize);
-                        ctx.cmd.SetComputeVectorParam(data.bilateralUpsampleCS, HDShaderIDs._DepthPyramidFirstMipLevelOffset, data.firstMipOffset);
+                        ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesBilateralUpsampleCB, HDShaderIDs._ShaderVariablesBilateralUpsample);
 
                         // Inject all the input buffers
                         ctx.cmd.SetComputeTextureParam(data.bilateralUpsampleCS, data.upscaleKernel, HDShaderIDs._DepthTexture, data.depthTexture);
@@ -353,92 +356,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Upscale the buffer to full resolution
                         ctx.cmd.DispatchCompute(data.bilateralUpsampleCS, data.upscaleKernel, numTilesXHR, numTilesYHR, data.viewCount);
-                    });
-                return passData.outputBuffer;
-            }
-        }
-
-        class ConvertSSGIPassData
-        {
-            // Camera parameters
-            public int texWidth;
-            public int texHeight;
-            public int viewCount;
-
-            // Compute Shader
-            public ComputeShader ssGICS;
-            public int convertKernel;
-            public ComputeBuffer offsetBuffer;
-
-            // Prepass buffers
-            public TextureHandle depthTexture;
-            public TextureHandle stencilBuffer;
-            public TextureHandle normalBuffer;
-
-            // Input buffers
-            public TextureHandle inputBuffer;
-
-            // Output buffer
-            public TextureHandle outputBuffer;
-        }
-
-        TextureHandle ConvertSSGI(RenderGraph renderGraph, HDCamera hdCamera, bool fullResolution,
-            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer,
-            TextureHandle inputBuffer)
-        {
-            using (var builder = renderGraph.AddRenderPass<ConvertSSGIPassData>("Convert SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGIConvert)))
-            {
-                builder.EnableAsyncCompute(false);
-
-                // Set the camera parameters
-                if (fullResolution)
-                {
-                    passData.texWidth = hdCamera.actualWidth;
-                    passData.texHeight = hdCamera.actualHeight;
-                }
-                else
-                {
-                    passData.texWidth = hdCamera.actualWidth / 2;
-                    passData.texHeight = hdCamera.actualHeight / 2;
-                }
-                passData.viewCount = hdCamera.viewCount;
-
-                // Grab the right kernel
-                passData.ssGICS = m_Asset.renderPipelineResources.shaders.screenSpaceGlobalIlluminationCS;
-                passData.convertKernel = fullResolution ? m_ConvertSSGIKernel : m_ConvertSSGIHalfKernel;
-
-                passData.offsetBuffer = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
-
-                passData.depthTexture = builder.ReadTexture(depthPyramid);
-                passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
-                passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.inputBuffer = builder.ReadWriteTexture(inputBuffer);
-                // Output buffer
-                passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Converted" }));
-
-                builder.SetRenderFunc(
-                    (ConvertSSGIPassData data, RenderGraphContext ctx) =>
-                    {
-                        // Re-evaluate the dispatch parameters (we are evaluating the upsample in full resolution)
-                        int ssgiTileSize = 8;
-                        int numTilesXHR = (data.texWidth + (ssgiTileSize - 1)) / ssgiTileSize;
-                        int numTilesYHR = (data.texHeight + (ssgiTileSize - 1)) / ssgiTileSize;
-
-                        // Scalars
-                        ctx.cmd.SetComputeIntParams(data.ssGICS, HDShaderIDs._SsrStencilBit, (int)StencilUsage.TraceReflectionRay);
-
-                        // Prepass data
-                        ctx.cmd.SetComputeTextureParam(data.ssGICS, data.convertKernel, HDShaderIDs._DepthTexture, data.depthTexture);
-                        ctx.cmd.SetComputeTextureParam(data.ssGICS, data.convertKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.ssGICS, data.convertKernel, HDShaderIDs._StencilTexture, data.stencilBuffer, 0, RenderTextureSubElement.Stencil);
-                        ctx.cmd.SetComputeBufferParam(data.ssGICS, data.convertKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.offsetBuffer);
-
-                        ctx.cmd.SetComputeTextureParam(data.ssGICS, data.convertKernel, HDShaderIDs._IndirectDiffuseTexture, data.inputBuffer);
-
-                        ctx.cmd.SetComputeTextureParam(data.ssGICS, data.convertKernel, HDShaderIDs._IndirectDiffuseTextureRW, data.outputBuffer);
-
-                        ctx.cmd.DispatchCompute(data.ssGICS, data.convertKernel, numTilesXHR, numTilesYHR, data.viewCount);
                     });
                 return passData.outputBuffer;
             }
@@ -526,13 +443,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Denoise the result
                 TextureHandle denoisedSSGI = DenoiseSSGI(renderGraph, hdCamera, colorBuffer, depthPyramid, normalBuffer, motionVectorsBuffer, historyValidationTexture, giSettings.fullResolutionSS.value);
 
-                // Convert back the result to RGB space
-                colorBuffer = ConvertSSGI(renderGraph, hdCamera, giSettings.fullResolutionSS.value, depthPyramid, stencilBuffer, normalBuffer, denoisedSSGI);
-
                 // Upscale it if required
                 // If this was a half resolution effect, we still have to upscale it
                 if (!giSettings.fullResolutionSS.value)
-                    colorBuffer = UpscaleSSGI(renderGraph, hdCamera, giSettings, info, depthPyramid, colorBuffer);
+                    colorBuffer = UpscaleSSGI(renderGraph, hdCamera, giSettings, info, depthPyramid, denoisedSSGI);
 
                 return colorBuffer;
             }
@@ -544,7 +458,7 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (GetIndirectDiffuseMode(hdCamera))
             {
                 case IndirectDiffuseMode.ScreenSpace:
-                    result = RenderSSGI(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, m_ShaderVariablesRayTracingCB, GetDepthBufferMipChainInfo(), lightList);
+                    result = RenderSSGI(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, m_ShaderVariablesRayTracingCB, hdCamera.depthBufferMipChainInfo, lightList);
                     break;
 
                 case IndirectDiffuseMode.Raytrace:

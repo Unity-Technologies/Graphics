@@ -5,7 +5,13 @@
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
 #define HAS_LIGHTLOOP
 
-// Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
+// If you need to change this, be sure to read this comment.
+// For raytracing we decided to force the shadow quality to low.
+// - The performance is the first reason, given that it may happen during the ray tracing stage for indirect or in a non-tiled context for deferred
+// we want to save that cost as it may increase signfiicantly the cost..
+// - The second reason is that some filtering modes require the screen space position (at the moment you read this comment high and ultra high), which we cannot provide
+// in a ray tracing context.
+// In addition to that, we intentionally disabled dithering for the ray tracing case as it requires the screen space position.
 #define SHADOW_LOW
 
 #pragma only_renderers d3d11 ps5
@@ -30,6 +36,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/RayTracingFallbackHierarchy.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 
 #define RAYTRACING_DEFERRED_TILE_SIZE 8
 
@@ -48,7 +55,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     uint2 currentCoord = groupId * RAYTRACING_DEFERRED_TILE_SIZE + groupThreadId;
 
     #ifdef HALF_RESOLUTION
-    currentCoord *=2;
+    currentCoord = ComputeSourceCoordinates(currentCoord, _RaytracingFrameIndex);
     #endif
 
     // Initialize the output buffer
@@ -71,7 +78,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     float3 finalColor = 0.0f;
     // if the distance is exactly zero, this means we are facing an environement ray that we need to evaluate
-    if (rayDistance == 0.0f)
+    if (RayTracingGBufferIsSky(rayDistance))
     {
         // Weight value used to do the blending
         float weight = 0.0;
@@ -96,7 +103,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
             finalColor = HsvToRgb(finalColor);
         }
     }
-    else if (rayDistance < 0.0f)
+    else if (RayTracingGBufferIsUnlit(rayDistance))
     {
         finalColor = LOAD_TEXTURE2D_X(_GBufferTexture3, currentCoord).rgb;
 
@@ -119,7 +126,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     }
 
     // If the distance is negative, this means it is a sky pixel or an unlit material
-    if (rayDistance <= 0.0f)
+    if (!RayTracingGBufferIsLit(rayDistance))
     {
         _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier()), 0.0);
         return;

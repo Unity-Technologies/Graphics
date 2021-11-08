@@ -25,8 +25,8 @@ namespace UnityEditor.Rendering.Universal
 
         private static class Styles
         {
-            public static GUIContent sortingLayerAll = EditorGUIUtility.TrTextContent("All");
-            public static GUIContent sortingLayerNone = EditorGUIUtility.TrTextContent("None");
+            public static GUIContent sortingLayerAll = EditorGUIUtility.TrTextContent("Everything");
+            public static GUIContent sortingLayerNone = EditorGUIUtility.TrTextContent("Nothing");
             public static GUIContent sortingLayerMixed = EditorGUIUtility.TrTextContent("Mixed...");
         }
 

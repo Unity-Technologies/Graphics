@@ -70,6 +70,10 @@ CBUFFER_START(ShaderVariablesClouds)
     float _ErosionFactorCompensation;
     int _EnableFastToneMapping;
     int _IsPlanarReflection;
+    int _ValidMaxZMask;
+    int _ImprovedTransmittanceBlend;
+    int _CubicTransmittance;
+    int _Padding1;
     float4 _DistanceBasedWeights[12];
 CBUFFER_END
 

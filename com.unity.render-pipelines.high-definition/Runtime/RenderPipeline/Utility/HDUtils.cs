@@ -19,8 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const PerObjectData k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
 
         /// <summary>Returns the render configuration for baked static lighting, this value can be used in a RendererListDesc call to render Lit objects.</summary>
+        /// <returns></returns>
         public static PerObjectData GetBakedLightingRenderConfig() => k_RendererConfigurationBakedLighting;
         /// <summary>Returns the render configuration for baked static lighting with shadow masks, this value can be used in a RendererListDesc call to render Lit objects when shadow masks are enabled.</summary>
+        /// <returns></returns>
         public static PerObjectData GetBakedLightingWithShadowMaskRenderConfig() => k_RendererConfigurationBakedLightingWithShadowMask;
 
         /// <summary>Default HDAdditionalReflectionData</summary>
@@ -99,24 +101,36 @@ namespace UnityEngine.Rendering.HighDefinition
             var baseType = typeof(RenderPipelineMaterial);
             var assembly = baseType.Assembly;
 
-            var types = assembly.GetTypes()
+            try
+            {
+                var types = assembly.GetTypes()
                 .Where(t => t.IsSubclassOf(baseType))
                 .Select(Activator.CreateInstance)
                 .Cast<RenderPipelineMaterial>()
                 .ToList();
 
-            // Note: If there is a need for an optimization in the future of this function, user can
-            // simply fill the materialList manually by commenting the code abode and returning a
-            // custom list of materials they use in their game.
-            //
-            // return new List<RenderPipelineMaterial>
-            // {
-            //    new Lit(),
-            //    new Unlit(),
-            //    ...
-            // };
+                // Note: If there is a need for an optimization in the future of this function, user can
+                // simply fill the materialList manually by commenting the code abode and returning a
+                // custom list of materials they use in their game.
+                //
+                // return new List<RenderPipelineMaterial>
+                // {
+                //    new Lit(),
+                //    new Unlit(),
+                //    ...
+                // };
 
-            return types;
+                return types;
+            }
+            catch (System.Reflection.ReflectionTypeLoadException exception)
+            {
+                foreach (TypeLoadException loaderException in exception.LoaderExceptions)
+                {
+                    Debug.LogError($"Encountered an exception while attempting to reflect the HDRP assembly to extract all RenderPipelineMaterial types.\nThis exception must be fixed in order to fully initialize HDRP correctly.\n{loaderException.Message}\n{loaderException.TypeName}");
+                }
+
+                return null;
+            }
         }
 
         internal static int GetRuntimeDebugPanelWidth(HDCamera hdCamera)
@@ -537,6 +551,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static string GetCorePath()
             => "Packages/com.unity.render-pipelines.core/";
+
+        internal static string GetVFXPath()
+            => "Packages/com.unity.visualeffectgraph/";
 
         // It returns the previously set RenderPipelineAsset, assetWasFromQuality is true if the current asset was set through the quality settings
         internal static RenderPipelineAsset SwitchToBuiltinRenderPipeline(out bool assetWasFromQuality)

@@ -108,8 +108,8 @@ if (index >= asuint(nbMax) - deadCount)
 #endif
 }
 
-Attributes attributes = (Attributes)0;
-SourceAttributes sourceAttributes = (SourceAttributes)0;
+VFXAttributes attributes = (VFXAttributes)0;
+VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
 #if VFX_HAS_INDIRECT_DRAW
 index = indirectBuffer[index];
@@ -284,7 +284,7 @@ void frag(ps_input i
 		outSelection = float4(_ObjectId, _PassValue, 1.0, 1.0);
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
 		#ifndef WRITE_MSAA_DEPTH
-			dummy = (float4)0;
+		    dummy = float4(i.VFX_VARYING_POSCS.z, 0,0,0);
 		#endif
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
 		dummy = (float4)0;
@@ -298,7 +298,7 @@ ${VFXEnd}
 ${VFXBegin:VFXDeclareGetStripTangent}
 float3 GetParticlePosition(uint index)
 {
-	struct Attributes attributes = (Attributes)0;
+	VFXAttributes attributes = (VFXAttributes)0;
 	${VFXLoadAttributes:{position}}
 	return attributes.position;
 }
@@ -322,4 +322,38 @@ float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData st
 	return normalize(prevTangent + nextTangent);
 }
 ${VFXEnd}
+
+${VFXBegin:VFXFeedSortingKeys}
+                Kvp output;
+#if VFX_CUSTOM_SORT_KEY
+                ${VFXLoadParameter:{sortKey}}
+                output.sortKey = -1.0f * sortKey; //Lowest values are rendered first
+#elif VFX_DISTANCE_SORT_KEY
+#if VFX_LOCAL_SPACE
+                float3 posRWS = TransformObjectToWorld(attributes.position);
+#else
+                float3 posRWS = GetCameraRelativePositionWS(attributes.position);
+#endif
+                float3 camToPos = posRWS - GetCurrentViewPosition();
+
+                output.sortKey = dot(camToPos,camToPos); // sqr distance to the camera
+#elif VFX_DEPTH_SORT_KEY
+#if VFX_LOCAL_SPACE
+                float3 posRWS = TransformObjectToWorld(attributes.position);
+#else
+                float3 posRWS = GetCameraRelativePositionWS(attributes.position);
+#endif
+                float3 zAxisCam = -GetWorldToViewMatrix()[2].xyz;
+                float depth = dot(posRWS, zAxisCam);
+                output.sortKey = depth;
+
+#elif VFX_YOUNGEST_SORT_KEY
+                ${VFXLoadAttributes:{age}}
+                output.sortKey = attributes.age;
+
+#endif //VFX_[CRITERION]_SORT_KEY
+                output.index = index;
+                output.sortKey *= SORTING_SIGN;
+${VFXEnd}
+
 

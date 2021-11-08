@@ -298,7 +298,7 @@ namespace UnityEditor.VFX
             SetSettingValue(name, value, true);
         }
 
-        public void SetSettingValues(IEnumerable<KeyValuePair<string, object>> nameValues)
+        public void SetSettingValues(IEnumerable<KeyValuePair<string, object>> nameValues, bool notify = true)
         {
             bool hasChanged = false;
             foreach (var kvp in nameValues)
@@ -307,7 +307,7 @@ namespace UnityEditor.VFX
                     hasChanged = true;
             }
 
-            if (hasChanged)
+            if (hasChanged && notify)
                 Invalidate(InvalidationCause.kSettingChanged);
         }
 
@@ -327,7 +327,7 @@ namespace UnityEditor.VFX
             }
 
             var currentValue = setting.value;
-            if (currentValue != value)
+            if (!currentValue?.Equals(value) ?? value != null)
             {
                 setting.field.SetValue(setting.instance, value);
                 OnSettingModified(setting);

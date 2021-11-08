@@ -27,26 +27,33 @@ float4x4 _PixelCoordToViewDirWS;
 int      _RaytracingCameraSkyEnabled;
 float4   _RaytracingCameraClearColor;
 TEXTURE2D_X(_SkyCameraTexture);
+float4   _PathTracingDoFParameters;    // x: aperture radius, y: focus distance, zw: unused
+float4   _PathTracingTilingParameters; // xy: tile count, zw: current tile index
 
 // Output(s)
 RW_TEXTURE2D_X(float4, _FrameTexture);
 
-// DoF related parameters
-float4 _PathTracedDoFConstants; // x: aperture radius, y: focus distance, zw: unused
-
 [shader("miss")]
 void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
 {
+    // In indirect-only mode, it makes more sense to return a null value
+    if (_RaytracingMinRecursion > 1)
+    {
+        pathIntersection.value = 0.0;
+        pathIntersection.alpha = 0.0;
+        return;
+    }
+
     bool skyEnabled = _EnvLightSkyEnabled && _RaytracingCameraSkyEnabled;
     float4 missColor = skyEnabled ? _SkyCameraTexture[COORD_TEXTURE2D_X(pathIntersection.pixelCoord)] : _RaytracingCameraClearColor;
-    pathIntersection.value = missColor.xyz * GetInverseCurrentExposureMultiplier();
-    pathIntersection.alpha = missColor.w;
+    pathIntersection.value = missColor.rgb * GetInverseCurrentExposureMultiplier();
+    pathIntersection.alpha = missColor.a;
 
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value, pathIntersection.alpha);
 
-    if (_EnableVolumetricFog && _RaytracingMinRecursion <= 1)
+    if (_EnableVolumetricFog)
     {
-        float3 envValue = pathIntersection.value;
+        float3 lightPosition, envValue = pathIntersection.value;
 
         // Generate a 4D unit-square sample for this depth, from our QMC sequence
         float4 inputSample = GetSample4D(pathIntersection.pixelCoord, _RaytracingSampleIndex, 0);
@@ -56,15 +63,15 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
         pathIntersection.t = FLT_MAX;
         float pdf = 1.0;
         bool sampleLocalLights;
-        if (SampleVolumeScatteringPosition(inputSample.w, pathIntersection.t, pdf, sampleLocalLights))
+        if (SampleVolumeScatteringPosition(pathIntersection.pixelCoord, inputSample.w, pathIntersection.t, pdf, sampleLocalLights, lightPosition))
         {
-            ComputeVolumeScattering(pathIntersection, inputSample.xyz, sampleLocalLights);
+            ComputeVolumeScattering(pathIntersection, inputSample.xyz, sampleLocalLights, lightPosition);
 
             // Apply the pdf
             pathIntersection.value /= pdf;
 
             // Apply volumetric attenuation
-            ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value);
+            ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, false);
         }
 
         // Reinject the environment value
@@ -86,72 +93,95 @@ void MissMaterial(inout PathIntersection pathIntersection : SV_RayPayload)
         return;
     }
 
-    pathIntersection.value = _EnvLightSkyEnabled ? SampleSkyTexture(WorldRayDirection(), 0.0, 0).xyz : 0.0;
+    pathIntersection.value = _EnvLightSkyEnabled ? SampleSkyTexture(WorldRayDirection(), 0.0, 0).rgb : 0.0;
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
+}
+
+void ApplyDepthOfField(uint2 pixelCoord, float dotDirection, inout float3 origin, inout float3 direction)
+{
+     // Check aperture radius
+    if (_PathTracingDoFParameters.x <= 0.0)
+        return;
+
+    // Sample the lens aperture using the next available dimensions
+    // (we use 40 for path tracing, 2 for sub-pixel jittering, 64 for SSS -> 106, 107)
+    float2 uv = _PathTracingDoFParameters.x * SampleDiskUniform(GetSample(pixelCoord, _RaytracingSampleIndex, 106),
+                                                                GetSample(pixelCoord, _RaytracingSampleIndex, 107));
+
+    // Compute the focus point by intersecting the pinhole ray with the focus plane
+    float t = _PathTracingDoFParameters.y / dotDirection;
+    float3 focusPoint = origin + t * direction;
+
+    // Compute the new ray origin (_ViewMatrix[0] = right, _ViewMatrix[1] = up)
+    origin += _ViewMatrix[0].xyz * uv.x + _ViewMatrix[1].xyz * uv.y;
+
+    // The new ray direction should pass through the focus point
+    direction = normalize(focusPoint - origin);
 }
 
 [shader("raygeneration")]
 void RayGen()
 {
-    uint2 LaunchIndex = DispatchRaysIndex().xy;
-
     // Get the current pixel coordinates
-    uint2 currentPixelCoord = uint2(LaunchIndex.x, LaunchIndex.y);
+    uint2 pixelCoord = DispatchRaysIndex().xy;
+
+    // Get the current tile coordinates (for interleaved tiling) and update pixel coordinates accordingly
+    uint2 tileCount = uint2(_PathTracingTilingParameters.xy);
+    uint2 tileIndex = uint2(_PathTracingTilingParameters.zw);
+    uint2 tiledPixelCoord = pixelCoord * tileCount + tileIndex;
 
     // Jitter them (we use 4x10 dimensions of our sequence during path tracing atm, so pick the next available ones)
-    float4 jitteredPixelCoord = float4(currentPixelCoord, 1.0, 1.0);
-    jitteredPixelCoord.x += GetSample(currentPixelCoord, _RaytracingSampleIndex, 40);
-    jitteredPixelCoord.y += GetSample(currentPixelCoord, _RaytracingSampleIndex, 41);
-
-    // Compute the ray direction from those coordinates (for zero aperture
-    float3 directionWS = -normalize(mul(jitteredPixelCoord, _PixelCoordToViewDirWS).xyz);
-    float3 cameraPosWS = GetPrimaryCameraPosition();
-
-    float apertureRadius = _PathTracedDoFConstants.x;
-    if (apertureRadius > 0.0)
-    {
-        // Compute the ray origin and direction for a lens with non-zero aperture
-
-        // Sample the lens apperture using the next available dimensions (we use 40 for path tracing, 2 for sub-pixel jittering, 64 for SSS -> 106, 107)
-        float r1 = GetSample(currentPixelCoord, _RaytracingSampleIndex, 106);
-        float r2 = GetSample(currentPixelCoord, _RaytracingSampleIndex, 107);
-        float2 uv = apertureRadius * SampleDiskUniform(r1, r2);
-
-        // Compute the new ray origin ( _ViewMatrix[0] = right, _ViewMatrix[1] = up, _ViewMatrix[2] = forward )
-        cameraPosWS += _ViewMatrix[0].xyz * uv.x + _ViewMatrix[1].xyz * uv.y;
-
-        // Compute the focus point by intersecting the pinhole ray with the focus plane
-        float focusDistance = _PathTracedDoFConstants.y;
-        float t = focusDistance / dot(directionWS, _ViewMatrix[2].xyz);
-        float3 focusPointWS = GetPrimaryCameraPosition() - t * directionWS;
-
-        // The new ray direction should pass through the focus point
-        directionWS = normalize(focusPointWS - cameraPosWS);
-    }
+    float4 jitteredPixelCoord = float4(pixelCoord, 1.0, 1.0);
+    jitteredPixelCoord.x += GetSample(tiledPixelCoord, _RaytracingSampleIndex, 40) / tileCount.x;
+    jitteredPixelCoord.y += GetSample(tiledPixelCoord, _RaytracingSampleIndex, 41) / tileCount.y;
 
     // Create the ray descriptor for this pixel
-    RayDesc rayDescriptor;
-    rayDescriptor.Origin = cameraPosWS;
-    rayDescriptor.Direction = directionWS;
-    rayDescriptor.TMin = _RaytracingCameraNearPlane;
-    rayDescriptor.TMax = FLT_INF;
+    RayDesc ray;
+    ray.TMin = _RaytracingCameraNearPlane;
+    ray.TMax = FLT_INF;
 
-    // Create and init the PathIntersection structure for this
+    // We need the camera forward direction in both types of projection
+    float3 cameraDirection = GetViewForwardDir();
+
+    // Compute the ray's origin and direction, for either perspective or orthographic projection
+    if (IsPerspectiveProjection())
+    {
+        ray.Origin = GetPrimaryCameraPosition();
+        ray.Direction = -normalize(mul(jitteredPixelCoord, _PixelCoordToViewDirWS).xyz);
+
+        // Use planar clipping, to match rasterization
+        float dotDirection = dot(cameraDirection, ray.Direction);
+        ray.TMin /= dotDirection;
+
+        ApplyDepthOfField(tiledPixelCoord, dotDirection, ray.Origin, ray.Direction);
+    }
+    else // Orthographic projection
+    {
+        uint2 pixelResolution = DispatchRaysDimensions().xy;
+        float3 screenCoord = float3(2.0 * jitteredPixelCoord.x / pixelResolution.x - 1.0,
+                                    -2.0 * jitteredPixelCoord.y / pixelResolution.y + 1.0,
+                                    0.0);
+
+        ray.Origin = mul(_InvViewProjMatrix, screenCoord);
+        ray.Direction = cameraDirection;
+    }
+
+    // Create and init the PathIntersection structure for this pixel
     PathIntersection pathIntersection;
     pathIntersection.value = 1.0;
     pathIntersection.alpha = 1.0;
     pathIntersection.remainingDepth = _RaytracingMaxRecursion;
-    pathIntersection.pixelCoord = currentPixelCoord;
+    pathIntersection.pixelCoord = tiledPixelCoord;
     pathIntersection.maxRoughness = 0.0;
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-    pathIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
+    pathIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle / min(tileCount.x, tileCount.y);
     pathIntersection.cone.width = 0.0;
 
     // Evaluate the ray intersection
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, rayDescriptor, pathIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, ray, pathIntersection);
 
-    _FrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(pathIntersection.value, pathIntersection.alpha);
+    _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.value, pathIntersection.alpha);
 }
 
 // This should never be called, return magenta just in case
