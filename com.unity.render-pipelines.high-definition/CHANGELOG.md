@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed outdated documentation about supported GPUs for ray tracing (case 1375895).
 - Fixed outdated documentation about recursie ray tracing effects support (case 1374904).
 - Fixed Crash issue when adding an area light on its own.
+- Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
 
 ### Changed
 - Maximum light count per fine prunned tile (opaque deferred) is now 63 instead of 23.

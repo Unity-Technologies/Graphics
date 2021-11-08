@@ -751,7 +751,8 @@ Shader "HDRP/Lit"
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
             ZWrite [_ZWrite]
             Cull Front
-            ColorMask [_ColorMaskTransparentVel] 1
+            ColorMask [_ColorMaskTransparentVelOne] 1
+            ColorMask [_ColorMaskTransparentVelTwo] 2
             ZTest [_ZTestTransparent]
 
             HLSLPROGRAM
@@ -833,7 +834,10 @@ Shader "HDRP/Lit"
             ZTest [_ZTestDepthEqualForOpaque]
             ZWrite [_ZWrite]
             Cull [_CullModeForward]
-            ColorMask [_ColorMaskTransparentVel] 1
+            // Not possible to control the render target with a variable
+            // Depending on virtual texturing, motion vector buffer can be bound on either SV_Target1 or SV_Target2
+            ColorMask [_ColorMaskTransparentVelOne] 1
+            ColorMask [_ColorMaskTransparentVelTwo] 2
 
             HLSLPROGRAM
 

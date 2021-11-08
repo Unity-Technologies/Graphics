@@ -753,7 +753,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Cull(Cull.Front) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestTransparent) },
-            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelOne] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelTwo] 2") },
         };
 
 
@@ -785,7 +786,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Cull(Uniforms.cullModeForward) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
-            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelOne] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelTwo] 2") },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMask,
