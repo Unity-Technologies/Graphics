@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< HEAD:TestProjects/UniversalHybridTest/Assets/SampleScenes/BatchRenderGroupRaw/BatchRenderGroupRaw.unity.meta
-guid: 57c0acfc623dbfc408a3f69aec9cc863
-=======
 guid: 0948e79a7da5cba4cab7813e716fec5a
->>>>>>> master:TestProjects/HDRP_HybridTests/Assets/SampleScenes/BRGGameObjects/BRGGameObjects.unity.meta
 DefaultImporter:
   externalObjects: {}
   userData: 
