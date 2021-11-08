@@ -351,15 +351,15 @@ public unsafe class RenderBRG : MonoBehaviour
         return material;
     }
 
-    Material m_pickingFallbackMaterial;
+    Material m_pickingMaterial;
 
     // Start is called before the first frame update
     void Start()
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
-        m_pickingFallbackMaterial = LoadPickingMaterial();
-        m_BatchRendererGroup.SetPickingMaterial(m_pickingFallbackMaterial);
+        m_pickingMaterial = LoadPickingMaterial();
+        m_BatchRendererGroup.SetPickingMaterial(m_pickingMaterial);
 
         // Create a batch...
         var renderers = FindObjectsOfType<MeshRenderer>();
@@ -628,7 +628,7 @@ public unsafe class RenderBRG : MonoBehaviour
             m_instanceIndices.Dispose();
             m_drawIndices.Dispose();
 
-            DestroyImmediate(m_pickingFallbackMaterial);
+            DestroyImmediate(m_pickingMaterial);
         }
     }
 }
