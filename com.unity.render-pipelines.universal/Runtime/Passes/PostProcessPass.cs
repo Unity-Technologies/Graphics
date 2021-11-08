@@ -1390,7 +1390,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
             bool isUpscaleSetupTextureUsed = false;
 
-            if (cameraData.isScaledRender)
+            if (cameraData.imageScaling != ImageScaling.None)
             {
                 // Make sure to remove any MSAA and attached depth buffers from the temporary render targets
                 var tempRtDesc = cameraData.cameraTargetDescriptor;
@@ -1414,28 +1414,36 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, tempSetupRtId);
                 }
 
-                if (cameraData.renderScale < 1.0f)
+                switch (cameraData.imageScaling)
                 {
-                    // In the upscaling case, set material keywords based on the selected upscaling filter
-                    switch (cameraData.upscalingFilter)
+                    case ImageScaling.Upscaling:
                     {
-                        case UpscalingFilter.Point:
+                        // In the upscaling case, set material keywords based on the selected upscaling filter
+                        switch (cameraData.upscalingFilter)
                         {
-                            material.EnableKeyword(ShaderKeywordStrings.FilterPoint);
-                            break;
+                            case UpscalingFilter.Point:
+                            {
+                                material.EnableKeyword(ShaderKeywordStrings.FilterPoint);
+                                break;
+                            }
+
+                            case UpscalingFilter.Linear:
+                            {
+                                // Do nothing as linear is the default filter in the shader
+                                break;
+                            }
                         }
 
-                        case UpscalingFilter.Linear:
-                        {
-                            // Do nothing as linear is the default filter in the shader
-                            break;
-                        }
+                        break;
                     }
-                }
-                else if (cameraData.renderScale > 1.0f)
-                {
-                    // In the downscaling case, we don't perform any sort of filter override logic since we always want linear filtering
-                    // and it's already the default option in the shader.
+
+                    case ImageScaling.Downscaling:
+                    {
+                        // In the downscaling case, we don't perform any sort of filter override logic since we always want linear filtering
+                        // and it's already the default option in the shader.
+
+                        break;
+                    }
                 }
             }
             else if (isFxaaEnabled)

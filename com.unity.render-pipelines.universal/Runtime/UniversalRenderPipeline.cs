@@ -841,7 +841,20 @@ namespace UnityEngine.Rendering.Universal
             // Scale is only enabled for gameview.
             const float kRenderScaleThreshold = 0.05f;
             cameraData.renderScale = (Mathf.Abs(1.0f - settings.renderScale) < kRenderScaleThreshold) ? 1.0f : settings.renderScale;
-            cameraData.isScaledRender = (cameraData.renderScale != 1.0f);
+
+            if (cameraData.renderScale == 1.0f)
+            {
+                cameraData.imageScaling = ImageScaling.None;
+            }
+            else if (cameraData.renderScale < 1.0f)
+            {
+                cameraData.imageScaling = ImageScaling.Upscaling;
+            }
+            else if (cameraData.renderScale > 1.0f)
+            {
+                cameraData.imageScaling = ImageScaling.Downscaling;
+            }
+
             cameraData.upscalingFilter = settings.upscalingFilter;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
