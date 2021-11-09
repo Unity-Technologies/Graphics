@@ -6,7 +6,7 @@ HDRP can output HDRP content for devices which support that functionality.
 
 ## Enabling HDR Output
 
-To enable HDR output, navigate to **Project Settings > **Player** > **Other Settings** and enable **Use display in HDR mode**.
+To activate HDR output, navigate to **Project Settings > **Player** > **Other Settings** and enable **Use display in HDR mode**.
 
 ## Configuring Tonemapping settings for HDR displays
 
@@ -14,14 +14,14 @@ Enable **Use display in HDR mode** to reveal HDR-related options in the [Tonemap
 
 Each **[Tonemapping](Post-Processing-Tonemapping.md)** mode has some unique properties.
 
-When the **Use display in HDR mode** option is set in the player settings, all the HDR related options appear in the  [Tonemapping](Post-Processing-Tonemapping.md) volume component. The available options depend on the Tonemapping mode selected.
+When the **Use display in HDR mode** option is enabled in the Player settings, all the HDR related options appear in the  [Tonemapping](Post-Processing-Tonemapping.md) volume component. The options available depend on the Tonemapping mode you have selected.
 
 To properly make use of the capabilities of HDR displays, your **Tonemapping** configuration must take into account the capabilities of the target device, specifically these three values in [nits](https://en.wikipedia.org/wiki/Candela_per_square_metre):
 
 - Minimum supported brightness.
 - Maximum supported brightness.
 
-- Paper white value: determines the brightness value of a paper-white surface. In practice this will determines the overall screen brightness and what brightness the UI will map to. This latter point is important as usually unlit UI is rendered assuming that a value of 1 corresponds to a white color; this assumption is not true when it comes to HDR, so HDRP uses the paper white to tune the UI so that white UI will map to a white value on screen.
+- Paper White value: determines the brightness value of a paper-white surface. In practice this will determines the overall screen brightness and what brightness the UI will map to. This latter point is important as usually unlit UI is rendered assuming that a value of 1 corresponds to a white color; this assumption is not true when it comes to HDR, so HDRP uses the paper white to tune the UI so that white UI will map to a white value on screen.
 
 
 
