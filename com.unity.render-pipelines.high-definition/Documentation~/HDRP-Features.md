@@ -318,6 +318,11 @@ Real time raytracing effect are currently in Preview and behavior could change i
 
 <a name="Camera"></a>
 
+### Light count limit
+
+HDRP has a maximum limit on the number of lights a single pixel can get influence from. This setting can be configured through the ShaderConfig.cs file as the FPTLMaxLightCount. By default, HDRP's maximum light count per pixel is 63.
+The only two possible values HDRP supports are Low (31 lights) and High (63 lights). For more information on how to configure this setting, please see [HDRP Config package](HDRP-Config-Package.md).
+
 ## Camera
 
 ### Post-processing
