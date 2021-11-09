@@ -114,6 +114,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         surface.clearCoatSmoothness = saturate(surfaceDescription.CoatSmoothness);
     #endif
 
+    surface.albedo = AlphaModulate(surface.albedo, surface.alpha);
+
 #ifdef _DBUFFER
     ApplyDecalToSurfaceData(unpacked.positionCS, surface, inputData);
 #endif

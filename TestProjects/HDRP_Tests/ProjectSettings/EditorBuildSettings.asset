@@ -369,6 +369,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2308_Microshadows.unity
     guid: 6250123484c56d544a5c1cbd20fd6bb2
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2309_Shadow_Mask_Dir_Fade.unity
+    guid: 10cc8aebbf29a4e449e62471d6176292
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2311_ShadowMaps.unity
     guid: 5dfc947af7e868c47a4656d29eb8653e
   - enabled: 1
@@ -392,6 +395,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2318_Mixed_Cached_ShadowMap_Spot.unity
     guid: d4a5828c5a9a32444b15a298a759ff53
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2319_Mixed_Cached_ShadowMap_Area.unity
+    guid: 7e722454fc2b45846bf45661cc490359    
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2320_Mixed_Cached_ShadowMap_Directional.unity
+    guid: c1fbd001447cf044f9deade52e5e8f45    
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Area_Light_Meshes.unity
     guid: 359ded33a047fd540b5e19a98547f5e2
@@ -815,10 +824,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9910_GlobalMipBias.unity
     guid: 3f9d18568d46df044847954b624b6152
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2320_Mixed_Cached_ShadowMap_Directional.unity
-    guid: c1fbd001447cf044f9deade52e5e8f45
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2319_Mixed_Cached_ShadowMap_Area.unity
-    guid: 7e722454fc2b45846bf45661cc490359
   m_configObjects: {}
