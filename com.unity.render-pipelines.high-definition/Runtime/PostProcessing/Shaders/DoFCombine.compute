@@ -44,6 +44,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     switch (GetTileClass(posInputs.positionSS))
     {
     case SLOW_INFOCUS_TILE:
+    {
         // This tile has both in-focus and out-of-focus pixels, so we compute it at full resolution
         SampleData centerSample;
         centerSample.color = GetColorSample(posInputs.positionSS, 0);
@@ -60,16 +61,24 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         ComposeAlpha(output, centerSample.color.xyz, outAlpha);
 #endif
         break;
+    }
+    
     case FAST_DEFOCUS_TILE:
+    {
         // This tile has only out-of-focus pixels, the output was computed at a lower resolution in a previous pass.
         float2 uv = ClampAndScaleUVPostProcessTextureForPoint((posInputs.positionSS + 0.5) * _PostProcessScreenSize.zw);
         output = SAMPLE_TEXTURE2D_X_LOD(_InputNearTexture, s_linear_clamp_sampler, uv, 0.0).CTYPE_SWIZZLE;
         break;
-    default :
+    }
+    
+    default:
+    {
         // FAST_INFOCUS_TILE
         // This has only in-focus pixels, so don't do any DoF computations (pass through the input texture)
         output = GetColorSample(posInputs.positionSS, 0);
         break;
+    }
+    
     }
 
     // Helper function to visualize tile types in case it is needed for debugging

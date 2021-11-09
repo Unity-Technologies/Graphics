@@ -1088,7 +1088,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1136,7 +1136,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1181,7 +1181,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1220,7 +1220,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1249,7 +1249,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1286,7 +1286,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 

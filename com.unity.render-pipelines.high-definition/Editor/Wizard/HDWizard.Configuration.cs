@@ -867,7 +867,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void FixBuildTarget(bool fromAsyncUnused)
         {
-            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.PS5)
+            if ((EditorUserBuildSettings.activeBuildTarget != BuildTarget.PS5) && (EditorUserBuildSettings.activeBuildTarget != BuildTarget.GameCoreXboxSeries))
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
         }
 

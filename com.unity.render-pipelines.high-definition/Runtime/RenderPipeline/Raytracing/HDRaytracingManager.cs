@@ -713,7 +713,7 @@ namespace UnityEngine.Rendering.HighDefinition
             && (UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
                 || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows
                 || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.GameCoreXboxSeries
-                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.PS5)
+                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.PS5);
 #else
             ;
 #endif
