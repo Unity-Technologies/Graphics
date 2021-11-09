@@ -136,6 +136,22 @@ namespace UnityEditor.ShaderGraph.Registry
             }
         }
 
+        public class ColorNode : Defs.INodeDefinitionBuilder
+        {
+            public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Color", Version = 1 };
+            public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
+
+            public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
+            {
+
+            }
+
+            public ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+            {
+                return NodeHelpers.MathNodeFunctionBuilder("Add", "+", data, container, registry);
+            }
+        }
+
         public class GraphType : Defs.ITypeDefinitionBuilder
         {
             public static RegistryKey kRegistryKey => new RegistryKey { Name = "GraphType", Version = 1 };
