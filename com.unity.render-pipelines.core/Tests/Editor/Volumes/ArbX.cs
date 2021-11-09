@@ -6,7 +6,7 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.Tests
 {
-    public static class ArbX
+    public static partial class ArbX
     {
         public class ArbitraryVolumeComponentType : Arbitrary<VolumeComponentType>
         {
@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Tests
             public override Gen<VolumeComponentType> Generator => Gen.Elements(s_Types);
         }
 
-        public class Arbitraries
+        public partial class Arbitraries
         {
             public static Arbitrary<VolumeComponentType> GetVolumeComponentType()
                 => new ArbitraryVolumeComponentType();

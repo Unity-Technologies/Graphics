@@ -80,12 +80,14 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Adds an extension if it does not exists
+        /// Get an extension it exists
         /// </summary>
         /// <param name="extension"></param>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TExtension"></typeparam>
+        /// <typeparam name="TFactory"></typeparam>
         /// <returns></returns>
         [MustUseReturnValue]
-        internal bool AddExtension<TExtension, TFactory>([NotNullWhen(true)] out TExtension extension)
+        internal bool GetOrAddExtension<TExtension, TFactory>([NotNullWhen(true)] out TExtension extension)
             where TExtension : VolumeComponentArchetypeExtension
             where TFactory : struct, IVolumeComponentArchetypeExtensionFactory<TExtension>
         {
@@ -110,14 +112,6 @@ namespace UnityEngine.Rendering
 
             extension = default;
             return false;
-        }
-
-        [MustUseReturnValue]
-        internal bool GetOrAddExtension<TExtension, TFactory>([NotNullWhen(true)] out TExtension extension)
-            where TExtension : VolumeComponentArchetypeExtension
-            where TFactory : struct, IVolumeComponentArchetypeExtensionFactory<TExtension>
-        {
-            return GetExtension<TExtension, TFactory>(out extension) || AddExtension<TExtension, TFactory>(out extension);
         }
 
         public bool Equals(VolumeComponentArchetype other)

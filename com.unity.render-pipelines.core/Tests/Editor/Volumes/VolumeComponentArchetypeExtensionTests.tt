@@ -1,0 +1,93 @@
+<#@ template language="C#" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+using System;
+
+namespace UnityEngine.Rendering.Tests
+{
+    partial class VolumeComponentArchetypeTests
+    {
+<#
+    const int totalExtensions = 1000;
+    WriteExtensions(totalExtensions);
+#>
+        partial struct GetAndAddExtensionsTestAction
+        {
+            private partial void ApplyGetTo(VolumeComponentArchetype archetype, Type type)
+            {
+                <# CallOnType(totalExtensions, "archetype.GetExtension<GeneratedExtensions.{0}, GeneratedExtensions.{0}.Factory>(out _);"); #>
+            }
+
+            private partial void ApplyGetOrAddTo(VolumeComponentArchetype archetype, Type type)
+            {
+                <# CallOnType(totalExtensions, "archetype.GetOrAddExtension<GeneratedExtensions.{0}, GeneratedExtensions.{0}.Factory>(out _);"); #>
+            }
+
+            private partial bool CheckGetTo(VolumeComponentArchetype archetype, Type type)
+            {
+                <# CallOnType(totalExtensions, "return true;"); #>
+            }
+
+            private partial bool CheckGetOrAddTo(VolumeComponentArchetype archetype, Type type)
+            {
+                <# CallOnType(totalExtensions, "return  archetype.GetOrAddExtension<GeneratedExtensions.{0}, GeneratedExtensions.{0}.Factory>(out _);"); #>
+            }
+        }
+    }
+}
+<#+
+    static string ToExtensionClassName(int index) => $"VolumeArchetypeExtensionTest{index:0000}";
+
+    void WriteExtensions(int extensionCount)
+    {
+#>
+        class GeneratedExtensions
+        {
+            public static Type[] AllTypes = new Type[]
+            {
+<#+
+        for (var i = 0; i < extensionCount; ++i)
+        {
+            var className = ToExtensionClassName(i);
+#>                typeof(<#+ Write(className); #>),
+<#+
+        }
+#>
+            };
+<#+
+        for (var i = 0; i < extensionCount; ++i)
+        {
+            var className = ToExtensionClassName(i);
+#>
+            public class <#+ Write(className) ;#> : VolumeComponentArchetypeExtension
+            {
+                public struct Factory : IVolumeComponentArchetypeExtensionFactory<<#+ Write(className) ;#>>
+                {
+                    public <#+ Write(className) ;#> Create(VolumeComponentArchetype volumeComponentArchetype)
+                    {
+                        return new <#+ Write(className) ;#>();
+                    }
+                }
+            }
+<#+
+        }
+#>
+        }
+<#+
+    }
+
+    void CallOnType(int extensionCount, string statementFormat)
+    {
+        for (var i = 0; i < extensionCount; ++i)
+        {
+            var className = ToExtensionClassName(i);
+#>
+        if (type == typeof(GeneratedExtensions.<#+Write(className);#>))
+            <#+ Write(string.Format(statementFormat, className)); #>
+<#+
+        }
+#>
+        throw new Exception($"Invalid type: {type}");
+<#+
+    }
+#>

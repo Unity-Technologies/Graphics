@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using FsCheck;
 using NUnit.Framework;
@@ -6,8 +7,80 @@ using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEngine.Rendering.Tests
 {
-    class VolumeComponentArchetypeTests
+    public static partial class ArbX
     {
+        public partial class Arbitraries
+        {
+            public static Arbitrary<VolumeComponentArchetypeTests.GetAndAddExtensionsTestAction> CreateGetAndAddExtensionsTestActionArb()
+                => new VolumeComponentArchetypeTests.GetAndAddExtensionsTestActionArb();
+        }
+    }
+
+    public partial class VolumeComponentArchetypeTests
+    {
+
+        public readonly partial struct GetAndAddExtensionsTestAction
+        {
+            public enum Kind
+            {
+                Get,
+                GetOrAdd,
+            }
+
+            readonly Kind m_Kind;
+            readonly Type m_ExtensionType;
+
+            public GetAndAddExtensionsTestAction(Kind kind, Type extensionType)
+            {
+                m_Kind = kind;
+                m_ExtensionType = extensionType;
+            }
+
+            public void ApplyTo([DisallowNull] VolumeComponentArchetype archetype)
+            {
+                switch (m_Kind)
+                {
+                    case Kind.Get:
+                        ApplyGetTo(archetype, m_ExtensionType);
+                        break;
+                    case Kind.GetOrAdd:
+                        ApplyGetOrAddTo(archetype, m_ExtensionType);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            private partial void ApplyGetTo([DisallowNull] VolumeComponentArchetype archetype, [DisallowNull] Type type);
+            private partial void ApplyGetOrAddTo([DisallowNull] VolumeComponentArchetype archetype, [DisallowNull] Type type);
+
+            public bool Check([DisallowNull] VolumeComponentArchetype archetype)
+            {
+                switch (m_Kind)
+                {
+                    case Kind.Get:
+                        return CheckGetTo(archetype, m_ExtensionType);
+                    case Kind.GetOrAdd:
+                        return CheckGetOrAddTo(archetype, m_ExtensionType);
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            private partial bool CheckGetTo([DisallowNull] VolumeComponentArchetype archetype, [DisallowNull] Type type);
+            private partial bool CheckGetOrAddTo([DisallowNull] VolumeComponentArchetype archetype, [DisallowNull] Type type);
+
+        }
+
+        internal class GetAndAddExtensionsTestActionArb : Arbitrary<GetAndAddExtensionsTestAction>
+        {
+            static Type[] s_Types = GeneratedExtensions.AllTypes;
+
+            public override Gen<GetAndAddExtensionsTestAction> Generator => Gen.Elements(s_Types)
+                .Zip(Gen.Choose(0, 1))
+                .Select(tuple => new GetAndAddExtensionsTestAction((GetAndAddExtensionsTestAction.Kind)tuple.Item2, tuple.Item1));
+
+        }
         [OneTimeSetUp]
         public static void SetupFixture()
         {
@@ -124,6 +197,23 @@ namespace UnityEngine.Rendering.Tests
 
             Prop.ForAll<VolumeComponentType[], VolumeComponentType>(Property).QuickCheckThrowOnFailure();
         }
+
+
+        [Test]
+        public void GetAndAddExtensionsTest()
+        {
+            bool Property(VolumeComponentType[] types, GetAndAddExtensionsTestAction[] actions)
+            {
+                var archetype = VolumeComponentArchetype.FromTypes(types);
+                foreach (var action in actions)
+                    action.ApplyTo(archetype);
+
+                return actions.All(action => action.Check(archetype));
+            }
+
+            Prop.ForAll<VolumeComponentType[], GetAndAddExtensionsTestAction[]>(Property).QuickCheckThrowOnFailure();
+        }
+
 
         [Test]
         public void EmptyIsEmpty()
