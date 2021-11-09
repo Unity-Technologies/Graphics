@@ -72,7 +72,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void OnComputeAmbientProbeDone(AsyncGPUReadbackRequest request)
         {
-            // We only read back the 27 first coeffs for diffuse convolution (as it's requested by C++ CPU code to setup objects)
             if (!request.hasError)
             {
                 var result = request.GetData<float>();

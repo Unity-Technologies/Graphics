@@ -65,7 +65,7 @@ static const float invNormConsts[] = { 1 / c0, -1 / c1, 1 / c1, -1 / c1, 1 / c2,
     groupshared float outputSHCoeffsLDS[SH_COEFF_COUNT * SAMPLE_COUNT / 2];
 #endif
 
-void ConvolveZonal(inout float sh[27], float zh[3])
+void ConvolveZonal(inout float sh[27], float3 zh)
 {
     for (int l = 0; l <= 2; l++)
     {
@@ -260,7 +260,7 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
             result[i] = _AmbientProbeOutputBuffer[i] * invNormConsts[i % 9] *_FogDimmer;
         }
 
-        float zh[3];
+        float3 zh;
         GetCornetteShanksPhaseFunction(zh, _FogAnisotropy);
         ConvolveZonal(result, zh);
 
