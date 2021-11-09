@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 CoreUtils.SetRenderTarget(cmd, destination, colorLoadAction, colorStoreAction, ClearFlag.None, Color.clear);
-                cmd.Blit(source, BuiltinRenderTextureType.CurrentActive, material, passIndex);
+                cmd.Blit(source.nameID, BuiltinRenderTextureType.CurrentActive, material, passIndex);
             }
         }
 
