@@ -11,8 +11,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
         [SerializeField] internal NormalQuality NormalSamples = NormalQuality.Medium;
         [SerializeField] internal float Intensity = 3.0f;
+        [Range(0f, 1f)]
         [SerializeField] internal float DirectLightingStrength = 0.25f;
         [SerializeField] internal float Radius = 0.035f;
+        [Range(4f, 20f)]
         [SerializeField] internal int SampleCount = 4;
 
         // Enums

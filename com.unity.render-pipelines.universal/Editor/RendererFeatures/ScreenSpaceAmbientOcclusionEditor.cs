@@ -73,11 +73,8 @@ namespace UnityEditor.Rendering.Universal
 
             DrawProperty(ref position, m_Intensity, Styles.Intensity);
             DrawProperty(ref position, m_Radius, Styles.Radius);
-            position.height = EditorGUIUtility.singleLineHeight;
-            EditorGUI.Slider(position, m_DirectLightingStrength, 0f, 1f, Styles.DirectLightingStrength);
-            position.y += position.height + 2;
-            EditorGUI.IntSlider(position, m_SampleCount, 4, 20, Styles.SampleCount);
-            position.y += position.height + 2;
+            DrawProperty(ref position, m_DirectLightingStrength, Styles.DirectLightingStrength);
+            DrawProperty(ref position, m_SampleCount, Styles.SampleCount);
 
             m_Intensity.floatValue = Mathf.Clamp(m_Intensity.floatValue, 0f, m_Intensity.floatValue);
             m_Radius.floatValue = Mathf.Clamp(m_Radius.floatValue, 0f, m_Radius.floatValue);
