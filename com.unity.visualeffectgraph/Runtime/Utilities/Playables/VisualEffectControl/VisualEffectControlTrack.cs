@@ -6,10 +6,26 @@ using UnityEngine.Timeline;
 namespace UnityEngine.VFX
 {
     [TrackColor(0.5990566f, 0.9038978f, 1f)]
-    [TrackClipType(typeof(VisualEffectControlPlayableAsset))]
+    [TrackClipType(typeof(VisualEffectControlPlayableClip))]
     [TrackBindingType(typeof(VisualEffect))]
     class VisualEffectControlTrack : TrackAsset
     {
+        //0: Initial
+        //1: VisualEffectActivationTrack which contains VisualEffectActivationClip => VisualEffectControlTrack with VisualEffectControlPlayableClip
+        const int kCurrentVersion = 1;
+        [SerializeField, HideInInspector]
+        int m_VFXVersion;
+
+        public bool IsUpToDate()
+        {
+            return m_VFXVersion == kCurrentVersion;
+        }
+
+        protected override void OnBeforeTrackSerialize()
+        {
+            base.OnBeforeTrackSerialize();
+            m_VFXVersion = kCurrentVersion;
+        }
 
 #if UNITY_EDITOR
         public VisualEffectControlTrackMixerBehaviour lastCreatedMixer { get; private set; }
@@ -19,7 +35,7 @@ namespace UnityEngine.VFX
         {
             foreach (var clip in GetClips())
             {
-                var customClip = clip.asset as VisualEffectControlPlayableAsset;
+                var customClip = clip.asset as VisualEffectControlPlayableClip;
                 if (customClip != null)
                 {
                     customClip.clipStart = clip.start;

@@ -109,7 +109,7 @@ namespace UnityEditor.VFX
                 if (parentEventTime == null)
                     throw new InvalidOperationException();
 
-                var parentPlayable = property.serializedObject.targetObject as VisualEffectControlPlayableAsset;
+                var parentPlayable = property.serializedObject.targetObject as VisualEffectControlPlayableClip;
                 if (parentPlayable == null)
                     throw new InvalidOperationException();
 
@@ -130,7 +130,7 @@ namespace UnityEditor.VFX
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            var reordableList = VisualEffectControlPlayableAssetInspector.GetOrBuildEventAttributeList(property.serializedObject.targetObject as VisualEffectControlPlayableAsset, property);
+            var reordableList = VisualEffectControlPlayableClipInspector.GetOrBuildEventAttributeList(property.serializedObject.targetObject as VisualEffectControlPlayableClip, property);
 
             if (reordableList != null)
                 return reordableList.GetHeight();
@@ -140,7 +140,7 @@ namespace UnityEditor.VFX
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var reordableList = VisualEffectControlPlayableAssetInspector.GetOrBuildEventAttributeList(property.serializedObject.targetObject as VisualEffectControlPlayableAsset, property);
+            var reordableList = VisualEffectControlPlayableClipInspector.GetOrBuildEventAttributeList(property.serializedObject.targetObject as VisualEffectControlPlayableClip, property);
             if (reordableList != null)
             {
                 EditorGUI.BeginChangeCheck();
@@ -151,8 +151,8 @@ namespace UnityEditor.VFX
         }
     }
 
-    [CustomEditor(typeof(VisualEffectControlPlayableAsset))]
-    class VisualEffectControlPlayableAssetInspector : Editor
+    [CustomEditor(typeof(VisualEffectControlPlayableClip))]
+    class VisualEffectControlPlayableClipInspector : Editor
     {
         SerializedProperty scrubbingProperty;
         SerializedProperty startSeedProperty;
@@ -165,7 +165,7 @@ namespace UnityEditor.VFX
         ReorderableList m_ReoderableClipEvents;
         ReorderableList m_ReoderableSingleEvents;
 
-        static private List<(VisualEffectControlPlayableAsset asset, VisualEffectControlPlayableAssetInspector inspector)> s_RegisteredInspector = new List<(VisualEffectControlPlayableAsset asset, VisualEffectControlPlayableAssetInspector inspector)>();
+        static private List<(VisualEffectControlPlayableClip asset, VisualEffectControlPlayableClipInspector inspector)> s_RegisteredInspector = new List<(VisualEffectControlPlayableClip asset, VisualEffectControlPlayableClipInspector inspector)>();
         Dictionary<string, ReorderableList> m_CacheEventAttributes = new Dictionary<string, ReorderableList>();
 
         private static readonly (Type type, Type valueType)[] kEventAttributeSpecialization = GetEventAttributeSpecialization().ToArray();
@@ -211,7 +211,7 @@ namespace UnityEditor.VFX
 
         private static readonly (string name, Type type)[] kAvailableAttributes = GetAvailableAttributes().ToArray();
 
-        public static ReorderableList GetOrBuildEventAttributeList(VisualEffectControlPlayableAsset asset, SerializedProperty property)
+        public static ReorderableList GetOrBuildEventAttributeList(VisualEffectControlPlayableClip asset, SerializedProperty property)
         {
             var inspector = s_RegisteredInspector.FirstOrDefault(o => o.asset == asset).inspector;
             if (inspector == null)
@@ -351,30 +351,30 @@ namespace UnityEditor.VFX
 
         private void OnEnable()
         {
-            s_RegisteredInspector.Add((target as VisualEffectControlPlayableAsset, this));
+            s_RegisteredInspector.Add((target as VisualEffectControlPlayableClip, this));
 
-            scrubbingProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.scrubbing));
-            startSeedProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.startSeed));
-            reinitProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.reinit));
+            scrubbingProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableClip.scrubbing));
+            startSeedProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableClip.startSeed));
+            reinitProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableClip.reinit));
 
-            var prewarmSettings = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.prewarm));
-            prewarmEnable = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlPlayableAsset.PrewarmClipSettings.enable));
-            prewarmStepCount = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlPlayableAsset.PrewarmClipSettings.stepCount));
-            prewarmDeltaTime = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlPlayableAsset.PrewarmClipSettings.deltaTime));
-            prewarmEvent = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlPlayableAsset.PrewarmClipSettings.eventName) + ".m_Name");
+            var prewarmSettings = serializedObject.FindProperty(nameof(VisualEffectControlPlayableClip.prewarm));
+            prewarmEnable = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlPlayableClip.PrewarmClipSettings.enable));
+            prewarmStepCount = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlPlayableClip.PrewarmClipSettings.stepCount));
+            prewarmDeltaTime = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlPlayableClip.PrewarmClipSettings.deltaTime));
+            prewarmEvent = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlPlayableClip.PrewarmClipSettings.eventName) + ".m_Name");
 
-            var clipEventsProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.clipEvents));
-            var singleEventsProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableAsset.singleEvents));
+            var clipEventsProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableClip.clipEvents));
+            var singleEventsProperty = serializedObject.FindProperty(nameof(VisualEffectControlPlayableClip.singleEvents));
 
             m_ReoderableClipEvents = BuildEventReordableList(serializedObject, clipEventsProperty);
             m_ReoderableClipEvents.drawHeaderCallback += (Rect r) => { EditorGUI.LabelField(r, "Clip Events"); };
             m_ReoderableClipEvents.onAddCallback = (ReorderableList list) =>
             {
-                var playable = clipEventsProperty.serializedObject.targetObject as VisualEffectControlPlayableAsset;
+                var playable = clipEventsProperty.serializedObject.targetObject as VisualEffectControlPlayableClip;
                 Undo.RegisterCompleteObjectUndo(playable, "Add new clip event");
                 clipEventsProperty.serializedObject.ApplyModifiedProperties();
 
-                var newClipEvent = new VisualEffectControlPlayableAsset.ClipEvent();
+                var newClipEvent = new VisualEffectControlPlayableClip.ClipEvent();
                 if (playable.clipEvents.Any())
                 {
                     var last = playable.clipEvents.Last();
@@ -401,7 +401,7 @@ namespace UnityEditor.VFX
             m_ReoderableSingleEvents.drawHeaderCallback += (Rect r) => { EditorGUI.LabelField(r, "Single Events"); };
             m_ReoderableSingleEvents.onAddCallback = (ReorderableList list) =>
             {
-                var playable = singleEventsProperty.serializedObject.targetObject as VisualEffectControlPlayableAsset;
+                var playable = singleEventsProperty.serializedObject.targetObject as VisualEffectControlPlayableClip;
                 Undo.RegisterCompleteObjectUndo(playable, "Add new single event");
                 singleEventsProperty.serializedObject.ApplyModifiedProperties();
 
@@ -423,15 +423,15 @@ namespace UnityEditor.VFX
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(scrubbingProperty);
 
-            var currentReinit = (VisualEffectControlPlayableAsset.ReinitMode)reinitProperty.enumValueIndex;
+            var currentReinit = (VisualEffectControlPlayableClip.ReinitMode)reinitProperty.enumValueIndex;
 
             if (scrubbingProperty.boolValue)
-                currentReinit = VisualEffectControlPlayableAsset.ReinitMode.OnEnterOrExitClip;
+                currentReinit = VisualEffectControlPlayableClip.ReinitMode.OnEnterOrExitClip;
 
             using (new EditorGUI.DisabledScope(scrubbingProperty.boolValue))
             {
                 EditorGUI.BeginChangeCheck();
-                var newReinit = (VisualEffectControlPlayableAsset.ReinitMode)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Reinit"), currentReinit);
+                var newReinit = (VisualEffectControlPlayableClip.ReinitMode)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Reinit"), currentReinit);
                 if (EditorGUI.EndChangeCheck())
                 {
                     reinitProperty.enumValueIndex = (int)newReinit;
@@ -439,8 +439,8 @@ namespace UnityEditor.VFX
             }
 
             using (new EditorGUI.DisabledScope(!(
-                 currentReinit == VisualEffectControlPlayableAsset.ReinitMode.OnEnterOrExitClip
-                || currentReinit == VisualEffectControlPlayableAsset.ReinitMode.OnEnterClip)))
+                 currentReinit == VisualEffectControlPlayableClip.ReinitMode.OnEnterOrExitClip
+                || currentReinit == VisualEffectControlPlayableClip.ReinitMode.OnEnterClip)))
             {
                 EditorGUILayout.PropertyField(startSeedProperty);
                 EditorGUILayout.PropertyField(prewarmEnable, EditorGUIUtility.TrTextContent("Enable PreWarm"));

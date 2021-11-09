@@ -9,12 +9,12 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    [CustomTimelineEditor(typeof(VisualEffectControlPlayableAsset))]
-    class VisualEffectControlPlayableAssetEditor : ClipEditor
+    [CustomTimelineEditor(typeof(VisualEffectControlPlayableClip))]
+    class VisualEffectControlPlayableClipEditor : ClipEditor
     {
         public override void OnClipChanged(TimelineClip clip)
         {
-            var behavior = clip.asset as VisualEffectControlPlayableAsset;
+            var behavior = clip.asset as VisualEffectControlPlayableClip;
             if (behavior != null)
                 clip.displayName = "VFX";
         }
@@ -49,7 +49,7 @@ namespace UnityEditor.VFX
         public override void DrawBackground(TimelineClip clip, ClipBackgroundRegion region)
         {
             base.DrawBackground(clip, region);
-            var playable = clip.asset as VisualEffectControlPlayableAsset;
+            var playable = clip.asset as VisualEffectControlPlayableClip;
             if (playable.clipEvents == null || playable.singleEvents == null)
                 return;
 

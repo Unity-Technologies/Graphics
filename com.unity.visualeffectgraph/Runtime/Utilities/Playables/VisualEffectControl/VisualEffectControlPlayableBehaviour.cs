@@ -115,7 +115,7 @@ namespace UnityEngine.VFX
             return GetEventNormalizedSpace(space, source.events, source.clipStart, source.clipEnd);
         }
 
-        private static IEnumerable<VisualEffectPlayableSerializedEvent> CollectClipEvents(VisualEffectControlPlayableAsset source)
+        private static IEnumerable<VisualEffectPlayableSerializedEvent> CollectClipEvents(VisualEffectControlPlayableClip source)
         {
             if (source.clipEvents != null)
             {
@@ -127,7 +127,7 @@ namespace UnityEngine.VFX
             }
         }
 
-        public static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace space, VisualEffectControlPlayableAsset source, bool clipEvents)
+        public static IEnumerable<VisualEffectPlayableSerializedEvent> GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace space, VisualEffectControlPlayableClip source, bool clipEvents)
         {
             IEnumerable<VisualEffectPlayableSerializedEvent> sourceEvents;
             if (clipEvents)

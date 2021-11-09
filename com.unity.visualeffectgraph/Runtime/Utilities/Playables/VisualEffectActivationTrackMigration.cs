@@ -15,6 +15,8 @@ namespace UnityEditor.VFX.Migration
         {
             foreach (var track in timeline.GetOutputTracks())
             {
+                //TODOPAUL use IsUpToDate
+
                 if (track is VisualEffectControlTrack)
                 {
                     var vfxTrack = track as VisualEffectControlTrack;
@@ -114,14 +116,14 @@ namespace UnityEditor.VFX.Migration
             {
                 foreach (var oldClip in invalidTrack.GetClips())
                 {
-                    if (oldClip.asset is VisualEffectControlPlayableAsset)
+                    if (oldClip.asset is VisualEffectControlPlayableClip)
                         continue; //Already sanitized
 
-                    var newClip = invalidTrack.CreateClip<VisualEffectControlPlayableAsset>();
+                    var newClip = invalidTrack.CreateClip<VisualEffectControlPlayableClip>();
                     newClip.start = oldClip.start;
                     newClip.duration = oldClip.duration;
 
-                    var newAsset = newClip.asset as VisualEffectControlPlayableAsset;
+                    var newAsset = newClip.asset as VisualEffectControlPlayableClip;
                     var oldAsset = oldClip.asset as VisualEffectActivationClip;
 
                     newAsset.clipStart = oldClip.start;
@@ -129,12 +131,12 @@ namespace UnityEditor.VFX.Migration
 
                     //Equivalent of the previous VisualEffectActivationClip behavior, no scrubbing, no reinit, only activation
                     newAsset.prewarm.enable = false;
-                    newAsset.reinit = VisualEffectControlPlayableAsset.ReinitMode.None;
+                    newAsset.reinit = VisualEffectControlPlayableClip.ReinitMode.None;
                     newAsset.scrubbing = false;
 
-                    newAsset.clipEvents = new List<VisualEffectControlPlayableAsset.ClipEvent>()
+                    newAsset.clipEvents = new List<VisualEffectControlPlayableClip.ClipEvent>()
                     {
-                        new VisualEffectControlPlayableAsset.ClipEvent()
+                        new VisualEffectControlPlayableClip.ClipEvent()
                         {
                             enter = new VisualEffectPlayableSerializedEvent()
                             {
