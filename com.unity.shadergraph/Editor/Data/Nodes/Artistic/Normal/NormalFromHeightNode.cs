@@ -87,6 +87,9 @@ namespace UnityEditor.ShaderGraph
                     FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
                 using (s.BlockScope())
                 {
+                    s.AppendLine("#if defined(SHADER_STAGE_RAY_TRACING)");
+                    s.AppendLine("Out = TangentMatrix[2].xyz;"); // Most sensible output without ddx(), ddy()
+                    s.AppendLine("#else");
                     s.AppendLine("$precision3 worldDerivativeX = ddx(Position);");
                     s.AppendLine("$precision3 worldDerivativeY = ddy(Position);");
                     s.AppendNewLine();
@@ -100,6 +103,7 @@ namespace UnityEditor.ShaderGraph
                     s.AppendLine("$precision dHdy = ddy(In);");
                     s.AppendLine("$precision3 surfGrad = surface * (dHdx*crossY + dHdy*crossX);");
                     s.AppendLine("Out = SafeNormalize(TangentMatrix[2].xyz - (Strength * surfGrad));");
+                    s.AppendLine("#endif");
 
                     if (outputSpace == OutputSpace.Tangent)
                         s.AppendLine("Out = TransformWorldToTangent(Out, TangentMatrix);");
