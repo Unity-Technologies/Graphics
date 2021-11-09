@@ -9,6 +9,7 @@
 //
 #define MATERIALFEATUREFLAGS_EYE_CINEMATIC (1)
 #define MATERIALFEATUREFLAGS_EYE_SUBSURFACE_SCATTERING (2)
+#define MATERIALFEATUREFLAGS_EYE_CAUSTIC_FROM_LUT (4)
 
 //
 // UnityEngine.Rendering.HighDefinition.Eye+SurfaceData:  static fields
@@ -28,6 +29,8 @@
 #define DEBUGVIEW_EYE_SURFACEDATA_MASK (1512)
 #define DEBUGVIEW_EYE_SURFACEDATA_DIFFUSION_PROFILE_HASH (1513)
 #define DEBUGVIEW_EYE_SURFACEDATA_SUBSURFACE_MASK (1514)
+#define DEBUGVIEW_EYE_SURFACEDATA_HEIGHT_OF_THE_IRIS_FROM_ORIGO_(OS) (1515)
+#define DEBUGVIEW_EYE_SURFACEDATA_IRIS_RADIUS (1516)
 
 //
 // UnityEngine.Rendering.HighDefinition.Eye+BSDFData:  static fields
@@ -46,9 +49,11 @@
 #define DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1561)
 #define DEBUGVIEW_EYE_BSDFDATA_PERCEPTUAL_ROUGHNESS (1562)
 #define DEBUGVIEW_EYE_BSDFDATA_MASK (1563)
-#define DEBUGVIEW_EYE_BSDFDATA_DIFFUSION_PROFILE_INDEX (1564)
-#define DEBUGVIEW_EYE_BSDFDATA_SUBSURFACE_MASK (1565)
-#define DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS (1566)
+#define DEBUGVIEW_EYE_BSDFDATA_IRIS_HEIGHT (1564)
+#define DEBUGVIEW_EYE_BSDFDATA_IRIS_RADIUS (1565)
+#define DEBUGVIEW_EYE_BSDFDATA_DIFFUSION_PROFILE_INDEX (1566)
+#define DEBUGVIEW_EYE_BSDFDATA_SUBSURFACE_MASK (1567)
+#define DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS (1568)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Eye+SurfaceData
 // PackingRules = Exact
@@ -66,6 +71,8 @@ struct SurfaceData
     float2 mask;
     uint diffusionProfileHash;
     float subsurfaceMask;
+    float irisHeight;
+    float irisRadius;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Eye+BSDFData
@@ -83,6 +90,8 @@ struct BSDFData
     float3 geomNormalWS;
     float perceptualRoughness;
     float2 mask;
+    float irisHeight;
+    float irisRadius;
     uint diffusionProfileIndex;
     float subsurfaceMask;
     float roughness;
@@ -143,6 +152,12 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_EYE_SURFACEDATA_SUBSURFACE_MASK:
             result = surfacedata.subsurfaceMask.xxx;
             break;
+        case DEBUGVIEW_EYE_SURFACEDATA_HEIGHT_OF_THE_IRIS_FROM_ORIGO_(OS):
+            result = surfacedata.irisHeight.xxx;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_IRIS_RADIUS:
+            result = surfacedata.irisRadius.xxx;
+            break;
     }
 }
 
@@ -195,6 +210,12 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_EYE_BSDFDATA_MASK:
             result = float3(bsdfdata.mask, 0.0);
+            break;
+        case DEBUGVIEW_EYE_BSDFDATA_IRIS_HEIGHT:
+            result = bsdfdata.irisHeight.xxx;
+            break;
+        case DEBUGVIEW_EYE_BSDFDATA_IRIS_RADIUS:
+            result = bsdfdata.irisRadius.xxx;
             break;
         case DEBUGVIEW_EYE_BSDFDATA_DIFFUSION_PROFILE_INDEX:
             result = GetIndexColor(bsdfdata.diffusionProfileIndex);

@@ -9,7 +9,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public enum MaterialType
         {
             Eye,
-            EyeCinematic
+            EyeCinematic,
+            EyeCinematicWithCaustic
         }
 
         [SerializeField]
@@ -34,6 +35,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_IrisNormal;
             set => m_IrisNormal = value;
+        }
+
+        [SerializeField]
+        float m_IrisHeight = 0.5f;
+        public float irisHeight
+        {
+            get => m_IrisHeight;
+            set => m_IrisHeight = value;
+        }
+        
+        [SerializeField]
+        float m_IrisRadius = 0.1f;
+        public float irisRadius
+        {
+            get => m_IrisRadius;
+            set => m_IrisRadius = value;
         }
     }
 }
