@@ -241,8 +241,6 @@ MonoBehaviour:
     dofCombineCS: {fileID: 7200000, guid: d9b940a90a2d0884f94990a0dde43a53, type: 3}
     contrastAdaptiveSharpenCS: {fileID: 7200000, guid: 560896aec2f412c48995be35551a4ac6,
       type: 3}
-    robustContrastAdaptiveSharpenCS: {fileID: 7200000, guid: d907373e407ff65479c449a66c04443d,
-      type: 3}
     edgeAdaptiveSpatialUpsamplingCS: {fileID: 7200000, guid: f054fa9fe2c85bb42b9489e2f9ffb643,
       type: 3}
     VTFeedbackDownsample: {fileID: 7200000, guid: 32d963548086c2c439aeb23a93e9a00a,
@@ -340,6 +338,7 @@ MonoBehaviour:
     rankingTile256SPP: {fileID: 2800000, guid: 1e604a266c415cd46b36d97cd9220aa8, type: 3}
     scramblingTile256SPP: {fileID: 2800000, guid: 882fb55d7b3e7c94598a318df9376e32,
       type: 3}
+    eyeCausticLUT: {fileID: 11700000, guid: d4ec12283a044584794485916f4142a9, type: 3}
     cloudLutRainAO: {fileID: 2800000, guid: e0bcfddf26ed5584ba3d8b94d3200114, type: 3}
     worleyNoise128RGBA: {fileID: 11700000, guid: 1fe54a721d0e2504e89f121c723404a8,
       type: 3}
