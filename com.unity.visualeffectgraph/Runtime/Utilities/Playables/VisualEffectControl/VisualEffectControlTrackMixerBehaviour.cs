@@ -636,6 +636,14 @@ namespace UnityEngine.VFX
         ScrubbingCacheHelper m_ScrubbingCacheHelper;
         VisualEffect m_Target;
 
+        bool m_ReinitWithBinding;
+        bool m_ReinitWithUnbinding;
+        public void Init(bool reinitWithBinding, bool reinitWithUnbinding)
+        {
+            m_ReinitWithBinding = reinitWithBinding;
+            m_ReinitWithUnbinding = reinitWithUnbinding;
+        }
+
 #if UNITY_EDITOR
         public IEnumerable<ScrubbingCacheHelper.Debug> GetDebugFrames()
         {
@@ -659,11 +667,31 @@ namespace UnityEngine.VFX
             m_ScrubbingCacheHelper.Update(globalTime, deltaTime);
         }
 
+        void BindVFX(VisualEffect vfx)
+        {
+            m_Target = vfx;
+            if (m_Target != null && m_ReinitWithBinding)
+            {
+                m_Target.Reinit(false);
+            }
+        }
+
+        void UnbindVFX()
+        {
+            if (m_Target != null && m_ReinitWithUnbinding)
+            {
+                m_Target.Reinit(true);
+            }
+            m_Target = null;
+        }
+
         public override void ProcessFrame(Playable playable, FrameData data, object playerData)
         {
             var vfx = playerData as VisualEffect;
             if (m_Target == vfx)
                 return;
+
+            UnbindVFX();
 
             if (vfx != null)
             {
@@ -673,10 +701,7 @@ namespace UnityEngine.VFX
                     vfx = null;
             }
 
-            m_Target = vfx;
-            if (m_Target)
-                m_Target.pause = true;
-
+            BindVFX(vfx);
             InvalidateScrubbingHelper();
         }
 
@@ -703,7 +728,7 @@ namespace UnityEngine.VFX
         public override void OnPlayableDestroy(Playable playable)
         {
             InvalidateScrubbingHelper();
-            m_Target = null;
+            UnbindVFX();
         }
     }
 }

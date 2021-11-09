@@ -16,6 +16,17 @@ namespace UnityEngine.VFX
         [SerializeField, HideInInspector]
         int m_VFXVersion;
 
+        public enum ReinitMode
+        {
+            None,
+            OnBindingEnable,
+            OnBindingDisable,
+            OnBindingEnableOrDisable
+        }
+
+        [SerializeField, NotKeyable]
+        public ReinitMode reinit = ReinitMode.OnBindingEnableOrDisable;
+
         public bool IsUpToDate()
         {
             return m_VFXVersion == kCurrentVersion;
@@ -64,8 +75,32 @@ namespace UnityEngine.VFX
             }
 
             var mixer = ScriptPlayable<VisualEffectControlTrackMixerBehaviour>.Create(graph, inputCount);
+            var behaviour = mixer.GetBehaviour();
+            var reinitBinding = false;
+            var reinitUnbinding = false;
+            switch (reinit)
+            {
+                case ReinitMode.None:
+                    reinitBinding = false;
+                    reinitUnbinding = false;
+                    break;
+                case ReinitMode.OnBindingDisable:
+                    reinitBinding = false;
+                    reinitUnbinding = true;
+                    break;
+                case ReinitMode.OnBindingEnable:
+                    reinitBinding = true;
+                    reinitUnbinding = false;
+                    break;
+                case ReinitMode.OnBindingEnableOrDisable:
+                    reinitBinding = true;
+                    reinitUnbinding = true;
+                    break;
+            }
+            behaviour.Init(reinitBinding, reinitUnbinding);
+
 #if UNITY_EDITOR
-            lastCreatedMixer = mixer.GetBehaviour();
+            lastCreatedMixer = behaviour;
 #endif
             return mixer;
         }

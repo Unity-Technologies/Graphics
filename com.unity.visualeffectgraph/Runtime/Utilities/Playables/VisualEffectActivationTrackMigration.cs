@@ -107,6 +107,9 @@ namespace UnityEditor.VFX.Migration
                     if (oldClip.asset is VisualEffectControlClip)
                         continue; //Already sanitized
 
+                    //The previous implementation wasn't reinit the VFX
+                    invalidTrack.reinit = VisualEffectControlTrack.ReinitMode.None;
+
                     var newClip = invalidTrack.CreateClip<VisualEffectControlClip>();
                     newClip.start = oldClip.start;
                     newClip.duration = oldClip.duration;
