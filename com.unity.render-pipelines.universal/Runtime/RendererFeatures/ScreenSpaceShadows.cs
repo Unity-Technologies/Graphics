@@ -8,13 +8,13 @@ namespace UnityEngine.Rendering.Universal
     {
     }
 
-    [DisallowMultipleRendererFeature]
+    [RendererFeatureInfo("Universal Render Pipeline/Screen Space Shadows", true)]
     [Tooltip("Screen Space Shadows")]
     internal class ScreenSpaceShadows : ScriptableRendererFeature
     {
         // Serialized Fields
         [SerializeField, HideInInspector] private Shader m_Shader = null;
-        [SerializeField] private ScreenSpaceShadowsSettings m_Settings = new ScreenSpaceShadowsSettings();
+        [SerializeField, HideInInspector] private ScreenSpaceShadowsSettings m_Settings = new ScreenSpaceShadowsSettings();
 
         // Private Fields
         private Material m_Material;

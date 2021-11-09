@@ -4,8 +4,8 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomEditor(typeof(ScreenSpaceAmbientOcclusion))]
-    internal class ScreenSpaceAmbientOcclusionEditor : Editor
+    [CustomPropertyDrawer(typeof(ScreenSpaceAmbientOcclusion), false)]
+    internal class ScreenSpaceAmbientOcclusionEditor : ScriptableRendererFeaturePropertyDrawer
     {
         #region Serialized Properties
         private SerializedProperty m_Downsample;
@@ -18,8 +18,9 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_SampleCount;
         #endregion
 
-        private bool m_IsInitialized = false;
+        private bool isDeferredRenderingMode;
 
+        private SerializedProperty property = null;
         // Structs
         private struct Styles
         {
@@ -33,9 +34,12 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent SampleCount = EditorGUIUtility.TrTextContent("Sample Count", "The number of samples that Unity takes when calculating the obscurance value. Higher values have high performance impact.");
         }
 
-        private void Init()
+        private void Init(SerializedProperty property)
         {
-            SerializedProperty settings = serializedObject.FindProperty("m_Settings");
+            isDeferredRenderingMode = property.serializedObject.FindProperty("m_RenderingMode").intValue == (int)RenderingMode.Deferred;
+            if (this.property == property)
+                return;
+            SerializedProperty settings = property.FindPropertyRelative("m_Settings");
             m_Source = settings.FindPropertyRelative("Source");
             m_Downsample = settings.FindPropertyRelative("Downsample");
             m_AfterOpaque = settings.FindPropertyRelative("AfterOpaque");
@@ -44,41 +48,41 @@ namespace UnityEditor.Rendering.Universal
             m_DirectLightingStrength = settings.FindPropertyRelative("DirectLightingStrength");
             m_Radius = settings.FindPropertyRelative("Radius");
             m_SampleCount = settings.FindPropertyRelative("SampleCount");
-            m_IsInitialized = true;
         }
 
-        public override void OnInspectorGUI()
+        protected override void OnGUIRendererFeature(ref Rect position, SerializedProperty property, GUIContent label)
         {
-            if (!m_IsInitialized)
+            Init(property);
+
+            DrawProperty(ref position, m_Downsample, Styles.Downsample);
+
+            DrawProperty(ref position, m_AfterOpaque, Styles.AfterOpaque);
+
+            if (!isDeferredRenderingMode)
             {
-                Init();
+                DrawProperty(ref position, m_Source, Styles.Source);
+
+                // We only enable this field when depth source is selected
+                if (m_Source.enumValueIndex == (int)ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth)
+                {
+                    EditorGUI.indentLevel = 1;
+                    DrawProperty(ref position, m_NormalQuality, Styles.NormalQuality);
+                    EditorGUI.indentLevel = 0;
+                }
             }
 
-            bool isDeferredRenderingMode = RendererIsDeferred();
-
-            EditorGUILayout.PropertyField(m_Downsample, Styles.Downsample);
-
-            EditorGUILayout.PropertyField(m_AfterOpaque, Styles.AfterOpaque);
-
-            GUI.enabled = !isDeferredRenderingMode;
-            EditorGUILayout.PropertyField(m_Source, Styles.Source);
-
-            // We only enable this field when depth source is selected
-            GUI.enabled = !isDeferredRenderingMode && m_Source.enumValueIndex == (int)ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth;
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_NormalQuality, Styles.NormalQuality);
-            EditorGUI.indentLevel--;
-            GUI.enabled = true;
-
-            EditorGUILayout.PropertyField(m_Intensity, Styles.Intensity);
-            EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
-            m_DirectLightingStrength.floatValue = EditorGUILayout.Slider(Styles.DirectLightingStrength, m_DirectLightingStrength.floatValue, 0f, 1f);
-            m_SampleCount.intValue = EditorGUILayout.IntSlider(Styles.SampleCount, m_SampleCount.intValue, 4, 20);
+            DrawProperty(ref position, m_Intensity, Styles.Intensity);
+            DrawProperty(ref position, m_Radius, Styles.Radius);
+            position.height = EditorGUIUtility.singleLineHeight;
+            EditorGUI.Slider(position, m_DirectLightingStrength, 0f, 1f, Styles.DirectLightingStrength);
+            position.y += position.height + 2;
+            EditorGUI.IntSlider(position, m_SampleCount, 4, 20, Styles.SampleCount);
+            position.y += position.height + 2;
 
             m_Intensity.floatValue = Mathf.Clamp(m_Intensity.floatValue, 0f, m_Intensity.floatValue);
             m_Radius.floatValue = Mathf.Clamp(m_Radius.floatValue, 0f, m_Radius.floatValue);
         }
-
+        /* This code might be useful later when renderers are polymorphic.
         private bool RendererIsDeferred()
         {
             ScreenSpaceAmbientOcclusion ssaoFeature = (ScreenSpaceAmbientOcclusion)this.target;
@@ -104,6 +108,6 @@ namespace UnityEditor.Rendering.Universal
             }
 
             return false;
-        }
+        }*/
     }
 }

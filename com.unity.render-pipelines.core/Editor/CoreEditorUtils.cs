@@ -406,7 +406,7 @@ namespace UnityEditor.Rendering
         /// <summary> Draw a foldout header </summary>
         /// <param name="title"> The title of the header </param>
         /// <param name="state"> The state of the header </param>
-        /// <param name="isBoxed"> [optional] is the eader contained in a box style ? </param>
+        /// <param name="isBoxed"> [optional] is the header contained in a box style ? </param>
         /// <param name="hasMoreOptions"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="toggleMoreOption"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         /// <returns>return the state of the foldout header</returns>
@@ -421,8 +421,9 @@ namespace UnityEditor.Rendering
         /// <param name="toggleMoreOptions"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         /// <param name="documentationURL">[optional] The URL that the Unity Editor opens when the user presses the help button on the header.</param>
         /// <param name="contextAction">[optional] The callback that the Unity Editor executes when the user presses the burger menu on the header.</param>
+        /// <param name="additionalMenuAction">[optional] The callback to add to the additional properties callback burger menu.</param>
         /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = "", Action<Vector2> contextAction = null)
+        public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = "", Action<Vector2> contextAction = null, Action<GenericMenu> additionalMenuAction = null)
         {
             const float height = 17f;
             var backgroundRect = GUILayoutUtility.GetRect(1f, height);
@@ -467,7 +468,7 @@ namespace UnityEditor.Rendering
             // Add context menu for "Additional Properties"
             if (contextAction == null && hasMoreOptions != null)
             {
-                contextAction = pos => OnContextClick(pos, hasMoreOptions, toggleMoreOptions);
+                contextAction = pos => OnContextClick(pos, hasMoreOptions, toggleMoreOptions, additionalMenuAction);
             }
 
             if (contextAction != null)
@@ -673,7 +674,7 @@ namespace UnityEditor.Rendering
             if (contextAction == null && hasMoreOptions != null)
             {
                 // If no contextual menu add one for the additional properties.
-                contextAction = pos => OnContextClick(pos, hasMoreOptions, toggleMoreOptions);
+                contextAction = pos => OnContextClick(pos, hasMoreOptions, toggleMoreOptions, null);
             }
 
             if (contextAction != null)
@@ -748,7 +749,7 @@ namespace UnityEditor.Rendering
             }
         }
 
-        static void ShowHelpButton(Rect contextMenuRect, string documentationURL, GUIContent title)
+        public static void ShowHelpButton(Rect contextMenuRect, string documentationURL, GUIContent title)
         {
             if (string.IsNullOrEmpty(documentationURL))
                 return;
@@ -762,10 +763,14 @@ namespace UnityEditor.Rendering
                 Help.BrowseURL(documentationURL);
         }
 
-        static void OnContextClick(Vector2 position, Func<bool> hasMoreOptions, Action toggleMoreOptions)
+        static void OnContextClick(Vector2 position, Func<bool> hasMoreOptions, Action toggleMoreOptions, Action<GenericMenu> additionalMenuAction)
         {
             var menu = new GenericMenu();
-
+            if (additionalMenuAction != null)
+            {
+                additionalMenuAction(menu);
+                menu.AddSeparator("");
+            }
             menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), hasMoreOptions.Invoke(), () => toggleMoreOptions.Invoke());
             menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false, () => CoreRenderPipelinePreferences.Open());
 
