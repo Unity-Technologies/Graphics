@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         int m_MainLightShadowmapID;
         internal RTHandle m_MainLightShadowmapTexture;
+        internal RTHandle m_EmptyLightShadowmapTexture;
 
         Matrix4x4[] m_MainLightShadowMatrices;
         ShadowSliceData[] m_CascadeSlices;
@@ -66,11 +67,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_MainLightShadowmapID = Shader.PropertyToID("_MainLightShadowmapTexture");
             m_SupportsBoxFilterForShadows = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch;
+
+            m_EmptyLightShadowmapTexture = ShadowUtils.AllocShadowRT( 1, 1, k_ShadowmapBufferBits, 1, 0, name: "_EmptyLightShadowmapTexture");
         }
 
         public void Dispose()
         {
             m_MainLightShadowmapTexture?.Release();
+            m_EmptyLightShadowmapTexture?.Release();
         }
 
         public bool Setup(ref RenderingData renderingData)
@@ -133,7 +137,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!renderingData.cameraData.renderer.stripShadowsOffVariants)
                 return false;
 
-            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_MainLightShadowmapTexture, 1, 1, k_ShadowmapBufferBits, name: "_MainLightShadowmapTexture");
             m_CreateEmptyShadowmap = true;
             useNativeRenderPass = false;
 
@@ -142,7 +145,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(m_MainLightShadowmapTexture, m_MainLightShadowmapTexture.rt.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
+            if (m_CreateEmptyShadowmap)
+                ConfigureTarget(m_EmptyLightShadowmapTexture, m_EmptyLightShadowmapTexture.rt.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
+            else
+                ConfigureTarget(m_MainLightShadowmapTexture, m_MainLightShadowmapTexture.rt.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -174,11 +180,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             CommandBuffer cmd = CommandBufferPool.Get();
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, true);
-            cmd.SetGlobalTexture(m_MainLightShadowmapTexture.name, m_MainLightShadowmapTexture);
+            cmd.SetGlobalTexture(m_MainLightShadowmapID, m_EmptyLightShadowmapTexture.nameID);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
                 new Vector4(1, 0, 1, 0));
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowmapSize,
-                new Vector4(1f / m_MainLightShadowmapTexture.rt.width, 1f / m_MainLightShadowmapTexture.rt.height, m_MainLightShadowmapTexture.rt.width, m_MainLightShadowmapTexture.rt.height));
+                new Vector4(1f / m_EmptyLightShadowmapTexture.rt.width, 1f / m_EmptyLightShadowmapTexture.rt.height, m_EmptyLightShadowmapTexture.rt.width, m_EmptyLightShadowmapTexture.rt.height));
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
