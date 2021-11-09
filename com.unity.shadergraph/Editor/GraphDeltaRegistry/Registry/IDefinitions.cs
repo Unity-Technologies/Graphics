@@ -16,20 +16,20 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
         RegistryFlags GetRegistryFlags();
     }
 
-    public interface INodeDefinitionBuilder : IRegistryEntry
+    internal interface INodeDefinitionBuilder : IRegistryEntry
     {
         void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry);
         ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry);
     }
 
-    public interface ITypeDefinitionBuilder : IRegistryEntry
+    internal interface ITypeDefinitionBuilder : IRegistryEntry
     {
         void BuildType(IFieldReader userData, IFieldWriter generatedData, Registry registry);
         ShaderFoundry.ShaderType GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry);
         string GetInitializerList(IFieldReader data, Registry registry);
     }
 
-    public interface ICastDefinitionBuilder : IRegistryEntry
+    internal interface ICastDefinitionBuilder : IRegistryEntry
     {
         // Gross- but should suffice for now.
         (RegistryKey, RegistryKey) GetTypeConversionMapping();
@@ -43,13 +43,13 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
     }
 
 
-    public interface IContextDescriptor : IRegistryEntry
+    internal interface IContextDescriptor : IRegistryEntry
     {
         struct ContextEntry
         {
             public string fieldName;
-            public Types.GraphType.Precision precision;
-            public Types.GraphType.Primitive primitive;
+            internal Types.GraphType.Precision precision;
+            internal Types.GraphType.Primitive primitive;
             public int length, height;
             public Matrix4x4 initialValue;
             public string interpolationSemantic;

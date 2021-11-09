@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 }
             }
 
-            public static ShaderFoundry.ShaderFunction MathNodeFunctionBuilder(string OpName, string Op, INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+            internal static ShaderFoundry.ShaderFunction MathNodeFunctionBuilder(string OpName, string Op, INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
             {
                 data.TryGetPort("Out", out var outPort);
                 var typeBuilder = registry.GetTypeBuilder(GraphType.kRegistryKey);
@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph.Registry
             }
         }
 
-        public class AddNode : Defs.INodeDefinitionBuilder
+        class AddNode : Defs.INodeDefinitionBuilder
         {
             public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Add", Version = 1 };
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderGraph.Registry
             }
         }
 
-        public class GraphType : Defs.ITypeDefinitionBuilder
+        internal class GraphType : Defs.ITypeDefinitionBuilder
         {
             public static RegistryKey kRegistryKey => new RegistryKey { Name = "GraphType", Version = 1 };
             public RegistryKey GetRegistryKey() => kRegistryKey;
@@ -169,12 +169,13 @@ namespace UnityEditor.ShaderGraph.Registry
                     typeWriter.SetField<float>($"c{i}.0f", 0);
             }
 
-            public string GetInitializerList(IFieldReader data, Registry registry)
+            string Defs.ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)
             {
                 data.GetField(kLength, out int length);
                 data.GetField(kHeight, out int height);
                 length = Mathf.Clamp(length, 1, 4);
                 height = Mathf.Clamp(height, 1, 4);
+
 
                 string result = $"{GetShaderType(data, new ShaderFoundry.ShaderContainer(), registry).Name}" + "(";
                 for(int i = 0; i < length*height; ++i)
@@ -188,7 +189,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 return result;
             }
 
-            public ShaderFoundry.ShaderType GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+            ShaderFoundry.ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
             {
                 data.GetField(kPrimitive, out Primitive primitive);
                 data.GetField(kPrecision, out Precision precision);
@@ -227,7 +228,7 @@ namespace UnityEditor.ShaderGraph.Registry
             }
         }
 
-        public class GraphTypeAssignment : Defs.ICastDefinitionBuilder
+         internal class GraphTypeAssignment : Defs.ICastDefinitionBuilder
         {
             public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GraphTypeAssignment", Version = 1 };
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Cast;
@@ -251,7 +252,7 @@ namespace UnityEditor.ShaderGraph.Registry
             }
 
 
-            public ShaderFoundry.ShaderFunction GetShaderCast(IFieldReader src, IFieldReader dst, ShaderFoundry.ShaderContainer container, Registry registry)
+            ShaderFoundry.ShaderFunction Defs.ICastDefinitionBuilder.GetShaderCast(IFieldReader src, IFieldReader dst, ShaderFoundry.ShaderContainer container, Registry registry)
             {
                 // In this case, we can determine a casting operation purely from the built types. We don't actually need to analyze field data.
                 // We will get precision truncation warnings though...

@@ -313,7 +313,7 @@ namespace UnityEditor.ShaderGraph.Registry
             return false;
         }
 
-        public static GraphDelta.IPortWriter AddPort<T>(this GraphDelta.INodeWriter node, GraphDelta.INodeReader userData, string name, bool isInput, Registry registry) where T : Defs.ITypeDefinitionBuilder
+        internal static GraphDelta.IPortWriter AddPort<T>(this GraphDelta.INodeWriter node, GraphDelta.INodeReader userData, string name, bool isInput, Registry registry) where T : Defs.ITypeDefinitionBuilder
         {
             return AddPort(node, userData, name, isInput, Registry.ResolveKey<T>(), registry);
         }

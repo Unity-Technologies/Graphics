@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public interface IGraphHandler
     {
-        public INodeWriter AddNode<T>(string name, Registry.Registry registry) where T : Registry.Defs.INodeDefinitionBuilder;
+        internal INodeWriter AddNode<T>(string name, Registry.Registry registry) where T : Registry.Defs.INodeDefinitionBuilder;
         public INodeWriter AddNode(RegistryKey key, string name, Registry.Registry registry);
         public bool ReconcretizeNode(string name, Registry.Registry registry);
         public INodeReader GetNodeReader(string name);
