@@ -136,5 +136,36 @@ namespace UnityEngine.Rendering.Tests
             var value = Arb.Generate<VolumeComponentType>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
             Assert.IsTrue(Property(value, value));
         }
+        [Test]
+        public void IsVisibleVolumeComponentFilterEquality()
+        {
+            bool Property(bool l, bool r)
+            {
+                var l2 = IsVisibleVolumeComponentFilter.FromIsVisible(l);
+                var r2 = IsVisibleVolumeComponentFilter.FromIsVisible(r);
+
+                var expectsAreEquals = l == r;
+                var areEquals = l2 == r2;
+                var areEquals2 = l2.Equals(r2);
+                var areEquals3 = l2.Equals((object)r2);
+                var areNotEquals4 = l2 != r2;
+
+                // The hashcode must be the same for identical values
+                var hashCodeEquals = expectsAreEquals && l2.GetHashCode() == r2.GetHashCode()
+                    || !expectsAreEquals;
+
+                return areEquals == areEquals2
+                    && areEquals == areEquals3
+                    && areEquals != areNotEquals4
+                    && hashCodeEquals
+                    && areEquals == expectsAreEquals;
+            }
+
+            Prop.ForAll<bool, bool>(Property).QuickCheckThrowOnFailure();
+
+            // Enforce testing equality
+            var value = Arb.Generate<bool>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
+            Assert.IsTrue(Property(value, value));
+        }
     }
 }

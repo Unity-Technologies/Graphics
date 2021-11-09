@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering
 
         public VolumeComponentContext()
         {
-            AddExcludeArchetype(VolumeComponentArchetype.FromFilter(new VisibleVolumeComponentFilter(false)));
+            AddExcludeArchetype(VolumeComponentArchetype.FromFilter(IsVisibleVolumeComponentFilter.FromIsVisible(false)));
         }
 
         public void AddIncludeArchetype([DisallowNull] VolumeComponentArchetype archetype)

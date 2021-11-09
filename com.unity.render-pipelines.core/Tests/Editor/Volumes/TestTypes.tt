@@ -20,21 +20,30 @@ namespace UnityEngine.Rendering.Tests
         };
 
 <#
-    var value = 6532423454u;
+    var random = new RandomStream(652423453u, 3575452435u);
     for (var i = 0u; i < 1000; ++i)
     {
         // Randomized uint
-        value *= 3575452435u;
-        var numberOfSupportedOn = value % 3;
+        var numberOfSupportedOn = random.Next() % 3;
 
-        var newRandom = value;
         for (var j = 0u; j < numberOfSupportedOn; ++j)
         {
-            newRandom *= 782345623543u;
-            var offset = newRandom & 0xFF; // mod 256
+            var offset = random.Next() & 0xFF; // mod 256
             var dependOnIndex = (i + offset + 1) % Entries;
             WriteLine($"[SupportedOn(typeof(TestVolumeComponent{dependOnIndex:0000}))]");
         }
+
+
+        if ((random.Next() & 0xff) < 20)
+        {
+            WriteLine("[Obsolete]");
+            WriteLine("[HideInInspector]");
+        }
+        else if ((random.Next() & 0xff) < 50)
+            WriteLine("[HideInInspector]");
+        else if ((random.Next() & 0xff) < 50)
+            WriteLine("[Obsolete]");
+
 #>
         public class TestVolumeComponent<#= i.ToString("0000") #> : VolumeComponent { }
 <#
@@ -42,3 +51,23 @@ namespace UnityEngine.Rendering.Tests
 #>
     }
 }
+<#+
+    class RandomStream
+    {
+        uint m_Value;
+        uint m_Seed;
+
+        public RandomStream(uint value, uint seed)
+        {
+            m_Value = value;
+            m_Seed = seed;
+        }
+
+        public uint Next()
+        {
+            m_Value *= m_Seed;
+            m_Value ^= m_Seed;
+            return m_Value;
+        }
+    }
+#>

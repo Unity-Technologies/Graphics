@@ -33,21 +33,6 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void ContainsTypeIsValid()
-        {
-            bool Property(Type checkedType, VolumeComponentType[] types)
-            {
-                var archetype = VolumeComponentArchetype.FromTypes(types);
-
-                var contains = archetype.ContainsType(checkedType);
-                var expectContains = types.Any(type => type.AsType() == checkedType);
-                return contains == expectContains;
-            }
-
-            Prop.ForAll<Type, VolumeComponentType[]>(Property).QuickCheckThrowOnFailure();
-        }
-
-        [Test]
         public void FromEverything()
         {
             bool Property(VolumeComponentType[] types)
@@ -85,6 +70,59 @@ namespace UnityEngine.Rendering.Tests
             }
 
             Prop.ForAll<VolumeComponentType, VolumeComponentType[]>(Property).QuickCheckThrowOnFailure();
+        }
+
+        [Test]
+        public void FromIncludeExclude()
+        {
+            bool Property(VolumeComponentType[][] includes, VolumeComponentType[][] excludes)
+            {
+                var includeArchetypes = includes.Select(VolumeComponentArchetype.FromTypes).ToList();
+                var excludeArchetypes = excludes.Select(VolumeComponentArchetype.FromTypes).ToList();
+                var archetype = VolumeComponentArchetype.FromIncludeExclude(includeArchetypes, excludeArchetypes);
+
+                foreach (var types in includes)
+                {
+                    foreach (var type in types)
+                    {
+                        if (!archetype.ContainsType(type))
+                            return false;
+                    }
+                }
+
+                foreach (var types in excludes)
+                {
+                    foreach (var type in types)
+                    {
+                        if (archetype.ContainsType(type))
+                            return false;
+                    }
+                }
+
+                return true;
+            }
+
+            Prop.ForAll<VolumeComponentType[][], VolumeComponentType[][]>(Property).QuickCheckThrowOnFailure();
+        }
+
+        [Test]
+        public void ContainsVolumeType()
+        {
+            bool Property(VolumeComponentType[] types, VolumeComponentType toLookFor)
+            {
+                using (HashSetPool<VolumeComponentType>.Get(out var set))
+                {
+                    set.UnionWith(types);
+
+                    var archetype = VolumeComponentArchetype.FromTypes(types);
+                    var value = archetype.ContainsType(toLookFor);
+                    var expected = set.Contains(toLookFor);
+
+                    return value == expected;
+                }
+            }
+
+            Prop.ForAll<VolumeComponentType[], VolumeComponentType>(Property).QuickCheckThrowOnFailure();
         }
 
         [Test]

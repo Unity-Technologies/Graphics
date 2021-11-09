@@ -47,6 +47,8 @@ namespace UnityEngine.Rendering
             return (m_Type != null ? m_Type.GetHashCode() : 0);
         }
 
+        public override string ToString() => $"VolumeComponentType({m_Type.Name})";
+
         public static bool operator ==(in VolumeComponentType l, in VolumeComponentType r) => l.Equals(r);
         public static bool operator !=(in VolumeComponentType l, in VolumeComponentType r) => !l.Equals(r);
     }

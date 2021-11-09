@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using FsCheck;
 using NUnit.Framework;
 
@@ -13,7 +14,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void EverythingAcceptsEverything()
+        public void EverythingFilterAccepts()
         {
             bool Property(VolumeComponentType type)
             {
@@ -25,7 +26,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void IsExplicitlySupportedAccepts()
+        public void IsExplicitlySupportedFilterAccepts()
         {
             bool Property(VolumeComponentType subject, VolumeComponentType target)
             {
@@ -39,7 +40,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void IsSupportedAccepts()
+        public void IsSupportedFilterAccepts()
         {
             bool Property(VolumeComponentType subject, VolumeComponentType target)
             {
@@ -50,6 +51,35 @@ namespace UnityEngine.Rendering.Tests
             }
 
             Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).QuickCheckThrowOnFailure();
+        }
+
+        [Test]
+        public void IsVisibleFilterAccepts()
+        {
+            bool Property(VolumeComponentType subject, bool isVisible)
+            {
+                var filter = IsVisibleVolumeComponentFilter.FromIsVisible(isVisible);
+                var isAccepted = filter.IsAccepted(subject);
+                var isVisibleValue = IsVisibleVolumeComponentFilter.IsVisible(subject);
+                var expected = isVisible && isVisibleValue || !isVisible && !isVisibleValue;
+                return isAccepted == expected;
+            }
+
+            Prop.ForAll<VolumeComponentType, bool>(Property).QuickCheckThrowOnFailure();
+        }
+
+        [Test]
+        public void IsVisibleIffNotObsoleteNotHideInInspector()
+        {
+            bool Property(VolumeComponentType subject)
+            {
+                var isVisible = IsVisibleVolumeComponentFilter.IsVisible(subject);
+                var expected = subject.AsType().GetCustomAttributes(true)
+                    .All(attr => attr is not ObsoleteAttribute and not HideInInspector);
+                return isVisible == expected;
+            }
+
+            Prop.ForAll<VolumeComponentType>(Property).QuickCheckThrowOnFailure();
         }
     }
 }

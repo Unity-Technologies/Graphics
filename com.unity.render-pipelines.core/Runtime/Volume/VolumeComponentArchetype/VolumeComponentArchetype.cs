@@ -38,7 +38,6 @@ namespace UnityEngine.Rendering
 
         [NotNull]
         public static VolumeComponentArchetype Empty { get; } = new VolumeComponentArchetype();
-        public static VolumeComponentArchetype Everything { get; } = FromFilter(new EverythingVolumeComponentFilter());
 
         [return: NotNull]
         public static VolumeComponentArchetype FromFilter<TFilter>([DisallowNull] in TFilter filter, [AllowNull] VolumeComponentDatabase database = null)
@@ -78,11 +77,6 @@ namespace UnityEngine.Rendering
         [return: NotNull]
         public VolumeComponentType[] AsArray() => typeArray;
         public bool ContainsType(VolumeComponentType type) => typeSet.Contains(type);
-
-        public bool ContainsType([AllowNull] Type type)
-        {
-            return VolumeComponentType.FromType(type, out var volumeType) && ContainsType(volumeType);
-        }
 
         /// <summary>
         /// Adds an extension if it does not exists

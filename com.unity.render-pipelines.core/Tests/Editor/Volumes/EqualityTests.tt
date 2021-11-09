@@ -24,14 +24,14 @@ namespace UnityEngine.Rendering.Tests
     public struct EqualityTest
     {
         public string testName;
-        public string type;
+        public string buildFromType;
         public string constructor;
         public string expectsAreEqual;
 
-        public EqualityTest(string testName, string type, string constructor, string expectsAreEqual)
+        public EqualityTest(string testName, string buildFromType, string constructor, string expectsAreEqual)
         {
             this.testName = testName;
-            this.type = type;
+            this.buildFromType = buildFromType;
             this.constructor = constructor;
             this.expectsAreEqual = expectsAreEqual;
         }
@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void <#= test.testName #>()
         {
-            bool Property(<#= test.type #> l, <#= test.type #> r)
+            bool Property(<#= test.buildFromType #> l, <#= test.buildFromType #> r)
             {
                 var l2 = <#= string.Format(test.constructor, "l") #>;
                 var r2 = <#= string.Format(test.constructor, "r") #>;
@@ -65,10 +65,10 @@ namespace UnityEngine.Rendering.Tests
                     && areEquals == expectsAreEquals;
             }
 
-            Prop.ForAll<<#= test.type #>, <#= test.type #>>(Property).QuickCheckThrowOnFailure();
+            Prop.ForAll<<#= test.buildFromType #>, <#= test.buildFromType #>>(Property).QuickCheckThrowOnFailure();
 
             // Enforce testing equality
-            var value = Arb.Generate<<#= test.type #>>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
+            var value = Arb.Generate<<#= test.buildFromType #>>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
             Assert.IsTrue(Property(value, value));
         }
 <#+
@@ -80,8 +80,8 @@ namespace UnityEngine.Rendering.Tests
         public static EqualityTest VolumeComponentFilter(string className, string constructor)
             => new EqualityTest($"" +
                 $"{className}Equality",
-                "VolumeComponentType", $"" +
-                    string.Format(constructor, className),
+                "VolumeComponentType",
+                string.Format(constructor, className),
                 "l.AsType() == r.AsType()");
     }
 
@@ -90,6 +90,7 @@ namespace UnityEngine.Rendering.Tests
         Tests.VolumeComponentFilter("IsSupportedVolumeComponentFilter", Tests.fromTypeConstructor),
         Tests.VolumeComponentFilter("IsExplicitlySupportedVolumeComponentFilter", Tests.fromTypeConstructor),
         Tests.VolumeComponentFilter("EverythingVolumeComponentFilter", "new EverythingVolumeComponentFilter()"),
-        new EqualityTest("VolumeComponentTypeEquality", "VolumeComponentType", "{0}", "l.AsType() == r.AsType()")
+        new EqualityTest("VolumeComponentTypeEquality", "VolumeComponentType", "{0}", "l.AsType() == r.AsType()"),
+        new EqualityTest("IsVisibleVolumeComponentFilterEquality", "bool", "IsVisibleVolumeComponentFilter.FromIsVisible({0})", "l == r"),
     };
 #>

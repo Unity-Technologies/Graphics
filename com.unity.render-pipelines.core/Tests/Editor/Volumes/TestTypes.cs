@@ -1007,2008 +1007,2426 @@ namespace UnityEngine.Rendering.Tests
             typeof(TestVolumeComponent0999),
         };
 
-        [SupportedOn(typeof(TestVolumeComponent0247))]
+        [SupportedOn(typeof(TestVolumeComponent0208))]
+        [Obsolete]
         public class TestVolumeComponent0000 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0068))]
         public class TestVolumeComponent0001 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0233))]
-        public class TestVolumeComponent0002 : VolumeComponent { }
-        public class TestVolumeComponent0003 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0091))]
-        public class TestVolumeComponent0004 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0104))]
         [SupportedOn(typeof(TestVolumeComponent0148))]
+        public class TestVolumeComponent0002 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0008))]
+        [SupportedOn(typeof(TestVolumeComponent0099))]
+        [HideInInspector]
+        public class TestVolumeComponent0003 : VolumeComponent { }
+        [Obsolete]
+        public class TestVolumeComponent0004 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0189))]
+        [SupportedOn(typeof(TestVolumeComponent0140))]
         public class TestVolumeComponent0005 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0077))]
+        [SupportedOn(typeof(TestVolumeComponent0260))]
         public class TestVolumeComponent0006 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0058))]
-        [SupportedOn(typeof(TestVolumeComponent0070))]
         public class TestVolumeComponent0007 : VolumeComponent { }
         public class TestVolumeComponent0008 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0140))]
-        [SupportedOn(typeof(TestVolumeComponent0120))]
+        [SupportedOn(typeof(TestVolumeComponent0122))]
         public class TestVolumeComponent0009 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0177))]
-        [SupportedOn(typeof(TestVolumeComponent0053))]
+        [SupportedOn(typeof(TestVolumeComponent0074))]
+        [HideInInspector]
         public class TestVolumeComponent0010 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0094))]
         public class TestVolumeComponent0011 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0164))]
+        [SupportedOn(typeof(TestVolumeComponent0051))]
         public class TestVolumeComponent0012 : VolumeComponent { }
         public class TestVolumeComponent0013 : VolumeComponent { }
         public class TestVolumeComponent0014 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0130))]
+        [SupportedOn(typeof(TestVolumeComponent0197))]
+        [HideInInspector]
         public class TestVolumeComponent0015 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0098))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0016 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0156))]
+        [SupportedOn(typeof(TestVolumeComponent0063))]
+        [HideInInspector]
         public class TestVolumeComponent0017 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0121))]
-        [SupportedOn(typeof(TestVolumeComponent0125))]
+        [SupportedOn(typeof(TestVolumeComponent0252))]
+        [SupportedOn(typeof(TestVolumeComponent0107))]
         public class TestVolumeComponent0018 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0166))]
-        [SupportedOn(typeof(TestVolumeComponent0242))]
+        [SupportedOn(typeof(TestVolumeComponent0139))]
+        [SupportedOn(typeof(TestVolumeComponent0218))]
         public class TestVolumeComponent0019 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0235))]
-        [SupportedOn(typeof(TestVolumeComponent0143))]
+        [SupportedOn(typeof(TestVolumeComponent0210))]
+        [SupportedOn(typeof(TestVolumeComponent0041))]
+        [HideInInspector]
         public class TestVolumeComponent0020 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0254))]
+        [SupportedOn(typeof(TestVolumeComponent0065))]
+        [Obsolete]
         public class TestVolumeComponent0021 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0173))]
+        [SupportedOn(typeof(TestVolumeComponent0072))]
+        [HideInInspector]
         public class TestVolumeComponent0022 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0037))]
+        [SupportedOn(typeof(TestVolumeComponent0252))]
         public class TestVolumeComponent0023 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0079))]
-        [SupportedOn(typeof(TestVolumeComponent0051))]
         public class TestVolumeComponent0024 : VolumeComponent { }
         public class TestVolumeComponent0025 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0065))]
-        [SupportedOn(typeof(TestVolumeComponent0197))]
+        [SupportedOn(typeof(TestVolumeComponent0174))]
         public class TestVolumeComponent0026 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0234))]
+        [SupportedOn(typeof(TestVolumeComponent0117))]
+        [HideInInspector]
         public class TestVolumeComponent0027 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0179))]
+        [SupportedOn(typeof(TestVolumeComponent0146))]
         public class TestVolumeComponent0028 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0064))]
+        [SupportedOn(typeof(TestVolumeComponent0110))]
+        [SupportedOn(typeof(TestVolumeComponent0257))]
         public class TestVolumeComponent0029 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0165))]
-        [SupportedOn(typeof(TestVolumeComponent0105))]
+        [SupportedOn(typeof(TestVolumeComponent0189))]
         public class TestVolumeComponent0030 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0274))]
-        [SupportedOn(typeof(TestVolumeComponent0158))]
+        [SupportedOn(typeof(TestVolumeComponent0165))]
+        [SupportedOn(typeof(TestVolumeComponent0236))]
+        [HideInInspector]
         public class TestVolumeComponent0031 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0065))]
         public class TestVolumeComponent0032 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0081))]
+        [Obsolete]
         public class TestVolumeComponent0033 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0265))]
-        [SupportedOn(typeof(TestVolumeComponent0269))]
+        [SupportedOn(typeof(TestVolumeComponent0133))]
         public class TestVolumeComponent0034 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0277))]
         public class TestVolumeComponent0035 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0123))]
-        [SupportedOn(typeof(TestVolumeComponent0287))]
+        [SupportedOn(typeof(TestVolumeComponent0073))]
         public class TestVolumeComponent0036 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0136))]
-        [SupportedOn(typeof(TestVolumeComponent0180))]
+        [SupportedOn(typeof(TestVolumeComponent0097))]
         public class TestVolumeComponent0037 : VolumeComponent { }
         public class TestVolumeComponent0038 : VolumeComponent { }
         public class TestVolumeComponent0039 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0223))]
-        [SupportedOn(typeof(TestVolumeComponent0195))]
+        [SupportedOn(typeof(TestVolumeComponent0055))]
         public class TestVolumeComponent0040 : VolumeComponent { }
         public class TestVolumeComponent0041 : VolumeComponent { }
         public class TestVolumeComponent0042 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0126))]
+        [SupportedOn(typeof(TestVolumeComponent0217))]
         public class TestVolumeComponent0043 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0067))]
-        [SupportedOn(typeof(TestVolumeComponent0103))]
+        [SupportedOn(typeof(TestVolumeComponent0261))]
+        [HideInInspector]
         public class TestVolumeComponent0044 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0208))]
+        [SupportedOn(typeof(TestVolumeComponent0058))]
+        [SupportedOn(typeof(TestVolumeComponent0293))]
+        [HideInInspector]
         public class TestVolumeComponent0045 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0053))]
+        [SupportedOn(typeof(TestVolumeComponent0098))]
+        [SupportedOn(typeof(TestVolumeComponent0265))]
         public class TestVolumeComponent0046 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0297))]
         public class TestVolumeComponent0047 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0205))]
+        [HideInInspector]
         public class TestVolumeComponent0048 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0244))]
-        [SupportedOn(typeof(TestVolumeComponent0096))]
+        [SupportedOn(typeof(TestVolumeComponent0098))]
         public class TestVolumeComponent0049 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0178))]
+        [SupportedOn(typeof(TestVolumeComponent0177))]
         public class TestVolumeComponent0050 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0198))]
-        [SupportedOn(typeof(TestVolumeComponent0274))]
+        [SupportedOn(typeof(TestVolumeComponent0089))]
+        [SupportedOn(typeof(TestVolumeComponent0224))]
+        [Obsolete]
         public class TestVolumeComponent0051 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0267))]
+        [SupportedOn(typeof(TestVolumeComponent0072))]
         [SupportedOn(typeof(TestVolumeComponent0175))]
         public class TestVolumeComponent0052 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0280))]
+        [HideInInspector]
         public class TestVolumeComponent0053 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0253))]
-        [SupportedOn(typeof(TestVolumeComponent0065))]
         public class TestVolumeComponent0054 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0234))]
-        [SupportedOn(typeof(TestVolumeComponent0246))]
+        [SupportedOn(typeof(TestVolumeComponent0238))]
+        [SupportedOn(typeof(TestVolumeComponent0201))]
         public class TestVolumeComponent0055 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0111))]
-        [SupportedOn(typeof(TestVolumeComponent0083))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0056 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0060))]
+        [HideInInspector]
         public class TestVolumeComponent0057 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0278))]
+        [HideInInspector]
         public class TestVolumeComponent0058 : VolumeComponent { }
         public class TestVolumeComponent0059 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0060 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0096))]
-        [SupportedOn(typeof(TestVolumeComponent0268))]
+        [SupportedOn(typeof(TestVolumeComponent0274))]
         public class TestVolumeComponent0061 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0197))]
+        [SupportedOn(typeof(TestVolumeComponent0170))]
+        [SupportedOn(typeof(TestVolumeComponent0289))]
         public class TestVolumeComponent0062 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0306))]
+        [SupportedOn(typeof(TestVolumeComponent0177))]
+        [SupportedOn(typeof(TestVolumeComponent0176))]
         public class TestVolumeComponent0063 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0311))]
-        [SupportedOn(typeof(TestVolumeComponent0155))]
+        [SupportedOn(typeof(TestVolumeComponent0128))]
+        [SupportedOn(typeof(TestVolumeComponent0255))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0064 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0132))]
         public class TestVolumeComponent0065 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0297))]
-        [SupportedOn(typeof(TestVolumeComponent0301))]
+        [SupportedOn(typeof(TestVolumeComponent0218))]
         public class TestVolumeComponent0066 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0086))]
-        [SupportedOn(typeof(TestVolumeComponent0162))]
         public class TestVolumeComponent0067 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0155))]
         public class TestVolumeComponent0068 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0200))]
+        [SupportedOn(typeof(TestVolumeComponent0251))]
+        [HideInInspector]
         public class TestVolumeComponent0069 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0152))]
+        [SupportedOn(typeof(TestVolumeComponent0087))]
+        [Obsolete]
         public class TestVolumeComponent0070 : VolumeComponent { }
         public class TestVolumeComponent0071 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0255))]
         public class TestVolumeComponent0072 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0204))]
+        [SupportedOn(typeof(TestVolumeComponent0193))]
+        [SupportedOn(typeof(TestVolumeComponent0272))]
         public class TestVolumeComponent0073 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0241))]
-        [SupportedOn(typeof(TestVolumeComponent0117))]
+        [SupportedOn(typeof(TestVolumeComponent0264))]
+        [Obsolete]
         public class TestVolumeComponent0074 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0158))]
-        [SupportedOn(typeof(TestVolumeComponent0106))]
+        [HideInInspector]
         public class TestVolumeComponent0075 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0099))]
+        [SupportedOn(typeof(TestVolumeComponent0226))]
+        [HideInInspector]
         public class TestVolumeComponent0076 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0240))]
-        [SupportedOn(typeof(TestVolumeComponent0156))]
+        [Obsolete]
         public class TestVolumeComponent0077 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0085))]
-        public class TestVolumeComponent0078 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0194))]
-        [SupportedOn(typeof(TestVolumeComponent0334))]
-        public class TestVolumeComponent0079 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0199))]
-        [SupportedOn(typeof(TestVolumeComponent0299))]
-        public class TestVolumeComponent0080 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0276))]
-        [SupportedOn(typeof(TestVolumeComponent0128))]
-        public class TestVolumeComponent0081 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0185))]
-        public class TestVolumeComponent0082 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0230))]
-        public class TestVolumeComponent0083 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0299))]
-        [SupportedOn(typeof(TestVolumeComponent0207))]
-        public class TestVolumeComponent0084 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0312))]
-        public class TestVolumeComponent0085 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0285))]
-        [SupportedOn(typeof(TestVolumeComponent0097))]
-        public class TestVolumeComponent0086 : VolumeComponent { }
-        public class TestVolumeComponent0087 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0143))]
-        public class TestVolumeComponent0088 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0092))]
+        public class TestVolumeComponent0078 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0328))]
+        [SupportedOn(typeof(TestVolumeComponent0203))]
+        [Obsolete]
+        public class TestVolumeComponent0079 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0183))]
+        public class TestVolumeComponent0080 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0239))]
+        [SupportedOn(typeof(TestVolumeComponent0262))]
+        public class TestVolumeComponent0081 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0094))]
+        public class TestVolumeComponent0082 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0083 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0312))]
+        public class TestVolumeComponent0084 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0244))]
+        public class TestVolumeComponent0085 : VolumeComponent { }
+        public class TestVolumeComponent0086 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0087 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0243))]
+        [Obsolete]
+        public class TestVolumeComponent0088 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0147))]
         public class TestVolumeComponent0089 : VolumeComponent { }
         public class TestVolumeComponent0090 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0302))]
-        [SupportedOn(typeof(TestVolumeComponent0250))]
+        [SupportedOn(typeof(TestVolumeComponent0332))]
+        [SupportedOn(typeof(TestVolumeComponent0287))]
+        [Obsolete]
         public class TestVolumeComponent0091 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0243))]
+        [SupportedOn(typeof(TestVolumeComponent0155))]
+        [SupportedOn(typeof(TestVolumeComponent0230))]
         public class TestVolumeComponent0092 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0202))]
+        [SupportedOn(typeof(TestVolumeComponent0117))]
         public class TestVolumeComponent0093 : VolumeComponent { }
         public class TestVolumeComponent0094 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0110))]
         public class TestVolumeComponent0095 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0343))]
+        [SupportedOn(typeof(TestVolumeComponent0150))]
+        [SupportedOn(typeof(TestVolumeComponent0349))]
         public class TestVolumeComponent0096 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0097 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0295))]
         public class TestVolumeComponent0098 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0118))]
-        [SupportedOn(typeof(TestVolumeComponent0194))]
+        [HideInInspector]
         public class TestVolumeComponent0099 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0187))]
-        [SupportedOn(typeof(TestVolumeComponent0351))]
+        [SupportedOn(typeof(TestVolumeComponent0113))]
+        [Obsolete]
         public class TestVolumeComponent0100 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0200))]
         public class TestVolumeComponent0101 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0173))]
+        [SupportedOn(typeof(TestVolumeComponent0342))]
+        [SupportedOn(typeof(TestVolumeComponent0277))]
         public class TestVolumeComponent0102 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0154))]
-        [SupportedOn(typeof(TestVolumeComponent0166))]
+        [SupportedOn(typeof(TestVolumeComponent0125))]
+        [SupportedOn(typeof(TestVolumeComponent0260))]
+        [HideInInspector]
         public class TestVolumeComponent0103 : VolumeComponent { }
         public class TestVolumeComponent0104 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0236))]
         public class TestVolumeComponent0105 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0227))]
+        [SupportedOn(typeof(TestVolumeComponent0358))]
+        [HideInInspector]
         public class TestVolumeComponent0106 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0190))]
-        [SupportedOn(typeof(TestVolumeComponent0138))]
+        [SupportedOn(typeof(TestVolumeComponent0323))]
+        [SupportedOn(typeof(TestVolumeComponent0338))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0107 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0131))]
-        [SupportedOn(typeof(TestVolumeComponent0167))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0108 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0272))]
+        [SupportedOn(typeof(TestVolumeComponent0139))]
         public class TestVolumeComponent0109 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0117))]
+        [SupportedOn(typeof(TestVolumeComponent0119))]
+        [SupportedOn(typeof(TestVolumeComponent0250))]
         public class TestVolumeComponent0110 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0294))]
         public class TestVolumeComponent0111 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0231))]
+        [HideInInspector]
         public class TestVolumeComponent0112 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0308))]
-        [SupportedOn(typeof(TestVolumeComponent0160))]
+        [SupportedOn(typeof(TestVolumeComponent0144))]
+        [HideInInspector]
         public class TestVolumeComponent0113 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0217))]
+        [SupportedOn(typeof(TestVolumeComponent0197))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0114 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0262))]
+        [SupportedOn(typeof(TestVolumeComponent0299))]
+        [SupportedOn(typeof(TestVolumeComponent0250))]
         public class TestVolumeComponent0115 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0331))]
+        [SupportedOn(typeof(TestVolumeComponent0370))]
+        [SupportedOn(typeof(TestVolumeComponent0329))]
         public class TestVolumeComponent0116 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0344))]
-        [SupportedOn(typeof(TestVolumeComponent0132))]
         public class TestVolumeComponent0117 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0317))]
-        [SupportedOn(typeof(TestVolumeComponent0129))]
+        [SupportedOn(typeof(TestVolumeComponent0190))]
         public class TestVolumeComponent0118 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0298))]
+        [SupportedOn(typeof(TestVolumeComponent0354))]
         public class TestVolumeComponent0119 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0130))]
+        [SupportedOn(typeof(TestVolumeComponent0305))]
         public class TestVolumeComponent0120 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0124))]
-        [SupportedOn(typeof(TestVolumeComponent0360))]
+        [SupportedOn(typeof(TestVolumeComponent0273))]
+        [SupportedOn(typeof(TestVolumeComponent0160))]
         public class TestVolumeComponent0121 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0161))]
         public class TestVolumeComponent0122 : VolumeComponent { }
         public class TestVolumeComponent0123 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0306))]
+        [HideInInspector]
         public class TestVolumeComponent0124 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0125 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0261))]
+        [HideInInspector]
         public class TestVolumeComponent0126 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0370))]
+        [SupportedOn(typeof(TestVolumeComponent0159))]
         public class TestVolumeComponent0127 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0375))]
+        [SupportedOn(typeof(TestVolumeComponent0275))]
         public class TestVolumeComponent0128 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0196))]
+        [SupportedOn(typeof(TestVolumeComponent0291))]
+        [SupportedOn(typeof(TestVolumeComponent0354))]
         public class TestVolumeComponent0129 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0130 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0364))]
+        [SupportedOn(typeof(TestVolumeComponent0175))]
+        [Obsolete]
         public class TestVolumeComponent0131 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0132 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0232))]
-        [SupportedOn(typeof(TestVolumeComponent0276))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0133 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0205))]
+        [SupportedOn(typeof(TestVolumeComponent0148))]
+        [SupportedOn(typeof(TestVolumeComponent0363))]
         public class TestVolumeComponent0134 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0186))]
-        [SupportedOn(typeof(TestVolumeComponent0198))]
         public class TestVolumeComponent0135 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0319))]
+        [SupportedOn(typeof(TestVolumeComponent0224))]
+        [SupportedOn(typeof(TestVolumeComponent0239))]
         public class TestVolumeComponent0136 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0268))]
-        [SupportedOn(typeof(TestVolumeComponent0248))]
+        [SupportedOn(typeof(TestVolumeComponent0295))]
+        [SupportedOn(typeof(TestVolumeComponent0318))]
         public class TestVolumeComponent0137 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0305))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0138 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0222))]
+        [SupportedOn(typeof(TestVolumeComponent0257))]
         public class TestVolumeComponent0139 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0163))]
+        [SupportedOn(typeof(TestVolumeComponent0221))]
+        [SupportedOn(typeof(TestVolumeComponent0368))]
         public class TestVolumeComponent0140 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0300))]
         public class TestVolumeComponent0141 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0149))]
-        [SupportedOn(typeof(TestVolumeComponent0345))]
+        [SupportedOn(typeof(TestVolumeComponent0276))]
+        [SupportedOn(typeof(TestVolumeComponent0347))]
+        [HideInInspector]
         public class TestVolumeComponent0142 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0258))]
+        [SupportedOn(typeof(TestVolumeComponent0176))]
         public class TestVolumeComponent0143 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0263))]
-        [SupportedOn(typeof(TestVolumeComponent0363))]
-        public class TestVolumeComponent0144 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0340))]
         [SupportedOn(typeof(TestVolumeComponent0192))]
+        [SupportedOn(typeof(TestVolumeComponent0255))]
+        [HideInInspector]
+        public class TestVolumeComponent0144 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0244))]
         public class TestVolumeComponent0145 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0388))]
+        [SupportedOn(typeof(TestVolumeComponent0387))]
         public class TestVolumeComponent0146 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0339))]
         public class TestVolumeComponent0147 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0363))]
+        [SupportedOn(typeof(TestVolumeComponent0263))]
+        [Obsolete]
         public class TestVolumeComponent0148 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0376))]
-        [SupportedOn(typeof(TestVolumeComponent0164))]
+        [SupportedOn(typeof(TestVolumeComponent0215))]
         public class TestVolumeComponent0149 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0395))]
+        [SupportedOn(typeof(TestVolumeComponent0166))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0150 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0330))]
-        [SupportedOn(typeof(TestVolumeComponent0342))]
+        [SupportedOn(typeof(TestVolumeComponent0352))]
+        [SupportedOn(typeof(TestVolumeComponent0355))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0151 : VolumeComponent { }
         public class TestVolumeComponent0152 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0298))]
+        [HideInInspector]
         public class TestVolumeComponent0153 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0193))]
-        [SupportedOn(typeof(TestVolumeComponent0325))]
+        [SupportedOn(typeof(TestVolumeComponent0351))]
         public class TestVolumeComponent0154 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0366))]
-        [SupportedOn(typeof(TestVolumeComponent0314))]
+        [SupportedOn(typeof(TestVolumeComponent0183))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0155 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0307))]
-        [SupportedOn(typeof(TestVolumeComponent0343))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0156 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0192))]
+        [SupportedOn(typeof(TestVolumeComponent0228))]
+        [SupportedOn(typeof(TestVolumeComponent0191))]
         public class TestVolumeComponent0157 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0307))]
         public class TestVolumeComponent0158 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0331))]
+        [HideInInspector]
         public class TestVolumeComponent0159 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0407))]
+        [SupportedOn(typeof(TestVolumeComponent0296))]
+        [SupportedOn(typeof(TestVolumeComponent0183))]
+        [HideInInspector]
         public class TestVolumeComponent0160 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0332))]
         public class TestVolumeComponent0161 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0393))]
-        [SupportedOn(typeof(TestVolumeComponent0397))]
         public class TestVolumeComponent0162 : VolumeComponent { }
         public class TestVolumeComponent0163 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0251))]
+        [SupportedOn(typeof(TestVolumeComponent0166))]
+        [SupportedOn(typeof(TestVolumeComponent0165))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0164 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0264))]
+        [SupportedOn(typeof(TestVolumeComponent0195))]
         public class TestVolumeComponent0165 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0237))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0166 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0218))]
-        [SupportedOn(typeof(TestVolumeComponent0230))]
+        [SupportedOn(typeof(TestVolumeComponent0234))]
+        [SupportedOn(typeof(TestVolumeComponent0413))]
         public class TestVolumeComponent0167 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0351))]
+        [SupportedOn(typeof(TestVolumeComponent0377))]
+        [SupportedOn(typeof(TestVolumeComponent0268))]
+        [Obsolete]
         public class TestVolumeComponent0168 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0300))]
-        [SupportedOn(typeof(TestVolumeComponent0280))]
+        [SupportedOn(typeof(TestVolumeComponent0200))]
+        [HideInInspector]
         public class TestVolumeComponent0169 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0337))]
-        [SupportedOn(typeof(TestVolumeComponent0213))]
+        [SupportedOn(typeof(TestVolumeComponent0253))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0170 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0254))]
-        public class TestVolumeComponent0171 : VolumeComponent { }
-        public class TestVolumeComponent0172 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0336))]
-        public class TestVolumeComponent0173 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0181))]
-        public class TestVolumeComponent0174 : VolumeComponent { }
-        public class TestVolumeComponent0175 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0295))]
-        public class TestVolumeComponent0176 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0372))]
-        [SupportedOn(typeof(TestVolumeComponent0224))]
-        public class TestVolumeComponent0177 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0281))]
-        public class TestVolumeComponent0178 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0326))]
-        public class TestVolumeComponent0179 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0395))]
-        public class TestVolumeComponent0180 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0408))]
-        public class TestVolumeComponent0181 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0381))]
-        [SupportedOn(typeof(TestVolumeComponent0193))]
-        public class TestVolumeComponent0182 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0362))]
-        [SupportedOn(typeof(TestVolumeComponent0374))]
-        public class TestVolumeComponent0183 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0239))]
-        public class TestVolumeComponent0184 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0188))]
-        [SupportedOn(typeof(TestVolumeComponent0424))]
-        public class TestVolumeComponent0185 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0225))]
-        public class TestVolumeComponent0186 : VolumeComponent { }
-        public class TestVolumeComponent0187 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0339))]
-        public class TestVolumeComponent0188 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0224))]
-        [SupportedOn(typeof(TestVolumeComponent0396))]
-        public class TestVolumeComponent0189 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0325))]
-        public class TestVolumeComponent0190 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0434))]
-        public class TestVolumeComponent0191 : VolumeComponent { }
-        public class TestVolumeComponent0192 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0260))]
-        public class TestVolumeComponent0193 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0425))]
-        [SupportedOn(typeof(TestVolumeComponent0429))]
-        public class TestVolumeComponent0194 : VolumeComponent { }
-        public class TestVolumeComponent0195 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0283))]
-        [SupportedOn(typeof(TestVolumeComponent0447))]
-        public class TestVolumeComponent0196 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0296))]
-        public class TestVolumeComponent0197 : VolumeComponent { }
-        public class TestVolumeComponent0198 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0250))]
-        [SupportedOn(typeof(TestVolumeComponent0262))]
-        public class TestVolumeComponent0199 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0383))]
         [SupportedOn(typeof(TestVolumeComponent0355))]
+        public class TestVolumeComponent0171 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0199))]
+        [SupportedOn(typeof(TestVolumeComponent0426))]
+        public class TestVolumeComponent0172 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0342))]
+        public class TestVolumeComponent0173 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0246))]
+        public class TestVolumeComponent0174 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0410))]
+        public class TestVolumeComponent0175 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0186))]
+        [SupportedOn(typeof(TestVolumeComponent0361))]
+        public class TestVolumeComponent0176 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0329))]
+        [SupportedOn(typeof(TestVolumeComponent0216))]
+        public class TestVolumeComponent0177 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0400))]
+        [SupportedOn(typeof(TestVolumeComponent0295))]
+        public class TestVolumeComponent0178 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0255))]
+        [SupportedOn(typeof(TestVolumeComponent0310))]
+        [Obsolete]
+        public class TestVolumeComponent0179 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0180 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0320))]
+        [Obsolete]
+        public class TestVolumeComponent0181 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0416))]
+        public class TestVolumeComponent0182 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0324))]
+        public class TestVolumeComponent0183 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0364))]
+        [Obsolete]
+        public class TestVolumeComponent0184 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0232))]
+        [Obsolete]
+        public class TestVolumeComponent0185 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0336))]
+        [HideInInspector]
+        public class TestVolumeComponent0186 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0237))]
+        [HideInInspector]
+        public class TestVolumeComponent0187 : VolumeComponent { }
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0188 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0445))]
+        public class TestVolumeComponent0189 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0241))]
+        [SupportedOn(typeof(TestVolumeComponent0356))]
+        public class TestVolumeComponent0190 : VolumeComponent { }
+        public class TestVolumeComponent0191 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0373))]
+        [SupportedOn(typeof(TestVolumeComponent0272))]
+        public class TestVolumeComponent0192 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0388))]
+        [SupportedOn(typeof(TestVolumeComponent0311))]
+        public class TestVolumeComponent0193 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0275))]
+        [SupportedOn(typeof(TestVolumeComponent0422))]
+        public class TestVolumeComponent0194 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0354))]
+        public class TestVolumeComponent0195 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0330))]
+        [SupportedOn(typeof(TestVolumeComponent0401))]
+        [HideInInspector]
+        public class TestVolumeComponent0196 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0230))]
+        public class TestVolumeComponent0197 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0246))]
+        [Obsolete]
+        public class TestVolumeComponent0198 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0298))]
+        public class TestVolumeComponent0199 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0442))]
         public class TestVolumeComponent0200 : VolumeComponent { }
         public class TestVolumeComponent0201 : VolumeComponent { }
         public class TestVolumeComponent0202 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0286))]
-        [SupportedOn(typeof(TestVolumeComponent0234))]
+        [SupportedOn(typeof(TestVolumeComponent0312))]
+        [SupportedOn(typeof(TestVolumeComponent0227))]
         public class TestVolumeComponent0203 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0263))]
+        [Obsolete]
         public class TestVolumeComponent0204 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0231))]
+        [Obsolete]
         public class TestVolumeComponent0205 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0213))]
+        [SupportedOn(typeof(TestVolumeComponent0459))]
+        [SupportedOn(typeof(TestVolumeComponent0374))]
         public class TestVolumeComponent0206 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0322))]
+        [SupportedOn(typeof(TestVolumeComponent0218))]
         public class TestVolumeComponent0207 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0327))]
-        [SupportedOn(typeof(TestVolumeComponent0427))]
+        [Obsolete]
         public class TestVolumeComponent0208 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0404))]
+        [SupportedOn(typeof(TestVolumeComponent0279))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0209 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0313))]
+        [SupportedOn(typeof(TestVolumeComponent0281))]
+        [SupportedOn(typeof(TestVolumeComponent0244))]
         public class TestVolumeComponent0210 : VolumeComponent { }
         public class TestVolumeComponent0211 : VolumeComponent { }
         public class TestVolumeComponent0212 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0440))]
+        [Obsolete]
         public class TestVolumeComponent0213 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0413))]
         public class TestVolumeComponent0214 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0394))]
-        [SupportedOn(typeof(TestVolumeComponent0406))]
+        [SupportedOn(typeof(TestVolumeComponent0316))]
         public class TestVolumeComponent0215 : VolumeComponent { }
+        [Obsolete]
         public class TestVolumeComponent0216 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0220))]
-        [SupportedOn(typeof(TestVolumeComponent0456))]
+        [SupportedOn(typeof(TestVolumeComponent0433))]
+        [HideInInspector]
         public class TestVolumeComponent0217 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0257))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0218 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0430))]
-        [SupportedOn(typeof(TestVolumeComponent0378))]
+        [SupportedOn(typeof(TestVolumeComponent0249))]
+        [SupportedOn(typeof(TestVolumeComponent0272))]
         public class TestVolumeComponent0219 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0371))]
+        [SupportedOn(typeof(TestVolumeComponent0360))]
         public class TestVolumeComponent0220 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0256))]
+        [SupportedOn(typeof(TestVolumeComponent0404))]
+        [SupportedOn(typeof(TestVolumeComponent0367))]
         public class TestVolumeComponent0221 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0357))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0222 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0466))]
+        [SupportedOn(typeof(TestVolumeComponent0254))]
+        [SupportedOn(typeof(TestVolumeComponent0265))]
         public class TestVolumeComponent0223 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0471))]
-        [SupportedOn(typeof(TestVolumeComponent0315))]
-        public class TestVolumeComponent0224 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0292))]
-        [SupportedOn(typeof(TestVolumeComponent0400))]
-        public class TestVolumeComponent0225 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0457))]
-        [SupportedOn(typeof(TestVolumeComponent0461))]
-        public class TestVolumeComponent0226 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0246))]
-        [SupportedOn(typeof(TestVolumeComponent0322))]
-        public class TestVolumeComponent0227 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0315))]
-        public class TestVolumeComponent0228 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0328))]
-        public class TestVolumeComponent0229 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0301))]
+        public class TestVolumeComponent0224 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0225 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0439))]
+        [SupportedOn(typeof(TestVolumeComponent0402))]
+        public class TestVolumeComponent0226 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0454))]
+        [SupportedOn(typeof(TestVolumeComponent0441))]
+        public class TestVolumeComponent0227 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0341))]
+        [SupportedOn(typeof(TestVolumeComponent0296))]
+        public class TestVolumeComponent0228 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0229 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0418))]
+        [SupportedOn(typeof(TestVolumeComponent0473))]
         public class TestVolumeComponent0230 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0282))]
-        [SupportedOn(typeof(TestVolumeComponent0294))]
+        [SupportedOn(typeof(TestVolumeComponent0425))]
         public class TestVolumeComponent0231 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0415))]
         public class TestVolumeComponent0232 : VolumeComponent { }
         public class TestVolumeComponent0233 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0401))]
-        [SupportedOn(typeof(TestVolumeComponent0277))]
+        [SupportedOn(typeof(TestVolumeComponent0359))]
         public class TestVolumeComponent0234 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0318))]
+        [SupportedOn(typeof(TestVolumeComponent0271))]
+        [HideInInspector]
         public class TestVolumeComponent0235 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0259))]
+        [SupportedOn(typeof(TestVolumeComponent0268))]
         public class TestVolumeComponent0236 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0400))]
         public class TestVolumeComponent0237 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0437))]
         public class TestVolumeComponent0238 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0239 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0287))]
+        [SupportedOn(typeof(TestVolumeComponent0362))]
+        [HideInInspector]
         public class TestVolumeComponent0240 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0436))]
-        [SupportedOn(typeof(TestVolumeComponent0288))]
+        [SupportedOn(typeof(TestVolumeComponent0391))]
+        [SupportedOn(typeof(TestVolumeComponent0270))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0241 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0345))]
+        [Obsolete]
         public class TestVolumeComponent0242 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0390))]
+        [SupportedOn(typeof(TestVolumeComponent0257))]
+        [SupportedOn(typeof(TestVolumeComponent0472))]
         public class TestVolumeComponent0243 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0459))]
-        [SupportedOn(typeof(TestVolumeComponent0367))]
         public class TestVolumeComponent0244 : VolumeComponent { }
-        public class TestVolumeComponent0245 : VolumeComponent { }
-        public class TestVolumeComponent0246 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0426))]
-        [SupportedOn(typeof(TestVolumeComponent0438))]
-        public class TestVolumeComponent0247 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0303))]
-        public class TestVolumeComponent0248 : VolumeComponent { }
-        public class TestVolumeComponent0249 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0289))]
-        [SupportedOn(typeof(TestVolumeComponent0421))]
-        public class TestVolumeComponent0250 : VolumeComponent { }
-        public class TestVolumeComponent0251 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0403))]
-        [SupportedOn(typeof(TestVolumeComponent0439))]
-        public class TestVolumeComponent0252 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0288))]
-        public class TestVolumeComponent0253 : VolumeComponent { }
-        public class TestVolumeComponent0254 : VolumeComponent { }
-        public class TestVolumeComponent0255 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0503))]
-        [SupportedOn(typeof(TestVolumeComponent0347))]
-        public class TestVolumeComponent0256 : VolumeComponent { }
-        public class TestVolumeComponent0257 : VolumeComponent { }
-        public class TestVolumeComponent0258 : VolumeComponent { }
-        public class TestVolumeComponent0259 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0347))]
-        [SupportedOn(typeof(TestVolumeComponent0511))]
-        public class TestVolumeComponent0260 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0360))]
-        public class TestVolumeComponent0261 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0333))]
+        public class TestVolumeComponent0245 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0497))]
+        public class TestVolumeComponent0246 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0337))]
+        [HideInInspector]
+        public class TestVolumeComponent0247 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0366))]
+        public class TestVolumeComponent0248 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0330))]
+        [SupportedOn(typeof(TestVolumeComponent0477))]
+        public class TestVolumeComponent0249 : VolumeComponent { }
+        public class TestVolumeComponent0250 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0462))]
+        public class TestVolumeComponent0251 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0252 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0408))]
+        [SupportedOn(typeof(TestVolumeComponent0379))]
+        [HideInInspector]
+        public class TestVolumeComponent0253 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0254 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0354))]
+        [SupportedOn(typeof(TestVolumeComponent0341))]
+        public class TestVolumeComponent0255 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0497))]
+        [SupportedOn(typeof(TestVolumeComponent0452))]
+        [Obsolete]
+        public class TestVolumeComponent0256 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0320))]
+        [SupportedOn(typeof(TestVolumeComponent0395))]
+        public class TestVolumeComponent0257 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0367))]
+        [SupportedOn(typeof(TestVolumeComponent0282))]
+        public class TestVolumeComponent0258 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0318))]
+        [SupportedOn(typeof(TestVolumeComponent0353))]
+        [HideInInspector]
+        public class TestVolumeComponent0259 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0286))]
+        [Obsolete]
+        public class TestVolumeComponent0260 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0514))]
+        [SupportedOn(typeof(TestVolumeComponent0429))]
+        public class TestVolumeComponent0261 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0273))]
         public class TestVolumeComponent0262 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0314))]
+        [Obsolete]
         public class TestVolumeComponent0263 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0447))]
-        [SupportedOn(typeof(TestVolumeComponent0419))]
+        [SupportedOn(typeof(TestVolumeComponent0334))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0264 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0396))]
-        [SupportedOn(typeof(TestVolumeComponent0376))]
+        [HideInInspector]
         public class TestVolumeComponent0265 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0433))]
+        [SupportedOn(typeof(TestVolumeComponent0318))]
+        [SupportedOn(typeof(TestVolumeComponent0485))]
         public class TestVolumeComponent0266 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0350))]
+        [SupportedOn(typeof(TestVolumeComponent0517))]
         public class TestVolumeComponent0267 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0425))]
+        [SupportedOn(typeof(TestVolumeComponent0404))]
+        [Obsolete]
         public class TestVolumeComponent0268 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0432))]
         public class TestVolumeComponent0269 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0277))]
+        [SupportedOn(typeof(TestVolumeComponent0397))]
+        [SupportedOn(typeof(TestVolumeComponent0344))]
         public class TestVolumeComponent0270 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0386))]
-        [SupportedOn(typeof(TestVolumeComponent0526))]
         public class TestVolumeComponent0271 : VolumeComponent { }
-        public class TestVolumeComponent0272 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0468))]
-        public class TestVolumeComponent0273 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0377))]
-        [SupportedOn(typeof(TestVolumeComponent0381))]
-        public class TestVolumeComponent0274 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0422))]
-        [SupportedOn(typeof(TestVolumeComponent0498))]
-        public class TestVolumeComponent0275 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0491))]
-        [SupportedOn(typeof(TestVolumeComponent0399))]
-        public class TestVolumeComponent0276 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0504))]
+        [SupportedOn(typeof(TestVolumeComponent0273))]
         [SupportedOn(typeof(TestVolumeComponent0292))]
+        [HideInInspector]
+        public class TestVolumeComponent0272 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0481))]
+        [SupportedOn(typeof(TestVolumeComponent0352))]
+        [HideInInspector]
+        public class TestVolumeComponent0273 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0341))]
+        [SupportedOn(typeof(TestVolumeComponent0520))]
+        public class TestVolumeComponent0274 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0484))]
+        [SupportedOn(typeof(TestVolumeComponent0375))]
+        [Obsolete]
+        public class TestVolumeComponent0275 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0276 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0497))]
+        [SupportedOn(typeof(TestVolumeComponent0360))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0277 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0462))]
+        [SupportedOn(typeof(TestVolumeComponent0413))]
         public class TestVolumeComponent0278 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0458))]
         public class TestVolumeComponent0279 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0335))]
-        [SupportedOn(typeof(TestVolumeComponent0307))]
+        [SupportedOn(typeof(TestVolumeComponent0466))]
+        [SupportedOn(typeof(TestVolumeComponent0449))]
         public class TestVolumeComponent0280 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0284))]
+        [SupportedOn(typeof(TestVolumeComponent0353))]
+        [SupportedOn(typeof(TestVolumeComponent0368))]
         public class TestVolumeComponent0281 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0321))]
+        [SupportedOn(typeof(TestVolumeComponent0360))]
+        [SupportedOn(typeof(TestVolumeComponent0447))]
+        [Obsolete]
         public class TestVolumeComponent0282 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0494))]
+        [SupportedOn(typeof(TestVolumeComponent0471))]
         public class TestVolumeComponent0283 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0435))]
+        [SupportedOn(typeof(TestVolumeComponent0323))]
         public class TestVolumeComponent0284 : VolumeComponent { }
         public class TestVolumeComponent0285 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0421))]
-        [SupportedOn(typeof(TestVolumeComponent0361))]
+        [SupportedOn(typeof(TestVolumeComponent0440))]
         public class TestVolumeComponent0286 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0412))]
         public class TestVolumeComponent0287 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0535))]
+        [SupportedOn(typeof(TestVolumeComponent0324))]
+        [SupportedOn(typeof(TestVolumeComponent0427))]
+        [Obsolete]
         public class TestVolumeComponent0288 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0356))]
         public class TestVolumeComponent0289 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0521))]
+        [SupportedOn(typeof(TestVolumeComponent0488))]
         public class TestVolumeComponent0290 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0310))]
+        [SupportedOn(typeof(TestVolumeComponent0516))]
+        [SupportedOn(typeof(TestVolumeComponent0471))]
+        [Obsolete]
         public class TestVolumeComponent0291 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0339))]
+        [Obsolete]
         public class TestVolumeComponent0292 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0392))]
-        [SupportedOn(typeof(TestVolumeComponent0436))]
+        [HideInInspector]
         public class TestVolumeComponent0293 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0365))]
-        [SupportedOn(typeof(TestVolumeComponent0433))]
+        [HideInInspector]
         public class TestVolumeComponent0294 : VolumeComponent { }
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0295 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0479))]
-        [SupportedOn(typeof(TestVolumeComponent0451))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0296 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0428))]
         public class TestVolumeComponent0297 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0465))]
-        [SupportedOn(typeof(TestVolumeComponent0341))]
+        [SupportedOn(typeof(TestVolumeComponent0422))]
+        [Obsolete]
         public class TestVolumeComponent0298 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0382))]
-        [SupportedOn(typeof(TestVolumeComponent0330))]
         public class TestVolumeComponent0299 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0323))]
+        [SupportedOn(typeof(TestVolumeComponent0551))]
+        [SupportedOn(typeof(TestVolumeComponent0458))]
         public class TestVolumeComponent0300 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0464))]
+        [SupportedOn(typeof(TestVolumeComponent0438))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0301 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0420))]
         public class TestVolumeComponent0302 : VolumeComponent { }
         public class TestVolumeComponent0303 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0437))]
         public class TestVolumeComponent0304 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0500))]
+        [SupportedOn(typeof(TestVolumeComponent0397))]
+        [SupportedOn(typeof(TestVolumeComponent0516))]
         public class TestVolumeComponent0305 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0409))]
+        [SupportedOn(typeof(TestVolumeComponent0404))]
+        [SupportedOn(typeof(TestVolumeComponent0339))]
         public class TestVolumeComponent0306 : VolumeComponent { }
-        public class TestVolumeComponent0307 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0523))]
-        public class TestVolumeComponent0308 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0536))]
-        public class TestVolumeComponent0309 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0509))]
-        public class TestVolumeComponent0310 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0490))]
-        [SupportedOn(typeof(TestVolumeComponent0502))]
-        public class TestVolumeComponent0311 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0367))]
-        public class TestVolumeComponent0312 : VolumeComponent { }
-        public class TestVolumeComponent0313 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0353))]
-        [SupportedOn(typeof(TestVolumeComponent0485))]
-        public class TestVolumeComponent0314 : VolumeComponent { }
-        public class TestVolumeComponent0315 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0467))]
-        [SupportedOn(typeof(TestVolumeComponent0503))]
-        public class TestVolumeComponent0316 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0352))]
-        [SupportedOn(typeof(TestVolumeComponent0524))]
-        public class TestVolumeComponent0317 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0453))]
-        public class TestVolumeComponent0318 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0562))]
-        [SupportedOn(typeof(TestVolumeComponent0446))]
-        public class TestVolumeComponent0319 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0567))]
-        [SupportedOn(typeof(TestVolumeComponent0411))]
-        public class TestVolumeComponent0320 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0388))]
-        public class TestVolumeComponent0321 : VolumeComponent { }
-        public class TestVolumeComponent0322 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0342))]
-        [SupportedOn(typeof(TestVolumeComponent0418))]
-        public class TestVolumeComponent0323 : VolumeComponent { }
-        public class TestVolumeComponent0324 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0424))]
-        [SupportedOn(typeof(TestVolumeComponent0468))]
-        public class TestVolumeComponent0325 : VolumeComponent { }
-        public class TestVolumeComponent0326 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0378))]
-        public class TestVolumeComponent0327 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0511))]
-        [SupportedOn(typeof(TestVolumeComponent0483))]
-        public class TestVolumeComponent0328 : VolumeComponent { }
-        public class TestVolumeComponent0329 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0497))]
-        public class TestVolumeComponent0330 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0414))]
-        [SupportedOn(typeof(TestVolumeComponent0362))]
-        public class TestVolumeComponent0331 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0355))]
-        public class TestVolumeComponent0332 : VolumeComponent { }
-        public class TestVolumeComponent0333 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0341))]
-        public class TestVolumeComponent0334 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0450))]
-        [SupportedOn(typeof(TestVolumeComponent0590))]
-        public class TestVolumeComponent0335 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0455))]
-        public class TestVolumeComponent0336 : VolumeComponent { }
-        public class TestVolumeComponent0337 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0441))]
-        public class TestVolumeComponent0338 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0486))]
-        [SupportedOn(typeof(TestVolumeComponent0562))]
-        public class TestVolumeComponent0339 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0555))]
-        [SupportedOn(typeof(TestVolumeComponent0463))]
-        public class TestVolumeComponent0340 : VolumeComponent { }
+        [Obsolete]
+        public class TestVolumeComponent0307 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0407))]
+        [SupportedOn(typeof(TestVolumeComponent0394))]
+        public class TestVolumeComponent0308 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0550))]
+        public class TestVolumeComponent0309 : VolumeComponent { }
+        public class TestVolumeComponent0310 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0371))]
+        public class TestVolumeComponent0311 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0479))]
+        public class TestVolumeComponent0312 : VolumeComponent { }
+        [Obsolete]
+        public class TestVolumeComponent0313 : VolumeComponent { }
+        public class TestVolumeComponent0314 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0369))]
         [SupportedOn(typeof(TestVolumeComponent0568))]
-        public class TestVolumeComponent0341 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0541))]
-        public class TestVolumeComponent0342 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0522))]
-        public class TestVolumeComponent0343 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0399))]
-        public class TestVolumeComponent0344 : VolumeComponent { }
+        public class TestVolumeComponent0315 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0316 : VolumeComponent { }
+        public class TestVolumeComponent0317 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0318 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0319 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0320 : VolumeComponent { }
+        public class TestVolumeComponent0321 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0562))]
+        public class TestVolumeComponent0322 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0486))]
+        [SupportedOn(typeof(TestVolumeComponent0345))]
+        [Obsolete]
+        public class TestVolumeComponent0323 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0373))]
+        public class TestVolumeComponent0324 : VolumeComponent { }
+        public class TestVolumeComponent0325 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0578))]
+        [HideInInspector]
+        public class TestVolumeComponent0326 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0543))]
+        [HideInInspector]
+        public class TestVolumeComponent0327 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0348))]
+        [SupportedOn(typeof(TestVolumeComponent0451))]
+        public class TestVolumeComponent0328 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0547))]
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0329 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0397))]
+        [SupportedOn(typeof(TestVolumeComponent0576))]
+        public class TestVolumeComponent0330 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0540))]
+        [SupportedOn(typeof(TestVolumeComponent0431))]
+        [Obsolete]
+        public class TestVolumeComponent0331 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0363))]
+        [HideInInspector]
+        public class TestVolumeComponent0332 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0333 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0518))]
+        public class TestVolumeComponent0334 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0362))]
+        public class TestVolumeComponent0335 : VolumeComponent { }
+        public class TestVolumeComponent0336 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0551))]
+        public class TestVolumeComponent0337 : VolumeComponent { }
+        public class TestVolumeComponent0338 : VolumeComponent { }
+        public class TestVolumeComponent0339 : VolumeComponent { }
+        public class TestVolumeComponent0340 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0578))]
+        [SupportedOn(typeof(TestVolumeComponent0493))]
+        public class TestVolumeComponent0341 : VolumeComponent { }
+        public class TestVolumeComponent0342 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0486))]
+        [SupportedOn(typeof(TestVolumeComponent0497))]
+        public class TestVolumeComponent0343 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0469))]
+        [SupportedOn(typeof(TestVolumeComponent0384))]
+        [Obsolete]
+        public class TestVolumeComponent0344 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0345 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0385))]
-        [SupportedOn(typeof(TestVolumeComponent0517))]
         public class TestVolumeComponent0346 : VolumeComponent { }
         public class TestVolumeComponent0347 : VolumeComponent { }
         public class TestVolumeComponent0348 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0384))]
+        [SupportedOn(typeof(TestVolumeComponent0529))]
+        [Obsolete]
         public class TestVolumeComponent0349 : VolumeComponent { }
         public class TestVolumeComponent0350 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0386))]
+        [SupportedOn(typeof(TestVolumeComponent0501))]
+        [HideInInspector]
         public class TestVolumeComponent0351 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0599))]
+        [SupportedOn(typeof(TestVolumeComponent0402))]
+        [HideInInspector]
         public class TestVolumeComponent0352 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0420))]
-        [SupportedOn(typeof(TestVolumeComponent0528))]
+        [SupportedOn(typeof(TestVolumeComponent0367))]
+        [SupportedOn(typeof(TestVolumeComponent0582))]
         public class TestVolumeComponent0353 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0585))]
         public class TestVolumeComponent0354 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0374))]
-        [SupportedOn(typeof(TestVolumeComponent0450))]
         public class TestVolumeComponent0355 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0504))]
+        [SupportedOn(typeof(TestVolumeComponent0607))]
         public class TestVolumeComponent0356 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0456))]
-        [SupportedOn(typeof(TestVolumeComponent0500))]
+        [SupportedOn(typeof(TestVolumeComponent0447))]
+        [HideInInspector]
         public class TestVolumeComponent0357 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0429))]
+        [SupportedOn(typeof(TestVolumeComponent0476))]
         public class TestVolumeComponent0358 : VolumeComponent { }
         public class TestVolumeComponent0359 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0543))]
-        [SupportedOn(typeof(TestVolumeComponent0515))]
+        [SupportedOn(typeof(TestVolumeComponent0493))]
+        [SupportedOn(typeof(TestVolumeComponent0584))]
         public class TestVolumeComponent0360 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0492))]
         public class TestVolumeComponent0361 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0529))]
-        [SupportedOn(typeof(TestVolumeComponent0405))]
+        [SupportedOn(typeof(TestVolumeComponent0369))]
+        [SupportedOn(typeof(TestVolumeComponent0460))]
         public class TestVolumeComponent0362 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0363 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0387))]
-        [SupportedOn(typeof(TestVolumeComponent0423))]
+        [SupportedOn(typeof(TestVolumeComponent0422))]
         public class TestVolumeComponent0364 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0528))]
-        [SupportedOn(typeof(TestVolumeComponent0444))]
+        [SupportedOn(typeof(TestVolumeComponent0458))]
         public class TestVolumeComponent0365 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0373))]
-        [SupportedOn(typeof(TestVolumeComponent0569))]
         public class TestVolumeComponent0366 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0482))]
-        [SupportedOn(typeof(TestVolumeComponent0622))]
         public class TestVolumeComponent0367 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0428))]
+        [SupportedOn(typeof(TestVolumeComponent0483))]
+        [Obsolete]
         public class TestVolumeComponent0368 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0564))]
+        [SupportedOn(typeof(TestVolumeComponent0435))]
         public class TestVolumeComponent0369 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0473))]
+        [SupportedOn(typeof(TestVolumeComponent0615))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0370 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0397))]
+        [SupportedOn(typeof(TestVolumeComponent0572))]
+        [HideInInspector]
         public class TestVolumeComponent0371 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0587))]
+        [SupportedOn(typeof(TestVolumeComponent0625))]
+        [SupportedOn(typeof(TestVolumeComponent0540))]
         public class TestVolumeComponent0372 : VolumeComponent { }
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0373 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0571))]
         public class TestVolumeComponent0374 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0403))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0375 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0389))]
+        [Obsolete]
         public class TestVolumeComponent0376 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0380))]
+        [SupportedOn(typeof(TestVolumeComponent0429))]
         public class TestVolumeComponent0377 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0417))]
+        [SupportedOn(typeof(TestVolumeComponent0553))]
+        [SupportedOn(typeof(TestVolumeComponent0628))]
         public class TestVolumeComponent0378 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0536))]
+        [HideInInspector]
         public class TestVolumeComponent0379 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0531))]
+        [SupportedOn(typeof(TestVolumeComponent0429))]
+        [SupportedOn(typeof(TestVolumeComponent0512))]
         public class TestVolumeComponent0380 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0416))]
-        [SupportedOn(typeof(TestVolumeComponent0588))]
+        [SupportedOn(typeof(TestVolumeComponent0508))]
         public class TestVolumeComponent0381 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0517))]
-        [SupportedOn(typeof(TestVolumeComponent0457))]
         public class TestVolumeComponent0382 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0626))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0383 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0631))]
+        [SupportedOn(typeof(TestVolumeComponent0404))]
+        [SupportedOn(typeof(TestVolumeComponent0507))]
         public class TestVolumeComponent0384 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0452))]
-        [SupportedOn(typeof(TestVolumeComponent0560))]
+        [SupportedOn(typeof(TestVolumeComponent0603))]
+        [SupportedOn(typeof(TestVolumeComponent0394))]
         public class TestVolumeComponent0385 : VolumeComponent { }
         public class TestVolumeComponent0386 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0406))]
+        [SupportedOn(typeof(TestVolumeComponent0487))]
+        [SupportedOn(typeof(TestVolumeComponent0462))]
+        [HideInInspector]
         public class TestVolumeComponent0387 : VolumeComponent { }
-        public class TestVolumeComponent0388 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0488))]
-        [SupportedOn(typeof(TestVolumeComponent0532))]
-        public class TestVolumeComponent0389 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0461))]
-        public class TestVolumeComponent0390 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0442))]
-        public class TestVolumeComponent0391 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0575))]
-        [SupportedOn(typeof(TestVolumeComponent0547))]
-        public class TestVolumeComponent0392 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0524))]
-        public class TestVolumeComponent0393 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0561))]
-        public class TestVolumeComponent0394 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0478))]
-        [SupportedOn(typeof(TestVolumeComponent0426))]
-        public class TestVolumeComponent0395 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0419))]
-        [SupportedOn(typeof(TestVolumeComponent0455))]
-        public class TestVolumeComponent0396 : VolumeComponent { }
-        public class TestVolumeComponent0397 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0430))]
+        public class TestVolumeComponent0388 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0466))]
+        [SupportedOn(typeof(TestVolumeComponent0573))]
+        public class TestVolumeComponent0389 : VolumeComponent { }
+        public class TestVolumeComponent0390 : VolumeComponent { }
+        public class TestVolumeComponent0391 : VolumeComponent { }
+        public class TestVolumeComponent0392 : VolumeComponent { }
+        public class TestVolumeComponent0393 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0629))]
+        public class TestVolumeComponent0394 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0405))]
+        public class TestVolumeComponent0395 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0633))]
+        [HideInInspector]
+        public class TestVolumeComponent0396 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0462))]
+        public class TestVolumeComponent0397 : VolumeComponent { }
         public class TestVolumeComponent0398 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0475))]
         public class TestVolumeComponent0399 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0519))]
-        [SupportedOn(typeof(TestVolumeComponent0619))]
+        [SupportedOn(typeof(TestVolumeComponent0647))]
+        [SupportedOn(typeof(TestVolumeComponent0482))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0400 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0596))]
-        [SupportedOn(typeof(TestVolumeComponent0448))]
+        [SupportedOn(typeof(TestVolumeComponent0540))]
+        [Obsolete]
         public class TestVolumeComponent0401 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0505))]
-        [SupportedOn(typeof(TestVolumeComponent0509))]
+        [SupportedOn(typeof(TestVolumeComponent0636))]
         public class TestVolumeComponent0402 : VolumeComponent { }
         public class TestVolumeComponent0403 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0619))]
-        [SupportedOn(typeof(TestVolumeComponent0527))]
         public class TestVolumeComponent0404 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0632))]
+        [SupportedOn(typeof(TestVolumeComponent0426))]
+        [SupportedOn(typeof(TestVolumeComponent0517))]
         public class TestVolumeComponent0405 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0441))]
+        [SupportedOn(typeof(TestVolumeComponent0556))]
+        [HideInInspector]
         public class TestVolumeComponent0406 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0586))]
+        [SupportedOn(typeof(TestVolumeComponent0457))]
+        [HideInInspector]
         public class TestVolumeComponent0407 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0463))]
-        [SupportedOn(typeof(TestVolumeComponent0435))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0408 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0665))]
         public class TestVolumeComponent0409 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0449))]
-        [SupportedOn(typeof(TestVolumeComponent0581))]
+        [SupportedOn(typeof(TestVolumeComponent0461))]
+        [HideInInspector]
         public class TestVolumeComponent0410 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0514))]
+        [SupportedOn(typeof(TestVolumeComponent0541))]
         public class TestVolumeComponent0411 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0593))]
+        [SupportedOn(typeof(TestVolumeComponent0492))]
         public class TestVolumeComponent0412 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0448))]
-        [SupportedOn(typeof(TestVolumeComponent0620))]
+        [SupportedOn(typeof(TestVolumeComponent0608))]
+        [SupportedOn(typeof(TestVolumeComponent0531))]
         public class TestVolumeComponent0413 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0549))]
-        [SupportedOn(typeof(TestVolumeComponent0489))]
         public class TestVolumeComponent0414 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0658))]
         public class TestVolumeComponent0415 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0569))]
         public class TestVolumeComponent0416 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0484))]
-        [SupportedOn(typeof(TestVolumeComponent0592))]
+        [SupportedOn(typeof(TestVolumeComponent0473))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0417 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0649))]
-        [SupportedOn(typeof(TestVolumeComponent0653))]
+        [SupportedOn(typeof(TestVolumeComponent0451))]
         public class TestVolumeComponent0418 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0438))]
         public class TestVolumeComponent0419 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0507))]
+        [SupportedOn(typeof(TestVolumeComponent0656))]
+        [SupportedOn(typeof(TestVolumeComponent0519))]
         public class TestVolumeComponent0420 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0520))]
+        [SupportedOn(typeof(TestVolumeComponent0663))]
+        [SupportedOn(typeof(TestVolumeComponent0662))]
         public class TestVolumeComponent0421 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0493))]
+        [SupportedOn(typeof(TestVolumeComponent0614))]
         public class TestVolumeComponent0422 : VolumeComponent { }
         public class TestVolumeComponent0423 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0607))]
-        [SupportedOn(typeof(TestVolumeComponent0579))]
         public class TestVolumeComponent0424 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0556))]
         public class TestVolumeComponent0425 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0593))]
-        [SupportedOn(typeof(TestVolumeComponent0469))]
+        [SupportedOn(typeof(TestVolumeComponent0441))]
+        [SupportedOn(typeof(TestVolumeComponent0452))]
+        [Obsolete]
         public class TestVolumeComponent0426 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0510))]
-        [SupportedOn(typeof(TestVolumeComponent0458))]
+        [SupportedOn(typeof(TestVolumeComponent0680))]
+        [SupportedOn(typeof(TestVolumeComponent0595))]
         public class TestVolumeComponent0427 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0451))]
+        [SupportedOn(typeof(TestVolumeComponent0439))]
         public class TestVolumeComponent0428 : VolumeComponent { }
+        [Obsolete]
         public class TestVolumeComponent0429 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0437))]
-        [SupportedOn(typeof(TestVolumeComponent0633))]
+        [SupportedOn(typeof(TestVolumeComponent0500))]
+        [SupportedOn(typeof(TestVolumeComponent0443))]
+        [Obsolete]
         public class TestVolumeComponent0430 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0483))]
         public class TestVolumeComponent0431 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0607))]
         public class TestVolumeComponent0432 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0628))]
-        [SupportedOn(typeof(TestVolumeComponent0480))]
         public class TestVolumeComponent0433 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0537))]
-        [SupportedOn(typeof(TestVolumeComponent0541))]
+        [HideInInspector]
         public class TestVolumeComponent0434 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0606))]
+        [SupportedOn(typeof(TestVolumeComponent0577))]
         public class TestVolumeComponent0435 : VolumeComponent { }
         public class TestVolumeComponent0436 : VolumeComponent { }
         public class TestVolumeComponent0437 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0637))]
+        [SupportedOn(typeof(TestVolumeComponent0439))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0438 : VolumeComponent { }
-        public class TestVolumeComponent0439 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0495))]
-        public class TestVolumeComponent0440 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0444))]
-        public class TestVolumeComponent0441 : VolumeComponent { }
-        public class TestVolumeComponent0442 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0654))]
-        public class TestVolumeComponent0443 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0595))]
-        [SupportedOn(typeof(TestVolumeComponent0631))]
-        public class TestVolumeComponent0444 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0480))]
-        public class TestVolumeComponent0445 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0581))]
-        [SupportedOn(typeof(TestVolumeComponent0521))]
-        public class TestVolumeComponent0446 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0690))]
-        public class TestVolumeComponent0447 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0695))]
-        [SupportedOn(typeof(TestVolumeComponent0539))]
-        public class TestVolumeComponent0448 : VolumeComponent { }
-        public class TestVolumeComponent0449 : VolumeComponent { }
-        public class TestVolumeComponent0450 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0470))]
-        [SupportedOn(typeof(TestVolumeComponent0546))]
-        public class TestVolumeComponent0451 : VolumeComponent { }
-        public class TestVolumeComponent0452 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0552))]
-        [SupportedOn(typeof(TestVolumeComponent0596))]
-        public class TestVolumeComponent0453 : VolumeComponent { }
-        public class TestVolumeComponent0454 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0506))]
-        public class TestVolumeComponent0455 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0639))]
-        [SupportedOn(typeof(TestVolumeComponent0611))]
-        public class TestVolumeComponent0456 : VolumeComponent { }
-        public class TestVolumeComponent0457 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0625))]
-        public class TestVolumeComponent0458 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0542))]
-        [SupportedOn(typeof(TestVolumeComponent0490))]
-        public class TestVolumeComponent0459 : VolumeComponent { }
-        public class TestVolumeComponent0460 : VolumeComponent { }
-        public class TestVolumeComponent0461 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0469))]
+        public class TestVolumeComponent0439 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0449))]
+        [SupportedOn(typeof(TestVolumeComponent0580))]
+        public class TestVolumeComponent0440 : VolumeComponent { }
+        public class TestVolumeComponent0441 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0517))]
+        [HideInInspector]
+        public class TestVolumeComponent0442 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0474))]
+        [SupportedOn(typeof(TestVolumeComponent0485))]
+        public class TestVolumeComponent0443 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0521))]
+        public class TestVolumeComponent0444 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0689))]
+        public class TestVolumeComponent0445 : VolumeComponent { }
+        public class TestVolumeComponent0446 : VolumeComponent { }
+        public class TestVolumeComponent0447 : VolumeComponent { }
+        public class TestVolumeComponent0448 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0684))]
+        public class TestVolumeComponent0449 : VolumeComponent { }
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0450 : VolumeComponent { }
+        public class TestVolumeComponent0451 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0452 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0518))]
+        [SupportedOn(typeof(TestVolumeComponent0665))]
+        public class TestVolumeComponent0453 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0597))]
+        public class TestVolumeComponent0454 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0637))]
+        [HideInInspector]
+        public class TestVolumeComponent0455 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0538))]
+        [SupportedOn(typeof(TestVolumeComponent0473))]
+        [Obsolete]
+        public class TestVolumeComponent0456 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0489))]
+        public class TestVolumeComponent0457 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0605))]
+        public class TestVolumeComponent0458 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0621))]
+        public class TestVolumeComponent0459 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0481))]
+        [HideInInspector]
+        public class TestVolumeComponent0460 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0694))]
+        [SupportedOn(typeof(TestVolumeComponent0505))]
+        [Obsolete]
+        public class TestVolumeComponent0461 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0462 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0578))]
-        [SupportedOn(typeof(TestVolumeComponent0718))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0463 : VolumeComponent { }
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0464 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0721))]
         public class TestVolumeComponent0465 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0569))]
+        [SupportedOn(typeof(TestVolumeComponent0517))]
+        [HideInInspector]
         public class TestVolumeComponent0466 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0614))]
-        [SupportedOn(typeof(TestVolumeComponent0690))]
+        [SupportedOn(typeof(TestVolumeComponent0570))]
+        [SupportedOn(typeof(TestVolumeComponent0597))]
         public class TestVolumeComponent0467 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0683))]
-        [SupportedOn(typeof(TestVolumeComponent0591))]
         public class TestVolumeComponent0468 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0696))]
-        [SupportedOn(typeof(TestVolumeComponent0484))]
+        [SupportedOn(typeof(TestVolumeComponent0606))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0469 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0669))]
         public class TestVolumeComponent0470 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0650))]
-        [SupportedOn(typeof(TestVolumeComponent0662))]
+        [SupportedOn(typeof(TestVolumeComponent0489))]
+        [SupportedOn(typeof(TestVolumeComponent0552))]
         public class TestVolumeComponent0471 : VolumeComponent { }
         public class TestVolumeComponent0472 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0565))]
         public class TestVolumeComponent0473 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0481))]
+        [HideInInspector]
         public class TestVolumeComponent0474 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0686))]
-        [SupportedOn(typeof(TestVolumeComponent0634))]
         public class TestVolumeComponent0475 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0587))]
+        [HideInInspector]
         public class TestVolumeComponent0476 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0576))]
         public class TestVolumeComponent0477 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0613))]
-        [SupportedOn(typeof(TestVolumeComponent0553))]
+        [SupportedOn(typeof(TestVolumeComponent0720))]
         public class TestVolumeComponent0478 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0722))]
-        [SupportedOn(typeof(TestVolumeComponent0606))]
         public class TestVolumeComponent0479 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0727))]
-        [SupportedOn(typeof(TestVolumeComponent0571))]
+        [SupportedOn(typeof(TestVolumeComponent0537))]
         public class TestVolumeComponent0480 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0548))]
-        [SupportedOn(typeof(TestVolumeComponent0656))]
+        [SupportedOn(typeof(TestVolumeComponent0505))]
+        [SupportedOn(typeof(TestVolumeComponent0648))]
         public class TestVolumeComponent0481 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0576))]
+        [HideInInspector]
         public class TestVolumeComponent0482 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0502))]
         public class TestVolumeComponent0483 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0571))]
-        [SupportedOn(typeof(TestVolumeComponent0735))]
-        public class TestVolumeComponent0484 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0584))]
-        public class TestVolumeComponent0485 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0557))]
-        [SupportedOn(typeof(TestVolumeComponent0625))]
-        public class TestVolumeComponent0486 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0538))]
+        public class TestVolumeComponent0484 : VolumeComponent { }
+        [Obsolete]
+        public class TestVolumeComponent0485 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0683))]
+        [SupportedOn(typeof(TestVolumeComponent0646))]
+        public class TestVolumeComponent0486 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0506))]
+        [HideInInspector]
         public class TestVolumeComponent0487 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0488 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0541))]
         public class TestVolumeComponent0489 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0657))]
+        [SupportedOn(typeof(TestVolumeComponent0665))]
         public class TestVolumeComponent0490 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0513))]
+        [Obsolete]
         public class TestVolumeComponent0491 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0515))]
-        [SupportedOn(typeof(TestVolumeComponent0551))]
+        [SupportedOn(typeof(TestVolumeComponent0541))]
+        [SupportedOn(typeof(TestVolumeComponent0624))]
         public class TestVolumeComponent0492 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0620))]
+        [SupportedOn(typeof(TestVolumeComponent0567))]
         public class TestVolumeComponent0493 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0501))]
-        [SupportedOn(typeof(TestVolumeComponent0697))]
         public class TestVolumeComponent0494 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0610))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0495 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0615))]
-        [SupportedOn(typeof(TestVolumeComponent0715))]
+        [HideInInspector]
         public class TestVolumeComponent0496 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0692))]
-        [SupportedOn(typeof(TestVolumeComponent0544))]
         public class TestVolumeComponent0497 : VolumeComponent { }
         public class TestVolumeComponent0498 : VolumeComponent { }
-        public class TestVolumeComponent0499 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0715))]
-        public class TestVolumeComponent0500 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0728))]
-        public class TestVolumeComponent0501 : VolumeComponent { }
-        public class TestVolumeComponent0502 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0603))]
         [SupportedOn(typeof(TestVolumeComponent0682))]
+        public class TestVolumeComponent0499 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0610))]
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0500 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0501 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0722))]
+        [SupportedOn(typeof(TestVolumeComponent0585))]
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0502 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0687))]
         public class TestVolumeComponent0503 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0559))]
+        [SupportedOn(typeof(TestVolumeComponent0531))]
         public class TestVolumeComponent0504 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0508))]
         public class TestVolumeComponent0505 : VolumeComponent { }
         public class TestVolumeComponent0506 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0718))]
-        [SupportedOn(typeof(TestVolumeComponent0666))]
         public class TestVolumeComponent0507 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0659))]
         public class TestVolumeComponent0508 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0519))]
         public class TestVolumeComponent0509 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0645))]
+        [SupportedOn(typeof(TestVolumeComponent0747))]
+        [SupportedOn(typeof(TestVolumeComponent0662))]
         public class TestVolumeComponent0510 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0754))]
-        [SupportedOn(typeof(TestVolumeComponent0638))]
         public class TestVolumeComponent0511 : VolumeComponent { }
         public class TestVolumeComponent0512 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0580))]
+        [SupportedOn(typeof(TestVolumeComponent0644))]
+        [Obsolete]
         public class TestVolumeComponent0513 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0745))]
-        [SupportedOn(typeof(TestVolumeComponent0749))]
+        [HideInInspector]
         public class TestVolumeComponent0514 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0534))]
+        [SupportedOn(typeof(TestVolumeComponent0654))]
+        [SupportedOn(typeof(TestVolumeComponent0561))]
+        [HideInInspector]
         public class TestVolumeComponent0515 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0603))]
+        [SupportedOn(typeof(TestVolumeComponent0750))]
         public class TestVolumeComponent0516 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0616))]
-        [SupportedOn(typeof(TestVolumeComponent0660))]
         public class TestVolumeComponent0517 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0589))]
         public class TestVolumeComponent0518 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0570))]
+        [SupportedOn(typeof(TestVolumeComponent0540))]
+        [SupportedOn(typeof(TestVolumeComponent0631))]
         public class TestVolumeComponent0519 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0703))]
+        [SupportedOn(typeof(TestVolumeComponent0555))]
+        [HideInInspector]
         public class TestVolumeComponent0520 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0672))]
+        [SupportedOn(typeof(TestVolumeComponent0571))]
+        [HideInInspector]
         public class TestVolumeComponent0521 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0689))]
-        [SupportedOn(typeof(TestVolumeComponent0565))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0522 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0606))]
+        [SupportedOn(typeof(TestVolumeComponent0779))]
+        [SupportedOn(typeof(TestVolumeComponent0778))]
         public class TestVolumeComponent0523 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0547))]
+        [SupportedOn(typeof(TestVolumeComponent0690))]
         public class TestVolumeComponent0524 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0688))]
-        [SupportedOn(typeof(TestVolumeComponent0604))]
+        [SupportedOn(typeof(TestVolumeComponent0654))]
+        [SupportedOn(typeof(TestVolumeComponent0673))]
         public class TestVolumeComponent0525 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0733))]
+        [SupportedOn(typeof(TestVolumeComponent0616))]
+        [HideInInspector]
         public class TestVolumeComponent0526 : VolumeComponent { }
         public class TestVolumeComponent0527 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0647))]
-        [SupportedOn(typeof(TestVolumeComponent0747))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0528 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0724))]
         public class TestVolumeComponent0529 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0633))]
-        [SupportedOn(typeof(TestVolumeComponent0637))]
-        public class TestVolumeComponent0530 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0678))]
         [SupportedOn(typeof(TestVolumeComponent0754))]
+        [SupportedOn(typeof(TestVolumeComponent0689))]
+        public class TestVolumeComponent0530 : VolumeComponent { }
         public class TestVolumeComponent0531 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0747))]
+        [HideInInspector]
         public class TestVolumeComponent0532 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0760))]
+        [SupportedOn(typeof(TestVolumeComponent0688))]
+        [SupportedOn(typeof(TestVolumeComponent0659))]
+        [HideInInspector]
         public class TestVolumeComponent0533 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0733))]
-        [SupportedOn(typeof(TestVolumeComponent0545))]
+        [SupportedOn(typeof(TestVolumeComponent0592))]
         public class TestVolumeComponent0534 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0628))]
         public class TestVolumeComponent0535 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0591))]
-        [SupportedOn(typeof(TestVolumeComponent0563))]
+        [SupportedOn(typeof(TestVolumeComponent0732))]
+        [SupportedOn(typeof(TestVolumeComponent0643))]
+        [HideInInspector]
         public class TestVolumeComponent0536 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0540))]
+        [SupportedOn(typeof(TestVolumeComponent0600))]
         public class TestVolumeComponent0537 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0640))]
+        [HideInInspector]
         public class TestVolumeComponent0538 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0605))]
+        [SupportedOn(typeof(TestVolumeComponent0732))]
         public class TestVolumeComponent0539 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0691))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0540 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0576))]
-        [SupportedOn(typeof(TestVolumeComponent0748))]
+        [SupportedOn(typeof(TestVolumeComponent0567))]
+        [SupportedOn(typeof(TestVolumeComponent0742))]
+        [HideInInspector]
         public class TestVolumeComponent0541 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0677))]
-        [SupportedOn(typeof(TestVolumeComponent0617))]
         public class TestVolumeComponent0542 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0786))]
-        public class TestVolumeComponent0543 : VolumeComponent { }
-        public class TestVolumeComponent0544 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0612))]
-        public class TestVolumeComponent0545 : VolumeComponent { }
-        public class TestVolumeComponent0546 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0566))]
-        [SupportedOn(typeof(TestVolumeComponent0642))]
-        public class TestVolumeComponent0547 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0635))]
-        public class TestVolumeComponent0548 : VolumeComponent { }
-        public class TestVolumeComponent0549 : VolumeComponent { }
-        public class TestVolumeComponent0550 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0602))]
-        public class TestVolumeComponent0551 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0735))]
+        [SupportedOn(typeof(TestVolumeComponent0688))]
         [SupportedOn(typeof(TestVolumeComponent0707))]
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0543 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0741))]
+        public class TestVolumeComponent0544 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0573))]
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0545 : VolumeComponent { }
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0546 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0618))]
+        [SupportedOn(typeof(TestVolumeComponent0581))]
+        public class TestVolumeComponent0547 : VolumeComponent { }
+        public class TestVolumeComponent0548 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0654))]
+        [SupportedOn(typeof(TestVolumeComponent0721))]
+        [HideInInspector]
+        public class TestVolumeComponent0549 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0550 : VolumeComponent { }
+        public class TestVolumeComponent0551 : VolumeComponent { }
         public class TestVolumeComponent0552 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0684))]
+        [SupportedOn(typeof(TestVolumeComponent0674))]
+        [SupportedOn(typeof(TestVolumeComponent0805))]
+        [HideInInspector]
         public class TestVolumeComponent0553 : VolumeComponent { }
+        [Obsolete]
         public class TestVolumeComponent0554 : VolumeComponent { }
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0555 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0579))]
         public class TestVolumeComponent0556 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0775))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0557 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0625))]
         public class TestVolumeComponent0558 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0705))]
         public class TestVolumeComponent0559 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0679))]
+        [SupportedOn(typeof(TestVolumeComponent0565))]
+        [SupportedOn(typeof(TestVolumeComponent0656))]
+        [HideInInspector]
         public class TestVolumeComponent0560 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0756))]
-        public class TestVolumeComponent0561 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0665))]
-        public class TestVolumeComponent0562 : VolumeComponent { }
-        public class TestVolumeComponent0563 : VolumeComponent { }
-        public class TestVolumeComponent0564 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0792))]
-        [SupportedOn(typeof(TestVolumeComponent0580))]
-        public class TestVolumeComponent0565 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0765))]
-        [SupportedOn(typeof(TestVolumeComponent0577))]
-        public class TestVolumeComponent0566 : VolumeComponent { }
-        public class TestVolumeComponent0567 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0623))]
-        public class TestVolumeComponent0568 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0572))]
-        public class TestVolumeComponent0569 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0609))]
-        public class TestVolumeComponent0570 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0782))]
-        [SupportedOn(typeof(TestVolumeComponent0730))]
-        public class TestVolumeComponent0571 : VolumeComponent { }
-        public class TestVolumeComponent0572 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0608))]
-        [SupportedOn(typeof(TestVolumeComponent0780))]
-        public class TestVolumeComponent0573 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0709))]
-        public class TestVolumeComponent0574 : VolumeComponent { }
-        public class TestVolumeComponent0575 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0823))]
-        [SupportedOn(typeof(TestVolumeComponent0667))]
-        public class TestVolumeComponent0576 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0781))]
         [SupportedOn(typeof(TestVolumeComponent0644))]
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0561 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0746))]
+        public class TestVolumeComponent0562 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0590))]
+        public class TestVolumeComponent0563 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0750))]
+        public class TestVolumeComponent0564 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0786))]
+        [SupportedOn(typeof(TestVolumeComponent0637))]
+        public class TestVolumeComponent0565 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0801))]
+        public class TestVolumeComponent0566 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0577))]
+        [SupportedOn(typeof(TestVolumeComponent0752))]
+        public class TestVolumeComponent0567 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0720))]
+        public class TestVolumeComponent0568 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0756))]
+        public class TestVolumeComponent0569 : VolumeComponent { }
+        public class TestVolumeComponent0570 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0753))]
+        [HideInInspector]
+        public class TestVolumeComponent0571 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0654))]
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0572 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0712))]
+        [Obsolete]
+        public class TestVolumeComponent0573 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0808))]
+        [SupportedOn(typeof(TestVolumeComponent0663))]
+        public class TestVolumeComponent0574 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0695))]
+        public class TestVolumeComponent0575 : VolumeComponent { }
+        [Obsolete]
+        public class TestVolumeComponent0576 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0624))]
+        [Obsolete]
         public class TestVolumeComponent0577 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0809))]
+        [HideInInspector]
         public class TestVolumeComponent0578 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0730))]
+        [SupportedOn(typeof(TestVolumeComponent0629))]
+        [HideInInspector]
         public class TestVolumeComponent0579 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0667))]
+        [SupportedOn(typeof(TestVolumeComponent0594))]
         public class TestVolumeComponent0580 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0680))]
-        [SupportedOn(typeof(TestVolumeComponent0724))]
+        [SupportedOn(typeof(TestVolumeComponent0830))]
+        [SupportedOn(typeof(TestVolumeComponent0705))]
+        [Obsolete]
         public class TestVolumeComponent0581 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0653))]
+        [SupportedOn(typeof(TestVolumeComponent0685))]
+        [SupportedOn(typeof(TestVolumeComponent0712))]
         public class TestVolumeComponent0582 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0764))]
+        [SupportedOn(typeof(TestVolumeComponent0663))]
         public class TestVolumeComponent0583 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0779))]
+        [SupportedOn(typeof(TestVolumeComponent0702))]
         public class TestVolumeComponent0584 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0716))]
-        [SupportedOn(typeof(TestVolumeComponent0696))]
+        [SupportedOn(typeof(TestVolumeComponent0666))]
+        [SupportedOn(typeof(TestVolumeComponent0813))]
         public class TestVolumeComponent0585 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0745))]
         public class TestVolumeComponent0586 : VolumeComponent { }
         public class TestVolumeComponent0587 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0588 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0752))]
-        [SupportedOn(typeof(TestVolumeComponent0668))]
         public class TestVolumeComponent0589 : VolumeComponent { }
-        public class TestVolumeComponent0590 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0706))]
-        [SupportedOn(typeof(TestVolumeComponent0846))]
-        public class TestVolumeComponent0591 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0711))]
-        [SupportedOn(typeof(TestVolumeComponent0811))]
-        public class TestVolumeComponent0592 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0788))]
-        [SupportedOn(typeof(TestVolumeComponent0640))]
-        public class TestVolumeComponent0593 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0697))]
         [SupportedOn(typeof(TestVolumeComponent0701))]
+        [SupportedOn(typeof(TestVolumeComponent0648))]
+        public class TestVolumeComponent0590 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0684))]
+        public class TestVolumeComponent0591 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0788))]
+        [SupportedOn(typeof(TestVolumeComponent0699))]
+        [HideInInspector]
+        public class TestVolumeComponent0592 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0656))]
+        [SupportedOn(typeof(TestVolumeComponent0731))]
+        public class TestVolumeComponent0593 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0594 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0742))]
+        [SupportedOn(typeof(TestVolumeComponent0661))]
         public class TestVolumeComponent0595 : VolumeComponent { }
-        public class TestVolumeComponent0596 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0824))]
-        [SupportedOn(typeof(TestVolumeComponent0612))]
-        public class TestVolumeComponent0597 : VolumeComponent { }
-        public class TestVolumeComponent0598 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0778))]
-        [SupportedOn(typeof(TestVolumeComponent0790))]
-        public class TestVolumeComponent0599 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0655))]
-        [SupportedOn(typeof(TestVolumeComponent0627))]
-        public class TestVolumeComponent0600 : VolumeComponent { }
-        public class TestVolumeComponent0601 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0641))]
-        public class TestVolumeComponent0602 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0814))]
-        public class TestVolumeComponent0603 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0755))]
-        public class TestVolumeComponent0604 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0640))]
-        public class TestVolumeComponent0605 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0741))]
-        [SupportedOn(typeof(TestVolumeComponent0681))]
-        public class TestVolumeComponent0606 : VolumeComponent { }
-        public class TestVolumeComponent0607 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0855))]
-        [SupportedOn(typeof(TestVolumeComponent0699))]
-        public class TestVolumeComponent0608 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0676))]
-        [SupportedOn(typeof(TestVolumeComponent0784))]
-        public class TestVolumeComponent0609 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0841))]
-        [SupportedOn(typeof(TestVolumeComponent0845))]
+        [SupportedOn(typeof(TestVolumeComponent0612))]
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0596 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0798))]
+        [SupportedOn(typeof(TestVolumeComponent0801))]
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0597 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0851))]
+        public class TestVolumeComponent0598 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0763))]
+        [SupportedOn(typeof(TestVolumeComponent0610))]
+        public class TestVolumeComponent0599 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0706))]
+        [HideInInspector]
+        public class TestVolumeComponent0600 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0671))]
+        [SupportedOn(typeof(TestVolumeComponent0614))]
+        [Obsolete]
+        public class TestVolumeComponent0601 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0654))]
+        public class TestVolumeComponent0602 : VolumeComponent { }
+        public class TestVolumeComponent0603 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0604 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0741))]
+        [SupportedOn(typeof(TestVolumeComponent0628))]
+        [HideInInspector]
+        public class TestVolumeComponent0605 : VolumeComponent { }
+        public class TestVolumeComponent0606 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0734))]
+        public class TestVolumeComponent0607 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0646))]
+        public class TestVolumeComponent0608 : VolumeComponent { }
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0609 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0733))]
+        [SupportedOn(typeof(TestVolumeComponent0640))]
         public class TestVolumeComponent0610 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0630))]
+        [SupportedOn(typeof(TestVolumeComponent0620))]
+        [SupportedOn(typeof(TestVolumeComponent0751))]
         public class TestVolumeComponent0611 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0699))]
+        [SupportedOn(typeof(TestVolumeComponent0795))]
         public class TestVolumeComponent0612 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0723))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0613 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0685))]
-        [SupportedOn(typeof(TestVolumeComponent0753))]
+        [SupportedOn(typeof(TestVolumeComponent0645))]
+        [HideInInspector]
         public class TestVolumeComponent0614 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0666))]
-        [SupportedOn(typeof(TestVolumeComponent0678))]
+        [SupportedOn(typeof(TestVolumeComponent0698))]
+        [SupportedOn(typeof(TestVolumeComponent0621))]
         public class TestVolumeComponent0615 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0799))]
-        [SupportedOn(typeof(TestVolumeComponent0771))]
+        [SupportedOn(typeof(TestVolumeComponent0777))]
+        [SupportedOn(typeof(TestVolumeComponent0860))]
         public class TestVolumeComponent0616 : VolumeComponent { }
         public class TestVolumeComponent0617 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0785))]
-        [SupportedOn(typeof(TestVolumeComponent0661))]
         public class TestVolumeComponent0618 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0702))]
-        [SupportedOn(typeof(TestVolumeComponent0650))]
+        [SupportedOn(typeof(TestVolumeComponent0706))]
+        [SupportedOn(typeof(TestVolumeComponent0733))]
         public class TestVolumeComponent0619 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0643))]
+        [SupportedOn(typeof(TestVolumeComponent0785))]
+        [Obsolete]
         public class TestVolumeComponent0620 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0784))]
-        [SupportedOn(typeof(TestVolumeComponent0700))]
         public class TestVolumeComponent0621 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0629))]
-        [SupportedOn(typeof(TestVolumeComponent0825))]
+        [HideInInspector]
         public class TestVolumeComponent0622 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0738))]
+        [SupportedOn(typeof(TestVolumeComponent0688))]
+        [SupportedOn(typeof(TestVolumeComponent0835))]
         public class TestVolumeComponent0623 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0743))]
         public class TestVolumeComponent0624 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0756))]
+        [Obsolete]
         public class TestVolumeComponent0625 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0729))]
+        [SupportedOn(typeof(TestVolumeComponent0708))]
+        [SupportedOn(typeof(TestVolumeComponent0643))]
+        [Obsolete]
         public class TestVolumeComponent0626 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0659))]
         public class TestVolumeComponent0627 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0843))]
+        [SupportedOn(typeof(TestVolumeComponent0775))]
+        [SupportedOn(typeof(TestVolumeComponent0826))]
         public class TestVolumeComponent0628 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0854))]
+        [SupportedOn(typeof(TestVolumeComponent0809))]
+        [Obsolete]
         public class TestVolumeComponent0629 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0829))]
+        [SupportedOn(typeof(TestVolumeComponent0677))]
+        [Obsolete]
         public class TestVolumeComponent0630 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0810))]
+        [SupportedOn(typeof(TestVolumeComponent0781))]
+        [SupportedOn(typeof(TestVolumeComponent0660))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0631 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0687))]
+        [SupportedOn(typeof(TestVolumeComponent0682))]
+        [HideInInspector]
         public class TestVolumeComponent0632 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0636))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0633 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0673))]
-        [SupportedOn(typeof(TestVolumeComponent0805))]
+        [SupportedOn(typeof(TestVolumeComponent0890))]
+        [SupportedOn(typeof(TestVolumeComponent0889))]
         public class TestVolumeComponent0634 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0846))]
+        [SupportedOn(typeof(TestVolumeComponent0801))]
+        [SupportedOn(typeof(TestVolumeComponent0680))]
         public class TestVolumeComponent0635 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0787))]
         public class TestVolumeComponent0636 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0672))]
-        [SupportedOn(typeof(TestVolumeComponent0844))]
         public class TestVolumeComponent0637 : VolumeComponent { }
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0638 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0882))]
+        [SupportedOn(typeof(TestVolumeComponent0757))]
         public class TestVolumeComponent0639 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0887))]
-        [SupportedOn(typeof(TestVolumeComponent0731))]
+        [SupportedOn(typeof(TestVolumeComponent0721))]
+        [SupportedOn(typeof(TestVolumeComponent0868))]
         public class TestVolumeComponent0640 : VolumeComponent { }
         public class TestVolumeComponent0641 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0873))]
-        [SupportedOn(typeof(TestVolumeComponent0877))]
+        [SupportedOn(typeof(TestVolumeComponent0853))]
+        [SupportedOn(typeof(TestVolumeComponent0776))]
+        [Obsolete]
         public class TestVolumeComponent0642 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0662))]
+        [SupportedOn(typeof(TestVolumeComponent0676))]
+        [SupportedOn(typeof(TestVolumeComponent0759))]
         public class TestVolumeComponent0643 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0731))]
+        [Obsolete]
         public class TestVolumeComponent0644 : VolumeComponent { }
         public class TestVolumeComponent0645 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0717))]
         public class TestVolumeComponent0646 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0698))]
-        [SupportedOn(typeof(TestVolumeComponent0710))]
+        [Obsolete]
         public class TestVolumeComponent0647 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0831))]
         public class TestVolumeComponent0648 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0764))]
+        [SupportedOn(typeof(TestVolumeComponent0751))]
+        [HideInInspector]
         public class TestVolumeComponent0649 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0817))]
         public class TestVolumeComponent0650 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0734))]
-        [SupportedOn(typeof(TestVolumeComponent0682))]
+        [SupportedOn(typeof(TestVolumeComponent0745))]
+        [HideInInspector]
         public class TestVolumeComponent0651 : VolumeComponent { }
         public class TestVolumeComponent0652 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0816))]
-        [SupportedOn(typeof(TestVolumeComponent0732))]
         public class TestVolumeComponent0653 : VolumeComponent { }
         public class TestVolumeComponent0654 : VolumeComponent { }
         public class TestVolumeComponent0655 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0775))]
-        [SupportedOn(typeof(TestVolumeComponent0875))]
+        [SupportedOn(typeof(TestVolumeComponent0762))]
+        [SupportedOn(typeof(TestVolumeComponent0873))]
+        [HideInInspector]
         public class TestVolumeComponent0656 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0670))]
+        [Obsolete]
         public class TestVolumeComponent0657 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0710))]
+        [SupportedOn(typeof(TestVolumeComponent0877))]
         public class TestVolumeComponent0658 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0806))]
-        public class TestVolumeComponent0659 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0875))]
-        [SupportedOn(typeof(TestVolumeComponent0783))]
-        public class TestVolumeComponent0660 : VolumeComponent { }
-        public class TestVolumeComponent0661 : VolumeComponent { }
-        public class TestVolumeComponent0662 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0842))]
-        [SupportedOn(typeof(TestVolumeComponent0854))]
-        public class TestVolumeComponent0663 : VolumeComponent { }
-        public class TestVolumeComponent0664 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0668))]
-        public class TestVolumeComponent0665 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0705))]
-        [SupportedOn(typeof(TestVolumeComponent0837))]
-        public class TestVolumeComponent0666 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0878))]
-        public class TestVolumeComponent0667 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0819))]
-        public class TestVolumeComponent0668 : VolumeComponent { }
-        public class TestVolumeComponent0669 : VolumeComponent { }
-        public class TestVolumeComponent0670 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0914))]
-        [SupportedOn(typeof(TestVolumeComponent0798))]
-        public class TestVolumeComponent0671 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0919))]
-        [SupportedOn(typeof(TestVolumeComponent0763))]
-        public class TestVolumeComponent0672 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0740))]
-        [SupportedOn(typeof(TestVolumeComponent0848))]
-        public class TestVolumeComponent0673 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0905))]
         [SupportedOn(typeof(TestVolumeComponent0909))]
-        public class TestVolumeComponent0674 : VolumeComponent { }
-        public class TestVolumeComponent0675 : VolumeComponent { }
-        public class TestVolumeComponent0676 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0776))]
-        public class TestVolumeComponent0677 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0749))]
-        public class TestVolumeComponent0678 : VolumeComponent { }
-        public class TestVolumeComponent0679 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0863))]
-        public class TestVolumeComponent0680 : VolumeComponent { }
-        public class TestVolumeComponent0681 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0849))]
-        [SupportedOn(typeof(TestVolumeComponent0725))]
-        public class TestVolumeComponent0682 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0766))]
-        [SupportedOn(typeof(TestVolumeComponent0714))]
-        public class TestVolumeComponent0683 : VolumeComponent { }
-        public class TestVolumeComponent0684 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0848))]
+        public class TestVolumeComponent0659 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0817))]
+        [SupportedOn(typeof(TestVolumeComponent0796))]
+        [Obsolete]
+        public class TestVolumeComponent0660 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0832))]
+        public class TestVolumeComponent0661 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0736))]
+        public class TestVolumeComponent0662 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0836))]
+        [SupportedOn(typeof(TestVolumeComponent0879))]
+        [HideInInspector]
+        public class TestVolumeComponent0663 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0684))]
+        [HideInInspector]
+        public class TestVolumeComponent0664 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0873))]
+        [Obsolete]
+        public class TestVolumeComponent0665 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0733))]
+        public class TestVolumeComponent0666 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0813))]
+        public class TestVolumeComponent0667 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0673))]
         [SupportedOn(typeof(TestVolumeComponent0764))]
+        [HideInInspector]
+        public class TestVolumeComponent0668 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0889))]
+        [HideInInspector]
+        public class TestVolumeComponent0669 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0854))]
+        public class TestVolumeComponent0670 : VolumeComponent { }
+        public class TestVolumeComponent0671 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0911))]
+        [SupportedOn(typeof(TestVolumeComponent0858))]
+        public class TestVolumeComponent0672 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0894))]
+        [SupportedOn(typeof(TestVolumeComponent0745))]
+        public class TestVolumeComponent0673 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0909))]
+        [SupportedOn(typeof(TestVolumeComponent0752))]
+        public class TestVolumeComponent0674 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0860))]
+        [SupportedOn(typeof(TestVolumeComponent0863))]
+        public class TestVolumeComponent0675 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0715))]
+        public class TestVolumeComponent0676 : VolumeComponent { }
+        public class TestVolumeComponent0677 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0832))]
+        public class TestVolumeComponent0678 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0679 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0762))]
+        [Obsolete]
+        [HideInInspector]
+        public class TestVolumeComponent0680 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0681 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0714))]
+        public class TestVolumeComponent0682 : VolumeComponent { }
+        public class TestVolumeComponent0683 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0883))]
+        public class TestVolumeComponent0684 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0685 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0733))]
+        [Obsolete]
         public class TestVolumeComponent0686 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0802))]
+        [SupportedOn(typeof(TestVolumeComponent0837))]
+        [HideInInspector]
         public class TestVolumeComponent0687 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0807))]
+        [SupportedOn(typeof(TestVolumeComponent0738))]
+        [SupportedOn(typeof(TestVolumeComponent0865))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0688 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0884))]
+        [SupportedOn(typeof(TestVolumeComponent0703))]
+        [SupportedOn(typeof(TestVolumeComponent0918))]
         public class TestVolumeComponent0689 : VolumeComponent { }
         public class TestVolumeComponent0690 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0838))]
-        [SupportedOn(typeof(TestVolumeComponent0914))]
+        [SupportedOn(typeof(TestVolumeComponent0779))]
+        [SupportedOn(typeof(TestVolumeComponent0794))]
         public class TestVolumeComponent0691 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0907))]
+        [SupportedOn(typeof(TestVolumeComponent0850))]
+        [SupportedOn(typeof(TestVolumeComponent0873))]
         public class TestVolumeComponent0692 : VolumeComponent { }
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0693 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0893))]
-        [SupportedOn(typeof(TestVolumeComponent0705))]
         public class TestVolumeComponent0694 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0874))]
+        [SupportedOn(typeof(TestVolumeComponent0713))]
+        [SupportedOn(typeof(TestVolumeComponent0776))]
         public class TestVolumeComponent0695 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0751))]
-        [SupportedOn(typeof(TestVolumeComponent0723))]
+        [SupportedOn(typeof(TestVolumeComponent0920))]
         public class TestVolumeComponent0696 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0700))]
+        [SupportedOn(typeof(TestVolumeComponent0908))]
+        [SupportedOn(typeof(TestVolumeComponent0831))]
+        [Obsolete]
         public class TestVolumeComponent0697 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0737))]
+        [SupportedOn(typeof(TestVolumeComponent0731))]
+        [SupportedOn(typeof(TestVolumeComponent0814))]
         public class TestVolumeComponent0698 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0910))]
-        [SupportedOn(typeof(TestVolumeComponent0858))]
+        [SupportedOn(typeof(TestVolumeComponent0810))]
+        [HideInInspector]
         public class TestVolumeComponent0699 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0851))]
-        [SupportedOn(typeof(TestVolumeComponent0887))]
+        [SupportedOn(typeof(TestVolumeComponent0799))]
+        [SupportedOn(typeof(TestVolumeComponent0786))]
         public class TestVolumeComponent0700 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0736))]
+        [SupportedOn(typeof(TestVolumeComponent0942))]
+        [SupportedOn(typeof(TestVolumeComponent0897))]
+        [Obsolete]
         public class TestVolumeComponent0701 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0765))]
+        [SupportedOn(typeof(TestVolumeComponent0840))]
         public class TestVolumeComponent0702 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0946))]
-        [SupportedOn(typeof(TestVolumeComponent0830))]
+        [SupportedOn(typeof(TestVolumeComponent0812))]
+        [SupportedOn(typeof(TestVolumeComponent0727))]
         public class TestVolumeComponent0703 : VolumeComponent { }
         public class TestVolumeComponent0704 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0772))]
+        [SupportedOn(typeof(TestVolumeComponent0720))]
+        [SupportedOn(typeof(TestVolumeComponent0731))]
+        [Obsolete]
         public class TestVolumeComponent0705 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0959))]
         public class TestVolumeComponent0706 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0726))]
+        [SupportedOn(typeof(TestVolumeComponent0871))]
+        [SupportedOn(typeof(TestVolumeComponent0718))]
         public class TestVolumeComponent0707 : VolumeComponent { }
+        [Obsolete]
         public class TestVolumeComponent0708 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0709 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0781))]
+        [SupportedOn(typeof(TestVolumeComponent0744))]
         public class TestVolumeComponent0710 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0762))]
+        [SupportedOn(typeof(TestVolumeComponent0860))]
         public class TestVolumeComponent0711 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0895))]
-        [SupportedOn(typeof(TestVolumeComponent0867))]
+        [Obsolete]
         public class TestVolumeComponent0712 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0844))]
-        [SupportedOn(typeof(TestVolumeComponent0824))]
+        [SupportedOn(typeof(TestVolumeComponent0849))]
+        [SupportedOn(typeof(TestVolumeComponent0736))]
+        [HideInInspector]
         public class TestVolumeComponent0713 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0881))]
-        [SupportedOn(typeof(TestVolumeComponent0757))]
+        [SupportedOn(typeof(TestVolumeComponent0885))]
+        [SupportedOn(typeof(TestVolumeComponent0856))]
         public class TestVolumeComponent0714 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0798))]
-        [SupportedOn(typeof(TestVolumeComponent0746))]
+        [SupportedOn(typeof(TestVolumeComponent0836))]
+        [SupportedOn(typeof(TestVolumeComponent0967))]
+        [HideInInspector]
         public class TestVolumeComponent0715 : VolumeComponent { }
+        [Obsolete]
         public class TestVolumeComponent0716 : VolumeComponent { }
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0717 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0725))]
         public class TestVolumeComponent0718 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0719 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0839))]
+        [SupportedOn(typeof(TestVolumeComponent0787))]
         public class TestVolumeComponent0720 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0916))]
+        [SupportedOn(typeof(TestVolumeComponent0867))]
         public class TestVolumeComponent0721 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0727))]
+        [HideInInspector]
         public class TestVolumeComponent0722 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0870))]
+        [SupportedOn(typeof(TestVolumeComponent0748))]
+        [SupportedOn(typeof(TestVolumeComponent0943))]
+        [HideInInspector]
         public class TestVolumeComponent0723 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0939))]
+        [SupportedOn(typeof(TestVolumeComponent0908))]
         public class TestVolumeComponent0724 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0752))]
+        [SupportedOn(typeof(TestVolumeComponent0979))]
         public class TestVolumeComponent0725 : VolumeComponent { }
         public class TestVolumeComponent0726 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0906))]
-        [SupportedOn(typeof(TestVolumeComponent0918))]
         public class TestVolumeComponent0727 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0841))]
         public class TestVolumeComponent0728 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0732))]
+        [SupportedOn(typeof(TestVolumeComponent0793))]
+        [HideInInspector]
         public class TestVolumeComponent0729 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0769))]
+        [SupportedOn(typeof(TestVolumeComponent0918))]
         public class TestVolumeComponent0730 : VolumeComponent { }
         public class TestVolumeComponent0731 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0883))]
+        [SupportedOn(typeof(TestVolumeComponent0919))]
         public class TestVolumeComponent0732 : VolumeComponent { }
         public class TestVolumeComponent0733 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0869))]
+        [SupportedOn(typeof(TestVolumeComponent0916))]
+        [HideInInspector]
         public class TestVolumeComponent0734 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0817))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0735 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0875))]
+        [Obsolete]
         public class TestVolumeComponent0736 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0804))]
         public class TestVolumeComponent0737 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0969))]
-        [SupportedOn(typeof(TestVolumeComponent0973))]
         public class TestVolumeComponent0738 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0758))]
+        [SupportedOn(typeof(TestVolumeComponent0901))]
         public class TestVolumeComponent0739 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0827))]
+        [Obsolete]
         public class TestVolumeComponent0740 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0840))]
-        [SupportedOn(typeof(TestVolumeComponent0884))]
+        [SupportedOn(typeof(TestVolumeComponent0974))]
+        [HideInInspector]
         public class TestVolumeComponent0741 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0813))]
-        [SupportedOn(typeof(TestVolumeComponent0881))]
+        [SupportedOn(typeof(TestVolumeComponent0771))]
+        [SupportedOn(typeof(TestVolumeComponent0750))]
+        [HideInInspector]
         public class TestVolumeComponent0742 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0794))]
+        [SupportedOn(typeof(TestVolumeComponent0747))]
+        [HideInInspector]
         public class TestVolumeComponent0743 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0927))]
-        [SupportedOn(typeof(TestVolumeComponent0899))]
+        [SupportedOn(typeof(TestVolumeComponent0000))]
+        [SupportedOn(typeof(TestVolumeComponent0999))]
         public class TestVolumeComponent0744 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0745 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0913))]
         public class TestVolumeComponent0746 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0830))]
         public class TestVolumeComponent0747 : VolumeComponent { }
         public class TestVolumeComponent0748 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0912))]
-        [SupportedOn(typeof(TestVolumeComponent0828))]
         public class TestVolumeComponent0749 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0757))]
+        [HideInInspector]
         public class TestVolumeComponent0750 : VolumeComponent { }
         public class TestVolumeComponent0751 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0976))]
+        [SupportedOn(typeof(TestVolumeComponent0911))]
         public class TestVolumeComponent0752 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0887))]
+        [Obsolete]
         public class TestVolumeComponent0753 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0787))]
         public class TestVolumeComponent0754 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0902))]
-        [SupportedOn(typeof(TestVolumeComponent0978))]
+        [SupportedOn(typeof(TestVolumeComponent0803))]
+        [SupportedOn(typeof(TestVolumeComponent0866))]
+        [HideInInspector]
         public class TestVolumeComponent0755 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0971))]
         public class TestVolumeComponent0756 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0984))]
-        [SupportedOn(typeof(TestVolumeComponent0772))]
+        [SupportedOn(typeof(TestVolumeComponent0972))]
+        [SupportedOn(typeof(TestVolumeComponent0999))]
         public class TestVolumeComponent0757 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0795))]
+        [SupportedOn(typeof(TestVolumeComponent0950))]
         public class TestVolumeComponent0758 : VolumeComponent { }
         public class TestVolumeComponent0759 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0815))]
         public class TestVolumeComponent0760 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0764))]
+        [SupportedOn(typeof(TestVolumeComponent0820))]
+        [SupportedOn(typeof(TestVolumeComponent0855))]
+        [HideInInspector]
         public class TestVolumeComponent0761 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0788))]
+        [SupportedOn(typeof(TestVolumeComponent0963))]
+        [HideInInspector]
         public class TestVolumeComponent0762 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0974))]
-        [SupportedOn(typeof(TestVolumeComponent0922))]
         public class TestVolumeComponent0763 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0915))]
-        [SupportedOn(typeof(TestVolumeComponent0951))]
+        [SupportedOn(typeof(TestVolumeComponent0909))]
+        [HideInInspector]
         public class TestVolumeComponent0764 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0800))]
-        [SupportedOn(typeof(TestVolumeComponent0972))]
         public class TestVolumeComponent0765 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0901))]
+        [HideInInspector]
         public class TestVolumeComponent0766 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0010))]
+        [SupportedOn(typeof(TestVolumeComponent0837))]
+        [SupportedOn(typeof(TestVolumeComponent0780))]
+        [Obsolete]
         public class TestVolumeComponent0767 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0015))]
-        [SupportedOn(typeof(TestVolumeComponent0859))]
         public class TestVolumeComponent0768 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0836))]
-        [SupportedOn(typeof(TestVolumeComponent0944))]
+        [SupportedOn(typeof(TestVolumeComponent0009))]
         public class TestVolumeComponent0769 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0001))]
-        [SupportedOn(typeof(TestVolumeComponent0005))]
+        [HideInInspector]
         public class TestVolumeComponent0770 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0790))]
-        [SupportedOn(typeof(TestVolumeComponent0866))]
+        [HideInInspector]
         public class TestVolumeComponent0771 : VolumeComponent { }
         public class TestVolumeComponent0772 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0872))]
-        [SupportedOn(typeof(TestVolumeComponent0916))]
+        [SupportedOn(typeof(TestVolumeComponent0874))]
         public class TestVolumeComponent0773 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0845))]
-        [SupportedOn(typeof(TestVolumeComponent0913))]
+        [SupportedOn(typeof(TestVolumeComponent0026))]
+        [SupportedOn(typeof(TestVolumeComponent0953))]
         public class TestVolumeComponent0774 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0826))]
+        [SupportedOn(typeof(TestVolumeComponent0777))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0775 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0899))]
+        [SupportedOn(typeof(TestVolumeComponent0806))]
         public class TestVolumeComponent0776 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0908))]
+        [SupportedOn(typeof(TestVolumeComponent0786))]
         public class TestVolumeComponent0777 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0945))]
+        [SupportedOn(typeof(TestVolumeComponent0882))]
         public class TestVolumeComponent0778 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0862))]
+        [Obsolete]
         public class TestVolumeComponent0779 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0811))]
+        [HideInInspector]
         public class TestVolumeComponent0780 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0864))]
+        [SupportedOn(typeof(TestVolumeComponent0787))]
         public class TestVolumeComponent0781 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0789))]
+        [Obsolete]
         public class TestVolumeComponent0782 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0898))]
+        [SupportedOn(typeof(TestVolumeComponent0996))]
         public class TestVolumeComponent0783 : VolumeComponent { }
         public class TestVolumeComponent0784 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0980))]
+        [SupportedOn(typeof(TestVolumeComponent0857))]
         public class TestVolumeComponent0785 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0889))]
+        [SupportedOn(typeof(TestVolumeComponent0021))]
+        [SupportedOn(typeof(TestVolumeComponent0864))]
         public class TestVolumeComponent0786 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0934))]
+        [SupportedOn(typeof(TestVolumeComponent0972))]
+        [SupportedOn(typeof(TestVolumeComponent0975))]
         public class TestVolumeComponent0787 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0827))]
         public class TestVolumeComponent0788 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0016))]
-        [SupportedOn(typeof(TestVolumeComponent0804))]
+        [SupportedOn(typeof(TestVolumeComponent0011))]
+        [SupportedOn(typeof(TestVolumeComponent0906))]
         public class TestVolumeComponent0789 : VolumeComponent { }
         public class TestVolumeComponent0790 : VolumeComponent { }
         public class TestVolumeComponent0791 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0847))]
-        [SupportedOn(typeof(TestVolumeComponent0819))]
+        [SupportedOn(typeof(TestVolumeComponent0828))]
+        [HideInInspector]
         public class TestVolumeComponent0792 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0825))]
+        [SupportedOn(typeof(TestVolumeComponent0888))]
         public class TestVolumeComponent0793 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0992))]
         public class TestVolumeComponent0794 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0006))]
+        [SupportedOn(typeof(TestVolumeComponent0020))]
         public class TestVolumeComponent0795 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0947))]
-        [SupportedOn(typeof(TestVolumeComponent0983))]
+        [SupportedOn(typeof(TestVolumeComponent0908))]
+        [SupportedOn(typeof(TestVolumeComponent0843))]
+        [Obsolete]
         public class TestVolumeComponent0796 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0797 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0949))]
+        [SupportedOn(typeof(TestVolumeComponent0848))]
+        [HideInInspector]
         public class TestVolumeComponent0798 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0042))]
-        [SupportedOn(typeof(TestVolumeComponent0926))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0799 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0047))]
-        [SupportedOn(typeof(TestVolumeComponent0891))]
-        public class TestVolumeComponent0800 : VolumeComponent { }
-        public class TestVolumeComponent0801 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0033))]
-        [SupportedOn(typeof(TestVolumeComponent0037))]
-        public class TestVolumeComponent0802 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0822))]
-        public class TestVolumeComponent0803 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0891))]
+        [SupportedOn(typeof(TestVolumeComponent0056))]
         [SupportedOn(typeof(TestVolumeComponent0055))]
+        public class TestVolumeComponent0800 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0801 : VolumeComponent { }
+        public class TestVolumeComponent0802 : VolumeComponent { }
+        public class TestVolumeComponent0803 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0011))]
+        [Obsolete]
         public class TestVolumeComponent0804 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0904))]
+        [SupportedOn(typeof(TestVolumeComponent0923))]
+        [SupportedOn(typeof(TestVolumeComponent0994))]
+        [Obsolete]
         public class TestVolumeComponent0805 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0877))]
-        [SupportedOn(typeof(TestVolumeComponent0945))]
         public class TestVolumeComponent0806 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0858))]
-        [SupportedOn(typeof(TestVolumeComponent0870))]
+        [SupportedOn(typeof(TestVolumeComponent0031))]
         public class TestVolumeComponent0807 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0019))]
+        [SupportedOn(typeof(TestVolumeComponent0942))]
+        [Obsolete]
         public class TestVolumeComponent0808 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0940))]
         public class TestVolumeComponent0809 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0977))]
+        [HideInInspector]
         public class TestVolumeComponent0810 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0869))]
         public class TestVolumeComponent0811 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0835))]
-        [SupportedOn(typeof(TestVolumeComponent0871))]
+        [SupportedOn(typeof(TestVolumeComponent0905))]
         public class TestVolumeComponent0812 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0976))]
         public class TestVolumeComponent0813 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0006))]
+        [SupportedOn(typeof(TestVolumeComponent0877))]
         public class TestVolumeComponent0814 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0930))]
+        [SupportedOn(typeof(TestVolumeComponent0917))]
+        [SupportedOn(typeof(TestVolumeComponent0924))]
         public class TestVolumeComponent0815 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0935))]
-        [SupportedOn(typeof(TestVolumeComponent0035))]
         public class TestVolumeComponent0816 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0012))]
-        [SupportedOn(typeof(TestVolumeComponent0864))]
+        [SupportedOn(typeof(TestVolumeComponent0833))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0817 : VolumeComponent { }
+        [Obsolete]
         public class TestVolumeComponent0818 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0966))]
+        [SupportedOn(typeof(TestVolumeComponent0072))]
+        [SupportedOn(typeof(TestVolumeComponent0987))]
         public class TestVolumeComponent0819 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0831))]
+        [SupportedOn(typeof(TestVolumeComponent0994))]
         public class TestVolumeComponent0820 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0038))]
+        [SupportedOn(typeof(TestVolumeComponent0849))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0821 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0021))]
+        [SupportedOn(typeof(TestVolumeComponent0835))]
+        [SupportedOn(typeof(TestVolumeComponent0070))]
+        [HideInInspector]
         public class TestVolumeComponent0822 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0002))]
         public class TestVolumeComponent0823 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0879))]
-        [SupportedOn(typeof(TestVolumeComponent0851))]
+        [SupportedOn(typeof(TestVolumeComponent0064))]
         public class TestVolumeComponent0824 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0988))]
         public class TestVolumeComponent0825 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0004))]
         public class TestVolumeComponent0826 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0928))]
         public class TestVolumeComponent0827 : VolumeComponent { }
+        [Obsolete]
         public class TestVolumeComponent0828 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0864))]
-        [SupportedOn(typeof(TestVolumeComponent0036))]
+        [SupportedOn(typeof(TestVolumeComponent0045))]
+        [HideInInspector]
         public class TestVolumeComponent0829 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0965))]
+        [SupportedOn(typeof(TestVolumeComponent0850))]
+        [SupportedOn(typeof(TestVolumeComponent0953))]
         public class TestVolumeComponent0830 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0074))]
-        [SupportedOn(typeof(TestVolumeComponent0958))]
+        [SupportedOn(typeof(TestVolumeComponent0049))]
+        [SupportedOn(typeof(TestVolumeComponent0840))]
         public class TestVolumeComponent0831 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0079))]
-        public class TestVolumeComponent0832 : VolumeComponent { }
-        public class TestVolumeComponent0833 : VolumeComponent { }
-        public class TestVolumeComponent0834 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0854))]
-        [SupportedOn(typeof(TestVolumeComponent0930))]
-        public class TestVolumeComponent0835 : VolumeComponent { }
-        public class TestVolumeComponent0836 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0936))]
+        public class TestVolumeComponent0832 : VolumeComponent { }
+        [Obsolete]
+        public class TestVolumeComponent0833 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0834 : VolumeComponent { }
+        [Obsolete]
+        public class TestVolumeComponent0835 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0020))]
+        public class TestVolumeComponent0836 : VolumeComponent { }
         public class TestVolumeComponent0837 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0909))]
+        [SupportedOn(typeof(TestVolumeComponent0077))]
+        [SupportedOn(typeof(TestVolumeComponent0024))]
         public class TestVolumeComponent0838 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0890))]
+        [SupportedOn(typeof(TestVolumeComponent0060))]
         public class TestVolumeComponent0839 : VolumeComponent { }
         public class TestVolumeComponent0840 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0972))]
+        [Obsolete]
         public class TestVolumeComponent0841 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0030))]
+        [SupportedOn(typeof(TestVolumeComponent0085))]
         public class TestVolumeComponent0842 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0926))]
+        [SupportedOn(typeof(TestVolumeComponent0037))]
         public class TestVolumeComponent0843 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0867))]
-        [SupportedOn(typeof(TestVolumeComponent0903))]
+        [SupportedOn(typeof(TestVolumeComponent0961))]
         public class TestVolumeComponent0844 : VolumeComponent { }
         public class TestVolumeComponent0845 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0853))]
-        public class TestVolumeComponent0846 : VolumeComponent { }
-        public class TestVolumeComponent0847 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0967))]
-        public class TestVolumeComponent0848 : VolumeComponent { }
-        public class TestVolumeComponent0849 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0953))]
-        public class TestVolumeComponent0850 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0998))]
-        [SupportedOn(typeof(TestVolumeComponent0074))]
-        public class TestVolumeComponent0851 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0067))]
-        [SupportedOn(typeof(TestVolumeComponent0975))]
-        public class TestVolumeComponent0852 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0080))]
-        [SupportedOn(typeof(TestVolumeComponent0868))]
-        public class TestVolumeComponent0853 : VolumeComponent { }
-        public class TestVolumeComponent0854 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0034))]
-        public class TestVolumeComponent0855 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0911))]
-        [SupportedOn(typeof(TestVolumeComponent0883))]
-        public class TestVolumeComponent0856 : VolumeComponent { }
-        public class TestVolumeComponent0857 : VolumeComponent { }
-        public class TestVolumeComponent0858 : VolumeComponent { }
-        public class TestVolumeComponent0859 : VolumeComponent { }
-        public class TestVolumeComponent0860 : VolumeComponent { }
-        public class TestVolumeComponent0861 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0997))]
-        [SupportedOn(typeof(TestVolumeComponent0937))]
-        public class TestVolumeComponent0862 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0106))]
-        [SupportedOn(typeof(TestVolumeComponent0990))]
-        public class TestVolumeComponent0863 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0111))]
-        [SupportedOn(typeof(TestVolumeComponent0955))]
-        public class TestVolumeComponent0864 : VolumeComponent { }
-        public class TestVolumeComponent0865 : VolumeComponent { }
-        public class TestVolumeComponent0866 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0886))]
-        [SupportedOn(typeof(TestVolumeComponent0962))]
+        [Obsolete]
+        public class TestVolumeComponent0846 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0986))]
+        [Obsolete]
+        public class TestVolumeComponent0847 : VolumeComponent { }
+        public class TestVolumeComponent0848 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0047))]
+        public class TestVolumeComponent0849 : VolumeComponent { }
+        public class TestVolumeComponent0850 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0872))]
+        [SupportedOn(typeof(TestVolumeComponent0963))]
+        public class TestVolumeComponent0851 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0887))]
+        [HideInInspector]
+        public class TestVolumeComponent0852 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0004))]
+        [SupportedOn(typeof(TestVolumeComponent0903))]
+        [HideInInspector]
+        public class TestVolumeComponent0853 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0868))]
+        public class TestVolumeComponent0854 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0104))]
+        public class TestVolumeComponent0855 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0944))]
+        public class TestVolumeComponent0856 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0108))]
+        public class TestVolumeComponent0857 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0948))]
+        [HideInInspector]
+        public class TestVolumeComponent0858 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0977))]
+        public class TestVolumeComponent0859 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0941))]
+        [SupportedOn(typeof(TestVolumeComponent0088))]
+        public class TestVolumeComponent0860 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0020))]
+        public class TestVolumeComponent0861 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0996))]
+        [SupportedOn(typeof(TestVolumeComponent0067))]
+        [HideInInspector]
+        public class TestVolumeComponent0862 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0896))]
+        [SupportedOn(typeof(TestVolumeComponent0979))]
+        public class TestVolumeComponent0863 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0975))]
+        [HideInInspector]
+        public class TestVolumeComponent0864 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0964))]
+        [SupportedOn(typeof(TestVolumeComponent0951))]
+        public class TestVolumeComponent0865 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0107))]
+        public class TestVolumeComponent0866 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0059))]
         public class TestVolumeComponent0867 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0983))]
+        [Obsolete]
         public class TestVolumeComponent0868 : VolumeComponent { }
         public class TestVolumeComponent0869 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0941))]
-        [SupportedOn(typeof(TestVolumeComponent0009))]
+        [SupportedOn(typeof(TestVolumeComponent0964))]
+        [HideInInspector]
         public class TestVolumeComponent0870 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0897))]
+        [SupportedOn(typeof(TestVolumeComponent0072))]
+        [HideInInspector]
         public class TestVolumeComponent0871 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0125))]
         public class TestVolumeComponent0872 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0004))]
+        [HideInInspector]
         public class TestVolumeComponent0873 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0041))]
-        [SupportedOn(typeof(TestVolumeComponent0917))]
+        [SupportedOn(typeof(TestVolumeComponent0071))]
+        [SupportedOn(typeof(TestVolumeComponent0034))]
         public class TestVolumeComponent0874 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0958))]
+        [SupportedOn(typeof(TestVolumeComponent0894))]
+        [HideInInspector]
         public class TestVolumeComponent0875 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0899))]
-        [SupportedOn(typeof(TestVolumeComponent0935))]
+        [HideInInspector]
         public class TestVolumeComponent0876 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0040))]
-        [SupportedOn(typeof(TestVolumeComponent0956))]
         public class TestVolumeComponent0877 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0885))]
         public class TestVolumeComponent0878 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0994))]
+        [Obsolete]
         public class TestVolumeComponent0879 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0016))]
+        [Obsolete]
         public class TestVolumeComponent0880 : VolumeComponent { }
         public class TestVolumeComponent0881 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0985))]
-        [SupportedOn(typeof(TestVolumeComponent0989))]
         public class TestVolumeComponent0882 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0030))]
+        [SupportedOn(typeof(TestVolumeComponent0062))]
         public class TestVolumeComponent0883 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0099))]
+        [SupportedOn(typeof(TestVolumeComponent0886))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0884 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0112))]
+        [SupportedOn(typeof(TestVolumeComponent0008))]
         public class TestVolumeComponent0885 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0085))]
+        [SupportedOn(typeof(TestVolumeComponent0104))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0886 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0066))]
         public class TestVolumeComponent0887 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0943))]
-        [SupportedOn(typeof(TestVolumeComponent0915))]
         public class TestVolumeComponent0888 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0892))]
+        [SupportedOn(typeof(TestVolumeComponent0964))]
+        [HideInInspector]
         public class TestVolumeComponent0889 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0921))]
+        [SupportedOn(typeof(TestVolumeComponent0932))]
         public class TestVolumeComponent0890 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0102))]
         public class TestVolumeComponent0891 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0043))]
+        [Obsolete]
         public class TestVolumeComponent0892 : VolumeComponent { }
         public class TestVolumeComponent0893 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0029))]
         public class TestVolumeComponent0894 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0138))]
+        [SupportedOn(typeof(TestVolumeComponent0116))]
         public class TestVolumeComponent0895 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0143))]
-        [SupportedOn(typeof(TestVolumeComponent0987))]
         public class TestVolumeComponent0896 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0961))]
+        [SupportedOn(typeof(TestVolumeComponent0088))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0897 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0129))]
-        [SupportedOn(typeof(TestVolumeComponent0133))]
+        [SupportedOn(typeof(TestVolumeComponent0086))]
         public class TestVolumeComponent0898 : VolumeComponent { }
-        public class TestVolumeComponent0899 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0987))]
-        public class TestVolumeComponent0900 : VolumeComponent { }
-        public class TestVolumeComponent0901 : VolumeComponent { }
-        public class TestVolumeComponent0902 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0954))]
-        public class TestVolumeComponent0903 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0087))]
-        public class TestVolumeComponent0904 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0036))]
-        public class TestVolumeComponent0905 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0073))]
-        [SupportedOn(typeof(TestVolumeComponent0949))]
-        public class TestVolumeComponent0906 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0990))]
         [SupportedOn(typeof(TestVolumeComponent0938))]
-        public class TestVolumeComponent0907 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0931))]
-        public class TestVolumeComponent0908 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0072))]
-        public class TestVolumeComponent0909 : VolumeComponent { }
-        public class TestVolumeComponent0910 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0026))]
-        public class TestVolumeComponent0911 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0031))]
+        public class TestVolumeComponent0899 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0122))]
+        [SupportedOn(typeof(TestVolumeComponent0017))]
+        public class TestVolumeComponent0900 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0977))]
+        public class TestVolumeComponent0901 : VolumeComponent { }
+        [Obsolete]
+        public class TestVolumeComponent0902 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0042))]
+        [SupportedOn(typeof(TestVolumeComponent0949))]
+        [HideInInspector]
+        public class TestVolumeComponent0903 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0138))]
+        public class TestVolumeComponent0904 : VolumeComponent { }
+        public class TestVolumeComponent0905 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0131))]
+        [SupportedOn(typeof(TestVolumeComponent0086))]
+        [Obsolete]
+        public class TestVolumeComponent0906 : VolumeComponent { }
+        public class TestVolumeComponent0907 : VolumeComponent { }
+        [Obsolete]
+        public class TestVolumeComponent0908 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0909 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0914))]
+        [HideInInspector]
+        public class TestVolumeComponent0910 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0167))]
+        [SupportedOn(typeof(TestVolumeComponent0166))]
+        public class TestVolumeComponent0911 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0078))]
+        [SupportedOn(typeof(TestVolumeComponent0957))]
         public class TestVolumeComponent0912 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0061))]
+        [SupportedOn(typeof(TestVolumeComponent0164))]
         public class TestVolumeComponent0913 : VolumeComponent { }
+        [Obsolete]
         public class TestVolumeComponent0914 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0062))]
+        [SupportedOn(typeof(TestVolumeComponent0033))]
         public class TestVolumeComponent0915 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0997))]
         public class TestVolumeComponent0916 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0141))]
         public class TestVolumeComponent0917 : VolumeComponent { }
         public class TestVolumeComponent0918 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0098))]
+        [SupportedOn(typeof(TestVolumeComponent0926))]
+        [HideInInspector]
         public class TestVolumeComponent0919 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0075))]
+        [Obsolete]
         public class TestVolumeComponent0920 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0924))]
+        [SupportedOn(typeof(TestVolumeComponent0979))]
         public class TestVolumeComponent0921 : VolumeComponent { }
         public class TestVolumeComponent0922 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0164))]
+        [SupportedOn(typeof(TestVolumeComponent0119))]
+        [Obsolete]
         public class TestVolumeComponent0923 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0075))]
-        [SupportedOn(typeof(TestVolumeComponent0111))]
+        [SupportedOn(typeof(TestVolumeComponent0987))]
         public class TestVolumeComponent0924 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0960))]
+        [SupportedOn(typeof(TestVolumeComponent0027))]
+        [SupportedOn(typeof(TestVolumeComponent0034))]
         public class TestVolumeComponent0925 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0061))]
-        [SupportedOn(typeof(TestVolumeComponent0001))]
+        [SupportedOn(typeof(TestVolumeComponent0010))]
         public class TestVolumeComponent0926 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0170))]
-        [SupportedOn(typeof(TestVolumeComponent0054))]
+        [SupportedOn(typeof(TestVolumeComponent0942))]
+        [SupportedOn(typeof(TestVolumeComponent0953))]
+        [Obsolete]
         public class TestVolumeComponent0927 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0181))]
+        [SupportedOn(typeof(TestVolumeComponent0096))]
         public class TestVolumeComponent0928 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0996))]
-        [SupportedOn(typeof(TestVolumeComponent0104))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0929 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0161))]
+        [SupportedOn(typeof(TestVolumeComponent0127))]
+        [SupportedOn(typeof(TestVolumeComponent0090))]
         public class TestVolumeComponent0930 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0950))]
+        [SupportedOn(typeof(TestVolumeComponent0001))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0931 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0019))]
-        [SupportedOn(typeof(TestVolumeComponent0183))]
+        [SupportedOn(typeof(TestVolumeComponent0003))]
+        [SupportedOn(typeof(TestVolumeComponent0966))]
         public class TestVolumeComponent0932 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0032))]
-        [SupportedOn(typeof(TestVolumeComponent0076))]
+        [SupportedOn(typeof(TestVolumeComponent0082))]
+        [SupportedOn(typeof(TestVolumeComponent0173))]
         public class TestVolumeComponent0933 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0097))]
+        [SupportedOn(typeof(TestVolumeComponent0956))]
+        [Obsolete]
         public class TestVolumeComponent0934 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0986))]
+        [SupportedOn(typeof(TestVolumeComponent0984))]
+        [SupportedOn(typeof(TestVolumeComponent0067))]
         public class TestVolumeComponent0935 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0119))]
+        [SupportedOn(typeof(TestVolumeComponent0063))]
+        [SupportedOn(typeof(TestVolumeComponent0010))]
         public class TestVolumeComponent0936 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0110))]
+        [Obsolete]
         public class TestVolumeComponent0937 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0958))]
+        [SupportedOn(typeof(TestVolumeComponent0061))]
         public class TestVolumeComponent0938 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0022))]
+        [HideInInspector]
         public class TestVolumeComponent0939 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0963))]
-        [SupportedOn(typeof(TestVolumeComponent0999))]
         public class TestVolumeComponent0940 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0124))]
         public class TestVolumeComponent0941 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0949))]
+        [HideInInspector]
         public class TestVolumeComponent0942 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0058))]
-        [SupportedOn(typeof(TestVolumeComponent0198))]
+        [SupportedOn(typeof(TestVolumeComponent0974))]
+        [SupportedOn(typeof(TestVolumeComponent0985))]
         public class TestVolumeComponent0943 : VolumeComponent { }
         public class TestVolumeComponent0944 : VolumeComponent { }
+        [Obsolete]
         public class TestVolumeComponent0945 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0159))]
+        [SupportedOn(typeof(TestVolumeComponent0122))]
         public class TestVolumeComponent0946 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0094))]
-        [SupportedOn(typeof(TestVolumeComponent0170))]
+        [SupportedOn(typeof(TestVolumeComponent0174))]
+        [SupportedOn(typeof(TestVolumeComponent0161))]
         public class TestVolumeComponent0947 : VolumeComponent { }
         public class TestVolumeComponent0948 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0176))]
-        [SupportedOn(typeof(TestVolumeComponent0964))]
         public class TestVolumeComponent0949 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0149))]
-        [SupportedOn(typeof(TestVolumeComponent0961))]
+        [SupportedOn(typeof(TestVolumeComponent0135))]
+        [SupportedOn(typeof(TestVolumeComponent0138))]
         public class TestVolumeComponent0950 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0130))]
-        [SupportedOn(typeof(TestVolumeComponent0142))]
+        [SupportedOn(typeof(TestVolumeComponent0990))]
         public class TestVolumeComponent0951 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0174))]
+        [SupportedOn(typeof(TestVolumeComponent0069))]
         public class TestVolumeComponent0952 : VolumeComponent { }
         public class TestVolumeComponent0953 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0993))]
-        [SupportedOn(typeof(TestVolumeComponent0125))]
+        [SupportedOn(typeof(TestVolumeComponent0994))]
+        [SupportedOn(typeof(TestVolumeComponent0201))]
+        [HideInInspector]
         public class TestVolumeComponent0954 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0955 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0107))]
         public class TestVolumeComponent0956 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0992))]
-        [SupportedOn(typeof(TestVolumeComponent0164))]
+        [SupportedOn(typeof(TestVolumeComponent0113))]
         public class TestVolumeComponent0957 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0093))]
-        [SupportedOn(typeof(TestVolumeComponent0033))]
+        [SupportedOn(typeof(TestVolumeComponent0157))]
         public class TestVolumeComponent0958 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0202))]
+        [SupportedOn(typeof(TestVolumeComponent0149))]
+        [Obsolete]
         public class TestVolumeComponent0959 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0207))]
-        [SupportedOn(typeof(TestVolumeComponent0051))]
-        public class TestVolumeComponent0960 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0028))]
-        public class TestVolumeComponent0961 : VolumeComponent { }
         [SupportedOn(typeof(TestVolumeComponent0193))]
-        [SupportedOn(typeof(TestVolumeComponent0197))]
+        [HideInInspector]
+        public class TestVolumeComponent0960 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0990))]
+        [SupportedOn(typeof(TestVolumeComponent0969))]
+        [HideInInspector]
+        public class TestVolumeComponent0961 : VolumeComponent { }
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0962 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0982))]
-        [SupportedOn(typeof(TestVolumeComponent0058))]
+        [SupportedOn(typeof(TestVolumeComponent0977))]
         public class TestVolumeComponent0963 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0051))]
-        [SupportedOn(typeof(TestVolumeComponent0215))]
         public class TestVolumeComponent0964 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0010))]
+        [SupportedOn(typeof(TestVolumeComponent0053))]
         public class TestVolumeComponent0965 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0037))]
-        [SupportedOn(typeof(TestVolumeComponent0105))]
+        [SupportedOn(typeof(TestVolumeComponent0217))]
+        [SupportedOn(typeof(TestVolumeComponent0124))]
         public class TestVolumeComponent0966 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0018))]
-        [SupportedOn(typeof(TestVolumeComponent0030))]
+        [SupportedOn(typeof(TestVolumeComponent0104))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0967 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0086))]
+        [SupportedOn(typeof(TestVolumeComponent0157))]
+        [Obsolete]
         public class TestVolumeComponent0968 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0100))]
+        [SupportedOn(typeof(TestVolumeComponent0197))]
         public class TestVolumeComponent0969 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0137))]
         public class TestVolumeComponent0970 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0054))]
-        [SupportedOn(typeof(TestVolumeComponent0002))]
+        [SupportedOn(typeof(TestVolumeComponent0182))]
+        [SupportedOn(typeof(TestVolumeComponent0105))]
+        [Obsolete]
         public class TestVolumeComponent0971 : VolumeComponent { }
         public class TestVolumeComponent0972 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0136))]
-        [SupportedOn(typeof(TestVolumeComponent0052))]
+        [SupportedOn(typeof(TestVolumeComponent0058))]
         public class TestVolumeComponent0973 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0981))]
-        [SupportedOn(typeof(TestVolumeComponent0177))]
+        [SupportedOn(typeof(TestVolumeComponent0210))]
+        [SupportedOn(typeof(TestVolumeComponent0073))]
         public class TestVolumeComponent0974 : VolumeComponent { }
         public class TestVolumeComponent0975 : VolumeComponent { }
+        [HideInInspector]
         public class TestVolumeComponent0976 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0172))]
-        [SupportedOn(typeof(TestVolumeComponent0024))]
+        [SupportedOn(typeof(TestVolumeComponent0040))]
+        [SupportedOn(typeof(TestVolumeComponent0115))]
         public class TestVolumeComponent0977 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0081))]
+        [SupportedOn(typeof(TestVolumeComponent0087))]
+        [SupportedOn(typeof(TestVolumeComponent0002))]
         public class TestVolumeComponent0978 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0126))]
-        [SupportedOn(typeof(TestVolumeComponent0202))]
         public class TestVolumeComponent0979 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0195))]
+        [SupportedOn(typeof(TestVolumeComponent0995))]
         public class TestVolumeComponent0980 : VolumeComponent { }
-        public class TestVolumeComponent0981 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0181))]
-        [SupportedOn(typeof(TestVolumeComponent0993))]
-        public class TestVolumeComponent0982 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0162))]
-        public class TestVolumeComponent0983 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0039))]
-        public class TestVolumeComponent0984 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0988))]
-        [SupportedOn(typeof(TestVolumeComponent0224))]
-        public class TestVolumeComponent0985 : VolumeComponent { }
-        public class TestVolumeComponent0986 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0198))]
-        public class TestVolumeComponent0987 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0139))]
-        [SupportedOn(typeof(TestVolumeComponent0175))]
-        public class TestVolumeComponent0988 : VolumeComponent { }
-        public class TestVolumeComponent0989 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0125))]
-        public class TestVolumeComponent0990 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0035))]
         [SupportedOn(typeof(TestVolumeComponent0234))]
+        public class TestVolumeComponent0981 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0982 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0180))]
+        public class TestVolumeComponent0983 : VolumeComponent { }
+        [HideInInspector]
+        public class TestVolumeComponent0984 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0998))]
+        [Obsolete]
+        public class TestVolumeComponent0985 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0038))]
+        public class TestVolumeComponent0986 : VolumeComponent { }
+        public class TestVolumeComponent0987 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0151))]
+        [SupportedOn(typeof(TestVolumeComponent0010))]
+        [Obsolete]
+        public class TestVolumeComponent0988 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0038))]
+        public class TestVolumeComponent0989 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0118))]
+        public class TestVolumeComponent0990 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0170))]
         public class TestVolumeComponent0991 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0239))]
+        [SupportedOn(typeof(TestVolumeComponent0994))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0992 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0060))]
-        [SupportedOn(typeof(TestVolumeComponent0168))]
+        [HideInInspector]
         public class TestVolumeComponent0993 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0225))]
-        [SupportedOn(typeof(TestVolumeComponent0229))]
         public class TestVolumeComponent0994 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0014))]
-        [SupportedOn(typeof(TestVolumeComponent0090))]
+        [SupportedOn(typeof(TestVolumeComponent0135))]
         public class TestVolumeComponent0995 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0083))]
         public class TestVolumeComponent0996 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0096))]
-        [SupportedOn(typeof(TestVolumeComponent0140))]
+        [SupportedOn(typeof(TestVolumeComponent0072))]
+        [SupportedOn(typeof(TestVolumeComponent0107))]
+        [Obsolete]
+        [HideInInspector]
         public class TestVolumeComponent0997 : VolumeComponent { }
-        [SupportedOn(typeof(TestVolumeComponent0069))]
+        [HideInInspector]
         public class TestVolumeComponent0998 : VolumeComponent { }
+        [SupportedOn(typeof(TestVolumeComponent0219))]
+        [HideInInspector]
         public class TestVolumeComponent0999 : VolumeComponent { }
     }
 }

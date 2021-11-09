@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering
                 if (!component.active)
                     continue;
 
-                if (!stack.archetype.ContainsType(component.GetType()))
+                if (!stack.archetype.ContainsType(VolumeComponentType.FromTypeUnsafe(component.GetType())))
                     continue;
 
                 var state = stack.GetComponent(component.GetType());
