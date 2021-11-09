@@ -104,14 +104,14 @@ namespace UnityEditor.VFX.Migration
             {
                 foreach (var oldClip in invalidTrack.GetClips())
                 {
-                    if (oldClip.asset is VisualEffectControlPlayableClip)
+                    if (oldClip.asset is VisualEffectControlClip)
                         continue; //Already sanitized
 
-                    var newClip = invalidTrack.CreateClip<VisualEffectControlPlayableClip>();
+                    var newClip = invalidTrack.CreateClip<VisualEffectControlClip>();
                     newClip.start = oldClip.start;
                     newClip.duration = oldClip.duration;
 
-                    var newAsset = newClip.asset as VisualEffectControlPlayableClip;
+                    var newAsset = newClip.asset as VisualEffectControlClip;
                     var oldAsset = oldClip.asset as VisualEffectActivationClip;
 
                     newAsset.clipStart = oldClip.start;
@@ -119,12 +119,12 @@ namespace UnityEditor.VFX.Migration
 
                     //Equivalent of the previous VisualEffectActivationClip behavior, no scrubbing, no reinit, only activation
                     newAsset.prewarm.enable = false;
-                    newAsset.reinit = VisualEffectControlPlayableClip.ReinitMode.None;
+                    newAsset.reinit = VisualEffectControlClip.ReinitMode.None;
                     newAsset.scrubbing = false;
 
-                    newAsset.clipEvents = new List<VisualEffectControlPlayableClip.ClipEvent>()
+                    newAsset.clipEvents = new List<VisualEffectControlClip.ClipEvent>()
                     {
-                        new VisualEffectControlPlayableClip.ClipEvent()
+                        new VisualEffectControlClip.ClipEvent()
                         {
                             enter = new VisualEffectPlayableSerializedEvent()
                             {

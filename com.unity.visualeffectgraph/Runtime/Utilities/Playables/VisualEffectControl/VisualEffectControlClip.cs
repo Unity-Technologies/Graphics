@@ -12,7 +12,7 @@ using UnityEngine.VFX.Utility;
 namespace UnityEngine.VFX
 {
     [Serializable]
-    class VisualEffectControlPlayableClip : PlayableAsset, ITimelineClipAsset
+    class VisualEffectControlClip : PlayableAsset, ITimelineClipAsset
     {
         public ClipCaps clipCaps
         {
