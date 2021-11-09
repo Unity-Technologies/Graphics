@@ -32,6 +32,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         /// <summary>RayTracing Prepass pass name.</summary>
         public static readonly string s_RayTracingPrepassStr = "RayTracingPrepass";
+        /// <summary>GBuffer DXR pass name.</summary>
+        public static readonly string s_RayTracingGBufferStr = "GBufferDXR";
+        /// <summary>Forward DXR pass name.</summary>
+        public static readonly string s_RayTracingForwardStr = "ForwardDXR";
+        /// <summary>Indirect DXR pass name.</summary>
+        public static readonly string s_RayTracingIndirectStr = "IndirectDXR";
         /// <summary>Visibility DXR pass name.</summary>
         public static readonly string s_RayTracingVisibilityStr = "VisibilityDXR";
         /// <summary>PathTracing DXR pass name.</summary>
@@ -226,7 +232,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SrcBlend = Shader.PropertyToID("_SrcBlend");
         public static readonly int _DstBlend = Shader.PropertyToID("_DstBlend");
 
-        public static readonly int _ColorMaskTransparentVel = Shader.PropertyToID("_ColorMaskTransparentVel");
+        public static readonly int _ColorMaskTransparentVelOne = Shader.PropertyToID("_ColorMaskTransparentVelOne");
+        public static readonly int _ColorMaskTransparentVelTwo = Shader.PropertyToID("_ColorMaskTransparentVelTwo");
         public static readonly int _DecalColorMask0 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask0);
         public static readonly int _DecalColorMask1 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask1);
         public static readonly int _DecalColorMask2 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask2);
@@ -574,6 +581,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SpaceEmissionMultiplier = Shader.PropertyToID("_SpaceEmissionMultiplier");
 
         public static readonly int _RenderSunDisk = Shader.PropertyToID("_RenderSunDisk");
+        public static readonly int _SunDiskCosines = Shader.PropertyToID("_SunDiskCosines");
 
         public static readonly int _ColorSaturation = Shader.PropertyToID("_ColorSaturation");
         public static readonly int _AlphaSaturation = Shader.PropertyToID("_AlphaSaturation");
@@ -982,16 +990,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InputTextureDimensions = Shader.PropertyToID("InputTextureDimensions");
         public static readonly int _OutputTextureDimensions = Shader.PropertyToID("OutputTextureDimensions");
 
-        // Robust Contrast Adaptive Sharpening
-        public static readonly int _RCASScale = Shader.PropertyToID("_RCASScale");
-        public static readonly int _RCasParameters = Shader.PropertyToID("_RCasParameters");
-
         // Edge Adaptive Spatial Upsampling
-        public static readonly int _EASUViewportSize = Shader.PropertyToID("_EASUViewportSize");
-        public static readonly int _EASUInputImageSize = Shader.PropertyToID("_EASUInputImageSize");
         public static readonly int _EASUOutputSize = Shader.PropertyToID("_EASUOutputSize");
-        public static readonly int _EASUParameters = Shader.PropertyToID("_EASUParameters");
-
 
         // BlitCubeTextureFace.shader
         public static readonly int _InputTex = Shader.PropertyToID("_InputTex");
@@ -1004,7 +1004,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _APVResL0_L1Rx = Shader.PropertyToID("_APVResL0_L1Rx");
         public static readonly int _APVResL1G_L1Ry = Shader.PropertyToID("_APVResL1G_L1Ry");
         public static readonly int _APVResL1B_L1Rz = Shader.PropertyToID("_APVResL1B_L1Rz");
-
 
         public static readonly int _APVResL2_0 = Shader.PropertyToID("_APVResL2_0");
         public static readonly int _APVResL2_1 = Shader.PropertyToID("_APVResL2_1");
