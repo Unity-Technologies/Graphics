@@ -33,13 +33,13 @@ class VisualEffectActivationBehaviour : PlayableBehaviour
     }
 
     [SerializeField]
-    private ExposedProperty onClipEnter = "OnPlay";
+    public ExposedProperty onClipEnter = "OnPlay";
     [SerializeField]
-    private ExposedProperty onClipExit = "OnStop";
+    public ExposedProperty onClipExit = "OnStop";
     [SerializeField]
-    private EventState[] clipEnterEventAttributes = null;
+    public EventState[] clipEnterEventAttributes = null;
     [SerializeField]
-    private EventState[] clipExitEventAttributes = null;
+    public EventState[] clipExitEventAttributes = null;
 
     public override void OnPlayableCreate(Playable playable)
     {
