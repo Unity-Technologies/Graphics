@@ -526,7 +526,7 @@ namespace UnityEngine.VFX
                 for (int i = 0; i < inputCount; ++i)
                 {
                     var inputPlayable = playable.GetInput(i);
-                    if (!inputPlayable.IsPlayableOfType<ScriptPlayable<VisualEffectControlPlayableBehaviour>>())
+                    if (inputPlayable.GetPlayableType() != typeof(VisualEffectControlPlayableBehaviour))
                         continue;
 
                     var inputVFXPlayable = (ScriptPlayable<VisualEffectControlPlayableBehaviour>)inputPlayable;
