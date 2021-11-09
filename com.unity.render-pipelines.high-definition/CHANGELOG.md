@@ -71,6 +71,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Depth of Field is now disabled in orthographic cameras - it was using the hidden perspective settings (case 1372582).
 - Modified HDRP to use common FSR logic from SRP core.
 - Optimized FSR by merging the RCAS logic into the FinalPass shader.
+- Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
 
 ## [13.1.0] - 2021-09-24
 
