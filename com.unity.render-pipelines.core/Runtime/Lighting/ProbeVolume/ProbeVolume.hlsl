@@ -13,7 +13,7 @@ SAMPLER(s_point_clamp_sampler);
 #endif
 
 
-#define MANUAL_FILTERING 0
+#define MANUAL_FILTERING 1
 
 struct APVResources
 {
@@ -85,6 +85,37 @@ TEXTURE3D(_APVResL2_3);
 TEXTURE3D(_APVResValidity);
 
 
+// -------------------------------------------------------------
+// Various weighting functions for occlusion maybe
+// -------------------------------------------------------------
+float GetValidityWeight(APVResources apvRes, int3 sampleLoc)
+{
+    float vW = LOAD_TEXTURE3D(apvRes.Validity, sampleLoc).w;
+    return all(_AntiLeakParams == 0) ? 1 : pow(1.0 - vW, 128);
+}
+
+float GetGeometricWeight(APVResources apvRes, float3 samplePosWS, float3 sampleNormalWS, int3 sampleLoc)
+{
+    // TODO: Can we find the world position of the probe neighbour? Sure we can.... now using debug and easy to get data rather than the more complex but way more efficient way.
+    // Properly we don't need the sample the position at all.
+    float3 probePos = LOAD_TEXTURE3D(apvRes.Validity, sampleLoc).xyz;
+
+    float3 vecToSample = normalize(probePos - samplePosWS);
+
+    return max(1e-15f, saturate(dot(sampleNormalWS, vecToSample)));
+}
+
+float GetLeakWeight(APVResources apvRes, float3 samplePosWS, float3 sampleNormalWS, int3 sampleLoc)
+{
+    if (_AntiLeakParams.x == 1)
+        return GetValidityWeight(apvRes, sampleLoc);
+    else if (_AntiLeakParams.x == 2)
+        return GetGeometricWeight(apvRes, samplePosWS, sampleNormalWS, sampleLoc);
+    else if (_AntiLeakParams.x == 3)
+        return min(GetValidityWeight(apvRes, sampleLoc), GetGeometricWeight(apvRes, samplePosWS, sampleNormalWS, sampleLoc));
+
+    return 1;
+}
 // -------------------------------------------------------------
 // Indexing functions
 // -------------------------------------------------------------
@@ -246,7 +277,7 @@ void CombineWeightsWithTrilinear(float3 uvw, inout float weights[8])
 }
 
 
-float3 ModifyUVWForLeak(APVResources apvRes, float3 uvw)
+float3 ModifyUVWForLeak(APVResources apvRes, float3 uvw, float3 samplePos, float3 normalWS)
 {
     if (_AntiLeakParams.x == 0)
         return uvw;
@@ -273,8 +304,7 @@ float3 ModifyUVWForLeak(APVResources apvRes, float3 uvw)
             ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
             ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
 
-        float vW = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt + offset).w;
-        vW = all(_AntiLeakParams == 0) ? 1 : pow(1.0 - vW, 128);
+        float vW = GetLeakWeight(apvRes, samplePos, normalWS, texCoordInt + offset);
         float finalW = lerp(w, w * vW, _ProbeVolumeBilateralFilterWeight);
 
         newFrac += (float3)offset * finalW;
@@ -332,7 +362,7 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
 
 #if MANUAL_FILTERING == 0
     if (any(_AntiLeakParams !=0))
-        uvw = ModifyUVWForLeak(apvRes, uvw);
+        uvw = ModifyUVWForLeak(apvRes, uvw, posWS, normalWS);
 #endif
 
     return hasValidUVW;
@@ -378,7 +408,7 @@ bool TryToGetPoolUVWAndSubdiv_(APVResources apvRes, float3 posWS, float3 normalW
     uvw += offset;                                  // add the final offset
 
     //if (any(_AntiLeakParams !=0))
-    //    uvw = ModifyUVWForLeak(apvRes, uvw);
+    //  uvw = ModifyUVWForLeak(apvRes, uvw, posWS, normalWS);
 
     return hasValidUVW;
 }
@@ -389,7 +419,7 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, float3 
     return TryToGetPoolUVWAndSubdiv(apvRes, posWS, normalWS, viewDir, uvw, unusedSubdiv);
 }
 
-float3 GetManuallyFilteredL0(APVResources apvRes, float3 uvw)
+float3 GetManuallyFilteredL0(APVResources apvRes, float3 uvw, float3 posWS, float3 normalWS)
 {
     float3 total = 0.0f;
     float3 texCoordFloat = uvw * _PoolDim - .5f;
@@ -409,8 +439,7 @@ float3 GetManuallyFilteredL0(APVResources apvRes, float3 uvw)
             ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
             ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
 
-        float vW = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt + offset).w;
-        vW = all(_AntiLeakParams == 0) ? 1 : pow(1.0 - vW, 128);
+        float vW = GetLeakWeight(apvRes, posWS, normalWS, texCoordInt + offset);
         float finalW = lerp(w, w * vW, _ProbeVolumeBilateralFilterWeight);
         total += finalW * LOAD_TEXTURE3D(apvRes.L0_L1Rx, texCoordInt + offset).xyz;
 
@@ -422,15 +451,15 @@ float3 GetManuallyFilteredL0(APVResources apvRes, float3 uvw)
     return total / totalWeight;
 }
 
-APVSample SampleAPV(APVResources apvRes, float3 uvw)
+APVSample SampleAPV(APVResources apvRes, float3 uvw, float3 posWS, float3 normalWS, float unused)
 {
     APVSample apvSample;
     float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgba;
     float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba;
     float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_linear_clamp_sampler, uvw, 0).rgba;
 
-#if MANUAL_FILTERING
-    apvSample.L0 = GetManuallyFilteredL0(apvRes, uvw);
+#if MANUAL_FILTERING == 1
+    apvSample.L0 = GetManuallyFilteredL0(apvRes, uvw, posWS, normalWS);
 #else
     apvSample.L0 = L0_L1Rx.xyz;
 #endif
@@ -462,7 +491,7 @@ APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, floa
     float3 pool_uvw;
     if (TryToGetPoolUVW(apvRes, posWS, biasNormalWS, viewDir, pool_uvw))
     {
-        outSample = SampleAPV(apvRes, pool_uvw);
+        outSample = SampleAPV(apvRes, pool_uvw, posWS, biasNormalWS, 0);
     }
     else
     {
