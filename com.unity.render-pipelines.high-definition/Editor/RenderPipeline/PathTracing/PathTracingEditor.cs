@@ -19,6 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_MaxIntensity;
         SerializedDataParameter m_SkyImportanceSampling;
         SerializedDataParameter m_Denoising;
+        SerializedDataParameter m_UseAOV;
 
         public override void OnEnable()
         {
@@ -32,6 +33,10 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MaxIntensity = Unpack(o.Find(x => x.maximumIntensity));
             m_SkyImportanceSampling = Unpack(o.Find(x => x.skyImportanceSampling));
             m_Denoising = Unpack(o.Find(x => x.denoise));
+#if ENABLE_UNITY_DENOISERS
+            m_Denoising = Unpack(o.Find(x => x.denoiser));
+            m_UseAOV = Unpack(o.Find(x => x.useAOVs));
+#endif
         }
 
         public override void OnInspectorGUI()
@@ -59,7 +64,16 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                         PropertyField(m_MaxDepth);
                         PropertyField(m_MaxIntensity);
                         PropertyField(m_SkyImportanceSampling);
+#if ENABLE_UNITY_DENOISERS
                         PropertyField(m_Denoising);
+                        if (m_Denoising.value.intValue != (int) DenoiserType.None)
+                        {
+                            using (new IndentLevelScope())
+                            {
+                                PropertyField(m_UseAOV);
+                            }
+                        }
+#endif
                     }
 
                     // Make sure MaxDepth is always greater or equal than MinDepth

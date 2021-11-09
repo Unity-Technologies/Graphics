@@ -1,10 +1,9 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine.Rendering;
+using Unity.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -19,7 +18,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             accumulatedWeight = 0.0f;
             currentIteration = 0;
-            denoised = false;
+#if ENABLE_UNITY_DENOISERS
+            if (denoiser != null)
+                denoiser.Reset();
+            else
+                denoiser = new Denoiser();
+#endif
         }
 
         public uint width;
@@ -30,7 +34,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float accumulatedWeight;
         public uint currentIteration;
-        public bool denoised;
+#if ENABLE_UNITY_DENOISERS
+        public Denoiser denoiser;
+#endif
     }
 
     // Helper class to manage time-scale in Unity when recording multi-frame sequences where one final frame is an accumulation of multiple sub-frames
@@ -288,46 +294,28 @@ namespace UnityEngine.Rendering.HighDefinition
             public int accumulationKernel;
             public SubFrameManager subFrameManager;
             public bool needExposure;
-            public bool needDenoise;
             public HDCamera hdCamera;
 
             public TextureHandle input;
             public TextureHandle output;
             public TextureHandle history;
+            public TextureHandle normalAOV;
+            public TextureHandle albedoAOV;
         }
 
-        // for quick prototyping, use a separate DLL
-        [DllImport("DenoiserLibrary.dll", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
-        static extern int Denoise(IntPtr texturePtr);
-
-        [DllImport("DenoiserLibrary.dll", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
-        static extern unsafe int DenoiseCPU(void* textureData, int width, int height);
-
-        static RenderTexture m_pthistory;
-        static Texture2D m_DenoisedHistory = null;
-        static NativeArray<Vector4> s_FrameData;
-
-        public unsafe static void OnDenoise(AsyncGPUReadbackRequest request)
-        {
-            if (!request.hasError)
-            {
-                s_FrameData = request.GetData<Vector4>();
-                var ptr = NativeArrayUnsafeUtility.GetUnsafePtr(s_FrameData); 
-                int res = DenoiseCPU(ptr, m_pthistory.width, m_pthistory.height);
-                Debug.Log($"Denoising texture (using CPU readback) {res}");
-                m_DenoisedHistory = new Texture2D(m_pthistory.width, m_pthistory.height, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
-                m_DenoisedHistory.SetPixelData<Vector4>(s_FrameData, 0);
-                m_DenoisedHistory.Apply(false);
-            }
-        }
-
-        void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, bool needExposure, bool needDenoise = false)
+        unsafe void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, bool needExposure)
         {
             using (var builder = renderGraph.AddRenderPass<RenderAccumulationPassData>("Render Accumulation", out var passData))
             {
                 // Grab the history buffer
                 TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
                     ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1));
+
+                TextureHandle albedoAOV = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AlbedoAOV)
+                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AlbedoAOV, PathTracingHistoryBufferAllocatorFunction, 1));
+
+                TextureHandle normalAOV = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.NormalAOV)
+                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.NormalAOV, PathTracingHistoryBufferAllocatorFunction, 1));
 
                 bool inputFromRadianceTexture = !inputTexture.Equals(outputTexture);
                 passData.accumulationCS = m_Asset.renderPipelineResources.shaders.accumulationCS;
@@ -341,7 +329,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.input = builder.ReadTexture(inputTexture);
                 passData.output = builder.WriteTexture(outputTexture);
                 passData.history = builder.WriteTexture(history);
-                passData.needDenoise = needDenoise;
+                passData.albedoAOV = builder.WriteTexture(albedoAOV);
+                passData.normalAOV = builder.WriteTexture(normalAOV);
+
+                bool useAOV = m_PathTracingSettings.useAOVs.value;
 
                 builder.SetRenderFunc(
                     (RenderAccumulationPassData data, RenderGraphContext ctx) =>
@@ -359,13 +350,45 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         RTHandle input = data.input;
                         RTHandle output = data.output;
-                        RTHandle history = data.history;
-                        if (m_DenoisedHistory != null)
-                        {
-                            ctx.cmd.Blit(m_DenoisedHistory, history.rt, 0, 0);
-                            m_DenoisedHistory = null;
-                        }
 
+#if ENABLE_UNITY_DENOISERS
+                        camData.denoiser.type = m_PathTracingSettings.denoiser.value;
+                        camData.denoiser.useAOV = m_PathTracingSettings.useAOVs.value;
+
+                        RTHandle history = data.history;
+
+                        if (camData.currentIteration == data.subFrameManager.subFrameCount && camData.denoiser.type != DenoiserType.None)
+                        {
+                            bool cpuFallBack = true;
+
+                            if (!camData.denoiser.denoised)
+                            {
+                                camData.denoiser.denoised = true;
+                                m_SubFrameManager.SetCameraData(camID, camData);
+
+                                // make a new denoising request
+                                if (cpuFallBack)
+                                {
+                                    camData.denoiser.AsyncDenoiseRequest(ctx.cmd, "beauty", history.rt);
+                                    if (useAOV)
+                                    {
+                                        camData.denoiser.AsyncDenoiseRequest(ctx.cmd, "albedo", data.albedoAOV);
+                                        camData.denoiser.AsyncDenoiseRequest(ctx.cmd, "normal", data.normalAOV);
+                                    }
+                                }
+                                else
+                                {
+                                    camData.denoiser.DenoiseRequest(ctx.cmd, "beauty", history.rt);
+                                }
+                            }
+
+                            // if denoised frame is ready, blit it
+                            if (cpuFallBack && camData.denoiser.QueryDenoiseReques())
+                            {
+                                camData.denoiser.UpdateTexture(ctx.cmd, history.rt);
+                            }
+                        }
+#endif
                         // Accumulate the path tracing results
                         ctx.cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationFrameIndex, (int)camData.currentIteration);
                         ctx.cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNumSamples, (int)data.subFrameManager.subFrameCount);
@@ -378,24 +401,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeVectorParam(accumulationShader, HDShaderIDs._AccumulationWeights, frameWeights);
                         ctx.cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNeedsExposure, data.needExposure ? 1 : 0);
                         ctx.cmd.DispatchCompute(accumulationShader, data.accumulationKernel, (data.hdCamera.actualWidth + 7) / 8, (data.hdCamera.actualHeight + 7) / 8, data.hdCamera.viewCount);
-
-                        if (data.needDenoise)
-                        {
-                            IntPtr nativeTexture = history.rt.GetNativeTexturePtr();
-
-                            bool cpuFallBack = true;
-
-                            if (cpuFallBack)
-                            {
-                                m_pthistory = history.rt;
-
-                                ctx.cmd.RequestAsyncReadback(history.rt, 0, TextureFormat.RGBAFloat, OnDenoise);
-                            }
-                            else
-                            {
-                                Debug.Log($"denoising texture {Denoise(nativeTexture)}");
-                            }
-                        }
 
                         // Increment the iteration counter, if we haven't converged yet
                         if (camData.currentIteration < data.subFrameManager.subFrameCount)

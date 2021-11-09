@@ -33,6 +33,8 @@ float4      _PathTracingTilingParameters; // xy: tile count, zw: current tile in
 
 // Output(s)
 RW_TEXTURE2D_X(float4, _FrameTexture);
+RW_TEXTURE2D_X(float4, _AlbedoAOV);
+RW_TEXTURE2D_X(float4, _NormalAOV);
 
 float4 GetCameraMissValue(uint2 xy)
 {
@@ -123,6 +125,9 @@ void MissTransparentUnlitMaterial(inout PathIntersection pathIntersection : SV_R
     // Misses from Transparent Unlit are special in that they always are straight up continuation rays
     pathIntersection.value = currentDepth > 1 ? GetMaterialMissValue() : GetCameraMissValue(pathIntersection.pixelCoord).rgb;
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
+
+    // Need to be cleared since these values are hijacked for AOVs
+    ClearAOVData(pathIntersection);
 }
 
 void ApplyDepthOfField(uint2 pixelCoord, float dotDirection, inout float3 origin, inout float3 direction)
@@ -210,6 +215,8 @@ void RayGen()
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, ray, pathIntersection);
 
     _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.value, pathIntersection.alpha);
+    _AlbedoAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(GetAlbedo(pathIntersection), 1.0);
+    _NormalAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(GetNormal(pathIntersection), 1.0);
 }
 
 // This should never be called, return magenta just in case
