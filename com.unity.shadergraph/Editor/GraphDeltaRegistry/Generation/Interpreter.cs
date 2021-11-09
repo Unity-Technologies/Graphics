@@ -12,15 +12,15 @@ namespace UnityEditor.ShaderGraph.Generation
 
         public static Shader GetShaderForNode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
         {
-            void GetBlock(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointDescriptor vertexCPDesc, out CustomizationPointDescriptor surfaceCPDesc)
+            void GetBlock(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance surfaceCPDesc)
             {
                 var block = EvaluateGraphAndPopulateDescriptors(node, graph, container, registry);
-                vertexCPDesc = CustomizationPointDescriptor.Invalid;
+                vertexCPDesc = CustomizationPointInstance.Invalid;
 
-                var surfaceDescBuilder = new CustomizationPointDescriptor.Builder(container, surfaceCP);
-                var blockDescBuilder = new BlockDescriptor.Builder(container, block);
+                var surfaceDescBuilder = new CustomizationPointInstance.Builder(container, surfaceCP);
+                var blockDescBuilder = new BlockInstance.Builder(container, block);
                 var blockDesc = blockDescBuilder.Build();
-                surfaceDescBuilder.BlockDescriptors.Add(blockDesc);
+                surfaceDescBuilder.BlockInstances.Add(blockDesc);
                 surfaceCPDesc = surfaceDescBuilder.Build();
             }
 
