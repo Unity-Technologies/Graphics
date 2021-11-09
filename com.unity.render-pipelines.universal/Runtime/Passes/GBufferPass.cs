@@ -101,6 +101,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
+            if (m_DeferredLights.UseRenderPass)
+                m_DeferredLights.UpdateDeferredInputAttachments();
+
             ConfigureTarget(m_DeferredLights.GbufferAttachments, m_DeferredLights.DepthAttachment, m_DeferredLights.GbufferFormats);
 
             // We must explicitly specify we don't want any clear to avoid unwanted side-effects.

@@ -485,10 +485,13 @@ namespace UnityEngine.Rendering.Universal
                         universalRenderer.m_DepthTexture
                     );
                 else
+                {
                     m_CopyDepthPass.Setup(
                         universalRenderer.m_DepthTexture,
                         m_DBufferRenderPass.dBufferColorHandle
                     );
+                    m_CopyDepthPass.CopyToDepth = true;
+                }
                 m_CopyDepthPass.MssaSamples = 1;
             }
             else if (m_Technique == DecalTechnique.GBuffer && m_DeferredLights.UseRenderPass)

@@ -48,20 +48,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            descriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
-#if UNITY_EDITOR
-            descriptor.depthBufferBits = 16;
-#else
-            descriptor.depthBufferBits = 0;
-#endif
+            var isDepth = (destination.rt && destination.rt.graphicsFormat == GraphicsFormat.None);
+            descriptor.graphicsFormat = isDepth ? GraphicsFormat.D32_SFloat_S8_UInt : GraphicsFormat.R32_SFloat;
             descriptor.msaaSamples = 1;
 
-#if UNITY_EDITOR
-            ConfigureTarget(destination, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples);
-#else
-            // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(destination, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples, false);
-#endif
+            ConfigureTarget(destination, descriptor.graphicsFormat, descriptor.width, descriptor.height, descriptor.msaaSamples, isDepth);
             ConfigureClear(ClearFlag.None, Color.black);
         }
 

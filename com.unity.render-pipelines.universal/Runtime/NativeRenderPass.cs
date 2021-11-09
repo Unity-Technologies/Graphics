@@ -463,7 +463,7 @@ namespace UnityEngine.Rendering.Universal
                     BuiltinRenderTextureType.CameraTarget);
                 var depthOnly = renderPass.depthOnly || (cameraData.targetTexture != null && IsDepthOnlyRenderTexture(cameraData.targetTexture));
 #pragma warning disable 0618 // Obsolete usage: Deprecated depthAttachment used in order to ensure backwards compatibility with passes set with RenderTargetIdentifiers
-                bool useDepth = depthOnly || (!renderPass.overrideCameraTarget || (renderPass.overrideCameraTarget && renderPass.depthAttachment != -1)) &&
+                bool useDepth = depthOnly || (!renderPass.overrideCameraTarget || (renderPass.overrideCameraTarget && renderPass.depthAttachmentHandle.nameID != BuiltinRenderTextureType.CameraTarget)) &&
                     (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
 #pragma warning restore 0618
 
