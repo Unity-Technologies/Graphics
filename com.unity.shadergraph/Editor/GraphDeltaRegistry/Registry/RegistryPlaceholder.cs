@@ -176,7 +176,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 length = Mathf.Clamp(length, 1, 4);
                 height = Mathf.Clamp(height, 1, 4);
 
-                string result = $"{this.GetShaderType(data, new ShaderFoundry.ShaderContainer(), registry).Name}" + "(";
+                string result = $"{((Defs.ITypeDefinitionBuilder)this).GetShaderType(data, new ShaderFoundry.ShaderContainer(), registry).Name}" + "(";
                 for(int i = 0; i < length*height; ++i)
                 {
                     data.GetField($"c{i}", out float componentValue);
