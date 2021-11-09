@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
 - Added DebugFrameTiming class that can be used by render pipelines to display CPU/GPU frame timings and bottlenecks in Rendering Debugger.
 - Added new DebugUI widget types: ProgressBarValue and ValueTuple
+- Added common support code for FSR
+
+### Fixed
+- Fixed issue when changing volume profiles at runtime with a script (case 1364256).
 
 ## [13.1.0] - 2021-09-24
 

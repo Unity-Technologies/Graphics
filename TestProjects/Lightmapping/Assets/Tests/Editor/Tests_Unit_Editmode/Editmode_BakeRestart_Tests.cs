@@ -278,4 +278,55 @@ public class Editmode_BakeRestart_Tests
 
         clearAll();
     }
+
+    [UnityTest] // Case 1364204
+    public IEnumerator RadeonProDenoiser_DisablingRadeonProDenoiserDuringABake_DoesNotFallbackToCPU()
+    {
+        // Open the initial scene
+        EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/BakeRestartScene.unity", OpenSceneMode.Single);
+        yield return null;
+
+        LightingSettings lightingSettings = null;
+        Lightmapping.TryGetLightingSettings(out lightingSettings);
+
+        Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
+
+        lightingSettings.lightmapper = LightingSettings.Lightmapper.ProgressiveGPU;
+        lightingSettings.prioritizeView = true;
+
+        Lightmapping.lightingSettings.filteringMode = LightingSettings.FilterMode.Advanced;
+        Lightmapping.lightingSettings.denoiserTypeDirect = LightingSettings.DenoiserType.RadeonPro;
+        Lightmapping.lightingSettings.denoiserTypeIndirect = LightingSettings.DenoiserType.RadeonPro;
+        Lightmapping.lightingSettings.denoiserTypeAO = LightingSettings.DenoiserType.RadeonPro;
+
+        Lightmapping.Clear();
+        Lightmapping.BakeAsync();
+
+        foreach (bool b in RunABake(0.2f))
+        {
+            yield return null;
+        }
+
+        // Make sure it is still baking before we turn off denoising
+        Assert.IsTrue(Lightmapping.isBaking);
+
+        // Disable radeon pro denoiser and restart the bake manually
+        Lightmapping.lightingSettings.filteringMode = LightingSettings.FilterMode.None;
+        Lightmapping.Clear();
+        Lightmapping.BakeAsync();
+
+        foreach (bool b in RunABake(0.2f))
+        {
+            yield return null;
+        }
+
+        // Check that baking is still running
+        Assert.IsTrue(Lightmapping.isBaking);
+        // Check that we did not fallback to CPULM
+        Assert.AreEqual(lightingSettings.lightmapper, LightingSettings.Lightmapper.ProgressiveGPU);
+
+        Lightmapping.Cancel();
+        Lightmapping.Clear();
+        Lightmapping.ClearLightingDataAsset();
+    }
 }
