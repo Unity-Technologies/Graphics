@@ -46,3 +46,9 @@ This Sample includes the following Lens Flare examples that you can use in your 
 - A scene you can use to preview Lens Flare Assets
 - A scene to showcases the use of Lens Flares with interior lighting
 - A scene to showcases the use of Lens Flares with a directional light
+
+## Hair Samples
+
+//Need to provide image
+
+This sample presents strand-based hair rendering through the newer Hair shader using Marschner approximation.
