@@ -65,9 +65,9 @@ namespace UnityEditor.Rendering.Universal
                 // We only enable this field when depth source is selected
                 if (m_Source.enumValueIndex == (int)ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth)
                 {
-                    EditorGUI.indentLevel = 1;
+                    EditorGUI.indentLevel++;
                     DrawProperty(ref position, m_NormalQuality, Styles.NormalQuality);
-                    EditorGUI.indentLevel = 0;
+                    EditorGUI.indentLevel--;
                 }
             }
 

@@ -54,6 +54,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 using (new EditorGUI.DisabledScope(!isActiveState.boolValue))
                 {
+                    EditorGUI.indentLevel = 1;
                     position.height = EditorGUIUtility.singleLineHeight + 2;
                     position.y += position.height;
                     if (!disallowMultipleRendererFeatures)
@@ -61,6 +62,7 @@ namespace UnityEditor.Rendering.Universal
                         DrawProperty(ref position, name, Styles.Name);
                     }
                     OnGUIRendererFeature(ref position, property, label);
+                    EditorGUI.indentLevel = 0;
                 }
             }
         }

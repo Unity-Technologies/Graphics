@@ -60,7 +60,7 @@ namespace UnityEditor.Rendering.Universal
 
             DecalTechniqueOption technique = (DecalTechniqueOption)m_Technique.intValue;
 
-            EditorGUI.indentLevel = 1;
+            EditorGUI.indentLevel++;
             if (technique == DecalTechniqueOption.DBuffer)
             {
                 DrawProperty(ref position, m_DBufferSurfaceData, Styles.SurfaceData);
@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.Universal
                 DrawProperty(ref position, m_ScreenSpaceNormalBlend, Styles.NormalBlend);
                 DrawProperty(ref position, m_ScreenSpaceUseGBuffer, Styles.UseGBuffer);
             }
-            EditorGUI.indentLevel = 0;
+            EditorGUI.indentLevel--;
             DrawProperty(ref position, m_MaxDrawDistance, Styles.MaxDrawDistance);
         }
     }

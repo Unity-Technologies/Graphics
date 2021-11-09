@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderer">Renderer used for adding render passes.</param>
         /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
         public abstract void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData);
-
+        /*
         void OnEnable()
         {
             Create();
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.Universal
         void OnValidate()
         {
             Create();
-        }
+        }*/
 
         /// <summary>
         /// Override this method and return true if the feature should use the Native RenderPass API
