@@ -363,7 +363,7 @@ EditorBuildSettings:
     path: Assets/Scenes/5005_PathTracing_Fog.unity
     guid: 9f38d7cbc64ad534485db5107427e269
   - enabled: 1
-    path: Assets/Scenes/5006_PathTracing_DoF.unity
+    path: Assets/Scenes/5006_PathTracing_DoFVolume.unity
     guid: c163eeeb7af1c194590ab367fb84a376
   - enabled: 1
     path: Assets/Scenes/5007_PathTracing_Materials_SG_Lit.unity
