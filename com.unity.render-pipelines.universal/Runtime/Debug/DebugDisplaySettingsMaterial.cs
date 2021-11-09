@@ -413,7 +413,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        #region IDebugDisplaySettingsData
+        #region IDebugDisplaySettingsQuery
         public bool AreAnySettingsActive =>
             (materialDebugMode != DebugMaterialMode.None) ||
             (vertexAttributeDebugMode != DebugVertexAttributeMode.None) ||

@@ -21,6 +21,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public DebugDisplaySettingsLighting lightingSettings { get; private set; }
 
+        /// <summary>
+        /// Display stats.
+        /// </summary>
+        internal DebugDisplayStats DisplayStats { get; private set; }
+
         #region IDebugDisplaySettingsQuery
 
         /// <summary>
@@ -71,10 +76,17 @@ namespace UnityEngine.Rendering.Universal
         {
             m_Settings.Clear();
 
+            DisplayStats = Add(new DebugDisplayStats());
             CommonSettings = Add(new DebugDisplaySettingsCommon());
             materialSettings = Add(new DebugDisplaySettingsMaterial());
             lightingSettings = Add(new DebugDisplaySettingsLighting());
             renderingSettings = Add(new DebugDisplaySettingsRendering());
+        }
+
+        internal void UpdateFrameTiming()
+        {
+            if (DisplayStats != null)
+                DisplayStats.UpdateFrameTiming();
         }
     }
 }
