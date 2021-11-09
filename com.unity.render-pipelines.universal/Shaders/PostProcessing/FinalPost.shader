@@ -2,7 +2,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 {
     HLSLINCLUDE
         #pragma exclude_renderers gles
-        #pragma multi_compile_local_fragment _ _FILTER_POINT
+        #pragma multi_compile_local_fragment _ _POINT_SAMPLING
         #pragma multi_compile_local_fragment _ _FXAA
         #pragma multi_compile_local_fragment _ _FILM_GRAIN
         #pragma multi_compile_local_fragment _ _DITHERING
@@ -42,7 +42,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             float2 positionNDC = uv;
             int2   positionSS  = uv * _SourceSize.xy;
 
-            #if _FILTER_POINT
+            #if _POINT_SAMPLING
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_PointClamp, uv).xyz;
             #else
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;

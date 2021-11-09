@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string Fxaa = "_FXAA";
         public static readonly string Dithering = "_DITHERING";
         public static readonly string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
-        public static readonly string FilterPoint = "_FILTER_POINT";
+        public static readonly string PointSampling = "_POINT_SAMPLING";
 
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 

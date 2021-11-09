@@ -1442,7 +1442,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         {
                             case ImageUpscalingFilter.Point:
                             {
-                                material.EnableKeyword(ShaderKeywordStrings.FilterPoint);
+                                material.EnableKeyword(ShaderKeywordStrings.PointSampling);
                                 break;
                             }
 
