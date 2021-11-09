@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph.Registry
             // all of their downstream nodes get propogated-- and then upstream node connections can be disrupted if the type every changes.
         }
 
-        public static void SetupContext(this GraphDelta.IGraphHandler handler, IEnumerable<Defs.IContextDescriptor> contexts, Registry registry)
+        internal static void SetupContext(this GraphDelta.IGraphHandler handler, IEnumerable<Defs.IContextDescriptor> contexts, Registry registry)
         {
             // only safe to call right now.
             GraphDelta.INodeWriter previousContextNode = null;

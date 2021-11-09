@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph.Registry
             return true;
         }
 
-        public Defs.IContextDescriptor GetContextDescriptor(RegistryKey key)
+        internal Defs.IContextDescriptor GetContextDescriptor(RegistryKey key)
         {
             var contextNodeBuilder = GetBuilder(key);
             var registryFlags = contextNodeBuilder.GetRegistryFlags();
