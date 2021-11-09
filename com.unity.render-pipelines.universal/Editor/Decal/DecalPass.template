@@ -57,13 +57,14 @@ Pass
 
     $splice(GraphDefines)
 
-    $splice(HybridV1InjectedBuiltinProperties)
-
     // -- Properties used by ScenePickingPass
     #ifdef SCENEPICKINGPASS
     float4 _SelectionID;
     #endif
-
+    #if _RENDER_PASS_ENABLED
+    #define GBUFFER3 0
+    FRAMEBUFFER_INPUT_HALF(GBUFFER3);
+    #endif
     // Includes
     $splice(PreGraphIncludes)
 

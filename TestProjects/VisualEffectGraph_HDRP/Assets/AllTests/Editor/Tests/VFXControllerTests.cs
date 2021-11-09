@@ -1099,7 +1099,6 @@ namespace UnityEditor.VFX.Test
             Assert.AreNotEqual(oneOutputState, twoOutputState);
             Assert.IsTrue(twoOutputState.Contains(otherParamName));
 
-            window.graphView.controller = null;
             for (int i = 0; i < 16; ++i)
                 yield return null;
 
