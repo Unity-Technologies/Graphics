@@ -489,10 +489,6 @@ namespace UnityEditor.VFX.UI
                     break;
                 case Modes.None:
                     None();
-                    Clear();
-                    break;
-                default:
-                    Clear();
                     break;
             }
         }
@@ -521,25 +517,7 @@ namespace UnityEditor.VFX.UI
 
             //.. but in some case, the onRuntimeDataChanged is called too soon, need to update twice
             //because VFXUIDebug relies on VisualEffect : See m_VFX.GetParticleSystemNames
-            m_View.schedule.Execute(() =>
-            {
-                UpdateDebugMode();
-            }).ExecuteLater(0 /* next frame */);
-        }
-
-        void ClearDebugMode()
-        {
-            switch (m_CurrentMode)
-            {
-                case Modes.Efficiency:
-                    m_Graph.onRuntimeDataChanged -= UpdateDebugMode;
-                    break;
-                case Modes.Alive:
-                    m_Graph.onRuntimeDataChanged -= UpdateDebugMode;
-                    break;
-                default:
-                    break;
-            }
+            m_View.schedule.Execute(UpdateDebugMode).ExecuteLater(0 /* next frame */);
         }
 
         public void SetVisualEffect(VisualEffect vfx)
@@ -989,7 +967,7 @@ namespace UnityEditor.VFX.UI
 
         public void Clear()
         {
-            ClearDebugMode();
+            m_Graph.onRuntimeDataChanged -= UpdateDebugMode;
 
             if (m_ComponentBoard != null && m_Curves != null)
                 m_ComponentBoard.contentContainer.Remove(m_Curves);
