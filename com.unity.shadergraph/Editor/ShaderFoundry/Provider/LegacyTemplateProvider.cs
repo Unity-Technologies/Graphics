@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderFoundry
             BuildTemplateCustomizationPoints(builder, subShaderDescriptor, out vertexCustomizationPoint, out surfaceCustomizationPoint);
             var result = builder.Build();
 
-            var legacyLinker = new SandboxLegacyTemplateLinker(m_assetCollection);
+            var legacyLinker = new LegacyTemplateLinker(m_assetCollection);
             legacyLinker.SetLegacy(m_Target, subShaderDescriptor);
             builder.SetLinker(legacyLinker);
 
@@ -91,80 +91,83 @@ namespace UnityEditor.ShaderFoundry
 
         void BuildTemplateCustomizationPoints(Template.Builder builder, SubShaderDescriptor subShaderDescriptor, out CustomizationPoint vertexCustomizationPoint, out CustomizationPoint surfaceCustomizationPoint)
         {
-            List<FieldDescriptor> vertexFields, fragmentFields;
-            ExtractVertexAndFragmentPostFields(subShaderDescriptor, out vertexFields, out fragmentFields);
+            var vertexContext = new PostFieldsContext();
+            var fragmentContext = new PostFieldsContext();
+            foreach(var legacyPass in subShaderDescriptor.passes)
+                ExtractVertexAndFragmentPostFields(legacyPass.descriptor, vertexContext, fragmentContext);
 
             var vertexBuilder = new CustomizationPoint.Builder(Container, LegacyCustomizationPoints.VertexDescriptionCPName);
+<<<<<<< HEAD
             vertexCustomizationPoint = BuildCustomizationPoint(vertexBuilder, BuildVertexPreBlock(), BuildVertexPostBlock(vertexFields));
             builder.AddCustomizationPoint(vertexCustomizationPoint);
 
             var fragmentBuilder = new CustomizationPoint.Builder(Container, LegacyCustomizationPoints.SurfaceDescriptionCPName);
             surfaceCustomizationPoint = BuildCustomizationPoint(fragmentBuilder, BuildFragmentPreBlock(), BuildFragmentPostBlock(fragmentFields));
+=======
+            vertexCustomizationPoint = BuildCustomizationPoint(vertexBuilder, BuildVertexPreBlock(), BuildVertexPostBlock(vertexContext.Fields));
+            builder.AddCustomizationPoint(vertexCustomizationPoint);
+
+            var fragmentBuilder = new CustomizationPoint.Builder(Container, LegacyCustomizationPoints.SurfaceDescriptionCPName);
+            surfaceCustomizationPoint = BuildCustomizationPoint(fragmentBuilder, BuildFragmentPreBlock(), BuildFragmentPostBlock(fragmentContext.Fields));
+>>>>>>> sg2/shader-sandbox
             builder.AddCustomizationPoint(surfaceCustomizationPoint);
         }
 
         void BuildLegacyTemplateEntryPoints(Template template, PassDescriptor legacyPassDescriptor, TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, CustomizationPoint surfaceCustomizationPoint)
         {
-            List<FieldDescriptor> vertexFields, fragmentFields;
-            ExtractVertexAndFragmentPostFields(legacyPassDescriptor, out vertexFields, out fragmentFields);
+            var vertexContext = new PostFieldsContext();
+            var fragmentContext = new PostFieldsContext();
+            ExtractVertexAndFragmentPostFields(legacyPassDescriptor, vertexContext, fragmentContext);
 
-            ExtractVertex(template, passBuilder, vertexCustomizationPoint, vertexFields);
-            ExtractFragment(template, passBuilder, surfaceCustomizationPoint, fragmentFields);
+            ExtractVertex(template, passBuilder, vertexCustomizationPoint, vertexContext.Fields);
+            ExtractFragment(template, passBuilder, surfaceCustomizationPoint, fragmentContext.Fields);
         }
 
-        void ExtractVertexAndFragmentPostFields(UnityEditor.ShaderGraph.SubShaderDescriptor subShaderDescriptor, out List<FieldDescriptor> vertexFields, out List<FieldDescriptor> fragmentFields)
+        // Context object for collecting the "post fields" from a pass.
+        // This is meant to uniquely collect fields so it can also be used to merge the results across multiple passes
+        internal class PostFieldsContext
         {
-            vertexFields = new List<FieldDescriptor>();
-            fragmentFields = new List<FieldDescriptor>();
-            var vertexNames = new HashSet<string>();
-            var fragmentNames = new HashSet<string>();
+            internal List<FieldDescriptor> Fields = new List<FieldDescriptor>();
+            internal HashSet<string> FieldNames = new HashSet<string>();
+        }
 
-            foreach (var pass in subShaderDescriptor.passes)
+        void ExtractVertexAndFragmentPostFields(UnityEditor.ShaderGraph.PassDescriptor legacyPassDescriptor, PostFieldsContext vertexContext, PostFieldsContext fragmentContext)
+        {
+            void ExtractContext(TargetActiveBlockContext targetActiveBlockContext, IEnumerable<BlockFieldDescriptor> validBlocks, PostFieldsContext context)
             {
-                var targetActiveBlockContext = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), pass.descriptor);
-                LegacyTarget.GetActiveBlocks(ref targetActiveBlockContext);
-                foreach (var field in targetActiveBlockContext.activeBlocks)
+                if (validBlocks != null)
                 {
-                    if (field.shaderStage == UnityEditor.ShaderGraph.ShaderStage.Vertex && !vertexNames.Contains(field.name))
+                    foreach (var blockFieldDescriptor in validBlocks)
                     {
-                        vertexNames.Add(field.name);
-                        vertexFields.Add(field);
-                    }
-                    else if (field.shaderStage == UnityEditor.ShaderGraph.ShaderStage.Fragment && !fragmentNames.Contains(field.name))
-                    {
-                        fragmentNames.Add(field.name);
-                        fragmentFields.Add(field);
+                        if (targetActiveBlockContext.activeBlocks.Contains(blockFieldDescriptor) && !context.FieldNames.Contains(blockFieldDescriptor.name))
+                        {
+                            context.FieldNames.Add(blockFieldDescriptor.name);
+                            context.Fields.Add(blockFieldDescriptor);
+                        }
                     }
                 }
             }
-        }
-
-        void ExtractVertexAndFragmentPostFields(UnityEditor.ShaderGraph.PassDescriptor legacyPassDescriptor, out List<FieldDescriptor> vertexFields, out List<FieldDescriptor> fragmentFields)
-        {
-            vertexFields = new List<FieldDescriptor>();
-            fragmentFields = new List<FieldDescriptor>();
 
             var targetActiveBlockContext = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), legacyPassDescriptor);
             LegacyTarget.GetActiveBlocks(ref targetActiveBlockContext);
-            foreach (var field in targetActiveBlockContext.activeBlocks)
-            {
-                if (field.shaderStage == UnityEditor.ShaderGraph.ShaderStage.Vertex)
-                    vertexFields.Add(field);
-                else if (field.shaderStage == UnityEditor.ShaderGraph.ShaderStage.Fragment)
-                    fragmentFields.Add(field);
-            }
+            
+            ExtractContext(targetActiveBlockContext, legacyPassDescriptor.validVertexBlocks, vertexContext);
+            ExtractContext(targetActiveBlockContext, legacyPassDescriptor.validPixelBlocks, fragmentContext);
         }
 
-        BlockDescriptor BuildSimpleBlockDesc(Block block)
+        BlockInstance BuildSimpleBlockDesc(Block block)
         {
+<<<<<<< HEAD
             var builder = new BlockDescriptor.Builder(Container, block);
+=======
+            var builder = new BlockInstance.Builder(Container, block);
+>>>>>>> sg2/shader-sandbox
             return builder.Build();
         }
 
         Block BuildVertexPreBlock()
         {
             List<FieldDescriptor> fields = new List<FieldDescriptor>();
-            fields.AddRange(UnityEditor.ShaderGraph.Structs.Attributes.fields);
             fields.AddRange(UnityEditor.ShaderGraph.Structs.VertexDescriptionInputs.fields);
 
             var builder = new Block.Builder(Container, $"Pre{LegacyCustomizationPoints.VertexDescriptionCPName}");
@@ -207,8 +210,17 @@ namespace UnityEditor.ShaderFoundry
             return builder.Build();
         }
 
-        Block BuildMainBlock(string blockName, Block preBlock, Block postBlock, List<BlockVariableNameOverride> nameMappings, Dictionary<string, string> defaultVariableValues)
+        class NameOverride
         {
+<<<<<<< HEAD
+=======
+            public string Source;
+            public string Destination;
+        }
+
+        Block BuildMainBlock(string blockName, Block preBlock, Block postBlock, List<NameOverride> nameMappings, Dictionary<string, string> defaultVariableValues)
+        {
+>>>>>>> sg2/shader-sandbox
             var mainBlockBuilder = new Block.Builder(Container, blockName);
 
             if (nameMappings == null)
@@ -226,8 +238,13 @@ namespace UnityEditor.ShaderFoundry
                     availableOutputs[prop.ReferenceName] = prop;
 
                 // Build the input/output type from the matching fields
+<<<<<<< HEAD
                 var inputBuilder = new ShaderType.StructBuilder(Container, $"{blockName}DefaultIn");
                 var outputBuilder = new ShaderType.StructBuilder(Container, $"{blockName}DefaultOut");
+=======
+                var inputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultIn");
+                var outputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultOut");
+>>>>>>> sg2/shader-sandbox
                 HashSet<string> declaredInputs = new HashSet<string>();
                 HashSet<string> declaredOutputs = new HashSet<string>();
 
@@ -237,8 +254,8 @@ namespace UnityEditor.ShaderFoundry
                 {
                     BlockOutput inputProp;
                     BlockInput outputProp;
-                    availableInputs.TryGetValue(mapping.SourceName, out inputProp);
-                    availableOutputs.TryGetValue(mapping.DestinationName, out outputProp);
+                    availableInputs.TryGetValue(mapping.Source, out inputProp);
+                    availableOutputs.TryGetValue(mapping.Destination, out outputProp);
                     if (inputProp.IsValid && outputProp.IsValid)
                     {
                         inputBuilder.AddField(inputProp.Type, inputProp.ReferenceName);
@@ -267,7 +284,11 @@ namespace UnityEditor.ShaderFoundry
                 mainBlockBuilder.AddType(outType);
 
                 // Build the actual function
+<<<<<<< HEAD
                 var fnBuilder = new UnityEditor.ShaderFoundry.ShaderFunction.Builder(Container, $"{blockName}Default", outType);
+=======
+                var fnBuilder = new UnityEditor.ShaderFoundry.ShaderFunction.Builder(mainBlockBuilder, $"{blockName}Default", outType);
+>>>>>>> sg2/shader-sandbox
                 fnBuilder.AddInput(inType, "input");
 
                 fnBuilder.AddLine($"{outType.Name} output;");
@@ -275,12 +296,12 @@ namespace UnityEditor.ShaderFoundry
                 {
                     BlockOutput inputProp;
                     BlockInput outputProp;
-                    availableInputs.TryGetValue(mapping.SourceName, out inputProp);
-                    availableOutputs.TryGetValue(mapping.DestinationName, out outputProp);
+                    availableInputs.TryGetValue(mapping.Source, out inputProp);
+                    availableOutputs.TryGetValue(mapping.Destination, out outputProp);
                     // Write a copy line for all matching input/outputs
                     if(inputProp.IsValid && outputProp.IsValid)
                     {
-                        fnBuilder.AddLine($"output.{mapping.DestinationName} = input.{mapping.SourceName};");
+                        fnBuilder.AddLine($"output.{mapping.Destination} = input.{mapping.Source};");
                     }
                 }
                 foreach(var defaultVariableValue in defaultVariableValues)
@@ -302,6 +323,7 @@ namespace UnityEditor.ShaderFoundry
 
         void ExtractVertex(Template template, TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, List<FieldDescriptor> vertexFields)
         {
+<<<<<<< HEAD
             BlockVariableNameOverride BuildSimpleNameOverride(string sourceName, string destinationName, ShaderContainer container)
             {
                 var builder = new BlockVariableNameOverride.Builder(Container);
@@ -309,13 +331,15 @@ namespace UnityEditor.ShaderFoundry
                 builder.DestinationName = destinationName;
                 return builder.Build();
             }
+=======
+>>>>>>> sg2/shader-sandbox
             var vertexPreBlock = BuildVertexPreBlock();
             var vertexPostBlock = BuildVertexPostBlock(vertexFields);
 
-            var nameMappings = new List<BlockVariableNameOverride>();
-            nameMappings.Add(BuildSimpleNameOverride("ObjectSpacePosition", "Position", Container));
-            nameMappings.Add(BuildSimpleNameOverride("ObjectSpaceNormal", "Normal", Container));
-            nameMappings.Add(BuildSimpleNameOverride("ObjectSpaceTangent", "Tangent", Container));
+            var nameMappings = new List<NameOverride>();
+            nameMappings.Add(new NameOverride { Source = "ObjectSpacePosition", Destination = "Position" });
+            nameMappings.Add(new NameOverride { Source = "ObjectSpaceNormal", Destination = "Normal" });
+            nameMappings.Add(new NameOverride { Source = "ObjectSpaceTangent", Destination = "Tangent" });
             var defaultVariableValues = new Dictionary<string, string>();
             var vertexMainBlock = BuildMainBlock(LegacyCustomizationPoints.VertexDescriptionFunctionName, vertexPreBlock, vertexPostBlock, nameMappings, defaultVariableValues);
 
@@ -330,12 +354,14 @@ namespace UnityEditor.ShaderFoundry
             var fragmentPreBlock = BuildFragmentPreBlock();
             var fragmentPostBlock = BuildFragmentPostBlock(fragmentFields);
 
-            var nameMappings = new List<BlockVariableNameOverride>();
+            var nameMappings = new List<NameOverride>();
+            nameMappings.Add(new NameOverride { Source = "ObjectSpaceNormal", Destination = "NormalOS" });
+            nameMappings.Add(new NameOverride { Source = "WorldSpaceNormal", Destination = "NormalWS" });
+            nameMappings.Add(new NameOverride { Source = "TangentSpaceNormal", Destination = "NormalTS" });
             // Need to create the default outputs for the fragment output. This isn't currently part of the field descriptors.
             var defaultVariableValues = new Dictionary<string, string>
             {
                 { "BaseColor", "float3(0, 0, 0)" },
-                { "NormalTS", "float3(0, 0, 0)" },
                 { "Smoothness", "0.5f" },
                 { "Occlusion", "1" },
                 { "Emission", "float3(0, 0, 0)" },

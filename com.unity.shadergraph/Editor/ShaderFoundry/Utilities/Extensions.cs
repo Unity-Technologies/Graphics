@@ -3,8 +3,20 @@ using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
 namespace UnityEditor.ShaderFoundry
 {
-    public static class ShaderBuilderExtensions
+    internal static class ShaderBuilderExtensions
     {
+        const string m_SpaceToken = " ";
+        const string m_EqualToken = "=";
+        const string m_ScopeToken = "::";
+        const string m_SemicolonToken = ";";
+        const string m_CommaToken = ",";
+        const string m_BeginCurlyBraceToken = "{";
+        const string m_EndCurlyBraceToken = "}";
+        const string m_BeginParenthesisToken = "(";
+        const string m_EndParenthesisToken = ")";
+        const string m_StructKeyword = "struct";
+        const string inoutKeyword = "inout";
+        const string outKeyword = "out";
         public readonly ref struct SemicolonBlock
         {
             readonly ShaderBuilder parent;
@@ -17,13 +29,15 @@ namespace UnityEditor.ShaderFoundry
             public void Dispose()
             {
                 parent.Deindent();
-                parent.AddLine("};");
+                parent.Indentation();
+                parent.Add(m_EndCurlyBraceToken, m_SemicolonToken);
+                parent.NewLine();
             }
         }
 
         public static SemicolonBlock BlockSemicolonScope(this ShaderBuilder builder)
         {
-            builder.AddLine("{");
+            builder.AddLine(m_BeginCurlyBraceToken);
             builder.Indent();
             return new SemicolonBlock(builder);
         }
@@ -36,6 +50,153 @@ namespace UnityEditor.ShaderFoundry
         public static void Append(this ShaderBuilder builder, string str)
         {
             builder.Add(str);
+        }
+
+        internal static void AppendScopeName(this ShaderBuilder builder, Block block)
+        {
+            const string blockSuffix = "Block";
+            builder.Append(block.Name);
+            builder.Append(blockSuffix);
+        }
+
+        static void AppendTypeName(this ShaderBuilder builder, ShaderType type, Block currentScope)
+        {
+            if (currentScope == type.ParentBlock)
+                builder.Add(type.Name);
+            else
+                builder.AppendFullyQualifiedName(type);
+        }
+
+        internal static void AddVariableDeclarationString(this ShaderBuilder builder, ShaderType type, string name, string defaultValue = null)
+        {
+            builder.AppendFullyQualifiedName(type);
+            builder.Append(m_SpaceToken);
+            builder.Append(name);
+            if (!string.IsNullOrEmpty(defaultValue))
+                builder.Add(m_SpaceToken, m_EqualToken, m_SpaceToken, defaultValue);
+        }
+
+        internal static void AddVariableDeclarationStatement(this ShaderBuilder builder, ShaderType type, string name, string defaultValue = null)
+        {
+            builder.Indentation();
+            builder.AddVariableDeclarationString(type, name, defaultValue);
+            builder.Add(m_SemicolonToken);
+            builder.NewLine();
+        }
+
+        internal static void AppendFullyQualifiedName(this ShaderBuilder builder, ShaderType type)
+        {
+            var parentBlock = type.ParentBlock;
+            if (parentBlock.IsValid)
+            {
+                builder.AppendScopeName(parentBlock);
+                builder.Append(m_ScopeToken);
+                builder.Append(type.Name);
+                return;
+            }
+            builder.Append(type.Name);
+        }
+
+        internal static void AddTypeDeclarationString(this ShaderBuilder builder, ShaderType type)
+        {
+            builder.AddLine(m_StructKeyword, m_SpaceToken, type.Name);
+
+            using (builder.BlockSemicolonScope())
+            {
+                foreach (var field in type.StructFields)
+                {
+                    builder.Indentation();
+                    builder.AddVariableDeclarationString(field.Type, field.Name);
+                    builder.Add(m_SemicolonToken);
+                    builder.NewLine();
+                }
+            }
+        }
+
+        internal static void AppendFullyQualifiedName(this ShaderBuilder builder, ShaderFunction function)
+        {
+            var parentBlock = function.ParentBlock;
+            if (parentBlock.IsValid)
+            {
+                builder.AppendScopeName(parentBlock);
+                builder.Add(m_ScopeToken, function.Name);
+                return;
+            }
+            builder.Add(function.Name);
+        }
+
+        internal static void AddDeclarationString(this ShaderBuilder builder, ShaderFunction function)
+        {
+            var parentBlock = function.ParentBlock;
+            builder.Indentation();
+            builder.AppendTypeName(function.ReturnType, parentBlock);
+            builder.Add(m_SpaceToken, function.Name, m_BeginParenthesisToken);
+
+            var paramIndex = 0;
+            foreach (var param in function.Parameters)
+            {
+                if (paramIndex != 0)
+                    builder.Add(", ");
+                if (param.IsOutput)
+<<<<<<< HEAD
+                    builder.Add("out ");
+                builder.Add($"{param.Type.Name} {param.Name}");
+=======
+                {
+                    if (param.IsInput)
+                        builder.Add(inoutKeyword, m_SpaceToken);
+                    else
+                        builder.Add(outKeyword, m_SpaceToken);
+                }
+
+                builder.AppendTypeName(param.Type, parentBlock);
+                builder.Add(m_SpaceToken, param.Name);
+>>>>>>> sg2/shader-sandbox
+                ++paramIndex;
+            }
+            builder.Add(m_EndParenthesisToken);
+            builder.NewLine();
+
+            builder.AddLine(m_BeginCurlyBraceToken);
+            builder.Indent();
+
+            builder.Add(function.Body);
+
+            builder.Deindent();
+            builder.AddLine(m_EndCurlyBraceToken);
+        }
+
+        internal static void AddCallString(this ShaderBuilder builder, ShaderFunction function, params string[] arguments)
+        {
+            // Can't yet use builder.Call due to namespacing
+            builder.AppendFullyQualifiedName(function);
+            builder.Add(m_BeginParenthesisToken);
+            for (var i = 0; i < arguments.Length; ++i)
+            {
+                builder.Add(arguments[i]);
+                if (i != arguments.Length - 1)
+                    builder.Add(m_CommaToken, m_SpaceToken);
+            }
+            builder.Add(m_EndParenthesisToken);
+        }
+
+        internal static void AddCallStatementWithReturn(this ShaderBuilder builder, ShaderFunction function, string returnVariableName, params string[] arguments)
+        {
+            builder.Indentation();
+            builder.Add(returnVariableName);
+            builder.Add(m_SpaceToken, m_EqualToken, m_SpaceToken);
+            builder.AddCallString(function, arguments);
+            builder.Add(m_SemicolonToken);
+        }
+
+        internal static void AddCallStatementWithNewReturn(this ShaderBuilder builder, ShaderFunction function, string returnVariableName, params string[] arguments)
+        {
+            builder.Indentation();
+            builder.AddVariableDeclarationString(function.ReturnType, returnVariableName);
+            builder.Add(m_SpaceToken, m_EqualToken, m_SpaceToken);
+            builder.AddCallString(function, arguments);
+            builder.Add(m_SemicolonToken);
+            builder.NewLine();
         }
     }
 
@@ -57,72 +218,16 @@ namespace UnityEditor.ShaderFoundry
             inputType = outputType = ShaderType.Invalid;
             return false;
         }
-
-        internal static void AddDeclarationString(this ShaderFunction function, ShaderBuilder builder)
-        {
-            builder.Indentation();
-            builder.Add($"{function.ReturnType.Name} {function.Name}(");
-
-            var paramIndex = 0;
-            foreach(var param in function.Parameters)
-            {
-                if (paramIndex != 0)
-                    builder.Add(", ");
-                if (param.IsOutput)
-                    builder.Add("out ");
-                builder.Add($"{param.Type.Name} {param.Name}");
-                ++paramIndex;
-            }
-            builder.Add(")");
-            builder.NewLine();
-
-            builder.AddLine("{");
-            builder.Indent();
-
-            builder.Add(function.Body);
-
-            builder.Deindent();
-            builder.AddLine("}");
-        }
-    }
-
-    internal static class TypeExtensions
-    {
-        internal static void AddVariableDeclarationString(this ShaderType type, ShaderBuilder builder, string name)
-        {
-            builder.Add($"{type.Name} {name}");
-        }
-
-        internal static void AddTypeDeclarationString(this ShaderType type, ShaderBuilder builder)
-        {
-            builder.AddLine($"struct {type.Name}");
-
-            using (builder.BlockSemicolonScope())
-            {
-                foreach (var field in type.StructFields)
-                {
-                    builder.Indentation();
-                    field.Type.AddVariableDeclarationString(builder, field.Name);
-                    builder.Add(";");
-                    builder.NewLine();
-                }
-            }
-        }
-
-        internal static bool Equals(this ShaderType self, ShaderType rhs)
-        {
-            return self.Name == rhs.Name;
-        }
     }
 
     internal static class BlockVariableExtensions
     {
-        internal static void DeclarePassProperty(this BlockProperty prop, ShaderBuilder perMaterialBuilder, ShaderBuilder globalBuilder)
+        internal static void DeclarePassProperty(this BlockProperty prop, UniformDeclarationContext context)
         {
             var passProps = PassPropertyInfo.Extract(prop);
             foreach (var passProp in passProps)
             {
-                passProp.Declare(perMaterialBuilder, globalBuilder, prop.ReferenceName);
+                passProp.Declare(context);
             }
         }
 
@@ -173,10 +278,18 @@ namespace UnityEditor.ShaderFoundry
         {
             if (varInstance.Owner != null)
             {
+                const string dotToken = ".";
                 Declare(varInstance.Owner, builder);
-                builder.Add(".");
+                builder.Add(dotToken);
             }
             builder.Add(varInstance.ReferenceName);
+        }
+
+        internal static string GetDeclarationString(this BlockVariableLinkInstance varInstance)
+        {
+            ShaderBuilder builder = new ShaderBuilder();
+            varInstance.Declare(builder);
+            return builder.ToString();
         }
     }
 
@@ -184,10 +297,15 @@ namespace UnityEditor.ShaderFoundry
     {
         internal static void MergeTypesAndFunctions(this Block.Builder builder, Block block)
         {
+            // Make sure to visit referenced items before owned. Owned items may depend on referenced ones.
+            foreach (var item in block.ReferencedTypes)
+                builder.AddReferencedType(item);
             foreach (var item in block.Types)
-                builder.AddType(item);
+                builder.AddReferencedType(item);
+            foreach (var item in block.ReferencedFunctions)
+                builder.AddReferencedFunction(item);
             foreach (var item in block.Functions)
-                builder.AddFunction(item);
+                builder.AddReferencedFunction(item);
         }
 
         internal static void MergeDescriptors(this Block.Builder builder, Block block)
@@ -245,7 +363,7 @@ namespace UnityEditor.ShaderFoundry
                 return null;
 
             string result = "";
-            for(var i = 0; i < 4; ++i)
+            for (var i = 0; i < 4; ++i)
             {
                 var mask = (value >> (i * 4)) & 0b1111;
                 if (mask == 0)

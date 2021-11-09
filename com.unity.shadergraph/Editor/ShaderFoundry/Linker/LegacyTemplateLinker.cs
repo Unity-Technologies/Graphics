@@ -10,7 +10,7 @@ using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
 namespace UnityEditor.ShaderFoundry
 {
-    internal class SandboxLegacyTemplateLinker : ITemplateLinker
+    internal class LegacyTemplateLinker : ITemplateLinker
     {
         internal AssetCollection m_assetCollection = new AssetCollection();
 
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderFoundry
         UnityEditor.ShaderGraph.Target m_LegacyTarget;
         UnityEditor.ShaderGraph.SubShaderDescriptor m_LegacySubShader;
 
-        internal SandboxLegacyTemplateLinker(AssetCollection assetCollection)
+        internal LegacyTemplateLinker(AssetCollection assetCollection)
         {
             m_assetCollection = assetCollection;
         }
@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderFoundry
             return false;
         }
 
-        void ITemplateLinker.Link(ShaderBuilder builder, ShaderContainer container, TemplateDescriptor templateDescriptor)
+        void ITemplateLinker.Link(ShaderBuilder builder, ShaderContainer container, TemplateInstance templateInstance)
         {
             Container = container;
 
@@ -52,9 +52,9 @@ namespace UnityEditor.ShaderFoundry
             {
                 GenerateSubShaderTags(m_LegacySubShader, builder);
 
-                var template = templateDescriptor.Template;
+                var template = templateInstance.Template;
                 foreach (var pass in template.Passes)
-                    GenerateShaderPass(template, pass, templateDescriptor.CustomizationPointDescriptors, builder);
+                    GenerateShaderPass(template, pass, templateInstance.CustomizationPointInstances, builder);
             }
         }
 
@@ -89,88 +89,137 @@ namespace UnityEditor.ShaderFoundry
                 builder.AppendLine("\"ShaderGraphShader\"=\"true\"");
             }
         }
+<<<<<<< HEAD:com.unity.shadergraph/Editor/ShaderFoundry/Linker/SandboxLegacyTemplateLinker.cs
 
         void GenerateShaderPass(Template template, TemplatePass pass, IEnumerable<CustomizationPointDescriptor> customizationPointDescriptors, ShaderBuilder builder)
+=======
+        
+        void GenerateShaderPass(Template template, TemplatePass pass, IEnumerable<CustomizationPointInstance> customizationPointInstances, ShaderBuilder builder)
+>>>>>>> sg2/shader-sandbox:com.unity.shadergraph/Editor/ShaderFoundry/Linker/LegacyTemplateLinker.cs
         {
             UnityEditor.ShaderGraph.PassDescriptor legacyPass = new UnityEditor.ShaderGraph.PassDescriptor();
             if (!FindLegacyPass(pass.ReferenceName, ref legacyPass))
                 throw new Exception("Shouldn't happen");
 
-            var passCustomizationPointDescriptors = FindCustomizationPointsForPass(pass, customizationPointDescriptors);
+            var passCustomizationPointInstances = FindCustomizationPointsForPass(pass, customizationPointInstances);
 
             var legacyBlockLinker = new SimpleLegacyBlockLinker(Container);
-            var legacyEntryPoints = legacyBlockLinker.GenerateLegacyEntryPoints(template, pass, passCustomizationPointDescriptors);
+            var legacyEntryPoints = legacyBlockLinker.GenerateLegacyEntryPoints(template, pass, passCustomizationPointInstances);
 
             ActiveFields targetActiveFields, shaderGraphActiveFields;
-            BuildLegacyActiveFields(legacyPass, legacyEntryPoints, out targetActiveFields, out shaderGraphActiveFields);
+            var customInterpolatorFields = new List<FieldDescriptor>();
+            BuildLegacyActiveFields(legacyPass, legacyEntryPoints, out targetActiveFields, out shaderGraphActiveFields, customInterpolatorFields);
 
-            GenerateShaderPass(builder, pass, legacyPass, targetActiveFields, shaderGraphActiveFields, legacyEntryPoints, new PropertyCollector());
+            GenerateShaderPass(builder, pass, legacyPass, targetActiveFields, shaderGraphActiveFields, legacyEntryPoints, customInterpolatorFields, new PropertyCollector());
         }
 
-        List<CustomizationPointDescriptor> FindCustomizationPointsForPass(TemplatePass pass, IEnumerable<CustomizationPointDescriptor> customizationPointDescriptors)
+        List<CustomizationPointInstance> FindCustomizationPointsForPass(TemplatePass pass, IEnumerable<CustomizationPointInstance> customizationPointInstances)
         {
-            var passCustomizationPointDescriptors = new List<CustomizationPointDescriptor>();
-            foreach (var cpDesc in customizationPointDescriptors)
+            var passCustomizationPointInstances = new List<CustomizationPointInstance>();
+            foreach (var cpInst in customizationPointInstances)
             {
                 // If there's no pass identifiers, then this is valid for all passes
-                if (cpDesc.PassIdentifiers == null || cpDesc.PassIdentifiers.Count() == 0)
-                    passCustomizationPointDescriptors.Add(cpDesc);
+                if (cpInst.PassIdentifiers == null || cpInst.PassIdentifiers.Count() == 0)
+                    passCustomizationPointInstances.Add(cpInst);
                 else
                 {
                     // Otherwise check if there's a matching pass identifier
-                    foreach (var passIdentifier in cpDesc.PassIdentifiers)
+                    foreach (var passIdentifier in cpInst.PassIdentifiers)
                     {
-                        if (passIdentifier.m_SubShaderIndex == pass.PassIdentifier.m_SubShaderIndex && passIdentifier.m_PassIndex == pass.PassIdentifier.m_PassIndex)
-                            passCustomizationPointDescriptors.Add(cpDesc);
+                        if (passIdentifier == pass.PassIdentifier)
+                            passCustomizationPointInstances.Add(cpInst);
                     }
                 }
             }
+<<<<<<< HEAD:com.unity.shadergraph/Editor/ShaderFoundry/Linker/SandboxLegacyTemplateLinker.cs
             return passCustomizationPointDescriptors;
+=======
+            return passCustomizationPointInstances;
         }
 
-        void BuildLegacyActiveFields(UnityEditor.ShaderGraph.PassDescriptor legacyPass, LegacyEntryPoints legacyEntryPoints, out ActiveFields targetActiveFields, out ActiveFields shaderGraphActiveFields)
+        void GetTargetActiveFields(UnityEditor.ShaderGraph.PassDescriptor legacyPass, ActiveFields targetActiveFields)
         {
-            Dictionary<string, FieldDescriptor> vertexInLookup, vertexOutLookup, fragmentInLookup, fragmentOutLookup;
+            // Try to get the active fields from the target. This requires getting the blocks currently.
+            var targetActiveBlockContext = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), legacyPass);
+            m_LegacyTarget.GetActiveBlocks(ref targetActiveBlockContext);
+            var activeBlocks = new List<(BlockFieldDescriptor descriptor, bool isDefaultValue)>();
+            foreach (var b in targetActiveBlockContext.activeBlocks)
+                activeBlocks.Add((b, true));
+            var context = new TargetFieldContext(legacyPass, activeBlocks, null, false);
+            m_LegacyTarget.GetFields(ref context);
+
+            var fields = GenerationUtils.GetActiveFieldsFromConditionals(context.conditionalFields.ToArray());
+            foreach (var field in fields)
+                targetActiveFields.baseInstance.Add(field);
+>>>>>>> sg2/shader-sandbox:com.unity.shadergraph/Editor/ShaderFoundry/Linker/LegacyTemplateLinker.cs
+        }
+
+        void BuildLegacyActiveFields(UnityEditor.ShaderGraph.PassDescriptor legacyPass, LegacyEntryPoints legacyEntryPoints, out ActiveFields targetActiveFields, out ActiveFields shaderGraphActiveFields, List<FieldDescriptor> customInterpolatorFields)
+        {
+            FieldDescriptorLookupMap vertexInLookup, vertexOutLookup, fragmentInLookup, fragmentOutLookup;
             BuildLookups(legacyPass, out vertexInLookup, out vertexOutLookup, out fragmentInLookup, out fragmentOutLookup);
 
             targetActiveFields = new ActiveFields();
-            if(legacyEntryPoints.vertexDescBlockDesc.IsValid)
+            if(legacyEntryPoints.vertexDescBlockInstance.IsValid)
                 targetActiveFields.baseInstance.Add(Fields.GraphVertex);
             targetActiveFields.baseInstance.Add(Fields.GraphPixel);
+            GetTargetActiveFields(legacyPass, targetActiveFields);
             GenerationUtils.AddRequiredFields(legacyPass.requiredFields, targetActiveFields.baseInstance);
 
-            void AddFieldFromProperty(ActiveFields activeFields, BlockVariable prop, Dictionary<string, FieldDescriptor> lookups)
+            void AddFieldFromProperty(ActiveFields activeFields, BlockVariable prop, FieldDescriptorLookupMap lookups)
             {
-                FieldDescriptor activeField;
-                if (lookups.TryGetValue(prop.ReferenceName, out activeField))
-                    activeFields.baseInstance.Add(activeField);
-                else if (prop.Attributes.FindFirst(CommonShaderAttributes.Varying).IsValid)
-                {
-                    var customInterpolatorField = new FieldDescriptor("", prop.ReferenceName, "", prop.Type.Name);
-                    activeFields.baseInstance.Add(customInterpolatorField);
-                }
+                foreach(var descriptor in lookups.Find(prop.ReferenceName))
+                    activeFields.baseInstance.Add(descriptor);
             }
 
-            void AddFieldProperties(BlockDescriptor blockDesc, ActiveFields activeFields, Dictionary<string, FieldDescriptor> inputLookups, Dictionary<string, FieldDescriptor> outputLookups)
+            void AddFieldProperties(BlockInstance blockInst, ActiveFields activeFields, FieldDescriptorLookupMap inputLookups, FieldDescriptorLookupMap outputLookups)
             {
-                if (!blockDesc.IsValid)
+                if (!blockInst.IsValid)
                     return;
 
-                foreach (var input in blockDesc.Block.Inputs)
+                foreach (var input in blockInst.Block.Inputs)
                     AddFieldFromProperty(activeFields, input, inputLookups);
-                foreach (var output in blockDesc.Block.Outputs)
+                foreach (var output in blockInst.Block.Outputs)
                     AddFieldFromProperty(activeFields, output, outputLookups);
             }
 
             shaderGraphActiveFields = new ActiveFields();
-            AddFieldProperties(legacyEntryPoints.vertexDescBlockDesc, shaderGraphActiveFields, vertexInLookup, vertexOutLookup);
-            AddFieldProperties(legacyEntryPoints.fragmentDescBlockDesc, shaderGraphActiveFields, fragmentInLookup, fragmentOutLookup);
+            AddFieldProperties(legacyEntryPoints.vertexDescBlockInstance, shaderGraphActiveFields, vertexInLookup, vertexOutLookup);
+            AddFieldProperties(legacyEntryPoints.fragmentDescBlockInstance, shaderGraphActiveFields, fragmentInLookup, fragmentOutLookup);
+
+            foreach (var customInterpolant in legacyEntryPoints.customInterpolants)
+            {
+                var customInterpolatorField = new FieldDescriptor("", customInterpolant.Name, "", ShaderValueTypeFrom((int)customInterpolant.Type.VectorDimension), subscriptOptions: StructFieldOptions.Generated);
+                shaderGraphActiveFields.baseInstance.Add(customInterpolatorField);
+                customInterpolatorFields.Add(customInterpolatorField);
+            }
         }
 
-        void BuildLookups(UnityEditor.ShaderGraph.PassDescriptor legacyPass, out Dictionary<string, FieldDescriptor> vertexInLookups, out Dictionary<string, FieldDescriptor> vertexOutLookups, out Dictionary<string, FieldDescriptor> fragmentInLookups, out Dictionary<string, FieldDescriptor> fragmentOutLookups)
+        internal class FieldDescriptorLookupMap
+        {
+            Dictionary<string, List<FieldDescriptor>> Lookups = new Dictionary<string, List<FieldDescriptor>>();
+            internal void Add(string name, FieldDescriptor descriptor)
+            {
+                if(!Lookups.TryGetValue(name, out var descriptors))
+                {
+                    descriptors = new List<FieldDescriptor>();
+                    Lookups.Add(name, descriptors);
+                }
+                descriptors.Add(descriptor);
+            }
+
+            internal IEnumerable<FieldDescriptor> Find(string name)
+            {
+                if (Lookups.TryGetValue(name, out var descriptors))
+                    return descriptors;
+
+                return Enumerable.Empty<FieldDescriptor>();
+            }
+        }
+
+        void BuildLookups(UnityEditor.ShaderGraph.PassDescriptor legacyPass, out FieldDescriptorLookupMap vertexInLookups, out FieldDescriptorLookupMap vertexOutLookups, out FieldDescriptorLookupMap fragmentInLookups, out FieldDescriptorLookupMap fragmentOutLookups)
         {
             List<FieldDescriptor> preVertexFields = new List<FieldDescriptor>();
-            preVertexFields.AddRange(UnityEditor.ShaderGraph.Structs.Attributes.fields);
             preVertexFields.AddRange(UnityEditor.ShaderGraph.Structs.VertexDescriptionInputs.fields);
 
             var vertexOutFields = new List<FieldDescriptor>();
@@ -192,14 +241,11 @@ namespace UnityEditor.ShaderFoundry
             fragmentOutLookups = BuildLookup(fragmentOutFields);
         }
 
-        Dictionary<string, FieldDescriptor> BuildLookup(IEnumerable<FieldDescriptor> fields)
+        FieldDescriptorLookupMap BuildLookup(IEnumerable<FieldDescriptor> fields)
         {
-            var result = new Dictionary<string, FieldDescriptor>();
+            var result = new FieldDescriptorLookupMap();
             foreach (var field in fields)
-            {
-                if (!result.ContainsKey(field.name))
-                    result.Add(field.name, field);
-            }
+                result.Add(field.name, field);
             return result;
         }
 
@@ -225,26 +271,125 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void GenerateBlockLinkSpliceCode(ShaderBuilder builder, BlockDescriptor blockDesc, string outputStructName, VisitedRegistry visitedRegistry)
+        void BuildTypeAndFunctionGroups(Block block,  VisitedRegistry visitedRegistry, out List<(Block Block, List<ShaderType> Types)> typeGroups, out List<(Block Block, List<ShaderFunction> Functions)> functionGroups)
         {
-            var block = blockDesc.Block;
-
-            foreach (var type in block.Types)
+            List<ShaderType> allTypes = new List<ShaderType>();
+            List<ShaderFunction> allFunctions = new List<ShaderFunction>();
+            void TraverseType(ShaderType type)
             {
                 if (!visitedRegistry.TryVisit(type))
-                    continue;
+                    return;
+                if (!type.IsStruct || type.IsDeclaredExternally)
+                    return;
 
-                // The input types are generated by the legacy code path
-                if (type.Name != LegacyCustomizationPoints.SurfaceEntryPointInputName &&
-                    type.Name != LegacyCustomizationPoints.VertexEntryPointInputName)
-                    type.AddTypeDeclarationString(builder);
+                foreach (var field in type.StructFields)
+                    TraverseType(field.Type);
+
+                allTypes.Add(type);
             }
-            foreach(var function in block.Functions)
+            void TraverseTypes(IEnumerable<ShaderType> types)
+            {
+                foreach (var type in types)
+                    TraverseType(type);
+            }
+            void TraverseFunction(ShaderFunction function)
             {
                 if (!visitedRegistry.TryVisit(function))
+                    return;
+
+                TraverseType(function.ReturnType);
+                foreach (var param in function.Parameters)
+                    TraverseType(param.Type);
+                allFunctions.Add(function);
+            }
+            void TraverseFunctions(IEnumerable<ShaderFunction> functions)
+            {
+                foreach (var function in functions)
+                    TraverseFunction(function);
+            }
+            TraverseTypes(block.ReferencedTypes);
+            TraverseTypes(block.Types);
+            TraverseFunctions(block.ReferencedFunctions);
+            TraverseFunctions(block.Functions);
+
+            typeGroups = new List<(Block Block, List<ShaderType> Types)>();
+            foreach (var type in allTypes)
+            {
+                if (typeGroups.Count == 0)
+                    typeGroups.Add((type.ParentBlock, new List<ShaderType>()));
+                var currentContext = typeGroups[typeGroups.Count - 1];
+                if (currentContext.Block != type.ParentBlock)
+                {
+                    typeGroups.Add((type.ParentBlock, new List<ShaderType>()));
+                    currentContext = typeGroups[typeGroups.Count - 1];
+                }
+                currentContext.Types.Add(type);
+            }
+
+            functionGroups = new List<(Block Block, List<ShaderFunction> Functions)>();
+            foreach (var function in allFunctions)
+            {
+                if (functionGroups.Count == 0)
+                    functionGroups.Add((function.ParentBlock, new List<ShaderFunction>()));
+                var currentContext = functionGroups[functionGroups.Count - 1];
+                if (currentContext.Block != function.ParentBlock)
+                {
+                    functionGroups.Add((function.ParentBlock, new List<ShaderFunction>()));
+                    currentContext = functionGroups[functionGroups.Count - 1];
+                }
+                currentContext.Functions.Add(function);
+            }
+        }
+
+        void GenerateBlockLinkSpliceCode(ShaderBuilder builder, BlockInstance blockInst, VisitedRegistry visitedRegistry)
+        {
+            void DeclareTypes(ShaderBuilder builder, IEnumerable<ShaderType> types)
+            {
+                foreach (var type in types)
+                    builder.AddTypeDeclarationString(type);
+            }
+            void DeclareFunctions(ShaderBuilder builder, IEnumerable<ShaderFunction> functions)
+            {
+                foreach (var function in functions)
+                    builder.AddDeclarationString(function);
+            }
+
+            BuildTypeAndFunctionGroups(blockInst.Block, visitedRegistry, out var typeGroups, out var functionGroups);
+            foreach (var groupContext in typeGroups)
+            {
+                if(!groupContext.Block.IsValid)
+                {
+                    DeclareTypes(builder, groupContext.Types);
                     continue;
+<<<<<<< HEAD:com.unity.shadergraph/Editor/ShaderFoundry/Linker/SandboxLegacyTemplateLinker.cs
 
                 function.AddDeclarationString(builder);
+=======
+                }
+                builder.Add($"namespace ");
+                builder.AppendScopeName(groupContext.Block);
+                builder.NewLine();
+                using (var s = builder.BlockScope())
+                {
+                    DeclareTypes(builder, groupContext.Types);
+                }
+            }
+
+            foreach (var groupContext in functionGroups)
+            {
+                if (!groupContext.Block.IsValid)
+                {
+                    DeclareFunctions(builder, groupContext.Functions);
+                    continue;
+                }
+                builder.Add($"namespace ");
+                builder.AppendScopeName(groupContext.Block);
+                builder.NewLine();
+                using (var s = builder.BlockScope())
+                {
+                    DeclareFunctions(builder, groupContext.Functions);
+                }
+>>>>>>> sg2/shader-sandbox:com.unity.shadergraph/Editor/ShaderFoundry/Linker/LegacyTemplateLinker.cs
             }
         }
 
@@ -325,7 +470,7 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void GenerateShaderPass(ShaderBuilder subPassBuilder, TemplatePass templatePass, UnityEditor.ShaderGraph.PassDescriptor pass, ActiveFields targetActiveFields, ActiveFields blockActiveFields, LegacyEntryPoints legacyEntryPoints, PropertyCollector subShaderProperties)
+        void GenerateShaderPass(ShaderBuilder subPassBuilder, TemplatePass templatePass, UnityEditor.ShaderGraph.PassDescriptor pass, ActiveFields targetActiveFields, ActiveFields blockActiveFields, LegacyEntryPoints legacyEntryPoints, List<FieldDescriptor> customInterpolatorFields, PropertyCollector subShaderProperties)
         {
             string vertexCode = "// GraphVertex: <None>";
             string fragmentCode = "// GraphPixel: <None>";
@@ -336,19 +481,21 @@ namespace UnityEditor.ShaderFoundry
             var shaderIncludes = Enumerable.Empty<UnityEditor.ShaderFoundry.IncludeDescriptor>();
             var shaderKeywords = Enumerable.Empty<UnityEditor.ShaderFoundry.KeywordDescriptor>();
             var shaderPragmas = Enumerable.Empty<UnityEditor.ShaderFoundry.PragmaDescriptor>();
+<<<<<<< HEAD:com.unity.shadergraph/Editor/ShaderFoundry/Linker/SandboxLegacyTemplateLinker.cs
 
             void ProcessBlockDescriptor(BlockDescriptor blockDescriptor, VisitedRegistry visitedRegistry, string entryPointOutputName, ref string code)
+=======
+            
+            void ProcessBlockInstance(BlockInstance blockInstance, VisitedRegistry visitedRegistry, string entryPointOutputName, ref string code)
+>>>>>>> sg2/shader-sandbox:com.unity.shadergraph/Editor/ShaderFoundry/Linker/LegacyTemplateLinker.cs
             {
-                if (blockDescriptor.IsValid)
+                if (blockInstance.IsValid)
                 {
-                    var builderNew = new ShaderBuilder();
-                    GenerateBlockLinkSpliceCode(builderNew, blockDescriptor, entryPointOutputName, visitedRegistry);
-                    var builderOld = new ShaderStringBuilder();
-                    builderOld.Append(builderNew.ToString());
-                    builderOld.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString());
-                    code = builderOld.ToCodeBlock();
+                    var blockBuilder = new ShaderBuilder();
+                    GenerateBlockLinkSpliceCode(blockBuilder, blockInstance, visitedRegistry);
+                    code = blockBuilder.ToString();
 
-                    var block = blockDescriptor.Block;
+                    var block = blockInstance.Block;
                     shaderProperties = shaderProperties.Concat(block.Properties);
                     shaderCommands = shaderCommands.Concat(block.Commands);
                     shaderDefines = shaderDefines.Concat(block.Defines);
@@ -359,23 +506,8 @@ namespace UnityEditor.ShaderFoundry
             }
 
             VisitedRegistry visitedRegistry = new VisitedRegistry();
-            ProcessBlockDescriptor(legacyEntryPoints.vertexDescBlockDesc, visitedRegistry, LegacyCustomizationPoints.VertexEntryPointOutputName, ref vertexCode);
-            ProcessBlockDescriptor(legacyEntryPoints.fragmentDescBlockDesc, visitedRegistry, LegacyCustomizationPoints.SurfaceEntryPointOutputName, ref fragmentCode);
-
-            // Handle block custom interpolators. Do this by checking if any fragment input is marked as a varying
-            var blockVaryings = new List<FieldDescriptor>();
-            if (legacyEntryPoints.fragmentDescBlockDesc.IsValid && legacyEntryPoints.fragmentDescBlockDesc.Block.IsValid)
-            {
-                var block = legacyEntryPoints.fragmentDescBlockDesc.Block;
-                foreach (var field in block.Inputs)
-                {
-                    if (field.Attributes.FindFirst(CommonShaderAttributes.Varying).IsValid)
-                    {
-                        var customInterpolatorField = new FieldDescriptor("", field.ReferenceName, "", ShaderValueTypeFrom((int)field.Type.VectorDimension), subscriptOptions: StructFieldOptions.Generated);
-                        blockVaryings.Add(customInterpolatorField);
-                    }
-                }
-            }
+            ProcessBlockInstance(legacyEntryPoints.vertexDescBlockInstance, visitedRegistry, LegacyCustomizationPoints.VertexEntryPointOutputName, ref vertexCode);
+            ProcessBlockInstance(legacyEntryPoints.fragmentDescBlockInstance, visitedRegistry, LegacyCustomizationPoints.SurfaceEntryPointOutputName, ref fragmentCode);
 
             GenerationMode m_Mode = GenerationMode.ForReals;
             // Early exit if pass is not used in preview
@@ -403,7 +535,7 @@ namespace UnityEditor.ShaderFoundry
 
             // Initialize custom interpolator sub generator
             CustomInterpSubGen customInterpSubGen = new CustomInterpSubGen(m_OutputNode != null);
-            foreach (var customInterpolatorField in blockVaryings)
+            foreach (var customInterpolatorField in customInterpolatorFields)
                 customInterpSubGen.AddCustomInterpolant(customInterpolatorField);
 
             // Initiailize Collectors
@@ -658,8 +790,11 @@ namespace UnityEditor.ShaderFoundry
 
             {
                 var propertyBuilder = new ShaderBuilder();
-                var perMaterialBuilder = new ShaderBuilder();
-                var globalBuilder = new ShaderBuilder();
+                UniformDeclarationContext context = new UniformDeclarationContext
+                {
+                    PerMaterialBuilder = new ShaderBuilder(),
+                    GlobalBuilder = new ShaderBuilder(),
+                };
 
                 var visitedProperties = new HashSet<string>();
                 foreach (var prop in shaderProperties)
@@ -667,7 +802,7 @@ namespace UnityEditor.ShaderFoundry
                     if (visitedProperties.Contains(prop.ReferenceName))
                         continue;
                     visitedProperties.Add(prop.ReferenceName);
-                    prop.DeclarePassProperty(perMaterialBuilder, globalBuilder);
+                    prop.DeclarePassProperty(context);
                 }
 
                 //if (m_Mode == GenerationMode.VFX)
@@ -686,9 +821,9 @@ namespace UnityEditor.ShaderFoundry
 
 
                 propertyBuilder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-                propertyBuilder.Append(perMaterialBuilder.ToString());
+                propertyBuilder.Append(context.PerMaterialBuilder.ToString());
                 propertyBuilder.AppendLine("CBUFFER_END");
-                propertyBuilder.Append(globalBuilder.ToString());
+                propertyBuilder.Append(context.GlobalBuilder.ToString());
 
                 var propertiesStr = propertyBuilder.ToString();
                 if (string.IsNullOrEmpty(propertiesStr))
@@ -699,12 +834,52 @@ namespace UnityEditor.ShaderFoundry
             // --------------------------------------------------
             // Dots Instanced Graph Properties
 
-            bool hasDotsProperties = subShaderProperties.HasDotsProperties();
+            bool hasDotsProperties = false;
+            {
+                foreach (var h in shaderProperties)
+                {
+                    if (h.Attributes.GetDeclaration() == HLSLDeclaration.HybridPerInstance)
+                        hasDotsProperties = true;
+                }
+            }
+            //subShaderProperties.HasDotsProperties();
 
             using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
             {
                 if (hasDotsProperties)
-                    dotsInstancedPropertyBuilder.AppendLines(subShaderProperties.GetDotsInstancingPropertiesDeclaration(m_Mode));
+                {
+                    if (hasDotsProperties)
+                    {
+                        dotsInstancedPropertyBuilder.AppendLine("#if defined(UNITY_HYBRID_V1_INSTANCING_ENABLED)");
+                        dotsInstancedPropertyBuilder.AppendLine("#define HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS \\");
+
+                        int count = 0;
+                        foreach (var prop in shaderProperties)
+                        {
+                            if (prop.Attributes.GetDeclaration() != HLSLDeclaration.HybridPerInstance)
+                                continue;
+
+                            // Combine multiple UNITY_DEFINE_INSTANCED_PROP lines with \ so the generated
+                            // macro expands into multiple definitions if there are more than one.
+                            if (count > 0)
+                            {
+                                dotsInstancedPropertyBuilder.Append("\\");
+                                dotsInstancedPropertyBuilder.AppendNewLine();
+                            }
+                            dotsInstancedPropertyBuilder.Append("UNITY_DEFINE_INSTANCED_PROP(");
+                            dotsInstancedPropertyBuilder.Append(prop.Type.Name);
+                            dotsInstancedPropertyBuilder.Append(", ");
+                            dotsInstancedPropertyBuilder.Append(prop.ReferenceName);
+                            dotsInstancedPropertyBuilder.Append(")");
+                            count++;
+                        }
+                        dotsInstancedPropertyBuilder.AppendNewLine();
+                    }
+                    dotsInstancedPropertyBuilder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, var)");
+                    dotsInstancedPropertyBuilder.AppendLine("#else");
+                    dotsInstancedPropertyBuilder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
+                    dotsInstancedPropertyBuilder.AppendLine("#endif");
+                }
                 else
                     dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
                 spliceCommands.Add("HybridV1InjectedBuiltinProperties", dotsInstancedPropertyBuilder.ToCodeBlock());

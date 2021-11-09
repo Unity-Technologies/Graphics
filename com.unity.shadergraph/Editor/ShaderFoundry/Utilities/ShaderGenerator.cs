@@ -5,19 +5,19 @@ namespace UnityEditor.ShaderFoundry
 {
     internal class ShaderGenerator
     {
-        internal void Generate(ShaderBuilder builder, ShaderContainer container, ShaderDescriptor shaderDesc)
+        internal void Generate(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
         {
-            builder.AddLine(string.Format(@"Shader ""{0}""", shaderDesc.Name));
+            builder.AddLine(string.Format(@"Shader ""{0}""", shaderInst.Name));
             using (builder.BlockScope())
             {
-                GenerateProperties(builder, container, shaderDesc);
-                GenerateSubShaders(builder, container, shaderDesc);
-                if (!string.IsNullOrEmpty(shaderDesc.FallbackShader))
-                    builder.AddLine(shaderDesc.FallbackShader);
+                GenerateProperties(builder, container, shaderInst);
+                GenerateSubShaders(builder, container, shaderInst);
+                if (!string.IsNullOrEmpty(shaderInst.FallbackShader))
+                    builder.AddLine(shaderInst.FallbackShader);
             }
         }
 
-        void GenerateProperties(ShaderBuilder builder, ShaderContainer container, ShaderDescriptor shaderDesc)
+        void GenerateProperties(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
         {
             var propertiesMap = new Dictionary<string, BlockProperty>();
             var propertiesList = new List<BlockProperty>();
@@ -56,19 +56,19 @@ namespace UnityEditor.ShaderFoundry
                 }
             }
 
-            foreach (var templateDesc in shaderDesc.TemplateDescriptors)
+            foreach (var templateInst in shaderInst.TemplateInstances)
             {
-                foreach (var pass in templateDesc.Template.Passes)
+                foreach (var pass in templateInst.Template.Passes)
                 {
                     foreach (var block in pass.VertexBlocks)
                         CollectUniqueProperties(block.Block);
                     foreach (var block in pass.FragmentBlocks)
                         CollectUniqueProperties(block.Block);
                 }
-                foreach (var cpDesc in templateDesc.CustomizationPointDescriptors)
+                foreach (var cpInst in templateInst.CustomizationPointInstances)
                 {
-                    foreach(var blockDesc in cpDesc.BlockDescriptors)
-                        CollectUniqueProperties(blockDesc.Block);
+                    foreach(var blockInst in cpInst.BlockInstances)
+                        CollectUniqueProperties(blockInst.Block);
                 }
             }
 
@@ -84,13 +84,13 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void GenerateSubShaders(ShaderBuilder builder, ShaderContainer container, ShaderDescriptor shaderDesc)
+        void GenerateSubShaders(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
         {
-            foreach (var templateDesc in shaderDesc.TemplateDescriptors)
+            foreach (var templateInst in shaderInst.TemplateInstances)
             {
-                var template = templateDesc.Template;
+                var template = templateInst.Template;
                 var linker = template.Linker;
-                linker.Link(builder, container, templateDesc);
+                linker.Link(builder, container, templateInst);
             }
         }
     }
