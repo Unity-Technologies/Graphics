@@ -47,7 +47,6 @@ Shader "Hidden/HDRP/BRGPicking"
             PickingMeshToPS Vert(PickingAttributesMesh input)
             {
                 PickingMeshToPS output;
-                ZERO_INITIALIZE(PickingMeshToPS, output);
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
 
@@ -62,9 +61,7 @@ Shader "Hidden/HDRP/BRGPicking"
 
             void Frag(PickingMeshToPS input, out float4 outColor : SV_Target0)
             {
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 UNITY_SETUP_INSTANCE_ID(input);
-
                 outColor = unity_BRGPickingSelectionID;
             }
 

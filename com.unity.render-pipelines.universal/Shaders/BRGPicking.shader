@@ -5,7 +5,7 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
         // Universal Pipeline tag is required. If Universal render pipeline is not set in the graphics settings
         // this Subshader will fail. One can add a subshader below or fallback to Standard built-in to make this
         // material work with both Universal Render Pipeline and Builtin Unity Pipeline
-        Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit" "IgnoreProjector" = "True" "ShaderModel"="4.5"}
+        Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True" "ShaderModel"="4.5"}
         LOD 300
 
         Pass
@@ -18,7 +18,7 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
             HLSLPROGRAM
 
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma exclude_renderers gles gles3 glcore
 
             #pragma editor_sync_compilation
             #pragma multi_compile DOTS_INSTANCING_ON
@@ -42,7 +42,6 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
             {
                 float4 positionCS : SV_POSITION;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
-                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vert(Attributes input)
@@ -50,7 +49,6 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
                 Varyings output = (Varyings)0;
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 float4 positionWS = mul(UNITY_MATRIX_M, input.positionOS);
                 float4 positionVS = mul(unity_BRGPickingViewMatrix, positionWS);
@@ -62,8 +60,6 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
             half4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
                 return unity_BRGPickingSelectionID;
             }
 
