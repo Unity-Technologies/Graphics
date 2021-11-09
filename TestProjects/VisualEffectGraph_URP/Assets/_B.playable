@@ -63,7 +63,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a079ce9026689c429763be25aee1f1a, type: 3}
+  m_Script: {fileID: 11500000, guid: 06feb0f61bc2b4a42bb1ffdb00b4aa3b, type: 3}
   m_Name: Visual Effect Control Track
   m_EditorClassIdentifier: 
   m_Version: 3
