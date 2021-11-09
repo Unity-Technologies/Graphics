@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MainLightShadowmapID = Shader.PropertyToID("_MainLightShadowmapTexture");
             m_SupportsBoxFilterForShadows = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch;
 
-            m_EmptyLightShadowmapTexture = ShadowUtils.AllocShadowRT( 1, 1, k_ShadowmapBufferBits, 1, 0, name: "_EmptyLightShadowmapTexture");
+            m_EmptyLightShadowmapTexture = ShadowUtils.AllocShadowRT(1, 1, k_ShadowmapBufferBits, 1, 0, name: "_EmptyLightShadowmapTexture");
         }
 
         public void Dispose()
