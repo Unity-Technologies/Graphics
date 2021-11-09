@@ -238,35 +238,18 @@ namespace UnityEditor.ShaderFoundry
             }
             foreach (var input in block1Inst.Block.Inputs)
             {
-<<<<<<< HEAD
-                var varOverride = inputTypeInstance.FindVariableOverride(input.ReferenceName);
-                string name = varOverride.Name;
-                if (availableOutputs.TryGetValue(name, out var matchingOutput))
-                {
-                    var builder = new ShaderAttribute.Builder(Container, CommonShaderAttributes.Varying);
-                    input.Attributes.Add(builder.Build());
-                    // Explicitly mark these as reading/writing to the stage scope. This allows easier generation later.
-                    inputTypeInstance.AddOverride(input.ReferenceName, NamespaceScopes.StageScopeName, name, 0);
-                    outputTypeInstance.AddOverride(matchingOutput.ReferenceName, NamespaceScopes.StageScopeName, name, 0);
-                }
-=======
                 string fieldName = input.ReferenceName;
                 if (inputOverrides.TryGetValue(fieldName, out var alias))
                     fieldName = alias;
 
                 if (!existingInputNames.Contains(fieldName) && availableOutputs.TryGetValue(fieldName, out var matchingOutput))
                     customInterpolants.Add(new VaryingVariable { Type = input.Type, Name = fieldName });
->>>>>>> sg2/shader-sandbox
             }
         }
 
         BlockInstance BuildSimpleBlockInstance(Block block)
         {
-<<<<<<< HEAD
-            var builder = new BlockDescriptor.Builder(Container, block);
-=======
             var builder = new BlockInstance.Builder(Container, block);
->>>>>>> sg2/shader-sandbox
             return builder.Build();
         }
 
@@ -350,11 +333,6 @@ namespace UnityEditor.ShaderFoundry
                 // The allowed types are either the legacy API variables or stage varyings.
                 // Legacy is a little tricky though, as a specific block may have been referenced (e.g. the pre-block)
                 // in which case we have to handle and re-route that.
-<<<<<<< HEAD
-                string name = null;
-
-                if (allowedInputs.Contains(input.ReferenceName))
-=======
                 VariableInstance sourceInstance = null;
                 string name = input.ReferenceName;
 
@@ -372,7 +350,6 @@ namespace UnityEditor.ShaderFoundry
                 // Try the provided inputs
                 if (sourceInstance == null && allowedInputInstances.TryGetValue(name, out var instanceMatch))
                 {
->>>>>>> sg2/shader-sandbox
                     name = input.ReferenceName;
                     sourceInstance = instanceMatch;
                 }
@@ -435,12 +412,6 @@ namespace UnityEditor.ShaderFoundry
             // Copy over all of the base block data
             blockBuilder.MergeTypesFunctionsDescriptors(block);
 
-<<<<<<< HEAD
-            // Build the input/output types from the collected inputs and outputs
-            var inputBuilder = new ShaderType.StructBuilder(Container, buildingContext.InputTypeName);
-            foreach (var input in inputs)
-                inputBuilder.AddField(input.Source.Type, input.Source.ReferenceName);
-=======
             // The private blocks currently don't get merged in because they don't really exist (they're basically stub for generation currently),
             // however these blocks may contain descriptors for defines, includes, etc... that need to be included.
             // Note: This probably needs to handle properties eventually too.
@@ -468,15 +439,10 @@ namespace UnityEditor.ShaderFoundry
                 inputBuilder.AddField(input.Source.Variable.Type, input.Source.Variable.ReferenceName);
                 blockBuilder.AddInput(input.Source.Variable);
             }
->>>>>>> sg2/shader-sandbox
             var inputType = inputBuilder.Build();
             blockBuilder.AddType(inputType);
 
             var outputBuilder = new ShaderType.StructBuilder(Container, buildingContext.OutputTypeName);
-<<<<<<< HEAD
-            foreach (var output in outputs)
-                outputBuilder.AddField(output.Destination.Type, output.Destination.ReferenceName);
-=======
             foreach (var output in outputsInstance.Fields)
             {
                 // Outputs without a destination aren't promoted to the block's outputs.
@@ -485,7 +451,6 @@ namespace UnityEditor.ShaderFoundry
                 outputBuilder.AddField(output.Destination.Variable.Type, output.Destination.Variable.ReferenceName);
                 blockBuilder.AddOutput(output.Destination.Variable);
             }
->>>>>>> sg2/shader-sandbox
             var outputType = outputBuilder.Build();
             blockBuilder.AddType(outputType);
 
@@ -495,11 +460,7 @@ namespace UnityEditor.ShaderFoundry
 
             // Build up the actual description functions
             var fnBuilder = new ShaderFunction.Builder(Container, buildingContext.FunctionName, outputType);
-<<<<<<< HEAD
-            fnBuilder.AddInput(inputType, inputInstanceName);
-=======
             fnBuilder.AddInput(inputType, inputsInstance.Instance.Name);
->>>>>>> sg2/shader-sandbox
 
             var allowedInputs = new HashSet<string>();
             foreach (var input in buildingContext.Inputs)
@@ -548,11 +509,7 @@ namespace UnityEditor.ShaderFoundry
             foreach (var outputData in outputsInstance.Fields)
                 DeclareMatch(fnBuilder, outputData);
 
-<<<<<<< HEAD
-            fnBuilder.AddLine($"return {outputInstanceName};");
-=======
             fnBuilder.AddLine($"return {outputsInstance.Instance.Name};");
->>>>>>> sg2/shader-sandbox
             var entryPointFn = fnBuilder.Build();
             blockBuilder.SetEntryPointFunction(entryPointFn);
 

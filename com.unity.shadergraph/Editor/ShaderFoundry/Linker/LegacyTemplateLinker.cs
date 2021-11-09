@@ -89,13 +89,8 @@ namespace UnityEditor.ShaderFoundry
                 builder.AppendLine("\"ShaderGraphShader\"=\"true\"");
             }
         }
-<<<<<<< HEAD:com.unity.shadergraph/Editor/ShaderFoundry/Linker/SandboxLegacyTemplateLinker.cs
-
-        void GenerateShaderPass(Template template, TemplatePass pass, IEnumerable<CustomizationPointDescriptor> customizationPointDescriptors, ShaderBuilder builder)
-=======
         
         void GenerateShaderPass(Template template, TemplatePass pass, IEnumerable<CustomizationPointInstance> customizationPointInstances, ShaderBuilder builder)
->>>>>>> sg2/shader-sandbox:com.unity.shadergraph/Editor/ShaderFoundry/Linker/LegacyTemplateLinker.cs
         {
             UnityEditor.ShaderGraph.PassDescriptor legacyPass = new UnityEditor.ShaderGraph.PassDescriptor();
             if (!FindLegacyPass(pass.ReferenceName, ref legacyPass))
@@ -131,9 +126,6 @@ namespace UnityEditor.ShaderFoundry
                     }
                 }
             }
-<<<<<<< HEAD:com.unity.shadergraph/Editor/ShaderFoundry/Linker/SandboxLegacyTemplateLinker.cs
-            return passCustomizationPointDescriptors;
-=======
             return passCustomizationPointInstances;
         }
 
@@ -151,7 +143,6 @@ namespace UnityEditor.ShaderFoundry
             var fields = GenerationUtils.GetActiveFieldsFromConditionals(context.conditionalFields.ToArray());
             foreach (var field in fields)
                 targetActiveFields.baseInstance.Add(field);
->>>>>>> sg2/shader-sandbox:com.unity.shadergraph/Editor/ShaderFoundry/Linker/LegacyTemplateLinker.cs
         }
 
         void BuildLegacyActiveFields(UnityEditor.ShaderGraph.PassDescriptor legacyPass, LegacyEntryPoints legacyEntryPoints, out ActiveFields targetActiveFields, out ActiveFields shaderGraphActiveFields, List<FieldDescriptor> customInterpolatorFields)
@@ -361,10 +352,6 @@ namespace UnityEditor.ShaderFoundry
                 {
                     DeclareTypes(builder, groupContext.Types);
                     continue;
-<<<<<<< HEAD:com.unity.shadergraph/Editor/ShaderFoundry/Linker/SandboxLegacyTemplateLinker.cs
-
-                function.AddDeclarationString(builder);
-=======
                 }
                 builder.Add($"namespace ");
                 builder.AppendScopeName(groupContext.Block);
@@ -389,7 +376,6 @@ namespace UnityEditor.ShaderFoundry
                 {
                     DeclareFunctions(builder, groupContext.Functions);
                 }
->>>>>>> sg2/shader-sandbox:com.unity.shadergraph/Editor/ShaderFoundry/Linker/LegacyTemplateLinker.cs
             }
         }
 
@@ -481,13 +467,8 @@ namespace UnityEditor.ShaderFoundry
             var shaderIncludes = Enumerable.Empty<UnityEditor.ShaderFoundry.IncludeDescriptor>();
             var shaderKeywords = Enumerable.Empty<UnityEditor.ShaderFoundry.KeywordDescriptor>();
             var shaderPragmas = Enumerable.Empty<UnityEditor.ShaderFoundry.PragmaDescriptor>();
-<<<<<<< HEAD:com.unity.shadergraph/Editor/ShaderFoundry/Linker/SandboxLegacyTemplateLinker.cs
-
-            void ProcessBlockDescriptor(BlockDescriptor blockDescriptor, VisitedRegistry visitedRegistry, string entryPointOutputName, ref string code)
-=======
             
             void ProcessBlockInstance(BlockInstance blockInstance, VisitedRegistry visitedRegistry, string entryPointOutputName, ref string code)
->>>>>>> sg2/shader-sandbox:com.unity.shadergraph/Editor/ShaderFoundry/Linker/LegacyTemplateLinker.cs
             {
                 if (blockInstance.IsValid)
                 {

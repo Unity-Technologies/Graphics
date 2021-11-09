@@ -256,13 +256,7 @@ namespace UnityEditor.ShaderFoundry
 
         internal ShaderFunction GenerateEntryPointFunction(Context context, BlockVariableLinkInstance inputInstance, BlockVariableLinkInstance outputInstance, List<BlockLinkInstance> blockLinkInstances)
         {
-<<<<<<< HEAD
-            var inputInstance = inputTypeInstance.Instance;
-            var outputInstance = outputTypeInstance.Instance;
-            var fnBuilder = new ShaderFunction.Builder(container, context.Name, outputInstance.Type);
-=======
             var fnBuilder = new ShaderFunction.Builder(Container, context.Name, outputInstance.Type);
->>>>>>> sg2/shader-sandbox
             fnBuilder.AddInput(inputInstance.Type, inputInstance.ReferenceName);
             fnBuilder.Indent();
 
@@ -308,30 +302,15 @@ namespace UnityEditor.ShaderFoundry
 
         internal MergeResult Build(Context context, BlockLinkInstance mergedBlockLinkInstance, List<BlockLinkInstance> blockLinkInstances)
         {
-<<<<<<< HEAD
-            var mergedInputType = mergedBlockLinkInstance.InputInstance;
-            var mergedOutputType = mergedBlockLinkInstance.OutputInstance;
-            var blockBuilder = new Block.Builder(container, context.Name);
-=======
             var mergedInputInstance = mergedBlockLinkInstance.InputInstance;
             var mergedOutputInstance = mergedBlockLinkInstance.OutputInstance;
             var blockBuilder = new Block.Builder(Container, context.Name);
->>>>>>> sg2/shader-sandbox
 
             // Merge all types, functions, and descriptors. Make sure to do this first so that all dependent types/functions are already declared
             foreach (var blockLinkInstance in blockLinkInstances)
                 blockBuilder.MergeTypesFunctionsDescriptors(blockLinkInstance.Block);
 
             // Create the input/output types
-<<<<<<< HEAD
-            var inputTypeBuilder = TypeUtilities.BuildStructBuilder(container, context.InputTypeName, mergedInputType.Fields);
-            mergedInputType.Instance.Type = inputTypeBuilder.Build();
-            blockBuilder.AddType(mergedInputType.Instance.Type);
-
-            var outputTypeBuilder = TypeUtilities.BuildStructBuilder(container, context.OutputTypeName, mergedOutputType.Fields);
-            mergedOutputType.Instance.Type = outputTypeBuilder.Build();
-            blockBuilder.AddType(mergedOutputType.Instance.Type);
-=======
             var inputTypeBuilder = TypeUtilities.BuildStructBuilder(Container, context.InputTypeName, mergedInputInstance.ResolvedFields);
             mergedInputInstance.Type = inputTypeBuilder.Build();
             blockBuilder.AddType(mergedInputInstance.Type);
@@ -339,7 +318,6 @@ namespace UnityEditor.ShaderFoundry
             var outputTypeBuilder = TypeUtilities.BuildStructBuilder(Container, context.OutputTypeName, mergedOutputInstance.Fields);
             mergedOutputInstance.Type = outputTypeBuilder.Build();
             blockBuilder.AddType(mergedOutputInstance.Type);
->>>>>>> sg2/shader-sandbox
 
             var entryPointFunction = GenerateEntryPointFunction(context, mergedInputInstance, mergedOutputInstance, blockLinkInstances);
             blockBuilder.SetEntryPointFunction(entryPointFunction);
@@ -354,32 +332,6 @@ namespace UnityEditor.ShaderFoundry
 
             var mergedBlock = blockBuilder.Build();
 
-<<<<<<< HEAD
-            var blockDescBuilder = new BlockDescriptor.Builder(container, mergedBlock);
-            // Create the input/output name overrides. These are used later to know how the sub-items were mapped originally
-            foreach(var varOverride in mergedInputType.NameOverrides.Overrides)
-            {
-                var overrideBuilder = new BlockVariableNameOverride.Builder(container);
-                overrideBuilder.SourceNamespace = varOverride.Override.Namespace;
-                overrideBuilder.SourceName = varOverride.Override.Name;
-                overrideBuilder.SourceSwizzle = varOverride.Override.Swizzle;
-                overrideBuilder.DestinationName = varOverride.Name;
-                blockDescBuilder.AddInputOverride(overrideBuilder.Build());
-            }
-            foreach (var varOverride in mergedOutputType.NameOverrides.Overrides)
-            {
-                var overrideBuilder = new BlockVariableNameOverride.Builder(container);
-
-                overrideBuilder.DestinationNamespace = varOverride.Override.Namespace;
-                overrideBuilder.DestinationName = varOverride.Override.Name;
-                overrideBuilder.DestinationSwizzle = varOverride.Override.Swizzle;
-                overrideBuilder.SourceName = varOverride.Name;
-
-                blockDescBuilder.AddOutputOverride(overrideBuilder.Build());
-            }
-
-            return blockDescBuilder.Build();
-=======
             var result = new MergeResult();
 
             var blockInstBuilder = new BlockInstance.Builder(Container, mergedBlock);
@@ -392,7 +344,6 @@ namespace UnityEditor.ShaderFoundry
                 result.OutputOverrides.Add(fieldOverride);
 
             return result;
->>>>>>> sg2/shader-sandbox
         }
 
         internal MergeResult Merge(Context context)

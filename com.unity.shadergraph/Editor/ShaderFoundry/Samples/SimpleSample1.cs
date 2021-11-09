@@ -39,36 +39,6 @@ namespace UnityEditor.ShaderFoundry
             var albedoColorBlock = BuildAlbedoColorBlock(container);
 
             // Now build the descriptors for each block. Blocks can be re-used multiple times within a shader.
-<<<<<<< HEAD
-            // The block descriptors add any unique data about the call, such as name overrides
-
-            // GlobalsProvider is not doing anything special
-            var globalsProviderBlockDesc = SimpleSampleBuilder.BuildSimpleBlockDescriptor(container, globalsProviderBlock);
-
-            // The input variable is uv0. Remap this variable to the block's 'uv' variable
-            var uvScrollBlockDescBuilder = new BlockDescriptor.Builder(container, uvScrollBlock);
-            var uvNameOverrideBuilder = new BlockVariableNameOverride.Builder(container);
-            uvNameOverrideBuilder.SourceName = "uv0";
-            uvNameOverrideBuilder.DestinationName = "uv";
-            uvScrollBlockDescBuilder.AddInputOverride(uvNameOverrideBuilder.Build());
-            var uvScrollBlockDesc = uvScrollBlockDescBuilder.Build();
-
-            // AlbedoColor output's "Color" but we want it to map to the available output "BaseColor"
-            var albedoColorBlockDescBuilder = new BlockDescriptor.Builder(container, albedoColorBlock);
-            var colorNameOverrideBuilder = new BlockVariableNameOverride.Builder(container);
-            colorNameOverrideBuilder.SourceName = "Color";
-            colorNameOverrideBuilder.DestinationName = "BaseColor";
-            albedoColorBlockDescBuilder.AddOutputOverride(colorNameOverrideBuilder.Build());
-            var albedoColorBlockDesc = albedoColorBlockDescBuilder.Build();
-
-            // The order of these block is what determines how the inputs/outputs are resolved
-            var cpDescBuilder = new CustomizationPointDescriptor.Builder(container, surfaceCP);
-            cpDescBuilder.BlockDescriptors.Add(globalsProviderBlockDesc);
-            cpDescBuilder.BlockDescriptors.Add(uvScrollBlockDesc);
-            cpDescBuilder.BlockDescriptors.Add(albedoColorBlockDesc);
-
-            surfaceCPDesc = cpDescBuilder.Build();
-=======
             // The block descriptors add any unique data about the call. Currently there is no unique data,
             // but plans for manually re-mapping data between blocks is under way.
             var globalsProviderBlockDesc = SimpleSampleBuilder.BuildSimpleBlockInstance(container, globalsProviderBlock);
@@ -82,7 +52,6 @@ namespace UnityEditor.ShaderFoundry
             cpDescBuilder.BlockInstances.Add(albedoColorBlockDesc);
 
             surfaceCPInst = cpDescBuilder.Build();
->>>>>>> sg2/shader-sandbox
         }
 
         internal static Block BuildGlobalsProviderBlock(ShaderContainer container)
@@ -131,15 +100,6 @@ namespace UnityEditor.ShaderFoundry
             var inputVariables = new List<BlockVariable>();
             var outputVariables = new List<BlockVariable>();
 
-<<<<<<< HEAD
-            // Make the uv variable. We can use the same variable as the input and output.
-            var uvBuilder = new BlockVariable.Builder(container);
-            uvBuilder.Type = container._float4;
-            uvBuilder.ReferenceName = "uv";
-            var uv = uvBuilder.Build();
-            inputVariables.Add(uv);
-            outputVariables.Add(uv);
-=======
             // Make the uv0 variable. We can use the same variable as the input and output.
             var uvBuilder = new BlockVariable.Builder(container);
             uvBuilder.Type = container._float4;
@@ -147,7 +107,6 @@ namespace UnityEditor.ShaderFoundry
             var uv0 = uvBuilder.Build();
             inputVariables.Add(uv0);
             outputVariables.Add(uv0);
->>>>>>> sg2/shader-sandbox
 
             // Take in 'TimeParameters' as a variable
             var timeParametersBuilder = new BlockVariable.Builder(container);
@@ -171,11 +130,7 @@ namespace UnityEditor.ShaderFoundry
             var inputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Input", inputVariables);
             var outputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Output", outputVariables);
 
-<<<<<<< HEAD
-            // Build a function that takes in uv, scales it by time and a speed, and then outputs it.
-=======
             // Build a function that takes in uv0, scales it by time and a speed, and then outputs it.
->>>>>>> sg2/shader-sandbox
             var entryPointFnBuilder = new ShaderFunction.Builder(container, $"{BlockName}Main", outputType);
             entryPointFnBuilder.AddInput(inputType, "inputs");
             entryPointFnBuilder.AddLine($"{outputType.Name} outputs;");
@@ -206,19 +161,11 @@ namespace UnityEditor.ShaderFoundry
             var propertyVariables = new List<BlockVariable>();
 
             // Take in uv as an input
-<<<<<<< HEAD
-            var uvInputBuilder = new BlockVariable.Builder(container);
-            uvInputBuilder.ReferenceName = "uv";
-            uvInputBuilder.Type = container._float4;
-            var uvInput = uvInputBuilder.Build();
-            inputVariables.Add(uvInput);
-=======
             var uv0InputBuilder = new BlockVariable.Builder(container);
             uv0InputBuilder.ReferenceName = "uv0";
             uv0InputBuilder.Type = container._float4;
             var uv0Input = uv0InputBuilder.Build();
             inputVariables.Add(uv0Input);
->>>>>>> sg2/shader-sandbox
 
             // Make an input for Color. This input will also be a property.
             // For convenience, an input can be tagged with the [Property] attribute which will automatically add it as a property.
@@ -236,15 +183,9 @@ namespace UnityEditor.ShaderFoundry
             string albedoTexRefName = "_AlbedoTex";
             SimpleSampleBuilder.BuildTexture2D(container, albedoTexRefName, "AlbedoTex", inputVariables, propertyVariables);
 
-<<<<<<< HEAD
-            // Create an output for a float3 color.
-            var colorOutBuilder = new BlockVariable.Builder(container);
-            colorOutBuilder.ReferenceName = "Color";
-=======
             // Create an output for a float3 BaseColor.
             var colorOutBuilder = new BlockVariable.Builder(container);
             colorOutBuilder.ReferenceName = "BaseColor";
->>>>>>> sg2/shader-sandbox
             colorOutBuilder.Type = container._float3;
             var colorOut = colorOutBuilder.Build();
             outputVariables.Add(colorOut);

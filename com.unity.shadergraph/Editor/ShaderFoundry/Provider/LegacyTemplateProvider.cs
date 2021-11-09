@@ -97,19 +97,11 @@ namespace UnityEditor.ShaderFoundry
                 ExtractVertexAndFragmentPostFields(legacyPass.descriptor, vertexContext, fragmentContext);
 
             var vertexBuilder = new CustomizationPoint.Builder(Container, LegacyCustomizationPoints.VertexDescriptionCPName);
-<<<<<<< HEAD
-            vertexCustomizationPoint = BuildCustomizationPoint(vertexBuilder, BuildVertexPreBlock(), BuildVertexPostBlock(vertexFields));
-            builder.AddCustomizationPoint(vertexCustomizationPoint);
-
-            var fragmentBuilder = new CustomizationPoint.Builder(Container, LegacyCustomizationPoints.SurfaceDescriptionCPName);
-            surfaceCustomizationPoint = BuildCustomizationPoint(fragmentBuilder, BuildFragmentPreBlock(), BuildFragmentPostBlock(fragmentFields));
-=======
             vertexCustomizationPoint = BuildCustomizationPoint(vertexBuilder, BuildVertexPreBlock(), BuildVertexPostBlock(vertexContext.Fields));
             builder.AddCustomizationPoint(vertexCustomizationPoint);
 
             var fragmentBuilder = new CustomizationPoint.Builder(Container, LegacyCustomizationPoints.SurfaceDescriptionCPName);
             surfaceCustomizationPoint = BuildCustomizationPoint(fragmentBuilder, BuildFragmentPreBlock(), BuildFragmentPostBlock(fragmentContext.Fields));
->>>>>>> sg2/shader-sandbox
             builder.AddCustomizationPoint(surfaceCustomizationPoint);
         }
 
@@ -157,11 +149,7 @@ namespace UnityEditor.ShaderFoundry
 
         BlockInstance BuildSimpleBlockDesc(Block block)
         {
-<<<<<<< HEAD
-            var builder = new BlockDescriptor.Builder(Container, block);
-=======
             var builder = new BlockInstance.Builder(Container, block);
->>>>>>> sg2/shader-sandbox
             return builder.Build();
         }
 
@@ -212,15 +200,12 @@ namespace UnityEditor.ShaderFoundry
 
         class NameOverride
         {
-<<<<<<< HEAD
-=======
             public string Source;
             public string Destination;
         }
 
         Block BuildMainBlock(string blockName, Block preBlock, Block postBlock, List<NameOverride> nameMappings, Dictionary<string, string> defaultVariableValues)
         {
->>>>>>> sg2/shader-sandbox
             var mainBlockBuilder = new Block.Builder(Container, blockName);
 
             if (nameMappings == null)
@@ -238,13 +223,8 @@ namespace UnityEditor.ShaderFoundry
                     availableOutputs[prop.ReferenceName] = prop;
 
                 // Build the input/output type from the matching fields
-<<<<<<< HEAD
-                var inputBuilder = new ShaderType.StructBuilder(Container, $"{blockName}DefaultIn");
-                var outputBuilder = new ShaderType.StructBuilder(Container, $"{blockName}DefaultOut");
-=======
                 var inputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultIn");
                 var outputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultOut");
->>>>>>> sg2/shader-sandbox
                 HashSet<string> declaredInputs = new HashSet<string>();
                 HashSet<string> declaredOutputs = new HashSet<string>();
 
@@ -284,11 +264,7 @@ namespace UnityEditor.ShaderFoundry
                 mainBlockBuilder.AddType(outType);
 
                 // Build the actual function
-<<<<<<< HEAD
-                var fnBuilder = new UnityEditor.ShaderFoundry.ShaderFunction.Builder(Container, $"{blockName}Default", outType);
-=======
                 var fnBuilder = new UnityEditor.ShaderFoundry.ShaderFunction.Builder(mainBlockBuilder, $"{blockName}Default", outType);
->>>>>>> sg2/shader-sandbox
                 fnBuilder.AddInput(inType, "input");
 
                 fnBuilder.AddLine($"{outType.Name} output;");
@@ -323,16 +299,6 @@ namespace UnityEditor.ShaderFoundry
 
         void ExtractVertex(Template template, TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, List<FieldDescriptor> vertexFields)
         {
-<<<<<<< HEAD
-            BlockVariableNameOverride BuildSimpleNameOverride(string sourceName, string destinationName, ShaderContainer container)
-            {
-                var builder = new BlockVariableNameOverride.Builder(Container);
-                builder.SourceName = sourceName;
-                builder.DestinationName = destinationName;
-                return builder.Build();
-            }
-=======
->>>>>>> sg2/shader-sandbox
             var vertexPreBlock = BuildVertexPreBlock();
             var vertexPostBlock = BuildVertexPostBlock(vertexFields);
 

@@ -7,9 +7,6 @@ namespace UnityEditor.ShaderFoundry
 {
     internal static class SimpleSampleBuilder
     {
-<<<<<<< HEAD
-        internal delegate void BuildCallback(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointDescriptor vertexCPDesc, out CustomizationPointDescriptor surfaceCPDesc);
-=======
         internal delegate void BuildCallback(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPInst, out CustomizationPointInstance surfaceCPInst);
 
         internal static void Build(ShaderContainer container, string shaderName, BuildCallback buildCallback, ShaderBuilder shaderBuilder)
@@ -17,25 +14,16 @@ namespace UnityEditor.ShaderFoundry
             var target = GetTarget();
             Build(container, target, shaderName, buildCallback, shaderBuilder);
         }
->>>>>>> sg2/shader-sandbox
 
         internal static void Build(ShaderContainer container, Target target, string shaderName, BuildCallback buildCallback, ShaderBuilder shaderBuilder)
         {
             ITemplateProvider provider = new LegacyTemplateProvider(target, new ShaderGraph.AssetCollection());
 
-<<<<<<< HEAD
-            var shaderDescBuilder = new ShaderDescriptor.Builder(shaderName);
-
-            foreach(var template in provider.GetTemplates(container))
-            {
-                var templateDescriptorBuilder = new TemplateDescriptor.Builder(container, template);
-=======
             var shaderInstBuilder = new ShaderInstance.Builder(container, shaderName);
             
             foreach(var template in provider.GetTemplates(container))
             {
                 var templateInstanceBuilder = new TemplateInstance.Builder(container, template);
->>>>>>> sg2/shader-sandbox
 
                 // Hard-coded find the two customization points we know will exist. This really should discovered from iterating long-term
                 var customizationPoints = template.CustomizationPoints.ToList();
@@ -48,19 +36,11 @@ namespace UnityEditor.ShaderFoundry
                 templateInstanceBuilder.AddCustomizationPointInstance(vertexCPInst);
                 templateInstanceBuilder.AddCustomizationPointInstance(surfaceCPInst);
 
-<<<<<<< HEAD
-                var templateDescriptor = templateDescriptorBuilder.Build();
-                shaderDescBuilder.TemplateDescriptors.Add(templateDescriptor);
-            }
-
-            var shaderDesc = shaderDescBuilder.Build(container);
-=======
                 var templateInstance = templateInstanceBuilder.Build();
                 shaderInstBuilder.TemplateInstances.Add(templateInstance);
             }
             
             var shaderInst = shaderInstBuilder.Build();
->>>>>>> sg2/shader-sandbox
             var generator = new ShaderGenerator();
             generator.Generate(shaderBuilder, container, shaderInst);
         }
@@ -70,14 +50,7 @@ namespace UnityEditor.ShaderFoundry
         {
             var typeBuilder = new ShaderType.StructBuilder(container, typeName);
             foreach (var variable in variables)
-<<<<<<< HEAD
-            {
-                var structFieldBuilder = new StructField.Builder(container, variable.ReferenceName, variable.Type);
-                typeBuilder.AddField(structFieldBuilder.Build());
-            }
-=======
                 typeBuilder.AddField(variable.Type, variable.ReferenceName);
->>>>>>> sg2/shader-sandbox
             return typeBuilder.Build();
         }
 
@@ -85,25 +58,14 @@ namespace UnityEditor.ShaderFoundry
         {
             // An input tagged with 'Property' is auto added as a property
             variableBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Property).Build());
-<<<<<<< HEAD
-            // [PropertyType] is used to fill out the type in the material attribute.
-            // Currently the Value is used to set this, but the name has to be non-empty...
-            variableBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PropertyType).Param(propertyType, propertyType).Build());
-=======
             // [PropertyType(propertyTypeName)] is used to fill out the type in the material attribute.
             variableBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PropertyType).Param(propertyType).Build());
->>>>>>> sg2/shader-sandbox
         }
 
         internal static BlockInstance BuildSimpleBlockInstance(ShaderContainer container, Block block)
         {
-<<<<<<< HEAD
-            var blockDescBuilder = new BlockDescriptor.Builder(container, block);
-            return blockDescBuilder.Build();
-=======
             var blockInstBuilder = new BlockInstance.Builder(container, block);
             return blockInstBuilder.Build();
->>>>>>> sg2/shader-sandbox
         }
 
         internal static void BuildTexture2D(ShaderContainer container, string referenceName, string displayName, List<BlockVariable> inputs, List<BlockVariable> properties)
@@ -116,18 +78,9 @@ namespace UnityEditor.ShaderFoundry
             propertyBuilder.ReferenceName = referenceName;
             propertyBuilder.DisplayName = displayName;
             propertyBuilder.Type = container._Texture2D;
-<<<<<<< HEAD
-
-            // [PropertyType] is used to fill out the type in the material attribute.
-            // Currently the Value is used to set this, but the name has to be non-empty...
-            propertyBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PropertyType).Param("2D", "2D").Build());
-            // Default expression is everything after the equal sign in the declaration
-            propertyBuilder.DefaultExpression = "\"white\" {}";
-=======
             
             // Add [MaterialProperty] to define the property block variable
             AddMaterialPropertyAttribute(propertyBuilder, referenceName, displayName, "2D", "\"white\" {}");
->>>>>>> sg2/shader-sandbox
             var textureProperty = propertyBuilder.Build();
             properties.Add(textureProperty);
 

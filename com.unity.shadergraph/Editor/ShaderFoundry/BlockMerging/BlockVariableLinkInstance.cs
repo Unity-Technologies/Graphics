@@ -108,14 +108,11 @@ namespace UnityEditor.ShaderFoundry
             foreach (var attribute in Attributes)
                 blockVariableBuilder.AddAttribute(attribute);
             return blockVariableBuilder.Build();
-<<<<<<< HEAD
-=======
         }
 
         internal void AddAlias(string name, string alias)
         {
             FieldOverrides.Add(new FieldOverride{ Name = name, Alias = alias });
->>>>>>> sg2/shader-sandbox
         }
     }
 }

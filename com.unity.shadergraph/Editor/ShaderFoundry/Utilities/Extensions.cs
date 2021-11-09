@@ -138,10 +138,6 @@ namespace UnityEditor.ShaderFoundry
                 if (paramIndex != 0)
                     builder.Add(", ");
                 if (param.IsOutput)
-<<<<<<< HEAD
-                    builder.Add("out ");
-                builder.Add($"{param.Type.Name} {param.Name}");
-=======
                 {
                     if (param.IsInput)
                         builder.Add(inoutKeyword, m_SpaceToken);
@@ -151,7 +147,6 @@ namespace UnityEditor.ShaderFoundry
 
                 builder.AppendTypeName(param.Type, parentBlock);
                 builder.Add(m_SpaceToken, param.Name);
->>>>>>> sg2/shader-sandbox
                 ++paramIndex;
             }
             builder.Add(m_EndParenthesisToken);
