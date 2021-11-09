@@ -525,8 +525,12 @@ namespace UnityEngine.VFX
                 var playableBehaviors = new List<VisualEffectControlPlayableBehaviour>();
                 for (int i = 0; i < inputCount; ++i)
                 {
-                    var inputPlayable = (ScriptPlayable<VisualEffectControlPlayableBehaviour>)playable.GetInput(i);
-                    var inputBehavior = inputPlayable.GetBehaviour();
+                    var inputPlayable = playable.GetInput(i);
+                    if (!inputPlayable.IsPlayableOfType<ScriptPlayable<VisualEffectControlPlayableBehaviour>>())
+                        continue;
+
+                    var inputVFXPlayable = (ScriptPlayable<VisualEffectControlPlayableBehaviour>)inputPlayable;
+                    var inputBehavior = inputVFXPlayable.GetBehaviour();
                     if (inputBehavior != null)
                         playableBehaviors.Add(inputBehavior);
                 }

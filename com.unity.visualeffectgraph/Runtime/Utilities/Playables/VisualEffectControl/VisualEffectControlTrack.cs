@@ -24,7 +24,21 @@ namespace UnityEngine.VFX
         protected override void OnBeforeTrackSerialize()
         {
             base.OnBeforeTrackSerialize();
-            m_VFXVersion = kCurrentVersion;
+
+            bool allClipAreControl = true;
+            foreach (var clip in GetClips())
+            {
+                if (!(clip.asset is VisualEffectControlPlayableClip))
+                {
+                    allClipAreControl = false;
+                    break;
+                }
+            }
+
+            if (allClipAreControl)
+            {
+                m_VFXVersion = kCurrentVersion;
+            }
         }
 
 #if UNITY_EDITOR
@@ -41,6 +55,12 @@ namespace UnityEngine.VFX
                     customClip.clipStart = clip.start;
                     customClip.clipEnd = clip.end;
                 }
+#if UNITY_EDITOR
+                else
+                {
+                    Debug.LogErrorFormat("Unexpected clip type : {0} in timeline '{1}'", clip, UnityEditor.AssetDatabase.GetAssetPath(timelineAsset));
+                }
+#endif
             }
 
             var mixer = ScriptPlayable<VisualEffectControlTrackMixerBehaviour>.Create(graph, inputCount);

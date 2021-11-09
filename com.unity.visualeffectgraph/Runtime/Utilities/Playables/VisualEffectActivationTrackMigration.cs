@@ -15,22 +15,10 @@ namespace UnityEditor.VFX.Migration
         {
             foreach (var track in timeline.GetOutputTracks())
             {
-                //TODOPAUL use IsUpToDate
-
                 if (track is VisualEffectControlTrack)
                 {
                     var vfxTrack = track as VisualEffectControlTrack;
-                    var hasOldClip = false;
-                    foreach (var clip in vfxTrack.GetClips())
-                    {
-                        if (clip.asset is VisualEffectActivationClip)
-                        {
-                            hasOldClip = true;
-                            break;
-                        }
-                    }
-
-                    if (hasOldClip)
+                    if (!vfxTrack.IsUpToDate())
                         yield return vfxTrack;
                 }
             }
