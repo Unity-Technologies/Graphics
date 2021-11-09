@@ -131,16 +131,6 @@ float Normalize01(float value, float minValue, float maxValue)
     return (value - minValue) / (maxValue - minValue);
 }
 
-float remap(float value, float from1, float to1, float from2, float to2)
-{
-    return Normalize01(value, from1, to1) * (to2 - from2) + from2;
-}
-
-float contrast(float value, float c, float midpoint)
-{
-    return (value - midpoint) * c + midpoint;
-}
-
 // Specialization without Fresnel (see PathTracingBSDF.hlsl for the reference implementation)
 bool SampleGGX_VNDF(float roughness_,
                     float3x3 localToWorld,
