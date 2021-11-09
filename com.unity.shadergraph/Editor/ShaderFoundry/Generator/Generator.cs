@@ -152,6 +152,7 @@ namespace UnityEditor.ShaderFoundry
                     vertexGraphOutputName);
 
                 vertexBlockBuilder.SetEntryPointFunction(vertexDescriptionFunction);
+                vertexBlockBuilder.BuildInterface(container, vertexDescriptionFunction);
                 vertexCPInst.BlockInstances.Add(BuildSimpleBlockInstance(container, vertexBlockBuilder.Build()));
             }
 
@@ -181,6 +182,7 @@ namespace UnityEditor.ShaderFoundry
                 pass.virtualTextureFeedback);
 
             fragmentBlockBuilder.SetEntryPointFunction(surfaceDescriptionFunction);
+            fragmentBlockBuilder.BuildInterface(container, surfaceDescriptionFunction);
             var sharedIncludeDesc = new IncludeDescriptor.Builder(container, $"\"{sharedPath}\"");
             fragmentBlockBuilder.AddInclude(sharedIncludeDesc.Build());
             foreach (var include in graphIncludes)
@@ -230,19 +232,18 @@ namespace UnityEditor.ShaderFoundry
         {
             var blockBuilder = new ShaderFoundry.Block.Builder(container, blockName);
 
-            void AddCustomInterpolantVariables(List<BlockVariable> variables)
+            void AddCustomInterpolantVariables(List<StructField> variables)
             {
                 foreach (var blockNode in customInterpSubGen.customBlockNodes)
                 {
                     var valueType = ShaderValueTypeFrom((int)blockNode.customWidth);
                     var typeName =  valueType.ToShaderString().Replace("$precision", generator.m_GraphData.graphDefaultConcretePrecision.ToShaderString());
-                    variables.Add(BuildSimpleVariable(container, blockBuilder, typeName, blockNode.customName));
+                    variables.Add(BuildSimpleField(container, blockBuilder, typeName, blockNode.customName));
                 }
             }
 
             var blockInputs = BuildInputs(generator, nodes, stageCapability, container, blockBuilder).ToList();
             var blockOutputs = BuildOutputs(slots, container, blockBuilder);
-            var blockProperties = new List<BlockVariable>();
             if (customInterpIsInput)
                 AddCustomInterpolantVariables(blockInputs);
 
@@ -258,58 +259,35 @@ namespace UnityEditor.ShaderFoundry
             }
             propCollector.Sort();
             PropertyUtils.BuildProperties(container, blockBuilder, blockInputs, propCollector, generator.m_GraphData.graphDefaultConcretePrecision);
-            //foreach (var prop in propCollector.properties)
-            //{
-            //    PropertyUtils.BuildProperties(container, blockBuilder, blockProperties, blockInputs, prop, generator.m_GraphData.graphDefaultConcretePrecision);
-            //    //PropertyUtils.BuildProperties(container, blockBuilder, blockInputs, prop, generator.m_GraphData.graphDefaultConcretePrecision);
-            //}
 
             var inputsStruct = BuildTypeBuilder(container, blockBuilder, inputsTypeName, blockInputs).Build();
             var outputsStruct = BuildTypeBuilder(container, blockBuilder, outputsTypeName, blockOutputs).Build();
             blockBuilder.AddType(inputsStruct);
             blockBuilder.AddType(outputsStruct);
-
-            foreach (var variable in blockInputs)
-            {
-                blockBuilder.AddInput(variable);
-                //if (variable.Attributes.FindFirst(CommonShaderAttributes.Property).IsValid)
-                //    blockBuilder.AddProperty(variable);
-            }
-            foreach (var variable in blockOutputs)
-                blockBuilder.AddOutput(variable);
-            foreach (var variable in blockProperties)
-                blockBuilder.AddProperty(variable);
             return blockBuilder;
         }
 
-        static BlockVariable.Builder BuildSimpleVariableBuilder(ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder, string typeName, string referenceName, string displayName = null)
+        static StructField BuildSimpleField(ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder, string typeName, string name)
         {
-            var builder = new BlockVariable.Builder(container);
-            builder.ReferenceName = referenceName;
-            builder.DisplayName = displayName ?? referenceName;
-            builder.Type = container.GetType(blockBuilder, typeName);
-            return builder;
+            var type = container.GetType(blockBuilder, typeName);
+            var builder = new StructField.Builder(container, name, type);
+            return builder.Build();
         }
 
-        static BlockVariable BuildSimpleVariable(ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder, string typeName, string referenceName, string displayName = null)
-        {
-            return BuildSimpleVariableBuilder(container, blockBuilder, typeName, referenceName, displayName).Build();
-        }
-
-        static ShaderType.StructBuilder BuildTypeBuilder(ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder, string typeName, IEnumerable<BlockVariable> variables)
+        static ShaderType.StructBuilder BuildTypeBuilder(ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder, string typeName, IEnumerable<StructField> fields)
         {
             var builder = new ShaderFoundry.ShaderType.StructBuilder(blockBuilder, typeName);
             // Add active fields
-            foreach (var variable in variables)
+            foreach (var field in fields)
             {
-                builder.AddField(variable.Type, variable.ReferenceName);
+                builder.AddField(field);
             }
             return builder;
         }
 
-        static IEnumerable<BlockVariable> BuildInputs(ShaderGraph.Generator generator, List<AbstractMaterialNode> nodes, ShaderStageCapability stageCapability, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
+        static IEnumerable<StructField> BuildInputs(ShaderGraph.Generator generator, List<AbstractMaterialNode> nodes, ShaderStageCapability stageCapability, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
         {
-            List<BlockVariable> results = new List<BlockVariable>();
+            List<StructField> results = new List<StructField>();
             // Add active fields
             var activeFields = GetActiveFieldsFor(nodes, stageCapability);
             foreach (var field in activeFields)
@@ -317,7 +295,7 @@ namespace UnityEditor.ShaderFoundry
                 if (field.type == null)
                     continue;
                 var concretizedTypeName = field.type.Replace("$precision", generator.m_GraphData.graphDefaultConcretePrecision.ToShaderString());
-                results.Add(BuildSimpleVariable(container, blockBuilder, concretizedTypeName, field.name, field.name));
+                results.Add(BuildSimpleField(container, blockBuilder, concretizedTypeName, field.name));
             }
             return results;
         }
@@ -338,19 +316,14 @@ namespace UnityEditor.ShaderFoundry
             return builder;
         }
 
-        static ShaderFoundry.ShaderType BuildInputsType(ShaderGraph.Generator generator, List<AbstractMaterialNode> nodes, string typeName, ShaderStageCapability stageCapability, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
+        static IEnumerable<StructField> BuildOutputs(List<MaterialSlot> slots, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
         {
-            return BuildInputsTypeBuilder(generator, nodes, typeName, stageCapability, container, blockBuilder).Build();
-        }
-
-        static IEnumerable<BlockVariable> BuildOutputs(List<MaterialSlot> slots, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
-        {
-            List<BlockVariable> results = new List<BlockVariable>();
+            List<StructField> results = new List<StructField>();
             foreach (var slot in slots)
             {
                 string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
                 var fieldTypeName = slot.concreteValueType.ToShaderString(slot.owner.concretePrecision);
-                results.Add(BuildSimpleVariable(container, blockBuilder, fieldTypeName, hlslName));
+                results.Add(BuildSimpleField(container, blockBuilder, fieldTypeName, hlslName));
             }
             return results;
         }
@@ -365,11 +338,6 @@ namespace UnityEditor.ShaderFoundry
                 builder.AddField(fieldType, hlslName);
             }
             return builder;
-        }
-
-        static ShaderFoundry.ShaderType BuildOutputsType(List<MaterialSlot> slots, string typeName, ShaderFoundry.ShaderContainer container, ShaderFoundry.Block.Builder blockBuilder)
-        {
-            return BuildOutputsTypeBuilder(slots, typeName, container, blockBuilder).Build();
         }
 
         static private void ExtractNodesNew(ShaderGraph.Generator generator, ShaderFoundry.TemplatePass passDesc, PassDescriptor pass, ActiveFields activeFields, PropertyCollector propertyCollector, out List<AbstractMaterialNode> vertexNodes, out List<AbstractMaterialNode> pixelNodes, out List<MaterialSlot> pixelSlots, out List<MaterialSlot> vertexSlots)
