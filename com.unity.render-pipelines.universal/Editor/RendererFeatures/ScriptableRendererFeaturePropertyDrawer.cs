@@ -134,7 +134,7 @@ namespace UnityEditor.Rendering.Universal
     }
 
     [CustomPropertyDrawer(typeof(ScriptableRendererFeature), false)]
-    public class ScriptableRendererFeaturePropertyDefault : ScriptableRendererFeaturePropertyDrawer
+    public class ScriptableRendererFeaturePropertyDrawerDefault : ScriptableRendererFeaturePropertyDrawer
     {
         private struct Styles
         {
