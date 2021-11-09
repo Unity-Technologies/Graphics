@@ -12,6 +12,9 @@ SAMPLER(s_linear_clamp_sampler);
 SAMPLER(s_point_clamp_sampler);
 #endif
 
+
+#define MANUAL_FILTERING 0
+
 struct APVResources
 {
     StructuredBuffer<int> index;
@@ -245,147 +248,45 @@ void CombineWeightsWithTrilinear(float3 uvw, inout float weights[8])
 
 float3 ModifyUVWForLeak(APVResources apvRes, float3 uvw)
 {
-    //if (_AntiLeakParams.x == 0)
-    //    return uvw;
+    if (_AntiLeakParams.x == 0)
+        return uvw;
 
-    //float weights[8];
-    //GetValidityBasedWeights(apvRes, uvw, weights);
-    //CombineWeightsWithTrilinear(uvw, weights);
-    //if (_AntiLeakParams.x == 1)
-    //{
-    //    GetTrilinearWeights(uvw, weights);
-    //}
+    float weights[8];
 
-    //float3 newFrac = 0.0f;
-    //for (uint i = 0; i < 8; ++i)
-    //{
-    //    uint3 o = GetSampleOffset(i);
-    //    newFrac += (float3)o * weights[i];
-    //}
-    //float3 texelLocFloat = uvw * _PoolDim;
-    //texelLocFloat = texelLocFloat - frac(texelLocFloat) + newFrac;
+    float3 texCoordFloat = uvw * _PoolDim - .5f;
+    int3 texCoordInt = texCoordFloat;
+    float3 texFrac = frac(texCoordFloat);
 
-    //return texelLocFloat * rcp(_PoolDim);
+    float _ProbeVolumeBilateralFilterWeight = _AntiLeakParams.y;
 
-    //if (_AntiLeakParams.x > 1)
-    //{
-    //    float3 texelLocFloat = uvw * _PoolDim;
-    //    float3 texFrac = frac(texelLocFloat);
-
-
-    //    float3 oneMinTexFrac = 1.0f - texFrac;
-
-
-    //    float w000 = oneMinTexFrac.x * oneMinTexFrac.y * oneMinTexFrac.z;
-    //    float w100 = texFrac.x * oneMinTexFrac.y * oneMinTexFrac.z;
-    //    float w010 = oneMinTexFrac.x * texFrac.y * oneMinTexFrac.z;
-    //    float w110 = texFrac.x * oneMinTexFrac.y * texFrac.z;
-
-    //    float w001 = oneMinTexFrac.x * oneMinTexFrac.y * texFrac.z;
-    //    float w101 = texFrac.x * oneMinTexFrac.y * texFrac.z;
-    //    float w011 = oneMinTexFrac.x * texFrac.y * texFrac.z;
-    //    float w111 = texFrac.x * texFrac.y * texFrac.z;
-
-
-    //    float3 frac = 0;
-    //    frac.x = w111 * rcp(w111 + w011);
-    //    frac.y = w111 * rcp(w111 + w101);
-    //    frac.z = (w111 * w111 + w011 * (w111 + w101) + w101 * w111) * rcp(w111);
-
-    //    return (floor(texelLocFloat) + frac) * rcp(_PoolDim);
-
-    //    return texelLocFloat * rcp(_PoolDim);
-    //}
-    //if (_AntiLeakParams.x > 0)
-    //{
-    //    float3 texelLocFloat = uvw * _PoolDim;
-    //    float3 texFrac = frac(texelLocFloat);
-
-    //    float3 oneMinTexFrac = 1.0f - texFrac;
-
-    //    ///// Trilinear weights
-    //    float w000 = oneMinTexFrac.x * oneMinTexFrac.y * oneMinTexFrac.z;
-    //    float w100 = texFrac.x * oneMinTexFrac.y * oneMinTexFrac.z;
-    //    float w010 = oneMinTexFrac.x * texFrac.y * oneMinTexFrac.z;
-    //    float w110 = texFrac.x * oneMinTexFrac.y * texFrac.z;
-
-    //    float w001 = oneMinTexFrac.x * oneMinTexFrac.y * texFrac.z;
-    //    float w101 = texFrac.x * oneMinTexFrac.y * texFrac.z;
-    //    float w011 = oneMinTexFrac.x * texFrac.y * texFrac.z;
-    //    float w111 = texFrac.x * texFrac.y * texFrac.z;
-
-    //    //////////////////////
-
-    //    // TODO_FCC: Add 0.5?
-    //    float3 loc = floor(texelLocFloat);
-
-    //    // TODO: If this is indeed what we go through, might be worth to precompute into a single texture (8 samples, in 64 bit we can have 64/8 = 8bit per channel)
-    //   // float v LOAD_TEXTURE3D
-    //    float _ProbeVolumeBilateralFilterWeightMin = 0;
-    //    float v000 = LOAD_TEXTURE3D(apvRes.Validity, int3(loc.x + 0, loc.y + 0, loc.z + 0));
-    //    float v100 = LOAD_TEXTURE3D(apvRes.Validity, int3(loc.x + 1, loc.y + 0, loc.z + 0));
-    //    float v010 = LOAD_TEXTURE3D(apvRes.Validity, int3(loc.x + 0, loc.y + 1, loc.z + 0));
-    //    float v110 = LOAD_TEXTURE3D(apvRes.Validity, int3(loc.x + 1, loc.y + 1, loc.z + 0));
-
-    //    float v001 = LOAD_TEXTURE3D(apvRes.Validity, int3(loc.x + 0, loc.y + 0, loc.z + 1));
-    //    float v101 = LOAD_TEXTURE3D(apvRes.Validity, int3(loc.x + 1, loc.y + 0, loc.z + 1));
-    //    float v011 = LOAD_TEXTURE3D(apvRes.Validity, int3(loc.x + 0, loc.y + 1, loc.z + 1));
-    //    float v111 = LOAD_TEXTURE3D(apvRes.Validity, int3(loc.x + 1, loc.y + 1, loc.z + 1));
-
-
-    //    float _ProbeVolumeBilateralFilterWeight = _AntiLeakParams.y;
-
-    //    float probeWeight000 = lerp(w000, w000 * v000, _ProbeVolumeBilateralFilterWeight);
-    //    float probeWeight100 = lerp(w100, w100 * v100, _ProbeVolumeBilateralFilterWeight);
-    //    float probeWeight010 = lerp(w010, w010 * v010, _ProbeVolumeBilateralFilterWeight);
-    //    float probeWeight110 = lerp(w110, w110 * v110, _ProbeVolumeBilateralFilterWeight);
-
-    //    float probeWeight001 = lerp(w001, w001 * v001, _ProbeVolumeBilateralFilterWeight);
-    //    float probeWeight101 = lerp(w101, w101 * v101, _ProbeVolumeBilateralFilterWeight);
-    //    float probeWeight011 = lerp(w011, w011 * v011, _ProbeVolumeBilateralFilterWeight);
-    //    float probeWeight111 = lerp(w111, w111 * v111, _ProbeVolumeBilateralFilterWeight);
-
-    //    float probeWeightTotal =
-    //        probeWeight000 +
-    //        probeWeight100 +
-    //        probeWeight010 +
-    //        probeWeight110 +
-    //        probeWeight001 +
-    //        probeWeight101 +
-    //        probeWeight011 +
-    //        probeWeight111;
-
-    //    // Weights are enforced to be > 0.0 to guard against divide by zero.
-    //    float probeWeightNormalization = 1.0 / probeWeightTotal;
-    //    probeWeight000 *= probeWeightNormalization;
-    //    probeWeight100 *= probeWeightNormalization;
-    //    probeWeight010 *= probeWeightNormalization;
-    //    probeWeight110 *= probeWeightNormalization;
-    //    probeWeight001 *= probeWeightNormalization;
-    //    probeWeight101 *= probeWeightNormalization;
-    //    probeWeight011 *= probeWeightNormalization;
-    //    probeWeight111 *= probeWeightNormalization;
-
-
-    //    float3 probeVolumeTexel3DFrac =
-    //        float3(0.0, 0.0, 0.0) * probeWeight000 +
-    //        float3(1.0, 0.0, 0.0) * probeWeight100 +
-    //        float3(0., 0., 1.) * probeWeight001 +
-    //        float3(1., 0., 1) * probeWeight101 +
-    //        float3(0., 1., 0.) * probeWeight010 +
-    //        float3(1., 1., 0.) * probeWeight110 +
-    //        float3(0., 1., 1.) * probeWeight011 +
-    //        float3(1., 1., 1.) * probeWeight111;
-
-    //    // Reconstruct frac pos.
+    float3 oneMinTexFrac = 1.0f - texFrac;
+    float totalWeight = 0;
 
 
 
-    //    texelLocFloat = floor(texelLocFloat - 0.5) + probeVolumeTexel3DFrac;
+    float3 newFrac = 0.0f;
+    for (uint i = 0; i < 8; ++i)
+    {
+        uint3 offset = GetSampleOffset(i);
+        float w =
+            ((offset.x == 1) ? texFrac.x : oneMinTexFrac.x) *
+            ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
+            ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
+
+        float vW = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt + offset).w;
+        vW = all(_AntiLeakParams == 0) ? 1 : pow(1.0 - vW, 128);
+        float finalW = lerp(w, w * vW, _ProbeVolumeBilateralFilterWeight);
+
+        newFrac += (float3)offset * finalW;
+        totalWeight += finalW;
+    }
+
+    newFrac /= totalWeight;
 
 
-    //    return texelLocFloat * rcp(_PoolDim);
-    //}
+    float3 texelLocFloat = uvw * _PoolDim;
+    texelLocFloat = texCoordInt + newFrac;
+    return (texelLocFloat +0.5f) * rcp(_PoolDim);
 
     return uvw;
 }
@@ -429,8 +330,10 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     offset *= 3.0 / _PoolDim;                       // convert brick footprint to texels footprint in pool texel space
     uvw += offset;                                  // add the final offset
 
+#if MANUAL_FILTERING == 0
     if (any(_AntiLeakParams !=0))
         uvw = ModifyUVWForLeak(apvRes, uvw);
+#endif
 
     return hasValidUVW;
 }
@@ -470,7 +373,7 @@ bool TryToGetPoolUVWAndSubdiv_(APVResources apvRes, float3 posWS, float3 normalW
 
     // calculate uv offset and scale
     float3 offset = frac(posRS / (float)cellSize);  // [0;1] in brick space
-    offset    = clamp( offset, 0.25, 0.75 );      // [0.25;0.75] in brick space (is this actually necessary?)
+   // offset    = clamp( offset, 0.25, 0.75 );      // [0.25;0.75] in brick space (is this actually necessary?)
     offset *= 3.0 / _PoolDim;                       // convert brick footprint to texels footprint in pool texel space
     uvw += offset;                                  // add the final offset
 
@@ -526,7 +429,11 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw)
     float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba;
     float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_linear_clamp_sampler, uvw, 0).rgba;
 
-    apvSample.L0 = GetManuallyFilteredL0(apvRes, uvw);// L0_L1Rx.xyz;
+#if MANUAL_FILTERING
+    apvSample.L0 = GetManuallyFilteredL0(apvRes, uvw);
+#else
+    apvSample.L0 = L0_L1Rx.xyz;
+#endif
     apvSample.L1_R = float3(L0_L1Rx.w, L1G_L1Ry.w, L1B_L1Rz.w);
     apvSample.L1_G = L1G_L1Ry.xyz;
     apvSample.L1_B = L1B_L1Rz.xyz;
