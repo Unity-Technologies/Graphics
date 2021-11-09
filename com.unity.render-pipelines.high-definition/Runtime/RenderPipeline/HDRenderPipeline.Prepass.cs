@@ -276,6 +276,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.resolvedMotionVectorsBuffer);
                 }
 
+                RenderCustomPass(renderGraph, hdCamera, colorBuffer, result, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterOpaqueMotionVectors, aovRequest, aovBuffers);
+
                 // NOTE: Currently we profiled that generating the HTile for SSR and using it is not worth it the optimization.
                 // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
                 // re-enabled in the shader.

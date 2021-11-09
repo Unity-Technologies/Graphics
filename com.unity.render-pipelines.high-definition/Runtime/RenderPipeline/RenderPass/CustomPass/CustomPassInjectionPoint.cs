@@ -18,6 +18,10 @@ namespace UnityEngine.Rendering.HighDefinition
         BeforeRendering = 0,
         /// <summary>At this point, you can modify the normal, roughness, and depth buffer. If you write to these buffers at this injection point, HDRP takes it into account in the lighting and the depth pyramid.</summary>
         AfterOpaqueDepthAndNormal = 5,
+        /// <summary></summary>
+        AfterOpaqueMotionVectors = 7,
+        /// <summary></summary>
+        AfterForwardOpaque = 6,
         /// <summary>At this injection point, you can render any transparent GameObject that you want to see in refraction. If you write to buffers at this injection point, they contents end up in the color pyramid that HDRP uses for refraction when it draws transparent GameObjects.</summary>
         BeforePreRefraction = 4,
         /// <summary>At this injection point, you can sample the color pyramid that HDRP generates for rough transparent refraction.</summary>

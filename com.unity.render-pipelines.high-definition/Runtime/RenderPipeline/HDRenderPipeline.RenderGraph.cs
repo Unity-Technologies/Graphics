@@ -172,6 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput.depthBuffer, vtFeedbackBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
 
+                    RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterForwardOpaque, aovRequest, aovCustomPassBuffers);
                     ResetCameraMipBias(hdCamera);
 
                     if (aovRequest.isValid)
