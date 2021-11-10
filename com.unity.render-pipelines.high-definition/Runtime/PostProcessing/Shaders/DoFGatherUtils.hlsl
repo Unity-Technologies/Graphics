@@ -359,7 +359,7 @@ int GetTileClass(float2 sampleTC)
         return FAST_INFOCUS_TILE;
     else if (minRadius > 2.5 && maxRadius > 2.5)
         return FAST_DEFOCUS_TILE;
-    else 
+    else
         return SLOW_INFOCUS_TILE;
 }
 
