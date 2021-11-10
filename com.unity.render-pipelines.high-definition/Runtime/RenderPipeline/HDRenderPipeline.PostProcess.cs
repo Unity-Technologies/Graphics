@@ -2152,6 +2152,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.dofCircleOfConfusionCS.EnableKeyword("USE_MIN_DEPTH");
             }
 
+            if(m_DepthOfField.fixManualRangeNearBlend && m_DepthOfField.focusMode == DepthOfFieldMode.Manual && !m_DepthOfField.physicallyBased && m_DepthOfField.IsNearLayerActive())
+            {
+                parameters.dofCoCCS.EnableKeyword("FIX_NEAR_BLEND");
+            }
+
             parameters.useMipSafePath = m_UseSafePath;
 
             return parameters;

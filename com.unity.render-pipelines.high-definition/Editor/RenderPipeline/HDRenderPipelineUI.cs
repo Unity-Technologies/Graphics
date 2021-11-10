@@ -733,6 +733,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.DoFResolution.GetArrayElementAtIndex(tier), Styles.resolutionQuality);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.DoFHighFilteringQuality.GetArrayElementAtIndex(tier), Styles.highQualityFiltering);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.DoFPhysicallyBased.GetArrayElementAtIndex(tier), Styles.dofPhysicallyBased);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.FixManualRangeNearBlend.GetArrayElementAtIndex(tier), Styles.fixNearBlend);
         }
 
         static void DrawMotionBlurQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
