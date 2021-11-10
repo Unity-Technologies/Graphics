@@ -2,8 +2,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using UnityEngine.Rendering;
-using Unity.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
