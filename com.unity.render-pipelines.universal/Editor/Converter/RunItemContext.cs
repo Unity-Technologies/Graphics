@@ -18,6 +18,9 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         internal bool hasConverted { get; set; }
 
+        /// <summary> A bool to set if this item failed to convert. </summary>
+        public bool isBatchMode { get; internal set; }
+
         /// <summary> Constructor for the RunItemContext. </summary>
         public RunItemContext(ConverterItemInfo item)
         {
@@ -25,6 +28,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             didFail = false;
             info = "";
             hasConverted = false;
+            isBatchMode = false;
         }
     }
 }

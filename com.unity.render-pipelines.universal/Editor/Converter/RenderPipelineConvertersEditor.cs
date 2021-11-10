@@ -141,9 +141,9 @@ namespace UnityEditor.Rendering.Universal.Converters
 
             // This is the drop down choices.
             m_ConverterContainers = TypeCache.GetTypesDerivedFrom<RenderPipelineConverterContainer>();
-            foreach (var continerType in m_ConverterContainers)
+            foreach (var containerType in m_ConverterContainers)
             {
-                var container = (RenderPipelineConverterContainer)Activator.CreateInstance(continerType);
+                var container = (RenderPipelineConverterContainer)Activator.CreateInstance(containerType);
                 m_Containers.Add(container);
                 m_ContainerChoices.Add(container.name);
             }
