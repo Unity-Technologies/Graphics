@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
                 requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = WaterForward,
-                pragmas = HDShaderPasses.GeneratePragmas(CorePragmas.DotsInstancedInV2Only, false, false),
+                pragmas = HDShaderPasses.GeneratePragmas(CorePragmas.DotsInstanced, false, false),
                 defines = HDShaderPasses.GenerateDefines(WaterForwardDefinesProcedural, false, false),
                 includes = GenerateIncludes(),
 
@@ -188,7 +188,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
                 requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = WaterForward,
-                pragmas = HDShaderPasses.GeneratePragmas(CorePragmas.DotsInstancedInV2Only, false, false),
+                pragmas = HDShaderPasses.GeneratePragmas(CorePragmas.DotsInstanced, false, false),
                 defines = HDShaderPasses.GenerateDefines(WaterForwardDefinesMesh, false, false),
                 includes = GenerateIncludes(),
 

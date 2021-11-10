@@ -282,8 +282,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_WindOrientation);
-                EditorGUILayout.PropertyField(m_WindSpeed);
-                m_WindSpeed.floatValue = Mathf.Clamp(m_WindSpeed.floatValue, 0.0f, 100.0f);
+                m_WindSpeed.floatValue = EditorGUILayout.Slider("Wind Speed", m_WindSpeed.floatValue, 0.0f, 100.0f);
                 m_WindAffectCurrent.floatValue = EditorGUILayout.Slider("Wind Affects Current", m_WindAffectCurrent.floatValue, 0.0f, 1.0f);
                 EditorGUILayout.PropertyField(m_WindFoamCurve);
             }
