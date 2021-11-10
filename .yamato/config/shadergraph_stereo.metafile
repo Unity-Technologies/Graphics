@@ -3,7 +3,9 @@ project:
   folder: ShaderGraphUniversalStereo
 test_platforms:
   - type: Standalone
+    allow_cache: False
   - type: editmode
+    allow_cache: False
 
 platforms:
   - name: Win
