@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public class WaterSurface : MonoBehaviour
     {
         /// <summary>
-        /// Control the type of geometry used to render the water surface when non infinite.
+        /// Controls the type of geometry used to render the water surface when non infinite.
         /// </summary>
         public enum WaterGeometryType
         {
@@ -20,72 +20,72 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Water General
         /// <summary>
-        /// Controls if the water surface should be rendered as an infinite water surface. This is designed to render seas and oceans.
+        /// When enabled, the water surface is rendered as an infinite surface. This is designed to render seas and oceans.
         /// </summary>
-        [Tooltip("Controls if the water surface should be rendered as an infinite water surface. This is designed to render seas and oceans.")]
+        [Tooltip("When enabled, the water surface is rendered as an infinite surface. This is designed to render seas and oceans.")]
         public bool infinite = true;
 
         /// <summary>
-        /// Controls the earth radius that used to curve the water surface when in infite mode to simulate the earth's curvature.
+        /// Sets the earth radius that is used to curve the water surface when in infite mode to simulate the earth's curvature.
         /// </summary>
-        [Tooltip("Controls the earth radius that used to curve the water surface when in infite mode to simulate the earth's curvature.")]
+        [Tooltip("Sets the earth radius that is used to curve the water surface when in infite mode to simulate the earth's curvature.")]
         public float earthRadius = 6371000.0f;
 
         /// <summary>
-        /// Control the type of geometry used to render the water surface when non infinite.
+        /// Specifies the type of geometry used to render the water surface when non infinite.
         /// </summary>
-        [Tooltip("Control the type of geometry used to render the water surface when non infinite.")]
+        [Tooltip("Specifies the type of geometry used to render the water surface when non infinite.")]
         public WaterGeometryType geometryType = WaterGeometryType.Quad;
 
         /// <summary>
-        /// Specifies the geometry to use when rendering in finite and custom geometry type mode.
+        /// Sets the geometry to use when rendering in finite and custom geometry type mode.
         /// </summary>
-        [Tooltip("Specifies the geometry to use when rendering in finite and custom geometry type mode.")]
+        [Tooltip("Sets the geometry to use when rendering in finite and custom geometry type mode.")]
         public Mesh geometry = null;
         #endregion
 
         #region Water Simulation
         /// <summary>
-        /// Specifies the maximum patch size that is used to run the water simulation.
+        /// Sets the maximum patch size that is used to run the water simulation.
         /// </summary>
-        [Tooltip("Specifies the maximum patch size that is used to run the water simulation.")]
+        [Tooltip("Sets the maximum patch size that is used to run the water simulation.")]
         public float waterMaxPatchSize = 500.0f;
 
         /// <summary>
-        /// When set to true, the water simulation and rendering will evaluate 4 bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.
+        /// When enabled, the water system and rendering evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.
         /// </summary>
-        [Tooltip("When set to true, the water simulation and rendering will evaluate 4 bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.")]
+        [Tooltip("When enabled, the water system and rendering evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.")]
         public bool highBandCount = true;
 
         /// <summary>
-        /// Specifies the normalized (between 0.0 and 1.0) amplitude of each simulation band.
+        /// Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).
         /// </summary>
-        [Tooltip("Specifies the normalized (between 0.0 and 1.0) amplitude of each simulation band.")]
+        [Tooltip("Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).")]
         public Vector4 amplitude = Vector4.one;
 
         /// <summary>
-        /// Controls the choppiness factor the waves. Higher values may introduce visual artifacts.
+        /// Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.
         /// </summary>
-        [Tooltip("Controls the choppiness factor the waves. Higher values may introduce visual artifacts.")]
+        [Tooltip("Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.")]
         public float choppiness = 1.0f;
 
         /// <summary>
-        /// Controls the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.
+        /// Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.
         /// </summary>
-        [Tooltip("Controls the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.")]
+        [Tooltip("Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.")]
         public float timeMultiplier = 1.0f;
         #endregion
 
         #region Water Material
         /// <summary>
-        /// Controls the material that is used to render the water surface. If set to None a default material is used.
+        /// Sets the material that is used to render the water surface. If set to None a default material is used.
         /// </summary>
-        [Tooltip("Controls the material that is used to render the water surface. If set to None a default material is used.")]
+        [Tooltip("Sets the material that is used to render the water surface. If set to None a default material is used.")]
         public Material material = null;
         /// <summary>
-        /// Control the smoothness used to render the water surface.
+        /// Controls the smoothness used to render the water surface.
         /// </summary>
-        [Tooltip("Control the smoothness used to render the water surface.")]
+        [Tooltip("Controls the smoothness used to render the water surface.")]
         public float waterSmoothness = 0.95f;
         #endregion
 
