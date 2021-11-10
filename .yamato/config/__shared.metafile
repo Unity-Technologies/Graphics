@@ -67,18 +67,20 @@ test_platforms:
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, OSX_OpenGlCore]: --player-load-path=players
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
-      - [OSX_Metal, OSX_Apple_Silicon_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
+      - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
+      #- [OSX_Metal, OSX_Apple_Silicon_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
 
       - [OSX_Metal]: --editor-location=.Editor
-      - [OSX_Apple_Silicon_Metal]: --editor-location=~/Graphics/.Editor
+      #- [OSX_Apple_Silicon_Metal]: --editor-location=~/Graphics/.Editor
 
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: --testfilter=%TEST_FILTER%
 
-      - [OSX_Apple_Silicon_Metal]: --device=arm64 --configuration=metal --device-ip=%BOKKEN_DEVICE_IP% --extra-editor-arg="-force-metal"
+      - [OSX_Apple_Silicon_Metal]: --device-ip=%BOKKEN_DEVICE_IP% --extra-editor-arg="-force-metal"
 
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, OSX_Apple_Silicon_Metal]: --architecture=ARM64
-      - [OSX_Metal, OSX_Apple_Silicon_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
+      - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
+      #- [OSX_Metal, OSX_Apple_Silicon_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto
 
     utr_flags_build:
@@ -165,7 +167,7 @@ test_platforms:
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
       - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
 
-      - [OSX_Apple_Silicon_Metal]: --device=arm64 --configuration=metal --device-ip=%BOKKEN_DEVICE_IP% --extra-editor-arg="-force-metal" --architecture=ARM64
+      - [OSX_Apple_Silicon_Metal]: --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64
     commands:
       - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
@@ -371,6 +373,9 @@ platforms:
           - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
           - chmod +x ./utr
         call_utr:
+          - brew install git-lfs
+          - git-lfs install
+          - git-lfs pull
           - |5-
                     export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                     ./utr <UTR_FLAGS>

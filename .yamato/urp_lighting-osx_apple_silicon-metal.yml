@@ -28,9 +28,12 @@ URP_Lighting_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  brew install git-lfs
+      -  git-lfs install
+      -  git-lfs pull
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_Lighting/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --editor-location=~/Graphics/.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_Lighting --timeout=1200 --zero-tests-are-ok=1
+              ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -60,9 +63,12 @@ URP_Lighting_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  brew install git-lfs
+      -  git-lfs install
+      -  git-lfs pull
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
+              ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -92,9 +98,12 @@ URP_Lighting_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_trunk:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  brew install git-lfs
+      -  git-lfs install
+      -  git-lfs pull
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
+              ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -124,9 +133,12 @@ URP_Lighting_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_trunk:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  brew install git-lfs
+      -  git-lfs install
+      -  git-lfs pull
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_Lighting/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --editor-location=~/Graphics/.Editor --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_Lighting --timeout=1200 --zero-tests-are-ok=1
+              ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -156,9 +168,12 @@ URP_Lighting_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  brew install git-lfs
+      -  git-lfs install
+      -  git-lfs pull
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_Lighting/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --editor-location=~/Graphics/.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_Lighting --timeout=1200 --zero-tests-are-ok=1
+              ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -188,9 +203,12 @@ URP_Lighting_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  brew install git-lfs
+      -  git-lfs install
+      -  git-lfs pull
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
+              ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -220,9 +238,12 @@ URP_Lighting_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  brew install git-lfs
+      -  git-lfs install
+      -  git-lfs pull
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
+              ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -252,9 +273,12 @@ URP_Lighting_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  brew install git-lfs
+      -  git-lfs install
+      -  git-lfs pull
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_Lighting/test-results --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --editor-location=~/Graphics/.Editor --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_Lighting --timeout=1200 --zero-tests-are-ok=1
+              ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
