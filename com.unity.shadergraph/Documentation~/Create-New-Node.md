@@ -30,6 +30,18 @@ To create a new node from another node's [Edge](Edge.md):
 > [!NOTE]
 > When opening the Create Node menu from an existing node's Edge, you can only access and add nodes that are compatible with the Data Type of your current Edge. For more information, see [Data Types](Data-Types.md).
 
+## In the Master Stack
+
+To add a new Block node to a [Context](Master-Stack.md#Contexts) in your graph's [Master Stack](Master-Stack.md):
+
+1. [!include[with-graph-open](./snippets/sg-with-graph-open.md)] open the Create Node menu in the Master Stack by doing one of the following:
+
+    - Right-click directly above or below an existing Block node in a Context and select **Create Node**.
+    - With an existing Block node selected in a Context, press the Spacebar.
+    - Select an empty Context and press the Spacebar.
+
+[!include[add-node-master-stack](./snippets/sg-add-node-master-stack.md)]
+
 ## Next steps
 
 After you've created a node in your Shader Graph, you can [create connections](Create-Connection.md) to specify how data should flow between nodes in your Shader Graph.

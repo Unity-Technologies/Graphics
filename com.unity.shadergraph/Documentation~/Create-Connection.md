@@ -15,7 +15,7 @@ To create a new Edge:
     - To attach your Edge to another port on an existing node, release on the port where you want to create the connection.
 
     > [!NOTE]
-    > You can create Edges between nodes you add to your Shader Graph from the Create Node menu, or to Block nodes in your Master Stack. Edges between Create Node menu nodes and Block nodes determine the final output of your shader. For more information on Block nodes, see [Block node](Block-Node.md).
+    > You can create Edges between nodes you add to your Shader Graph from the Create Node menu, or to Block nodes in your Master Stack. Edges between nodes and Block nodes determine the final output of your shader. For more information on Block nodes, see [Block node](Block-Node.md).
 
     ![](images/)
     <!-- Add an image showing two nodes connected to each other -->

@@ -1,9 +1,9 @@
 ---
-title: find-add-node-create-node-menu
+title: add-node-master-stack
 ---
 
 <ol start="2">
-    <li>In the Create Node menu, locate the node you want to add to your graph:
+    <li>In the Create Node menu, locate the node you want to add to your Context:
         <ul>
         <li>Enter any part of a node's name in the Search field.</li>
         <li>Select the arrow next to any listed category to expand its list of nodes or categories.</li>
