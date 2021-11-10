@@ -42,6 +42,9 @@ To add a new Block node to a [Context](Master-Stack.md#Contexts) in your graph's
 
 [!include[add-node-master-stack](./snippets/sg-add-node-master-stack.md)]
 
+![](images/)
+<!-- Add an image that shows Create Node menu from the Master Stack -->
+
 ## Next steps
 
 After you've created a node in your Shader Graph, you can [create connections](Create-Connection.md) to specify how data should flow between nodes in your Shader Graph.
