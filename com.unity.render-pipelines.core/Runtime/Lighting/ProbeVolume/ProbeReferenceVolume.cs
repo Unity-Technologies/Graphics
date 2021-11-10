@@ -602,7 +602,9 @@ namespace UnityEngine.Experimental.Rendering
             m_MemoryBudget = parameters.memoryBudget;
             m_SHBands = parameters.shBands;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
+            InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
+            m_NeedsIndexRebuild = true;
             sceneData = parameters.sceneData;
             m_SupportStreaming = parameters.supportStreaming;
 

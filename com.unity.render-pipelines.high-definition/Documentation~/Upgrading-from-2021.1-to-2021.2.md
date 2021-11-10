@@ -33,8 +33,9 @@ The algorithm to calculate the contribution of ambient occlusion and specular oc
 
 ### Light list
 
-- HDRP version 2021.2 includes a new setting in `ShaderConfig.cs` called `FPTLMaxLightCount`. You can use this setting to set the maximum number of lights per tile on the GPU. To increase this value, you must generate a new Shader config project. For information on how to create a new Shader config project, see [HDRP-Config-Package](HDRP-Config-Package.md).
-- The `g_vLightListGlobal` uniform has been renamed to the explicit `g_vLightListTile` and `g_vLightListCluster` light list name. This fix corrects unexpected behavior on the console.
+The previous `g_vLightListGlobal` uniform have been rename to explicit `g_vLightListTile` and `g_vLightListCluster` light list name. This work required to fix a wrong behavior on console.
+
+Added a new setting in ShaderConfig.cs, FPTLMaxLightCount. This setting can now set the maximum number of lights per tile on the GPU. A new Shader config project must be generated to upgrade. See the [HDRP-Config-Package](HDRP-Config-Package.md) guide for information on how to upgrade.
 
 ## Density Volumes
 

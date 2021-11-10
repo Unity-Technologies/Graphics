@@ -59,8 +59,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Crash issue when adding an area light on its own.
 - Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
 - Fixed light unit conversion after changing mid gray value.
-- Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
-- Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.

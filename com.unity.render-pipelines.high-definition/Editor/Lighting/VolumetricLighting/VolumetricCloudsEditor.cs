@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Volumetric Clouds.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Volumetric, "m_RenderPipelineSettings.supportVolumetricClouds");
+                    HDRenderPipelineUI.Expandable.VolumetricClouds, "m_RenderPipelineSettings.supportVolumetricClouds");
                 return;
             }
 
