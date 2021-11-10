@@ -9,13 +9,13 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // Geometry parameters
         SerializedProperty m_Infinite;
+        SerializedProperty m_EarthRadius;
         SerializedProperty m_GeometryType;
         SerializedProperty m_Geometry;
-        SerializedProperty m_EarthRadius;
 
         // Simulation parameters
-        SerializedProperty m_HighBandCount;
         SerializedProperty m_WaterMaxPatchSize;
+        SerializedProperty m_HighBandCount;
         SerializedProperty m_WaveAmplitude;
         SerializedProperty m_Choppiness;
         SerializedProperty m_TimeMultiplier;
@@ -71,13 +71,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Geometry parameters
             m_Infinite = o.Find(x => x.infinite);
+            m_EarthRadius = o.Find(x => x.earthRadius);
             m_GeometryType = o.Find(x => x.geometryType);
             m_Geometry = o.Find(x => x.geometry);
-            m_EarthRadius = o.Find(x => x.earthRadius);
 
             // Band definition parameters
-            m_HighBandCount = o.Find(x => x.highBandCount);
             m_WaterMaxPatchSize = o.Find(x => x.waterMaxPatchSize);
+            m_HighBandCount = o.Find(x => x.highBandCount);
             m_WaveAmplitude = o.Find(x => x.waveAmplitude);
             m_Choppiness = o.Find(x => x.choppiness);
             m_TimeMultiplier = o.Find(x => x.timeMultiplier);
@@ -146,7 +146,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportWater ?? false)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Water Surfaces.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Water Surfaces.", MessageType.Error,
+                    HDRenderPipelineUI.Expandable.Water, "m_RenderPipelineSettings.supportWater");
                 return;
             }
 
@@ -169,6 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
+
             EditorGUILayout.LabelField("Simulation", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {

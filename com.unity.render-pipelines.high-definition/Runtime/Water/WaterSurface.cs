@@ -2,26 +2,79 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Water surface component.
+    /// </summary>
     public class WaterSurface : MonoBehaviour
     {
+        /// <summary>
+        /// Control the type of geometry used to render the water surface when non infinite.
+        /// </summary>
         public enum WaterGeometryType
         {
+            // The water surface will be rendered as a procedural quad.
             Quad,
+            // The water will be rendered with a mesh provided by the user.
             Custom
         }
 
-        // Geometry parameters
+        #region Water General
+        /// <summary>
+        /// Controls if the water surface should be rendered as an infinite water surface. This is designed to render seas and oceans.
+        /// </summary>
+        [Tooltip("Controls if the water surface should be rendered as an infinite water surface. This is designed to render seas and oceans.")]
         public bool infinite = true;
-        public WaterGeometryType geometryType = WaterGeometryType.Quad;
-        public Mesh geometry = null;
+
+        /// <summary>
+        /// Controls the earth radius that used to curve the water surface when in infite mode to simulate the earth's curvature.
+        /// </summary>
+        [Tooltip("Controls the earth radius that used to curve the water surface when in infite mode to simulate the earth's curvature.")]
         public float earthRadius = 6371000.0f;
 
-        // Simulation parameters
-        public bool highBandCount = true;
+        /// <summary>
+        /// Control the type of geometry used to render the water surface when non infinite.
+        /// </summary>
+        [Tooltip("Control the type of geometry used to render the water surface when non infinite.")]
+        public WaterGeometryType geometryType = WaterGeometryType.Quad;
+
+        /// <summary>
+        /// Specifies the geometry to use when rendering in finite and custom geometry type mode.
+        /// </summary>
+        [Tooltip("Specifies the geometry to use when rendering in finite and custom geometry type mode.")]
+        public Mesh geometry = null;
+        #endregion
+
+        #region Water Simulation
+        /// <summary>
+        /// Specifies the maximum patch size that is used to run the water simulation.
+        /// </summary>
+        [Tooltip("Specifies the maximum patch size that is used to run the water simulation.")]
         public float waterMaxPatchSize = 500.0f;
+
+        /// <summary>
+        /// When set to true, the water simulation and rendering will evaluate 4 bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.
+        /// </summary>
+        [Tooltip("When set to true, the water simulation and rendering will evaluate 4 bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.")]
+        public bool highBandCount = true;
+
+        /// <summary>
+        /// Specifies the normalized (between 0.0 and 1.0) amplitude of each simulation band.
+        /// </summary>
+        [Tooltip("Specifies the normalized (between 0.0 and 1.0) amplitude of each simulation band.")]
         public Vector4 waveAmplitude = Vector4.one;
+
+        /// <summary>
+        /// Controls the choppiness factor the waves. Higher values may introduce visual artifacts.
+        /// </summary>
+        [Tooltip("Controls the choppiness factor the waves. Higher values may introduce visual artifacts.")]
         public float choppiness = 1.0f;
+
+        /// <summary>
+        /// Controls the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.
+        /// </summary>
+        [Tooltip("Controls the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.")]
         public float timeMultiplier = 1.0f;
+        #endregion
 
         // Rendering parameters
         public Material material = null;
