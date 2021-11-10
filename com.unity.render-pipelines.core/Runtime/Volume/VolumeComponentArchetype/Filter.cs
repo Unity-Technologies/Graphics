@@ -100,8 +100,15 @@ namespace UnityEngine.Rendering
 
     public sealed class IsVisibleVolumeComponentFilter : IFilter<VolumeComponentType>
     {
-        static readonly IsVisibleVolumeComponentFilter k_True = new IsVisibleVolumeComponentFilter(true);
-        static readonly IsVisibleVolumeComponentFilter k_False = new IsVisibleVolumeComponentFilter(false);
+        static readonly IsVisibleVolumeComponentFilter k_True;
+        static readonly IsVisibleVolumeComponentFilter k_False;
+
+        [ExcludeFromCodeCoverage]
+        static IsVisibleVolumeComponentFilter()
+        {
+            k_True = new IsVisibleVolumeComponentFilter(true);
+            k_False = new IsVisibleVolumeComponentFilter(false);
+        }
 
         readonly bool m_Visible;
 
@@ -112,6 +119,8 @@ namespace UnityEngine.Rendering
             => !type.AsType().GetCustomAttributes(true)
                 .Any(attr => attr is HideInInspector or ObsoleteAttribute);
 
+        // private constructor only used in static properties to initialize true and false
+        [ExcludeFromCodeCoverage]
         IsVisibleVolumeComponentFilter(bool visible)
         {
             m_Visible = visible;

@@ -30,6 +30,8 @@ namespace UnityEngine.Rendering.Tests
             readonly Kind m_Kind;
             readonly Type m_ExtensionType;
 
+            public override string ToString() => $"{m_Kind}<{m_ExtensionType.Name}>";
+
             public GetAndAddExtensionsTestAction(Kind kind, Type extensionType)
             {
                 m_Kind = kind;
@@ -154,25 +156,15 @@ namespace UnityEngine.Rendering.Tests
                 var excludeArchetypes = excludes.Select(VolumeComponentArchetype.FromTypes).ToList();
                 var archetype = VolumeComponentArchetype.FromIncludeExclude(includeArchetypes, excludeArchetypes);
 
-                foreach (var types in includes)
+                using (HashSetPool<VolumeComponentType>.Get(out var types))
                 {
-                    foreach (var type in types)
-                    {
-                        if (!archetype.ContainsType(type))
-                            return false;
-                    }
-                }
+                    foreach (var include in includes)
+                        types.UnionWith(include);
+                    foreach (var exclude in excludes)
+                        types.ExceptWith(exclude);
 
-                foreach (var types in excludes)
-                {
-                    foreach (var type in types)
-                    {
-                        if (archetype.ContainsType(type))
-                            return false;
-                    }
+                    return types.SetEquals(archetype.AsArray());
                 }
-
-                return true;
             }
 
             Prop.ForAll<VolumeComponentType[][], VolumeComponentType[][]>(Property).QuickCheckThrowOnFailure();

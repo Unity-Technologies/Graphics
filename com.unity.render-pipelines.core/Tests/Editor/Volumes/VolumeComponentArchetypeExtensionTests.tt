@@ -15,12 +15,12 @@ namespace UnityEngine.Rendering.Tests
         {
             private partial void ApplyGetTo(VolumeComponentArchetype archetype, Type type)
             {
-                <# CallOnType(totalExtensions, "archetype.GetExtension<GeneratedExtensions.{0}, GeneratedExtensions.{0}.Factory>(out _);"); #>
+                <# CallOnType(totalExtensions, "archetype.GetExtension<GeneratedExtensions.{0}, GeneratedExtensions.{0}.Factory>(out _); return;"); #>
             }
 
             private partial void ApplyGetOrAddTo(VolumeComponentArchetype archetype, Type type)
             {
-                <# CallOnType(totalExtensions, "archetype.GetOrAddExtension<GeneratedExtensions.{0}, GeneratedExtensions.{0}.Factory>(out _);"); #>
+                <# CallOnType(totalExtensions, "archetype.GetOrAddExtension<GeneratedExtensions.{0}, GeneratedExtensions.{0}.Factory>(out _); return;"); #>
             }
 
             private partial bool CheckGetTo(VolumeComponentArchetype archetype, Type type)
@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Tests
 
             private partial bool CheckGetOrAddTo(VolumeComponentArchetype archetype, Type type)
             {
-                <# CallOnType(totalExtensions, "return  archetype.GetOrAddExtension<GeneratedExtensions.{0}, GeneratedExtensions.{0}.Factory>(out _);"); #>
+                <# CallOnType(totalExtensions, "return archetype.GetOrAddExtension<GeneratedExtensions.{0}, GeneratedExtensions.{0}.Factory>(out _);"); #>
             }
         }
     }
@@ -83,7 +83,9 @@ namespace UnityEngine.Rendering.Tests
             var className = ToExtensionClassName(i);
 #>
         if (type == typeof(GeneratedExtensions.<#+Write(className);#>))
-            <#+ Write(string.Format(statementFormat, className)); #>
+        {
+            <#+ WriteLine(string.Format(statementFormat, className)); #>
+        }
 <#+
         }
 #>

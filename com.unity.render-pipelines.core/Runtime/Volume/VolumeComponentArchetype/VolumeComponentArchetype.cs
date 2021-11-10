@@ -17,8 +17,8 @@ namespace UnityEngine.Rendering
     /// </summary>
     public sealed class VolumeComponentArchetype : IEquatable<VolumeComponentArchetype>
     {
-        static Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype> s_CacheByFilter
-            = new Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype>();
+        static Dictionary<VolumeComponentDatabase, Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype>> s_CacheByDatabaseByFilter
+            = new Dictionary<VolumeComponentDatabase, Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype>>();
 
         VolumeComponentType[] typeArray { get; }
         HashSet<VolumeComponentType> typeSet { get; }
@@ -45,12 +45,18 @@ namespace UnityEngine.Rendering
         {
             database ??= VolumeComponentDatabase.memoryDatabase;
 
-            if (!s_CacheByFilter.TryGetValue(filter, out var set))
+            if (!s_CacheByDatabaseByFilter.TryGetValue(database, out var byFilter))
+            {
+                byFilter = new Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype>();
+                s_CacheByDatabaseByFilter.Add(database, byFilter);
+            }
+
+            if (!byFilter.TryGetValue(filter, out var set))
             {
                 var baseComponentTypeArray = database.componentTypes
                     .Where(filter.IsAccepted).ToArray();
                 set = new VolumeComponentArchetype(baseComponentTypeArray);
-                s_CacheByFilter.Add(filter, set);
+                byFilter.Add(filter, set);
             }
 
             return set;
