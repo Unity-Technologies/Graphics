@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Unity.ShaderFoundry.Tests")]
-[assembly: InternalsVisibleTo("Unity.ShaderGraph.Generation")]
-[assembly: InternalsVisibleTo("Unity.ShaderGraph.Generation.Tests")]
+[assembly: InternalsVisibleTo("UnityEditor.ShaderFoundry.Tests")]
+[assembly: InternalsVisibleTo("Unity.ShaderFoundry.BlockSS")]
+[assembly: InternalsVisibleTo("Unity.ShaderGraph.GraphDeltaRegistry")]

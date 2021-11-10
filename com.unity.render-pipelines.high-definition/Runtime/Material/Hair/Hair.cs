@@ -161,6 +161,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public float perceptualRoughnessRadial;
 
+            // Normalization factor for area lights.
+            public Vector3 distributionNormalizationFactor;
+
             // Global Scattering
             public Vector4 strandCountProbe;
             public float strandShadowBias;

@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
-using Editor.GraphDeltaRegistry.Utils;
-using JetBrains.Annotations;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -23,11 +21,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         class PreviewData
         {
-            public string Name;
+            public string propertyName;
             public Shader shader;
             public Material materialPropertyBlock;
             public string shaderString;
             public Texture texture;
+
+            public bool isOutOfDate;
 
             // Do we need to cache the render texture?
             public RenderTexture renderTexture;
@@ -35,7 +35,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             // Do we need to track how many passes are actively compiled per shader? What is it used for beyond debug log stuff?
             public int passesCompiling;
             // Same for this stuff below...
-            public bool isOutOfDate;
             public bool hasError;
         }
 
@@ -89,7 +88,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// </summary>
         /// <returns> List of names describing all nodes that were affected by this change </returns>
         /// <remarks> Dirties the preview render state of all nodes downstream of any references to the changed property </remarks>
-        public List<string> SetGlobalProperty(string propertyName, object newPropertyValue)
+        public List<string> SetGlobalProperty(string propertypropertyName, object newPropertyValue)
 		{
 			return null;
 		}
@@ -99,7 +98,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// </summary>
         /// <returns> List of names describing all nodes that were affected by this change </returns>
         /// <remarks> Dirties the preview render state of all nodes downstream of any references to the changed property </remarks>
-        public List<string> SetLocalProperty(string nodeName, string portName, object newPropertyValue)
+        public List<string> SetLocalProperty(string nodepropertyName, string portpropertyName, object newPropertyValue)
 		{
 			return null;
 		}
@@ -109,22 +108,33 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// </summary>
         /// <returns> List of names describing all nodes that were affected by this change </returns>
         /// <remarks> Dirties the preview compile & render state of all nodes downstream of the changed node </remarks>
-        public List<string> NotifyNodeFlowChanged(string nodeName)
+        public List<string> NotifyNodeFlowChanged(string nodepropertyName)
 		{
 			return null;
 		}
 
         /// <summary>
         /// Used to get current preview render output of a node, and optionally at a specific preview mode provided as an argument.
+        /// nodeRenderOutput is a Texture that contains the current preview output of a node, if its shaders have been compiled and ready to return
         /// </summary>
-        /// <returns> Texture that contains the current preview output of a node, if its shaders have been compiled and ready to return </returns>
-        // Could return an enum/bool as to the state of the requested texture, and then a nullable out parameter for the actual texture result
-        public bool RequestNodePreviewImage(string nodeName, [CanBeNull] out Texture nodeRenderOutput, PreviewRenderMode nodePreviewMode = PreviewRenderMode.Preview2D)
+        /// <returns> Boolean that defines whether the node's render output is ready and the texture being returned is the most up-to-date render output </returns>
+        public bool RequestNodePreviewImage(string nodeName, out Texture nodeRenderOutput, PreviewRenderMode nodePreviewMode = PreviewRenderMode.Preview2D)
 		{
             if (m_CachedPreviewData.ContainsKey(nodeName))
             {
                 // Check if shaders and render output is ready, and return if so
-
+                var previewData = m_CachedPreviewData[nodeName];
+                if (previewData.isOutOfDate)
+                {
+                    // Could return blue texture if still out of date
+                    nodeRenderOutput = Texture2D.blackTexture;
+                    return false;
+                }
+                else
+                {
+                    nodeRenderOutput = previewData.texture;
+                    return true;
+                }
             }
             else
             {
@@ -135,10 +145,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 		}
 
         /// <summary>
-        /// Used to get preview materialPropertyBlockerial associated with a node.
+        /// Used to get preview material associated with a node.
         /// </summary>
         /// <returns> Material that describes the current preview shader and render output of a node </returns>
-        public Material RequestNodePreviewMaterial(string nodeName)
+        public Material RequestNodePreviewMaterial(string nodepropertyName)
 		{
 			return null;
 		}
@@ -147,7 +157,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// Used to get preview shader code associated with a node.
         /// </summary>
         /// <returns> Current preview shader generated by a node </returns>
-        public string RequestNodePreviewShaderCode(string nodeName)
+        public string RequestNodePreviewShaderCode(string nodepropertyName)
 		{
 			return null;
 		}
@@ -170,19 +180,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 			return null;
 		}
 
-        void AddNodePreviewData(string nodeName)
+        void AddNodePreviewData(string nodepropertyName)
         {
             var renderData = new PreviewData
             {
-                Name = nodeName,
+                propertyName = nodepropertyName,
                 renderTexture =
-                    new RenderTexture(200, 200, 16, RenderTextureFormaterialPropertyBlock.ARGB32, RenderTextureReadWrite.Default)
+                    new RenderTexture(200, 200, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default)
                     {
                         hideFlags = HideFlags.HideAndDontSave
                     }
             };
 
-            var nodeReader = m_GraphHandle.GetNodeReader(nodeName);
+            var nodeReader = m_GraphHandle.GetNodeReader(nodepropertyName);
             var nodeInputPorts = nodeReader.GetInputPorts();
             foreach (var inputPort in nodeInputPorts)
             {
@@ -190,7 +200,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
 
 
-            m_CachedPreviewData.Add(nodeName, renderData);
+            m_CachedPreviewData.Add(nodepropertyName, renderData);
         }
 
         enum DefaultTextureType
@@ -210,9 +220,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return null;
         }
 
+        string Mock_GetPropertyNameForPort(IPortReader portReader)
+        {
+            return null;
+        }
+
         void SetValueOnMaterialPropertyBlock(MaterialPropertyBlock materialPropertyBlock, string propertyName, IPortReader portReader)
         {
-            var propertyValue = portReader.TryGetField(propertyName, );
+            var propertyValue = Mock_GetPortValue(portReader);
             var type = propertyValue.GetType();
 
             if ((type == typeof(Texture2D) /*|| propertyType == PropertyType.Texture2DArray*/ || type == typeof(Texture3D)))
@@ -224,25 +239,25 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     // so instead we set the propertyValue to what we know the default will be
                     // (all textures in ShaderGraph default to white)
 
-                    DefaultTextureType defaultTextureType = Mock_GetDefaultTextureType(m_PortReader);
+                    DefaultTextureType defaultTextureType = Mock_GetDefaultTextureType(portReader);
 
                     switch (defaultTextureType)
                     {
                         case DefaultTextureType.White:
-                            materialPropertyBlock.SetTexture(Name, Texture2D.whiteTexture);
+                            materialPropertyBlock.SetTexture(propertyName, Texture2D.whiteTexture);
                             break;
                         case DefaultTextureType.Black:
-                            materialPropertyBlock.SetTexture(Name, Texture2D.blackTexture);
+                            materialPropertyBlock.SetTexture(propertyName, Texture2D.blackTexture);
                             break;
                         case DefaultTextureType.NormalMap:
-                            materialPropertyBlock.SetTexture(Name, Texture2D.normalTexture);
+                            materialPropertyBlock.SetTexture(propertyName, Texture2D.normalTexture);
                             break;
                     }
                 }
                 else
                 {
                     var textureValue = propertyValue as Texture;
-                    materialPropertyBlock.SetTexture(Name, textureValue);
+                    materialPropertyBlock.SetTexture(propertyName, textureValue);
                 }
             }
             else if (type == typeof(Cubemap))
@@ -250,57 +265,70 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 if (propertyValue == null)
                 {
                     // there's no Cubemap.whiteTexture, but this seems to work
-                    materialPropertyBlock.SetTexture(Name, Texture2D.whiteTexture);
+                    materialPropertyBlock.SetTexture(propertyName, Texture2D.whiteTexture);
                 }
                 else
                 {
                     var cubemapValue = propertyValue as Cubemap;
-                    materialPropertyBlock.SetTexture(Name, cubemapValue);
+                    materialPropertyBlock.SetTexture(propertyName, cubemapValue);
                 }
             }
             else if (type == typeof(Color))
             {
                 var colorValue = propertyValue is Color colorVal ? colorVal : default;
-                materialPropertyBlock.SetColor(Name, colorValue);
+                materialPropertyBlock.SetColor(propertyName, colorValue);
             }
             else if (type == typeof(Vector2) || type == typeof(Vector3) || type == typeof(Vector4))
             {
                 var vector4Value = propertyValue is Vector4 vector4Val ? vector4Val : default;
-                materialPropertyBlock.SetVector(Name, vector4Value);
+                materialPropertyBlock.SetVector(propertyName, vector4Value);
             }
             else if (type == typeof(float))
             {
                 var floatValue = propertyValue is float floatVal ? floatVal : default;
-                materialPropertyBlock.SetFloat(Name, floatValue);
+                materialPropertyBlock.SetFloat(propertyName, floatValue);
             }
             else if (type == typeof(Boolean))
             {
                 var boolValue = propertyValue is Boolean boolVal ? boolVal : default;
-                materialPropertyBlock.SetFloat(Name, boolValue ? 1 : 0);
+                materialPropertyBlock.SetFloat(propertyName, boolValue ? 1 : 0);
             }
             // TODO: How to handle Matrix2/Matrix3 types?
             // Will probably be registry defined, how will we compare against them?
             else if (type == typeof(Matrix4x4)/*propertyType == PropertyType.Matrix2 || propertyType == PropertyType.Matrix3 || */)
             {
-                var materialPropertyBlockrixValue = propertyValue is Matrix4x4 materialPropertyBlockrixVal ? materialPropertyBlockrixVal : default;
-                materialPropertyBlock.SetMatrix(Name, materialPropertyBlockrixValue);
+                var matValue = propertyValue is Matrix4x4 matrixValue ? matrixValue : default;
+                materialPropertyBlock.SetMatrix(propertyName, matValue);
             }
             else if (type == typeof(Gradient))
             {
                 var gradientValue = propertyValue as Gradient;
-                materialPropertyBlock.SetFloat(string.FormaterialPropertyBlock("{0}_Type", Name), (int)gradientValue.mode);
-                materialPropertyBlock.SetFloat(string.FormaterialPropertyBlock("{0}_ColorsLength", Name), gradientValue.colorKeys.Length);
-                materialPropertyBlock.SetFloat(string.FormaterialPropertyBlock("{0}_AlphasLength", Name), gradientValue.alphaKeys.Length);
+                materialPropertyBlock.SetFloat(string.Format("{0}_Type", propertyName), (int)gradientValue.mode);
+                materialPropertyBlock.SetFloat(string.Format("{0}_ColorsLength", propertyName), gradientValue.colorKeys.Length);
+                materialPropertyBlock.SetFloat(string.Format("{0}_AlphasLength", propertyName), gradientValue.alphaKeys.Length);
                 for (int i = 0; i < 8; i++)
-                    materialPropertyBlock.SetVector(string.FormaterialPropertyBlock("{0}_ColorKey{1}", Name, i), i < gradientValue.colorKeys.Length ? GradientUtil.ColorKeyToVector(gradientValue.colorKeys[i]) : Vector4.zero);
+                    materialPropertyBlock.SetVector(string.Format("{0}_ColorKey{1}", propertyName, i), i < gradientValue.colorKeys.Length ? GradientUtil.ColorKeyToVector(gradientValue.colorKeys[i]) : Vector4.zero);
                 for (int i = 0; i < 8; i++)
-                    materialPropertyBlock.SetVector(string.FormaterialPropertyBlock("{0}_AlphaKey{1}", Name, i), i < gradientValue.alphaKeys.Length ? GradientUtil.AlphaKeyToVector(gradientValue.alphaKeys[i]) : Vector2.zero);
+                    materialPropertyBlock.SetVector(string.Format("{0}_AlphaKey{1}", propertyName, i), i < gradientValue.alphaKeys.Length ? GradientUtil.AlphaKeyToVector(gradientValue.alphaKeys[i]) : Vector2.zero);
             }
             // TODO: Virtual textures handling
             /*else if (type == typeof(VirtualTexture))
             {
                 // virtual texture assignments are not supported via the materialPropertyBlockerial property block, we must assign them to the materialPropertyBlockerials
             }*/
+        }
+    }
+
+    static class GradientUtil
+    {
+        public static Vector4 ColorKeyToVector(GradientColorKey key)
+        {
+            return new Vector4(key.color.r, key.color.g, key.color.b, key.time);
+        }
+
+        public static Vector2 AlphaKeyToVector(GradientAlphaKey key)
+        {
+            return new Vector2(key.alpha, key.time);
         }
     }
 }

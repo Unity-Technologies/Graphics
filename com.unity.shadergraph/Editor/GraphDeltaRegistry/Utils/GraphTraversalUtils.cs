@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
-namespace Editor.GraphDeltaRegistry.Utils
+namespace UnityEditor.ShaderGraph.Utils
 {
     public enum PropagationDirection
     {
