@@ -14,6 +14,11 @@ namespace UnityEditor.Rendering.Universal.Converters
         internal List<ConverterItemDescriptor> items;
 
         /// <summary>
+        /// A bool set to true if the converter is running in batch mode.
+        /// </summary>
+        public bool isBatchMode { get; internal set; }
+
+        /// <summary>
         /// Add to the list of assets to be converted.
         /// This will be used to display information to the user in the UI.
         /// </summary>

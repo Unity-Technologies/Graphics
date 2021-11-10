@@ -34,6 +34,8 @@ namespace UnityEditor.Rendering.Universal.Converters
         public static void RunInBatchMode(string containerName, List<string> converterList, ConverterFilter converterFilter)
         {
             List<RenderPipelineConverter> convertersToBatch = new List<RenderPipelineConverter>();
+            // This is just a temp to deal with the Include and Exclude enum
+            List<RenderPipelineConverter> tempConvertersToBatch = new List<RenderPipelineConverter>();
             // Get all containers
             var containers = TypeCache.GetTypesDerivedFrom<RenderPipelineConverterContainer>();
             foreach (var containerType in containers)
@@ -43,31 +45,33 @@ namespace UnityEditor.Rendering.Universal.Converters
                 {
                     var container = (RenderPipelineConverterContainer)Activator.CreateInstance(containerType);
                     List<RenderPipelineConverter> converters = GetConvertersInContainer(container);
-                    foreach (RenderPipelineConverter converter in converters)
+
+                    if (converterFilter == ConverterFilter.Inclusive)
                     {
-
-
-
-
-                        //Debug.Log($"Fullname: {converter.GetType().FullName}");
-                        if (converterList.Contains(converter.GetType().FullName))
+                        foreach (RenderPipelineConverter converter in converters)
                         {
-                            if (converterFilter == ConverterFilter.Inclusive)
+                            if (converterList.Contains(converter.GetType().FullName))
                             {
-                                convertersToBatch.Add(converter);
-
-                                //Debug.Log("BATCHING:: " + converter.name);
-                                //converter.OnRunInBatchMode();
-                            }
-                            else
-                            {
-                                Debug.Log("WILL NOT BATCH:: " + converter.name);
+                                tempConvertersToBatch.Add(converter);
                             }
                         }
-
                     }
+                    else if (converterFilter == ConverterFilter.Exclusive)
+                    {
+                        tempConvertersToBatch = converters;
+                        foreach (RenderPipelineConverter converter in converters)
+                        {
+                            if (converterList.Contains(converter.GetType().FullName))
+                            {
+                                tempConvertersToBatch.Remove(converter);
+                            }
+                        }
+                    }
+                    break;
                 }
             }
+
+            convertersToBatch = tempConvertersToBatch;
             BatchConverters(convertersToBatch);
             // Get all the containers
             // Select the correct container ( option when calling this method )
@@ -76,6 +80,10 @@ namespace UnityEditor.Rendering.Universal.Converters
             // Use the full typename
         }
 
+        /// <summary>
+        /// The method that will be run when converting the assets.
+        /// </summary>
+        /// <param name="context">The context that will be used when executing converter.</param>
         public static void RunInBatchMode(string containerName)
         {
             List<RenderPipelineConverter> converters = new List<RenderPipelineConverter>();
@@ -104,10 +112,10 @@ namespace UnityEditor.Rendering.Universal.Converters
                 Debug.Log($"Batching {converter.name}");
                 List<ConverterItemDescriptor> converterItemInfos = new List<ConverterItemDescriptor>();
                 var initCtx = new InitializeConverterContext { items = converterItemInfos };
+                initCtx.isBatchMode = true;
                 converter.OnInitialize(initCtx, () => { });
 
                 converter.OnPreRun();
-                //foreach (ConverterItemDescriptor initCtxItem in initCtx.items)
                 for (int i = 0; i < initCtx.items.Count; i++)
                 {
                     var item = new ConverterItemInfo()
