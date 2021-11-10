@@ -59,7 +59,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Crash issue when adding an area light on its own.
 - Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
 - Fixed light unit conversion after changing mid gray value.
-- Fixed compilation errors when using NormalFromHeight in a ray tracing shader graph.
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
@@ -73,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modified HDRP to use common FSR logic from SRP core.
 - Optimized FSR by merging the RCAS logic into the FinalPass shader.
 - Integrate a help box to inform users of the potential dependency to directional lights when baking.
+- Added more explicit error messages when trying to use NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
 
 ## [13.1.0] - 2021-09-24
 
