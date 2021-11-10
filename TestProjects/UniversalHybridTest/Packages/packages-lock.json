@@ -130,8 +130,8 @@
       "dependencies": {
         "com.unity.mathematics": "1.2.1",
         "com.unity.burst": "1.5.0",
-        "com.unity.render-pipelines.core": "13.0.0",
-        "com.unity.shadergraph": "13.0.0"
+        "com.unity.render-pipelines.core": "13.1.1",
+        "com.unity.shadergraph": "13.1.1"
       }
     },
     "com.unity.scriptablebuildpipeline": {
@@ -153,7 +153,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "13.0.0",
+        "com.unity.render-pipelines.core": "13.1.1",
         "com.unity.searcher": "4.8.0"
       }
     },
@@ -233,8 +233,8 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.shadergraph": "13.0.0",
-        "com.unity.render-pipelines.core": "13.0.0"
+        "com.unity.shadergraph": "13.1.1",
+        "com.unity.render-pipelines.core": "13.1.1"
       }
     },
     "com.unity.xr.legacyinputhelpers": {

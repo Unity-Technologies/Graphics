@@ -36,10 +36,6 @@ public class GraphicsTests
         #endif
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
-        //var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-        //Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");        
-
-        //Scene scene = SceneManager.GetActiveScene();
 
         yield return null;
 
@@ -81,11 +77,6 @@ public class GraphicsTests
         #if UNITY_EDITOR
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
         #endif
-
-        // foreach (GameObject o in Object.FindObjectsOfType<GameObject>()) 
-        // {
-        //     Object.Destroy(o);
-        // }
 
         XRGraphicsAutomatedTests.running = false;
     }

@@ -154,6 +154,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
             SetSupportedRenderingFeatures();
 
+            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
+
             // In QualitySettings.antiAliasing disabled state uses value 0, where in URP 1
             int qualitySettingsMsaaSampleCount = QualitySettings.antiAliasing > 0 ? QualitySettings.antiAliasing : 1;
             bool msaaSampleCountNeedsUpdate = qualitySettingsMsaaSampleCount != asset.msaaSampleCount;
@@ -237,7 +239,6 @@ namespace UnityEngine.Rendering.Universal
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.lightsUseColorTemperature = true;
-            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             GraphicsSettings.defaultRenderingLayerMask = k_DefaultRenderingLayerMask;
             SetupPerFrameShaderConstants();
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -251,8 +252,13 @@ namespace UnityEngine.Rendering.Universal
             if (m_GlobalSettings == null || UniversalRenderPipelineGlobalSettings.instance == null)
             {
                 m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
-                return;
+                if(m_GlobalSettings == null) return;
             }
+#endif
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (DebugManager.instance.isAnyDebugUIActive)
+                UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateFrameTiming();
 #endif
 
             SortCameras(cameras);
@@ -396,10 +402,11 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                 // Emit scene view UI
                 if (isSceneViewCamera)
-                {
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
-                }
+                else
 #endif
+                if (cameraData.camera.targetTexture != null && cameraData.cameraType != CameraType.Preview)
+                    ScriptableRenderContext.EmitGeometryForCamera(camera);
 
                 var cullResults = context.Cull(ref cullingParameters);
                 InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);
@@ -549,7 +556,8 @@ namespace UnityEngine.Rendering.Universal
 
                 // Helper function for updating cameraData with xrPass Data
                 m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
-
+                // Need to update XRSystem using baseCameraData to handle the case where camera position is modified in BeginCameraRendering
+                m_XRSystem.UpdateFromCamera(ref baseCameraData.xr, baseCameraData);
                 m_XRSystem.BeginLateLatching(baseCamera, xrPass);
             }
 #endif
@@ -861,14 +869,6 @@ namespace UnityEngine.Rendering.Universal
             cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
             cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ? cameraData.maxShadowDistance : 0.0f;
 
-            // Getting the background color from preferences to add to the preview camera
-#if UNITY_EDITOR
-            if (cameraData.camera.cameraType == CameraType.Preview)
-            {
-                camera.backgroundColor = CoreRenderPipelinePreferences.previewBackgroundColor;
-            }
-#endif
-
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             if (isSceneViewCamera)
             {
@@ -933,6 +933,17 @@ namespace UnityEngine.Rendering.Universal
             cameraData.SetViewAndProjectionMatrix(camera.worldToCameraMatrix, projectionMatrix);
 
             cameraData.worldSpaceCameraPos = camera.transform.position;
+
+            var backgroundColorSRGB = camera.backgroundColor;
+            // Get the background color from preferences if preview camera
+#if UNITY_EDITOR
+            if (camera.cameraType == CameraType.Preview && camera.clearFlags != CameraClearFlags.SolidColor)
+            {
+                backgroundColorSRGB = CoreRenderPipelinePreferences.previewBackgroundColor;
+            }
+#endif
+
+            cameraData.backgroundColor = CoreUtils.ConvertSRGBToActiveColorSpace(backgroundColorSRGB);
         }
 
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
@@ -1096,6 +1107,7 @@ namespace UnityEngine.Rendering.Universal
                 lightData.maxPerObjectAdditionalLightsCount = 0;
             }
 
+            lightData.supportsAdditionalLights = settings.additionalLightsRenderingMode != LightRenderingMode.Disabled;
             lightData.shadeAdditionalLightsPerVertex = settings.additionalLightsRenderingMode == LightRenderingMode.PerVertex;
             lightData.visibleLights = visibleLights;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
@@ -1229,7 +1241,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (debugDisplaySettings.AreAnySettingsActive && !cameraData.isPreviewCamera)
             {
-                DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.RenderingSettings;
+                DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.renderingSettings;
                 int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
 
                 if (!renderingSettings.enableMsaa)

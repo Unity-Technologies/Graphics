@@ -13,6 +13,8 @@
 
 #pragma multi_compile _ OUTPUT_DEBUG_DATA
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 // Because atomics are only on uint and we need a weighted value, we need to convert.
 // If we multiply the weight by 2048, we get somewhat ok precision and we support up to
 // the equivalent of 1920x1080 image in one bin. (Note, we run this at half res, so equivalent of 4k image)

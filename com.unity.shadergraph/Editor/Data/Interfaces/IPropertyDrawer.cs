@@ -11,5 +11,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         Action inspectorUpdateDelegate { get; set; }
 
         VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute);
+
+        void DisposePropertyDrawer();
     }
 }

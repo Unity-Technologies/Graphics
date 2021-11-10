@@ -451,7 +451,7 @@ uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
     return Get1DAddressFromPixelCoord(pixCoord, screenSize, 0);
 }
 
-// There is no UnityPerDraw cbuffer with HybridRenderer. Those matrices don't exist, so don't try to access them
+// There is no UnityPerDraw cbuffer with BatchRendererGroup. Those matrices don't exist, so don't try to access them
 #ifndef DOTS_INSTANCING_ON
 
 // Define Model Matrix Macro
@@ -523,7 +523,7 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_MotionVectorsParams   LoadDOTSInstancedData_MotionVectorsParams()
 #define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
 
-// Not supported by hybrid renderer. Just define them as constants.
+// Not supported by BatchRendererGroup or Hybrid Renderer. Just define them as constants.
 // ------------------------------------------------------------------------------
 static const float4 unity_ProbeVolumeParams = float4(0,0,0,0);
 static const float4x4 unity_ProbeVolumeWorldToObject = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);

@@ -163,28 +163,19 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                // gpu-instanced properties
-                var gpuInstancedProps = hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance);
-                if (gpuInstancedProps.Any())
+                // DOTS instanced properties
+                var dotsInstancedProperties = hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance);
+                if (dotsInstancedProperties.Any())
                 {
-                    builder.AppendLine("#ifdef UNITY_HYBRID_V1_INSTANCING_ENABLED");
-                    foreach (var h in gpuInstancedProps)
-                    {
-                        h.AppendTo(builder, name => name + "_dummy");
-                    }
-                    builder.AppendLine("#else // V2");
-                    foreach (var h in gpuInstancedProps)
+                    foreach (var h in dotsInstancedProperties)
                     {
                         h.AppendTo(builder);
                     }
-                    builder.AppendLine("#endif");
                 }
                 builder.AppendLine("CBUFFER_END");
                 builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
                 return;
             }
-
-            // TODO: need to test this path with HYBRID_RENDERER_V2 ...
 
             builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
 
@@ -243,11 +234,6 @@ namespace UnityEditor.ShaderGraph
                     hasDotsProperties = true;
             }
             return hasDotsProperties;
-        }
-
-        public string GetDotsInstancingPropertiesDeclaration(GenerationMode mode)
-        {
-            return "";
         }
 
         public List<TextureInfo> GetConfiguredTextures()

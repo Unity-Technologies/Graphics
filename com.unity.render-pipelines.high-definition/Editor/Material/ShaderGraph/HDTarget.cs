@@ -761,7 +761,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Cull(Cull.Front) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestTransparent) },
-            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelOne] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelTwo] 2") },
         };
 
 
@@ -793,7 +794,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Cull(Uniforms.cullModeForward) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
-            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelOne] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelTwo] 2") },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMask,
@@ -848,21 +850,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // Here are the Pragma Collection we can add on top of the Basic one
         public static PragmaCollection DotsInstanced = new PragmaCollection
         {
-            { Basic },
-            { Pragma.MultiCompileInstancing },
             { Pragma.DOTSInstancing },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
         };
 
         public static PragmaCollection DotsInstancedEditorSync = new PragmaCollection
         {
-            { Basic },
-            { Pragma.MultiCompileInstancing },
             { Pragma.DOTSInstancing },
             { Pragma.EditorSyncCompilation },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
         };
     }
     #endregion
@@ -1014,6 +1010,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kLightLoopDef = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl";
         public const string kPunctualLightCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl";
         public const string kHDShadowLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadowLoop.hlsl";
+        public const string kHDRaytracingShadowLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/HDRaytracingShadowLoop.hlsl";
         public const string kNormalSurfaceGradient = "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl";
         public const string kLighting = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl";
         public const string kLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl";
