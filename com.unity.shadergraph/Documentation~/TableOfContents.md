@@ -7,7 +7,7 @@
     * [Save your Shader Graph Asset](Save-Graph-Asset)
     * [Add a Shader Graph to a material](Add-Graph-Material)
     * [My first Shader Graph](First-Shader-Graph)
-    * [Shader Graph Window](Shader-Graph-Window)
+    * [The Shader Graph window](Shader-Graph-Window)
         * [Blackboard](Blackboard)
         * [Main Preview](Main-Preview)
         * [Graph Inspector](Internal-Inspector.md)
