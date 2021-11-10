@@ -26,10 +26,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation errors when using Elipse, Rectangle, Polygon, Checkerboard, RoundedPolygon, RoundedRectangle in a ray tracing shader graph (case 1377610).
 - Fixed outdated documentation about supported GPUs for ray tracing (case 1375895).
 - Fixed outdated documentation about recursie ray tracing effects support (case 1374904).
+- Fixed Crash issue when adding an area light on its own.
+- Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
+- Fixed light unit conversion after changing mid gray value.
+- Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
+- Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
 
 ### Changed
 - Maximum light count per fine prunned tile (opaque deferred) is now 63 instead of 23.
 - Depth of Field is now disabled in orthographic cameras - it was using the hidden perspective settings (case 1372582).
+- Integrate a help box to inform users of the potential dependency to directional lights when baking.
 
 ## [12.1.1] - 2021-10-04
 
