@@ -600,13 +600,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Compute the resolution of the water patch based on it's distance to the center patch
-        int GetPatchResolution(int x, int y, int maxResolution)
+        static int GetPatchResolution(int x, int y, int maxResolution)
         {
             return Mathf.Max((maxResolution >> (Mathf.Abs(x) + Mathf.Abs(y))), k_WaterMinGridSize);
         }
 
         // Evaluate the mask that allows us to adapt the tessellation at patch edges
-        int EvaluateTesselationMask(int x, int y, int maxResolution)
+        static int EvaluateTesselationMask(int x, int y, int maxResolution)
         {
             int center = GetPatchResolution(x, y, maxResolution);
             int up = GetPatchResolution(x, y + 1, maxResolution);

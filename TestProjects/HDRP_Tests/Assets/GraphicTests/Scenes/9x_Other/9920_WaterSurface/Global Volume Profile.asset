@@ -168,14 +168,14 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   gridResolution:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 512
   gridSize:
-    m_OverrideState: 0
-    m_Value: 1000
+    m_OverrideState: 1
+    m_Value: 500
   numLevelOfDetails:
-    m_OverrideState: 0
-    m_Value: 2
+    m_OverrideState: 1
+    m_Value: 1
   ambientProbeDimmer:
     m_OverrideState: 0
     m_Value: 1
