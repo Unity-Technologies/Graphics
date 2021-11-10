@@ -337,7 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._BandResolution = (uint)m_WaterBandResolution;
 
             // Maximal possible wave height of the current setup
-            cb._MaxWaveHeight = ComputeMaximumWaveHeight(currentWater.waveAmplitude, currentWater.simulation.patchWindSpeed.x, currentWater.highBandCount ? k_WaterHighBandCount : k_WaterLowBandCount);
+            cb._MaxWaveHeight = ComputeMaximumWaveHeight(currentWater.amplitude, currentWater.simulation.patchWindSpeed.x, currentWater.highBandCount ? k_WaterHighBandCount : k_WaterLowBandCount);
 
             // Current simulation time
             cb._SimulationTime = currentWater.simulation.simulationTime;
@@ -346,7 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._DirectionDampener = 1.0f - currentWater.windAffectCurrent;
 
             // Combine the wave amplitude with the maximal wave height we can reach
-            cb._WaveAmplitude = currentWater.waveAmplitude * cb._MaxWaveHeight;
+            cb._WaveAmplitude = currentWater.amplitude * cb._MaxWaveHeight;
 
             // Choppiness factor
             cb._Choppiness = currentWater.choppiness;
@@ -548,7 +548,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.center = currentWater.transform.position;
             parameters.extent = new Vector2(currentWater.transform.localScale.x, currentWater.transform.localScale.z);
             parameters.targetMesh = currentWater.geometryType == WaterSurface.WaterGeometryType.Custom ? currentWater.geometry : null;
-            parameters.rotation = currentWater.transform.eulerAngles.y * Mathf.Deg2Rad;
+            parameters.rotation = -currentWater.transform.eulerAngles.y * Mathf.Deg2Rad;
             parameters.foamMaskOffset = currentWater.foamMaskOffset;
             parameters.waterMaskOffset = currentWater.waterMaskOffset;
 

@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the normalized (between 0.0 and 1.0) amplitude of each simulation band.
         /// </summary>
         [Tooltip("Specifies the normalized (between 0.0 and 1.0) amplitude of each simulation band.")]
-        public Vector4 waveAmplitude = Vector4.one;
+        public Vector4 amplitude = Vector4.one;
 
         /// <summary>
         /// Controls the choppiness factor the waves. Higher values may introduce visual artifacts.

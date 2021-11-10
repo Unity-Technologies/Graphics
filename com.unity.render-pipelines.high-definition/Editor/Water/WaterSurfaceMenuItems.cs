@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering
             waterSurface.infinite = false;
             waterSurface.geometryType = WaterSurface.WaterGeometryType.Quad;
             waterSurface.waterMaxPatchSize = 70.0f;
-            waterSurface.waveAmplitude = new Vector2(0.5f, 1.0f);
+            waterSurface.amplitude = new Vector2(0.5f, 1.0f);
             waterSurface.choppiness = 1.0f;
             waterSurface.timeMultiplier = 1.0f;
             waterSurface.transparentColor = new Color(0, 0.3f, 0.6f);
@@ -76,15 +76,13 @@ namespace UnityEditor.Rendering
             // Not an finite surface
             waterSurface.infinite = false;
 
-            // We only need 2 bands
-            waterSurface.highBandCount = false;
-
             // The max patch size should be smaller
             waterSurface.waterMaxPatchSize = 20.0f;
 
             // The two bands have very little amplitude
-            waterSurface.waveAmplitude.x = 1.0f;
-            waterSurface.waveAmplitude.y = 1.0f;
+            waterSurface.highBandCount = false;
+            waterSurface.amplitude.x = 1.0f;
+            waterSurface.amplitude.y = 1.0f;
 
             // Scattering & transparency data
             waterSurface.transparentColor = new Color(0, 0.3f, 0.6f);

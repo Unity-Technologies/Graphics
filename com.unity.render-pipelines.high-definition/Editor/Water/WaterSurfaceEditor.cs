@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Simulation parameters
         SerializedProperty m_WaterMaxPatchSize;
         SerializedProperty m_HighBandCount;
-        SerializedProperty m_WaveAmplitude;
+        SerializedProperty m_Amplitude;
         SerializedProperty m_Choppiness;
         SerializedProperty m_TimeMultiplier;
 
@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Band definition parameters
             m_WaterMaxPatchSize = o.Find(x => x.waterMaxPatchSize);
             m_HighBandCount = o.Find(x => x.highBandCount);
-            m_WaveAmplitude = o.Find(x => x.waveAmplitude);
+            m_Amplitude = o.Find(x => x.amplitude);
             m_Choppiness = o.Find(x => x.choppiness);
             m_TimeMultiplier = o.Find(x => x.timeMultiplier);
 
@@ -127,6 +127,11 @@ namespace UnityEditor.Rendering.HighDefinition
             m_WindFoamCurve = o.Find(x => x.windFoamCurve);
             m_WindAffectCurrent = o.Find(x => x.windAffectCurrent);
         }
+
+        static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Specifies the normalized (between 0.0 and 1.0) amplitude of each simulation band.");
+        static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Controls the choppiness factor the waves. Higher values may introduce visual artifacts.");
+        static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Controls the speed of the water simulation.This allows to slow down the wave's speed or to accelerate it.");
+        static public readonly GUIContent k_WaterSmoothness = EditorGUIUtility.TrTextContent("Water Smoothness", "Control the smoothness used to render the water surface.");
 
         void SanitizeVector4(SerializedProperty property, float minValue, float maxValue)
         {
@@ -183,31 +188,31 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (m_HighBandCount.boolValue)
                     {
                         EditorGUI.BeginChangeCheck();
-                        m_WaveAmplitude.vector4Value = EditorGUILayout.Vector4Field("Amplitude", m_WaveAmplitude.vector4Value);
+                        m_Amplitude.vector4Value = EditorGUILayout.Vector4Field(k_Amplitude, m_Amplitude.vector4Value);
                         if (EditorGUI.EndChangeCheck())
-                            SanitizeVector4(m_WaveAmplitude, 0.0f, 1.0f);
+                            SanitizeVector4(m_Amplitude, 0.0f, 1.0f);
                     }
                     else
                     {
                         EditorGUI.BeginChangeCheck();
-                        Vector2 amplitude2D = new Vector2(m_WaveAmplitude.vector4Value.x, m_WaveAmplitude.vector4Value.y);
-                        amplitude2D = EditorGUILayout.Vector2Field("Amplitude", amplitude2D);
-                        m_WaveAmplitude.vector4Value = new Vector4(amplitude2D.x, amplitude2D.y, m_WaveAmplitude.vector4Value.z, m_WaveAmplitude.vector4Value.w);
+                        Vector2 amplitude2D = new Vector2(m_Amplitude.vector4Value.x, m_Amplitude.vector4Value.y);
+                        amplitude2D = EditorGUILayout.Vector2Field(k_Amplitude, amplitude2D);
+                        m_Amplitude.vector4Value = new Vector4(amplitude2D.x, amplitude2D.y, m_Amplitude.vector4Value.z, m_Amplitude.vector4Value.w);
                         if (EditorGUI.EndChangeCheck())
-                            SanitizeVector4(m_WaveAmplitude, 0.0f, 1.0f);
+                            SanitizeVector4(m_Amplitude, 0.0f, 1.0f);
                     }
                 }
 
-                m_Choppiness.floatValue = EditorGUILayout.Slider("Choppiness", m_Choppiness.floatValue, 1.0f, 3.0f);
-                m_TimeMultiplier.floatValue = EditorGUILayout.Slider("Time Multiplier", m_TimeMultiplier.floatValue, 0.0f, 10.0f);
+                m_Choppiness.floatValue = EditorGUILayout.Slider(k_Choppiness, m_Choppiness.floatValue, 1.0f, 3.0f);
+                m_TimeMultiplier.floatValue = EditorGUILayout.Slider(k_TimeMultiplier, m_TimeMultiplier.floatValue, 0.0f, 10.0f);
             }
 
             EditorGUILayout.LabelField("Material", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_Material);
-                // Water Smoothness from 0.0f to 0.99ff
-                m_WaterSmoothness.floatValue = EditorGUILayout.Slider("Water Smoothness", m_WaterSmoothness.floatValue, 0.0f, 0.99f);
+                // Water Smoothness from 0.0f to 0.99f
+                m_WaterSmoothness.floatValue = EditorGUILayout.Slider(k_WaterSmoothness, m_WaterSmoothness.floatValue, 0.0f, 0.99f);
             }
 
             EditorGUILayout.LabelField("Refraction", EditorStyles.boldLabel);
