@@ -41,33 +41,33 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Enable/Disable the water surface rendering.
+        /// When enabled, the water surfaces are rendered.
         /// </summary>
-        [Tooltip("Enable/Disable the water surface rendering.")]
+        [Tooltip("When enabled, the water surfaces are rendered.")]
         public BoolParameter enable = new BoolParameter(false);
 
         /// <summary>
-        /// Controls the resolution at which the water surface grids are rendered.
+        /// Specifies the maximum resolution at which the water surface patches are rendered.
         /// </summary>
-        [Tooltip("Controls the maximum resolution at which the water surface patches are rendered.")]
+        [Tooltip("Specifies the maximum resolution at which the water surface patches are rendered.")]
         public WaterGridResolutionParameter gridResolution = new WaterGridResolutionParameter(WaterGridResolution.Medium512);
 
         /// <summary>
-        /// Controls the size of the water grids in meters.
+        /// Sets the size of the water grids in meters.
         /// </summary>
-        [Tooltip("Controls the size of the water grids in meters.")]
+        [Tooltip("Sets the size of the water grids in meters.")]
         public MinFloatParameter gridSize = new MinFloatParameter(1000.0f, 100.0f);
 
         /// <summary>
-        /// Controls the number of LOD patches that should be rendered.
+        /// Controls the number of LOD patches that are rendered.
         /// </summary>
-        [Tooltip("Controls the number of LOD patches that should be rendered.")]
+        [Tooltip("Controls the number of LOD patches that are rendered.")]
         public ClampedIntParameter numLevelOfDetails = new ClampedIntParameter(2, 1, 4);
 
         /// <summary>
-        /// Controls the influence of the ambient light probe on the water surface.
+        /// Controls the influence of the ambient light probe on the water surfaces.
         /// </summary>
-        [Tooltip("Controls the number of LOD patches that should be rendered.")]
+        [Tooltip("Controls the influence of the ambient light probe on the water surfaces.")]
         public ClampedFloatParameter ambientProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         WaterRendering()
