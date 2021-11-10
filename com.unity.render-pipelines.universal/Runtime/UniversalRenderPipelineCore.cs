@@ -56,11 +56,24 @@ namespace UnityEngine.Rendering.Universal
         // We might change this API soon.
         Matrix4x4 m_ViewMatrix;
         Matrix4x4 m_ProjectionMatrix;
+        Matrix4x4 m_JitterMatrix;
+
+        //internal void SetViewAndProjectionMatrix(Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix, Matrix4x4 jitterMatrix)
+
 
         internal void SetViewAndProjectionMatrix(Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix)
         {
             m_ViewMatrix = viewMatrix;
             m_ProjectionMatrix = projectionMatrix;
+            m_JitterMatrix = Matrix4x4.identity;
+        }
+
+
+        internal void SetViewProjectionAndJitterMatrix(Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix, Matrix4x4 jitterMatrix)
+        {
+            m_ViewMatrix = viewMatrix;
+            m_ProjectionMatrix = projectionMatrix;
+            m_JitterMatrix = jitterMatrix;
         }
 
         /// <summary>
@@ -86,7 +99,35 @@ namespace UnityEngine.Rendering.Universal
             if (xr.enabled)
                 return xr.GetProjMatrix(viewIndex);
 #endif
+            return m_JitterMatrix * m_ProjectionMatrix;
+        }
+
+
+        public Matrix4x4 GetProjectionMatrixNoJitter(int viewIndex = 0)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+                return xr.GetProjMatrix(viewIndex);
+#endif
             return m_ProjectionMatrix;
+        }
+
+        public Matrix4x4 GetProjectionMatrixJitter(int viewIndex = 0)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+                return xr.GetProjMatrix(viewIndex);
+#endif
+            return m_JitterMatrix * m_ProjectionMatrix;
+        }
+
+        public Matrix4x4 GetJitterMatrix()
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+                return Matrix4x4.identity;
+#endif
+            return m_JitterMatrix;
         }
 
         /// <summary>
@@ -98,13 +139,14 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0)
         {
-            return GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), IsCameraProjectionMatrixFlipped());
+            return m_JitterMatrix * GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), IsCameraProjectionMatrixFlipped());
         }
 
         public Camera camera;
         public CameraRenderType renderType;
         public RenderTexture targetTexture;
         public RenderTextureDescriptor cameraTargetDescriptor;
+        public RenderTexture taaAccumulationTexture;
         internal Rect pixelRect;
         internal int pixelWidth;
         internal int pixelHeight;
@@ -217,6 +259,8 @@ namespace UnityEngine.Rendering.Universal
         /// Final background color in the active color space.
         /// </summary>
         public Color backgroundColor;
+
+        public TaaPersistentData taaPersistentData;
     }
 
     public struct ShadowData
@@ -855,6 +899,7 @@ namespace UnityEngine.Rendering.Universal
         Bloom,
         LensFlareDataDriven,
         MotionVectors,
+        TemporalAA,
 
         FinalBlit
     }

@@ -914,6 +914,13 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.postProcessingRequiresDepthTexture = false;
             }
 
+            // get the shared TAA targets
+            if (additionalCameraData != null)
+            {
+                cameraData.taaPersistentData = additionalCameraData.taaPersistentData;
+                cameraData.taaPersistentData.Init(cameraData.pixelWidth, cameraData.pixelHeight);
+            }
+
             Matrix4x4 projectionMatrix = camera.projectionMatrix;
 
             // Overlay cameras inherit viewport from base.
@@ -929,7 +936,45 @@ namespace UnityEngine.Rendering.Universal
                 projectionMatrix.m00 = newCotangent;
             }
 
-            cameraData.SetViewAndProjectionMatrix(camera.worldToCameraMatrix, projectionMatrix);
+
+            Matrix4x4 jitterMat = Matrix4x4.identity;
+
+            bool isJitter = true;
+            if (isJitter)
+            {
+                int taaFrameIndex = Time.frameCount;
+
+                float actualWidth = cameraData.pixelWidth;
+                float actualHeight = cameraData.pixelHeight;
+
+                // The variance between 0 and the actual halton sequence values reveals noticeable
+                // instability in Unity's shadow maps, so we avoid index 0.
+                float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
+                float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
+                //Vector4 taaJitter = new Vector4(jitterX, jitterY, jitterX / actualWidth, jitterY / actualHeight);
+
+                //Matrix4x4 adjMatrix = new Matrix4x4();
+
+                float offsetX = jitterX * (2.0f / actualWidth);
+                float offsetY = jitterY * (2.0f / actualHeight);
+
+
+                //offsetY = 0.0f;
+                //offsetX = (taaFrameIndex % 2 == 0) ? 0.0f : 0.5f;
+                jitterMat = Matrix4x4.Translate(new Vector3(offsetX, offsetY, 0.0f));
+
+                //projectionMatrix = jitterMat * projectionMatrix;
+                /*
+                projectionMatrix.m03 += (taaFrameIndex % 2 == 0) ? 0.0f : 0.5f;
+                // 10.0f/actualWidth;// 1.0f*taaJitter.z;
+
+                projectionMatrix.m03 += 0.0f;// 1.0f*taaJitter.z;
+                projectionMatrix.m13 += 0.0f;// 1.0f*taaJitter.w;
+                */
+            }
+
+            //cameraData.SetViewAndProjectionMatrix(camera.worldToCameraMatrix, projectionMatrix);
+            cameraData.SetViewProjectionAndJitterMatrix(camera.worldToCameraMatrix, projectionMatrix, jitterMat);
 
             cameraData.worldSpaceCameraPos = camera.transform.position;
 

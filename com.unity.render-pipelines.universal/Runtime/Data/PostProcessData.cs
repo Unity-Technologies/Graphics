@@ -66,6 +66,9 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/PostProcessing/Bloom.shader")]
             public Shader bloomPS;
 
+            [Reload("Shaders/PostProcessing/TemporalAA.shader")]
+            public Shader temporalAntialiasingPS;
+
             [Reload("Shaders/PostProcessing/LensFlareDataDriven.shader")]
             public Shader LensFlareDataDrivenPS;
 

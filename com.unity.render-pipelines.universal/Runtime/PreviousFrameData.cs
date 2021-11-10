@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_IsFirstFrame;
         int m_LastFrameActive;
         Matrix4x4 m_viewProjectionMatrix;
+        Matrix4x4 m_viewProjectionMatrixNoJitter;
         Matrix4x4 m_PreviousViewProjectionMatrix;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -23,6 +24,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_IsFirstFrame = true;
             m_LastFrameActive = -1;
             m_viewProjectionMatrix = Matrix4x4.identity;
+            m_viewProjectionMatrixNoJitter = Matrix4x4.identity;
             m_PreviousViewProjectionMatrix = Matrix4x4.identity;
         }
 

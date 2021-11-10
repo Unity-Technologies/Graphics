@@ -99,6 +99,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
+                // should this always be true, is reverse z on all platforms?
                 var gpuVP0 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(0), true) * cameraData.GetViewMatrix(0);
                 var gpuVP1 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(1), true) * cameraData.GetViewMatrix(1);
 
@@ -120,7 +121,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
 #endif
             {
-                var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true); // Had to change this from 'false'
+
+                var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
                 var gpuView = camera.worldToCameraMatrix;
                 var gpuVP = gpuProj * gpuView;
 

@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine.Serialization;
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -42,7 +43,8 @@ namespace UnityEngine.Rendering.Universal
         FastApproximateAntialiasing,
         [InspectorName("Subpixel Morphological Anti-aliasing (SMAA)")]
         SubpixelMorphologicalAntiAliasing,
-        //TemporalAntialiasing
+        [InspectorName("Temporal Anti-aliasing (TAA)")]
+        TemporalAntiAliasing,
     }
 
     /// <summary>
@@ -233,6 +235,65 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    public class TaaPersistentData
+    {
+        public bool m_WasCleared;
+        public RenderTextureDescriptor m_Rtd;
+        public RenderTexture m_AccumulationTexture;
+        public RenderTexture m_AccumulationTextureCopy;
+
+        public TaaPersistentData()
+        {
+            m_WasCleared = false;
+        }
+
+        public void Init(int sizeX, int sizeY)
+        {
+            if (m_Rtd.width != sizeX || m_Rtd.height != sizeY || m_AccumulationTexture == null || m_AccumulationTextureCopy == null)
+            {
+                m_Rtd = new RenderTextureDescriptor();
+
+                m_Rtd.width = sizeX;
+                m_Rtd.height = sizeY;
+                m_Rtd.msaaSamples = 1;
+                m_Rtd.volumeDepth = 1;
+                m_Rtd.mipCount = 0;
+                m_Rtd.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
+                m_Rtd.sRGB = false;
+                m_Rtd.depthBufferBits = 0;
+                m_Rtd.dimension = TextureDimension.Tex2D;
+                m_Rtd.vrUsage = VRTextureUsage.None;
+                m_Rtd.memoryless = RenderTextureMemoryless.None;
+                m_Rtd.useMipMap = false;
+                m_Rtd.autoGenerateMips = false;
+                m_Rtd.enableRandomWrite = true;
+                m_Rtd.bindMS = false;
+                m_Rtd.useDynamicScale = false;
+
+                m_AccumulationTexture = null;
+                m_AccumulationTextureCopy = null;
+            }
+        }
+
+        public void AllocateTargets()
+        {
+            // The rule is that if the target needs to be reallocated, the m_AccumulationTexture has already been set to null.
+            // So during allocation, the logic is as simple as allocate it if it's non-null.
+            if (m_AccumulationTexture == null)
+            {
+                m_AccumulationTexture = new RenderTexture(m_Rtd);
+                m_AccumulationTexture.Create();
+            }
+            if (m_AccumulationTextureCopy == null)
+            {
+                m_AccumulationTextureCopy = new RenderTexture(m_Rtd);
+                m_AccumulationTextureCopy.Create();
+            }
+        }
+
+    };
+
+
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
@@ -280,6 +341,9 @@ namespace UnityEngine.Rendering.Universal
         [HideInInspector] [SerializeField] float m_Version = 2;
 
         public float version => m_Version;
+
+
+        [NonSerialized] public TaaPersistentData taaPersistentData = new TaaPersistentData();
 
         static UniversalAdditionalCameraData s_DefaultAdditionalCameraData = null;
         internal static UniversalAdditionalCameraData defaultAdditionalCameraData

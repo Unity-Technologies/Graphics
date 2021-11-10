@@ -94,6 +94,7 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_DepthTexture;
         RenderTargetHandle m_NormalsTexture;
         RenderTargetHandle m_OpaqueColor;
+        RenderTargetHandle m_TaaAccumulationTexture;
 
         ForwardLights m_ForwardLights;
         DeferredLights m_DeferredLights;
@@ -262,6 +263,9 @@ namespace UnityEngine.Rendering.Universal
             m_NormalsTexture.Init("_CameraNormalsTexture");
             m_OpaqueColor.Init("_CameraOpaqueTexture");
 
+            m_TaaAccumulationTexture.Init("_TaaAccumulationTexture");
+            //MakeRenderTextureGraphicsFormat
+
             supportedRenderingFeatures = new RenderingFeatures()
             {
                 cameraStacking = true,
@@ -405,6 +409,8 @@ namespace UnityEngine.Rendering.Universal
             AddRenderPasses(ref renderingData);
             isCameraColorTargetValid = false;
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
+
+            renderPassInputs.requiresMotionVectors = true;
 
             // Should apply post-processing after rendering this camera?
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
@@ -647,11 +653,28 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_PrimedDepthCopyPass);
             }
 
+            bool isUsingTaa = true;
+            if (isUsingTaa)
+            {
+                //new RenderTexture()
+                //CreateRenderTextureDescriptor
+            }
+
             if (generateColorGradingLUT)
             {
                 colorGradingLutPass.Setup(colorGradingLut);
                 EnqueuePass(colorGradingLutPass);
             }
+
+            // taa
+            {
+                if (renderingData.cameraData.taaPersistentData != null)
+                {
+                    renderingData.cameraData.taaPersistentData.AllocateTargets();
+                }
+
+            }
+
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.hasValidOcclusionMesh)
@@ -996,7 +1019,7 @@ namespace UnityEngine.Rendering.Universal
                 inputSummary.requiresDepthPrepass |= needsNormals || needsDepth && eventBeforeMainRendering;
                 inputSummary.requiresNormalsTexture |= needsNormals;
                 inputSummary.requiresColorTexture |= needsColor;
-                inputSummary.requiresMotionVectors |= needsMotion;
+                inputSummary.requiresMotionVectors |= true;//needsMotion;
                 if (needsDepth)
                     inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthTextureEarliestEvent);
                 if (needsNormals || needsDepth)

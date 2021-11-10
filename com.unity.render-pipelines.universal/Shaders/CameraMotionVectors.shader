@@ -29,6 +29,10 @@ Shader "Hidden/kMotion/CameraMotionVectors"
 #define  _PrevViewProjM _PrevViewProjMatrix
 #endif
 
+
+             float4x4 _ViewProjMatrixNoJitter;
+
+
             // -------------------------------------
             // Structs
             struct Attributes
@@ -62,7 +66,8 @@ Shader "Hidden/kMotion/CameraMotionVectors"
 
                 // Calculate positions
                 float4 previousPositionVP = mul(_PrevViewProjM, float4(positionInputs.positionWS, 1.0));
-                float4 positionVP = mul(UNITY_MATRIX_VP, float4(positionInputs.positionWS, 1.0));
+                float4 positionVP = mul(_ViewProjMatrixNoJitter, float4(positionInputs.positionWS, 1.0));
+                //float4 positionVP = mul(_ViewProjMTest, float4(positionInputs.positionWS, 1.0));
 
                 previousPositionVP.xy *= rcp(previousPositionVP.w);
                 positionVP.xy *= rcp(positionVP.w);
@@ -73,6 +78,7 @@ Shader "Hidden/kMotion/CameraMotionVectors"
                     velocity.y = -velocity.y;
                 #endif
 
+                
                 // Convert velocity from Clip space (-1..1) to NDC 0..1 space
                 // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.
                 // Note: ((positionVP * 0.5 + 0.5) - (previousPositionVP * 0.5 + 0.5)) = (velocity * 0.5)

@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if ENABLE_VR && ENABLE_XR_MODULE
         const string kPreviousViewProjectionMatrixStero = "_PrevViewProjMStereo";
 #endif
+        const string kViewProjectionMatrixNoJitter = "_ViewProjMatrixNoJitter";
         const string kMotionVectorTexture = "_MotionVectorTexture";
         const GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
 
@@ -81,6 +82,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
                 {
                     Shader.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousViewProjectionMatrix);
+                    Shader.SetGlobalMatrix(kViewProjectionMatrixNoJitter, m_MotionData.viewProjectionMatrix);
                 }
 
                 // These flags are still required in SRP or the engine won't compute previous model matrices...

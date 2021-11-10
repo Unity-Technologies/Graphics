@@ -26,6 +26,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetHandle m_Depth;
         RenderTargetHandle m_InternalLut;
 
+
+
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
         private static readonly ProfilingSampler m_ProfilingRenderPostProcessing = new ProfilingSampler(k_RenderPostProcessingTag);
@@ -51,6 +53,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         const int k_MaxPyramidSize = 16;
         readonly GraphicsFormat m_DefaultHDRFormat;
         bool m_UseRGBM;
+        bool m_IsTaaSupported;
+
         readonly GraphicsFormat m_SMAAEdgeFormat;
         readonly GraphicsFormat m_GaussianCoCFormat;
         Matrix4x4[] m_PrevViewProjM = new Matrix4x4[2];
@@ -133,6 +137,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ShaderConstants._BloomMipUp[i] = Shader.PropertyToID("_BloomMipUp" + i);
                 ShaderConstants._BloomMipDown[i] = Shader.PropertyToID("_BloomMipDown" + i);
             }
+
+            // TAA is only supported when MSAA is off
+            m_IsTaaSupported = (m_Descriptor.msaaSamples == 1);
 
             m_MRT2 = new RenderTargetIdentifier[2];
             m_ResetHistory = true;
@@ -337,6 +344,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             //We blit back and forth without msaa untill the last blit.
             bool useStopNan = cameraData.isStopNaNEnabled && m_Materials.stopNaN != null;
             bool useSubPixeMorpAA = cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+            bool useTemporalAA = true;// cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing;
             var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
             bool useDepthOfField = m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null;
             bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty();
@@ -430,6 +438,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Swap(ref renderer);
                 }
             }
+
+            if (useTemporalAA)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.TemporalAA)))
+                {
+                    DoTemporalAntialiasing(ref cameraData, cmd, GetSource(), GetDestination());
+                    //Swap(ref renderer);
+                }
+            }
+
 
             // Depth of Field
             // Adreno 3xx SystemInfo.graphicsShaderLevel is 35, but instancing support is disabled due to buggy drivers.
@@ -921,6 +939,33 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         #endregion
 
+
+        #region TemporalAntiAliasing
+
+        void DoTemporalAntialiasing(ref CameraData cameraData, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination)
+        {
+            if (cameraData.taaPersistentData != null)
+            {
+                var taaMaterial = m_Materials.temporalAntialiasing;
+
+                taaMaterial.SetTexture("_AccumulationTex", cameraData.taaPersistentData.m_AccumulationTexture);
+
+                RenderTargetHandle cameraTargetHandle = RenderTargetHandle.GetCameraTarget(cameraData.xr);
+
+                //Texture2D temp = new Texture2D()
+                //taaMaterial.SetTexture("_AccumulationTex", new Texture2D(cameraTargetHandle));
+                //m_DepthTexture;
+                //taaMaterial.SetTexture("_AccumulationTex", new Texture2D(cameraTargetHandle));
+
+
+                cmd.Blit(source, cameraData.taaPersistentData.m_AccumulationTextureCopy,taaMaterial,0);
+                cmd.Blit(cameraData.taaPersistentData.m_AccumulationTextureCopy, cameraData.taaPersistentData.m_AccumulationTexture);
+
+                cmd.Blit(cameraData.taaPersistentData.m_AccumulationTexture, source);
+            }
+        }
+        #endregion
+
         #region LensFlareDataDriven
 
         static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
@@ -1004,16 +1049,23 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
                 // relies on SetupCameraProperties instead of handling its own matrices.
                 // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
-                var proj = cameraData.GetProjectionMatrix();
+                var proj = cameraData.GetProjectionMatrix();//cameraData.GetProjectionMatrix();
+                var projNoJitter = cameraData.GetProjectionMatrixNoJitter();//cameraData.GetProjectionMatrix();
                 var view = cameraData.GetViewMatrix();
                 var viewProj = proj * view;
+                var viewProjNoJitter = projNoJitter * view;
 
                 material.SetMatrix("_ViewProjM", viewProj);
+                material.SetMatrix("_ViewProjNoJitterM", viewProj);
 
                 if (m_ResetHistory)
+                {
                     material.SetMatrix("_PrevViewProjM", viewProj);
+                }
                 else
+                {
                     material.SetMatrix("_PrevViewProjM", m_PrevViewProjM[prevViewProjMIdx]);
+                }
 
                 m_PrevViewProjM[prevViewProjMIdx] = viewProj;
             }
@@ -1134,6 +1186,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._BloomMipDown[0], desc, FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._BloomMipUp[0], desc, FilterMode.Bilinear);
             Blit(cmd, source, ShaderConstants._BloomMipDown[0], bloomMaterial, 0);
+
+            //var taaMaterial = m_Materials.temporalAntialiasing;
+            //Blit(cmd, source, ShaderConstants._BloomMipDown[0], taaMaterial, 0);
+
+            //Blit(cmd, source, ShaderConstants._BloomMipDown[0], bloomMaterial, 0);
+
 
             // Downsample - gaussian pyramid
             int lastDown = ShaderConstants._BloomMipDown[0];
@@ -1464,7 +1522,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             public readonly Material uber;
             public readonly Material finalPass;
             public readonly Material lensFlareDataDriven;
+            public readonly Material temporalAntialiasing;
 
+            
             public MaterialLibrary(PostProcessData data)
             {
                 stopNaN = Load(data.shaders.stopNanPS);
@@ -1474,6 +1534,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cameraMotionBlur = Load(data.shaders.cameraMotionBlurPS);
                 paniniProjection = Load(data.shaders.paniniProjectionPS);
                 bloom = Load(data.shaders.bloomPS);
+                temporalAntialiasing = Load(data.shaders.temporalAntialiasingPS);
                 uber = Load(data.shaders.uberPostPS);
                 finalPass = Load(data.shaders.finalPostPassPS);
                 lensFlareDataDriven = Load(data.shaders.LensFlareDataDrivenPS);
@@ -1505,6 +1566,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.Destroy(bloom);
                 CoreUtils.Destroy(uber);
                 CoreUtils.Destroy(finalPass);
+                // Destroy for lensFlareDataDriven is missing. is this a bug?
+                CoreUtils.Destroy(temporalAntialiasing);
+                
             }
         }
 
