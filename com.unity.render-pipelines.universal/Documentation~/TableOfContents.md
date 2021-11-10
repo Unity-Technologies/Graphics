@@ -21,6 +21,7 @@
     * [Ambient Occlusion](post-processing-ssao.md)
     * [Decal](renderer-feature-decal.md)
       * [Decal Shader Graph](decal-shader.md)
+    * [Screen Space Shadows](renderer-feature-screen-space-shadows.md)
 * [Upgrade guides](upgrade-guides.md)
   * [Render Pipeline Converter](features/rp-converter.md)
   * [Upgrading to URP 12.0.x](upgrade-guide-2021-2.md)
@@ -106,7 +107,8 @@
   * [Use Render Objects Renderer Feature](containers/how-to-custom-effect-render-objects.md)
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
-
+* [Optimization](urp-optimization.md)
+  * [Rendering Debugger](features/rendering-debugger.md)
 * [2D graphic features](2d-index.md)
   * [Introduction to Lights 2D](Lights-2D-intro.md)
     * [Requirements and setup](Setup.md)

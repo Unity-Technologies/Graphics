@@ -286,9 +286,7 @@ namespace UnityEditor.Rendering
 
         void ApplyState(string queryPath, DebugState state)
         {
-            if (state == null ||
-                state.GetValue() == null ||
-                !(DebugManager.instance.GetItem(queryPath) is DebugUI.IValueField widget))
+            if (!(DebugManager.instance.GetItem(queryPath) is DebugUI.IValueField widget))
                 return;
 
             widget.SetValue(state.GetValue());
@@ -563,6 +561,9 @@ namespace UnityEditor.Rendering
             public readonly GUIStyle selected = "OL SelectedRow";
             public readonly GUIStyle sectionHeader = new GUIStyle(EditorStyles.largeLabel);
             public readonly Color skinBackgroundColor;
+
+            public static GUIStyle centeredLeft = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleLeft };
+            public static float singleRowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
             public static int foldoutColumnWidth = 70;
 
