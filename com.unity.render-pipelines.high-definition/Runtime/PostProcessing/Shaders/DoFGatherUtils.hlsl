@@ -363,23 +363,7 @@ int GetTileClass(float2 sampleTC)
         return SLOW_INFOCUS_TILE;
 }
 
-void DebugTiles(float2 sampleTC, inout float3 output)
-{
-    // Debug the tile type
-    switch (GetTileClass(sampleTC))
-    {
-    case SLOW_INFOCUS_TILE:
-        // in focus pixels, but also covered by out-of-focus stuff
-        output.xyz = lerp(output.xyz, float3(1, 0, 0), 0.9);
-        break;
-    case FAST_DEFOCUS_TILE:
-        output.xyz = lerp(output.xyz, float3(0, 0, 1), 0.9);
-        break;
-    default: // FAST_INFOCUS_TILE
-        output.xyz = lerp(output.xyz, float3(0, 1, 0), 0.9);
-        break;
-    }
-}
+
 
 void ComposeAlpha(inout CTYPE outColor, float3 inputColor, float alpha)
 {
