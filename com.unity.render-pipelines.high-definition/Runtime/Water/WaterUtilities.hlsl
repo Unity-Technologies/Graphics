@@ -611,7 +611,7 @@ void EvaluateScatteringData(float3 waterPosRWS, float3 waterNormal, float3 lowFr
     float underWaterDistance = directWaterDepth == UNITY_RAW_FAR_CLIP_VALUE ? WATER_BACKGROUND_ABSORPTION_DISTANCE : length(directWaterPosRWS - waterPosRWS);
 
     // Blend both normals to decide what normal will be used for the refraction
-    float3 refractionNormal = normalize(lerp(waterNormal, lowFrequencyNormals, saturate(underWaterDistance / _MaxRefractionDistance)));
+    float3 refractionNormal = normalize(lerp(waterNormal, lowFrequencyNormals, saturate(underWaterDistance / max(_MaxRefractionDistance, 0.00001f))));
 
     // Compute the distorded water position and NDC
     float3 distortionNormal = refractionNormal * float3(1, 0, 1); // I guess this is a refract?

@@ -76,9 +76,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public float timeMultiplier = 1.0f;
         #endregion
 
-        // Rendering parameters
+        #region Water Material
+        /// <summary>
+        /// Controls the material that is used to render the water surface. If set to None a default material is used.
+        /// </summary>
+        [Tooltip("Controls the material that is used to render the water surface. If set to None a default material is used.")]
         public Material material = null;
+        /// <summary>
+        /// Control the smoothness used to render the water surface.
+        /// </summary>
+        [Tooltip("Control the smoothness used to render the water surface.")]
         public float waterSmoothness = 0.95f;
+        #endregion
 
         // Refraction parameters
         public Color transparentColor = new Color(0.00f, 0.45f, 0.65f);

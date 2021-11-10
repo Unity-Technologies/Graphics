@@ -323,7 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static internal Vector4 ComputeWindSpeeds(float windSpeed, Vector4 patchSizes)
         {
-            float normalizedWindSpeed = windSpeed / 100.0f;
+            float normalizedWindSpeed = Mathf.Sqrt(windSpeed / 100.0f);
             float b0 = MaximumWindForPatch(patchSizes.x) * normalizedWindSpeed;
             float b1 = MaximumWindForPatch(patchSizes.y) * normalizedWindSpeed;
             float b2 = MaximumWindForPatch(patchSizes.z) * normalizedWindSpeed;
@@ -546,7 +546,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.infinite = currentWater.infinite;
             parameters.center = currentWater.transform.position;
-            parameters.extent = new Vector2(currentWater.transform.localScale.z, currentWater.transform.localScale.x);
+            parameters.extent = new Vector2(currentWater.transform.localScale.x, currentWater.transform.localScale.z);
             parameters.targetMesh = currentWater.geometryType == WaterSurface.WaterGeometryType.Custom ? currentWater.geometry : null;
             parameters.rotation = currentWater.transform.eulerAngles.y * Mathf.Deg2Rad;
             parameters.foamMaskOffset = currentWater.foamMaskOffset;

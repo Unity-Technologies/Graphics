@@ -18,8 +18,15 @@ namespace UnityEditor.Rendering
             // Add the water surface component
             var waterSurface = go.AddComponent<WaterSurface>();
 
-            // No caustics for oceans atm
+            // Set the various parameters
+            waterSurface.infinite = true;
+            waterSurface.windSpeed = 50.0f;
+            waterSurface.choppiness = 3.0f;
+            waterSurface.windAffectCurrent = 0.2f;
             waterSurface.causticsIntensity = 0.0f;
+            waterSurface.surfaceFoamTiling = 3.0f;
+            waterSurface.surfaceFoamIntensity = 0.0f;
+            waterSurface.deepFoam = 0.1f;
         }
 
         [MenuItem("GameObject/Water Surface/River", priority = CoreUtils.Priorities.gameObjectMenuPriority)]
@@ -30,28 +37,27 @@ namespace UnityEditor.Rendering
 
             // Place it at origin and set its scale
             go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-            go.transform.localScale = new Vector3(30.0f, 1.0f, 500.0f);
+            go.transform.localScale = new Vector3(500.0f, 1.0f, 30.0f);
 
             // Add the water surface component
             var waterSurface = go.AddComponent<WaterSurface>();
-            // Not an finite surface
+
             waterSurface.infinite = false;
-
-            // The max patch size should be smaller
-            waterSurface.waterMaxPatchSize = 200.0f;
-
-            // The first band's amplitude is quite small
-            waterSurface.waveAmplitude.x = 0.2f;
-
-            // Rivers have no foam
+            waterSurface.geometryType = WaterSurface.WaterGeometryType.Quad;
+            waterSurface.waterMaxPatchSize = 70.0f;
+            waterSurface.waveAmplitude = new Vector2(0.5f, 1.0f);
+            waterSurface.choppiness = 1.0f;
+            waterSurface.timeMultiplier = 1.0f;
+            waterSurface.transparentColor = new Color(0, 0.3f, 0.6f);
+            waterSurface.maxRefractionDistance = 1.0f;
+            waterSurface.maxAbsorptionDistance = 1.0f;
+            waterSurface.scatteringColor = new Color(0.0f, 0.3f, 0.25f);
             waterSurface.surfaceFoamIntensity = 0.0f;
             waterSurface.deepFoam = 0.0f;
-
-            // Wind is quite light on rivers
-            waterSurface.windSpeed = 20.0f;
-
-            // No caustics for rivers ATM
-            waterSurface.causticsIntensity = 0.0f;
+            waterSurface.windSpeed = 30.0f;
+            waterSurface.causticsIntensity = 0.1f;
+            waterSurface.causticsTiling = 0.8f;
+            waterSurface.windAffectCurrent = 1.0f;
         }
 
         [MenuItem("GameObject/Water Surface/Pool", priority = CoreUtils.Priorities.gameObjectMenuPriority)]
@@ -77,13 +83,15 @@ namespace UnityEditor.Rendering
             waterSurface.waterMaxPatchSize = 20.0f;
 
             // The two bands have very little amplitude
-            waterSurface.waveAmplitude.x = 0.1f;
-            waterSurface.waveAmplitude.y = 0.15f;
+            waterSurface.waveAmplitude.x = 1.0f;
+            waterSurface.waveAmplitude.y = 1.0f;
 
             // Scattering & transparency data
-            waterSurface.transparentColor = new Color(0.45f, 0.65f, 0.85f);
+            waterSurface.transparentColor = new Color(0, 0.3f, 0.6f);
+            waterSurface.maxRefractionDistance = 0.5f;
             waterSurface.maxAbsorptionDistance = 10.0f;
-            waterSurface.scatteringColor = new Color(0.25f, 0.70f, 1.0f);
+            waterSurface.scatteringColor = new Color(0.0f, 0.40f, 0.75f);
+            waterSurface.scatteringFactor = 1.0f;
 
             // No choppiness for the water
             waterSurface.choppiness = 0.0f;
@@ -93,13 +101,13 @@ namespace UnityEditor.Rendering
             waterSurface.deepFoam = 0.0f;
 
             // Wind is quite light on rivers
-            waterSurface.windSpeed = 30.0f;
+            waterSurface.windSpeed = 50.0f;
 
             // Setup caustics for pools
-            waterSurface.causticsIntensity = 0.75f;
-            waterSurface.causticsTiling = 2.0f;
-            waterSurface.causticsSpeed = 1.0f;
-            waterSurface.causticsPlaneOffset = 1.5f;
+            waterSurface.causticsIntensity = 0.4f;
+            waterSurface.causticsTiling = 1.5f;
+            waterSurface.causticsSpeed = 0.0f;
+            waterSurface.causticsPlaneOffset = 0.5f;
         }
     }
 }
