@@ -204,36 +204,48 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static IEnumerable<(string name, Type type)> GetAvailableAttributes()
+        private static IEnumerable<EventAttribute> GetAvailableAttributes()
         {
             foreach (var attributeName in VFXAttribute.AllIncludingVariadicReadWritable)
             {
                 var attribute = VFXAttribute.Find(attributeName);
                 var type = VFXExpression.TypeToType(attribute.type);
+
+                EventAttribute eventAttribute = null;
+
                 if (type == typeof(Vector3))
                 {
                     if (attribute.name.Contains("color"))
-                        yield return (attribute.name, typeof(EventAttributeColor));
+                        eventAttribute = new EventAttributeColor();
                     else
-                        yield return (attribute.name, typeof(EventAttributeVector3));
+                        eventAttribute = new EventAttributeVector3();
                 }
                 else
                 {
                     var findType = kEventAttributeSpecialization.FirstOrDefault(o => o.valueType == type);
                     if (findType.type == null)
                         throw new InvalidOperationException("Unexpected type : " + type);
+                    eventAttribute = (EventAttribute)Activator.CreateInstance(findType.type);
+                }
 
-                    yield return (attribute.name, findType.type);
+                if (eventAttribute != null)
+                {
+                    eventAttribute.id = attribute.name;
+                    var valueField = eventAttribute.GetType().GetField(nameof(EventAttributeValue<byte>.value));
+                    valueField.SetValue(eventAttribute, attribute.value.GetContent());
+                    yield return eventAttribute;
                 }
             }
 
             foreach (var custom in kEventAttributeSpecialization)
             {
-                yield return ("Custom " + custom.type.Name.Replace("EventAttribute", string.Empty), custom.type);
+                var eventAttribute = (EventAttribute)Activator.CreateInstance(custom.type);
+                eventAttribute.id = "Custom " + custom.type.Name.Replace("EventAttribute", string.Empty);
+                yield return eventAttribute;
             }
         }
 
-        private static readonly (string name, Type type)[] kAvailableAttributes = GetAvailableAttributes().ToArray();
+        private static readonly EventAttribute[] kAvailableAttributes = GetAvailableAttributes().ToArray();
 
         public static ReorderableList GetOrBuildEventAttributeList(VisualEffectControlClip asset, SerializedProperty property)
         {
@@ -254,14 +266,13 @@ namespace UnityEditor.VFX
                     var menu = new GenericMenu();
                     foreach (var option in kAvailableAttributes)
                     {
-                        menu.AddItem(new GUIContent(option.name), false, () =>
+                        menu.AddItem(new GUIContent((string)option.id), false, () =>
                         {
                             contentProperty.serializedObject.Update();
                             contentProperty.arraySize++;
                             var newEntry = contentProperty.GetArrayElementAtIndex(contentProperty.arraySize - 1);
-                            newEntry.managedReferenceValue = Activator.CreateInstance(option.type);
-                            var nameProperty = newEntry.FindPropertyRelative(nameof(EventAttribute.id) + ".m_Name");
-                            nameProperty.stringValue = option.name;
+                            var newValue = DeepClone(option);
+                            newEntry.managedReferenceValue = newValue;
                             contentProperty.serializedObject.ApplyModifiedProperties();
                         });
                     }
@@ -351,6 +362,19 @@ namespace UnityEditor.VFX
             return newExposedProperty;
         }
 
+        private static EventAttribute DeepClone(EventAttribute source)
+        {
+            if (source == null)
+                return null;
+
+            var referenceType = source.GetType();
+            var copy = (EventAttribute)Activator.CreateInstance(referenceType);
+            copy.id = source.id;
+            var valueField = referenceType.GetField(nameof(EventAttributeValue<byte>.value));
+            valueField.SetValue(copy, valueField.GetValue(source));
+            return copy;
+        }
+
         private static EventAttribute[] DeepClone(EventAttribute[] source)
         {
             if (source == null)
@@ -360,15 +384,7 @@ namespace UnityEditor.VFX
             for (int i = 0; i < newEventAttributeArray.Length; ++i)
             {
                 var reference = source[i];
-                if (reference != null)
-                {
-                    var referenceType = reference.GetType();
-                    var copy = (EventAttribute)Activator.CreateInstance(referenceType);
-                    copy.id = reference.id;
-                    var valueField = referenceType.GetField(nameof(EventAttributeValue<byte>.value));
-                    valueField.SetValue(copy, valueField.GetValue(reference));
-                    newEventAttributeArray[i] = copy;
-                }
+                newEventAttributeArray[i] = DeepClone(reference);
             }
             return newEventAttributeArray;
         }
