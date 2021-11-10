@@ -24,10 +24,17 @@ namespace UnityEngine.Rendering.Universal
         private int m_DBufferCount;
         private ProfilingSampler m_ProfilingSampler;
 
+        private RTHandle m_DBufferDepth;
+        private RTHandle m_CameraDepthTexture;
+        private RTHandle m_CameraDepthAttachment;
+
         internal DeferredLights deferredLights { get; set; }
         private bool isDeferred => deferredLights != null;
         internal RTHandle[] dBufferColorHandles { get; private set; }
-        internal RTHandle dBufferColorHandle { get; private set; }
+
+        internal RTHandle dBufferDepth => m_DBufferDepth;
+        internal RTHandle cameraDepthTexture => m_CameraDepthTexture;
+        internal RTHandle cameraDepthAttachment => m_CameraDepthAttachment;
 
         public DBufferRenderPass(Material dBufferClear, DBufferSettings settings, DecalDrawDBufferSystem drawSystem)
         {
@@ -49,12 +56,16 @@ namespace UnityEngine.Rendering.Universal
                 dBufferColorHandles[dbufferIndex] = RTHandles.Alloc(s_DBufferNames[dbufferIndex], name: s_DBufferNames[dbufferIndex]);
             m_DBufferCount = dBufferCount;
 
-            dBufferColorHandle = RTHandles.Alloc(s_DBufferDepthName, name: s_DBufferDepthName);
+            m_DBufferDepth = RTHandles.Alloc(s_DBufferDepthName, name: s_DBufferDepthName);
+            m_CameraDepthTexture = RTHandles.Alloc("_CameraDepthTexture", name: "_CameraDepthTexture");
+            m_CameraDepthAttachment = RTHandles.Alloc("_CameraDepthAttachment", name: "_CameraDepthAttachment");
         }
 
         public void Dispose()
         {
-            dBufferColorHandle.Release();
+            m_DBufferDepth.Release();
+            m_CameraDepthTexture.Release();
+            m_CameraDepthAttachment.Release();
             foreach (var handle in dBufferColorHandles)
                 handle.Release();
         }
@@ -100,12 +111,12 @@ namespace UnityEngine.Rendering.Universal
                 depthDesc.depthStencilFormat = renderingData.cameraData.cameraTargetDescriptor.depthStencilFormat;
                 depthDesc.msaaSamples = 1;
 
-                cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferDepthName), depthDesc);
-                depthHandle = dBufferColorHandle;
+                cmd.GetTemporaryRT(Shader.PropertyToID(m_DBufferDepth.name), depthDesc);
+                depthHandle = m_DBufferDepth;
             }
             else
             {
-                depthHandle = deferredLights.DepthAttachmentHandle;
+                depthHandle = m_CameraDepthAttachment;
             }
 
             ConfigureTarget(dBufferColorHandles, depthHandle);
@@ -185,9 +196,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 cmd.ReleaseTemporaryRT(Shader.PropertyToID(s_DBufferNames[dbufferIndex]));
             }
-
-            if (!isDeferred)
-                cmd.ReleaseTemporaryRT(Shader.PropertyToID(s_DBufferDepthName));
         }
     }
 }
