@@ -481,9 +481,8 @@ void LightEyeTransform(PositionInputs posInput, BSDFData bsdfData, inout float3 
     float3 refractL = -refract(-L, bsdfData.geomNormalWS, 1.0 / bsdfData.IOR);
 
     float3 axis = normalize(cross(L, refractL));
-    
-    // TODO: This change needs cleanup / a comment.
-    float angle = acos(dot(L, refractL));//lerp(0.0, acos(dot(L, refractL)), bsdfData.mask.x);
+
+    float angle = acos(dot(L, refractL));
 
     positionRWS = Rotate(posInput.positionWS, positionRWS, axis, angle);
     forward = Rotate(float3(0, 0, 0), forward, axis, angle);
