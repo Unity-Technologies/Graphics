@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.Universal.Internal;
 
@@ -392,7 +393,10 @@ namespace UnityEngine.Rendering.Universal
                     m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);
 
                     if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
+                    {
                         m_DBufferRenderPass.deferredLights = universalRenderer.deferredLights;
+                        m_DBufferRenderPass.deferredLights.DisableFramebufferFetchInput();
+                    }
                     break;
             }
 
@@ -405,6 +409,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             RecreateSystemsIfNeeded(renderer, cameraData);
+
+            ChangeAdaptivePerformanceDrawDistances();
 
             m_DecalEntityManager.Update();
 
@@ -443,6 +449,8 @@ namespace UnityEngine.Rendering.Universal
 
             RecreateSystemsIfNeeded(renderer, renderingData.cameraData);
 
+            ChangeAdaptivePerformanceDrawDistances();
+
             if (intermediateRendering)
             {
                 m_DecalUpdateCulledSystem.Execute();
@@ -473,6 +481,8 @@ namespace UnityEngine.Rendering.Universal
                             new RenderTargetHandle(m_DBufferRenderPass.cameraDepthTextureIndentifier),
                             new RenderTargetHandle(m_DBufferRenderPass.dBufferDepthIndentifier)
                         );
+
+                        m_CopyDepthPass.CopyToDepth = true;
                     }
                     m_CopyDepthPass.MssaSamples = 1;
 
@@ -481,6 +491,11 @@ namespace UnityEngine.Rendering.Universal
                     renderer.EnqueuePass(m_ForwardEmissivePass);
                     break;
             }
+        }
+
+        internal override bool SupportsNativeRenderPass()
+        {
+            return m_Technique == DecalTechnique.GBuffer || m_Technique == DecalTechnique.ScreenSpace;
         }
 
         protected override void Dispose(bool disposing)
@@ -493,6 +508,24 @@ namespace UnityEngine.Rendering.Universal
                 m_DecalEntityManager = null;
                 sharedDecalEntityManager.Release(m_DecalEntityManager);
             }
+        }
+
+        [Conditional("ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER")]
+        private void ChangeAdaptivePerformanceDrawDistances()
+        {
+#if ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER
+            if (UniversalRenderPipeline.asset.useAdaptivePerformance)
+            {
+                if (m_DecalCreateDrawCallSystem != null)
+                {
+                    m_DecalCreateDrawCallSystem.maxDrawDistance = AdaptivePerformance.AdaptivePerformanceRenderSettings.DecalsDrawDistance;
+                }
+                if (m_DecalUpdateCullingGroupSystem != null)
+                {
+                    m_DecalUpdateCullingGroupSystem.boundingDistance = AdaptivePerformance.AdaptivePerformanceRenderSettings.DecalsDrawDistance;
+                }
+            }
+#endif
         }
     }
 }

@@ -34,9 +34,17 @@ SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, 
     $SurfaceDescriptionInputs.ViewSpacePositionPredisplacement:             output.ViewSpacePositionPredisplacement =           TransformWorldToView(input.positionPredisplacementRWS);
     $SurfaceDescriptionInputs.TangentSpacePositionPredisplacement:          output.TangentSpacePositionPredisplacement =        float3(0.0f, 0.0f, 0.0f);
     $SurfaceDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement:    output.AbsoluteWorldSpacePositionPredisplacement =  GetAbsolutePositionWS(input.positionPredisplacementRWS);
-    $SurfaceDescriptionInputs.PixelPosition:                                output.PixelPosition =                              input.positionPixel.xy;
-    $SurfaceDescriptionInputs.NDCPosition:                                  output.NDCPosition =                                output.PixelPosition.xy / _ScreenParams.xy;
-    $SurfaceDescriptionInputs.ScreenPosition:                               output.ScreenPosition =                             ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x);
+    $SurfaceDescriptionInputs.ScreenPosition:                               output.ScreenPosition = ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x);
+
+#if UNITY_UV_STARTS_AT_TOP
+    $SurfaceDescriptionInputs.PixelPosition:                                output.PixelPosition = float2(input.positionPixel.x, (_ProjectionParams.x < 0) ? (_ScreenParams.y - input.positionPixel.y) : input.positionPixel.y);
+#else
+    $SurfaceDescriptionInputs.PixelPosition:                                output.PixelPosition = float2(input.positionPixel.x, (_ProjectionParams.x > 0) ? (_ScreenParams.y - input.positionPixel.y) : input.positionPixel.y);
+#endif
+
+    $SurfaceDescriptionInputs.NDCPosition:                                  output.NDCPosition = output.PixelPosition.xy / _ScreenParams.xy;
+    $SurfaceDescriptionInputs.NDCPosition:                                  output.NDCPosition.y = 1.0f - output.NDCPosition.y;
+
     $SurfaceDescriptionInputs.uv0:                                          output.uv0 =                                        input.texCoord0;
     $SurfaceDescriptionInputs.uv1:                                          output.uv1 =                                        input.texCoord1;
     $SurfaceDescriptionInputs.uv2:                                          output.uv2 =                                        input.texCoord2;
