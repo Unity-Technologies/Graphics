@@ -51,7 +51,6 @@ namespace UnityEditor.ShaderFoundry
             if (!string.IsNullOrEmpty(declaration))
                 attBuilder.Param("declaration", declaration);
             builder.AddAttribute(attBuilder.Build());
-
         }
 
         static internal void AddUniformDeclaration(ShaderContainer container, StructField.Builder builder, string type)
@@ -73,7 +72,6 @@ namespace UnityEditor.ShaderFoundry
                 AddFullUniformDeclaration(container, builder, "#", "TEXTURE2D_ARRAY(#)");
             else if (prop.type == HLSLType._SamplerState)
                 AddFullUniformDeclaration(container, builder, "#", "SAMPLER(#)");
-
         }
 
         static internal void BuildProp(ShaderContainer container, AbstractShaderProperty shaderProp, HLSLProperty hlslProp, HashSet<string> declaredHlslProps, List<StructField> inputs)
@@ -223,163 +221,5 @@ namespace UnityEditor.ShaderFoundry
                     });
             }
         }
-
-        //static internal void BuildProperties(ShaderContainer container, Block.Builder blockBuilder, List<BlockVariable> properties, List<BlockVariable> inputs, AbstractShaderProperty shaderProp, ConcretePrecision defaultConcretePrecision)
-        //{
-        //    switch (shaderProp)
-        //    {
-        //        case BooleanShaderProperty boolProp:
-        //            {
-        //                var propBuilder = CreateBasicProperty(container, shaderProp, defaultConcretePrecision);
-        //                AddUniformDeclaration(container, propBuilder, "float");
-        //                propBuilder.AddAttribute(new ShaderAttribute.Builder(container, "MaterialProperty").Param($"[ToggleUI]{shaderProp.referenceName}(\"{shaderProp.displayName}\", Float)").Build());
-        //                float defaultValue = boolProp.value == false ? 0 : 1;
-        //                AddMaterialPropertyDefault(container, propBuilder, $"{defaultValue}");
-        //                properties.Add(propBuilder.Build());
-        //                inputs.Add(propBuilder.Build());
-        //                break;
-        //            }
-        //        case Vector1ShaderProperty vec1Prop:
-        //            {
-        //                var propBuilder = CreateBasicProperty(container, shaderProp, defaultConcretePrecision);
-        //                AddUniformDeclaration(container, propBuilder, "float");
-        //                AddMaterialProperty(container, propBuilder, shaderProp, "Float");
-        //                string defaultValue = $"{vec1Prop.value}";
-        //                AddMaterialPropertyDefault(container, propBuilder, defaultValue);
-        //                properties.Add(propBuilder.Build());
-        //                inputs.Add(propBuilder.Build());
-        //                break;
-        //            }
-        //        case Vector2ShaderProperty vec2Prop:
-        //            {
-        //                var propBuilder = CreateBasicProperty(container, shaderProp, defaultConcretePrecision);
-        //                AddUniformDeclaration(container, propBuilder, "float2");
-        //                AddMaterialProperty(container, propBuilder, shaderProp, "Vector");
-        //                string defaultValue = $"({vec2Prop.value.x}, {vec2Prop.value.y}, 0, 0)";
-        //                AddMaterialPropertyDefault(container, propBuilder, defaultValue);
-        //                properties.Add(propBuilder.Build());
-        //                inputs.Add(propBuilder.Build());
-        //                break;
-        //            }
-        //        case Vector3ShaderProperty vec3Prop:
-        //            {
-        //                var propBuilder = CreateBasicProperty(container, shaderProp, defaultConcretePrecision);
-        //                AddUniformDeclaration(container, propBuilder, "float3");
-        //                AddMaterialProperty(container, propBuilder, shaderProp, "Vector");
-        //                string defaultValue = $"({vec3Prop.value.x}, {vec3Prop.value.y}, {vec3Prop.value.z}, 0)";
-        //                AddMaterialPropertyDefault(container, propBuilder, defaultValue);
-        //                properties.Add(propBuilder.Build());
-        //                inputs.Add(propBuilder.Build());
-        //                break;
-        //            }
-        //        case Vector4ShaderProperty vec4Prop:
-        //            {
-        //                var propBuilder = CreateBasicProperty(container, shaderProp, defaultConcretePrecision);
-        //                AddUniformDeclaration(container, propBuilder, "float4");
-        //                AddMaterialProperty(container, propBuilder, shaderProp, "Vector");
-        //                string defaultValue = $"({vec4Prop.value.x}, {vec4Prop.value.y}, {vec4Prop.value.z}, {vec4Prop.value.w})";
-        //                AddMaterialPropertyDefault(container, propBuilder, defaultValue);
-        //                blockBuilder.AddProperty(propBuilder.Build());
-        //                break;
-        //            }
-        //        case ColorShaderProperty colorProp:
-        //            {
-        //                var propBuilder = CreateBasicProperty(container, shaderProp, defaultConcretePrecision);
-        //                AddUniformDeclaration(container, propBuilder, "float4");
-        //                AddMaterialProperty(container, propBuilder, shaderProp, "Color", colorProp.hdrTagString);
-        //                string defaultValue = $"({colorProp.value.r}, {colorProp.value.g}, {colorProp.value.b}, {colorProp.value.a})";
-        //                AddMaterialPropertyDefault(container, propBuilder, defaultValue);
-        //                properties.Add(propBuilder.Build());
-        //                inputs.Add(propBuilder.Build());
-        //                break;
-        //            }
-        //        default:
-        //            {
-        //                string typeName = shaderProp.GetPropertyTypeString();
-        //                var propType = container.GetType(typeName);
-        //                var propBuilder = new ShaderFoundry.BlockVariable.Builder(container);
-        //                propBuilder.ReferenceName = shaderProp.referenceName;
-        //                propBuilder.DisplayName = shaderProp.displayName;
-        //                propBuilder.Type = propType;
-        //                switch (shaderProp)
-        //                {
-        //                    case Texture2DShaderProperty tex2DProp:
-        //                        var normalTagString = (tex2DProp.defaultType == Texture2DShaderProperty.DefaultType.NormalMap) ? "[Normal]" : "";
-        //                        string attributesString = $"{tex2DProp.hideTagString}{tex2DProp.modifiableTagString}{normalTagString}{tex2DProp.mainTextureString}{tex2DProp.useSTString}";
-        //                        AddMaterialProperty(container, propBuilder, shaderProp, "2D", attributesString);
-        //                        string defaultValue = $"\"{Texture2DShaderProperty.ToShaderLabString(tex2DProp.defaultType)}\" {{}}";
-        //                        AddMaterialPropertyDefault(container, propBuilder, defaultValue);
-        //                        break;
-        //                    case Texture3DShaderProperty tex3DProp:
-        //                        AddMaterialProperty(container, propBuilder, shaderProp, "3D");
-        //                        AddMaterialPropertyDefault(container, propBuilder, "\"\" {}");
-        //                        break;
-        //                    case CubemapShaderProperty cubeProp:
-        //                        AddMaterialProperty(container, propBuilder, shaderProp, "CUBE");
-        //                        AddMaterialPropertyDefault(container, propBuilder, "\"\" {}");
-        //                        break;
-        //                    case Texture2DArrayShaderProperty tex2DArrayProp:
-        //                        AddMaterialProperty(container, propBuilder, shaderProp, "2DArray");
-        //                        AddMaterialPropertyDefault(container, propBuilder, "\"\" {}");
-        //                        break;
-        //                }
-        //                properties.Add(propBuilder.Build());
-
-        //                shaderProp.ForeachHLSLProperty((HLSLProperty hlslProp) =>
-        //                    {
-        //                        string typeName = GetHlslType(hlslProp);
-
-        //                        var fieldType = container.GetType(typeName);
-        //                        var inputBuilder = new ShaderFoundry.BlockVariable.Builder(container);
-        //                        inputBuilder.ReferenceName = hlslProp.name;
-        //                        inputBuilder.DisplayName = shaderProp.displayName;
-        //                        inputBuilder.Type = fieldType;
-
-        //                        if (hlslProp.declaration == HLSLDeclaration.DoNotDeclare)
-        //                        {
-
-        //                        }
-        //                        else if (hlslProp.declaration == HLSLDeclaration.Global)
-        //                            inputBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Global).Build());
-        //                        else if (hlslProp.declaration == HLSLDeclaration.UnityPerMaterial)
-        //                            inputBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PerMaterial).Build());
-        //                        else if (shaderProp.GetDefaultHLSLDeclaration() == HLSLDeclaration.HybridPerInstance)
-        //                            inputBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Hybrid).Build());
-        //                        else
-        //                            AddPropertyDeclaration(container, inputBuilder);
-
-        //                        DeclareBasicUniform(container, inputBuilder, hlslProp);
-        //                        if (shaderProp.referenceName == hlslProp.name)
-        //                        {
-        //                            switch (shaderProp)
-        //                            {
-        //                                case Texture2DShaderProperty tex2DProp:
-        //                                    var normalTagString = (tex2DProp.defaultType == Texture2DShaderProperty.DefaultType.NormalMap) ? "[Normal]" : "";
-        //                                    string attributesString = $"{tex2DProp.hideTagString}{tex2DProp.modifiableTagString}{normalTagString}{tex2DProp.mainTextureString}{tex2DProp.useSTString}";
-        //                                    AddMaterialProperty(container, inputBuilder, shaderProp, "2D", attributesString);
-        //                                    string defaultValue = $"\"{Texture2DShaderProperty.ToShaderLabString(tex2DProp.defaultType)}\" {{}}";
-        //                                    AddMaterialPropertyDefault(container, inputBuilder, defaultValue);
-        //                                    break;
-        //                                case Texture3DShaderProperty tex3DProp:
-        //                                    AddMaterialProperty(container, inputBuilder, shaderProp, "3D");
-        //                                    AddMaterialPropertyDefault(container, inputBuilder, "\"\" {}");
-        //                                    break;
-        //                                case CubemapShaderProperty cubeProp:
-        //                                    AddMaterialProperty(container, inputBuilder, shaderProp, "CUBE");
-        //                                    AddMaterialPropertyDefault(container, inputBuilder, "\"\" {}");
-        //                                    break;
-        //                                case Texture2DArrayShaderProperty tex2DArrayProp:
-        //                                    AddMaterialProperty(container, inputBuilder, shaderProp, "2DArray");
-        //                                    AddMaterialPropertyDefault(container, inputBuilder, "\"\" {}");
-        //                                    break;
-        //                            }
-        //                        }
-
-        //                        inputs.Add(inputBuilder.Build());
-        //                    });
-        //                break;
-        //            }
-        //    }
-        //}
     }
 }

@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderFoundry
 
         internal void Declare(ShaderBuilder builder, string propertyName)
         {
+            builder.Indentation();
             builder.Add($"{declaration} = {DefaultExpression}");
             builder.AddLine("");
         }
