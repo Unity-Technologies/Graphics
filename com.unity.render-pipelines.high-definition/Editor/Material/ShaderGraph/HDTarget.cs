@@ -408,6 +408,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #region StructCollections
     static class CoreStructCollections
     {
+        public static StructCollection BasicProcedural = new StructCollection
+        {
+            { HDStructs.AttributesMeshProcedural },
+            { HDStructs.VaryingsMeshToPS },
+            { Structs.VertexDescriptionInputsProcedural },
+            { Structs.SurfaceDescriptionInputs },
+        };
+
         public static StructCollection Basic = new StructCollection
         {
             { HDStructs.AttributesMesh },

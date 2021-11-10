@@ -1,0 +1,215 @@
+#pragma kernel InitializePhillipsSpectrum
+#pragma kernel EvaluateDispersion
+#pragma kernel EvaluateNormals
+#pragma kernel BlurFoamAndCombine
+
+// Required to be defined for some includes
+#define WATER_SIMULATION
+static const float tipFoamThreshold[4] = {4, 10, 10, 10};
+static const float tipFoamOffThreshold[4] = {8, 10, 10, 10};
+static const float deepFoamThreshold[4] = {1, 0.75, 0, 0};
+
+// #pragma enable_d3d11_debug_symbols
+
+// SRP generic includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterUtilities.hlsl"
+
+// InitializePhillipsSpectrum UAVS
+RWTexture2DArray<float2> _H0BufferRW;
+
+[numthreads(8, 8, 1)]
+void InitializePhillipsSpectrum(uint3 currentThread : SV_DispatchThreadID)
+{
+    // We need 4 random numbers
+    float4 rn = GenerateRandomNumbers(currentThread);
+
+    // First part of the phillips spectrum term
+    float2 E = ONE_OVER_SQRT2 * float2(GaussianDis(rn.x, rn.y), GaussianDis(rn.z, rn.w));
+
+    // Second part of the phillips spectrum term
+    float2 nDC = (currentThread.xy / (float)_BandResolution - 0.5f) * 2.0f;
+    float2 k = (TWO_PI * nDC) * _BandPatchSize[0] / _BandPatchSize[currentThread.z];
+    float P = Phillips(k, _WindDirection, _WindSpeed[currentThread.z]);
+
+    // Combine and output
+    _H0BufferRW[int3(currentThread.xy, currentThread.z)] = E * sqrt(P);
+}
+
+// EvaluateDispersion UAVS
+Texture2DArray<float2> _H0Buffer;
+RWTexture2DArray<float4> _HtRealBufferRW;
+RWTexture2DArray<float4> _HtImaginaryBufferRW;
+
+[numthreads(8, 8, 1)]
+void EvaluateDispersion(uint3 currentThread : SV_DispatchThreadID)
+{
+    float2 nDC = (currentThread.xy / (float)_BandResolution - 0.5) * 2.0;
+    float2 k = (TWO_PI * nDC) / _BandPatchSize[currentThread.z] * _BandPatchSize[0];
+
+    float  kl = length(k);
+    float  w = sqrt(EARTH_GRAVITY * kl);
+    float2 kx = float2(k.x / kl, 0.0);
+    float2 ky = float2(k.y / kl, 0.0);
+
+    float2 h0 = LOAD_TEXTURE2D_ARRAY(_H0Buffer, currentThread.xy, currentThread.z);
+    float2 ht = ComplexMult(h0, ComplexExp(w * _SimulationTime));
+    float2 dx = ComplexMult(ComplexMult(float2(0, -1), kx), ht);
+    float2 dy = ComplexMult(ComplexMult(float2(0, -1), ky), ht);
+
+    if (dx.x != dx.x) dx.x = 0.f;
+    if (dx.y != dx.y) dx.y = 0.f;
+    if (dy.x != dy.x) dy.x = 0.f;
+    if (dy.y != dy.y) dy.y = 0.f;
+
+    // TODO: This is a work around to handle singularity at origin.
+    // The above nan check should have picked it up but it doesn't
+    // work on metal. Must investigate.
+    uint halfBandResolution = _BandResolution / 2;
+    if((currentThread.x == halfBandResolution) && (currentThread.y == halfBandResolution))
+    {
+        dx = float2(0, 0);
+        dy = float2(0, 0);
+    }
+
+    _HtRealBufferRW[int3(currentThread.xy, currentThread.z)] = float4(ht.x, dx.x, dy.x, 0);
+    _HtImaginaryBufferRW[int3(currentThread.xy, currentThread.z)] = float4(ht.y, dx.y, dy.y, 0);
+}
+
+// EvaluateNormals UAVS
+RWTexture2DArray<float2> _WaterSurfaceGradientBufferRW;
+RWTexture2DArray<float2> _FoamBufferRW;
+
+float square(float value)
+{
+    return value * value;
+}
+
+[numthreads(8, 8, 1)]
+void EvaluateNormals(uint3 currentThread : SV_DispatchThreadID)
+{
+    // Extract the information about the pixel to process
+    uint2 coord = currentThread.xy;
+    uint bandIdx = currentThread.z;
+
+    // Get the displacement at the center coordinate
+    float3 displacementCenter = LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, coord, bandIdx).xyz;
+
+    // Sample pixels from the region we need
+    float3 displacementRight = LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, uint2(coord + int2(1, 0)) & (_BandResolution - 1), bandIdx).xyz;
+    float3 displacementUp = LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, uint2(coord + int2(0, 1)) & (_BandResolution - 1), bandIdx).xyz;
+
+    // Compute the displacement factor we need to compute the derivatives
+    float displacementFactor = (_BandPatchSize[0] * PHILLIPS_AMPLITUDE_SCALAR) / square(_BandPatchSize[bandIdx]);
+    float deltaNormalization = _BandResolution / _BandPatchSize[bandIdx];
+
+    // Evaluate the surface gradient of this pixels
+    float deltaY = (_BandResolution * displacementFactor);
+    float deltaX = (displacementRight.x - displacementCenter.x);
+    float deltaZ = (displacementUp.x - displacementCenter.x);
+    float2 surfaceGradient = float2(deltaX, deltaZ) * deltaY;
+
+    // Compute the jacobian of this pixel
+    float jacobianLambda = _FoamJacobianLambda[bandIdx];
+    float Jxx = 1.f + jacobianLambda * (displacementRight.y - displacementCenter.y) * deltaNormalization;
+    float Jyy = 1.f + jacobianLambda * (displacementUp.z - displacementCenter.z) * deltaNormalization;
+    float Jyx = jacobianLambda * (displacementRight.z - displacementCenter.z) * deltaNormalization;
+    float Jxy = jacobianLambda * (displacementUp.y - displacementCenter.y) * deltaNormalization;
+    float jacobian = (Jxx * Jyy - Jxy * Jyx);
+
+    // Deduce the foam from the jacobian
+    float tipFoam = saturate(max(jacobian - lerp(tipFoamOffThreshold[bandIdx], tipFoamThreshold[bandIdx], _SurfaceFoamAmount), 0));
+    float deepFoam = saturate(max(jacobian - deepFoamThreshold[bandIdx], 0));
+
+    // Output the normal and foam
+    _WaterSurfaceGradientBufferRW[int3(coord, bandIdx)] = surfaceGradient;
+    _FoamBufferRW[int3(coord, bandIdx)] = float2(tipFoam, deepFoam);
+}
+
+// EvaluateNormals UAVS
+Texture2DArray<float2> _FoamBuffer;
+Texture2DArray<float2> _WaterSurfaceGradientBuffer;
+RWTexture2DArray<float4> _WaterAdditionalDataBufferRW;
+
+#define FILTER_PER_THREAD_TAP_COUNT 4
+#define FILTER_OUT_REGION_SIZE 4
+#define FILTER_REGION_SIZE (FILTER_OUT_REGION_SIZE + 8 + FILTER_OUT_REGION_SIZE)
+#define FILTER_REGION_SIZE_2 (FILTER_REGION_SIZE * FILTER_REGION_SIZE)
+
+// LDS used to pre-fetch the neighborhood data
+groupshared float2 gs_cacheFoam[FILTER_REGION_SIZE_2];
+
+void FillUpscaleNeighborhoodDataLDS_Full(uint groupIndex, uint2 groupOrigin, int bandIdx)
+{
+    // The initial position of the access
+    int2 originXY = groupOrigin - int2(FILTER_OUT_REGION_SIZE, FILTER_OUT_REGION_SIZE);
+
+    for (int i = 0; i < FILTER_PER_THREAD_TAP_COUNT; ++i)
+    {
+        uint sampleID = i + groupIndex * FILTER_PER_THREAD_TAP_COUNT;
+        int offsetX = sampleID % FILTER_REGION_SIZE;
+        int offsetY = sampleID / FILTER_REGION_SIZE;
+
+        int2 targetCoord = int2(originXY.x + offsetX, originXY.y + offsetY);
+        int2 sampleCoord = targetCoord & (_BandResolution - 1);
+
+        // Read all the values for tap
+        int LDSIndex = offsetX + offsetY * FILTER_REGION_SIZE;
+        float2 foam = LOAD_TEXTURE2D_ARRAY(_FoamBuffer, sampleCoord, bandIdx).xy;
+        gs_cacheFoam[LDSIndex] = foam;
+    }
+}
+
+uint OffsetToLDSAdress(uint2 groupThreadId, int2 offset)
+{
+    // Compute the tap coordinate in the 16x16 grid
+    uint2 tapAddress = (uint2)((int2)(groupThreadId + FILTER_OUT_REGION_SIZE) + offset);
+    return clamp((uint)(tapAddress.x) + tapAddress.y * FILTER_REGION_SIZE, 0, FILTER_REGION_SIZE_2 - 1);
+}
+
+[numthreads(8, 8, 1)]
+void BlurFoamAndCombine(uint3 currentThread : SV_DispatchThreadID, int groupIndex : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Extract the information about the pixel to process
+    uint2 coord = currentThread.xy;
+    uint bandIdx = currentThread.z;
+
+    // Only the first 50 workers needs to read values
+    FillUpscaleNeighborhoodDataLDS_Full(groupIndex, groupId * 8, bandIdx);
+
+    // Make sure all values are loaded in LDS by now.
+    GroupMemoryBarrierWithGroupSync();
+
+    // Combine with the previous jacobian
+    float deltaNormalization = _BandResolution / _BandPatchSize[bandIdx];
+
+    const float sigma = 0.9 * 4;
+    float2 waterFoam = 0;
+    float weightSum = 0;
+
+    for(int y = -4; y <= 4; ++y)
+    {
+        for(int x = -4; x <= 4; ++x)
+        {
+            float f = sqrt(x * x + y* y) / sigma;
+            float weight = exp(-f * f);
+            waterFoam += gs_cacheFoam[OffsetToLDSAdress(groupThreadId, int2(x, y))] * weight;
+            weightSum += weight;
+        }
+    }
+    waterFoam /= weightSum;
+
+    // Grab the surface gradient
+    float2 waterSurfaceGraddient = LOAD_TEXTURE2D_ARRAY(_WaterSurfaceGradientBuffer, coord, bandIdx).xy;
+
+    // Combine the tip foam
+    float accumulationFactor = saturate(0.01f * _DeltaTime / 0.005f);
+    float tipFoam = _WaterAdditionalDataBufferRW[int3(coord, bandIdx)].z * (1.0 - accumulationFactor) + waterFoam.x * accumulationFactor;
+    float deepFoam = _WaterAdditionalDataBufferRW[int3(coord, bandIdx)].w * 0.999 + waterFoam.y * 0.001;
+    deepFoam = waterFoam.y;
+
+    // Output the normal and foam
+    _WaterAdditionalDataBufferRW[int3(coord, bandIdx)] = float4(waterSurfaceGraddient, tipFoam, deepFoam);
+}
