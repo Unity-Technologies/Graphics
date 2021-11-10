@@ -31,6 +31,12 @@ namespace UnityEditor.Rendering.Universal.Converters
             return listOfConverters;
         }
 
+        /// <summary>
+        /// The method that will be run when converting the assets in batch mode.
+        /// </summary>
+        /// <param name="containerName">The name of the container which will be batched.</param>
+        /// <param name="converterList">The list of converters that will be either included or excluded from batching. String is the full typename.</param>
+        /// <param name="converterFilter">The enum that decide if the list of converters will be included or excluded when batching.</param>
         public static void RunInBatchMode(string containerName, List<string> converterList, ConverterFilter converterFilter)
         {
             List<RenderPipelineConverter> convertersToBatch = new List<RenderPipelineConverter>();
@@ -73,17 +79,12 @@ namespace UnityEditor.Rendering.Universal.Converters
 
             convertersToBatch = tempConvertersToBatch;
             BatchConverters(convertersToBatch);
-            // Get all the containers
-            // Select the correct container ( option when calling this method )
-            // Get all the converters
-            // Run the converters that has implemented Batch method ( or maybe again have a named option when calling this method )
-            // Use the full typename
         }
 
         /// <summary>
-        /// The method that will be run when converting the assets.
+        /// The method that will be run when converting the assets in batch mode.
         /// </summary>
-        /// <param name="context">The context that will be used when executing converter.</param>
+        /// <param name="containerName">The name of the container which will be batched.</param>
         public static void RunInBatchMode(string containerName)
         {
             List<RenderPipelineConverter> converters = new List<RenderPipelineConverter>();
@@ -98,11 +99,6 @@ namespace UnityEditor.Rendering.Universal.Converters
             }
 
             BatchConverters(converters);
-            // Get all the containers
-            // Select the correct container ( option when calling this method )
-            // Get all the converters
-            // Run the converters that has implemented Batch method ( or maybe again have a named option when calling this method )
-            // Use the full typename
         }
 
         private static void BatchConverters(List<RenderPipelineConverter> converters)
