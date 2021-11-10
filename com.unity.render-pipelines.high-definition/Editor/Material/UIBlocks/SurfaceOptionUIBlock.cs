@@ -142,7 +142,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent opaqueCullModeText = new GUIContent("Cull Mode", "For opaque objects, change the cull mode of the object.");
 
-            public static string afterPostProcessZTestInfoBox = "After post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
+            public static string afterPostProcessInfoBox = "If After post-process objects don't render, make sure to enable \"After Post-process\" in the frame settings.\nAfter post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
 
             public static readonly GUIContent[] displacementModeLitNames = new GUIContent[] { new GUIContent("None"), new GUIContent("Vertex displacement"), new GUIContent("Pixel displacement") };
             public static readonly int[] displacementModeLitValues = new int[] { (int)DisplacementMode.None, (int)DisplacementMode.Vertex, (int)DisplacementMode.Pixel };
@@ -590,7 +590,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void ShowAfterPostProcessZTestInfoBox()
         {
-            EditorGUILayout.HelpBox(Styles.afterPostProcessZTestInfoBox, MessageType.Info);
+            EditorGUILayout.HelpBox(Styles.afterPostProcessInfoBox, MessageType.Info);
         }
 
         void SurfaceTypePopup()

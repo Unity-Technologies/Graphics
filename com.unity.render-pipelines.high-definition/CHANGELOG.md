@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Shadow Matte not appearing in ray tracing effects (case 1364005).
 - Fixed Crash issue when adding an area light on its own.
 - Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
+- Fixed light unit conversion after changing mid gray value.
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
@@ -70,6 +71,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Depth of Field is now disabled in orthographic cameras - it was using the hidden perspective settings (case 1372582).
 - Modified HDRP to use common FSR logic from SRP core.
 - Optimized FSR by merging the RCAS logic into the FinalPass shader.
+- Integrate a help box to inform users of the potential dependency to directional lights when baking.
 
 ## [13.1.0] - 2021-09-24
 

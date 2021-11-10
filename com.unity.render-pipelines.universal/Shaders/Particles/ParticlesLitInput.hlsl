@@ -117,7 +117,7 @@ inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 p
     outSurfaceData.smoothness = metallicGloss.g;
     outSurfaceData.occlusion = 1.0;
 
-    outSurfaceData.albedo = AlphaModulate(outSurfaceData.albedo, albedo.a);
+    outSurfaceData.albedo = AlphaModulate(outSurfaceData.albedo, albedo.a); // Premultiply in UniversalPBR, BRDF init.
     outSurfaceData.alpha = albedo.a;
 
     outSurfaceData.clearCoatMask       = half(0.0);
