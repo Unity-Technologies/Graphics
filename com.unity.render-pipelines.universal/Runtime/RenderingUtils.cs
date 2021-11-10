@@ -553,7 +553,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns></returns>
-        internal static bool ReAllocateIfNeeded(
+        public static bool ReAllocateIfNeeded(
             ref RTHandle handle,
             in RenderTextureDescriptor descriptor,
             FilterMode filterMode = FilterMode.Point,
@@ -585,7 +585,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns>If the RTHandle should be re-allocated</returns>
-        internal static bool ReAllocateIfNeeded(
+        public static bool ReAllocateIfNeeded(
             ref RTHandle handle,
             Vector2 scaleFactor,
             in RenderTextureDescriptor descriptor,
@@ -619,7 +619,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns>If an allocation was done</returns>
-        internal static bool ReAllocateIfNeeded(
+        public static bool ReAllocateIfNeeded(
             ref RTHandle handle,
             ScaleFunc scaleFunc,
             in RenderTextureDescriptor descriptor,
