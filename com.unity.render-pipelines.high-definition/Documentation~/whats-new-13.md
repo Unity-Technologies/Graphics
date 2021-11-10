@@ -5,6 +5,3 @@ This page contains an overview of new features, improvements, and issues resolve
 ## Added
 
 ## Updated
-
-### Depth Of Field
-HDRP version 13 includes optimizations in the physically based depth of field implementation. In particular, image regions that are out-of-focus are now computed at lower resolution, while in-focus regions retain the full resolution. For many scenes this results in significant speedup, without any visible reduction in image quality.
