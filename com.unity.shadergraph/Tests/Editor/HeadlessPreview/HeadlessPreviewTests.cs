@@ -13,10 +13,16 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
     {
         HeadlessPreviewManager m_PreviewManager = new ();
 
+        Registry.Registry m_RegistryInstance = new ();
+
         [OneTimeSetUp]
         public void Setup()
         {
-
+            // TODO: Figure out property
+            m_RegistryInstance.Register<Types.GraphType>();
+            m_RegistryInstance.Register<Types.AddNode>();
+            m_RegistryInstance.Register<Types.ColorNode>();
+            m_RegistryInstance.Register<Types.GraphTypeAssignment>();
         }
 
         bool DoesMaterialMatchColor(Material testMaterial, Color expectedColor)

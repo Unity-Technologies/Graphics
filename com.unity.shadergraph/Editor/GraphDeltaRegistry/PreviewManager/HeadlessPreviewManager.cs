@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Generation;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -19,6 +20,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             Preview3D
         }
 
+        // TODO: Where does this live?
+        // Needs to be in a third place that is accessible to both the GraphUI assembly and the GraphDelta assembly so we aren't directly coupled
+        public enum DefaultTextureType
+        {
+            White,
+            Black,
+            NormalMap
+        }
+
         class PreviewData
         {
             public string propertyName;
@@ -26,15 +36,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             public Material materialPropertyBlock;
             public string shaderString;
             public Texture texture;
-
-            public bool isOutOfDate;
+            public bool isRenderOutOfDate;
+            public bool isShaderOutOfDate;
 
             // Do we need to cache the render texture?
             public RenderTexture renderTexture;
 
             // Do we need to track how many passes are actively compiled per shader? What is it used for beyond debug log stuff?
             public int passesCompiling;
-            // Same for this stuff below...
+            // Same for this below...
             public bool hasError;
         }
 
@@ -67,6 +77,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// </summary>
         IGraphHandler m_GraphHandle;
 
+        Registry.Registry m_RegistryInstance;
+
         MaterialPropertyBlock m_PreviewMaterialPropertyBlock = new ();
 
         Texture2D m_ErrorTexture;
@@ -76,7 +88,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         PreviewData m_MasterPreviewData;
 
         /// <summary>
-        /// Used to set which graph this preview manager gets its data from.
+        /// Used to set which graph this preview manager gets its node data from.
         /// </summary>
         public void SetActiveGraph(IGraphHandler activeGraphReference)
         {
@@ -84,11 +96,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
         /// <summary>
+        /// Used to set which registry instance this preview manager gets its type data from.
+        /// </summary>
+        public void SetActiveRegistry(Registry.Registry registryInstance)
+        {
+            m_RegistryInstance = registryInstance;
+        }
+
+        /// <summary>
         /// Used to change the propertyValue of global properties like Time, Blackboard Properties, Render Pipeline Intrinsics etc.
         /// </summary>
         /// <returns> List of names describing all nodes that were affected by this change </returns>
         /// <remarks> Dirties the preview render state of all nodes downstream of any references to the changed property </remarks>
-        public List<string> SetGlobalProperty(string propertypropertyName, object newPropertyValue)
+        public List<string> SetGlobalProperty(string propertyName, object newPropertyValue)
 		{
 			return null;
 		}
@@ -98,7 +118,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// </summary>
         /// <returns> List of names describing all nodes that were affected by this change </returns>
         /// <remarks> Dirties the preview render state of all nodes downstream of any references to the changed property </remarks>
-        public List<string> SetLocalProperty(string nodepropertyName, string portpropertyName, object newPropertyValue)
+        public List<string> SetLocalProperty(string nodeName, string propertyName, object newPropertyValue)
 		{
 			return null;
 		}
@@ -108,7 +128,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// </summary>
         /// <returns> List of names describing all nodes that were affected by this change </returns>
         /// <remarks> Dirties the preview compile & render state of all nodes downstream of the changed node </remarks>
-        public List<string> NotifyNodeFlowChanged(string nodepropertyName)
+        public List<string> NotifyNodeFlowChanged(string nodeName)
 		{
 			return null;
 		}
@@ -124,10 +144,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 // Check if shaders and render output is ready, and return if so
                 var previewData = m_CachedPreviewData[nodeName];
-                if (previewData.isOutOfDate)
+                if (previewData.isRenderOutOfDate)
                 {
-                    // Could return blue texture if still out of date
                     nodeRenderOutput = Texture2D.blackTexture;
+                    return false;
+                }
+                else if (previewData.isShaderOutOfDate)
+                {
+                    // TODO: Should return blue texture here to maintain UI affordance for currently compiling shaders from SG v1.0
+                    nodeRenderOutput = Texture2D.linearGrayTexture;
                     return false;
                 }
                 else
@@ -148,7 +173,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// Used to get preview material associated with a node.
         /// </summary>
         /// <returns> Material that describes the current preview shader and render output of a node </returns>
-        public Material RequestNodePreviewMaterial(string nodepropertyName)
+        public Material RequestNodePreviewMaterial(string nodeName)
 		{
 			return null;
 		}
@@ -157,13 +182,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// Used to get preview shader code associated with a node.
         /// </summary>
         /// <returns> Current preview shader generated by a node </returns>
-        public string RequestNodePreviewShaderCode(string nodepropertyName)
+        public string RequestNodePreviewShaderCode(string nodeName)
 		{
 			return null;
 		}
 
         /// <summary>
-        /// Used to get preview materialPropertyBlockerial associated with the final output of the active graph.
+        /// Used to get preview material associated with the final output of the active graph.
         /// </summary>
         /// <returns> Material that describes the current preview shader and render output of a graph </returns>
         public Material RequestMasterPreviewMaterial()
@@ -180,34 +205,41 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 			return null;
 		}
 
-        void AddNodePreviewData(string nodepropertyName)
+        Shader GetShaderObject(INodeReader nodeReader)
+        {
+            return Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance);
+        }
+
+        void AddNodePreviewData(string nodeName)
         {
             var renderData = new PreviewData
             {
-                propertyName = nodepropertyName,
+                propertyName = nodeName,
                 renderTexture =
                     new RenderTexture(200, 200, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default)
                     {
                         hideFlags = HideFlags.HideAndDontSave
-                    }
+                    },
+                isShaderOutOfDate = true,
+                isRenderOutOfDate = true
             };
 
-            var nodeReader = m_GraphHandle.GetNodeReader(nodepropertyName);
+            /* TODO: Re-enable when properties are promoted via the shader code generator
+            /* Currently not needed as port values get inlined as shader constants
+            var nodeReader = m_GraphHandle.GetNodeReader(nodeName);
             var nodeInputPorts = nodeReader.GetInputPorts();
             foreach (var inputPort in nodeInputPorts)
             {
-
+                SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock, inputPort);
             }
+            */
 
-
-            m_CachedPreviewData.Add(nodepropertyName, renderData);
+            m_CachedPreviewData.Add(nodeName, renderData);
         }
 
-        enum DefaultTextureType
+        public void Tick()
         {
-            White,
-            Black,
-            NormalMap
+
         }
 
         DefaultTextureType Mock_GetDefaultTextureType(IPortReader portReader)
@@ -225,8 +257,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return null;
         }
 
-        void SetValueOnMaterialPropertyBlock(MaterialPropertyBlock materialPropertyBlock, string propertyName, IPortReader portReader)
+        void SetValueOnMaterialPropertyBlock(MaterialPropertyBlock materialPropertyBlock, IPortReader portReader)
         {
+            var propertyName = Mock_GetPropertyNameForPort(portReader);
             var propertyValue = Mock_GetPortValue(portReader);
             var type = propertyValue.GetType();
 
