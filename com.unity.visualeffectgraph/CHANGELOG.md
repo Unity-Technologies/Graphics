@@ -115,6 +115,7 @@ The version number for this package has increased due to a version update of a r
 - Fix undetermitism in space with LocalToWorld and WorldToLocal operators [Case 1355820](https://issuetracker.unity3d.com/product/unity/issues/guid/1355820/)
 - Added a missing paste option in the context menu for VFX contexts. Also the paste options is now disabled when uneffective
 - Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
+- Fixed null reference exception when opening another VFX and a debug mode is enabled
 
 ## [11.0.0] - 2020-10-21
 ### Added
