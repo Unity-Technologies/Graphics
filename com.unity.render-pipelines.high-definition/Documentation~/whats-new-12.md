@@ -60,10 +60,6 @@ From HDRP 12.0, HDRP includes a new [Light Anchor](light-anchor.md) component. Y
 ![](Images/LightAnchor0.png)
 
 
-### Maximum light count for gpu
-
-The new default maximum light count per pixel for Fine Prunning Tile List is now 63.
-Added a new setting in ShaderConfig.cs, FPTLMaxLightCount. This setting can now set the maximum number of lights per tile on the GPU. A new Shader config project must be generated to upgrade. See the [HDRP-Config-Package](HDRP-Config-Package.md) guide for information on how to upgrade.
 
 ## New upsampling methods
 
@@ -229,6 +225,12 @@ HDRP 12.0 includes changes to some top level menus. This is to make the top leve
 From HDRP 12.0 you can use a new option in the [HDRP Asset](HDRP-Asset.md) (**Rendering > Decals > Additive Normal Blending**) to additively blend decal normals with the GameObject's normal map.
 
 In the image above, the example image on the left does not use this method. The image on the right uses the new additive normal blending method.
+
+### Increased the default GPU light count
+
+This version of HDRP increases the default number of lights a single pixel can get influence from to 63. You can use a new setting in `ShaderConfig.cs` called `FPTLMaxLightCount` to set the maximum number of lights per tile on the GPU. 
+
+To increase this value, you must generate a new Shader config project. For information on how to create a new Shader config project, see [HDRP-Config-Package](HDRP-Config-Package.md).
 
 ### Physical Camera
 
