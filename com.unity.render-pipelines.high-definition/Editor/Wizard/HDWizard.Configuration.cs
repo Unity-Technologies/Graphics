@@ -184,7 +184,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrLegacyHelpersPackage, IsVRLegacyHelpersCorrect, FixVRLegacyHelpers)
             });
 
-            if (CalculateSelectedBuildTarget() == BuildTarget.PS5)
+            var currentBuildTarget = CalculateSelectedBuildTarget();
+            if (( currentBuildTarget == BuildTarget.PS5) || (currentBuildTarget == BuildTarget.GameCoreXboxSeries ))
             {
                 entryList.AddRange(new[]
                 {
