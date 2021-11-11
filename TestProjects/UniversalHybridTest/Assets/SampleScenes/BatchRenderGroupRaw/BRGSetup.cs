@@ -110,6 +110,7 @@ public unsafe class BRGSetup : MonoBehaviour
             materialID = m_materialID,
             meshID = m_meshID,
             submeshIndex = 0,
+            splitVisibilityMask = 0xff,
             flags = m_motionVectorTest ? BatchDrawCommandFlags.HasMotion : BatchDrawCommandFlags.None,
             sortingPosition = 0
         };

@@ -221,6 +221,7 @@ public class SimpleBRGExample : MonoBehaviour
         drawCommands->drawCommands[0].materialID = m_MaterialID;
         drawCommands->drawCommands[0].meshID = m_MeshID;
         drawCommands->drawCommands[0].submeshIndex = 0;
+        drawCommands->drawCommands[0].splitVisibilityMask = 0xff;
         drawCommands->drawCommands[0].flags = 0;
         drawCommands->drawCommands[0].sortingPosition = 0;
 
