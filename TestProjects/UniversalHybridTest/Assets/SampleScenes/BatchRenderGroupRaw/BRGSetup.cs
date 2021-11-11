@@ -148,13 +148,20 @@ public unsafe class BRGSetup : MonoBehaviour
         int colorID = Shader.PropertyToID("_BaseColor");
 
         // Generate a grid of objects...
-        int bigDataBufferVector4Count = itemCount * 3 * 2 + itemCount;      // mat4x3, colors
+        int bigDataBufferVector4Count = 4 + itemCount * 3 * 2 + itemCount;      // mat4x3, colors
         m_sysmemBuffer = new NativeArray<Vector4>(bigDataBufferVector4Count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Raw, (int)bigDataBufferVector4Count * 16 / 4, 4);
 
+        // 64 bytes of zeroes, so loads from address 0 return zeroes. This is a BatchRendererGroup convention.
+        int positionOffset = 4;
+        m_sysmemBuffer[0] = new Vector4(0, 0, 0, 0);
+        m_sysmemBuffer[1] = new Vector4(0, 0, 0, 0);
+        m_sysmemBuffer[2] = new Vector4(0, 0, 0, 0);
+        m_sysmemBuffer[3] = new Vector4(0, 0, 0, 0);
+
         // Matrices
         /*
-         *  mat4x3 packed like this:
+         *  mat4x3 packed like this: 
          *
                 float4x4(
                         p1.x, p1.w, p2.z, p3.y,
@@ -163,10 +170,10 @@ public unsafe class BRGSetup : MonoBehaviour
                         0.0, 0.0, 0.0, 1.0
                     );
         */
-
         UpdatePositions(m_center);
+
         // Colors
-        int colorOffset = itemCount * 3 * 2;
+        int colorOffset = positionOffset + itemCount * 3 * 2;
         for (int i = 0; i < itemCount; i++)
         {
             Color col = Color.HSVToRGB(((float)(i) / (float)itemCount) % 1.0f, 1.0f, 1.0f);
@@ -177,9 +184,9 @@ public unsafe class BRGSetup : MonoBehaviour
         m_GPUPersistentInstanceData.SetData(m_sysmemBuffer);
 
         var batchMetadata = new NativeArray<MetadataValue>(3, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-        batchMetadata[0] = CreateMetadataValue(objectToWorldID, 0, true);       // matrices
-        batchMetadata[1] = CreateMetadataValue(matrixPreviousMID, itemCount * UnsafeUtility.SizeOf<Vector4>() * 3, true);   // previous matrices
-        batchMetadata[2] = CreateMetadataValue(colorID, itemCount * UnsafeUtility.SizeOf<Vector4>() * 3 * 2, true);     // colors
+        batchMetadata[0] = CreateMetadataValue(objectToWorldID, 64, true);       // matrices
+        batchMetadata[1] = CreateMetadataValue(matrixPreviousMID, 64 + itemCount * UnsafeUtility.SizeOf<Vector4>() * 3, true);   // previous matrices
+        batchMetadata[2] = CreateMetadataValue(colorID, 64 + itemCount * UnsafeUtility.SizeOf<Vector4>() * 3 * 2, true);     // colors
 
         // Register batch
         m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistentInstanceData.bufferHandle);
@@ -189,6 +196,7 @@ public unsafe class BRGSetup : MonoBehaviour
 
     void    UpdatePositions(Vector3 pos)
     {
+        int positionOffset = 4;
         int itemCountOffset = itemGridSize * itemGridSize * 3;      // 3 float4 per matrix
         for (int z = 0; z < itemGridSize; z++)
         {
@@ -199,14 +207,14 @@ public unsafe class BRGSetup : MonoBehaviour
                 int i = z * itemGridSize + x;
 
                 // update previous matrix with previous frame current matrix
-                m_sysmemBuffer[i * 3 + 0 + itemCountOffset] = m_sysmemBuffer[i * 3 + 0];
-                m_sysmemBuffer[i * 3 + 1 + itemCountOffset] = m_sysmemBuffer[i * 3 + 1];
-                m_sysmemBuffer[i * 3 + 2 + itemCountOffset] = m_sysmemBuffer[i * 3 + 2];
+                m_sysmemBuffer[positionOffset + i * 3 + 0 + itemCountOffset] = m_sysmemBuffer[positionOffset + i * 3 + 0];
+                m_sysmemBuffer[positionOffset + i * 3 + 1 + itemCountOffset] = m_sysmemBuffer[positionOffset + i * 3 + 1];
+                m_sysmemBuffer[positionOffset + i * 3 + 2 + itemCountOffset] = m_sysmemBuffer[positionOffset + i * 3 + 2];
 
                 // compute the new current frame matrix
-                m_sysmemBuffer[i * 3 + 0] = new Vector4(1, 0, 0, 0);      // hacky float3x4 layout
-                m_sysmemBuffer[i * 3 + 1] = new Vector4(1, 0, 0, 0);
-                m_sysmemBuffer[i * 3 + 2] = new Vector4(1, px + pos.x, pos.y, pz+pos.z);
+                m_sysmemBuffer[positionOffset + i * 3 + 0] = new Vector4(1, 0, 0, 0);      // hacky float3x4 layout
+                m_sysmemBuffer[positionOffset + i * 3 + 1] = new Vector4(1, 0, 0, 0);
+                m_sysmemBuffer[positionOffset + i * 3 + 2] = new Vector4(1, px + pos.x, pos.y, pz+pos.z);
 
             }
         }
