@@ -52,6 +52,7 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
+    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.LinuxPlayer, RuntimePlatform.LinuxEditor })] // Disabled on Linux (case 1370861)
     class RuntimeProfilerTests : RuntimeProfilerTestBase
     {
         [UnityTest]
