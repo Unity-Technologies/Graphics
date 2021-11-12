@@ -1768,8 +1768,6 @@ namespace UnityEngine.Rendering
             }
             else
             {
-                m_Value = new AnimationCurve();
-
                 Assert.IsTrue(lhsCurve.keys.Length >= 1);
                 Assert.IsTrue(rhsCurve.keys.Length >= 1);
 
@@ -1787,7 +1785,7 @@ namespace UnityEngine.Rendering
                 int lhsKeyCurr = 0;
                 int rhsKeyCurr = 0;
 
-                while (lhsKeyCurr < lhsCurve.keys.Length && rhsKeyCurr < rhsCurve.keys.Length)
+                while (lhsKeyCurr < lhsCurve.keys.Length || rhsKeyCurr < rhsCurve.keys.Length)
                 {
                     // the index is considered invalid once it goes off the end of the array
                     bool lhsValid = lhsKeyCurr < lhsCurve.keys.Length;
@@ -1815,18 +1813,16 @@ namespace UnityEngine.Rendering
                             rhsKey = EvalKeyAtTime(rhsCurve.keys, rhsKeyCurr - 1, rhsKeyCurr, startTime, endTime, lhsKey.time);
                             lhsKeyCurr++;
                         }
-                        else if (lhsKey.time > rhsKey.time)
+                        else
                         {
+                            // only case left is (lhsKey.time > rhsKey.time)
+                            Assert.IsTrue(lhsKey.time > rhsKey.time);
+
                             // this is the reverse of the lhs key case
                             //     lhsKey[curr-1].time <= rhsKey.time <= lhsKey[curr].time
                             // so interpolate lhsKey at the rhsKey.time.
                             lhsKey = EvalKeyAtTime(lhsCurve.keys, lhsKeyCurr - 1, lhsKeyCurr, startTime, endTime, rhsKey.time);
                             rhsKeyCurr++;
-                        }
-                        else
-                        {
-                            // should never happen, checking here to be safe
-                            Assert.IsTrue(false);
                         }
                     }
                     else if (lhsValid)
@@ -1839,8 +1835,12 @@ namespace UnityEngine.Rendering
 
                         lhsKeyCurr++;
                     }
-                    else if (rhsValid)
+                    else
                     {
+                        // either lhsValid is True, rhsValid is True, or they are both True. So to miss the first two cases,
+                        // right here rhsValid must be true.
+                        Assert.IsTrue(rhsValid);
+
                         // we still have rhsKeys to lerp, but we are out of lhsKeys, to increment rhs and evaluate lhs
                         rhsKey = rhsCurve.keys[rhsKeyCurr];
 
@@ -1848,11 +1848,6 @@ namespace UnityEngine.Rendering
                         lhsKey = EvalKeyAtTime(lhsCurve.keys, lhsKeyCurr - 1, lhsKeyCurr, startTime, endTime, rhsKey.time);
 
                         rhsKeyCurr++;
-                    }
-                    else
-                    {
-                        // at least one of lhsValid or rhsValid should always be true
-                        Assert.IsTrue(false);
                     }
 
                     Keyframe dstKey = LerpKeyframeDirect(lhsKey, rhsKey, t);
