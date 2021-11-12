@@ -508,6 +508,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Fetch the renderer that we are interested in
                             Renderer currentRenderer = currentLOD.renderers[rendererIdx];
 
+                            // It is possible that the renderer is null and we need to skip it.
+                            if (currentRenderer == null) continue;
+
                             // This objects should but included into the RAS
                             AddInstanceToRAS(currentRenderer,
                                 rayTracedShadows,
@@ -587,7 +590,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 && hdCamera.historyRTHandleProperties.previousViewportSize.y == hdCamera.actualHeight;
         }
 
-        internal int RayTracingFrameIndex(HDCamera hdCamera)
+        internal static int RayTracingFrameIndex(HDCamera hdCamera)
         {
 #if UNITY_HDRP_DXR_TESTS_DEFINE
             if (Application.isPlaying)
