@@ -125,19 +125,20 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         /// <param name ="requestID"> The request ID that has been given by the manager through a previous EnqueueRequest.</param>
         /// <param name ="sh"> The output SH coefficients that have been computed.</param>
+        /// <param name ="pos"> The position for which the computed SH coefficients are valid.</param>
         /// <returns>Whether the request for light probe rendering has been fulfilled and sh is valid.</returns>
-        public bool RetrieveProbeSH(int requestID, out SphericalHarmonicsL2 sh)
+        public bool RetrieveProbeSH(int requestID, out SphericalHarmonicsL2 sh, out Vector3 pos)
         {
             if (requestID >= 0 && requestID < m_SHCoefficients.Count && ComputeCapturePositionIsValid(m_RequestPositions[requestID]))
             {
                 sh = m_SHCoefficients[requestID];
+                pos = m_RequestPositions[requestID];
                 return m_SHValidity[requestID] == kValidSH;
             }
-            else
-            {
-                sh = new SphericalHarmonicsL2();
-                return false;
-            }
+
+            sh = new SphericalHarmonicsL2();
+            pos = Vector3.negativeInfinity;
+            return false;
         }
 
         /// <summary>
@@ -219,8 +220,35 @@ namespace UnityEngine.Experimental.Rendering
             Debug.Assert(sh.Length == validity.Length);
             for (int i = 0; i < sh.Length; ++i)
             {
-                m_SHCoefficients[i] = sh[i];
-                m_SHValidity[i] = validity[i];
+                var v = validity[i];
+                var s = sh[i];
+
+                if (v == kValidSH)
+                {
+                    var hasNonZeroValue = false;
+                    for (var r = 0; r < 3; ++r)
+                    {
+                        for (var c = 0; c < 9; ++c)
+                        {
+                            if (s[r, c] != 0f)
+                            {
+                                hasNonZeroValue = true;
+                                goto doubleBreak;
+                            }
+                        }
+                    }
+                    doubleBreak:
+
+                    if (!hasNonZeroValue)
+                    {
+                        // Use max value as a sentinel to explicitly pass coefficients to light loop that cancel out reflection probe contribution
+                        const float k = float.MaxValue;
+                        s.AddAmbientLight(new Color(k, k, k));
+                    }
+                }
+
+                m_SHCoefficients[i] = s;
+                m_SHValidity[i] = v;
             }
         }
 
