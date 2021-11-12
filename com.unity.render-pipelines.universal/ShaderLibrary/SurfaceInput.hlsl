@@ -27,7 +27,10 @@ half Alpha(half albedoAlpha, half4 color, half cutoff)
 #endif
 
 #if defined(_ALPHATEST_ON)
-    clip(alpha - cutoff);
+    half clippedAlpha = step(cutoff, alpha);
+    half sharpenedAlpha = SharpenAlpha(alpha, cutoff);
+    alpha = lerp(clippedAlpha, sharpenedAlpha, _AlphaToMaskInterp);
+    clip(alpha - 0.0001);
 #endif
 
     return alpha;

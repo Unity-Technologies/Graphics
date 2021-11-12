@@ -59,6 +59,8 @@ float4 _ProjectionParams;
 // w = 1 + 1.0/height
 float4 _ScreenParams;
 
+float _AlphaToMaskInterp;
+
 // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
 // x = 1-far/near
 // y = far/near

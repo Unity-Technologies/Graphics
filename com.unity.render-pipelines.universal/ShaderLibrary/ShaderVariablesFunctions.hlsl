@@ -151,15 +151,28 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
 
 void AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
 {
-    #ifdef _ALPHATEST_ON
+#if defined(_ALPHATEST_ON)
     if (IsAlphaDiscardEnabled())
-        clip(alpha - cutoff + offset);
-    #endif
+    {
+        // Modify the cutoff value so it's always zero when alpha-to-coverage is enabled
+        // This will allow the shader continue execution and export the alpha value rather than discarding
+        // which is required for alpha-to-coverage to function.
+        half alphaToMaskModifier = (1.0 - _AlphaToMaskInterp);
+        half finalCutoff = (cutoff + offset) * alphaToMaskModifier;
+
+        clip(alpha - finalCutoff);
+    }
+#endif
 }
 
-half OutputAlpha(half outputAlpha, half surfaceType = half(0.0))
+half OutputAlpha(half alpha, half surfaceType = half(0.0))
 {
-    return surfaceType == 1 ? outputAlpha : half(1.0);
+    // Opaque materials should always export an alpha value of 1.0 unless alpha-to-coverage is enabled
+    half opaqueAlpha = 1.0;
+    #if defined(_ALPHATEST_ON)
+    opaqueAlpha = lerp(opaqueAlpha, alpha, _AlphaToMaskInterp);
+    #endif
+    return surfaceType == 1 ? alpha : opaqueAlpha;
 }
 
 half3 AlphaModulate(half3 albedo, half alpha)

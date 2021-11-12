@@ -63,6 +63,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             Blend[_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
             ZWrite[_ZWrite]
             Cull[_Cull]
+            AlphaToMask[_AlphaClip]
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
@@ -334,6 +335,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             Blend[_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
             ZWrite[_ZWrite]
             Cull[_Cull]
+            AlphaToMask[_AlphaClip]
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11

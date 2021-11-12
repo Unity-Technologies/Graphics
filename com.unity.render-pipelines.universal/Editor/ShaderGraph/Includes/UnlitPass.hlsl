@@ -40,7 +40,11 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     #if _ALPHATEST_ON
         half alpha = surfaceDescription.Alpha;
-        clip(alpha - surfaceDescription.AlphaClipThreshold);
+
+        half clippedAlpha = step(surfaceDescription.AlphaClipThreshold, alpha);
+        half sharpenedAlpha = SharpenAlpha(alpha, surfaceDescription.AlphaClipThreshold);
+        alpha = lerp(clippedAlpha, sharpenedAlpha, _AlphaToMaskInterp);
+        clip(alpha - 0.0001);
     #elif _SURFACE_TYPE_TRANSPARENT
         half alpha = surfaceDescription.Alpha;
     #else
