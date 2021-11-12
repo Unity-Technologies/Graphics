@@ -4,6 +4,9 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
+    // Do not make this public
+    // Ongoing refactor will provide a better way to define components
+    // that can be added to a volume profile
     internal static class VolumeComponentUserExperience
     {
         static readonly VolumeComponentContext k_DisplayedContext = new VolumeComponentContext();
