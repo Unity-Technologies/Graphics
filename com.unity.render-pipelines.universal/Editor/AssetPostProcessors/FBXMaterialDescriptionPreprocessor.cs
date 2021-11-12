@@ -155,7 +155,13 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            material.SetFloat("_Glossiness", 0.0f);
+            if (description.TryGetProperty("Shininess", out float shininess))
+            {
+                var glossiness = Mathf.Sqrt(shininess * 0.01f);
+                material.SetFloat("_Smoothness", glossiness);
+            }
+            else
+                material.SetFloat("_Smoothness", 0.0f);
 
             if (PlayerSettings.colorSpace == ColorSpace.Linear)
                 RemapAndTransformColorCurves(description, clips, "DiffuseColor", "_BaseColor", ConvertFloatLinearToGamma);
