@@ -285,6 +285,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal static List<string> s_CreatedAssets = new List<string>();
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
+        internal static Dictionary<string, int> s_ImportedMaterialCounter = new Dictionary<string, int>();
         internal static bool s_NeedsSavingAssets = false;
 
         // Important: This should only be called by the RegisterUpgraderReimport(), ie the shadegraph/material version
@@ -373,6 +374,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     // we would miss re-importing that dependency.
                     if (MaterialReimporter.CheckHDShaderGraphVersionsForUpgrade("", material.shader, ignoreNonHDRPShaderGraphs: false))
                     {
+                        s_ImportedMaterialCounter.TryGetValue(asset, out var importCounter);
+                        s_ImportedMaterialCounter[asset] = ++importCounter;
+
+                        // CheckHDShaderGraphVersionsForUpgrade always return true if a ShaderGraph don't have an HDMetaData attached
+                        // we need a check to avoid importing the same assets over and over again.
+                        if (importCounter > 2)
+                            continue;
+
                         var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
                         AssetDatabase.ImportAsset(shaderPath);
 

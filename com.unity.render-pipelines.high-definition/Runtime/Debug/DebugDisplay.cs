@@ -481,7 +481,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// <summary>
         /// Returns true if camera visibility is frozen.
         /// </summary>
         /// <returns>True if camera visibility is frozen</returns>
@@ -1534,7 +1533,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.fullScreenContactShadowLightIndex = value;
                                 },
                                 min = () => - 1, // -1 will display all contact shadow
-                                max = () => LightDefinitions.s_LightListMaxPrunedEntries - 1
+                                max = () => ShaderConfig.FPTLMaxLightCount - 1
                             },
                         }
                     });
