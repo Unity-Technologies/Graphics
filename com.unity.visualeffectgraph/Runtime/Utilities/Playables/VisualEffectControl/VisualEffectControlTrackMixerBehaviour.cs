@@ -454,9 +454,9 @@ namespace UnityEngine.VFX
                 bool anyRelevantAttribute = false;
                 foreach (var attribute in attributes.content)
                 {
-                    if (attribute != null)
+                    if (attribute != null && attribute.ApplyToVFX(vfxAttribute))
                     {
-                        anyRelevantAttribute = anyRelevantAttribute || attribute.ApplyToVFX(vfxAttribute);
+                        anyRelevantAttribute = true;
                     }
                 }
 
