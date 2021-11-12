@@ -61,7 +61,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_tru
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+      -  command: rsync -uaqP -e 'ssh -i ~/.ssh/id_rsa_macmini' --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -152,7 +152,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_trun
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+      -  command: rsync -uaqP -e 'ssh -i ~/.ssh/id_rsa_macmini' --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -237,7 +237,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+      -  command: rsync -uaqP -e 'ssh -i ~/.ssh/id_rsa_macmini' --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -322,7 +322,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_CUS
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+      -  command: rsync -uaqP -e 'ssh -i ~/.ssh/id_rsa_macmini' --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -413,7 +413,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_CUST
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+      -  command: rsync -uaqP -e 'ssh -i ~/.ssh/id_rsa_macmini' --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -498,7 +498,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_CUSTO
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+      -  command: rsync -uaqP -e 'ssh -i ~/.ssh/id_rsa_macmini' --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
