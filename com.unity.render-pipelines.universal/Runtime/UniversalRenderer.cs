@@ -655,6 +655,12 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(colorGradingLutPass);
             }
 
+            // taa
+            if (renderingData.cameraData.taaPersistentData != null)
+            {
+                renderingData.cameraData.taaPersistentData.AllocateTargets();
+            }
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.hasValidOcclusionMesh)
                 EnqueuePass(m_XROcclusionMeshPass);
