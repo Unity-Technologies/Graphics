@@ -15,6 +15,8 @@
 
 #pragma multi_compile _ FULL_RESOLUTION_FILTER
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"

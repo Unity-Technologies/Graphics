@@ -229,6 +229,27 @@ namespace UnityEngine.Experimental.Rendering
             m_OcclusionMesh.RenderOcclusionMesh(cmd);
         }
 
+        /// <summary>
+        /// Take a point that is center-relative (0.5, 0.5) and modify it to be placed relative to the view's center instead, respecting the asymmetric FOV (if it is used)
+        /// </summary>
+        public Vector4 ApplyXRViewCenterOffset(Vector2 center)
+        {
+            Vector4 result = Vector4.zero;
+            float centerDeltaX = 0.5f - center.x;
+            float centerDeltaY = 0.5f - center.y;
+
+            result.x = m_Views[0].eyeCenterUV.x - centerDeltaX;
+            result.y = m_Views[0].eyeCenterUV.y - centerDeltaY;
+            if (singlePassEnabled)
+            {
+                // With single-pass XR, we need to add the data for the 2nd view
+                result.z = m_Views[1].eyeCenterUV.x - centerDeltaX;
+                result.w = m_Views[1].eyeCenterUV.y - centerDeltaY;
+            }
+
+            return result;
+        }
+
         internal void AssignView(int viewId, XRView xrView)
         {
             if (viewId < 0 || viewId >= m_Views.Count)

@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayTracingSubSurfaceRT = m_GlobalSettings.renderPipelineRayTracingResources.subSurfaceRayTracingRT;
                 passData.rayTracingSubSurfaceCS = m_GlobalSettings.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
                 passData.deferredRayTracingCS = m_GlobalSettings.renderPipelineRayTracingResources.deferredRaytracingCS;
-                passData.accelerationStructure = RequestAccelerationStructure();
+                passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();

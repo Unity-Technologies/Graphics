@@ -47,6 +47,10 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         half alpha = 1;
     #endif
 
+#if defined(_ALPHAMODULATE_ON)
+    surfaceDescription.BaseColor = lerp(1, surfaceDescription.BaseColor, alpha);
+#endif
+
 #if defined(_DBUFFER)
     ApplyDecalToBaseColor(unpacked.positionCS, surfaceDescription.BaseColor);
 #endif

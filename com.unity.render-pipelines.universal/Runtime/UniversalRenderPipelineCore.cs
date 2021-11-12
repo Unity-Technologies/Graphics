@@ -43,6 +43,11 @@ namespace UnityEngine.Rendering.Universal
         public bool reflectionProbeBoxProjection;
         public bool reflectionProbeBlending;
         public bool supportsLightLayers;
+
+        /// <summary>
+        /// True if additional lights enabled.
+        /// </summary>
+        public bool supportsAdditionalLights;
     }
 
     public struct CameraData
@@ -203,6 +208,11 @@ namespace UnityEngine.Rendering.Universal
         /// Camera position in world space.
         /// </summary>
         public Vector3 worldSpaceCameraPos;
+
+        /// <summary>
+        /// Final background color in the active color space.
+        /// </summary>
+        public Color backgroundColor;
     }
 
     public struct ShadowData

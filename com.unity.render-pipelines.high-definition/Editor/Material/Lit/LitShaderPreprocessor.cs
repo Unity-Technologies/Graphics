@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
+
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -34,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (shader.TryGetMetadataOfType<HDMetadata>(out var obj))
                 {
-                    isBuiltInLit |= obj.shaderID == HDShaderUtils.ShaderID.SG_Lit;
+                    isBuiltInLit |= obj.shaderID == ShaderID.SG_Lit;
                 }
             }
 
@@ -71,7 +72,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
 
-            // Apply following set of rules only to lit shader (remember that LitPreprocessor is call for any shader)
+            // Apply following set of rules only to lit shader (remember that LitPreprocessor is called for any shader)
             if (isBuiltInLit)
             {
                 // Forward material don't use keyword for WriteNormalBuffer but #define so we can't test for the keyword outside of isBuiltInLit
@@ -114,6 +115,12 @@ namespace UnityEditor.Rendering.HighDefinition
                         return true;
                 }
             }
+
+#if !ENABLE_SENSOR_SDK
+            // If the SensorSDK package is not present, make sure that all code related to it is stripped away
+            if (inputData.shaderKeywordSet.IsEnabled(m_SensorEnableLidar) || inputData.shaderKeywordSet.IsEnabled(m_SensorOverrideReflectance))
+                return true;
+#endif
 
             // TODO: Tests for later
             // We need to find a way to strip useless shader features for passes/shader stages that don't need them (example, vertex shaders won't ever need SSS Feature flag)

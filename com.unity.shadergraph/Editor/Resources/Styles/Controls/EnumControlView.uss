@@ -16,7 +16,7 @@ EnumControlView {
 }
 
 EnumControlView > Label {
-    max-width: 94px;
+    max-width: 140px;
     width: 30px;
     -unity-text-align: middle-left;
     flex-grow: 1;
