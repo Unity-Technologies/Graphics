@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Unity.Collections;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
@@ -1768,6 +1769,7 @@ namespace UnityEngine.Rendering
             }
             else
             {
+                // not valid to lerp a curve with 0 keys
                 Assert.IsTrue(lhsCurve.keys.Length >= 1);
                 Assert.IsTrue(rhsCurve.keys.Length >= 1);
 
@@ -1776,11 +1778,10 @@ namespace UnityEngine.Rendering
                 float endTime = Mathf.Max(lhsCurve.keys[lhsCurve.length - 1].time, rhsCurve.keys[rhsCurve.length - 1].time);
 
                 // we don't know how many keys the resulting curve will have (because we will compact keys that are at the exact
-                // same time), but in most cases we will need the worst case number of keys. So allocate the worst case, and resize
-                // the array at the end if we need to compact.
+                // same time), but in most cases we will need the worst case number of keys. So allocate the worst case.
                 int maxNumKeys = lhsCurve.length + rhsCurve.length;
                 int currNumKeys = 0;
-                Keyframe[] dstKeys = new Keyframe[maxNumKeys];
+                NativeArray<Keyframe> dstKeys = new NativeArray<Keyframe>(maxNumKeys,Allocator.Temp);
 
                 int lhsKeyCurr = 0;
                 int rhsKeyCurr = 0;
@@ -1851,24 +1852,17 @@ namespace UnityEngine.Rendering
                     }
 
                     Keyframe dstKey = LerpKeyframeDirect(lhsKey, rhsKey, t);
-
                     dstKeys[currNumKeys] = dstKey;
                     currNumKeys++;
                 }
 
-                // if we have any keys at the same time in both curves, there will be extras in the array
-                // so trim them.
-                if (currNumKeys != dstKeys.Length)
+                m_Value = new AnimationCurve();
+                for (int i = 0; i < currNumKeys; i++)
                 {
-                    Keyframe[] trimKeys = new Keyframe[currNumKeys];
-                    for (int i = 0; i < currNumKeys; i++)
-                    {
-                        trimKeys[i] = dstKeys[i];
-                    }
-                    dstKeys = trimKeys;
+                    m_Value.AddKey(dstKeys[i]);
                 }
 
-                m_Value = new AnimationCurve(dstKeys);
+                dstKeys.Dispose();
             }
         }
     }
