@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.Tests
         protected IEnumerator Warmup()
         {
             for (int i = 0; i < k_NumWarmupFrames; i++)
-                yield return new WaitForEndOfFrame();
+                yield return null;
 
             m_DebugFrameTiming.Reset();
         }
@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 m_DebugFrameTiming.UpdateFrameTiming();
                 camera.Render();
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
 
             Assert.True(
