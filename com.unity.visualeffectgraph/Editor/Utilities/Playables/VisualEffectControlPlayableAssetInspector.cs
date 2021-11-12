@@ -190,7 +190,7 @@ namespace UnityEditor.VFX
         ReorderableList m_ReoderableSingleEvents;
 
         static private List<(VisualEffectControlClip asset, VisualEffectControlClipInspector inspector)> s_RegisteredInspector = new List<(VisualEffectControlClip asset, VisualEffectControlClipInspector inspector)>();
-        Dictionary<string, ReorderableList> m_CacheEventAttributes = new Dictionary<string, ReorderableList>();
+        Dictionary<string, ReorderableList> m_CacheEventAttributeReordableList = new Dictionary<string, ReorderableList>();
 
         private static readonly (Type type, Type valueType)[] kEventAttributeSpecialization = GetEventAttributeSpecialization().ToArray();
 
@@ -254,7 +254,7 @@ namespace UnityEditor.VFX
                 return null;
 
             var path = property.propertyPath;
-            if (!inspector.m_CacheEventAttributes.TryGetValue(path, out var reorderableList))
+            if (!inspector.m_CacheEventAttributeReordableList.TryGetValue(path, out var reorderableList))
             {
                 var emptyGUIContent = new GUIContent(string.Empty);
 
@@ -300,8 +300,8 @@ namespace UnityEditor.VFX
                     if (labelSize.x < 110)
                         labelSize.x = 110;
 
-                    EditorGUI.PropertyField(new Rect(rect.x, rect.y, labelSize.x - 2, rect.height), attributeName, emptyGUIContent);
-                    var valueRect = new Rect(rect.x + labelSize.x, rect.y, rect.width - labelSize.x, rect.height);
+                    EditorGUI.PropertyField(new Rect(rect.x, rect.y + 2, labelSize.x - 2, EditorGUIUtility.singleLineHeight), attributeName, emptyGUIContent);
+                    var valueRect = new Rect(rect.x + labelSize.x, rect.y + 2, rect.width - labelSize.x, EditorGUIUtility.singleLineHeight);
                     if (attributeProperty.managedReferenceValue is EventAttributeColor)
                     {
                         var oldVector3 = attributeValue.vector3Value;
@@ -311,13 +311,21 @@ namespace UnityEditor.VFX
                         if (EditorGUI.EndChangeCheck())
                             attributeValue.vector3Value = new Vector3(newColor.r, newColor.g, newColor.b);
                     }
+                    else if (attributeProperty.managedReferenceValue is EventAttributeVector4)
+                    {
+                        var oldVector4 = attributeValue.vector4Value;
+                        EditorGUI.BeginChangeCheck();
+                        var newVector4 = EditorGUI.Vector4Field(valueRect, GUIContent.none, oldVector4);
+                        if (EditorGUI.EndChangeCheck())
+                            attributeValue.vector4Value = newVector4;
+                    }
                     else
                     {
                         EditorGUI.PropertyField(valueRect, attributeValue, emptyGUIContent);
                     }
                 };
 
-                inspector.m_CacheEventAttributes.Add(path, reorderableList);
+                inspector.m_CacheEventAttributeReordableList.Add(path, reorderableList);
             }
             return reorderableList;
         }
@@ -456,6 +464,18 @@ namespace UnityEditor.VFX
             };
         }
 
+        private HashSet<EventAttribute> m_CacheEventAttributes = new HashSet<EventAttribute>(); //Only used to save garbage while checking unicity
+        private bool CheckNoDuplicate(IEnumerable<EventAttribute> eventAttributes)
+        {
+            m_CacheEventAttributes.Clear();
+            foreach (var evt in eventAttributes)
+            {
+                if (!m_CacheEventAttributes.Add(evt))
+                    return false;
+            }
+            return true;
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -496,6 +516,36 @@ namespace UnityEditor.VFX
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();
+
+#if FIX_DUPLICATE
+                //Special detection of duplicated referenced element due to manual duplicate in reordable list
+                //TODOPAUL, it doesn't work because we are missing this modification: https://unity.slack.com/archives/C06TQ9LFP/p1636737000313000
+                var playable = serializedObject.targetObject as VisualEffectControlClip;
+                var enterEvents = playable.clipEvents.Where(o => o.enter.eventAttributes.content != null).SelectMany(o => o.enter.eventAttributes.content);
+                var exitEvents = playable.clipEvents.Where(o => o.exit.eventAttributes.content != null).SelectMany(o => o.exit.eventAttributes.content);
+                var singleEvents = playable.singleEvents.Where(o => o.eventAttributes.content != null).SelectMany(o => o.eventAttributes.content);
+                var allAttributes = enterEvents.Concat(exitEvents.Concat(singleEvents));
+                if (!CheckNoDuplicate(allAttributes))
+                {
+                    for (int i = 0; i < playable.clipEvents.Count; ++i)
+                    {
+                        var source = playable.clipEvents[i];
+                        VisualEffectControlClip.ClipEvent copy;
+                        copy.enter = DeepClone(source.enter);
+                        copy.exit = DeepClone(source.exit);
+                        playable.clipEvents[i] = copy;
+                    }
+
+                    for (int i = 0; i < playable.singleEvents.Count; ++i)
+                    {
+                        var source = playable.singleEvents[i];
+                        var copy = DeepClone(source);
+                        playable.singleEvents[i] = copy;
+                    }
+
+                    serializedObject.Update();
+                }
+#endif
             }
         }
     }
