@@ -13,8 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class FBXArnoldSurfaceMaterialDescriptionPreprocessor : AssetPostprocessor
     {
-        static readonly uint k_Version = 2;
-        static readonly int k_Order = 4;
+        static readonly uint k_Version = 3;
+        static readonly int k_Order = -960;
         static readonly string k_ShaderPath = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Arnold/ArnoldStandardSurface.shadergraph";
 
         public override uint GetVersion()

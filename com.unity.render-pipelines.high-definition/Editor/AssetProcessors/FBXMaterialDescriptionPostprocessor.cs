@@ -13,8 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class FBXMaterialDescriptionPreprocessor : AssetPostprocessor
     {
-        static readonly uint k_Version = 1;
-        static readonly int k_Order = 2;
+        static readonly uint k_Version = 2;
+        static readonly int k_Order = -980;
         static readonly string k_ShaderPath = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.shader";
         public override uint GetVersion()
         {
