@@ -190,7 +190,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
 #ifdef DISABLE_TILE_MODE
                 // Tile debug mode is not supported in MSAA (only cluster)
-                int maxLights = 32;
+                int maxLights = (LIGHT_CLUSTER_PACKING_COUNT_MASK + 1);
                 const int textSize = 23;
                 const int text[textSize] = {'N', 'o', 't', ' ', 's', 'u', 'p', 'p', 'o', 'r', 't', 'e', 'd', ' ', 'w', 'i', 't', 'h', ' ', 'M', 'S', 'A', 'A'};
                 if (input.positionCS.y < DEBUG_FONT_TEXT_HEIGHT)
@@ -209,7 +209,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 // Tile overlap counter
                 if (n >= 0)
                 {
-                    const uint maxLightsPerTile = 31;
+                    const uint maxLightsPerTile = SHADEROPTIONS_FPTLMAX_LIGHT_COUNT;
                     const float opacity = 0.3f;
                     result = OverlayHeatMap(int2(posInput.positionSS.xy), GetTileSize(), n, maxLightsPerTile, opacity);
                 }
@@ -224,8 +224,8 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 }
 
                 // Print light lists for selected tile at the bottom of the screen
-                int maxLights = 32;
-                if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
+                int maxAreaWidth = SHADEROPTIONS_FPTLMAX_LIGHT_COUNT + 4;
+                if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxAreaWidth)
                 {
                     float depthMouse = GetTileDepth(_MousePixelCoord.xy);
 
