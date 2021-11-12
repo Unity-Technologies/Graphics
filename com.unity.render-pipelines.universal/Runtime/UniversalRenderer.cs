@@ -349,6 +349,16 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        bool IsDepthPrimingEnabled()
+        {
+            return (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || (m_DepthPrimingMode == DepthPrimingMode.Forced);
+        }
+
+        bool IsGLESDevice()
+        {
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
+        }
+
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -510,7 +520,7 @@ namespace UnityEngine.Rendering.Universal
                 createColorTexture |= createDepthTexture;
             }
 #endif
-            bool useDepthPriming = (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || (m_DepthPrimingMode == DepthPrimingMode.Forced);
+            bool useDepthPriming = IsDepthPrimingEnabled();
             useDepthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
 
             if (useRenderPassEnabled || useDepthPriming)
@@ -1044,13 +1054,17 @@ namespace UnityEngine.Rendering.Universal
                     // then we want to bind the multisampled surface.
                     if (hasMSAA)
                     {
-                        bool depthPrimingEnabled = (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || (m_DepthPrimingMode == DepthPrimingMode.Forced);
                         // if depth priming is enabled the copy depth primed pass is meant to do the MSAA resolve, so we want to bind the MS surface
-                        if (depthPrimingEnabled)
+                        if (IsDepthPrimingEnabled())
                             depthDescriptor.bindMS = true;
                         else
                             depthDescriptor.bindMS = !(RenderingUtils.MultisampleDepthResolveSupported() && m_CopyDepthMode == CopyDepthMode.AfterTransparents);
                     }
+
+                    // binding MS surfaces is not supported by the GLES backend, and it won't be fixed after investigating
+                    // the high performance impact of potential fixes, which would make it more expensive than depth prepass (fogbugz 1339401 for more info)
+                    if (IsGLESDevice())
+                        depthDescriptor.bindMS = false;
 
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                     depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
@@ -1134,8 +1148,8 @@ namespace UnityEngine.Rendering.Universal
             bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
 
             // copying depth on GLES3 is giving invalid results. Needs investigation (Fogbugz issue 1339401)
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
-                msaaDepthResolve = false;
+            if (IsGLESDevice())
+                return false;
 
             return supportsDepthCopy || msaaDepthResolve;
         }
