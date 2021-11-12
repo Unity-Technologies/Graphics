@@ -149,17 +149,51 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
     projMatrix._13_23_33_43 = -projMatrix._13_23_33_43;
 }
 
-void AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
+// Only define the alpha clipping helpers when the alpha test define is present.
+// This should help identify usage errors early.
+#if defined(_ALPHATEST_ON)
+bool IsAlphaToMaskEnabled()
 {
-    #ifdef _ALPHATEST_ON
-    if (IsAlphaDiscardEnabled())
-        clip(alpha - cutoff + offset);
-    #endif
+    return (_AlphaToMaskEnabled != 0.0);
 }
 
-half OutputAlpha(half outputAlpha, half surfaceType = half(0.0))
+half AlphaClip(half alpha, half cutoff)
 {
-    return surfaceType == 1 ? outputAlpha : half(1.0);
+    // Produce 0.0 if the input value would be clipped by traditional alpha clipping and produce the original input value otherwise.
+    half clippedAlpha = (alpha >= cutoff) ? alpha : 0.0;
+
+    // Calculate a "sharpened" alpha value that should be used when alpha-to-coverage is enabled
+    half sharpenedAlpha = SharpenAlpha(alpha, cutoff);
+
+    // When alpha-to-coverage is enabled: Use the sharpened value which will be exported from the shader and combined with the MSAA coverage mask.
+    // When alpha-to-coverage is disabled: Use the "clipped" value. A clipped value will always result in thread termination via the clip() logic below.
+    alpha = IsAlphaToMaskEnabled() ? sharpenedAlpha : clippedAlpha;
+
+    // Terminate any threads that have an alpha value of 0.0 since we know they won't contribute anything to the final image
+    clip(alpha - 0.0001);
+
+    return alpha;
+}
+#endif
+
+void AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
+{
+#if defined(_ALPHATEST_ON)
+    if (IsAlphaDiscardEnabled() && !IsAlphaToMaskEnabled())
+    {
+        clip(alpha - (cutoff + offset));
+    }
+#endif
+}
+
+half OutputAlpha(half alpha, half surfaceType = half(0.0))
+{
+    // Opaque materials should always export an alpha value of 1.0 unless alpha-to-coverage is enabled
+    half opaqueAlpha = 1.0;
+    #if defined(_ALPHATEST_ON)
+    opaqueAlpha = IsAlphaToMaskEnabled() ? alpha : opaqueAlpha;
+    #endif
+    return surfaceType == 1 ? alpha : opaqueAlpha;
 }
 
 half3 AlphaModulate(half3 albedo, half alpha)

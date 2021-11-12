@@ -63,6 +63,9 @@ float4 _ScreenParams;
 // y = 2.0 ^ [Mip Bias]
 float2 _GlobalMipBias;
 
+// 1.0 if AlphaToMask is enabled and 0.0 otherwise
+float _AlphaToMaskEnabled;
+
 // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
 // x = 1-far/near
 // y = far/near

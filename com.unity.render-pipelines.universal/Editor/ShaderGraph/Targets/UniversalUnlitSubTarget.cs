@@ -258,6 +258,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+                CorePasses.AddAlphaToMaskControlToPass(ref result, target);
 
                 return result;
             }

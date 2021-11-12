@@ -101,6 +101,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Blend[_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
             ZWrite[_ZWrite]
             Cull[_Cull]
+            AlphaToMask[_AlphaClip]
 
             HLSLPROGRAM
             #pragma target 2.0
