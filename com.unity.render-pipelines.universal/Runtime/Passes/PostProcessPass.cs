@@ -343,7 +343,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
 
-            bool useTemporalAA = true;
+            bool useTemporalAA = cameraData.taaPersistentData != null;
 
             int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useLensFlare ? 1 : 0) + (useTemporalAA ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);
 
@@ -986,76 +986,28 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var material = m_Materials.temporalAntialiasing;
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
-            {
-                var viewProj0 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(0), true) * cameraData.GetViewMatrix(0);
-                var viewProj1 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(1), true) * cameraData.GetViewMatrix(1);
-                if (m_ResetHistory)
-                {
-                    viewProjMatrixStereo[0] = viewProj0;
-                    viewProjMatrixStereo[1] = viewProj1;
-                    material.SetMatrixArray("_PrevViewProjMStereo", viewProjMatrixStereo);
-                }
-                else
-                    material.SetMatrixArray("_PrevViewProjMStereo", m_PrevViewProjM);
+            UpdateMotionBlurMatrices(ref material, cameraData);
 
-                m_PrevViewProjM[0] = viewProj0;
-                m_PrevViewProjM[1] = viewProj1;
-            }
-            else
-#endif
-            {
-                int prevViewProjMIdx = 0;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                    prevViewProjMIdx = cameraData.xr.multipassId;
-#endif
-                // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
-                // relies on SetupCameraProperties instead of handling its own matrices.
-                // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
-                var proj = cameraData.GetProjectionMatrixNoJitter();
-                var view = cameraData.GetViewMatrix();
-                var viewProj = proj * view;
+            float taaInfl = m_ResetHistory ? 1.0f : 0.05f;
 
-                material.SetMatrix("_ViewProjM", viewProj);
-
-                if (m_ResetHistory)
-                    material.SetMatrix("_PrevViewProjM", viewProj);
-                else
-                    material.SetMatrix("_PrevViewProjM", m_PrevViewProjM[prevViewProjMIdx]);
-
-                m_PrevViewProjM[prevViewProjMIdx] = viewProj;
-            }
-
-            material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
-            material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
-
+            material.SetFloat("_TemporalAAFrameInfl", taaInfl);
             material.SetTexture("_AccumulationTex", cameraData.taaPersistentData.m_AccumulationTexture);
 
             PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
 
             Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, 0);
-
             Blit(cmd, destination, cameraData.taaPersistentData.m_AccumulationTexture, material, 1);
-
-            //int width = cameraData.taaPersistentData.m_AccumulationTexture.width;
         }
 
         #endregion
-
-
-
 
         #region Motion Blur
 #if ENABLE_VR && ENABLE_XR_MODULE
         // Hold the stereo matrices to avoid allocating arrays every frame
         internal static readonly Matrix4x4[] viewProjMatrixStereo = new Matrix4x4[2];
 #endif
-        void DoMotionBlur(CameraData cameraData, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination)
+        void UpdateMotionBlurMatrices(ref Material material, CameraData cameraData)
         {
-            var material = m_Materials.cameraMotionBlur;
-
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
             {
@@ -1097,6 +1049,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 m_PrevViewProjM[prevViewProjMIdx] = viewProj;
             }
+        }
+
+
+        void DoMotionBlur(CameraData cameraData, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination)
+        {
+            var material = m_Materials.cameraMotionBlur;
+
+            UpdateMotionBlurMatrices(ref material, cameraData);
 
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
             material.SetFloat("_Clamp", m_MotionBlur.clamp.value);

@@ -107,8 +107,6 @@ namespace UnityEngine.Rendering.Universal
             return m_ProjectionMatrix;
         }
 
-
-
         /// <summary>
         /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z.
         /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
