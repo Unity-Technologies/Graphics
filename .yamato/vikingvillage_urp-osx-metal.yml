@@ -47,7 +47,7 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+      -  command: rsync -uzaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -112,7 +112,7 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+      -  command: rsync -uzaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -177,7 +177,7 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+      -  command: rsync -uzaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -242,7 +242,7 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-REVI
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+      -  command: rsync -uzaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -307,7 +307,7 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-REVIS
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+      -  command: rsync -uzaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -372,7 +372,7 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-REVISI
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+      -  command: rsync -uzaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
