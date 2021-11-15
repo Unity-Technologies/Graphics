@@ -1008,7 +1008,7 @@ namespace UnityEditor.ShaderFoundry
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(blockActiveFields, spliceCommands,
                     isDebug, sharedTemplateDirectories, m_assetCollection);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
-            subPassBuilder.Add(templatePreprocessor.GetShaderCode().ToString());
+            subPassBuilder.AppendLines(templatePreprocessor.GetShaderCode().ToString());
 
             // Turn off the skip flag so other passes behave correctly correctly.
             CustomInterpolatorUtils.generatorSkipFlag = false;
