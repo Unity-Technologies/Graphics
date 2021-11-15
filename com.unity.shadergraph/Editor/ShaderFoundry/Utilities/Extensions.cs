@@ -46,6 +46,7 @@ namespace UnityEditor.ShaderFoundry
         {
             builder.AddLine(str);
         }
+
         public static void AppendLines(this ShaderBuilder builder, string lines)
         {
             if (string.IsNullOrEmpty(lines))
@@ -58,6 +59,7 @@ namespace UnityEditor.ShaderFoundry
             for (var i = 0; i < lineCount; i++)
                 builder.AppendLine(splitLines[i].Trim('\r'));
         }
+
         public static void Append(this ShaderBuilder builder, string str)
         {
             builder.Add(str);
@@ -99,6 +101,8 @@ namespace UnityEditor.ShaderFoundry
         {
             builder.Indentation();
 
+            // There is an unfortunate ordering issue where the type's parent block is still being
+            // built that prevents this from using the other helper functions.
             var parentBlock = type.ParentBlock;
             if (parentBlock.IsValid && parentBlock.index != blockBuilder.blockId)
             {
@@ -267,15 +271,6 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        internal static void CopyPassPassProperty(this BlockVariable variable, ShaderFunction.Builder builder, VariableLinkInstance owningVariable)
-        {
-            var passProps = PassPropertyInfo.Extract(variable);
-            foreach (var passProp in passProps)
-            {
-                passProp.Copy(builder, owningVariable);
-            }
-        }
-
         internal static void DeclareMaterialProperty(this BlockProperty prop, ShaderBuilder sb)
         {
             var props = MaterialPropertyInfo.Extract(prop);
@@ -288,11 +283,6 @@ namespace UnityEditor.ShaderFoundry
         internal static BlockVariable Clone(this BlockVariable variable, ShaderContainer container)
         {
             return variable.Clone(container, variable.ReferenceName, variable.DisplayName);
-        }
-
-        internal static BlockVariable Clone(this BlockVariable variable, ShaderContainer container, string newName)
-        {
-            return variable.Clone(container, newName, newName);
         }
 
         internal static BlockVariable Clone(this BlockVariable variable, ShaderContainer container, string referenceName, string displayName)

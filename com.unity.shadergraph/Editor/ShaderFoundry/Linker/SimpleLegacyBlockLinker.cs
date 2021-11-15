@@ -248,6 +248,7 @@ namespace UnityEditor.ShaderFoundry
                 Outputs = buildingContext.Outputs,
             };
             var merger = new BlockMerger(Container);
+            merger.Mode = BlockMerger.MergeMode.Strict;
             var mergedBlockLinkInstance = merger.Link(mergerContext);
             // Manually name the input/output instance variables
             mergedBlockLinkInstance.InputInstance.Name = buildingContext.InputTypeName.ToLower();

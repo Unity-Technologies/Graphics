@@ -7,6 +7,9 @@ namespace UnityEditor.ShaderFoundry
     {
         ShaderContainer container;
         internal ShaderContainer Container => container;
+        // In strict mode, the merger cannot add new variables to the provided inputs or outputs. In Loose mode this is allowed.
+        internal enum MergeMode { Strict, Loose }
+        internal MergeMode Mode = MergeMode.Loose;
 
         internal class Context
         {
@@ -76,7 +79,7 @@ namespace UnityEditor.ShaderFoundry
                     matchingField = FindMatch(scopes, input, ref inputName);
 
                 // If this is a property or we didn't find a matching field, promote this variable to an input
-                bool createNewVariable = isProperty == true || (matchingField == null);
+                bool createNewVariable = isProperty == true || (matchingField == null) && (Mode != MergeMode.Strict);
 
                 // If we need to create a new variable on the merged block to link to
                 if (createNewVariable)
@@ -95,10 +98,13 @@ namespace UnityEditor.ShaderFoundry
                         matchingField.AddAlias(inputName);
                 }
 
-                // Mark both fields as being used and then hook up the source
-                matchingField.IsUsed = true;
-                input.IsUsed = true;
-                input.SetSource(matchingField);
+                if(matchingField != null)
+                {
+                    // Mark both fields as being used and then hook up the source
+                    matchingField.IsUsed = true;
+                    input.IsUsed = true;
+                    input.SetSource(matchingField);
+                }
             }
         }
 
@@ -109,23 +115,24 @@ namespace UnityEditor.ShaderFoundry
             var blockOutputInstance = blockInstance.OutputInstance;
             foreach (var output in blockOutputInstance.Fields)
             {
-                // Always hookup the output for future inputs to link to
+                // Always hookup the output for future inputs to link to, including all aliases.
                 scopes.Set(output, output.Name);
-
-                // Always create an output on the merged block since anyone could use the output later.
-                var newOutputName = BuildVariableName(block, output);
-                var availableOutput = FindOrCreateVariableInstance(mergedOutputInstance, output, newOutputName);
-                // Link the new output to the block's output. This variable is always used.
-                availableOutput.SetSource(output);
-                availableOutput.IsUsed = true;
-
-                // Propagate the original name and aliases onto the new variable (for recursive merging).
-                // Also add lookup entries for each alias on the original output.
-                availableOutput.AddAlias(output.Name);
                 foreach (var alias in output.Aliases)
-                {
-                    availableOutput.AddAlias(alias);
                     scopes.Set(output, alias);
+
+                if (Mode != MergeMode.Strict)
+                {
+                    // Create an output on the merged block since anyone could use the output later.
+                    var newOutputName = BuildVariableName(block, output);
+                    var availableOutput = FindOrCreateVariableInstance(mergedOutputInstance, output, newOutputName);
+                    // Link the new output to the block's output. This variable is always used.
+                    availableOutput.SetSource(output);
+                    availableOutput.IsUsed = true;
+
+                    // Propagate the original name and aliases onto the new variable (for recursive merging).
+                    availableOutput.AddAlias(output.Name);
+                    foreach (var alias in output.Aliases)
+                        availableOutput.AddAlias(alias);
                 }
             }
         }

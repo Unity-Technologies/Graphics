@@ -178,18 +178,14 @@ namespace UnityEditor.ShaderFoundry
         {
             var blockName = $"Pre{LegacyCustomizationPoints.SurfaceDescriptionCPName}";
             var builder = new Block.Builder(Container, blockName);
-
-            var outputs = ExtractFields(UnityEditor.ShaderGraph.Structs.SurfaceDescriptionInputs.fields);
-            var outputType = BuildType(blockName + "Outputs", outputs);
-
-            var shaderProperties = new PropertyCollector();
+            var outputFields = ExtractFields(UnityEditor.ShaderGraph.Structs.SurfaceDescriptionInputs.fields);
+            var outputType = BuildType(blockName + "Outputs", outputFields);
+			var shaderProperties = new PropertyCollector();
             m_Target.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
             var inputs = new List<StructField>();
             PropertyUtils.BuildProperties(Container, builder, inputs, shaderProperties, ShaderGraph.Internal.ConcretePrecision.Single);
             var inputType = BuildType(blockName + "Inputs", inputs);
-
             builder.BuildInterface(Container, inputType, outputType);
-
             return builder.Build();
         }
 
@@ -253,8 +249,6 @@ namespace UnityEditor.ShaderFoundry
                     {
                         inputBuilder.AddField(inputProp.Type, inputProp.ReferenceName);
                         outputBuilder.AddField(outputProp.Type, outputProp.ReferenceName);
-                        mainBlockBuilder.AddInput(inputProp.Clone(Container));
-                        mainBlockBuilder.AddOutput(outputProp.Clone(Container));
                         declaredInputs.Add(inputProp.ReferenceName);
                         declaredOutputs.Add(outputProp.ReferenceName);
                     }
@@ -267,7 +261,6 @@ namespace UnityEditor.ShaderFoundry
                     {
                         declaredOutputs.Add(defaultVariableValue.Key);
                         outputBuilder.AddField(outputProp.Type, outputProp.ReferenceName);
-                        mainBlockBuilder.AddOutput(outputProp.Clone(Container));
                     }
                 }
 
@@ -305,6 +298,7 @@ namespace UnityEditor.ShaderFoundry
                 var entryPointFunction = fnBuilder.Build();
                 mainBlockBuilder.AddFunction(entryPointFunction);
                 mainBlockBuilder.SetEntryPointFunction(entryPointFunction);
+                mainBlockBuilder.BuildInterface(Container, entryPointFunction);
             }
 
             return mainBlockBuilder.Build();
