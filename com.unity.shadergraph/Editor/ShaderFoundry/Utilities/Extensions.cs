@@ -97,6 +97,29 @@ namespace UnityEditor.ShaderFoundry
             builder.NewLine();
         }
 
+        internal static void AddVariableDeclarationStatement(this ShaderBuilder builder, Block.Builder blockBuilder, ShaderType type, string name, string defaultValue = null)
+        {
+            builder.Indentation();
+
+            // There is an unfortunate ordering issue where the type's parent block is still being
+            // built that prevents this from using the other helper functions.
+            var parentBlock = type.ParentBlock;
+            if (parentBlock.IsValid && parentBlock.index != blockBuilder.blockId)
+            {
+                builder.AppendScopeName(parentBlock);
+                builder.Append(m_ScopeToken);
+            }
+            builder.Append(type.Name);
+
+            builder.Append(m_SpaceToken);
+            builder.Append(name);
+            if (!string.IsNullOrEmpty(defaultValue))
+                builder.Add(m_SpaceToken, m_EqualToken, m_SpaceToken, defaultValue);
+
+            builder.Add(m_SemicolonToken);
+            builder.NewLine();
+        }
+
         internal static void AppendFullyQualifiedName(this ShaderBuilder builder, ShaderType type)
         {
             var parentBlock = type.ParentBlock;
@@ -239,7 +262,7 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        internal static void CopyPassPassProperty(this BlockVariable variable, ShaderFunction.Builder builder, BlockVariableLinkInstance owningVariable)
+        internal static void CopyPassPassProperty(this VariableLinkInstance variable, ShaderFunction.Builder builder, VariableLinkInstance owningVariable)
         {
             var passProps = PassPropertyInfo.Extract(variable);
             foreach (var passProp in passProps)
@@ -262,11 +285,6 @@ namespace UnityEditor.ShaderFoundry
             return variable.Clone(container, variable.ReferenceName, variable.DisplayName);
         }
 
-        internal static BlockVariable Clone(this BlockVariable variable, ShaderContainer container, string newName)
-        {
-            return variable.Clone(container, newName, newName);
-        }
-
         internal static BlockVariable Clone(this BlockVariable variable, ShaderContainer container, string referenceName, string displayName)
         {
             var builder = new BlockVariable.Builder(container);
@@ -280,20 +298,20 @@ namespace UnityEditor.ShaderFoundry
         }
     }
 
-    static class BlockVariableLinkInstanceExtensions
+    static class VariableLinkInstanceExtensions
     {
-        internal static void Declare(this BlockVariableLinkInstance varInstance, ShaderBuilder builder)
+        internal static void Declare(this VariableLinkInstance varInstance, ShaderBuilder builder)
         {
-            if (varInstance.Owner != null)
+            if (varInstance.Parent != null)
             {
                 const string dotToken = ".";
-                Declare(varInstance.Owner, builder);
+                Declare(varInstance.Parent, builder);
                 builder.Add(dotToken);
             }
-            builder.Add(varInstance.ReferenceName);
+            builder.Add(varInstance.Name);
         }
 
-        internal static string GetDeclarationString(this BlockVariableLinkInstance varInstance)
+        internal static string GetDeclarationString(this VariableLinkInstance varInstance)
         {
             ShaderBuilder builder = new ShaderBuilder();
             varInstance.Declare(builder);
@@ -334,6 +352,45 @@ namespace UnityEditor.ShaderFoundry
         {
             builder.MergeTypesAndFunctions(block);
             builder.MergeDescriptors(block);
+        }
+
+        internal static void BuildInterface(this Block.Builder blockBuilder, ShaderContainer container, ShaderFunction entryPointFn)
+        {
+            var parameters = entryPointFn.Parameters.GetEnumerator();
+            if (!parameters.MoveNext())
+                return;
+
+            blockBuilder.BuildInterface(container, parameters.Current.Type, entryPointFn.ReturnType);
+        }
+
+        internal static void BuildInterface(this Block.Builder blockBuilder, ShaderContainer container, ShaderType inputType, ShaderType outputType)
+        {
+            BlockVariable.Builder BuildFromField(StructField field)
+            {
+                var varBuilder = new BlockVariable.Builder(container);
+                varBuilder.DisplayName = varBuilder.ReferenceName = field.Name;
+                varBuilder.Type = field.Type;
+                foreach (var attribute in field.Attributes)
+                    varBuilder.AddAttribute(attribute);
+                string defaultValueStr = field.Attributes.FindFirstAttributeParamValue(CommonShaderAttributes.DefaultValue, 0);
+                if (defaultValueStr != null)
+                    varBuilder.DefaultExpression = defaultValueStr;
+                return varBuilder;
+            }
+
+            foreach (var field in inputType.StructFields)
+            {
+                var builder = BuildFromField(field);
+                var input = builder.Build();
+                blockBuilder.AddInput(input);
+                if (input.Attributes.FindFirst(CommonShaderAttributes.Property).IsValid)
+                    blockBuilder.AddProperty(input);
+            }
+            foreach (var field in outputType.StructFields)
+            {
+                var builder = BuildFromField(field);
+                blockBuilder.AddOutput(builder.Build());
+            }
         }
     }
 
