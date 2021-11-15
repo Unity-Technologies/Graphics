@@ -42,7 +42,7 @@ ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph/Logs/*.log"
+              -  "TestProjects/ShaderGraph/*"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
@@ -68,7 +68,7 @@ Build_ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
-      -  command: unity-downloader-cli -b test-platform/release-0.14.1 -c editor -c il2cpp  --wait --published-only
+      -  command: unity-downloader-cli -b test-platform/release-0.14.1-rc1 -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -80,7 +80,7 @@ Build_ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph/Logs/*.log"
+              -  "TestProjects/ShaderGraph/*"
         players:
             paths:
               -  "players*/**"
@@ -126,7 +126,7 @@ ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph/Logs/*.log"
+              -  "TestProjects/ShaderGraph/*"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
