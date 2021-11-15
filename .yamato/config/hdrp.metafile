@@ -176,6 +176,6 @@ jobs:
   - name: Nightly <PROJECT_NAME>
     dependencies:
       - .yamato/all-hdrp_performancetests.yml#HDRP_PerformanceTests_<TRACK>
-      #- .yamato/all-hdrp_batchrendergroup.yml#HDRP_BatchRendererGroup_<TRACK>
+      #- .yamato/all-hdrp_BatchRendererGroup.yml#HDRP_BatchRendererGroup_<TRACK>
       - .yamato/all-hdrp_dxr.yml#HDRP_DXR_<TRACK>
       - .yamato/all-hdrp.yml#HDRP_<TRACK>

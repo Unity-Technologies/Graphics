@@ -9,8 +9,8 @@ jobs:
   - name: PR <PROJECT_NAME>
     dependencies:
       - .yamato/all-universal_batchrenderergroup.yml#PR_Universal_BatchRendererGroup_<TRACK>
-      - .yamato/all-hdrp_batchrendergroup.yml#PR_HDRP_BatchRendererGroup_<TRACK>
+      - .yamato/all-hdrp_batchrenderergroup.yml#PR_HDRP_BatchRendererGroup_<TRACK>
   - name: Extra <PROJECT_NAME>
     dependencies:
       - .yamato/all-universal_batchrenderergroup.yml#Extra_Universal_BatchRendererGroup_<TRACK>
-      - .yamato/all-hdrp_batchrendergroup.yml#Extra_HDRP_BatchRendererGroup_<TRACK>
+      - .yamato/all-hdrp_batchrenderergroup.yml#Extra_HDRP_BatchRendererGroup_<TRACK>
