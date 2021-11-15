@@ -690,6 +690,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
             m_Camera.allowHDR = false;
 
+            // By doing that, we force the update of frame settings debug data once. Otherwise, when the Rendering Debugger is opened,
+            // Wrong data is registered to the undo system because it did not get the chance to be updated once.
+            FrameSettings dummy = new FrameSettings();
+            FrameSettingsHistory.AggregateFrameSettings(ref dummy, m_Camera, this, HDRenderPipeline.currentAsset, null);
+
             RegisterDebug();
 
 #if UNITY_EDITOR
