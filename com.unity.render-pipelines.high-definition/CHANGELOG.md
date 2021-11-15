@@ -22,7 +22,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
 - Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
 - Fixed the volumetric clouds debug view not taking into account the exposure and leading to Nans (case 1365054).
-- Fixed area light cookie field to use the same style as the other cookie fields
 - Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
 - Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
 - Fixed the cloudlayer not using depth buffer.
