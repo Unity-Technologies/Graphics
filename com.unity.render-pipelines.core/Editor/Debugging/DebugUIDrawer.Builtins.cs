@@ -907,10 +907,11 @@ namespace UnityEditor.Rendering
                         {
                             rowRect.x += rowRect.width;
                             rowRect.width = columns[visible[c]].width;
-                            DisplayChild(rowRect, row.children[visible[c] - 1]);
+                            if (!row.isHidden)
+                                DisplayChild(rowRect, row.children[visible[c] - 1]);
                         }
+                        rowRect.y += rowRect.height;
                     }
-                    rowRect.y += rowRect.height;
                 }
             }
             GUI.EndScrollView(false);
@@ -954,30 +955,38 @@ namespace UnityEditor.Rendering
         {
             rect.xMin += 2;
             rect.xMax -= 2;
-            if (child.GetType() == typeof(DebugUI.Value))
+
+            if (child.isHidden)
             {
-                var widget = Cast<DebugUI.Value>(child);
-                EditorGUI.LabelField(rect, GUIContent.none, EditorGUIUtility.TrTextContent(widget.GetValue().ToString()));
+                EditorGUI.LabelField(rect, "-");
             }
-            else if (child.GetType() == typeof(DebugUI.ColorField))
+            else
             {
-                var widget = Cast<DebugUI.ColorField>(child);
-                EditorGUI.ColorField(rect, GUIContent.none, widget.GetValue(), false, widget.showAlpha, widget.hdr);
-            }
-            else if (child.GetType() == typeof(DebugUI.BoolField))
-            {
-                var widget = Cast<DebugUI.BoolField>(child);
-                EditorGUI.Toggle(rect, GUIContent.none, widget.GetValue());
-            }
-            else if (child.GetType() == typeof(DebugUI.ObjectField))
-            {
-                var widget = Cast<DebugUI.ObjectField>(child);
-                EditorGUI.ObjectField(rect, GUIContent.none, widget.GetValue(), widget.type, true);
-            }
-            else if (child.GetType() == typeof(DebugUI.ObjectListField))
-            {
-                var widget = Cast<DebugUI.ObjectListField>(child);
-                DebugUIDrawerObjectListField.DoObjectList(rect, widget, widget.GetValue());
+                if (child.GetType() == typeof(DebugUI.Value))
+                {
+                    var widget = Cast<DebugUI.Value>(child);
+                    EditorGUI.LabelField(rect, GUIContent.none, EditorGUIUtility.TrTextContent(widget.GetValue().ToString()));
+                }
+                else if (child.GetType() == typeof(DebugUI.ColorField))
+                {
+                    var widget = Cast<DebugUI.ColorField>(child);
+                    EditorGUI.ColorField(rect, GUIContent.none, widget.GetValue(), false, widget.showAlpha, widget.hdr);
+                }
+                else if (child.GetType() == typeof(DebugUI.BoolField))
+                {
+                    var widget = Cast<DebugUI.BoolField>(child);
+                    EditorGUI.Toggle(rect, GUIContent.none, widget.GetValue());
+                }
+                else if (child.GetType() == typeof(DebugUI.ObjectField))
+                {
+                    var widget = Cast<DebugUI.ObjectField>(child);
+                    EditorGUI.ObjectField(rect, GUIContent.none, widget.GetValue(), widget.type, true);
+                }
+                else if (child.GetType() == typeof(DebugUI.ObjectListField))
+                {
+                    var widget = Cast<DebugUI.ObjectListField>(child);
+                    DebugUIDrawerObjectListField.DoObjectList(rect, widget, widget.GetValue());
+                }
             }
         }
     }

@@ -1,16 +1,16 @@
 using System;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Volume debug settings.
     /// </summary>
-    public class HDVolumeDebugSettings : VolumeDebugSettings<HDAdditionalCameraData>
+    public class UniversalRenderPipelineVolumeDebugSettings : VolumeDebugSettings<UniversalAdditionalCameraData>
     {
         /// <summary>
         /// Specifies the render pipeline for this volume settings
         /// </summary>
-        public override Type targetRenderPipeline => typeof(HDRenderPipeline);
+        public override Type targetRenderPipeline => typeof(UniversalRenderPipeline);
 
         /// <summary>Selected camera volume stack.</summary>
         public override VolumeStack selectedCameraVolumeStack
@@ -20,9 +20,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 Camera cam = selectedCamera;
                 if (cam == null)
                     return null;
-                var stack = HDCamera.GetOrCreate(cam).volumeStack;
+
+                var additionalCameraData = selectedCamera.GetComponent<UniversalAdditionalCameraData>();
+                if (additionalCameraData == null)
+                    return null;
+
+                var stack = additionalCameraData.volumeStack;
                 if (stack != null)
                     return stack;
+
                 return VolumeManager.instance.stack;
             }
         }
@@ -34,15 +40,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 #if UNITY_EDITOR
                 if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count + 1)
-                    return 0;
+                    return (LayerMask)0;
                 if (m_SelectedCameraIndex == 1)
-                {
-                    // For scene view, use main camera volum layer mask. See HDCamera.cs
-                    var mainCamera = Camera.main;
-                    if (mainCamera != null && mainCamera.TryGetComponent<HDAdditionalCameraData>(out var mainCamAdditionalData))
-                        return mainCamAdditionalData.volumeLayerMask;
-                    return HDCamera.GetSceneViewLayerMaskFallback();
-                }
+                    return -1;
                 return additionalCameraDatas[m_SelectedCameraIndex - 2].volumeLayerMask;
 #else
                 if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count)
@@ -61,18 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (cam == null)
                     return Vector3.zero;
 
-                var anchor = HDCamera.GetOrCreate(cam).volumeAnchor;
-                if (anchor == null) // means the hdcamera has not been initialized
-                {
-                    // So we have to update the stack manually
-                    if (cam.TryGetComponent<HDAdditionalCameraData>(out var data))
-                        anchor = data.volumeAnchorOverride;
-                    if (anchor == null) anchor = cam.transform;
-                    var stack = selectedCameraVolumeStack;
-                    if (stack != null)
-                        VolumeManager.instance.Update(stack, anchor, selectedCameraLayerMask);
-                }
-                return anchor.position;
+                return cam.transform.position;
             }
         }
     }
