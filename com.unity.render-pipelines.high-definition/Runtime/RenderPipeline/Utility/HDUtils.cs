@@ -1179,5 +1179,50 @@ namespace UnityEngine.Rendering.HighDefinition
             ComponentSingleton<HDAdditionalLightData>.Release();
             ComponentSingleton<HDAdditionalCameraData>.Release();
         }
+
+        internal static float InterpolateOrientation(float fromValue, float toValue, float t)
+        {
+            // Compute the direct distance
+            float directDistance = Mathf.Abs(toValue - fromValue);
+            float outputValue = 0.0f;
+
+            // Handle the two cases
+            if (fromValue < toValue)
+            {
+                float upperRange = 360.0f - toValue;
+                float lowerRange = fromValue;
+                float alternativeDistance = upperRange + lowerRange;
+                if (alternativeDistance < directDistance)
+                {
+                    float targetValue = toValue - 360.0f;
+                    outputValue = fromValue + (targetValue - fromValue) * t;
+                    if (outputValue < 0.0f)
+                        outputValue += 360.0f;
+                }
+                else
+                {
+                    outputValue = fromValue + (toValue - fromValue) * t;
+                }
+            }
+            else
+            {
+                float upperRange = 360.0f - fromValue;
+                float lowerRange = toValue;
+                float alternativeDistance = upperRange + lowerRange;
+                if (alternativeDistance < directDistance)
+                {
+                    float targetValue = toValue + 360.0f;
+                    outputValue = fromValue + (targetValue - fromValue) * t;
+                    if (outputValue > 360.0f)
+                        outputValue -= 360.0f;
+                }
+                else
+                {
+                    outputValue = fromValue + (toValue - fromValue) * t;
+                }
+            }
+
+            return outputValue;
+        }
     }
 }
