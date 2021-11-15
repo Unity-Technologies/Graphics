@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderFoundry
         internal const string DefaultValue = "DefaultValue";
         internal const string MaterialPropertyDefault = "MaterialPropertyDefault";
         internal const string Varying = "Varying";
+        internal const string Alias = "Alias";
     }
 
     internal static class AttributeExtensions
@@ -304,6 +305,31 @@ namespace UnityEditor.ShaderFoundry
                     return new MaterialPropertyDefaultAttribute { PropertyDefaultExpression = param.Value };
             }
             return null;
+        }
+    }
+
+    internal class AliasAttribute
+    {
+        internal string AliasName { get; set; }
+        internal static IEnumerable<AliasAttribute> ForEach(IEnumerable<ShaderAttribute> attributes)
+        {
+            foreach(var attribute in attributes)
+            {
+                var aliasAttribute = Parse(attribute);
+                if (aliasAttribute != null)
+                    yield return aliasAttribute;
+            }
+        }
+
+        internal static AliasAttribute Parse(ShaderAttribute attribute)
+        {
+            if (attribute.Name != CommonShaderAttributes.Alias)
+                return null;
+
+            var param = attribute.Parameters.GetAttributeParam(0);
+            if (!param.IsValid)
+                return null;
+            return new AliasAttribute { AliasName = param.Value };
         }
     }
 }
