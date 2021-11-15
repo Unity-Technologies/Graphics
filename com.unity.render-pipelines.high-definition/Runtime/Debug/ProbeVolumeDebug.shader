@@ -15,6 +15,8 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
+    #pragma enable_d3d11_debug_symbols
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
@@ -32,6 +34,9 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         uniform float _CullDistance;
         uniform int _MaxAllowedSubdiv;
         uniform float _ValidityThreshold;
+        uniform float4 _DebugPosition;
+
+        uniform float3 _ValidTexLoc;
 
         struct appdata
         {
@@ -44,6 +49,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         {
             float4 vertex : SV_POSITION;
             float3 normal : TEXCOORD1;
+            int consideredProbe : WHATEVER;
             UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
@@ -66,6 +72,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             float4 position = float4(UNITY_MATRIX_M._m03_m13_m23, 1);
             int brickSize = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).w;
 
+
             if (distance(position.xyz, GetCurrentViewPosition()) > _CullDistance ||
                 brickSize > _MaxAllowedSubdiv)
             {
@@ -75,6 +82,9 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             else
             {
                 float4 wsPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz * _ProbeSize, 1.0));
+                float3 absoluteWS = GetAbsolutePositionWS(wsPos.xyz);
+                o.consideredProbe = (distance(absoluteWS.xyz, _DebugPosition.xyz) < _ProbeSize*0.5) ? 1 : 0;
+
                 o.vertex = mul(UNITY_MATRIX_VP, wsPos);
 
                 o.normal = normalize(mul(v.normal, (float3x3)UNITY_MATRIX_M));
@@ -154,6 +164,52 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             {
                 float4 col = lerp(float4(0, 1, 0, 1), float4(1, 0, 0, 1), UNITY_ACCESS_INSTANCED_PROP(Props, _RelativeSize));
                 return col;
+            }
+            else if (_ShadingMode == DEBUGPROBESHADINGMODE_OCCLUSION_WEIGHTS || _ShadingMode == DEBUGPROBESHADINGMODE_OCCLUSION_NEIGHBOURS)
+            {
+
+                float3 debugUVW;
+                APVResources apvRes = FillAPVResources();
+
+                uint unused;
+                bool validUVW = TryToGetPoolUVWAndSubdiv_(apvRes, _DebugPosition, 0, 0, debugUVW, unused);
+                uint3 loc = floor(debugUVW * _PoolDim - 0.5);
+                float3 texCoordFloat = debugUVW * _PoolDim - .5f;
+                loc = texCoordFloat;
+
+                int3 texLoc = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).xyz;
+                float weights[8];
+                GetValidityBasedWeights(apvRes, debugUVW, weights);
+                CombineWeightsWithTrilinear(debugUVW, weights);
+
+                float t = 0;
+                for (int i = 0; i < 8; ++i)
+                {
+                    uint3 offset = GetSampleOffset(i);
+                    uint3 sampleLoc = loc + offset;
+                    float3 texCoordFloat = debugUVW * _PoolDim - .5f;
+                    int3 texCoordInt = texCoordFloat;
+
+                    float w = GetLeakWeight(apvRes, _DebugPosition, float3(0, 0, 1), texCoordInt + offset);
+
+                    if (all(texLoc == sampleLoc))
+                    {
+                        float validity = LOAD_TEXTURE3D(apvRes.Validity, texLoc).x;
+                        if (_ShadingMode == DEBUGPROBESHADINGMODE_OCCLUSION_NEIGHBOURS)
+                        {
+                            return float4(offset.xyz, 1);
+                        }
+                        else
+                        {
+                            if (w < 0.01) return float4(1, 0, 0, 1);
+                            return float4(w.xxx, 1) * 0.5;
+                        }
+                    }
+
+                    t += w * 0.0000000000001f;
+                }
+
+                return float4(0.1, 0.1, 0.1, 1) + t*0.001f;
             }
 
             return _Color;

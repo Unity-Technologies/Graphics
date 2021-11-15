@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering
         public float _CellInMeters;
 
         public Vector4 _AntiLeakParams;
+        public Vector4 _AntiLeakParamsDBG;
 
         public float _CellInMinBricks;
         public float _MinBrickSize;

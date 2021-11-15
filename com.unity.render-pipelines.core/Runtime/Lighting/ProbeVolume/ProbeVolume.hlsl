@@ -100,9 +100,16 @@ float GetGeometricWeight(APVResources apvRes, float3 samplePosWS, float3 sampleN
     // Properly we don't need the sample the position at all.
     float3 probePos = LOAD_TEXTURE3D(apvRes.Validity, sampleLoc).xyz;
 
+    probePos += 0.0000001; // appease the debugger.
+
     float3 vecToSample = normalize(probePos - samplePosWS);
 
-    return max(1e-15f, saturate(dot(sampleNormalWS, vecToSample)));
+    // Smooth backface?
+    float ww = (dot(vecToSample, sampleNormalWS) + 1)*0.5;
+    return ww * ww;
+
+
+    return max((dot(sampleNormalWS, vecToSample)), 0);
 }
 
 float GetLeakWeight(APVResources apvRes, float3 samplePosWS, float3 sampleNormalWS, int3 sampleLoc)
@@ -481,6 +488,20 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw, float3 posWS, float3 normal
     float validity = SAMPLE_TEXTURE3D_LOD(apvRes.Validity, s_linear_clamp_sampler, uvw, 0).w;
     apvSample.L0 += validity * 0.0001f;
 
+    if (_AntiLeakParamsDBG.w > 0)
+    {
+        float3 texCoordFloat = uvw * _PoolDim - .5f;
+        int3 texCoordInt = texCoordFloat;
+        int3 offset = GetSampleOffset(_AntiLeakParamsDBG.x);
+
+        float3 probePos = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt + offset).xyz;
+
+        apvSample.L0 = (normalize(probePos -posWS) * 0.5f + 0.5f) * 50.0f;
+        apvSample.L0 = dot(normalize(probePos - posWS), normalWS) * 50;// (normalize(probePos - posWS) * 0.5f + 0.5f) * 50.0f;
+
+    }
+
+
     return apvSample;
 }
 
@@ -600,6 +621,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         bakeDiffuseLighting = apvSample.L0;
         backBakeDiffuseLighting = apvSample.L0;
         lightingInReflDir = apvSample.L0;
+
     }
     else
     {

@@ -17,6 +17,27 @@ namespace UnityEngine.Experimental.Rendering
             internal int flattenIndex(int sx, int sy) { return z * (sx * sy) + y * sx + x; }
         }
 
+        // TODO_FCC: TMP_FCC This is all tmp stuff. In future we might need a flat 2D atlas as we'll not have
+        public class OctahedralDepthAtlas
+        {
+            internal Texture3D atlas;
+
+            internal int atlasWidth;
+            internal int atlasHeight;
+            internal int atlasDepth = kBrickProbeCountPerDim;
+
+            internal int octDepthMapSize = 8; // Hard coded for now, we should make sure we support higher res.
+
+            internal int maxProbeAllowed => (atlasWidth / octDepthMapSize) * (atlasHeight / octDepthMapSize);
+
+            internal void Destroy()
+            {
+                CoreUtils.Destroy(atlas);
+                atlas = null;
+            }
+        }
+
+
         public struct DataLocation
         {
             internal Texture3D TexL0_L1rx;
@@ -30,6 +51,8 @@ namespace UnityEngine.Experimental.Rendering
             internal Texture3D TexL2_3;
 
             internal Texture3D TexValidity;
+
+            internal OctahedralDepthAtlas octDepthAtlas;
 
             internal int width;
             internal int height;
@@ -60,12 +83,16 @@ namespace UnityEngine.Experimental.Rendering
                 TexL2_3 = null;
 
                 TexValidity = null;
+
+                if (octDepthAtlas != null)
+                    octDepthAtlas.Destroy();
             }
         }
 
         internal const int kBrickCellCount = 3;
         internal const int kBrickProbeCountPerDim = kBrickCellCount + 1;
         internal const int kBrickProbeCountTotal = kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim;
+
 
         internal int estimatedVMemCost { get; private set; }
 
@@ -326,6 +353,8 @@ namespace UnityEngine.Experimental.Rendering
             loc.width = width;
             loc.height = height;
             loc.depth = depth;
+
+            loc.octDepthAtlas = null;
 
             return loc;
         }

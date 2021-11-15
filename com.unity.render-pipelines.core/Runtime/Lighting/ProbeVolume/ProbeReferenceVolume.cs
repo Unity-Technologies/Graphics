@@ -254,6 +254,8 @@ namespace UnityEngine.Experimental.Rendering
 
         // TMP
         public Vector4 leakParams;
+        public Vector4 leakParamsDBG;
+
     }
 
     /// <summary>
@@ -1272,6 +1274,7 @@ namespace UnityEngine.Experimental.Rendering
             shaderVars._IndexChunkSize = ProbeBrickIndex.kIndexChunkSize;
             shaderVars._CellInMeters = MaxBrickSize();
             shaderVars._AntiLeakParams = parameters.leakParams;
+            shaderVars._AntiLeakParamsDBG = parameters.leakParamsDBG;
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }

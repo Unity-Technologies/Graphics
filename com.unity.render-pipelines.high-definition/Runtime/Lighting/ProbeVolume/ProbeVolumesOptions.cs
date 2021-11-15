@@ -61,6 +61,7 @@ namespace UnityEngine.Experimental.Rendering
         //
         public LeakingPreventionMethodParameter antiLeakMode = new LeakingPreventionMethodParameter(LeakingPreventionMethod.None);
         public ClampedFloatParameter leakWeightContrib = new ClampedFloatParameter(1, 0, 1);
-
+        public ClampedIntParameter neighbourIndices = new ClampedIntParameter(0, 0, 7);
+        public BoolParameter debug = new BoolParameter(false);
     }
 }
