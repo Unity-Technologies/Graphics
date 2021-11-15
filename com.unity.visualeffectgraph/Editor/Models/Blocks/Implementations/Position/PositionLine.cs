@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
+    [VFXInfo(category = "Attribute/position/Composition/{0}", variantProvider = typeof(PositionBaseProvider))]
     class PositionLine : PositionBase
     {
         public override string name { get { return string.Format(base.name, "Line"); } }

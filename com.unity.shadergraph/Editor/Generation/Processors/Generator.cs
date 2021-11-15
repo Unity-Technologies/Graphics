@@ -872,45 +872,6 @@ namespace UnityEditor.ShaderGraph
             Profiler.EndSample();
 
             // --------------------------------------------------
-            // Dots Instanced Graph Properties
-
-            bool hasDotsProperties = subShaderProperties.HasDotsProperties();
-
-            using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
-            {
-                if (hasDotsProperties)
-                    dotsInstancedPropertyBuilder.AppendLines(subShaderProperties.GetDotsInstancingPropertiesDeclaration(m_Mode));
-                else
-                    dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
-                spliceCommands.Add("HybridV1InjectedBuiltinProperties", dotsInstancedPropertyBuilder.ToCodeBlock());
-            }
-
-            // --------------------------------------------------
-            // Dots Instancing Options
-
-            using (var dotsInstancingOptionsBuilder = new ShaderStringBuilder(humanReadable: m_humanReadable))
-            {
-                // Hybrid Renderer V1 requires some magic defines to work, which we enable
-                // if the shader graph has a nonzero amount of DOTS instanced properties.
-                // This can be removed once Hybrid V1 is removed.
-#if !ENABLE_HYBRID_RENDERER_V2
-                if (hasDotsProperties)
-                {
-                    dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE)  || defined(SHADER_API_GAMECORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
-                    dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");
-                    dotsInstancingOptionsBuilder.AppendLine("#endif");
-                    dotsInstancingOptionsBuilder.AppendLine("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
-                    dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_HYBRID_V1_INSTANCING_ENABLED");
-                    dotsInstancingOptionsBuilder.AppendLine("#endif");
-                }
-#endif
-
-                if (dotsInstancingOptionsBuilder.length == 0)
-                    dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");
-                spliceCommands.Add("DotsInstancingOptions", dotsInstancingOptionsBuilder.ToCodeBlock());
-            }
-
-            // --------------------------------------------------
             // Graph Defines
             Profiler.BeginSample("GraphDefines");
             using (var graphDefines = new ShaderStringBuilder(humanReadable: m_humanReadable))

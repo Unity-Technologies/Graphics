@@ -112,10 +112,24 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif // UNITY_EDITOR
         }
 
-        internal void ResetPathTracing()
+        /// <summary>
+        /// Resets path tracing accumulation for all cameras.
+        /// </summary>
+        public void ResetPathTracing()
         {
             m_RenderSky = true;
             m_SubFrameManager.Reset();
+        }
+
+        /// <summary>
+        /// Resets path tracing accumulation for a specific camera.
+        /// </summary>
+        /// <param name="hdCamera">Camera for which the accumulation is reset.</param>
+        public void ResetPathTracing(HDCamera hdCamera)
+        {
+            int camID = hdCamera.camera.GetInstanceID();
+            CameraData camData = m_SubFrameManager.GetCameraData(camID);
+            ResetPathTracing(camID, camData);
         }
 
         internal CameraData ResetPathTracing(int camID, CameraData camData)
@@ -201,17 +215,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Check materials dirtiness
-            if (GetMaterialDirtiness())
+            if (GetMaterialDirtiness(hdCamera))
             {
-                ResetMaterialDirtiness();
+                ResetMaterialDirtiness(hdCamera);
                 ResetPathTracing();
                 return camData;
             }
 
             // Check light or geometry transforms dirtiness
-            if (GetTransformDirtiness())
+            if (GetTransformDirtiness(hdCamera))
             {
-                ResetTransformDirtiness();
+                ResetTransformDirtiness(hdCamera);
                 ResetPathTracing();
                 return camData;
             }
@@ -225,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Check geometry dirtiness
-            ulong accelSize = RequestAccelerationStructure().GetSize();
+            ulong accelSize = RequestAccelerationStructure(hdCamera).GetSize();
             if (accelSize != m_CacheAccelSize)
             {
                 m_CacheAccelSize = accelSize;
@@ -266,13 +280,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle output;
             public TextureHandle sky;
+
+#if ENABLE_SENSOR_SDK
+            public Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays;
+#endif
         }
 
         TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, in CameraData cameraData, TextureHandle pathTracingBuffer, TextureHandle skyBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render PathTracing", out var passData))
             {
+#if ENABLE_SENSOR_SDK
+                passData.pathTracingShader = hdCamera.pathTracingShaderOverride ? hdCamera.pathTracingShaderOverride : m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
+                passData.prepareDispatchRays = hdCamera.prepareDispatchRays;
+#else
                 passData.pathTracingShader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
+#endif
                 passData.cameraData = cameraData;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
                 passData.backgroundColor = hdCamera.backgroundColorHDR;
@@ -282,7 +305,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.tilingParameters = m_PathTracingSettings.tilingParameters.value;
                 passData.width = hdCamera.actualWidth;
                 passData.height = hdCamera.actualHeight;
-                passData.accelerationStructure = RequestAccelerationStructure();
+                passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
 
                 passData.shaderVariablesRaytracingCB = m_ShaderVariablesRayTracingCB;
@@ -330,6 +353,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracingDoFParameters, data.dofParameters);
                         ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracingTilingParameters, data.tilingParameters);
 
+#if ENABLE_SENSOR_SDK
+                        // SensorSDK can do its own camera rays generation
+                        data.prepareDispatchRays?.Invoke(ctx.cmd);
+#endif
                         // Run the computation
                         ctx.cmd.DispatchRays(data.pathTracingShader, "RayGen", (uint)data.width, (uint)data.height, 1);
                     });

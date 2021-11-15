@@ -226,6 +226,12 @@ From HDRP 12.0 you can use a new option in the [HDRP Asset](HDRP-Asset.md) (**Re
 
 In the image above, the example image on the left does not use this method. The image on the right uses the new additive normal blending method.
 
+### Increased the default GPU light count
+
+This version of HDRP increases the default number of lights a single pixel can get influence from to 63. You can use a new setting in `ShaderConfig.cs` called `FPTLMaxLightCount` to set the maximum number of lights per tile on the GPU. 
+
+To increase this value, you must generate a new Shader config project. For information on how to create a new Shader config project, see [HDRP-Config-Package](HDRP-Config-Package.md).
+
 ### Physical Camera
 
 HDRP 12.0 includes the following physical Camera improvements:
