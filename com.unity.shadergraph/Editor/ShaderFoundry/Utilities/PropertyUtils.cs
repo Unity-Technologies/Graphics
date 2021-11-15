@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderFoundry
 {
@@ -106,6 +106,8 @@ namespace UnityEditor.ShaderFoundry
                 varBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Hybrid).Build());
             AddPropertyDeclaration(container, varBuilder);
 
+            string propertyAttributes = $"{shaderProp.hideTagString}";
+
             if(isMaterialProperty)
             {
                 switch (shaderProp)
@@ -127,8 +129,27 @@ namespace UnityEditor.ShaderFoundry
                             AddUniformDeclaration(container, varBuilder, "float");
                             if (isExposed)
                             {
-                                string defaultValue = $"{vec1Prop.value}";
-                                AddMaterialProperty(container, varBuilder, shaderProp, "Float");
+                                string defaultValue = Graphing.NodeUtils.FloatToShaderValueShaderLabSafe(vec1Prop.value);
+                                string attributes = vec1Prop.hideTagString;
+                                string propertyTypeString = "Float";
+
+                                switch (vec1Prop.floatType)
+                                {
+                                    case FloatType.Slider:
+                                        propertyTypeString = $"Range({Graphing.NodeUtils.FloatToShaderValueShaderLabSafe(vec1Prop.rangeValues.x)}, {Graphing.NodeUtils.FloatToShaderValueShaderLabSafe(vec1Prop.rangeValues.y)}";
+                                        break;
+                                    case FloatType.Integer:
+                                        defaultValue = $"{((int)vec1Prop.value).ToString(CultureInfo.InvariantCulture)}";
+                                        propertyTypeString = "Int";
+                                        break;
+                                    //case FloatType.Enum:
+                                    //    attributes += vec1Prop.enumTagString;
+                                    default:
+                                        propertyTypeString = "Float";
+                                        break;
+                                }
+
+                                AddMaterialProperty(container, varBuilder, shaderProp, propertyTypeString, propertyAttributes);
                                 AddMaterialPropertyDefault(container, varBuilder, defaultValue);
                             }
                             break;
@@ -139,7 +160,7 @@ namespace UnityEditor.ShaderFoundry
                             if (isExposed)
                             {
                                 string defaultValue = $"({vec2Prop.value.x}, {vec2Prop.value.y}, 0, 0)";
-                                AddMaterialProperty(container, varBuilder, shaderProp, "Vector");
+                                AddMaterialProperty(container, varBuilder, shaderProp, "Vector", propertyAttributes);
                                 AddMaterialPropertyDefault(container, varBuilder, defaultValue);
                             }
                             break;
@@ -150,7 +171,7 @@ namespace UnityEditor.ShaderFoundry
                             if (isExposed)
                             {
                                 string defaultValue = $"({vec3Prop.value.x}, {vec3Prop.value.y}, {vec3Prop.value.z}, 0)";
-                                AddMaterialProperty(container, varBuilder, shaderProp, "Vector");
+                                AddMaterialProperty(container, varBuilder, shaderProp, "Vector", propertyAttributes);
                                 AddMaterialPropertyDefault(container, varBuilder, defaultValue);
                             }
                             break;
@@ -161,7 +182,7 @@ namespace UnityEditor.ShaderFoundry
                             if(isExposed)
                             {
                                 string defaultValue = $"({vec4Prop.value.x}, {vec4Prop.value.y}, {vec4Prop.value.z}, {vec4Prop.value.w})";
-                                AddMaterialProperty(container, varBuilder, shaderProp, "Vector");
+                                AddMaterialProperty(container, varBuilder, shaderProp, "Vector", propertyAttributes);
                                 AddMaterialPropertyDefault(container, varBuilder, defaultValue);
                             }
                             break;
@@ -171,7 +192,8 @@ namespace UnityEditor.ShaderFoundry
                             AddUniformDeclaration(container, varBuilder, "float4");
                             if (isExposed)
                             {
-                                AddMaterialProperty(container, varBuilder, shaderProp, "Color", colorProp.hdrTagString);
+                                propertyAttributes += colorProp.hdrTagString;
+                                AddMaterialProperty(container, varBuilder, shaderProp, "Color", propertyAttributes);
                                 string defaultValue = $"({colorProp.value.r}, {colorProp.value.g}, {colorProp.value.b}, {colorProp.value.a})";
                                 AddMaterialPropertyDefault(container, varBuilder, defaultValue);
                             }
@@ -181,7 +203,7 @@ namespace UnityEditor.ShaderFoundry
                         {
                             DeclareBasicUniform(container, varBuilder, hlslProp);
                             var normalTagString = (tex2DProp.defaultType == Texture2DShaderProperty.DefaultType.NormalMap) ? "[Normal]" : "";
-                            string attributesString = $"{tex2DProp.hideTagString}{tex2DProp.modifiableTagString}{normalTagString}{tex2DProp.mainTextureString}{tex2DProp.useSTString}";
+                            string attributesString = $"{propertyAttributes}{tex2DProp.modifiableTagString}{normalTagString}{tex2DProp.mainTextureString}{tex2DProp.useSTString}";
                             AddMaterialProperty(container, varBuilder, shaderProp, "2D", attributesString);
                             string defaultValue = $"\"{Texture2DShaderProperty.ToShaderLabString(tex2DProp.defaultType)}\" {{}}";
                             AddMaterialPropertyDefault(container, varBuilder, defaultValue);
@@ -189,17 +211,18 @@ namespace UnityEditor.ShaderFoundry
                         }
                     case Texture3DShaderProperty tex3DProp:
                         DeclareBasicUniform(container, varBuilder, hlslProp);
-                        AddMaterialProperty(container, varBuilder, shaderProp, "3D");
+                        AddMaterialProperty(container, varBuilder, shaderProp, "3D", propertyAttributes);
                         AddMaterialPropertyDefault(container, varBuilder, "\"\" {}");
                         break;
                     case CubemapShaderProperty cubeProp:
                         DeclareBasicUniform(container, varBuilder, hlslProp);
-                        AddMaterialProperty(container, varBuilder, shaderProp, "CUBE");
+                        AddMaterialProperty(container, varBuilder, shaderProp, "CUBE", propertyAttributes);
                         AddMaterialPropertyDefault(container, varBuilder, "\"\" {}");
                         break;
                     case Texture2DArrayShaderProperty tex2DArrayProp:
+                        propertyAttributes += "[NoScaleOffset]";
                         DeclareBasicUniform(container, varBuilder, hlslProp);
-                        AddMaterialProperty(container, varBuilder, shaderProp, "2DArray");
+                        AddMaterialProperty(container, varBuilder, shaderProp, "2DArray", propertyAttributes);
                         AddMaterialPropertyDefault(container, varBuilder, "\"\" {}");
                         break;
                 }

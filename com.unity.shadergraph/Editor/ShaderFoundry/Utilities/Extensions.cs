@@ -95,6 +95,27 @@ namespace UnityEditor.ShaderFoundry
             builder.NewLine();
         }
 
+        internal static void AddVariableDeclarationStatement(this ShaderBuilder builder, Block.Builder blockBuilder, ShaderType type, string name, string defaultValue = null)
+        {
+            builder.Indentation();
+
+            var parentBlock = type.ParentBlock;
+            if (parentBlock.IsValid && parentBlock.index != blockBuilder.blockId)
+            {
+                builder.AppendScopeName(parentBlock);
+                builder.Append(m_ScopeToken);
+            }
+            builder.Append(type.Name);
+
+            builder.Append(m_SpaceToken);
+            builder.Append(name);
+            if (!string.IsNullOrEmpty(defaultValue))
+                builder.Add(m_SpaceToken, m_EqualToken, m_SpaceToken, defaultValue);
+
+            builder.Add(m_SemicolonToken);
+            builder.NewLine();
+        }
+
         internal static void AppendFullyQualifiedName(this ShaderBuilder builder, ShaderType type)
         {
             var parentBlock = type.ParentBlock;
@@ -237,7 +258,16 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        internal static void CopyPassPassProperty(this BlockVariable variable, ShaderFunction.Builder builder, BlockVariableLinkInstance owningVariable)
+        internal static void CopyPassPassProperty(this VariableLinkInstance variable, ShaderFunction.Builder builder, VariableLinkInstance owningVariable)
+        {
+            var passProps = PassPropertyInfo.Extract(variable);
+            foreach (var passProp in passProps)
+            {
+                passProp.Copy(builder, owningVariable);
+            }
+        }
+
+        internal static void CopyPassPassProperty(this BlockVariable variable, ShaderFunction.Builder builder, VariableLinkInstance owningVariable)
         {
             var passProps = PassPropertyInfo.Extract(variable);
             foreach (var passProp in passProps)
@@ -278,20 +308,20 @@ namespace UnityEditor.ShaderFoundry
         }
     }
 
-    static class BlockVariableLinkInstanceExtensions
+    static class VariableLinkInstanceExtensions
     {
-        internal static void Declare(this BlockVariableLinkInstance varInstance, ShaderBuilder builder)
+        internal static void Declare(this VariableLinkInstance varInstance, ShaderBuilder builder)
         {
-            if (varInstance.Owner != null)
+            if (varInstance.Parent != null)
             {
                 const string dotToken = ".";
-                Declare(varInstance.Owner, builder);
+                Declare(varInstance.Parent, builder);
                 builder.Add(dotToken);
             }
-            builder.Add(varInstance.ReferenceName);
+            builder.Add(varInstance.Name);
         }
 
-        internal static string GetDeclarationString(this BlockVariableLinkInstance varInstance)
+        internal static string GetDeclarationString(this VariableLinkInstance varInstance)
         {
             ShaderBuilder builder = new ShaderBuilder();
             varInstance.Declare(builder);

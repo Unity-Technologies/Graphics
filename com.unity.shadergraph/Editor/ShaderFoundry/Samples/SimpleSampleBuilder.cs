@@ -54,6 +54,14 @@ namespace UnityEditor.ShaderFoundry
             return typeBuilder.Build();
         }
 
+        internal static void MarkAsProperty(ShaderContainer container, StructField.Builder fieldBuilder, string propertyType)
+        {
+            // An input tagged with 'Property' is auto added as a property
+            fieldBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Property).Build());
+            // [PropertyType(propertyTypeName)] is used to fill out the type in the material attribute.
+            fieldBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PropertyType).Param(propertyType).Build());
+        }
+
         internal static void MarkAsProperty(ShaderContainer container, BlockVariable.Builder variableBuilder, string propertyType)
         {
             // An input tagged with 'Property' is auto added as a property

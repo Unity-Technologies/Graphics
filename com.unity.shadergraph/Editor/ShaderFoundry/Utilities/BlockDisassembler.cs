@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
 namespace UnityEditor.ShaderFoundry
 {

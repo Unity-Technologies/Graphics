@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Internal;
-
-using UnityEditor.ShaderFoundry;
 using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
 namespace UnityEditor.ShaderFoundry
@@ -87,26 +85,31 @@ namespace UnityEditor.ShaderFoundry
     internal class PassPropertyInfo
     {
         internal string uniformDeclaration;
-        internal BlockVariableLinkInstance variable;
+        internal VariableLinkInstance variable;
         internal HLSLDeclaration declarationType;
         internal bool isSubField = false;
         internal string assignmentExpression;
-
-        internal static void Extract(BlockVariable property, List<PassPropertyInfo> results)
-        {
-            results.AddRange(Extract(property.Type, property.ReferenceName, property.Attributes));
-        }
 
         internal static List<PassPropertyInfo> Extract(BlockVariable property)
         {
             return Extract(property.Type, property.ReferenceName, property.Attributes);
         }
 
+        internal static List<PassPropertyInfo> Extract(VariableLinkInstance property)
+        {
+            return Extract(property.Type, property.Name, property.Attributes);
+        }
+
         internal static List<PassPropertyInfo> Extract(ShaderType type, string referenceName, IEnumerable<ShaderAttribute> attributes)
         {
             List<PassPropertyInfo> results = new List<PassPropertyInfo>();
 
-            var propertyInstance = BlockVariableLinkInstance.Construct(type, referenceName, referenceName, null, null);
+            var propertyInstance = new VariableLinkInstance
+            {
+                Type = type,
+                Name = referenceName,
+                Container = type.Container,
+            };
 
             var propType = type;
             if (propType.IsStruct)
@@ -136,7 +139,7 @@ namespace UnityEditor.ShaderFoundry
         }
 
         static bool ExtractField(ShaderType variableType, string variableName, IEnumerable<ShaderAttribute> variableAttributes,
-            string propReferenceName, IEnumerable<ShaderAttribute> propInstanceAttributes, BlockVariableLinkInstance owner, List<PassPropertyInfo> results)
+            string propReferenceName, IEnumerable<ShaderAttribute> propInstanceAttributes, VariableLinkInstance owner, List<PassPropertyInfo> results)
         {
             PassPropertyInfo info = null;
             var propVariableAtt = PropertyVariableAttribute.Find(variableAttributes);
@@ -182,7 +185,7 @@ namespace UnityEditor.ShaderFoundry
             if(info != null)
             {
                 info.declarationType = propInstanceAttributes.GetDeclaration();
-                info.variable = BlockVariableLinkInstance.Construct(variableType, variableName, variableName, null, owner, null);
+                info.variable = new VariableLinkInstance { Container = variableType.Container, Type = variableType, Name = variableName, Parent = owner };
                 info.isSubField = owner != null;
                 results.Add(info);
             }
@@ -190,19 +193,19 @@ namespace UnityEditor.ShaderFoundry
             return info != null;
         }
 
-        internal void Copy(ShaderFunction.Builder builder, BlockVariableLinkInstance owningVariable)
+        internal void Copy(ShaderFunction.Builder builder, VariableLinkInstance owningVariable)
         {
             string variableDeclaration = null;
-            if(isSubField)
+            if (isSubField)
             {
-                variable.Owner = owningVariable;
+                variable.Parent = owningVariable;
                 variableDeclaration = variable.GetDeclarationString();
             }
             else
             {
                 variableDeclaration = owningVariable.GetDeclarationString();
             }
-            if(!string.IsNullOrEmpty(this.assignmentExpression))
+            if (!string.IsNullOrEmpty(this.assignmentExpression))
             {
                 var defaultExpression = this.assignmentExpression.Replace("#", variableDeclaration);
                 builder.AddLine($"{defaultExpression};");
@@ -257,25 +260,5 @@ namespace UnityEditor.ShaderFoundry
         internal BlockInstance vertexDescBlockInstance;
         internal BlockInstance fragmentDescBlockInstance;
         internal List<VaryingVariable> customInterpolants = new List<VaryingVariable>();
-    }
-
-    internal static class TypeUtilities
-    {
-        internal static ShaderType.StructBuilder BuildStructBuilder(ShaderContainer container, string typeName, IEnumerable<BlockVariableLinkInstance> variables)
-        {
-            var builder = new ShaderType.StructBuilder(container, typeName);
-            foreach (var variable in variables)
-                builder.AddField(variable.Type, variable.ReferenceName);
-
-            return builder;
-        }
-
-        internal static ShaderType BuildType(ShaderContainer container, string typeName, IEnumerable<BlockVariable> variables)
-        {
-            var builder = new ShaderType.StructBuilder(container, typeName);
-            foreach (var variable in variables)
-                builder.AddField(variable.Type, variable.ReferenceName);
-            return builder.Build();
-        }
     }
 }
