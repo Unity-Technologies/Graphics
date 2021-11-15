@@ -47,6 +47,19 @@ namespace UnityEditor.ShaderFoundry
             builder.AddLine(str);
         }
 
+        public static void AppendLines(this ShaderBuilder builder, string lines)
+        {
+            if (string.IsNullOrEmpty(lines))
+                return;
+            var splitLines = lines.Split('\n');
+            var lineCount = splitLines.Length;
+            var lastLine = splitLines[lineCount - 1];
+            if (string.IsNullOrEmpty(lastLine) || lastLine == "\r")
+                lineCount--;
+            for (var i = 0; i < lineCount; i++)
+                builder.AppendLine(splitLines[i].Trim('\r'));
+        }
+
         public static void Append(this ShaderBuilder builder, string str)
         {
             builder.Add(str);

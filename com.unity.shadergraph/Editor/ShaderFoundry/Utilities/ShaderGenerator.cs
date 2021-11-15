@@ -77,9 +77,7 @@ namespace UnityEditor.ShaderFoundry
             {
                 foreach (var prop in propertiesList)
                 {
-                    builder.Indentation();
                     prop.DeclareMaterialProperty(builder);
-                    builder.AddLine("");
                 }
             }
         }
