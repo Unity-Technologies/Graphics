@@ -199,13 +199,13 @@ half3 ApplyDithering(half3 input, float2 uv, TEXTURE2D_PARAM(BlueNoiseTexture, B
 #define FXAA_REDUCE_MUL (1.0 / 8.0)
 #define FXAA_REDUCE_MIN (1.0 / 128.0)
 
-half3 FXAAFetch(float2 coords, float2 offset, TEXTURE2D(inputTexture))
+half3 FXAAFetch(float2 coords, float2 offset, TEXTURE2D_X(inputTexture))
 {
     float2 uv = coords + offset;
     return SAMPLE_TEXTURE2D_X(inputTexture, sampler_LinearClamp, uv).xyz;
 }
 
-half3 FXAALoad(int2 icoords, int idx, int idy, float4 sourceSize, TEXTURE2D(inputTexture))
+half3 FXAALoad(int2 icoords, int idx, int idy, float4 sourceSize, TEXTURE2D_X(inputTexture))
 {
     #if SHADER_API_GLES
     float2 uv = (icoords + int2(idx, idy)) * sourceSize.zw;
@@ -215,7 +215,7 @@ half3 FXAALoad(int2 icoords, int idx, int idy, float4 sourceSize, TEXTURE2D(inpu
     #endif
 }
 
-half3 ApplyFXAA(half3 color, float2 positionNDC, int2 positionSS, float4 sourceSize, TEXTURE2D(inputTexture))
+half3 ApplyFXAA(half3 color, float2 positionNDC, int2 positionSS, float4 sourceSize, TEXTURE2D_X(inputTexture))
 {
     // Edge detection
     half3 rgbNW = FXAALoad(positionSS, -1, -1, sourceSize, inputTexture);
