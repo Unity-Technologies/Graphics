@@ -117,25 +117,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (mode == (int)DepthOfFieldMode.Manual)
             {
-                EditorGUI.BeginChangeCheck();
                 PropertyField(m_NearFocusStart, Styles.k_NearFocusStart);
-                if (EditorGUI.EndChangeCheck() && m_NearFocusStart.value.floatValue >= m_NearFocusEnd.value.floatValue && m_NearFocusEnd.overrideState.boolValue)
-                    m_NearFocusStart.value.floatValue = m_NearFocusEnd.value.floatValue - 1e-5f;
-
-                EditorGUI.BeginChangeCheck();
                 PropertyField(m_NearFocusEnd, Styles.k_NearFocusEnd);
-                if (EditorGUI.EndChangeCheck() && m_NearFocusEnd.value.floatValue <= m_NearFocusStart.value.floatValue && m_NearFocusStart.overrideState.boolValue)
-                    m_NearFocusEnd.value.floatValue = m_NearFocusStart.value.floatValue + 1e-5f;
-
-                EditorGUI.BeginChangeCheck();
                 PropertyField(m_FarFocusStart, Styles.k_FarFocusStart);
-                if (EditorGUI.EndChangeCheck() && m_FarFocusStart.value.floatValue >= m_FarFocusEnd.value.floatValue && m_FarFocusEnd.overrideState.boolValue)
-                    m_FarFocusStart.value.floatValue = m_FarFocusEnd.value.floatValue - 1e-5f;
-
-                EditorGUI.BeginChangeCheck();
                 PropertyField(m_FarFocusEnd, Styles.k_FarFocusEnd);
-                if (EditorGUI.EndChangeCheck() && m_FarFocusEnd.value.floatValue <= m_FarFocusStart.value.floatValue && m_FarFocusStart.overrideState.boolValue)
-                    m_FarFocusEnd.value.floatValue = m_FarFocusStart.value.floatValue + 1e-5f;
             }
         }
 
