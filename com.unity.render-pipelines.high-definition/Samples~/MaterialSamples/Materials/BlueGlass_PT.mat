@@ -170,7 +170,7 @@ Material:
     m_Floats:
     - _AORemapMax: 1
     - _AORemapMin: 1
-    - _ATDistance: 0.005
+    - _ATDistance: 1
     - _AddPrecomputedVelocity: 0
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0
