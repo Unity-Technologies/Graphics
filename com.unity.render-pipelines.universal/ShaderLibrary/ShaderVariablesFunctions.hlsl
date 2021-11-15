@@ -149,18 +149,33 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
     projMatrix._13_23_33_43 = -projMatrix._13_23_33_43;
 }
 
+// Only define the alpha clipping helpers when the alpha test define is present.
+// This should help identify usage errors early.
+#if defined(_ALPHATEST_ON)
+bool IsAlphaToMaskEnabled()
+{
+    return (_AlphaToMaskEnabled != 0.0);
+}
+
+half AlphaClip(half alpha, half cutoff)
+{
+    half clippedAlpha = step(cutoff, alpha);
+    half sharpenedAlpha = SharpenAlpha(alpha, cutoff);
+
+    alpha = IsAlphaToMaskEnabled() ? sharpenedAlpha : clippedAlpha;
+
+    clip(alpha - 0.0001);
+
+    return alpha;
+}
+#endif
+
 void AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
 {
 #if defined(_ALPHATEST_ON)
-    if (IsAlphaDiscardEnabled())
+    if (IsAlphaDiscardEnabled() && !IsAlphaToMaskEnabled())
     {
-        // Modify the cutoff value so it's always zero when alpha-to-coverage is enabled
-        // This will allow the shader continue execution and export the alpha value rather than discarding
-        // which is required for alpha-to-coverage to function.
-        half alphaToMaskModifier = (1.0 - _AlphaToMaskInterp);
-        half finalCutoff = (cutoff + offset) * alphaToMaskModifier;
-
-        clip(alpha - finalCutoff);
+        clip(alpha - (cutoff + offset));
     }
 #endif
 }
@@ -170,7 +185,7 @@ half OutputAlpha(half alpha, half surfaceType = half(0.0))
     // Opaque materials should always export an alpha value of 1.0 unless alpha-to-coverage is enabled
     half opaqueAlpha = 1.0;
     #if defined(_ALPHATEST_ON)
-    opaqueAlpha = lerp(opaqueAlpha, alpha, _AlphaToMaskInterp);
+    opaqueAlpha = IsAlphaToMaskEnabled() ? alpha : opaqueAlpha;
     #endif
     return surfaceType == 1 ? alpha : opaqueAlpha;
 }

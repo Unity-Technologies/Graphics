@@ -94,9 +94,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
 
-                // Set an interpolation value that can be used by shaders to identify when they should use Alpha-To-Coverage functionality
-                float alphaToMaskInterp = (renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1) ? 1.0f : 0.0f;
-                cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskInterp, alphaToMaskInterp);
+                // Set a value that can be used by shaders to identify when they should use Alpha-To-Coverage functionality
+                float alphaToMaskEnabled = (renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1) ? 1.0f : 0.0f;
+                cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskEnabled, alphaToMaskEnabled);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 // Restore the state before leaving this function
-                cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskInterp, 0.0f);
+                cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskEnabled, 0.0f);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
