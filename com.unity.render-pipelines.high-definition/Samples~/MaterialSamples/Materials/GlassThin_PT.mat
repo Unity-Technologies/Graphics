@@ -345,7 +345,7 @@ Material:
     - _SpecColor: {r: 0.23096885, g: 0.33779976, b: 0.35294116, a: 1}
     - _SpecularColor: {r: 0.8308824, g: 0.8308824, b: 0.8308824, a: 1}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
-    - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TransmittanceColor: {r: 0.98039216, g: 0.98039216, b: 0.98039216, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
