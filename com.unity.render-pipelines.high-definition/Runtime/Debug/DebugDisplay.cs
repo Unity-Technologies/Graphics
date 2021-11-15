@@ -822,6 +822,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RecordedSamplersRT.Add(HDProfileId.RaytracingBuildCluster);
             m_RecordedSamplersRT.Add(HDProfileId.RaytracingCullLights);
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingBuildAccelerationStructure);
 
             // Ray Traced Reflections
             m_RecordedSamplersRT.Add(HDProfileId.RaytracingReflectionDirectionGeneration);
