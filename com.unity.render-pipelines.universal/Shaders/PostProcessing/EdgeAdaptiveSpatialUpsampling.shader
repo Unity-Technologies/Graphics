@@ -1,6 +1,8 @@
 Shader "Hidden/Universal Render Pipeline/Edge Adaptive Spatial Upsampling"
 {
     HLSLINCLUDE
+        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -8,6 +10,7 @@ Shader "Hidden/Universal Render Pipeline/Edge Adaptive Spatial Upsampling"
 
         TEXTURE2D_X(_SourceTex);
         float4 _SourceSize;
+        float2 _UpscaleSize;
 
         #define FSR_INPUT_TEXTURE _SourceTex
         #define FSR_INPUT_SAMPLER sampler_LinearClamp
@@ -28,7 +31,7 @@ Shader "Hidden/Universal Render Pipeline/Edge Adaptive Spatial Upsampling"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
-            uint2 integerUv = uv * _ScreenParams.xy;
+            uint2 integerUv = uv * _UpscaleSize;
 
             half3 color = ApplyEASU(integerUv);
 

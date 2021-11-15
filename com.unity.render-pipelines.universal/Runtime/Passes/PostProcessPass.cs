@@ -1489,6 +1489,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 var fsrInputSize = new Vector2(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
                                 var fsrOutputSize = new Vector2(cameraData.pixelWidth, cameraData.pixelHeight);
                                 FSRUtils.SetEasuConstants(cmd, fsrInputSize, fsrInputSize, fsrOutputSize);
+
+                                // BUG: We have to pass the final upscaled image size to the shader here because _ScreenParams is not always
+                                // accurate in XR configurations.
+                                cmd.SetGlobalVector(ShaderConstants._UpscaleSize, fsrOutputSize);
+
                                 Blit(cmd, sourceRtId, upscaleRtId, m_Materials.easu);
 
                                 // RCAS
@@ -1694,6 +1699,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             public static readonly int _UpscaleSetupTexture = Shader.PropertyToID("_UpscaleSetupTexture");
             public static readonly int _UpscaleTexture = Shader.PropertyToID("_UpscaleTexture");
+            public static readonly int _UpscaleSize = Shader.PropertyToID("_UpscaleSize");
 
             public static int[] _BloomMipUp;
             public static int[] _BloomMipDown;
