@@ -3,6 +3,7 @@ using UnityEngine.Jobs;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Burst.CompilerServices;
 using System.Threading;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -123,6 +124,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public NativeArray<int> gpuLightCounters;
             #endregion
 
+#if DEBUG
+            [IgnoreWarning(1370)] //Ignore throwing exception warning.
+#endif
             private ref HDLightRenderData GetLightData(int dataIndex)
             {
 #if DEBUG
@@ -336,6 +340,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+#if DEBUG
+            [IgnoreWarning(1370)] //Ignore throwing exception warning.
+#endif
             private void StoreAndConvertLightToGPUFormat(
                 int outputIndex, int lightIndex,
                 LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType)
@@ -386,6 +393,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 lights[outputIndex] = lightData;
             }
 
+#if DEBUG
+            [IgnoreWarning(1370)] //Ignore throwing exception warning.
+#endif
             private void ComputeLightVolumeDataAndBound(
                 LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType,
                 in VisibleLight light, in LightData lightData, in Vector3 lightDimensions, in Matrix4x4 worldToView, int outputIndex)
@@ -568,6 +578,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 
+#if DEBUG
+            [IgnoreWarning(1370)] //Ignore throwing exception warning.
+#endif
             private void ConvertDirectionalLightToGPUFormat(
                 int outputIndex, int lightIndex, LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType)
             {
