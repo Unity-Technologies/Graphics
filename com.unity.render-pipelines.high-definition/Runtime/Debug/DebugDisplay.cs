@@ -1519,19 +1519,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 case FullScreenDebugMode.PreRefractionColorPyramid:
                 case FullScreenDebugMode.FinalColorPyramid:
                 case FullScreenDebugMode.DepthPyramid:
+                {
+                    var depthPyramidContainer = new DebugUI.Container();
+                    depthPyramidContainer.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidDebugMip, getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f });
+                    depthPyramidContainer.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DepthPyramidEnableRemap, getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value, onValueChanged = RefreshLightingDebug });
+                    if (data.enableDebugDepthRemap)
                     {
-                        var depthPyramidContainer = new DebugUI.Container();
-                        depthPyramidContainer.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidDebugMip, getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f });
-                        depthPyramidContainer.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DepthPyramidEnableRemap, getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value, onValueChanged = RefreshLightingDebug });
-                        if (data.enableDebugDepthRemap)
-                        {
-                            depthPyramidContainer.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMin, getter = () => data.fullScreenDebugDepthRemap.x, setter = value => data.fullScreenDebugDepthRemap.x = Mathf.Min(value, data.fullScreenDebugDepthRemap.y), min = () => 0f, max = () => 1f, incStep = 0.01f });
-                            depthPyramidContainer.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMax, getter = () => data.fullScreenDebugDepthRemap.y, setter = value => data.fullScreenDebugDepthRemap.y = Mathf.Max(value, data.fullScreenDebugDepthRemap.x), min = () => 0.01f, max = () => 1f, incStep = 0.01f });
-                        }
-
-                        list.Add(depthPyramidContainer);
-                        break;
+                        depthPyramidContainer.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMin, getter = () => data.fullScreenDebugDepthRemap.x, setter = value => data.fullScreenDebugDepthRemap.x = Mathf.Min(value, data.fullScreenDebugDepthRemap.y), min = () => 0f, max = () => 1f, incStep = 0.01f });
+                        depthPyramidContainer.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMax, getter = () => data.fullScreenDebugDepthRemap.y, setter = value => data.fullScreenDebugDepthRemap.y = Mathf.Max(value, data.fullScreenDebugDepthRemap.x), min = () => 0.01f, max = () => 1f, incStep = 0.01f });
                     }
+
+                    list.Add(depthPyramidContainer);
+                    break;
+                }
                 case FullScreenDebugMode.ContactShadows:
                     list.Add(new DebugUI.Container
                     {

@@ -73,12 +73,12 @@ namespace UnityEngine.Rendering
                     switch (attr)
                     {
                         case VolumeComponentMenu attrMenu:
-                            {
-                                path = attrMenu.menu;
-                                if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
-                                    skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
-                                break;
-                            }
+                        {
+                            path = attrMenu.menu;
+                            if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
+                                skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
+                            break;
+                        }
                         case HideInInspector attrHide:
                         case ObsoleteAttribute attrDeprecated:
                             skipComponent = true;
