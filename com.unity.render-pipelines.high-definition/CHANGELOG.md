@@ -9,10 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added a SG node to get the main directional light direction.
 - Added support for orthographic camera in path tracing.
+- Added new shadow transparency scenes in HDRP material samples (raster, ray-traced, path-traced).
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
 - Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
+- Converted most TGA textures files to TIF to reduce the size of HDRP material samples. 
 
 ### Fixed
 - Fixed the volume not being assigned on some scene templates.
