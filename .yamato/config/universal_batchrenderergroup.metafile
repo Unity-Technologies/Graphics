@@ -1,59 +1,32 @@
 project:
-  name: HDRP_Hybrid
-  folder: HDRP_HybridTests
+  name: Universal_BatchRendererGroup
+  folder: BatchRendererGroup_URP
 test_platforms:
-  - type: playmode
-    utr_flags:
-      - [all]: --compilation-errors-as-warnings
-  - type: playmode
-    name: playmode_XR
-    utr_flags:
-      - [all]: --extra-editor-arg="-xr-reuse-tests"
-      - [all]: --compilation-errors-as-warnings
-  # - type: editmode
-  #  utr_flags:
-  #    - [all]: --compilation-errors-as-warnings
   - type: Standalone
     utr_flags:
       - [all]: --compilation-errors-as-warnings
       - [OSX_Metal]: --timeout=2400
     utr_flags_build:
+      - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
+      - [all]: --compilation-errors-as-warnings
+  - type: playmode
+    utr_flags:
       - [all]: --compilation-errors-as-warnings
 
 platforms:
   - name: Win
     apis:
       - name: DX11
-      - name: DX12
       - name: Vulkan
     build_configs:
       - name: mono
     color_spaces:
       - Linear
-    agents_project:
-      default:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-      editmode:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-      standalone:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-      standalone_build:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
   - name: OSX
     apis:
       - name: Metal
         exclude_test_platforms:
-          - name: editmode
+          - name: playmode_XR
     build_configs:
       - name: mono
     color_spaces:
@@ -81,6 +54,21 @@ jobs:
         color_space: Linear
         test_platforms:
           - playmode
+          - Standalone
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+          - Standalone
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+          - Standalone
   - name: Extra <PROJECT_NAME>
     dependencies: # add any dependencies
       - platform: Win
@@ -89,6 +77,13 @@ jobs:
         color_space: Linear
         test_platforms:
           - playmode_XR
+      - platform: OSX
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+          - Standalone
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
