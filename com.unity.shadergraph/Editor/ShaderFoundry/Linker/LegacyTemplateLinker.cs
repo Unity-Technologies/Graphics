@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderFoundry
             m_LegacySubShader = legacySubShader;
         }
 
-        bool FindLegacyPass(string referenceName, ref UnityEditor.ShaderGraph.PassDescriptor legacyPassDescriptor)
+        internal bool FindLegacyPass(string referenceName, ref UnityEditor.ShaderGraph.PassDescriptor legacyPassDescriptor)
         {
             foreach(var legacyPass in m_LegacySubShader.passes)
             {

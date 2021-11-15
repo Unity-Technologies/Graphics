@@ -155,37 +155,41 @@ namespace UnityEditor.ShaderFoundry
 
         Block BuildVertexPreBlock()
         {
+            var blockName = $"Pre{LegacyCustomizationPoints.VertexDescriptionCPName}";
             List<FieldDescriptor> fields = new List<FieldDescriptor>();
             fields.AddRange(UnityEditor.ShaderGraph.Structs.VertexDescriptionInputs.fields);
 
-            var builder = new Block.Builder(Container, $"Pre{LegacyCustomizationPoints.VertexDescriptionCPName}");
-            foreach(var output in ExtractFields(fields))
-                builder.AddOutput(output);
+            var builder = new Block.Builder(Container, blockName);
+            var outputType = BuildType(blockName + "Outputs", ExtractFields(fields));
+            builder.BuildInterface(Container, ShaderType.Invalid, outputType);
             return builder.Build();
         }
 
         Block BuildVertexPostBlock(List<FieldDescriptor> fields)
         {
-            var builder = new Block.Builder(Container, $"Post{LegacyCustomizationPoints.VertexDescriptionCPName}");
-            foreach (var input in ExtractFields(fields))
-                builder.AddInput(input);
+            var blockName = $"Post{LegacyCustomizationPoints.VertexDescriptionCPName}";
+            var builder = new Block.Builder(Container, blockName);
+            var inputType = BuildType(blockName + "Inputs", ExtractFields(fields));
+            builder.BuildInterface(Container, inputType, ShaderType.Invalid);
             return builder.Build();
         }
 
         Block BuildFragmentPreBlock()
         {
-            var builder = new Block.Builder(Container, $"Pre{LegacyCustomizationPoints.SurfaceDescriptionCPName}");
-            var outputs = ExtractFields(UnityEditor.ShaderGraph.Structs.SurfaceDescriptionInputs.fields);
-            foreach (var output in outputs)
-                builder.AddOutput(output);
+            var blockName = $"Pre{LegacyCustomizationPoints.SurfaceDescriptionCPName}";
+            var builder = new Block.Builder(Container, blockName);
+            var outputFields = ExtractFields(UnityEditor.ShaderGraph.Structs.SurfaceDescriptionInputs.fields);
+            var outputType = BuildType(blockName + "Outputs", outputFields);
+            builder.BuildInterface(Container, ShaderType.Invalid, outputType);
             return builder.Build();
         }
 
         Block BuildFragmentPostBlock(List<FieldDescriptor> fields)
         {
-            var builder = new Block.Builder(Container, $"Post{LegacyCustomizationPoints.SurfaceDescriptionCPName}");
-            foreach (var input in ExtractFields(fields))
-                builder.AddInput(input);
+            var blockName = $"Post{LegacyCustomizationPoints.SurfaceDescriptionCPName}";
+            var builder = new Block.Builder(Container, blockName);
+            var inputType = BuildType(blockName + "Inputs", ExtractFields(fields));
+            builder.BuildInterface(Container, inputType, ShaderType.Invalid);
             return builder.Build();
         }
 
@@ -240,8 +244,6 @@ namespace UnityEditor.ShaderFoundry
                     {
                         inputBuilder.AddField(inputProp.Type, inputProp.ReferenceName);
                         outputBuilder.AddField(outputProp.Type, outputProp.ReferenceName);
-                        mainBlockBuilder.AddInput(inputProp.Clone(Container));
-                        mainBlockBuilder.AddOutput(outputProp.Clone(Container));
                         declaredInputs.Add(inputProp.ReferenceName);
                         declaredOutputs.Add(outputProp.ReferenceName);
                     }
@@ -254,7 +256,6 @@ namespace UnityEditor.ShaderFoundry
                     {
                         declaredOutputs.Add(defaultVariableValue.Key);
                         outputBuilder.AddField(outputProp.Type, outputProp.ReferenceName);
-                        mainBlockBuilder.AddOutput(outputProp.Clone(Container));
                     }
                 }
 
@@ -292,6 +293,7 @@ namespace UnityEditor.ShaderFoundry
                 var entryPointFunction = fnBuilder.Build();
                 mainBlockBuilder.AddFunction(entryPointFunction);
                 mainBlockBuilder.SetEntryPointFunction(entryPointFunction);
+                mainBlockBuilder.BuildInterface(Container, entryPointFunction);
             }
 
             return mainBlockBuilder.Build();
@@ -369,12 +371,12 @@ namespace UnityEditor.ShaderFoundry
             return results;
         }
 
-        List<BlockVariable> ExtractFields(IEnumerable<FieldDescriptor> fields)
+        List<StructField> ExtractFields(IEnumerable<FieldDescriptor> fields)
         {
             var visitedNames = new HashSet<string>();
 
             var fieldTypes = BuildFieldTypes();
-            var results = new List<BlockVariable>();
+            var results = new List<StructField>();
             foreach (var field in fields)
             {
                 // Don't visit a name twice. This can happen currently due to the vertex attributes and inputs being merged together
@@ -385,20 +387,24 @@ namespace UnityEditor.ShaderFoundry
                 // Some fields have a type set, some don't. Try to look up the type on
                 // the field and if not fallback to checking the lookup map
                 ShaderType fieldType = FindType(field.type);
-                if(!fieldType.IsValid)
+                if (!fieldType.IsValid)
                     fieldTypes.TryGetValue(field.name, out fieldType);
 
                 if (!fieldType.IsValid)
                     continue;
 
-                var builder = new BlockVariable.Builder(Container);
-                builder.DisplayName = field.name;
-                builder.ReferenceName = field.name;
-                builder.Type = fieldType;
-                var prop = builder.Build();
-                results.Add(prop);
+                var builder = new StructField.Builder(Container, field.name, fieldType);
+                results.Add(builder.Build());
             }
             return results;
+        }
+
+        ShaderType BuildType(string name, IEnumerable<StructField> fields)
+        {
+            var builder = new ShaderType.StructBuilder(Container, name);
+            foreach (var field in fields)
+                builder.AddField(field);
+            return builder.Build();
         }
 
         ShaderType FindType(string typeName)

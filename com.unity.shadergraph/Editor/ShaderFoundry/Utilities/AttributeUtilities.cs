@@ -163,7 +163,10 @@ namespace UnityEditor.ShaderFoundry
             {
                 var decl = attribute.GetDeclaration();
                 if (decl != HLSLDeclaration.DoNotDeclare)
+                {
                     result = attribute.GetDeclaration();
+                    break;
+                }
             }
             return result;
         }
