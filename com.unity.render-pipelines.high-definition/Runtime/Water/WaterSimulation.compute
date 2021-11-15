@@ -3,6 +3,8 @@
 #pragma kernel EvaluateNormals
 #pragma kernel BlurFoamAndCombine
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 // Required to be defined for some includes
 #define WATER_SIMULATION
 static const float tipFoamThreshold[4] = {4, 10, 10, 10};
