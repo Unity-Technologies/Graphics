@@ -139,8 +139,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.HelpBox(Style.nonRenderer2DWarning, MessageType.Warning);
 
-                // Allow override usage if using SRP
-                if(UsingSRP())
+                // Allow to override usage if using SRP
+                if (UsingSRP())
                 {
                     EditorGUILayout.Space();
                     if (GUILayout.Button(Style.overrideUsage))
