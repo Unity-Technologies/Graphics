@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.Universal
             public GUIContent currentPixelRatio = new GUIContent("Current Pixel Ratio", "Ratio of the rendered Sprites compared to their original size.");
             public GUIContent runInEditMode = new GUIContent("Run In Edit Mode", "Enable this to preview Camera setting changes in Edit Mode. This will cause constant changes to the Scene while active.");
             public const string cameraStackingWarning = "Pixel Perfect Camera won't function properly if stacked with another camera.";
-            public const string nonRenderer2DWarning = "Pixel Perfect Camera requires a camera using a 2D Renderer. Some features, such as Upscale Render Texture, are not supported with other Renderers.";
+            public const string nonRenderer2DWarning = "URP Pixel Perfect Camera requires a camera using a 2D Renderer. Some features, such as Upscale Render Texture, are not supported with other Renderers.";
             public static GUIContent overrideUsage = EditorGUIUtility.TrTextContent("Override and Use");
 
             public GUIStyle centeredLabel;
