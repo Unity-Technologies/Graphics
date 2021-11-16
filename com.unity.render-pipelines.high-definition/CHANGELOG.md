@@ -63,6 +63,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
 - Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
 - Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214);
+- Removed the alpha channel from color picker in Local Volumetric Fog component (the alpha is not used for the fog) (case 1381267).
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
