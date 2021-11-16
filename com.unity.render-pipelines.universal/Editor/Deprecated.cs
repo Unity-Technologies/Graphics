@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -9,6 +10,12 @@ namespace UnityEditor.Rendering.Universal
         {
             throw new NotSupportedException("ForwardRendererDataEditor has been deprecated. Use UniversalRendererDataEditor instead");
         }
+    }
+
+    public abstract partial class BaseShaderGUI
+    {
+        [Obsolete("DrawAdditionalFoldouts has been deprecated. Use FillAdditionalFoldouts instead, and materialScopesList.RegisterHeaderScope", false)]
+        public virtual void DrawAdditionalFoldouts(Material material) { }
     }
 
     static partial class EditorUtils

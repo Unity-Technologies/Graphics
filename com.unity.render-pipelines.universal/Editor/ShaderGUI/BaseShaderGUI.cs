@@ -13,7 +13,7 @@ using RenderQueue = UnityEngine.Rendering.RenderQueue;
 
 namespace UnityEditor
 {
-    public abstract class BaseShaderGUI : ShaderGUI
+    public abstract partial class BaseShaderGUI : ShaderGUI
     {
         #region EnumsAndClasses
 
