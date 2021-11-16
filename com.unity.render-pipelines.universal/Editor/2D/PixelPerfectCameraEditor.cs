@@ -21,7 +21,8 @@ namespace UnityEditor.Rendering.Universal
             public GUIContent currentPixelRatio = new GUIContent("Current Pixel Ratio", "Ratio of the rendered Sprites compared to their original size.");
             public GUIContent runInEditMode = new GUIContent("Run In Edit Mode", "Enable this to preview Camera setting changes in Edit Mode. This will cause constant changes to the Scene while active.");
             public const string cameraStackingWarning = "Pixel Perfect Camera won't function properly if stacked with another camera.";
-            public const string nonRenderer2DError = "Pixel Perfect Camera requires a camera using a 2D Renderer.";
+            public const string nonRenderer2DWarning = "Pixel Perfect Camera requires a camera using a 2D Renderer. Some features, such as Upscale Render Texture, are not supported with other Renderers.";
+            public static GUIContent overrideUsage = EditorGUIUtility.TrTextContent("Override and Use");
 
             public GUIStyle centeredLabel;
 
@@ -47,6 +48,7 @@ namespace UnityEditor.Rendering.Universal
         private Vector2 m_GameViewSize = Vector2.zero;
         private GUIContent m_CurrentPixelRatioValue;
         bool m_CameraStacking;
+        static bool m_OverrideUsage = false;
 
         private void LazyInit()
         {
@@ -124,9 +126,14 @@ namespace UnityEditor.Rendering.Universal
         {
             LazyInit();
 
-            if (!UsingRenderer2D())
+            if (!UsingRenderer2D() && !m_OverrideUsage)
             {
-                EditorGUILayout.HelpBox(Style.nonRenderer2DError, MessageType.Error);
+                EditorGUILayout.HelpBox(Style.nonRenderer2DWarning, MessageType.Warning);
+                EditorGUILayout.Space();
+
+                if (GUILayout.Button(Style.overrideUsage))
+                    m_OverrideUsage = true;
+
                 return;
             }
 
