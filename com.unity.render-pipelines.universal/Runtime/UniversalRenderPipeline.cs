@@ -854,6 +854,8 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.imageScaling = ImageScaling.None;
             }
 
+            cameraData.fsrSharpness = settings.fsrSharpness;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             cameraData.xr = m_XRSystem.emptyPass;
             XRSystem.UpdateRenderScale(cameraData.renderScale);

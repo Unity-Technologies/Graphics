@@ -149,6 +149,10 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.msaa, Styles.msaaText);
             serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
             EditorGUILayout.PropertyField(serialized.upscalingFilter, Styles.upscalingFilterText);
+            if (serialized.asset.upscalingFilter == UpscalingFilterSelection.FSR)
+            {
+                serialized.fsrSharpness.floatValue = EditorGUILayout.Slider(Styles.fsrSharpnessText, serialized.fsrSharpness.floatValue, 0.0f, 1.0f);
+            }
         }
 
         static void DrawLighting(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)

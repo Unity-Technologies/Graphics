@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty msaa { get; }
         public SerializedProperty renderScale { get; }
         public SerializedProperty upscalingFilter { get; }
+        public SerializedProperty fsrSharpness { get; }
 
         public SerializedProperty mainLightRenderingModeProp { get; }
         public SerializedProperty mainLightShadowsSupportedProp { get; }
@@ -84,6 +85,7 @@ namespace UnityEditor.Rendering.Universal
             msaa = serializedObject.FindProperty("m_MSAA");
             renderScale = serializedObject.FindProperty("m_RenderScale");
             upscalingFilter = serializedObject.FindProperty("m_UpscalingFilter");
+            fsrSharpness = serializedObject.FindProperty("m_FsrSharpness");
 
             mainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             mainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
