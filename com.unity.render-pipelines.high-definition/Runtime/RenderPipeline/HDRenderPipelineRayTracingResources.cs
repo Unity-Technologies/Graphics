@@ -70,6 +70,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Path Tracing
         [Reload("Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMain.raytrace")]
         public RayTracingShader pathTracing;
+        [Reload("Runtime/RenderPipeline/PathTracing/Shaders/PathTracingEnvData.compute")]
+        public ComputeShader pathTracingEnvData;
+
 
         // Ray Marching
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RayMarching.compute")]
