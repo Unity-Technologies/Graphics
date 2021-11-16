@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
     UV = (UV.xy + 0.5) * Frequency;
     $precision2 distance3 = 4.0 * abs(frac(UV + 0.25) - 0.5) - 1.0;
 #if defined(SHADER_STAGE_RAY_TRACING)
-    int2 alpha = saturate(distance3 * FLT_MAX);
+    int2 alpha = saturate(distance3) * FLT_MAX;
     Out = lerp(ColorB, ColorA, alpha.x ^ alpha.y);
 #else
     $precision4 derivatives = $precision4(ddx(UV), ddy(UV));
