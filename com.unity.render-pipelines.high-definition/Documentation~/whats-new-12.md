@@ -226,6 +226,12 @@ From HDRP 12.0 you can use a new option in the [HDRP Asset](HDRP-Asset.md) (**Re
 
 In the image above, the example image on the left does not use this method. The image on the right uses the new additive normal blending method.
 
+### Increased the default GPU light count
+
+This version of HDRP increases the default number of lights a single pixel can get influence from to 63. You can use a new setting in `ShaderConfig.cs` called `FPTLMaxLightCount` to set the maximum number of lights per tile on the GPU.
+
+To increase this value, you must generate a new Shader config project. For information on how to create a new Shader config project, see [HDRP-Config-Package](HDRP-Config-Package.md).
+
 ### Physical Camera
 
 HDRP 12.0 includes the following physical Camera improvements:
@@ -243,6 +249,8 @@ Improved the quality of the physically-based Depth Of Field in the following way
 - Improved support for MSAA to remove artifacts around the edges of visible GameObjects.
 
 ![](Images/HDRPFeatures-BetterDoF.png)
+
+Optimize the physically based depth of field implementation. In particular, image regions that are out-of-focus are now computed at lower resolution, while in-focus regions retain the full resolution. For many scenes this results in significant speedup, without any visible reduction in image quality.
 
 ### Physically Based Hair Shader
 ![](Images/PBHairShader.png)
@@ -369,3 +377,7 @@ This version of HDRP introduces multiple fixes to **Dynamic Resolution Scaling**
 - Fixed an issue that caused corrupted scaling on Dx12 hardware mode when a planar reflection probe or a secondary Camera is present.
 
 For a full list of changes and updates in version 12 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/changelog/CHANGELOG.html).
+
+### CPU Optimizations
+
+* PrepareLightsForGPU CPU light loop has been optimized and parallelized with Burst. Gains are around 2x in performance for CPU.

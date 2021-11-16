@@ -52,6 +52,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter maximumIntensity = new MinFloatParameter(10f, 0f);
 
         /// <summary>
+        /// Defines the number of tiles (X: width, Y: height) and the indices of the current tile (Z: i in [0, width[, W: j in [0, height[) for interleaved tiled rendering.
+        /// </summary>
+        [Tooltip("Defines the number of tiles (X: width, Y: height) and the indices of the current tile (Z: i in [0, width[, W: j in [0, height[) for interleaved tiled rendering.")]
+        public Vector4Parameter tilingParameters = new Vector4Parameter(new Vector4(1, 1, 0, 0));
+
+        /// <summary>
         /// Default constructor for the path tracing volume component.
         /// </summary>
         public PathTracing()
@@ -106,10 +112,24 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif // UNITY_EDITOR
         }
 
-        internal void ResetPathTracing()
+        /// <summary>
+        /// Resets path tracing accumulation for all cameras.
+        /// </summary>
+        public void ResetPathTracing()
         {
             m_RenderSky = true;
             m_SubFrameManager.Reset();
+        }
+
+        /// <summary>
+        /// Resets path tracing accumulation for a specific camera.
+        /// </summary>
+        /// <param name="hdCamera">Camera for which the accumulation is reset.</param>
+        public void ResetPathTracing(HDCamera hdCamera)
+        {
+            int camID = hdCamera.camera.GetInstanceID();
+            CameraData camData = m_SubFrameManager.GetCameraData(camID);
+            ResetPathTracing(camID, camData);
         }
 
         internal CameraData ResetPathTracing(int camID, CameraData camData)
@@ -129,7 +149,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // focalLength is in mm, so we need to convert to meters. We also want the aperture radius, not diameter, so we divide by two.
             float apertureRadius = (enableDof && hdCamera.physicalParameters.aperture > 0) ? 0.5f * 0.001f * hdCamera.camera.focalLength / hdCamera.physicalParameters.aperture : 0.0f;
 
-            return new Vector4(apertureRadius, dofSettings.focusDistance.value, 0.0f, 0.0f);
+            float focusDistance = (dofSettings.focusDistanceMode.value == FocusDistanceMode.Volume) ? dofSettings.focusDistance.value : hdCamera.physicalParameters.focusDistance;
+
+            return new Vector4(apertureRadius, focusDistance, 0.0f, 0.0f);
         }
 
 #if UNITY_EDITOR
@@ -253,6 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture skyReflection;
             public Matrix4x4 pixelCoordToViewDirWS;
             public Vector4 dofParameters;
+            public Vector4 tilingParameters;
             public int width, height;
             public RayTracingAccelerationStructure accelerationStructure;
             public HDRaytracingLightCluster lightCluster;
@@ -272,6 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.skyReflection = m_SkyManager.GetSkyReflection(hdCamera);
                 passData.pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
                 passData.dofParameters = ComputeDoFConstants(hdCamera, m_PathTracingSettings);
+                passData.tilingParameters = m_PathTracingSettings.tilingParameters.value;
                 passData.width = hdCamera.actualWidth;
                 passData.height = hdCamera.actualHeight;
                 passData.accelerationStructure = RequestAccelerationStructure();
@@ -319,7 +343,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Additional data for path tracing
                         ctx.cmd.SetRayTracingTextureParam(data.pathTracingShader, HDShaderIDs._FrameTexture, data.output);
                         ctx.cmd.SetRayTracingMatrixParam(data.pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDirWS);
-                        ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracedDoFConstants, data.dofParameters);
+                        ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracingDoFParameters, data.dofParameters);
+                        ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracingTilingParameters, data.tilingParameters);
 
                         // Run the computation
                         ctx.cmd.DispatchRays(data.pathTracingShader, "RayGen", (uint)data.width, (uint)data.height, 1);

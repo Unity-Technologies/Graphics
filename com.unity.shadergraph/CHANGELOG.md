@@ -4,6 +4,17 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.2] - 2021-10-22
+
+### Fixed
+  - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+
+## [12.1.1] - 2021-10-04
+
+### Fixed
+  - Fixed a bug that caused the Scene Depth Node in Eye space to not work correctly when using an orthographic camera [1311272].
+  - Fixed missing shader keyword stage during keyword copying.
+
 ## [12.1.0] - 2021-09-23
 
 ### Added
@@ -12,7 +23,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
   - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
   - Fixed unhandled exception when loading a subgraph with duplicate slots [1369039].
-  - Fixed a bug that caused the Scene Depth Node in Eye space to not work correctly when using an orthographic camera [1311272].
 
 ## [12.0.0] - 2021-01-11
 
@@ -49,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added many node synonyms for the Create Node search so that it's easier to find nodes.
 
 ### Changed
+ - Updated searcher package dependency version to 4.9.1
 - Properties and Keywords are no longer separated by type on the blackboard. Categories allow for any combination of properties and keywords to be grouped together as the user defines.
 - Vector2/Vector3/Vector4 property types will now be properly represented by a matching Vector2/Vector3/Vector4 UI control in the URP + HDRP Material Inspector as opposed to the fallback Vector4 field that was used for any multi-dimensional vector type in the past.
 - Updated/corrected View Direction documentation
@@ -65,6 +76,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed "Create Node" action in ShaderGraph stack separator context menu to "Add Block Node" and added it to main stack context menu
 
 ### Fixed
+ - Fixed a usability issue where in some cases searcher would suggest one collapsed category of results that user would have to manually expand anyway
+ - Fixed bug that causes search results to not be visible sometimes in the searcher window [1366061]
+ - Fixed bug that causes exceptions to be thrown when using the up/down arrow keys with search list focused [1358016]
+ - Fixed bug that causes some searcher items to be irreversibly collapsed due to expand icon disappearing on collapsing those items [1366074]
+ - Fixed bug that caused incorrect search results with non whitespaced queries for nodes with spaces in their name and for subgraphs [1359158]
 - Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
 - Fixed an issue where fog node density was incorrectly calculated.
 - Fixed inspector property header styling
