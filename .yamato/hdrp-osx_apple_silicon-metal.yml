@@ -25,15 +25,17 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
       -  git -C TestProjects/HDRP_Tests/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support-2
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
+      -  rsync -az $YAMATO_SOURCE_DIR/ bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  brew install git-lfs
-      -  git-lfs install
-      -  git-lfs pull
+      -  rsync -az .Editor/ bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
       -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_Tests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
+               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_Tests --zero-tests-are-ok=1"
+               UTR_RESULT=$?
+               scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results/ TestProjects/HDRP_Tests
+               exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -60,15 +62,17 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_trunk:
       -  git -C TestProjects/HDRP_Tests/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support-2
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
+      -  rsync -az $YAMATO_SOURCE_DIR/ bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  brew install git-lfs
-      -  git-lfs install
-      -  git-lfs pull
+      -  rsync -az .Editor/ bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
       -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_Tests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
+               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_Tests --zero-tests-are-ok=1"
+               UTR_RESULT=$?
+               scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results/ TestProjects/HDRP_Tests
+               exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -95,15 +99,17 @@ HDRP_OSX_Apple_Silicon_Metal_editmode_XR_mono_Linear_trunk:
       -  git -C TestProjects/HDRP_Tests/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support-2
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
+      -  rsync -az $YAMATO_SOURCE_DIR/ bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  brew install git-lfs
-      -  git-lfs install
-      -  git-lfs pull
+      -  rsync -az .Editor/ bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
       -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
+               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1"
+               UTR_RESULT=$?
+               scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results/ TestProjects/HDRP_Tests
+               exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -130,15 +136,17 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
       -  git -C TestProjects/HDRP_RuntimeTests/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support-2
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
+      -  rsync -az $YAMATO_SOURCE_DIR/ bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  brew install git-lfs
-      -  git-lfs install
-      -  git-lfs pull
+      -  rsync -az .Editor/ bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
       -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --timeout=1200 --zero-tests-are-ok=1
+               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests --timeout=1200 --zero-tests-are-ok=1"
+               UTR_RESULT=$?
+               scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results/ TestProjects/HDRP_RuntimeTests
+               exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -165,12 +173,13 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_trunk:
       -  git -C TestProjects/HDRP_RuntimeTests/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support-2
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  brew install git-lfs
-      -  git-lfs install
-      -  git-lfs pull
+      -  rsync -az $YAMATO_SOURCE_DIR/ bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --timeout=1200 --zero-tests-are-ok=1
+               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --editor-location=.Editor --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests --timeout=1200 --zero-tests-are-ok=1"
+               UTR_RESULT=$?
+               scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results/ TestProjects/HDRP_RuntimeTests
+               exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -197,15 +206,17 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
       -  git -C TestProjects/HDRP_Tests/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support-2
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
+      -  rsync -az $YAMATO_SOURCE_DIR/ bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  brew install git-lfs
-      -  git-lfs install
-      -  git-lfs pull
+      -  rsync -az .Editor/ bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
       -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_Tests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
+               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_Tests --zero-tests-are-ok=1"
+               UTR_RESULT=$?
+               scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results/ TestProjects/HDRP_Tests
+               exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -232,15 +243,17 @@ HDRP_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
       -  git -C TestProjects/HDRP_Tests/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support-2
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
+      -  rsync -az $YAMATO_SOURCE_DIR/ bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  brew install git-lfs
-      -  git-lfs install
-      -  git-lfs pull
+      -  rsync -az .Editor/ bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
       -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/HDRP_Tests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
+               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --architecture=ARM64 --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_Tests --zero-tests-are-ok=1"
+               UTR_RESULT=$?
+               scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results/ TestProjects/HDRP_Tests
+               exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -267,15 +280,17 @@ HDRP_OSX_Apple_Silicon_Metal_editmode_XR_mono_Linear_CUSTOM-REVISION:
       -  git -C TestProjects/HDRP_Tests/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support-2
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
+      -  rsync -az $YAMATO_SOURCE_DIR/ bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  brew install git-lfs
-      -  git-lfs install
-      -  git-lfs pull
+      -  rsync -az .Editor/ bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
       -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
+               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1"
+               UTR_RESULT=$?
+               scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results/ TestProjects/HDRP_Tests
+               exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -302,15 +317,17 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  git -C TestProjects/HDRP_RuntimeTests/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support-2
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
+      -  rsync -az $YAMATO_SOURCE_DIR/ bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  brew install git-lfs
-      -  git-lfs install
-      -  git-lfs pull
+      -  rsync -az .Editor/ bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
       -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --timeout=1200 --zero-tests-are-ok=1
+               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests --timeout=1200 --zero-tests-are-ok=1"
+               UTR_RESULT=$?
+               scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results/ TestProjects/HDRP_RuntimeTests
+               exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -337,12 +354,13 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_XR_mono_Linear_CUSTOM-REVISION:
       -  git -C TestProjects/HDRP_RuntimeTests/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support-2
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  brew install git-lfs
-      -  git-lfs install
-      -  git-lfs pull
+      -  rsync -az $YAMATO_SOURCE_DIR/ bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --timeout=1200 --zero-tests-are-ok=1
+               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --editor-location=.Editor --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests --timeout=1200 --zero-tests-are-ok=1"
+               UTR_RESULT=$?
+               scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results/ TestProjects/HDRP_RuntimeTests
+               exit $UTR_RESULT
     artifacts:
         logs:
             paths:
