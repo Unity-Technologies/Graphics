@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -7,21 +8,99 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
-
+using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.SearchService;
+using UnityEngine.VFX.Utility;
+using ShaderKeyword = UnityEditor.ShaderGraph.ShaderKeyword;
 using UnityObject = UnityEngine.Object;
 
 
 namespace UnityEditor.VFX
 {
+    
     class VFXShaderGraphParticleOutput : VFXAbstractParticleOutput
     {
         //"protected" is only to be listed by VFXModel.GetSettings, we should always use GetOrRefreshShaderGraphObject
-        [SerializeField, VFXSetting]
-        protected ShaderGraphVfxAsset shaderGraph;
+        [SerializeField, VFXSetting] protected ShaderGraphVfxAsset shaderGraph;
 
+        [SerializeField, VFXSetting] protected List<VFXUserKeyword> exposedKeywords = new List<VFXUserKeyword>();
         public override void OnEnable()
         {
             base.OnEnable();
+        }
+        
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            if (model == this && 
+                cause == InvalidationCause.kExpressionGraphChanged || 
+                cause == InvalidationCause.kSettingChanged)
+            {
+                if (shaderGraph != null)
+                {
+                    if (shaderGraph.Keywords.Count > 0)
+                    {
+                        if (exposedKeywords.Count < 1)
+                        {
+                            foreach (var keyword in shaderGraph.Keywords)
+                            {
+                                exposedKeywords.Add(new VFXUserKeyword(keyword));
+                            }
+                   
+                        }
+                    }
+                    else
+                    {
+                        exposedKeywords.Clear();
+                    }
+                }
+                else
+                {
+                    exposedKeywords.Clear();
+                }
+            }
+
+            base.OnInvalidate(model, cause);
+        }
+
+        private void ReSyncKeywords()
+        {
+            if (shaderGraph != null) // has a shader
+            {
+                var vfxShaderGraph = GetOrRefreshShaderGraphObject();
+                if (vfxShaderGraph != null)
+                {
+                    if (shaderGraph.Keywords.Count > 0) //check file has keywords
+                    {
+                        foreach (var shaderKeyword in shaderGraph.Keywords)
+                        {
+                            var eKeyword = exposedKeywords.FirstOrDefault(x => x.KeywordLabel == shaderKeyword.displayName);
+                            if (eKeyword != null)
+                            {
+                                if (shaderKeyword.keywordType == KeywordType.Enum)
+                                {
+                                    if (!eKeyword.hasEqualEntries(shaderKeyword))
+                                    {
+                                        eKeyword.SetShaderKeywordEntries(shaderKeyword);
+                                        eKeyword.SetIndexOfEntry();
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                exposedKeywords.Add((new VFXUserKeyword(shaderKeyword)));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        exposedKeywords.Clear();
+                    }
+                }
+                else
+                {
+                    exposedKeywords.Clear();
+                }
+            }
         }
 
         public ShaderGraphVfxAsset GetOrRefreshShaderGraphObject()
@@ -35,8 +114,10 @@ namespace UnityEditor.VFX
                 if (newShaderGraph != null)
                 {
                     shaderGraph = newShaderGraph;
+                    ReSyncKeywords();
                 }
             }
+            
             return shaderGraph;
         }
 
@@ -45,6 +126,7 @@ namespace UnityEditor.VFX
             base.GetImportDependentAssets(dependencies);
             if (!object.ReferenceEquals(shaderGraph, null))
                 dependencies.Add(shaderGraph.GetInstanceID());
+            ReSyncKeywords();
         }
 
         protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) {}
@@ -157,13 +239,15 @@ namespace UnityEditor.VFX
                 return noShaderGraphAlphaThreshold || ShaderGraphAlphaThreshold;
             }
         }
-
+        
         public override void CheckGraphBeforeImport()
         {
             base.CheckGraphBeforeImport();
             // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
             if (!VFXGraph.explicitCompile)
+            {
                 ResyncSlots(true);
+            }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -279,6 +363,34 @@ namespace UnityEditor.VFX
                 var shaderGraph = GetOrRefreshShaderGraphObject();
                 if (shaderGraph != null)
                 {
+                    if (shaderGraph.Keywords.Count > 0)
+                    {
+                        for (int i = 0; i < shaderGraph.Keywords.Count; i++)
+                        {
+                            for (int ii = 0; ii < exposedKeywords.Count; ii++)
+                            {
+                                if (shaderGraph.Keywords[i].displayName == exposedKeywords[ii].KeywordLabel)
+                                {
+                                    
+                                    shaderGraph.Keywords[i].value = Convert.ToInt32(exposedKeywords[ii].SelectedIndex); 
+                                   
+                                    switch (shaderGraph.Keywords[i].keywordType)
+                                    {
+                                        case KeywordType.Boolean:
+                                            if (shaderGraph.Keywords[i].value == 1)
+                                            {
+                                                yield return $"{shaderGraph.Keywords[i].referenceName}";
+                                            }
+                                            break;
+                                        case KeywordType.Enum:
+                                            yield return $"{shaderGraph.Keywords[i].referenceName}_{shaderGraph.Keywords[i].entries[shaderGraph.Keywords[i].value].referenceName}";
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     yield return "VFX_SHADERGRAPH";
                     RPInfo info = currentRP;
 
@@ -327,7 +439,6 @@ namespace UnityEditor.VFX
         {
             get { return hdrpInfo; }
         }
-
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
@@ -406,6 +517,7 @@ namespace UnityEditor.VFX
             var shaderGraph = GetOrRefreshShaderGraphObject();
             if (shaderGraph != null)
             {
+           
                 if (!isLitShader && shaderGraph.lit)
                 {
                     Debug.LogError("You must use an unlit vfx master node with an unlit output");

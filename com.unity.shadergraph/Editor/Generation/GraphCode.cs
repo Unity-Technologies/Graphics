@@ -8,5 +8,6 @@ namespace UnityEditor.ShaderGraph.Internal
         public string code { get; internal set; }
         public ShaderGraphRequirements requirements { get; internal set; }
         public IEnumerable<AbstractShaderProperty> properties;
+        public IEnumerable<ShaderInput> keywords;
     }
 }

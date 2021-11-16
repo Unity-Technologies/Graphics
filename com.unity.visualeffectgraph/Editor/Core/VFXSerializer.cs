@@ -323,6 +323,11 @@ namespace UnityEditor.VFX
                 }
                 return JsonUtility.ToJson(gw);
             }
+            else if (obj is VFXUserKeyword)
+            {
+                VFXUserKeyword keyword = obj as  VFXUserKeyword;
+                return JsonUtility.ToJson(keyword);
+            }
             else if (obj is string)
             {
                 return "\"" + ((string)obj).Replace("\"", "\\\"") + "\"";
@@ -334,18 +339,23 @@ namespace UnityEditor.VFX
             else if (obj.GetType().IsArrayOrList())
             {
                 IList list = (IList)obj;
-
-                System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                sb.Append('[');
-                for (int i = 0; i < list.Count; ++i)
+                if (list.Count > 0)
                 {
-                    sb.Append(Save(list[i]));
-                    sb.Append(',');
-                }
-                sb.Length = sb.Length - 1;
-                sb.Append(']');
+                    System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                    sb.Append('[');
+                    for (int i = 0; i < list.Count; ++i)
+                    {
+                        sb.Append(Save(list[i]));
+                        sb.Append(',');
+                    }
 
-                return sb.ToString();
+                    sb.Length = sb.Length - 1;
+                    sb.Append(']');
+
+                    return sb.ToString();
+                }
+
+                return "[]";
             }
             else
             {
@@ -472,6 +482,23 @@ namespace UnityEditor.VFX
                 var obj = new SerializableType(text.Substring(1, text.Length - 2));
                 return obj;
             }
+            else if (type.IsAssignableFrom(typeof(List<VFXUserKeyword>)))
+            {
+                List<string> TopLevelObjectsElements = ParseTopLevelObjectsFromJsonObjectArrayString(text);
+                
+                List<VFXUserKeyword> ObjectElements = new List<VFXUserKeyword>();
+                
+                foreach (var topLevelObject in TopLevelObjectsElements)
+                {
+                    var element = JsonUtility.FromJson<VFXUserKeyword>(topLevelObject);
+                    if (element != null)
+                    {
+                        ObjectElements.Add((element));
+                    }
+                }
+
+                return ObjectElements;
+            }
             else if (type.IsArrayOrList())
             {
                 List<string> elements = ParseArray(text);
@@ -596,8 +623,58 @@ namespace UnityEditor.VFX
             }
         error:
             Debug.LogError("Couln't parse array" + arrayText + " from " + cur);
-
             return null;
+        }
+        /*
+         * Used to parse top-level objects form a JSON string, returning the JSON specific to that object in each element.         
+         */
+        internal static List<string> ParseTopLevelObjectsFromJsonObjectArrayString(string arrayText)
+        {
+            List<string> elements = new List<string>();
+            
+            int cur = 0;
+            
+            bool ignoreNext = false;
+            int depth = 0;
+            bool isInString = false;
+            int prevElementStart = 0;
+            
+            foreach (char c in arrayText)
+            {
+                switch (c)
+                {
+                    case '{':
+                        if (!isInString)
+                            prevElementStart = cur;
+                        depth++;
+                        break;
+                    case '}':
+                        if (!isInString)
+                            depth--;
+                        if (depth == 0)
+                        {
+                            elements.Add(arrayText.Substring(prevElementStart, cur - prevElementStart + 1));
+                        }
+                        break;
+                    case '"':
+                        if (!isInString)
+                            isInString = true;
+                        else if (!ignoreNext)
+                            isInString = false;
+                        break;
+                    case '\\':
+                        if (isInString)
+                        {
+                            ignoreNext = !ignoreNext;
+                        }
+                        break;
+                    default:
+                        ignoreNext = false;
+                        break;
+                }
+                ++cur;
+            }
+            return elements;
         }
     }
 }

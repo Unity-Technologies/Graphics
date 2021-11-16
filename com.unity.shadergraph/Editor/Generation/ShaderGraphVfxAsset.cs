@@ -32,6 +32,7 @@ namespace UnityEditor.ShaderGraph.Internal
         private class ShaderGraphVfxAssetData : JsonObject
         {
             public List<JsonData<AbstractShaderProperty>> m_Properties = new List<JsonData<AbstractShaderProperty>>();
+            public List<JsonData<ShaderKeyword>> m_Keywords = new List<JsonData<ShaderKeyword>>();
         }
 
         public const int BaseColorSlotId = 1;
@@ -135,6 +136,14 @@ namespace UnityEditor.ShaderGraph.Internal
                 return m_Data.m_Properties.SelectValue().ToList();
             }
         }
+        internal List<ShaderKeyword> Keywords 
+        {
+            get
+            {
+                EnsureKeywords();
+                return m_Data.m_Keywords.SelectValue().ToList();
+            }
+        }
 
         internal void SetProperties(List<AbstractShaderProperty> propertiesList)
         {
@@ -148,6 +157,16 @@ namespace UnityEditor.ShaderGraph.Internal
             m_SerializedVfxAssetData = new SerializationHelper.JSONSerializedElement() { JSONnodeData = json };
             m_Data = null;
         }
+        internal void SetKeywords(List<ShaderKeyword> keywordList)
+        {
+            m_Data.m_Keywords.Clear();
+            foreach(var keyword in keywordList)
+            {
+                m_Data.m_Keywords.Add(keyword);
+            }
+            var json = MultiJson.Serialize(m_Data);
+            m_SerializedVfxAssetData = new SerializationHelper.JSONSerializedElement() { JSONnodeData = json };
+        }
 
         void EnsureProperties()
         {
@@ -160,6 +179,15 @@ namespace UnityEditor.ShaderGraph.Internal
             foreach (var property in m_Data.m_Properties.SelectValue())
             {
                 property.ValidateConcretePrecision(m_ConcretePrecision);
+            }
+        }
+
+        void EnsureKeywords()
+        {
+            if((m_Data == null || m_Data.m_Keywords == null) && !String.IsNullOrEmpty(m_SerializedVfxAssetData.JSONnodeData))
+            {
+                m_Data = new ShaderGraphVfxAssetData();
+                MultiJson.Deserialize(m_Data , m_SerializedVfxAssetData.JSONnodeData);
             }
         }
 
@@ -201,7 +229,7 @@ namespace UnityEditor.ShaderGraph.Internal
             Array.Sort(propertyIndices);
             var filteredProperties = propertyIndices.Select(i => properties[i]).ToArray();
             graphCode.properties = filteredProperties;
-
+            
             return graphCode;
         }
     }

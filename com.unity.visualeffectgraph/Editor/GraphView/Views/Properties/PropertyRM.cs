@@ -364,7 +364,8 @@ namespace UnityEditor.VFX.UI
             {typeof(Gradient), typeof(GradientPropertyRM)},
             {typeof(AnimationCurve), typeof(CurvePropertyRM)},
             {typeof(Object), typeof(ObjectPropertyRM)},
-            {typeof(string), typeof(StringPropertyRM)}
+            {typeof(string), typeof(StringPropertyRM)},
+            {typeof(List<VFXUserKeyword>), typeof(UserShaderKeywordPropertyRM)}
         };
 
         static Type GetPropertyType(IPropertyRMProvider controller)
