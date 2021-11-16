@@ -67,11 +67,6 @@ namespace UnityEditor.VFX
 
             {
                 EditorGUILayout.LabelField("Everything below is debug/temporary");
-                VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.s_MaximumScrubbingTime
-                    = EditorGUILayout.FloatField("Maximum Scrubbing Time", VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.s_MaximumScrubbingTime);
-                if (VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.s_MaximumScrubbingTime < 0.05f * 10)
-                    VisualEffectControlTrackMixerBehaviour.ScrubbingCacheHelper.s_MaximumScrubbingTime = 0.05f * 10;
-
                 var track = target as VisualEffectControlTrack;
                 if (track == null)
                     return;
@@ -513,13 +508,14 @@ namespace UnityEditor.VFX
 
             m_ReoderableClipEvents.DoLayoutList();
             m_ReoderableSingleEvents.DoLayoutList();
-            if (EditorGUI.EndChangeCheck())
+
+            //Workaround see case 1381005
+            bool workaround = true;
+            if (EditorGUI.EndChangeCheck() || workaround)
             {
                 serializedObject.ApplyModifiedProperties();
 
-#if FIX_DUPLICATE
                 //Special detection of duplicated referenced element due to manual duplicate in reordable list
-                //TODOPAUL, it doesn't work because we are missing this modification: https://unity.slack.com/archives/C06TQ9LFP/p1636737000313000
                 var playable = serializedObject.targetObject as VisualEffectControlClip;
                 var enterEvents = playable.clipEvents.Where(o => o.enter.eventAttributes.content != null).SelectMany(o => o.enter.eventAttributes.content);
                 var exitEvents = playable.clipEvents.Where(o => o.exit.eventAttributes.content != null).SelectMany(o => o.exit.eventAttributes.content);
@@ -527,6 +523,8 @@ namespace UnityEditor.VFX
                 var allAttributes = enterEvents.Concat(exitEvents.Concat(singleEvents));
                 if (!CheckNoDuplicate(allAttributes))
                 {
+                    Debug.Log("Duplicated detected !");
+
                     for (int i = 0; i < playable.clipEvents.Count; ++i)
                     {
                         var source = playable.clipEvents[i];
@@ -545,7 +543,6 @@ namespace UnityEditor.VFX
 
                     serializedObject.Update();
                 }
-#endif
             }
         }
     }

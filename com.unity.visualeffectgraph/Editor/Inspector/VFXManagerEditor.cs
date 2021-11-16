@@ -26,7 +26,8 @@ class VFXManagerEditor : Editor
         m_TimeProperties = new SerializedProperty[]
         {
             serializedObject.FindProperty("m_FixedTimeStep"),
-            serializedObject.FindProperty("m_MaxDeltaTime")
+            serializedObject.FindProperty("m_MaxDeltaTime"),
+            serializedObject.FindProperty("m_MaxScrubTime")
         };
 
         m_ShaderProperties = new SerializedProperty[]
@@ -55,9 +56,11 @@ class VFXManagerEditor : Editor
 
         EditorGUILayout.LabelField("Current Scriptable Render Pipeline: " + VFXLibrary.currentSRPBinder?.SRPAssetTypeStr);
 
+        GUILayout.Space(15);
         foreach (var property in m_TimeProperties)
         {
-            EditorGUILayout.PropertyField(property);
+            if (property != null)
+                EditorGUILayout.PropertyField(property);
         }
 
         GUILayout.Space(15);
