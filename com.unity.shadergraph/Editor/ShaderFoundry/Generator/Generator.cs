@@ -294,7 +294,7 @@ namespace UnityEditor.ShaderFoundry
             {
                 if (field.type == null)
                     continue;
-                var concretizedTypeName = field.type.Replace("$precision", generator.m_GraphData.graphDefaultConcretePrecision.ToShaderString());
+                var concretizedTypeName = field.type.Replace("$precision", ConcretePrecision.Single.ToShaderString()/*generator.m_GraphData.graphDefaultConcretePrecision.ToShaderString()*/);
                 results.Add(BuildSimpleField(container, blockBuilder, concretizedTypeName, field.name));
             }
             return results;
