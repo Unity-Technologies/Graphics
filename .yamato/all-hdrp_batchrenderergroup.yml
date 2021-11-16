@@ -39,8 +39,6 @@ Extra_HDRP_BatchRendererGroup_trunk:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/hdrp_batchrenderergroup-win-dx11.yml#HDRP_BatchRendererGroup_Win_DX11_playmode_XR_mono_Linear_trunk
-         rerun: on_new_revision
       -  path: .yamato/hdrp_batchrenderergroup-osx-metal.yml#HDRP_BatchRendererGroup_OSX_Metal_playmode_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/hdrp_batchrenderergroup-osx-metal.yml#HDRP_BatchRendererGroup_OSX_Metal_Standalone_mono_Linear_trunk
@@ -89,8 +87,6 @@ Extra_HDRP_BatchRendererGroup_CUSTOM-REVISION:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/hdrp_batchrenderergroup-win-dx11.yml#HDRP_BatchRendererGroup_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/hdrp_batchrenderergroup-osx-metal.yml#HDRP_BatchRendererGroup_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp_batchrenderergroup-osx-metal.yml#HDRP_BatchRendererGroup_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION

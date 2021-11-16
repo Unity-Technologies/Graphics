@@ -101,12 +101,6 @@ jobs:
           - Standalone
   - name: Extra <PROJECT_NAME>
     dependencies: # add any dependencies
-      - platform: Win
-        api: DX11
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - playmode_XR
       - platform: OSX
         api: Metal
         build_config: mono
