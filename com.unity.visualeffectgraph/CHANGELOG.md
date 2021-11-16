@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Unexpected possible connection between GPUEvent and Spawn context [Case 1362739](https://issuetracker.unity3d.com/product/unity/issues/guid/1362739/)
 - Fixed Collision with Depth when using a physical camera. [Case 1344733](https://issuetracker.unity3d.com/product/unity/issues/guid/1344733/)
 - Fix bounds helper tool (automatic systems culling, world bounds computation, ...)
+- Fixed null reference exception when opening another VFX and a debug mode is enabled [Case 1347420](https://issuetracker.unity3d.com/product/unity/issues/guid/1347420/)
 
 ## [13.1.0] - 2021-09-24
 
