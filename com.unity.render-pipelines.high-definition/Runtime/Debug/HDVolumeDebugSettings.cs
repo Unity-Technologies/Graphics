@@ -68,5 +68,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 return anchor.position;
             }
         }
+
+        public static new void RegisterCamera(HDAdditionalCameraData additionalCamera)
+        {
+            VolumeDebugSettings<HDAdditionalCameraData>.RegisterCamera(additionalCamera);
+            if (HDRenderPipeline.currentPipeline != null)
+                HDRenderPipeline.currentPipeline.debugDisplaySettings.RefreshVolumeDebugPanel();
+        }
+
+        public static new void UnRegisterCamera(HDAdditionalCameraData additionalCamera)
+        {
+            VolumeDebugSettings<HDAdditionalCameraData>.UnRegisterCamera(additionalCamera);
+            if (HDRenderPipeline.currentPipeline != null)
+                HDRenderPipeline.currentPipeline.debugDisplaySettings.RefreshVolumeDebugPanel();
+        }
     }
 }

@@ -1149,6 +1149,12 @@ namespace UnityEngine.Rendering.HighDefinition
             RegisterMaterialDebug();
         }
 
+        internal void RefreshVolumeDebugPanel()
+        {
+            UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
+            RegisterVolumeDebug();
+        }
+
         void RefreshVolumeDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
@@ -1727,6 +1733,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     componentNames.Add(new GUIContent() { text = camera.name });
                     componentValues.Add(componentIndex++);
                 }
+
+                // Reset the enum index otherwise you can get an invalid index when removing cameras.
+                if (data.volumeCameraEnumIndex >= componentNames.Count)
+                    data.volumeCameraEnumIndex = 0;
 
                 list.Add(new DebugUI.EnumField
                 {
