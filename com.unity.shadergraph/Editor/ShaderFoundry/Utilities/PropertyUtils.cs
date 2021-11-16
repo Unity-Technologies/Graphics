@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderFoundry
                                 switch (vec1Prop.floatType)
                                 {
                                     case FloatType.Slider:
-                                        propertyTypeString = $"Range({Graphing.NodeUtils.FloatToShaderValueShaderLabSafe(vec1Prop.rangeValues.x)}, {Graphing.NodeUtils.FloatToShaderValueShaderLabSafe(vec1Prop.rangeValues.y)}";
+                                        propertyTypeString = $"Range({Graphing.NodeUtils.FloatToShaderValueShaderLabSafe(vec1Prop.rangeValues.x)}, {Graphing.NodeUtils.FloatToShaderValueShaderLabSafe(vec1Prop.rangeValues.y)})";
                                         break;
                                     case FloatType.Integer:
                                         defaultValue = $"{((int)vec1Prop.value).ToString(CultureInfo.InvariantCulture)}";
