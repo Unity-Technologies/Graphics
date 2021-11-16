@@ -1234,6 +1234,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if(!(shaderInput is ShaderKeyword keyword))
                 return;
 
+            if (graphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
+            {
+                Debug.LogError($"Error in Shader Graph: {ShaderKeyword.kVariantLimitWarning}");
+                return;
+            }
+
             this._preChangeValueCallback("Add Keyword Entry");
 
             int index = GetFirstUnusedID();

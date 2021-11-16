@@ -33,11 +33,12 @@ namespace UnityEditor.ShaderGraph
     // + 1 Bump ShaderImporter version after bugfix to DotsDeformation.hlsl::FetchComputeVertexData() to tangentOS.w in tangentOS output so mirrored normals produce correct normal maps.
     // + 1 Bump ShaderImporter version after change to support dynamic GI extraction pass
     // + 1 Bump ShaderImporter version after bugfixes to dynamic GI extraction pass
+    // + 1 Bump ShaderImporter version after VFXGraph Keyword Support Added.
     // [ScriptedImporter(115, Extension, -902)]
-    [ScriptedImporter(122, Extension, -902)]
+    [ScriptedImporter(123, Extension, -902)]
 #else
     // [ScriptedImporter(47, Extension, -902)]
-    [ScriptedImporter(54, Extension, -902)]
+    [ScriptedImporter(55, Extension, -902)]
     // custom-end
 #endif
 
@@ -655,7 +656,17 @@ Shader ""Hidden/GraphErrorShader2""
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"{outputStructName} {evaluationFunctionName}({nl}{indent}{inputStructName} IN");
 
+            var keywords = new List<ShaderKeyword>();
+            foreach ( var keyword in graph.keywords)
+            {
+                if (keyword.isExposable && !keyword.isBuiltIn)
+                {
+                    keywords.Add(keyword);
+                }
+            }
+
             var inputProperties = new List<AbstractShaderProperty>();
+
             var portPropertyIndices = new List<int>[ports.Count];
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
             {
@@ -757,6 +768,7 @@ Shader ""Hidden/GraphErrorShader2""
             asset.outputStructName = outputStructName;
             asset.portRequirements = portRequirements;
             asset.concretePrecision = graph.concretePrecision;
+            asset.SetKeywords(keywords);
             asset.SetProperties(inputProperties);
             asset.outputPropertyIndices = new IntArray[ports.Count];
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
