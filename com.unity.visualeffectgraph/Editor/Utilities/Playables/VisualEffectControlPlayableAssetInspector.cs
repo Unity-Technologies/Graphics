@@ -509,12 +509,12 @@ namespace UnityEditor.VFX
             m_ReoderableClipEvents.DoLayoutList();
             m_ReoderableSingleEvents.DoLayoutList();
 
-            //Workaround see case 1381005
-            bool workaround = true;
-            if (EditorGUI.EndChangeCheck() || workaround)
+            if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();
 
+#if FIX_DUPLICATE
+                //See case 1381005
                 //Special detection of duplicated referenced element due to manual duplicate in reordable list
                 var playable = serializedObject.targetObject as VisualEffectControlClip;
                 var enterEvents = playable.clipEvents.Where(o => o.enter.eventAttributes.content != null).SelectMany(o => o.enter.eventAttributes.content);
@@ -543,6 +543,7 @@ namespace UnityEditor.VFX
 
                     serializedObject.Update();
                 }
+#endif
             }
         }
     }
