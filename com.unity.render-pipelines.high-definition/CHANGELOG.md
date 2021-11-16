@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light unit conversion after changing mid gray value.
 - Fix stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
 - Fix for screen space shadow debug view not showing when no shadows is available.
+- Fix for contact shadow disappearing when shadowmask is used and no non-static object is available.
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
