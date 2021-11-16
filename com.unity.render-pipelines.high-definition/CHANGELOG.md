@@ -16,9 +16,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix D3D validation layer errors w.r.t shadow textures when an atlas is not used.
 - Fixed screen space reflection PBR Accumulation
 - Fixed and optimize distance shadowmask fade.
+- Fixed HDRP Decals performances when they use different materials (~5x improvement in the decal update loop code).
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
+- The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
 
 ## [10.7.0] - 2021-07-02
 
