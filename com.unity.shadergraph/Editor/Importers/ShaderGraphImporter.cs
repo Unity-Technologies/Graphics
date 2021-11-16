@@ -29,11 +29,12 @@ namespace UnityEditor.ShaderGraph
     // + 1 Bump ShaderImporter version after bugfix to DotsDeformation.hlsl::FetchComputeVertexData() to tangentOS.w in tangentOS output so mirrored normals produce correct normal maps.
     // + 1 Bump ShaderImporter version after stripping LIGHTMAP_ON variants from shadergraph codegen in 9.x.x/custom/cherry-pick.
     // + 1 Bump ShaderImporter version after Return positionDS from ObjectSpacePosition in Decal Shader Graphs
+    // + 1 Bump ShaderImporter version after VFXGraph Keyword Support Added.
     // [ScriptedImporter(115, Extension, -902)]
-    [ScriptedImporter(118, Extension, -902)]
+    [ScriptedImporter(119, Extension, -902)]
 #else
     // [ScriptedImporter(47, Extension, -902)]
-    [ScriptedImporter(50, Extension, -902)]
+    [ScriptedImporter(51, Extension, -902)]
     // custom-end
 #endif
 
@@ -651,7 +652,17 @@ Shader ""Hidden/GraphErrorShader2""
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"{outputStructName} {evaluationFunctionName}({nl}{indent}{inputStructName} IN");
 
+            var keywords = new List<ShaderKeyword>();
+            foreach ( var keyword in graph.keywords)
+            {
+                if (keyword.isExposable && !keyword.isBuiltIn)
+                {
+                    keywords.Add(keyword);
+                }
+            }
+
             var inputProperties = new List<AbstractShaderProperty>();
+
             var portPropertyIndices = new List<int>[ports.Count];
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
             {
@@ -753,6 +764,7 @@ Shader ""Hidden/GraphErrorShader2""
             asset.outputStructName = outputStructName;
             asset.portRequirements = portRequirements;
             asset.concretePrecision = graph.concretePrecision;
+            asset.SetKeywords(keywords);
             asset.SetProperties(inputProperties);
             asset.outputPropertyIndices = new IntArray[ports.Count];
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
