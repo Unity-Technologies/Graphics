@@ -16,9 +16,10 @@ namespace UnityEditor.Rendering.Universal.Converters
         /// <summary> Info to store data to be shown in the UI. </summary>
         public string info { get; set; }
 
+        /// <summary> A bool to set if this item failed to convert. </summary>
         internal bool hasConverted { get; set; }
 
-        /// <summary> A bool to set if this item failed to convert. </summary>
+        /// <summary> A bool set to true if the converter is running in batch mode. </summary>
         public bool isBatchMode { get; internal set; }
 
         /// <summary> Constructor for the RunItemContext. </summary>
