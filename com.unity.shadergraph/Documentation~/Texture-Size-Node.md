@@ -1,6 +1,6 @@
 # Texture Size Node
 
-The Texture Size node takes a Texture 2D input and returns the width and height of the texture size. It also returns the width and height of the texel size. The node uses the built in variable `{texturename}_TexelSize` to access the special properties of the given Texture 2D input.
+The Texture Size node takes a Texture 2D input and returns the width and height texel resolution of the texture. It also returns the width and height size of each texel of the texture. The node uses the built in variable `{texturename}_TexelSize` to access the special properties of the given Texture 2D input.
 
 <!-- ![](images/) Add image of node-->
 
@@ -22,10 +22,10 @@ The Texture Size node is compatible with all render pipelines.
 | Name         | Direction | Type     | Binding | Description |
 |:------------ |:----------|:---------|:--------|:------------|
 | Texture      | Input     | Texture  | None    | The Texture 2D asset to measure. |
-| Width        | Output    | Float    | None    | The width of the Texture 2D asset. |
-| Height       | Output    | Float    | None    | The height of the Texture 2D asset. |
-| Texel Width  | Output    | Float    | None    | The texel width of the Texture 2D asset. |
-| Texel Height | Output    | Float    | None    | The texel height of the Texture 2D asset. |
+| Width        | Output    | Float    | None    | The width of the Texture 2D asset in texels. |
+| Height       | Output    | Float    | None    | The height of the Texture 2D asset in texels.. |
+| Texel Width  | Output    | Float    | None    | The texel width of the Texture 2D asset in UV coordinates. |
+| Texel Height | Output    | Float    | None    | The texel height of the Texture 2D asset in UV coordinates. |
 
 
 <!-- ## Example graph usage -->
