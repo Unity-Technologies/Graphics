@@ -23,7 +23,7 @@ The Texture Size node is compatible with all render pipelines.
 |:------------ |:----------|:---------|:--------|:------------|
 | Texture      | Input     | Texture  | None    | The Texture 2D asset to measure. |
 | Width        | Output    | Float    | None    | The width of the Texture 2D asset in texels. |
-| Height       | Output    | Float    | None    | The height of the Texture 2D asset in texels.. |
+| Height       | Output    | Float    | None    | The height of the Texture 2D asset in texels. |
 | Texel Width  | Output    | Float    | None    | The texel width of the Texture 2D asset in UV coordinates. |
 | Texel Height | Output    | Float    | None    | The texel height of the Texture 2D asset in UV coordinates. |
 
