@@ -341,9 +341,13 @@ public unsafe class RenderBRG : MonoBehaviour
         return jobHandleOutput;
     }
 
+#if UNITY_EDITOR
     public static Material LoadPickingMaterial()
     {
         Shader shader = Shader.Find("Hidden/Universal Render Pipeline/BRGPicking");
+
+        if (shader == null) return null;
+
         Material material = new Material(shader);
 
         // Prevent Material unloading when switching scene
@@ -354,14 +358,18 @@ public unsafe class RenderBRG : MonoBehaviour
 
     Material m_pickingMaterial;
 
+#endif
+
 
     // Start is called before the first frame update
     void Start()
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
+#if UNITY_EDITOR
         m_pickingMaterial = LoadPickingMaterial();
         m_BatchRendererGroup.SetPickingMaterial(m_pickingMaterial);
+#endif
 
         // Create a batch...
         var renderers = FindObjectsOfType<MeshRenderer>();
@@ -631,7 +639,9 @@ public unsafe class RenderBRG : MonoBehaviour
             m_instanceIndices.Dispose();
             m_drawIndices.Dispose();
 
+#if UNITY_EDITOR
             DestroyImmediate(m_pickingMaterial);
+#endif
         }
     }
 }
