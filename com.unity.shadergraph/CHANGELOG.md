@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
  - Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
  - Updated searcher package dependency version to 4.9.1
+ - Renamed the Shader Graph Texel Size node to Texture Size and added two additional output ports that actually output the texel size in addition to the texture size.
 
 ### Fixed
  - Fixed a usability issue where in some cases searcher would suggest one collapsed category of results that user would have to manually expand anyway

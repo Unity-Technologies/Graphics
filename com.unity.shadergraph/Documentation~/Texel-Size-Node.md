@@ -2,7 +2,7 @@
 
 ## Description
 
-Returns the **Width** and **Height** of the texel size of **Texture 2D** input. Uses the built in variable `{texturename}_TexelSize` to access special properties of a **Texture 2D**.
+Returns the **Width** and **Height** of the texture size of **Texture 2D** input as well as the **Width** and **Height** of the texel size. Uses the built in variable `{texturename}_TexelSize` to access special properties of a **Texture 2D**.
 
 If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later.
 
@@ -13,8 +13,10 @@ If you experience texture sampling errors while using this node in a graph which
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | Texture      | Input | Texture | None | Texture asset |
-| Width      | Output | Float    | None | Texel width |
-| Height | Output      |    Float    | None | Texel height |
+| Width      | Output | Float    | None | Texture width |
+| Height | Output      |    Float    | None | Texture height |
+| Texel Width      | Output | Float    | None | Texel width |
+| Texel Height | Output      |    Float    | None | Texel height |
 
 ## Generated Code Example
 
