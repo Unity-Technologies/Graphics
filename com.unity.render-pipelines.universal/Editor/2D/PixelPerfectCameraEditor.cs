@@ -59,11 +59,23 @@ namespace UnityEditor.Rendering.Universal
                 m_CurrentPixelRatioValue = new GUIContent();
         }
 
-        bool UsingRenderer2D()
+        UniversalAdditionalCameraData GetCameraData()
         {
             PixelPerfectCamera obj = target as PixelPerfectCamera;
             UniversalAdditionalCameraData cameraData = null;
             obj?.TryGetComponent(out cameraData);
+            return cameraData;
+        }
+
+        bool UsingSRP()
+        {
+            var cameraData = GetCameraData();
+            return cameraData?.scriptableRenderer != null;
+        }
+
+        bool UsingRenderer2D()
+        {
+            var cameraData = GetCameraData();
 
             if (cameraData != null)
             {
@@ -79,11 +91,8 @@ namespace UnityEditor.Rendering.Universal
         {
             m_CameraStacking = false;
 
-            PixelPerfectCamera obj = target as PixelPerfectCamera;
-            UniversalAdditionalCameraData cameraData = null;
-            obj?.TryGetComponent(out cameraData);
-
-            if (cameraData == null)
+            var cameraData = GetCameraData();
+            if (cameraData == null || cameraData.scriptableRenderer == null)
                 return;
 
             if (cameraData.renderType == CameraRenderType.Base)
@@ -129,10 +138,15 @@ namespace UnityEditor.Rendering.Universal
             if (!UsingRenderer2D() && !m_OverrideUsage)
             {
                 EditorGUILayout.HelpBox(Style.nonRenderer2DWarning, MessageType.Warning);
-                EditorGUILayout.Space();
 
-                if (GUILayout.Button(Style.overrideUsage))
-                    m_OverrideUsage = true;
+                // Allow override usage if using SRP
+                if(UsingSRP())
+                {
+                    EditorGUILayout.Space();
+                    if (GUILayout.Button(Style.overrideUsage))
+                        m_OverrideUsage = true;
+
+                }
 
                 return;
             }
