@@ -153,7 +153,7 @@ namespace UnityEditor.Rendering.HighDefinition
     sealed class LocalWindParameterDrawer
     {
         static readonly string[] modeNames = Enum.GetNames(typeof(WindParameter.WindOverrideMode));
-        static readonly string[] modeNamesNoMultiply = {WindParameter.WindOverrideMode.Custom.ToString(), WindParameter.WindOverrideMode.Global.ToString(), WindParameter.WindOverrideMode.Additive.ToString()};
+        static readonly string[] modeNamesNoMultiply = { WindParameter.WindOverrideMode.Custom.ToString(), WindParameter.WindOverrideMode.Global.ToString(), WindParameter.WindOverrideMode.Additive.ToString() };
         static readonly int popupWidth = 70;
 
         public static bool BeginGUI(out Rect rect, GUIContent title, SerializedDataParameter parameter, SerializedProperty mode, bool excludeMultiply)
