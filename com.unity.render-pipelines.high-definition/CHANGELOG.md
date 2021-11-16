@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added API to edit diffusion profiles and set IES on lights.
 - Added public API to reset path tracing accumulation, and check its status.
 - Added support for SensorSDK's Lidar and camera models in path tracing.
+- Added minimal picking support for DOTS 1.0 (on parity with Hybrid Renderer V2)
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
@@ -59,6 +60,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Crash issue when adding an area light on its own.
 - Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
 - Fixed light unit conversion after changing mid gray value.
+- Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
+- Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
+- Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214);
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.

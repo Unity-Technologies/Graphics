@@ -172,7 +172,7 @@
       }
     },
     "com.unity.subsystemregistration": {
-      "version": "1.1.0",
+      "version": "1.1.1",
       "depth": 1,
       "source": "registry",
       "dependencies": {
@@ -262,7 +262,7 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.xr.management": {
-      "version": "4.0.7",
+      "version": "4.2.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
