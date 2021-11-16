@@ -2,6 +2,8 @@
 
 The Texture Size node takes a Texture 2D input and returns the width and height texel resolution of the texture. It also returns the width and height size of each texel of the texture. The node uses the built in variable `{texturename}_TexelSize` to access the special properties of the given Texture 2D input.
 
+The term "texel" is short for "texture element" or "texture pixel." It represents a single pixel in the texture.  So, for example, if Texture resolution is 512x512 texels, the texture is sampled over the range [0-1] in UV space,  so each texel is 1/512 x 1/512 in size in UV coordinates.
+
 <!-- ![](images/) Add image of node-->
 
 If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading your version of Shader Graph to version 10.3 or later.
