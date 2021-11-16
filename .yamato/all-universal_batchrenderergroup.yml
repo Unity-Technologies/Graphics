@@ -34,11 +34,7 @@ Extra_Universal_BatchRendererGroup_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/universal_batchrenderergroup-osx-metal.yml#Universal_BatchRendererGroup_OSX_Metal_playmode_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/universal_batchrenderergroup-osx-metal.yml#Universal_BatchRendererGroup_OSX_Metal_Standalone_mono_Linear_trunk
-         rerun: on_new_revision
+    dependencies: []
 Universal_BatchRendererGroup_trunk:
     name: Universal_BatchRendererGroup on trunk
     variables:
@@ -78,11 +74,7 @@ Extra_Universal_BatchRendererGroup_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/universal_batchrenderergroup-osx-metal.yml#Universal_BatchRendererGroup_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/universal_batchrenderergroup-osx-metal.yml#Universal_BatchRendererGroup_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
+    dependencies: []
 Universal_BatchRendererGroup_CUSTOM-REVISION:
     name: Universal_BatchRendererGroup on CUSTOM-REVISION
     variables:

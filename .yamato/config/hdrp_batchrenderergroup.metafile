@@ -67,6 +67,19 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: package-ci/ubuntu:stable
+        flavor: b1.large
+      editmode:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM::GPU
+        image: package-ci/ubuntu:stable
+        flavor: b1.large
 
 jobs:
   - name: PR <PROJECT_NAME>
@@ -100,14 +113,8 @@ jobs:
           - playmode
           - Standalone
   - name: Extra <PROJECT_NAME>
-    dependencies: # add any dependencies
-      - platform: OSX
-        api: Metal
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - playmode
-          - Standalone
+    dependencies:
+      []
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>

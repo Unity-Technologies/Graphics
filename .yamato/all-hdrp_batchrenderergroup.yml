@@ -38,11 +38,7 @@ Extra_HDRP_BatchRendererGroup_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/hdrp_batchrenderergroup-osx-metal.yml#HDRP_BatchRendererGroup_OSX_Metal_playmode_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/hdrp_batchrenderergroup-osx-metal.yml#HDRP_BatchRendererGroup_OSX_Metal_Standalone_mono_Linear_trunk
-         rerun: on_new_revision
+    dependencies: []
 HDRP_BatchRendererGroup_trunk:
     name: HDRP_BatchRendererGroup on trunk
     variables:
@@ -86,11 +82,7 @@ Extra_HDRP_BatchRendererGroup_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/hdrp_batchrenderergroup-osx-metal.yml#HDRP_BatchRendererGroup_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/hdrp_batchrenderergroup-osx-metal.yml#HDRP_BatchRendererGroup_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
+    dependencies: []
 HDRP_BatchRendererGroup_CUSTOM-REVISION:
     name: HDRP_BatchRendererGroup on CUSTOM-REVISION
     variables:
