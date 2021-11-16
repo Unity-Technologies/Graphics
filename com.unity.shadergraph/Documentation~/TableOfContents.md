@@ -136,10 +136,10 @@
             * [Sample Virtual Texture](Sample-Virtual-Texture-Node)
             * [Sampler State](Sampler-State-Node)
             * [Split Texture Transform](Split-Texture-Transform-Node)
-            * [Texel Size](Texel-Size-Node)
             * [Texture 2D Array Asset](Texture-2D-Array-Asset-Node)
             * [Texture 2D Asset](Texture-2D-Asset-Node)
             * [Texture 3D Asset](Texture-3D-Asset-Node)
+            * [Texture Size](Texture-Size-Node)
     * [Math](Math-Nodes)
         * Advanced
             * [Absolute](Absolute-Node)
