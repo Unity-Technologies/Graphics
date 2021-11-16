@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary> Number of scattering events. </summary>
         [Tooltip("Sets the number of scattering events. This increases the quality of the sky visuals but also increases the pre-computation time.")]
-        public ClampedIntParameter numberOfBounces = new ClampedIntParameter(8, 1, 10);
+        public ClampedIntParameter numberOfBounces = new ClampedIntParameter(3, 1, 10);
 
         /// <summary> Ground tint. </summary>
         [Tooltip("Specifies a color that HDRP uses to tint the Ground Color Texture.")]
