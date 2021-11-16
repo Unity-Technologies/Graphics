@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_GraphView; }
         }
 
-        PreviewManager previewManager
+        internal PreviewManager previewManager
         {
             get { return m_PreviewManager; }
             set { m_PreviewManager = value; }
@@ -914,7 +914,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                 {
                     var foundMessage = messageData.Value.First();
-                    string messageString = foundMessage.message + " at line " + foundMessage.line;
+                    string messageString;
+                    if (foundMessage.line > 0)
+                        messageString = foundMessage.message + " at line " + foundMessage.line;
+                    else
+                        messageString = foundMessage.message;
                     nodeView.AttachMessage(messageString, foundMessage.severity);
                 }
             }

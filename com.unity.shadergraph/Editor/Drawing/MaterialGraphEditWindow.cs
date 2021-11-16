@@ -307,6 +307,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (m_ChangedFileDependencyGUIDs.Count > 0 && graphObject != null && graphObject.graph != null)
                 {
                     bool reloadedSomething = false;
+                    foreach (var guid in m_ChangedFileDependencyGUIDs)
+                    {
+                        if (AssetDatabase.GUIDToAssetPath(guid) != null)
+                        {
+                            // update preview for changed textures
+                            graphEditorView?.previewManager?.ReloadChangedFiles(guid);
+                        }
+                    }
+
                     var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
                     foreach (var subGraphNode in subGraphNodes)
                     {
@@ -514,6 +523,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 // the window is closing for good.. cleanup undo history for the graph object
                 Undo.ClearUndo(graphObject);
+            }
+
+            // Discard any unsaved modification on the generated material
+            if (graphObject && graphObject.materialArtifact && EditorUtility.IsDirty(graphObject.materialArtifact))
+            {
+                var material = new Material(AssetDatabase.LoadAssetAtPath<Shader>(AssetDatabase.GUIDToAssetPath(graphObject.AssetGuid)));
+                graphObject.materialArtifact.CopyPropertiesFromMaterial(material);
+                CoreUtils.Destroy(material);
             }
 
             graphObject = null;
