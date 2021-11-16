@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // CopyDepth pass in XR targets XR eyeTexture for both color surface and depth surface
             // The if check is a hack assuming target is eye texture when xr is enabled and copy depth destination is already allocated outside the scritable render pass.
-            if(renderingData.cameraData.xr.enabled && !this.AllocateRT)
+            if(renderingData.cameraData.xr.enabled && destination == RenderTargetHandle.GetCameraTarget(renderingData.cameraData.xr))
             {
                 ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1));
                 renderTargetSampleCount = 1; // This hack is needed becasue current renderpass assumes sample count is always equal to camera target descriptor's msaa. This is not true for XR where eye texture msaa is 1 and intermedaite camera texture msaa could be 4
