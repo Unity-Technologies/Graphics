@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void GetTransparencySortingMode(Camera camera, ref SortingSettings sortingSettings)
         {
-            var mode = m_Renderer2DData.transparencySortMode;
+            var mode = UniversalRenderPipelineGlobalSettings.instance.transparencySortMode;
 
             if (mode == TransparencySortMode.Default)
             {
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
                     break;
                 default:
                     sortingSettings.distanceMetric = DistanceMetric.CustomAxis;
-                    sortingSettings.customAxis = m_Renderer2DData.transparencySortAxis;
+                    sortingSettings.customAxis = UniversalRenderPipelineGlobalSettings.instance.transparencySortAxis;
                     break;
             }
         }

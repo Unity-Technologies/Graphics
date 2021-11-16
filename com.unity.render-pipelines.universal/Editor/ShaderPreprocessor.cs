@@ -721,11 +721,11 @@ namespace UnityEditor.Rendering.Universal
             double stripTimeMs = m_stripTimer.Elapsed.TotalMilliseconds;
             m_stripTimer.Reset();
 
-            if (urpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
+            if (UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
             {
                 m_TotalVariantsInputCount += prevVariantCount;
                 m_TotalVariantsOutputCount += compilerDataList.Count;
-                LogShaderVariants(shader, snippetData, urpAsset.shaderVariantLogLevel, prevVariantCount, compilerDataList.Count, stripTimeMs);
+                LogShaderVariants(shader, snippetData, UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel, prevVariantCount, compilerDataList.Count, stripTimeMs);
             }
 
 #if PROFILE_BUILD
@@ -893,40 +893,6 @@ namespace UnityEditor.Rendering.Universal
         {
             ShaderFeatures shaderFeatures;
             shaderFeatures = ShaderFeatures.MainLight;
-
-            if (pipelineAsset.supportsMainLightShadows)
-            {
-                // User can change cascade count at runtime, so we have to include both of them for now
-                shaderFeatures |= ShaderFeatures.MainLightShadows;
-                shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
-            }
-
-            if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerVertex)
-            {
-                shaderFeatures |= ShaderFeatures.VertexLighting;
-            }
-            else if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
-            {
-                shaderFeatures |= ShaderFeatures.AdditionalLights;
-            }
-
-            bool anyShadows = pipelineAsset.supportsMainLightShadows ||
-                (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
-            if (pipelineAsset.supportsSoftShadows && anyShadows)
-                shaderFeatures |= ShaderFeatures.SoftShadows;
-
-            if (pipelineAsset.supportsMixedLighting)
-                shaderFeatures |= ShaderFeatures.MixedLighting;
-
-            if (pipelineAsset.supportsTerrainHoles)
-                shaderFeatures |= ShaderFeatures.TerrainHoles;
-
-            if (pipelineAsset.useFastSRGBLinearConversion)
-                shaderFeatures |= ShaderFeatures.UseFastSRGBLinearConversion;
-
-            if (pipelineAsset.supportsLightLayers)
-                shaderFeatures |= ShaderFeatures.LightLayers;
-
             bool hasScreenSpaceShadows = false;
             bool hasScreenSpaceOcclusion = false;
             bool hasDeferredRenderer = false;
@@ -1011,6 +977,59 @@ namespace UnityEditor.Rendering.Universal
                 onlyClusteredRendering &= rendererClustered;
             }
 
+            foreach (var renderer in pipelineAsset.m_Renderers)
+            {
+                var urpRenderer = renderer as UniversalRenderer;
+
+                if (urpRenderer.supportsMainLightShadows)
+                {
+                    // User can change cascade count at runtime, so we have to include both of them for now
+                    shaderFeatures |= ShaderFeatures.MainLightShadows;
+                    shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
+                }
+
+                if (urpRenderer.additionalLightsRenderingMode == LightRenderingMode.PerVertex)
+                {
+                    shaderFeatures |= ShaderFeatures.VertexLighting;
+                }
+                else if (urpRenderer.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
+                {
+                    shaderFeatures |= ShaderFeatures.AdditionalLights;
+                }
+                if (urpRenderer.supportsMixedLighting)
+                    shaderFeatures |= ShaderFeatures.MixedLighting;
+
+                bool anyShadows = urpRenderer.supportsMainLightShadows ||
+                    (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
+                if (urpRenderer.supportsSoftShadows && anyShadows)
+                    shaderFeatures |= ShaderFeatures.SoftShadows;
+
+                if (urpRenderer.supportsLightLayers)
+                    shaderFeatures |= ShaderFeatures.LightLayers;
+
+                if (urpRenderer.reflectionProbeBlending)
+                    shaderFeatures |= ShaderFeatures.ReflectionProbeBlending;
+
+                if (urpRenderer.reflectionProbeBoxProjection)
+                    shaderFeatures |= ShaderFeatures.ReflectionProbeBoxProjection;
+                if (urpRenderer.additionalLightsRenderingMode == LightRenderingMode.PerPixel || clusteredRendering)
+                {
+                    if (urpRenderer.supportsAdditionalLightShadows)
+                    {
+                        shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
+                    }
+                }
+            }
+
+            if (UniversalRenderPipelineGlobalSettings.instance.supportsTerrainHoles)
+                shaderFeatures |= ShaderFeatures.TerrainHoles;
+
+            if (UniversalRenderPipelineGlobalSettings.instance.useFastSRGBLinearConversion)
+                shaderFeatures |= ShaderFeatures.UseFastSRGBLinearConversion;
+
+
+
+
             if (hasDeferredRenderer)
                 shaderFeatures |= ShaderFeatures.DeferredShading;
 
@@ -1026,12 +1045,6 @@ namespace UnityEditor.Rendering.Universal
             if (usesRenderPass)
                 shaderFeatures |= ShaderFeatures.RenderPassEnabled;
 
-            if (pipelineAsset.reflectionProbeBlending)
-                shaderFeatures |= ShaderFeatures.ReflectionProbeBlending;
-
-            if (pipelineAsset.reflectionProbeBoxProjection)
-                shaderFeatures |= ShaderFeatures.ReflectionProbeBoxProjection;
-
             if (clusteredRendering)
             {
                 shaderFeatures |= ShaderFeatures.ClusteredRendering;
@@ -1042,13 +1055,7 @@ namespace UnityEditor.Rendering.Universal
                 shaderFeatures &= ~(ShaderFeatures.AdditionalLights | ShaderFeatures.VertexLighting);
             }
 
-            if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || clusteredRendering)
-            {
-                if (pipelineAsset.supportsAdditionalLightShadows)
-                {
-                    shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
-                }
-            }
+
 
             return shaderFeatures;
         }

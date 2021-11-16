@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.Universal
             m_rendererFeaturesList = new ReorderableList(ownerEditor.serializedObject, m_rendererFeatures, true, true, true, true)
             {
                 drawElementCallback = OnDrawElement,
-                drawHeaderCallback = (Rect rect) => EditorGUI.LabelField(rect, Styles.RendererFeatureOrder),
+                drawHeaderCallback = (Rect rect) => { EditorGUI.indentLevel++; EditorGUI.LabelField(rect, Styles.RendererFeatureOrder); EditorGUI.indentLevel--; },
                 onAddDropdownCallback = OnAddDropdownCallback,
                 onRemoveCallback = OnRemoveElement,
                 elementHeightCallback = ElementHeightCallback,

@@ -80,8 +80,6 @@ namespace UnityEngine.Rendering.Universal
             public Shader objectMotionVector;
         }
 
-        public PostProcessData postProcessData = null;
-
 #if ENABLE_VR && ENABLE_XR_MODULE
         [Reload("Runtime/Data/XRSystemData.asset")]
         public XRSystemData xrSystemData = null;

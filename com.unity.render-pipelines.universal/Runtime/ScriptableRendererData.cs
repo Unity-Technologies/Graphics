@@ -43,8 +43,6 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeReference] internal List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
 
-        [SerializeField] bool m_UseNativeRenderPass = false;
-
         /// <summary>
         /// List of additional render pass features for this renderer.
         /// </summary>
@@ -76,16 +74,6 @@ namespace UnityEngine.Rendering.Universal
         protected virtual void OnEnable()
         {
             SetDirty();
-        }
-
-        public bool useNativeRenderPass
-        {
-            get => m_UseNativeRenderPass;
-            set
-            {
-                SetDirty();
-                m_UseNativeRenderPass = value;
-            }
         }
 
         /// <summary>

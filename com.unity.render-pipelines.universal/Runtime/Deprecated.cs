@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning disable 618 // Obsolete warning
         [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
         [SerializeField] ShadowCascadesOption m_ShadowCascades = ShadowCascadesOption.NoCascades;
-
+        /*
         [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
         public ShadowCascadesOption shadowCascadeOption
         {
@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.Universal
                         throw new InvalidOperationException("Cascade count is not compatible with obsolete API, please use shadowCascadeCount instead.");
                 }
             }
-        }
+        }*/
 #pragma warning restore 618 // Obsolete warning
     }
 

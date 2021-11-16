@@ -13,14 +13,10 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent lightBlendStylesHeader = EditorGUIUtility.TrTextContent("Light Blend Styles", "A Light Blend Style is a collection of properties that describe a particular way of applying lighting.");
             public static readonly GUIContent postProcessHeader = EditorGUIUtility.TrTextContent("Post-processing");
 
-            public static readonly GUIContent transparencySortMode = EditorGUIUtility.TrTextContent("Transparency Sort Mode", "Default sorting mode used for transparent objects");
-            public static readonly GUIContent transparencySortAxis = EditorGUIUtility.TrTextContent("Transparency Sort Axis", "Axis used for custom axis sorting mode");
             public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
             public static readonly GUIContent lightRTScale = EditorGUIUtility.TrTextContent("Render Scale", "The resolution of intermediate light render textures, in relation to the screen resolution. 1.0 means full-screen size.");
             public static readonly GUIContent maxLightRTCount = EditorGUIUtility.TrTextContent("Max Light Render Textures", "How many intermediate light render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.");
             public static readonly GUIContent maxShadowRTCount = EditorGUIUtility.TrTextContent("Max Shadow Render Textures", "How many intermediate shadow render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.");
-            public static readonly GUIContent defaultMaterialType = EditorGUIUtility.TrTextContent("Default Material Type", "Material to use when adding new objects to a scene");
-            public static readonly GUIContent defaultCustomMaterial = EditorGUIUtility.TrTextContent("Default Custom Material", "Material to use when adding new objects to a scene");
 
             public static readonly GUIContent name = EditorGUIUtility.TrTextContent("Name");
             public static readonly GUIContent maskTextureChannel = EditorGUIUtility.TrTextContent("Mask Texture Channel", "Which channel of the mask texture will affect this Light Blend Style.");
@@ -43,18 +39,13 @@ namespace UnityEditor.Rendering.Universal
             public SerializedProperty blendFactorAdditive;
         }
 
-        SerializedProperty m_TransparencySortMode;
-        SerializedProperty m_TransparencySortAxis;
         SerializedProperty m_HDREmulationScale;
         SerializedProperty m_LightRenderTextureScale;
         SerializedProperty m_LightBlendStyles;
         LightBlendStyleProps[] m_LightBlendStylePropsArray;
         SerializedProperty m_UseDepthStencilBuffer;
-        SerializedProperty m_DefaultMaterialType;
-        SerializedProperty m_DefaultCustomMaterial;
         SerializedProperty m_MaxLightRenderTextureCount;
         SerializedProperty m_MaxShadowRenderTextureCount;
-        SerializedProperty m_PostProcessData;
 
         SerializedProperty m_UseCameraSortingLayersTexture;
         SerializedProperty m_CameraSortingLayersTextureBound;
@@ -83,19 +74,16 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        void OnEnable()
+        private new void OnEnable()
         {
             m_WasModified = false;
             m_Renderer2DData = (Renderer2DData)serializedObject.targetObject;
 
-            m_TransparencySortMode = serializedObject.FindProperty("m_TransparencySortMode");
-            m_TransparencySortAxis = serializedObject.FindProperty("m_TransparencySortAxis");
             m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
             m_LightRenderTextureScale = serializedObject.FindProperty("m_LightRenderTextureScale");
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
             m_MaxLightRenderTextureCount = serializedObject.FindProperty("m_MaxLightRenderTextureCount");
             m_MaxShadowRenderTextureCount = serializedObject.FindProperty("m_MaxShadowRenderTextureCount");
-            m_PostProcessData = serializedObject.FindProperty("m_PostProcessData");
 
             m_CameraSortingLayersTextureBound = serializedObject.FindProperty("m_CameraSortingLayersTextureBound");
             m_UseCameraSortingLayersTexture = serializedObject.FindProperty("m_UseCameraSortingLayersTexture");
@@ -122,14 +110,14 @@ namespace UnityEditor.Rendering.Universal
             }
 
             m_UseDepthStencilBuffer = serializedObject.FindProperty("m_UseDepthStencilBuffer");
-            m_DefaultMaterialType = serializedObject.FindProperty("m_DefaultMaterialType");
-            m_DefaultCustomMaterial = serializedObject.FindProperty("m_DefaultCustomMaterial");
 
             m_GeneralFoldout = new SavedBool($"{target.GetType()}.GeneralFoldout", true);
             m_LightRenderTexturesFoldout = new SavedBool($"{target.GetType()}.LightRenderTexturesFoldout", true);
             m_LightBlendStylesFoldout = new SavedBool($"{target.GetType()}.LightBlendStylesFoldout", true);
             m_CameraSortingLayerTextureFoldout = new SavedBool($"{target.GetType()}.CameraSortingLayerTextureFoldout", true);
             m_PostProcessingFoldout = new SavedBool($"{target.GetType()}.PostProcessingFoldout", true);
+
+            base.OnEnable();
         }
 
         private void OnDestroy()
@@ -145,7 +133,6 @@ namespace UnityEditor.Rendering.Universal
             DrawLightRenderTextures();
             DrawLightBlendStyles();
             DrawCameraSortingLayerTexture();
-            DrawPostProcessing();
 
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
@@ -195,15 +182,6 @@ namespace UnityEditor.Rendering.Universal
             if (!m_GeneralFoldout.value)
                 return;
 
-            EditorGUILayout.PropertyField(m_TransparencySortMode, Styles.transparencySortMode);
-
-            using (new EditorGUI.DisabledGroupScope(m_TransparencySortMode.intValue != (int)TransparencySortMode.CustomAxis))
-                EditorGUILayout.PropertyField(m_TransparencySortAxis, Styles.transparencySortAxis);
-
-            EditorGUILayout.PropertyField(m_DefaultMaterialType, Styles.defaultMaterialType);
-            if (m_DefaultMaterialType.intValue == (int)Renderer2DData.Renderer2DDefaultMaterialType.Custom)
-                EditorGUILayout.PropertyField(m_DefaultCustomMaterial, Styles.defaultCustomMaterial);
-
             EditorGUILayout.PropertyField(m_UseDepthStencilBuffer, Styles.useDepthStencilBuffer);
 
             EditorGUI.BeginChangeCheck();
@@ -247,27 +225,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
-
-            EditorGUILayout.Space();
-        }
-
-        private void DrawPostProcessing()
-        {
-            CoreEditorUtils.DrawSplitter();
-            m_PostProcessingFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.postProcessHeader, m_PostProcessingFoldout.value);
-            if (!m_PostProcessingFoldout.value)
-                return;
-
-            EditorGUI.BeginChangeCheck();
-            var postProcessIncluded = EditorGUILayout.Toggle(Styles.postProcessIncluded, m_PostProcessData.objectReferenceValue != null);
-            if (EditorGUI.EndChangeCheck())
-            {
-                m_PostProcessData.objectReferenceValue = postProcessIncluded ? UnityEngine.Rendering.Universal.PostProcessData.GetDefaultPostProcessData() : null;
-            }
-
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
-            EditorGUI.indentLevel--;
 
             EditorGUILayout.Space();
         }

@@ -190,12 +190,12 @@ namespace UnityEditor.Rendering.Universal.Converters
         private void SetPipelineSettings(UniversalRenderPipelineAsset asset, RenderSettingItem settings)
         {
             // General
-            asset.supportsCameraDepthTexture = settings.SoftParticles;
+            asset.scriptableRenderer.supportsCameraDepthTexture = settings.SoftParticles;
 
             // Quality
             asset.supportsHDR = m_GraphicsTierSettings.HDR;
             asset.msaaSampleCount = settings.MSAA == 0 ? 1 : settings.MSAA;
-
+            /*
             // Main Light
             asset.mainLightRenderingMode = settings.PixelLightCount == 0
                 ? LightRenderingMode.Disabled
@@ -223,6 +223,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             asset.cascade2Split = settings.CascadeSplit2;
             asset.cascade4Split = settings.CascadeSplit4;
             asset.supportsSoftShadows = settings.Shadows == ShadowQuality.All;
+            */
         }
 
         #region HelperFunctions

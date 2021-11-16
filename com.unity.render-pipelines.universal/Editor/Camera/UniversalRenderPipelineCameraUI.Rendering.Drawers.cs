@@ -167,6 +167,8 @@ namespace UnityEditor.Rendering.Universal
 
             static bool IsAnyRendererHasPostProcessingEnabled(UniversalRenderPipelineSerializedCamera p, UniversalRenderPipelineAsset rpAsset)
             {
+                return UniversalRenderPipelineGlobalSettings.instance.postProcessData != null;
+                /*
                 int selectedRendererOption = p.renderer.intValue;
 
                 if (selectedRendererOption < -1 || selectedRendererOption > rpAsset.m_RendererDataList.Length || p.renderer.hasMultipleDifferentValues)
@@ -180,6 +182,7 @@ namespace UnityEditor.Rendering.Universal
 
                 var renderer2DData = rendererData as UnityEngine.Rendering.Universal.Renderer2DData;
                 return renderer2DData != null && renderer2DData.postProcessData == null;
+                */
             }
 
             static void DrawerRenderingAntialiasing(UniversalRenderPipelineSerializedCamera p, Editor owner)

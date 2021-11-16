@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler internalStartRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalStartRendering)}");
             public static readonly ProfilingSampler internalFinishRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRendering)}");
             public static readonly ProfilingSampler drawGizmos = new ProfilingSampler($"{nameof(DrawGizmos)}");
+            public static readonly ProfilingSampler initializeRenderingData = new ProfilingSampler($"{k_Name}.{nameof(InitializeRenderingData)}");
 
             public static class RenderBlock
             {
@@ -477,6 +478,10 @@ namespace UnityEngine.Rendering.Universal
         private static Plane[] s_Planes = new Plane[6];
         private static Vector4[] s_VectorPlanes = new Vector4[6];
 
+        internal virtual bool useDepthPriming { get; set; } = false;
+        internal virtual bool stripShadowsOffVariants { get; set; } = false;
+        internal virtual bool stripAdditionalLightOffVariants { get; set; } = false;
+
         internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
             RenderTargetIdentifier depthAttachment)
         {
@@ -486,12 +491,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_ActiveDepthAttachment = depthAttachment;
         }
-
-        internal bool useDepthPriming { get; set; } = false;
-
-        internal bool stripShadowsOffVariants { get; set; } = false;
-
-        internal bool stripAdditionalLightOffVariants { get; set; } = false;
 
         public ScriptableRenderer(ScriptableRendererData data)
         {
@@ -510,12 +509,12 @@ namespace UnityEngine.Rendering.Universal
             }
 
             ResetNativeRenderPassFrameData();
-            useRenderPassEnabled = data.useNativeRenderPass && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+            useRenderPassEnabled = UniversalRenderPipelineGlobalSettings.instance.useNativeRenderPass && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
             Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
 
             if (UniversalRenderPipeline.asset)
-                m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
+                m_StoreActionsOptimizationSetting = UniversalRenderPipelineGlobalSettings.instance.storeActionsOptimization;
 
             m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
         }
@@ -538,6 +537,24 @@ namespace UnityEngine.Rendering.Universal
         protected virtual void Dispose(bool disposing)
         {
         }
+
+        public virtual float renderScale
+        {
+            get { return 1f; }
+            set { }
+        }
+
+
+        //TODO: Check if we want this to be UniversalRenderPipeline.minRenderScale.
+        //      Should this be controled per renderer
+        protected float ValidateRenderScale(float value)
+        {
+            return Mathf.Max(UniversalRenderPipeline.minRenderScale, Mathf.Min(value, UniversalRenderPipeline.maxRenderScale));
+        }
+
+
+        public virtual bool supportsCameraOpaqueTexture { get { return false; } set { } }
+        public virtual bool supportsCameraDepthTexture { get { return false; } set { } }
 
         /// <summary>
         /// Configures the camera target.
@@ -562,6 +579,105 @@ namespace UnityEngine.Rendering.Universal
         {
             m_CameraColorTarget = colorTarget;
         }
+
+
+
+        public virtual void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
+            bool anyPostProcessingEnabled, out RenderingData renderingData)
+        {
+            using var profScope = new ProfilingScope(null, Profiling.initializeRenderingData);
+
+            InitializeRenderingDataFunc(settings, ref cameraData, ref cullResults, anyPostProcessingEnabled, out renderingData);
+
+            CheckAndApplyDebugSettings(ref renderingData);
+        }
+        public virtual void InitializeRenderingDataFunc(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
+            bool anyPostProcessingEnabled, out RenderingData renderingData)
+        {
+            renderingData.cullResults = cullResults;
+            renderingData.cameraData = cameraData;
+            defaultLightData(out renderingData.lightData);
+            defaultShadowData(out renderingData.shadowData);
+
+            renderingData.postProcessingData.gradingMode = settings.supportsHDR
+                ? UniversalRenderPipelineGlobalSettings.instance.colorGradingMode
+                : ColorGradingMode.LowDynamicRange;
+            renderingData.postProcessingData.lutSize = UniversalRenderPipelineGlobalSettings.instance.colorGradingLutSize;
+            renderingData.postProcessingData.useFastSRGBLinearConversion = UniversalRenderPipelineGlobalSettings.instance.useFastSRGBLinearConversion;
+
+            renderingData.perObjectData = 0;
+            renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
+            renderingData.postProcessingEnabled = anyPostProcessingEnabled;
+        }
+
+        public void defaultLightData(out LightData lightData)
+        {
+            lightData.mainLightIndex = -1;
+            lightData.additionalLightsCount = 0;
+            lightData.maxPerObjectAdditionalLightsCount = 0;
+            lightData.supportsAdditionalLights = false;
+            lightData.shadeAdditionalLightsPerVertex = false;
+            lightData.visibleLights = new NativeArray<VisibleLight>(0, Allocator.Temp);
+            lightData.supportsMixedLighting = false;
+            lightData.reflectionProbeBlending = false;
+            lightData.reflectionProbeBoxProjection = false;
+            lightData.supportsLightLayers = false;
+            lightData.originalIndices = new NativeArray<int>(0, Allocator.Temp);
+        }
+
+        public void defaultShadowData(out ShadowData shadowData)
+        {
+            shadowData.bias = new List<Vector4>();
+            shadowData.resolution = new List<int>();
+            shadowData.supportsMainLightShadows = false;
+
+            //TODO: We still have the screen space shadow RendererFeature
+            // We no longer use screen space shadows in URP.
+            // This change allows us to have particles & transparent objects receive shadows.
+#pragma warning disable 0618
+            shadowData.requiresScreenSpaceShadowResolve = false;
+#pragma warning restore 0618
+
+            shadowData.mainLightShadowCascadesCount = 0;
+            shadowData.mainLightShadowmapWidth = 0;
+            shadowData.mainLightShadowmapHeight = 0;
+            shadowData.mainLightShadowCascadesSplit = Vector3.zero;
+            shadowData.mainLightShadowCascadeBorder = 0f;
+
+            shadowData.supportsAdditionalLightShadows = false;
+            shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = 0;
+            shadowData.supportsSoftShadows = false;
+            shadowData.shadowmapDepthBufferBits = 0;
+
+            // This will be setup in AdditionalLightsShadowCasterPass.
+            shadowData.isKeywordAdditionalLightShadowsEnabled = false;
+            shadowData.isKeywordSoftShadowsEnabled = false;
+        }
+
+        static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
+        {
+            var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
+            ref CameraData cameraData = ref renderingData.cameraData;
+
+            if (debugDisplaySettings.AreAnySettingsActive && !cameraData.isPreviewCamera)
+            {
+                DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.RenderingSettings;
+                int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
+
+                if (!renderingSettings.enableMsaa)
+                    msaaSamples = 1;
+
+                if (!renderingSettings.enableHDR)
+                    cameraData.isHdrEnabled = false;
+
+                if (!debugDisplaySettings.IsPostProcessingAllowed)
+                    cameraData.postProcessEnabled = false;
+
+                cameraData.cameraTargetDescriptor.graphicsFormat = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, true);
+                cameraData.cameraTargetDescriptor.msaaSamples = msaaSamples;
+            }
+        }
+
 
         /// <summary>
         /// Configures the render passes that will execute for this renderer.

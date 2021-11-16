@@ -44,8 +44,17 @@ namespace UnityEditor.Rendering.Universal
             {
                 ScriptableRendererData[] rendererDataList = rendererAsset.m_RendererDataList;
 
-                string mainLightMode = rendererAsset.mainLightRenderingMode.ToString();
-                string additionalLightMode = rendererAsset.additionalLightsRenderingMode.ToString();
+                List<string> mainLightMode = new List<string>();
+                List<string> additionalLightMode = new List<string>();
+                foreach (var renderer in rendererAsset.m_Renderers)
+                {
+                    var urpRenderer = renderer as UniversalRenderer;
+                    if (urpRenderer != null)
+                    {
+                        mainLightMode.Add(urpRenderer.mainLightRenderingMode.ToString());
+                        additionalLightMode.Add(urpRenderer.additionalLightsRenderingMode.ToString());
+                    }
+                }
 
                 HashSet<string> rendererDatas = new HashSet<string>();
                 HashSet<string> renderFeatures = new HashSet<string>();
@@ -75,8 +84,8 @@ namespace UnityEditor.Rendering.Universal
                     renderer_data_amount = rendererDataAmount,
                     renderer_features = renderFeatures.ToArray(),
                     renderer_features_amount = rendererFeaturesAmount,
-                    main_light_rendering_mode = mainLightMode,
-                    additional_light_rendering_mode = additionalLightMode,
+                    main_light_rendering_mode = mainLightMode.ToArray(),
+                    additional_light_rendering_mode = additionalLightMode.ToArray(),
                 };
 
                 EditorAnalytics.SendEventWithLimit(k_EventName, data);
@@ -89,8 +98,8 @@ namespace UnityEditor.Rendering.Universal
             public int renderer_data_amount;
             public string[] renderer_features;
             public int renderer_features_amount;
-            public string main_light_rendering_mode;
-            public string additional_light_rendering_mode;
+            public string[] main_light_rendering_mode;
+            public string[] additional_light_rendering_mode;
         }
 
         public int callbackOrder { get; }

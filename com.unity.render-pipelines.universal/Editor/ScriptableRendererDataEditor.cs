@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.Universal
     {
         private ScriptableRendererFeatureEditor m_rendererFeatureEditor;
 
-        public void OnEnable()
+        protected void OnEnable()
         {
             m_rendererFeatureEditor = new ScriptableRendererFeatureEditor(this);
         }

@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Universal
             if (asset == null || texture.value == null)
                 return false;
 
-            int lutSize = asset.colorGradingLutSize;
+            int lutSize = UniversalRenderPipelineGlobalSettings.instance.colorGradingLutSize;
             if (texture.value.height != lutSize)
                 return false;
 

@@ -12,54 +12,12 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public enum ShadowQuality
-    {
-        Disabled,
-        HardShadows,
-        SoftShadows,
-    }
-
-    public enum ShadowResolution
-    {
-        _256 = 256,
-        _512 = 512,
-        _1024 = 1024,
-        _2048 = 2048,
-        _4096 = 4096
-    }
-
-    public enum LightCookieResolution
-    {
-        _256 = 256,
-        _512 = 512,
-        _1024 = 1024,
-        _2048 = 2048,
-        _4096 = 4096
-    }
-
-    public enum LightCookieFormat
-    {
-        GrayscaleLow,
-        GrayscaleHigh,
-        ColorLow,
-        ColorHigh,
-        ColorHDR,
-    }
-
     public enum MsaaQuality
     {
         Disabled = 1,
         _2x = 2,
         _4x = 4,
         _8x = 8
-    }
-
-    public enum Downsampling
-    {
-        None,
-        _2xBilinear,
-        _4xBox,
-        _4xBilinear
     }
 
     internal enum DefaultMaterialType
@@ -71,22 +29,6 @@ namespace UnityEngine.Rendering.Universal
         UnityBuiltinDefault,
         SpriteMask,
         Decal
-    }
-
-    public enum LightRenderingMode
-    {
-        Disabled = 0,
-        PerVertex = 2,
-        PerPixel = 1,
-    }
-
-    public enum ShaderVariantLogLevel
-    {
-        Disabled,
-        [InspectorName("Only URP Shaders")]
-        OnlyUniversalRPShaders,
-        [InspectorName("All Shaders")]
-        AllShaders
     }
 
     [Obsolete("PipelineDebugLevel is unused and has no effect.", false)]
@@ -112,19 +54,6 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// Defines if Unity discards or stores the render targets of the DrawObjects Passes. Selecting the Store option significantly increases the memory bandwidth on mobile and tile-based GPUs.
-    /// </summary>
-    public enum StoreActionsOptimization
-    {
-        /// <summary>Unity uses the Discard option by default, and falls back to the Store option if it detects any injected Passes.</summary>
-        Auto,
-        /// <summary>Unity discards the render targets of render Passes that are not reused later (lower memory bandwidth).</summary>
-        Discard,
-        /// <summary>Unity stores all render targets of each Pass (higher memory bandwidth).</summary>
-        Store
-    }
-
-    /// <summary>
     /// Defines the update frequency for the Volume Framework.
     /// </summary>
     public enum VolumeFrameworkUpdateMode
@@ -141,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
-        ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
+        internal ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 9;
@@ -156,69 +85,17 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal ScriptableRendererData[] m_RendererDataList = new ScriptableRendererData[1];
         [SerializeField] internal int m_DefaultRendererIndex = 0;
 
-        // General settings
-        [SerializeField] bool m_RequireDepthTexture = false;
-        [SerializeField] bool m_RequireOpaqueTexture = false;
-        [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
-        [SerializeField] bool m_SupportsTerrainHoles = true;
-
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
-        [SerializeField] float m_RenderScale = 1.0f;
         // TODO: Shader Quality Tiers
-
-        // Main directional light Settings
-        [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
-        [SerializeField] bool m_MainLightShadowsSupported = true;
-        [SerializeField] ShadowResolution m_MainLightShadowmapResolution = ShadowResolution._2048;
-
-        // Additional lights settings
-        [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
-        [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
-        [SerializeField] bool m_AdditionalLightShadowsSupported = false;
-        [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;
-
-        [SerializeField] int m_AdditionalLightsShadowResolutionTierLow = AdditionalLightsDefaultShadowResolutionTierLow;
-        [SerializeField] int m_AdditionalLightsShadowResolutionTierMedium = AdditionalLightsDefaultShadowResolutionTierMedium;
-        [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = AdditionalLightsDefaultShadowResolutionTierHigh;
-
-        // Reflection Probes
-        [SerializeField] bool m_ReflectionProbeBlending = false;
-        [SerializeField] bool m_ReflectionProbeBoxProjection = false;
-
-        // Shadows Settings
-        [SerializeField] float m_ShadowDistance = 50.0f;
-        [SerializeField] int m_ShadowCascadeCount = 1;
-        [SerializeField] float m_Cascade2Split = 0.25f;
-        [SerializeField] Vector2 m_Cascade3Split = new Vector2(0.1f, 0.3f);
-        [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
-        [SerializeField] float m_CascadeBorder = 0.2f;
-        [SerializeField] float m_ShadowDepthBias = 1.0f;
-        [SerializeField] float m_ShadowNormalBias = 1.0f;
-        [SerializeField] bool m_SoftShadowsSupported = false;
-        [SerializeField] bool m_ConservativeEnclosingSphere = false;
-        [SerializeField] int m_NumIterationsEnclosingSphere = 64;
-
-        // Light Cookie Settings
-        [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
-        [SerializeField] LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat.ColorHigh;
 
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
         [SerializeField] bool m_SupportsDynamicBatching = false;
-        [SerializeField] bool m_MixedLightingSupported = true;
-        [SerializeField] bool m_SupportsLightLayers = false;
-        [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
-        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
-
-        // Post-processing settings
-        [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
-        [SerializeField] int m_ColorGradingLutSize = 32;
-        [SerializeField] bool m_UseFastSRGBLinearConversion = false;
 
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
@@ -226,22 +103,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ShadowResolution m_LocalShadowsAtlasResolution = ShadowResolution._256;
         [SerializeField] int m_MaxPixelLights = 0;
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
-
-        [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
-        [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
-
-        // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
-        // minimum, the lut being encoded in log. Lower sizes would work better with an additional
-        // 1D shaper lut but for now we'll keep it simple.
-        public const int k_MinLutSize = 16;
-        public const int k_MaxLutSize = 65;
-
-        internal const int k_ShadowCascadeMinCount = 1;
-        internal const int k_ShadowCascadeMaxCount = 4;
-
-        public static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
-        public static readonly int AdditionalLightsDefaultShadowResolutionTierMedium = 512;
-        public static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
 
 #if UNITY_EDITOR
         [NonSerialized]
@@ -261,9 +122,6 @@ namespace UnityEngine.Rendering.Universal
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
-
-            // Only enable for new URP assets by default
-            instance.m_ConservativeEnclosingSphere = true;
 
             return instance;
         }
@@ -307,14 +165,16 @@ namespace UnityEngine.Rendering.Universal
                 default:
                 {
                     var rendererData = CreateInstance<UniversalRendererData>();
-                    rendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                    if (UniversalRenderPipelineGlobalSettings.instance.postProcessData == null)
+                        UniversalRenderPipelineGlobalSettings.instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                     return rendererData;
                 }
                 // 2D renderer is experimental
                 case RendererType._2DRenderer:
                 {
                     var rendererData = CreateInstance<Renderer2DData>();
-                    rendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                    if (UniversalRenderPipelineGlobalSettings.instance.postProcessData == null)
+                        UniversalRenderPipelineGlobalSettings.instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                     return rendererData;
                     // Universal Renderer is the fallback renderer that works on all platforms
                 }
@@ -558,44 +418,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #endif
-        private static GraphicsFormat[][] s_LightCookieFormatList = new GraphicsFormat[][]
-        {
-            /* Grayscale Low */ new GraphicsFormat[] {GraphicsFormat.R8_UNorm},
-            /* Grayscale High*/ new GraphicsFormat[] {GraphicsFormat.R16_UNorm},
-            /* Color Low     */ new GraphicsFormat[] {GraphicsFormat.R5G6B5_UNormPack16, GraphicsFormat.B5G6R5_UNormPack16, GraphicsFormat.R5G5B5A1_UNormPack16, GraphicsFormat.B5G5R5A1_UNormPack16},
-            /* Color High    */ new GraphicsFormat[] {GraphicsFormat.A2B10G10R10_UNormPack32, GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.B8G8R8A8_SRGB},
-            /* Color HDR     */ new GraphicsFormat[] {GraphicsFormat.B10G11R11_UFloatPack32},
-        };
-
-        internal GraphicsFormat additionalLightsCookieFormat
-        {
-            get
-            {
-                GraphicsFormat result = GraphicsFormat.None;
-                foreach (var format in s_LightCookieFormatList[(int)m_AdditionalLightsCookieFormat])
-                {
-                    if (SystemInfo.IsFormatSupported(format, FormatUsage.Render))
-                    {
-                        result = format;
-                        break;
-                    }
-                }
-
-                if (QualitySettings.activeColorSpace == ColorSpace.Gamma)
-                    result = GraphicsFormatUtility.GetLinearFormat(result);
-
-                // Fallback
-                if (result == GraphicsFormat.None)
-                {
-                    result = GraphicsFormat.R8G8B8A8_UNorm;
-                    Debug.LogWarning($"Additional Lights Cookie Format ({ m_AdditionalLightsCookieFormat.ToString() }) is not supported by the platform. Falling back to {GraphicsFormatUtility.GetBlockSize(result) * 8}-bit format ({GraphicsFormatUtility.GetFormatString(result)})");
-                }
-
-                return result;
-            }
-        }
-
-        internal Vector2Int additionalLightsCookieResolution => new Vector2Int((int)m_AdditionalLightsCookieResolution, (int)m_AdditionalLightsCookieResolution);
 
         internal int[] rendererIndexList
         {
@@ -610,38 +432,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public bool supportsCameraDepthTexture
-        {
-            get { return m_RequireDepthTexture; }
-            set { m_RequireDepthTexture = value; }
-        }
-
-        public bool supportsCameraOpaqueTexture
-        {
-            get { return m_RequireOpaqueTexture; }
-            set { m_RequireOpaqueTexture = value; }
-        }
-
-        public Downsampling opaqueDownsampling
-        {
-            get { return m_OpaqueDownsampling; }
-        }
-
-        public bool supportsTerrainHoles
-        {
-            get { return m_SupportsTerrainHoles; }
-        }
-
-        /// <summary>
-        /// Returns the active store action optimization value.
-        /// </summary>
-        /// <returns>Returns the active store action optimization value.</returns>
-        public StoreActionsOptimization storeActionsOptimization
-        {
-            get { return m_StoreActionsOptimization; }
-            set { m_StoreActionsOptimization = value; }
-        }
-
         public bool supportsHDR
         {
             get { return m_SupportsHDR; }
@@ -654,227 +444,12 @@ namespace UnityEngine.Rendering.Universal
             set { m_MSAA = (MsaaQuality)value; }
         }
 
-        public float renderScale
-        {
-            get { return m_RenderScale; }
-            set { m_RenderScale = ValidateRenderScale(value); }
-        }
-
-        public LightRenderingMode mainLightRenderingMode
-        {
-            get { return m_MainLightRenderingMode; }
-            internal set { m_MainLightRenderingMode = value; }
-        }
-
-        public bool supportsMainLightShadows
-        {
-            get { return m_MainLightShadowsSupported; }
-            internal set { m_MainLightShadowsSupported = value; }
-        }
-
-        public int mainLightShadowmapResolution
-        {
-            get { return (int)m_MainLightShadowmapResolution; }
-            internal set { m_MainLightShadowmapResolution = (ShadowResolution)value; }
-        }
-
-        public LightRenderingMode additionalLightsRenderingMode
-        {
-            get { return m_AdditionalLightsRenderingMode; }
-            internal set { m_AdditionalLightsRenderingMode = value; }
-        }
-
-        public int maxAdditionalLightsCount
-        {
-            get { return m_AdditionalLightsPerObjectLimit; }
-            set { m_AdditionalLightsPerObjectLimit = ValidatePerObjectLights(value); }
-        }
-
-        public bool supportsAdditionalLightShadows
-        {
-            get { return m_AdditionalLightShadowsSupported; }
-            internal set { m_AdditionalLightShadowsSupported = value; }
-        }
-
-        public int additionalLightsShadowmapResolution
-        {
-            get { return (int)m_AdditionalLightsShadowmapResolution; }
-            internal set { m_AdditionalLightsShadowmapResolution = (ShadowResolution)value; }
-        }
-
-        /// <summary>
-        /// Returns the additional light shadow resolution defined for tier "Low" in the UniversalRenderPipeline asset.
-        /// </summary>
-        public int additionalLightsShadowResolutionTierLow
-        {
-            get { return (int)m_AdditionalLightsShadowResolutionTierLow; }
-            internal set { additionalLightsShadowResolutionTierLow = value; }
-        }
-
-        /// <summary>
-        /// Returns the additional light shadow resolution defined for tier "Medium" in the UniversalRenderPipeline asset.
-        /// </summary>
-        public int additionalLightsShadowResolutionTierMedium
-        {
-            get { return (int)m_AdditionalLightsShadowResolutionTierMedium; }
-            internal set { m_AdditionalLightsShadowResolutionTierMedium = value; }
-        }
-
-        /// <summary>
-        /// Returns the additional light shadow resolution defined for tier "High" in the UniversalRenderPipeline asset.
-        /// </summary>
-        public int additionalLightsShadowResolutionTierHigh
-        {
-            get { return (int)m_AdditionalLightsShadowResolutionTierHigh; }
-            internal set { additionalLightsShadowResolutionTierHigh = value; }
-        }
-
-        internal int GetAdditionalLightsShadowResolution(int additionalLightsShadowResolutionTier)
-        {
-            if (additionalLightsShadowResolutionTier <= UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierLow /* 0 */)
-                return additionalLightsShadowResolutionTierLow;
-
-            if (additionalLightsShadowResolutionTier == UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierMedium /* 1 */)
-                return additionalLightsShadowResolutionTierMedium;
-
-            if (additionalLightsShadowResolutionTier >= UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierHigh /* 2 */)
-                return additionalLightsShadowResolutionTierHigh;
-
-            return additionalLightsShadowResolutionTierMedium;
-        }
-
-        public bool reflectionProbeBlending
-        {
-            get { return m_ReflectionProbeBlending; }
-            internal set { m_ReflectionProbeBlending = value; }
-        }
-
-        public bool reflectionProbeBoxProjection
-        {
-            get { return m_ReflectionProbeBoxProjection; }
-            internal set { m_ReflectionProbeBoxProjection = value; }
-        }
-
-        /// <summary>
-        /// Controls the maximum distance at which shadows are visible.
-        /// </summary>
-        public float shadowDistance
-        {
-            get { return m_ShadowDistance; }
-            set { m_ShadowDistance = Mathf.Max(0.0f, value); }
-        }
-
-        /// <summary>
-        /// Returns the number of shadow cascades.
-        /// </summary>
-        public int shadowCascadeCount
-        {
-            get { return m_ShadowCascadeCount; }
-            set
-            {
-                if (value < k_ShadowCascadeMinCount || value > k_ShadowCascadeMaxCount)
-                {
-                    throw new ArgumentException($"Value ({value}) needs to be between {k_ShadowCascadeMinCount} and {k_ShadowCascadeMaxCount}.");
-                }
-                m_ShadowCascadeCount = value;
-            }
-        }
-
-        /// <summary>
-        /// Returns the split value.
-        /// </summary>
-        /// <returns>Returns a Float with the split value.</returns>
-        public float cascade2Split
-        {
-            get { return m_Cascade2Split; }
-            internal set { m_Cascade2Split = value; }
-        }
-
-        /// <summary>
-        /// Returns the split values.
-        /// </summary>
-        /// <returns>Returns a Vector2 with the split values.</returns>
-        public Vector2 cascade3Split
-        {
-            get { return m_Cascade3Split; }
-            internal set { m_Cascade3Split = value; }
-        }
-
-        /// <summary>
-        /// Returns the split values.
-        /// </summary>
-        /// <returns>Returns a Vector3 with the split values.</returns>
-        public Vector3 cascade4Split
-        {
-            get { return m_Cascade4Split; }
-            internal set { m_Cascade4Split = value; }
-        }
-
-        /// <summary>
-        /// Last cascade fade distance in percentage.
-        /// </summary>
-        public float cascadeBorder
-        {
-            get { return m_CascadeBorder; }
-            set { cascadeBorder = value; }
-        }
-
-        /// <summary>
-        /// The Shadow Depth Bias, controls the offset of the lit pixels.
-        /// </summary>
-        public float shadowDepthBias
-        {
-            get { return m_ShadowDepthBias; }
-            set { m_ShadowDepthBias = ValidateShadowBias(value); }
-        }
-
-        /// <summary>
-        /// Controls the distance at which the shadow casting surfaces are shrunk along the surface normal.
-        /// </summary>
-        public float shadowNormalBias
-        {
-            get { return m_ShadowNormalBias; }
-            set { m_ShadowNormalBias = ValidateShadowBias(value); }
-        }
-
-        /// <summary>
-        /// Supports Soft Shadows controls the Soft Shadows.
-        /// </summary>
-        public bool supportsSoftShadows
-        {
-            get { return m_SoftShadowsSupported; }
-            internal set { m_SoftShadowsSupported = value; }
-        }
-
         public bool supportsDynamicBatching
         {
             get { return m_SupportsDynamicBatching; }
             set { m_SupportsDynamicBatching = value; }
         }
 
-        public bool supportsMixedLighting
-        {
-            get { return m_MixedLightingSupported; }
-        }
-
-        /// <summary>
-        /// Returns true if the Render Pipeline Asset supports light layers, false otherwise.
-        /// </summary>
-        public bool supportsLightLayers
-        {
-            get { return m_SupportsLightLayers; }
-        }
-
-        public ShaderVariantLogLevel shaderVariantLogLevel
-        {
-            get { return m_ShaderVariantLogLevel; }
-            set { m_ShaderVariantLogLevel = value; }
-        }
-
-        /// <summary>
-        /// Returns the selected update mode for volumes.
-        /// </summary>
-        public VolumeFrameworkUpdateMode volumeFrameworkUpdateMode => m_VolumeFrameworkUpdateMode;
 
         [Obsolete("PipelineDebugLevel is deprecated. Calling debugLevel is not necessary.", false)]
         public PipelineDebugLevel debugLevel
@@ -888,25 +463,7 @@ namespace UnityEngine.Rendering.Universal
             set { m_UseSRPBatcher = value; }
         }
 
-        public ColorGradingMode colorGradingMode
-        {
-            get { return m_ColorGradingMode; }
-            set { m_ColorGradingMode = value; }
-        }
 
-        public int colorGradingLutSize
-        {
-            get { return m_ColorGradingLutSize; }
-            set { m_ColorGradingLutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize); }
-        }
-
-        /// <summary>
-        /// Returns true if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
-        /// </summary>
-        public bool useFastSRGBLinearConversion
-        {
-            get { return m_UseFastSRGBLinearConversion; }
-        }
 
         /// <summary>
         /// Set to true to allow Adaptive performance to modify graphics quality settings during runtime.
@@ -916,25 +473,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseAdaptivePerformance; }
             set { m_UseAdaptivePerformance = value; }
-        }
-
-        /// <summary>
-        /// Set to true to enable a conservative method for calculating the size and position of the minimal enclosing sphere around the frustum cascade corner points for shadow culling.
-        /// </summary>
-        public bool conservativeEnclosingSphere
-        {
-            get { return m_ConservativeEnclosingSphere; }
-            set { m_ConservativeEnclosingSphere = value; }
-        }
-
-        /// <summary>
-        /// Set the number of iterations to reduce the cascade culling enlcosing sphere to be closer to the absolute minimun enclosing sphere, but will also require more CPU computation for increasing values.
-        /// This parameter is used only when conservativeEnclosingSphere is set to true. Default value is 64.
-        /// </summary>
-        public int numIterationsEnclosingSphere
-        {
-            get { return m_NumIterationsEnclosingSphere; }
-            set { m_NumIterationsEnclosingSphere = value; }
         }
 
         public override Material defaultMaterial
@@ -1087,17 +625,17 @@ namespace UnityEngine.Rendering.Universal
         {
             if (k_AssetVersion < 3)
             {
-                m_SoftShadowsSupported = (m_ShadowType == ShadowQuality.SoftShadows);
+                //m_SoftShadowsSupported = (m_ShadowType == ShadowQuality.SoftShadows);
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 3;
             }
 
             if (k_AssetVersion < 4)
             {
-                m_AdditionalLightShadowsSupported = m_LocalShadowsSupported;
-                m_AdditionalLightsShadowmapResolution = m_LocalShadowsAtlasResolution;
-                m_AdditionalLightsPerObjectLimit = m_MaxPixelLights;
-                m_MainLightShadowmapResolution = m_ShadowAtlasResolution;
+                //m_AdditionalLightShadowsSupported = m_LocalShadowsSupported;
+                //m_AdditionalLightsShadowmapResolution = m_LocalShadowsAtlasResolution;
+                //m_AdditionalLightsPerObjectLimit = m_MaxPixelLights;
+                //m_MainLightShadowmapResolution = m_ShadowAtlasResolution;
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 4;
             }
@@ -1120,11 +658,11 @@ namespace UnityEngine.Rendering.Universal
                 int value = (int)m_ShadowCascades;
                 if (value == 2)
                 {
-                    m_ShadowCascadeCount = 4;
+                    //m_ShadowCascadeCount = 4;
                 }
                 else
                 {
-                    m_ShadowCascadeCount = value + 1;
+                    //m_ShadowCascadeCount = value + 1;
                 }
                 k_AssetVersion = 6;
 #pragma warning restore 618 // Obsolete warning
@@ -1139,24 +677,24 @@ namespace UnityEngine.Rendering.Universal
             if (k_AssetVersion < 8)
             {
                 k_AssetPreviousVersion = k_AssetVersion;
-                m_CascadeBorder = 0.1f; // In previous version we had this hard coded
+                //m_CascadeBorder = 0.1f; // In previous version we had this hard coded
                 k_AssetVersion = 8;
             }
 
             if (k_AssetVersion < 9)
             {
-                bool assetContainsCustomAdditionalLightShadowResolutions =
-                    m_AdditionalLightsShadowResolutionTierHigh != AdditionalLightsDefaultShadowResolutionTierHigh ||
-                    m_AdditionalLightsShadowResolutionTierMedium != AdditionalLightsDefaultShadowResolutionTierMedium ||
-                    m_AdditionalLightsShadowResolutionTierLow != AdditionalLightsDefaultShadowResolutionTierLow;
+                //bool assetContainsCustomAdditionalLightShadowResolutions =
+                //    m_AdditionalLightsShadowResolutionTierHigh != AdditionalLightsDefaultShadowResolutionTierHigh ||
+                //    m_AdditionalLightsShadowResolutionTierMedium != AdditionalLightsDefaultShadowResolutionTierMedium ||
+                //    m_AdditionalLightsShadowResolutionTierLow != AdditionalLightsDefaultShadowResolutionTierLow;
 
-                if (!assetContainsCustomAdditionalLightShadowResolutions)
-                {
-                    // if all resolutions are still the default values, we assume that they have never been customized and that it is safe to upgrade them to fit better the Additional Lights Shadow Atlas size
-                    m_AdditionalLightsShadowResolutionTierHigh = (int)m_AdditionalLightsShadowmapResolution;
-                    m_AdditionalLightsShadowResolutionTierMedium = Mathf.Max(m_AdditionalLightsShadowResolutionTierHigh / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
-                    m_AdditionalLightsShadowResolutionTierLow = Mathf.Max(m_AdditionalLightsShadowResolutionTierMedium / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
-                }
+                //if (!assetContainsCustomAdditionalLightShadowResolutions)
+                //{
+                //    // if all resolutions are still the default values, we assume that they have never been customized and that it is safe to upgrade them to fit better the Additional Lights Shadow Atlas size
+                //    m_AdditionalLightsShadowResolutionTierHigh = (int)m_AdditionalLightsShadowmapResolution;
+                //    m_AdditionalLightsShadowResolutionTierMedium = Mathf.Max(m_AdditionalLightsShadowResolutionTierHigh / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
+                //    m_AdditionalLightsShadowResolutionTierLow = Mathf.Max(m_AdditionalLightsShadowResolutionTierMedium / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
+                //}
 
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 9;
@@ -1204,21 +742,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #endif
-
-        float ValidateShadowBias(float value)
-        {
-            return Mathf.Max(0.0f, Mathf.Min(value, UniversalRenderPipeline.maxShadowBias));
-        }
-
-        int ValidatePerObjectLights(int value)
-        {
-            return System.Math.Max(0, System.Math.Min(value, UniversalRenderPipeline.maxPerObjectLights));
-        }
-
-        float ValidateRenderScale(float value)
-        {
-            return Mathf.Max(UniversalRenderPipeline.minRenderScale, Mathf.Min(value, UniversalRenderPipeline.maxRenderScale));
-        }
 
         /// <summary>
         /// Check to see if the RendererData list contains valid RendererData references.

@@ -18,19 +18,6 @@ namespace UnityEngine.Rendering.Universal
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DRendererData_overview.html")]
     public partial class Renderer2DData : ScriptableRendererData
     {
-        internal enum Renderer2DDefaultMaterialType
-        {
-            Lit,
-            Unlit,
-            Custom
-        }
-
-        [SerializeField]
-        TransparencySortMode m_TransparencySortMode = TransparencySortMode.Default;
-
-        [SerializeField]
-        Vector3 m_TransparencySortAxis = Vector3.up;
-
         [SerializeField]
         float m_HDREmulationScale = 1;
 
@@ -91,9 +78,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Reload("Shaders/Utils/FallbackError.shader")]
         Shader m_FallbackErrorShader;
 
-        [SerializeField]
-        PostProcessData m_PostProcessData = null;
-
         [SerializeField, Reload("Runtime/2D/Data/Textures/FalloffLookupTexture.png")]
         [HideInInspector]
         private Texture2D m_FallOffLookup = null;
@@ -116,14 +100,12 @@ namespace UnityEngine.Rendering.Universal
         internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
         internal Shader blitShader => m_BlitShader;
         internal Shader samplingShader => m_SamplingShader;
-        internal PostProcessData postProcessData { get => m_PostProcessData; set { m_PostProcessData = value; } }
         internal Shader spriteShadowShader => m_SpriteShadowShader;
         internal Shader spriteUnshadowShader => m_SpriteUnshadowShader;
         internal Shader geometryUnshadowShader => m_GeometryUnshadowShader;
 
         internal Shader projectedShadowShader => m_ProjectedShadowShader;
-        internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
-        internal Vector3 transparencySortAxis => m_TransparencySortAxis;
+
         internal uint lightRenderTextureMemoryBudget => m_MaxLightRenderTextureCount;
         internal uint shadowRenderTextureMemoryBudget => m_MaxShadowRenderTextureCount;
         internal bool useCameraSortingLayerTexture => m_UseCameraSortingLayersTexture;

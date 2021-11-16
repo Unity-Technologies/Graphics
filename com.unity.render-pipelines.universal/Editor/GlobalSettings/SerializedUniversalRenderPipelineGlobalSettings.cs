@@ -10,6 +10,13 @@ namespace UnityEditor.Rendering.Universal
         public SerializedObject serializedObject;
         private List<UniversalRenderPipelineGlobalSettings> serializedSettings = new List<UniversalRenderPipelineGlobalSettings>();
 
+        public SerializedProperty transparencySortMode { get; }
+        public SerializedProperty transparencySortAxis { get; }
+        public SerializedProperty defaultSpriteMaterialType { get; }
+        public SerializedProperty defaultSpriteCustomMaterial { get; }
+
+        public SerializedProperty supportsTerrainHolesProp { get; }
+
         public SerializedProperty lightLayerName0;
         public SerializedProperty lightLayerName1;
         public SerializedProperty lightLayerName2;
@@ -22,6 +29,22 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty stripDebugVariants;
         public SerializedProperty stripUnusedPostProcessingVariants;
         public SerializedProperty stripUnusedVariants;
+
+        public SerializedProperty storeActionsOptimizationProperty { get; }
+
+        public SerializedProperty useNativeRenderPass { get; }
+
+        public SerializedProperty debugLevelProp { get; }
+
+        public SerializedProperty shaderVariantLogLevel { get; }
+
+        public SerializedProperty volumeFrameworkUpdateModeProp { get; }
+
+
+        public SerializedProperty postProcessData { get; }
+        public SerializedProperty colorGradingMode { get; }
+        public SerializedProperty colorGradingLutSize { get; }
+        public SerializedProperty useFastSRGBLinearConversion { get; }
 
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
         {
@@ -36,6 +59,12 @@ namespace UnityEditor.Rendering.Universal
                     throw new System.Exception($"Target object has an invalid object, objects must be of type {typeof(UniversalRenderPipelineGlobalSettings)}");
             }
 
+            transparencySortMode = serializedObject.FindProperty("m_TransparencySortMode");
+            transparencySortAxis = serializedObject.FindProperty("m_TransparencySortAxis");
+            defaultSpriteMaterialType = serializedObject.FindProperty("m_DefaultSpriteMaterialType");
+            defaultSpriteCustomMaterial = serializedObject.FindProperty("m_DefaultSpriteCustomMaterial");
+
+            supportsTerrainHolesProp = serializedObject.FindProperty("m_SupportsTerrainHoles");
 
             lightLayerName0 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName0);
             lightLayerName1 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName1);
@@ -49,6 +78,21 @@ namespace UnityEditor.Rendering.Universal
             stripDebugVariants = serializedObject.FindProperty("m_StripDebugVariants");
             stripUnusedPostProcessingVariants = serializedObject.FindProperty("m_StripUnusedPostProcessingVariants");
             stripUnusedVariants = serializedObject.FindProperty("m_StripUnusedVariants");
+
+
+            debugLevelProp = serializedObject.FindProperty("m_DebugLevel");
+
+            shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
+            volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
+
+            storeActionsOptimizationProperty = serializedObject.FindProperty("m_StoreActionsOptimization");
+            useNativeRenderPass = serializedObject.FindProperty("m_UseNativeRenderPass");
+
+            postProcessData = serializedObject.FindProperty("postProcessData");
+            colorGradingMode = serializedObject.FindProperty("m_ColorGradingMode");
+            colorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");
+
+            useFastSRGBLinearConversion = serializedObject.FindProperty("m_UseFastSRGBLinearConversion");
         }
     }
 }

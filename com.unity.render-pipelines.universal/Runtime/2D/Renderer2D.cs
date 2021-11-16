@@ -16,6 +16,11 @@ namespace UnityEngine.Rendering.Universal
         bool m_UseDepthStencilBuffer = true;
         bool m_CreateColorTexture;
         bool m_CreateDepthTexture;
+        [SerializeField] float m_RenderScale = 1.0f;
+
+        internal override bool useDepthPriming { get { return false; } set { } }
+        internal override bool stripShadowsOffVariants { get { return true; } set { } }
+        internal override bool stripAdditionalLightOffVariants { get { return true; } set { } }
 
         readonly RenderTargetHandle k_ColorTextureHandle;
         readonly RenderTargetHandle k_DepthTextureHandle;
@@ -47,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
 
-            m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
+            m_PostProcessPasses = new PostProcessPasses(UniversalRenderPipelineGlobalSettings.instance.postProcessData, m_BlitMaterial);
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
@@ -131,6 +136,13 @@ namespace UnityEngine.Rendering.Universal
                 depthTargetHandle = k_DepthTextureHandle;
             }
         }
+
+        public float renderScale
+        {
+            get { return m_RenderScale; }
+            set { m_RenderScale = ValidateRenderScale(value); }
+        }
+
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {

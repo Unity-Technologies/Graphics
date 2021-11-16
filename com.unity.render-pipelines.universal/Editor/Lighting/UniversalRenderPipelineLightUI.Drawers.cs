@@ -164,7 +164,7 @@ namespace UnityEditor.Rendering.Universal
                     serializedLight.settings.lightmapping.intValue = (int)LightmapBakeType.Baked;
                     serializedLight.Apply();
                 }
-
+                /*
                 if (lightType != LightType.Rectangle && !serializedLight.settings.isCompletelyBaked && UniversalRenderPipeline.asset.supportsLightLayers && !isInPreset)
                 {
                     EditorGUI.BeginChangeCheck();
@@ -174,7 +174,7 @@ namespace UnityEditor.Rendering.Universal
                         if (!serializedLight.customShadowLayers.boolValue)
                             SyncLightAndShadowLayers(serializedLight, serializedLight.lightLayerMask);
                     }
-                }
+                }*/
             }
         }
 
@@ -268,8 +268,8 @@ namespace UnityEditor.Rendering.Universal
         {
             serializedLight.settings.DrawRenderMode();
 
-            using (new EditorGUI.DisabledScope(UniversalRenderPipeline.asset.supportsLightLayers))
-                serializedLight.settings.DrawCullingMask();
+            //using (new EditorGUI.DisabledScope(UniversalRenderPipeline.asset.supportsLightLayers))
+            //    serializedLight.settings.DrawCullingMask();
         }
 
         static void DrawShadowsContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
@@ -329,7 +329,7 @@ namespace UnityEditor.Rendering.Universal
                         EditorGUILayout.Slider(serializedLight.settings.shadowsNearPlane, nearPlaneMinBound, 10.0f, Styles.ShadowNearPlane);
                     }
 
-                    if (UniversalRenderPipeline.asset.supportsLightLayers)
+                    /*if (UniversalRenderPipeline.asset.supportsLightLayers)
                     {
                         EditorGUI.BeginChangeCheck();
                         EditorGUILayout.PropertyField(serializedLight.customShadowLayers, Styles.customShadowLayers);
@@ -360,7 +360,7 @@ namespace UnityEditor.Rendering.Universal
                                 }
                             }
                         }
-                    }
+                    }*/
                 }
             }
 
@@ -425,11 +425,11 @@ namespace UnityEditor.Rendering.Universal
                         var newResolution = EditorGUILayout.IntField(serializedLight.settings.shadowsResolution.intValue, GUILayout.ExpandWidth(false));
                         serializedLight.settings.shadowsResolution.intValue = Mathf.Max(UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution, Mathf.NextPowerOfTwo(newResolution));
                     }
-                    else
-                    {
-                        if (GraphicsSettings.renderPipelineAsset is UniversalRenderPipelineAsset urpAsset)
-                            EditorGUILayout.LabelField($"{urpAsset.GetAdditionalLightsShadowResolution(shadowResolutionTier)} ({urpAsset.name})", GUILayout.ExpandWidth(false));
-                    }
+                    //else
+                    //{
+                    //    if (GraphicsSettings.renderPipelineAsset is UniversalRenderPipelineAsset urpAsset)
+                    //        EditorGUILayout.LabelField($"{urpAsset.GetAdditionalLightsShadowResolution(shadowResolutionTier)} ({urpAsset.name})", GUILayout.ExpandWidth(false));
+                    //}
                     if (checkScope.changed)
                     {
                         serializedLight.additionalLightsShadowResolutionTierProp.intValue = shadowResolutionTier;

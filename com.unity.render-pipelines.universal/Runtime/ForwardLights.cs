@@ -68,17 +68,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             public bool clusteredRendering;
             public int tileSize;
 
-            static internal InitParams GetDefault()
+            static internal InitParams GetDefault(UniversalRenderer renderer)
             {
                 InitParams p;
                 {
                     var settings = LightCookieManager.Settings.GetDefault();
-                    var asset = UniversalRenderPipeline.asset;
-                    if (asset)
-                    {
-                        settings.atlas.format = asset.additionalLightsCookieFormat;
-                        settings.atlas.resolution = asset.additionalLightsCookieResolution;
-                    }
+                    settings.atlas.format = renderer.additionalLightsCookieFormat;
+                    settings.atlas.resolution = renderer.additionalLightsCookieResolution;
 
                     p.lightCookieManager = new LightCookieManager(ref settings);
                     p.clusteredRendering = false;
@@ -88,7 +84,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        public ForwardLights() : this(InitParams.GetDefault()) { }
+        public ForwardLights(UniversalRenderer renderer) : this(InitParams.GetDefault(renderer)) { }
 
         internal ForwardLights(InitParams initParams)
         {

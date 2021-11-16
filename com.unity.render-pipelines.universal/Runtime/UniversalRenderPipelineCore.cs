@@ -449,9 +449,6 @@ namespace UnityEngine.Rendering.Universal
         static Vector4 k_DefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
         static Vector4 k_DefaultLightsProbeChannel = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
-        static List<Vector4> m_ShadowBiasData = new List<Vector4>();
-        static List<int> m_ShadowResolutionData = new List<int>();
-
         /// <summary>
         /// Checks if a camera is a game camera.
         /// </summary>
@@ -519,7 +516,7 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
-        static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, bool needsAlpha)
+        public static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, bool needsAlpha)
         {
             if (isHdrEnabled)
             {

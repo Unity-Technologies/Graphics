@@ -40,7 +40,10 @@ namespace UnityEditor.Rendering.Universal
         static UniversalGlobalSettingsPanelIMGUI()
         {
             Inspector = CED.Group(
+                SpriteSection,
+                TerrainSection,
                 LightLayerNamesSection,
+                PostProcessingSection,
                 MiscSection
             );
         }
@@ -166,6 +169,72 @@ namespace UnityEditor.Rendering.Universal
         }
 
         #endregion
+
+        #region 2D/Sprite Settings
+        static readonly CED.IDrawer SpriteSection = CED.Group(
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.spriteSettingsLabel)),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group(DrawSpriteSettings),
+            CED.Group((serialized, owner) => EditorGUILayout.Space())
+        );
+        static void DrawSpriteSettings(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            var oldWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = Styles.labelWidth;
+
+            using (new EditorGUI.IndentLevelScope())
+            {
+                using (var changed = new EditorGUI.ChangeCheckScope())
+                {
+                    EditorGUILayout.PropertyField(serialized.transparencySortMode, Styles.transparencySortMode);
+
+                    using (new EditorGUI.DisabledGroupScope(serialized.transparencySortMode.intValue != (int)TransparencySortMode.CustomAxis))
+                        EditorGUILayout.PropertyField(serialized.transparencySortAxis, Styles.transparencySortAxis);
+
+                    EditorGUILayout.PropertyField(serialized.defaultSpriteMaterialType, Styles.defaultMaterialType);
+                    if (serialized.defaultSpriteMaterialType.intValue == (int)UniversalRenderPipelineGlobalSettings.SpriteDefaultMaterialType.Custom)
+                        EditorGUILayout.PropertyField(serialized.defaultSpriteCustomMaterial, Styles.defaultCustomMaterial);
+                    if (changed.changed)
+                    {
+                        serialized.serializedObject?.ApplyModifiedProperties();
+                        (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
+                    }
+                }
+            }
+
+            EditorGUIUtility.labelWidth = oldWidth;
+        }
+        #endregion
+
+        #region Terrain Settings
+        static readonly CED.IDrawer TerrainSection = CED.Group(
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.terrainSettingsLabel)),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group(DrawTerrainSettings),
+            CED.Group((serialized, owner) => EditorGUILayout.Space())
+        );
+        static void DrawTerrainSettings(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            var oldWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = Styles.labelWidth;
+
+            using (new EditorGUI.IndentLevelScope())
+            {
+                using (var changed = new EditorGUI.ChangeCheckScope())
+                {
+                    EditorGUILayout.PropertyField(serialized.supportsTerrainHolesProp, Styles.supportsTerrainHolesText);
+                    if (changed.changed)
+                    {
+                        serialized.serializedObject?.ApplyModifiedProperties();
+                        (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
+                    }
+                }
+            }
+
+            EditorGUIUtility.labelWidth = oldWidth;
+        }
+        #endregion
+
         #region Rendering Layer Names
 
         static readonly CED.IDrawer LightLayerNamesSection = CED.Group(
@@ -216,6 +285,54 @@ namespace UnityEditor.Rendering.Universal
 
         #endregion
 
+        #region PostProcessing Settings
+
+        static readonly CED.IDrawer PostProcessingSection = CED.Group(
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.PostProcessingSettingsLabel)),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group(DrawPostProcessing),
+            CED.Group((serialized, owner) => EditorGUILayout.Space())
+        );
+
+        static void DrawPostProcessing(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor ownerEditor)
+        {
+            var oldWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = Styles.labelWidth;
+
+            using (new EditorGUI.IndentLevelScope())
+            {
+                using (var changed = new EditorGUI.ChangeCheckScope())
+                {
+                    EditorGUI.BeginChangeCheck();
+                    var postProcessIncluded = EditorGUILayout.Toggle(Styles.PostProcessIncluded, serialized.postProcessData.objectReferenceValue != null);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        serialized.postProcessData.objectReferenceValue = postProcessIncluded ? PostProcessData.GetDefaultPostProcessData() : null;
+                    }
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(serialized.postProcessData, Styles.PostProcessLabel);
+                    EditorGUI.indentLevel--;
+
+                    EditorGUILayout.PropertyField(serialized.colorGradingMode, Styles.colorGradingMode);
+
+                    EditorGUILayout.DelayedIntField(serialized.colorGradingLutSize, Styles.colorGradingLutSize);
+                    serialized.colorGradingLutSize.intValue = Mathf.Clamp(serialized.colorGradingLutSize.intValue, UniversalRenderPipelineGlobalSettings.k_MinLutSize, UniversalRenderPipelineGlobalSettings.k_MaxLutSize);
+
+                    EditorGUILayout.PropertyField(serialized.useFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
+                    CoreEditorUtils.DrawPopup(Styles.volumeFrameworkUpdateMode, serialized.volumeFrameworkUpdateModeProp, Styles.volumeFrameworkUpdateOptions);
+                    if (changed.changed)
+                    {
+                        serialized.serializedObject?.ApplyModifiedProperties();
+                        (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
+                    }
+                }
+            }
+
+            EditorGUIUtility.labelWidth = oldWidth;
+        }
+
+        #endregion
+
         #region Misc Settings
 
         static readonly CED.IDrawer MiscSection = CED.Group(
@@ -232,14 +349,27 @@ namespace UnityEditor.Rendering.Universal
 
             using (new EditorGUI.IndentLevelScope())
             {
+                using (var changed = new EditorGUI.ChangeCheckScope())
+                {
+                    EditorGUILayout.PropertyField(serialized.useNativeRenderPass, Styles.RenderPassLabel);
+                    EditorGUILayout.PropertyField(serialized.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
+                    EditorGUILayout.Space();
+                    EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevel);
+                    EditorGUILayout.PropertyField(serialized.debugLevelProp, Styles.debugLevel);
+                    if (changed.changed)
+                    {
+                        serialized.serializedObject?.ApplyModifiedProperties();
+                        (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
+                    }
+                }
                 EditorGUILayout.PropertyField(serialized.stripDebugVariants, Styles.stripDebugVariantsLabel);
                 EditorGUILayout.PropertyField(serialized.stripUnusedPostProcessingVariants, Styles.stripUnusedPostProcessingVariantsLabel);
                 EditorGUILayout.PropertyField(serialized.stripUnusedVariants, Styles.stripUnusedVariantsLabel);
+                EditorGUILayout.Space();
             }
-
             EditorGUIUtility.labelWidth = oldWidth;
         }
-
         #endregion
+
     }
 }

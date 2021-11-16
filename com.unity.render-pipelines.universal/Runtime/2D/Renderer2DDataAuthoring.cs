@@ -5,12 +5,6 @@ namespace UnityEngine.Rendering.Universal
     public partial class Renderer2DData
     {
 #if UNITY_EDITOR
-        [SerializeField]
-        Renderer2DDefaultMaterialType m_DefaultMaterialType = Renderer2DDefaultMaterialType.Lit;
-
-        [SerializeField, Reload("Runtime/Materials/Sprite-Lit-Default.mat")]
-        Material m_DefaultCustomMaterial = null;
-
         [SerializeField, Reload("Runtime/Materials/Sprite-Lit-Default.mat")]
         Material m_DefaultLitMaterial = null;
 
@@ -29,12 +23,13 @@ namespace UnityEngine.Rendering.Universal
         {
             if (materialType == DefaultMaterialType.Sprite || materialType == DefaultMaterialType.Particle)
             {
-                if (m_DefaultMaterialType == Renderer2DDefaultMaterialType.Lit)
+                var matType = UniversalRenderPipelineGlobalSettings.instance.defaultSpriteMaterialType;
+                if (matType == UniversalRenderPipelineGlobalSettings.SpriteDefaultMaterialType.Lit)
                     return m_DefaultLitMaterial;
-                else if (m_DefaultMaterialType == Renderer2DDefaultMaterialType.Unlit)
+                else if (matType == UniversalRenderPipelineGlobalSettings.SpriteDefaultMaterialType.Unlit)
                     return m_DefaultUnlitMaterial;
                 else
-                    return m_DefaultCustomMaterial;
+                    return UniversalRenderPipelineGlobalSettings.instance.defaultSpriteCustomMaterial;
             }
             if (materialType == DefaultMaterialType.SpriteMask)
             {

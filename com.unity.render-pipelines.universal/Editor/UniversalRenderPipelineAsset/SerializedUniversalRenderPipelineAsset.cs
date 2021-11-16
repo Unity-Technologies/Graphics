@@ -11,8 +11,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty requireDepthTextureProp { get; }
         public SerializedProperty requireOpaqueTextureProp { get; }
         public SerializedProperty opaqueDownsamplingProp { get; }
-        public SerializedProperty supportsTerrainHolesProp { get; }
-        public SerializedProperty storeActionsOptimizationProperty { get; }
 
         public SerializedProperty hdr { get; }
         public SerializedProperty msaa { get; }
@@ -52,14 +50,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty supportsDynamicBatching { get; }
         public SerializedProperty mixedLightingSupportedProp { get; }
         public SerializedProperty supportsLightLayers { get; }
-        public SerializedProperty debugLevelProp { get; }
-
-        public SerializedProperty shaderVariantLogLevel { get; }
-        public SerializedProperty volumeFrameworkUpdateModeProp { get; }
-
-        public SerializedProperty colorGradingMode { get; }
-        public SerializedProperty colorGradingLutSize { get; }
-        public SerializedProperty useFastSRGBLinearConversion { get; }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
         public SerializedProperty useAdaptivePerformance { get; }
@@ -77,7 +67,6 @@ namespace UnityEditor.Rendering.Universal
             requireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             requireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
             opaqueDownsamplingProp = serializedObject.FindProperty("m_OpaqueDownsampling");
-            supportsTerrainHolesProp = serializedObject.FindProperty("m_SupportsTerrainHoles");
 
             hdr = serializedObject.FindProperty("m_SupportsHDR");
             msaa = serializedObject.FindProperty("m_MSAA");
@@ -118,17 +107,6 @@ namespace UnityEditor.Rendering.Universal
             supportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");
             mixedLightingSupportedProp = serializedObject.FindProperty("m_MixedLightingSupported");
             supportsLightLayers = serializedObject.FindProperty("m_SupportsLightLayers");
-            debugLevelProp = serializedObject.FindProperty("m_DebugLevel");
-
-            shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
-            volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
-
-            storeActionsOptimizationProperty = serializedObject.FindProperty("m_StoreActionsOptimization");
-
-            colorGradingMode = serializedObject.FindProperty("m_ColorGradingMode");
-            colorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");
-
-            useFastSRGBLinearConversion = serializedObject.FindProperty("m_UseFastSRGBLinearConversion");
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");

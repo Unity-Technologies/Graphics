@@ -10,8 +10,6 @@ namespace UnityEditor.Rendering.Universal
         private static class Styles
         {
             public static readonly GUIContent RendererTitle = EditorGUIUtility.TrTextContent("Universal Renderer", "Custom Universal Renderer for Universal RP.");
-            public static readonly GUIContent PostProcessIncluded = EditorGUIUtility.TrTextContent("Enabled", "Enables the use of post processing effects within the scene. If disabled, Unity excludes post processing renderer Passes, shaders and textures from the build.");
-            public static readonly GUIContent PostProcessLabel = EditorGUIUtility.TrTextContent("Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
             public static readonly GUIContent FilteringSectionLabel = EditorGUIUtility.TrTextContent("Filtering", "Settings that controls and define which layers the renderer draws.");
             public static readonly GUIContent OpaqueMask = EditorGUIUtility.TrTextContent("Opaque Layer Mask", "Controls which opaque layers this renderer draws.");
             public static readonly GUIContent TransparentMask = EditorGUIUtility.TrTextContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
@@ -23,9 +21,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent CopyDepthModeLabel = EditorGUIUtility.TrTextContent("Copy Depth Mode", "Controls after which pass URP copies the scene depth. It has a significant impact on mobile devices bandwidth usage.");
             public static readonly GUIContent RenderPassLabel = EditorGUIUtility.TrTextContent("Native RenderPass", "Enables URP to use RenderPass API. Has no effect on OpenGLES2");
 
-            public static readonly GUIContent RenderPassSectionLabel = EditorGUIUtility.TrTextContent("RenderPass", "This section contains properties related to render passes.");
             public static readonly GUIContent ShadowsSectionLabel = EditorGUIUtility.TrTextContent("Shadows", "This section contains properties related to rendering shadows.");
-            public static readonly GUIContent PostProcessingSectionLabel = EditorGUIUtility.TrTextContent("Post-processing", "This section contains properties related to rendering post-processing.");
 
             public static readonly GUIContent OverridesSectionLabel = EditorGUIUtility.TrTextContent("Overrides", "This section contains Render Pipeline properties that this Renderer overrides.");
 
@@ -45,9 +41,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AccurateGbufferNormals;
         SerializedProperty m_ClusteredRendering;
         SerializedProperty m_TileSize;
-        SerializedProperty m_UseNativeRenderPass;
         SerializedProperty m_DefaultStencilState;
-        SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
         SerializedProperty m_IntermediateTextureMode;
@@ -58,7 +52,7 @@ namespace UnityEditor.Rendering.Universal
         static bool s_EnableClusteredUI => false;
 #endif
 
-        private void OnEnable()
+        private new void OnEnable()
         {
             m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
             m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
@@ -68,9 +62,7 @@ namespace UnityEditor.Rendering.Universal
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             m_ClusteredRendering = serializedObject.FindProperty("m_ClusteredRendering");
             m_TileSize = serializedObject.FindProperty("m_TileSize");
-            m_UseNativeRenderPass = serializedObject.FindProperty("m_UseNativeRenderPass");
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
-            m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
             m_IntermediateTextureMode = serializedObject.FindProperty("m_IntermediateTextureMode");
@@ -127,28 +119,12 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.RenderPassSectionLabel, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_UseNativeRenderPass, Styles.RenderPassLabel);
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.ShadowsSectionLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_ShadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
-            EditorGUILayout.LabelField(Styles.PostProcessingSectionLabel, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
-            var postProcessIncluded = EditorGUILayout.Toggle(Styles.PostProcessIncluded, m_PostProcessData.objectReferenceValue != null);
-            if (EditorGUI.EndChangeCheck())
-            {
-                m_PostProcessData.objectReferenceValue = postProcessIncluded ? PostProcessData.GetDefaultPostProcessData() : null;
-            }
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
-            EditorGUI.indentLevel--;
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 

@@ -408,7 +408,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_RequiresDepthTextureOption == CameraOverrideOption.UsePipelineSettings)
                 {
-                    return UniversalRenderPipeline.asset.supportsCameraDepthTexture;
+                    return scriptableRenderer.supportsCameraDepthTexture;
                 }
                 else
                 {
@@ -428,7 +428,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_RequiresOpaqueTextureOption == CameraOverrideOption.UsePipelineSettings)
                 {
-                    return UniversalRenderPipeline.asset.supportsCameraOpaqueTexture;
+                    return scriptableRenderer.supportsCameraOpaqueTexture;
                 }
                 else
                 {
@@ -504,7 +504,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateMode.UsePipelineSettings)
                 {
-                    return UniversalRenderPipeline.asset.volumeFrameworkUpdateMode != VolumeFrameworkUpdateMode.ViaScripting;
+                    return UniversalRenderPipelineGlobalSettings.instance.volumeFrameworkUpdateMode != VolumeFrameworkUpdateMode.ViaScripting;
                 }
 
                 return m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateMode.EveryFrame;
