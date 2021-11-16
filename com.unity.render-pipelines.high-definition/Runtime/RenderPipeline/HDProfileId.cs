@@ -107,6 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingDebugCluster,
         // RT acceleration structure setup
         RaytracingBuildAccelerationStructure,
+        RaytracingBuildAccelerationStructureDebug,
         // RTR
         RaytracingReflectionDirectionGeneration,
         RaytracingReflectionEvaluation,

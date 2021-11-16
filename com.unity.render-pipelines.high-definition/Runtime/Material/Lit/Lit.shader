@@ -1151,6 +1151,7 @@ Shader "HDRP/Lit"
 
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
             #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
+            #pragma multi_compile _ RTAS_DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 

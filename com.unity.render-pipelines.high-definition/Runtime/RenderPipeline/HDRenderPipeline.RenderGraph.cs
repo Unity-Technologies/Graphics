@@ -79,6 +79,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle vtFeedbackBuffer = TextureHandle.nullHandle;
 #endif
 
+                EvaluateRTASDebugView(m_RenderGraph, hdCamera);
+
                 LightingBuffers lightingBuffers = new LightingBuffers();
                 lightingBuffers.diffuseLightingBuffer = CreateDiffuseLightingBuffer(m_RenderGraph, hdCamera.msaaSamples);
                 lightingBuffers.sssBuffer = CreateSSSBuffer(m_RenderGraph, hdCamera, hdCamera.msaaSamples);

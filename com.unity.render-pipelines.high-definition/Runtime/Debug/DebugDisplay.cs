@@ -99,6 +99,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display the volumetric clouds shadow at ground level.</summary>
         VolumetricCloudsShadow,
 
+        /// <summary>Display the ray tracing acceleration structure</summary>
+        RayTracingAccelerationStructure,
+
         /// <summary>Maximum Full Screen Lighting debug mode value (used internally).</summary>
         MaxLightingFullScreenDebug,
 
@@ -145,6 +148,22 @@ namespace UnityEngine.Rendering.HighDefinition
         WorldSpacePosition,
     }
 
+    internal enum RTASDebugViews
+    {
+        Shadows,
+        AmbientOcclusion,
+        GlobalIllumination,
+        Reflections,
+        RecursiveRayTracing,
+        PathTracing
+    }
+
+    internal enum RTASDebugModes
+    {
+        InstanceID,
+        PrimitiveID,
+    }
+
     /// <summary>
     /// Class managing debug display in HDRP.
     /// </summary>
@@ -172,6 +191,10 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_MaterialFullScreenDebugValues = null;
         static GUIContent[] s_MsaaSamplesDebugStrings = null;
         static int[] s_MsaaSamplesDebugValues = null;
+        static GUIContent[] s_RTASViewDebugStrings = null;
+        static int[] s_RTASViewDebugValues = null;
+        static GUIContent[] s_RTASModeDebugStrings = null;
+        static int[] s_RTASModeDebugValues = null;
 
         static List<GUIContent> s_CameraNames = new List<GUIContent>();
         static GUIContent[] s_CameraNamesStrings = null;
@@ -262,9 +285,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool countRays = false;
             /// <summary>Display Show Lens Flare Data Driven Only.</summary>
             public bool showLensFlareDataDrivenOnly = false;
-
             /// <summary>Index of the camera to freeze for visibility.</summary>
             public int debugCameraToFreeze = 0;
+            internal RTASDebugViews rtasDebugView = RTASDebugViews.AmbientOcclusion;
+            internal RTASDebugModes rtasDebugMode = RTASDebugModes.InstanceID;
 
             /// <summary>Minimum length a motion vector needs to be to be displayed in the debug display. Unit is pixels.</summary>
             public float minMotionVectorLength = 0.0f;
@@ -296,6 +320,8 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int debugCameraToFreezeEnumIndex;
             internal int volumeComponentEnumIndex;
             internal int volumeCameraEnumIndex;
+            internal int rtasDebugViewEnumIndex;
+            internal int rtasDebugModeEnumIndex;
 
             private float m_DebugGlobalMipBiasOverride = 0.0f;
 
@@ -386,6 +412,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 .Select(t => new GUIContent(t))
                 .ToArray();
             s_MsaaSamplesDebugValues = (int[])Enum.GetValues(typeof(MSAASamples));
+
+            s_RTASViewDebugStrings = Enum.GetNames(typeof(RTASDebugViews)).Select(t => new GUIContent(t)).ToArray();
+            s_RTASViewDebugValues = (int[])Enum.GetValues(typeof(RTASDebugViews));
+
+            s_RTASModeDebugStrings = Enum.GetNames(typeof(RTASDebugModes)).Select(t => new GUIContent(t)).ToArray();
+            s_RTASModeDebugValues = (int[])Enum.GetValues(typeof(RTASDebugModes));
 
             m_Data = new DebugData();
         }
@@ -678,6 +710,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             data.fullScreenDebugMode = value;
+        }
+
+        internal void SetRTASDebugView(RTASDebugViews value)
+        {
+            data.rtasDebugView = value;
+        }
+        internal void SetRTASDebugMode(RTASDebugModes value)
+        {
+            data.rtasDebugMode = value;
         }
 
         /// <summary>
@@ -1208,12 +1249,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Fullscreen debug
             public static readonly NameAndTooltip FullscreenDebugMode = new() { name = "Fullscreen Debug Mode", tooltip = "Use the drop-down to select a rendering mode to display as an overlay on the screen." };
-            public static readonly NameAndTooltip ScreenSpaceShadowIndex = new() { name = "Screen Space Shadow Index", tooltip = "Select the index of the screen space shadows to view with the slider. There must be a Light in the scene that uses Screen Space Shadows." };
+            public static readonly NameAndTooltip ScreenSpaceShadowIndex = new () { name = "Screen Space Shadow Index", tooltip = "Select the index of the screen space shadows to view with the slider. There must be a Light in the scene that uses Screen Space Shadows." };
             public static readonly NameAndTooltip DepthPyramidDebugMip = new() { name = "Debug Mip", tooltip = "Enable to view a lower-resolution mipmap." };
             public static readonly NameAndTooltip DepthPyramidEnableRemap = new() { name = "Enable Depth Remap", tooltip = "Enable remapping of displayed depth values for better vizualization." };
             public static readonly NameAndTooltip DepthPyramidRangeMin = new() { name = "Depth Range Min Value", tooltip = "Distance at which depth values remap starts (0 is near plane, 1 is far plane)" };
             public static readonly NameAndTooltip DepthPyramidRangeMax = new() { name = "Depth Range Max Value", tooltip = "Distance at which depth values remap ends (0 is near plane, 1 is far plane)" };
             public static readonly NameAndTooltip ContactShadowsLightIndex = new() { name = "Light Index", tooltip = "Enable to display Contact shadows for each Light individually." };
+            public static readonly NameAndTooltip RTASDebugView = new () { name = "RTAS Debug View", tooltip = "." };
+            public static readonly NameAndTooltip RTASDebugMode = new () { name = "RTAS Debug Mode", tooltip = "." };
 
             // Tile/Cluster debug
             public static readonly NameAndTooltip TileClusterDebug = new() { name = "Tile/Cluster Debug", tooltip = "Use the drop-down to select the Light type that you want to show the Tile/Cluster debug information for." };
@@ -1524,6 +1567,18 @@ namespace UnityEngine.Rendering.HighDefinition
             if (data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows)
             {
                 list.Add(new DebugUI.UIntField { nameAndTooltip = LightingStrings.ScreenSpaceShadowIndex, getter = () => data.screenSpaceShadowIndex, setter = value => data.screenSpaceShadowIndex = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetMaxScreenSpaceShadows() });
+            }
+
+            if (data.fullScreenDebugMode == FullScreenDebugMode.RayTracingAccelerationStructure)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                        {
+                            new DebugUI.EnumField { nameAndTooltip = LightingStrings.RTASDebugView, getter = () => (int)data.rtasDebugView, setter = value => SetRTASDebugView((RTASDebugViews)value), enumNames = s_RTASViewDebugStrings, enumValues = s_RTASViewDebugValues, getIndex = () => data.rtasDebugViewEnumIndex, setIndex = value => { data.rtasDebugViewEnumIndex = value; } },
+                            new DebugUI.EnumField { nameAndTooltip = LightingStrings.RTASDebugMode, getter = () => (int)data.rtasDebugMode, setter = value => SetRTASDebugMode((RTASDebugModes)value), enumNames = s_RTASModeDebugStrings, enumValues = s_RTASModeDebugValues, getIndex = () => data.rtasDebugModeEnumIndex, setIndex = value => { data.rtasDebugModeEnumIndex = value; } }
+                        }
+                });
             }
 
             switch (data.fullScreenDebugMode)

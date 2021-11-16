@@ -217,6 +217,10 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float4 color = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)input.positionCS.xy);
                     return color;
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_RAY_TRACING_ACCELERATION_STRUCTURE)
+                {
+                    return SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_MOTION_VECTORS)
                 {
                     float2 mv = SampleMotionVectors(input.texcoord);

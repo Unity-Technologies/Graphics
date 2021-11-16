@@ -3,7 +3,7 @@
 
 // Generic function that handles the reflection code
 [shader("closesthit")]
-void ClosestHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+void ClosestHitVisibility(inout RayIntersectionVisiblity rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
@@ -22,11 +22,16 @@ void ClosestHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload,
     float3 positionOS = ObjectRayOrigin() + ObjectRayDirection() * rayIntersection.t;
     float3 previousPositionWS = TransformPreviousObjectToWorld(positionOS);
     rayIntersection.velocity = saturate(length(previousPositionWS - fragInput.positionRWS));
+#if defined(RTAS_DEBUG_DISPLAY)
+    rayIntersection.barycentrics = attributeData.barycentrics;
+    rayIntersection.primitiveIndex = PrimitiveIndex();
+    rayIntersection.instanceIndex = InstanceIndex();
+#endif
 }
 
 // Generic function that handles the reflection code
 [shader("anyhit")]
-void AnyHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+void AnyHitVisibility(inout RayIntersectionVisiblity rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
@@ -44,6 +49,13 @@ void AnyHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload, Att
     // Compute the distance of the ray
     rayIntersection.t = RayTCurrent();
 
+    // Debug data
+#if defined(RTAS_DEBUG_DISPLAY)
+    rayIntersection.barycentrics = attributeData.barycentrics;
+    rayIntersection.primitiveIndex = PrimitiveIndex();
+    rayIntersection.instanceIndex = InstanceIndex();
+#endif
+
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
     posInput.positionSS = rayIntersection.pixelCoord;
@@ -60,6 +72,7 @@ void AnyHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload, Att
         IgnoreHit();
         return;
     }
+
 #if defined(TRANSPARENT_COLOR_SHADOW) && defined(_SURFACE_TYPE_TRANSPARENT)
     // Compute the velocity of the itnersection
     float3 positionOS = ObjectRayOrigin() + ObjectRayDirection() * rayIntersection.t;

@@ -11,11 +11,32 @@ struct RayCone
     float spreadAngle;
 };
 
+// Structure that defines the current state of the visibility
+struct RayIntersectionVisiblity
+{
+    // Distance of the intersection
+    float t;
+    // Velocity for the intersection point
+    float velocity;
+    // Cone representation of the ray
+    RayCone cone;
+    // Pixel coordinate from which the initial ray was launched
+    uint2 pixelCoord;
+    // Value that holds the color of the ray or debug data
+    float3 color;
+#if defined(RTAS_DEBUG_DISPLAY)
+    // Barycentrics of the intersection
+    float2 barycentrics;
+    // Index of the primitive
+    uint primitiveIndex;
+    // Index of the instance
+    uint instanceIndex;
+#endif
+};
+
 // Structure that defines the current state of the intersection
 struct RayIntersection
 {
-    // Origin of the current ray -- FIXME: can be obtained by WorldRayPosition(), should we remove it?
-    float3  origin;
     // Distance of the intersection
     float t;
     // Value that holds the color of the ray

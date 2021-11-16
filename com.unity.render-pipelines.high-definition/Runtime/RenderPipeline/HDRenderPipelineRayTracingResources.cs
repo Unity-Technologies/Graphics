@@ -86,5 +86,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Filtering for reflections
         [Reload("Runtime/RenderPipelineResources/Texture/ReflectionKernelMapping.png")]
         public Texture2D reflectionFilterMapping;
+
+        // Ray tracing Debug
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RTASDebug.raytrace")]
+        public RayTracingShader rtasDebug;
     }
 }
