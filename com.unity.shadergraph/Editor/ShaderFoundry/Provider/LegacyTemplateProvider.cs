@@ -208,7 +208,7 @@ namespace UnityEditor.ShaderFoundry
             public string Destination;
         }
 
-        Block BuildMainBlock(string blockName, Block preBlock, Block postBlock, List<NameOverride> nameMappings, Dictionary<string, string> defaultVariableValues)
+        Block BuildMainBlock(string blockName, Block preBlock, Block postBlock, List<NameOverride> nameMappings, Dictionary<string, string> defaultVariableValues, List<FieldDescriptor> fieldDescriptors)
         {
             var mainBlockBuilder = new Block.Builder(Container, blockName);
 
@@ -218,44 +218,58 @@ namespace UnityEditor.ShaderFoundry
             }
             else
             {
-                // Collect the available inputs/outputs for this block
+                // Collect some values for quick lookups by name
                 var availableInputs = new Dictionary<string, BlockOutput>();
-                var availableOutputs = new Dictionary<string, BlockInput>();
                 foreach (var prop in preBlock.Outputs)
                     availableInputs[prop.ReferenceName] = prop;
-                foreach (var prop in postBlock.Inputs)
-                    availableOutputs[prop.ReferenceName] = prop;
-
+                var fieldDescriptorsByName = new Dictionary<string, FieldDescriptor>();
+                foreach (var fieldDescriptor in fieldDescriptors)
+                    fieldDescriptorsByName[fieldDescriptor.name] = fieldDescriptor;
+                var nameMappingsByOutputName = new Dictionary<string, NameOverride>();
+                foreach(var mapping in nameMappings)
+                    nameMappingsByOutputName[mapping.Destination] = mapping;
+                
                 // Build the input/output type from the matching fields
                 var inputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultIn");
                 var outputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultOut");
-                HashSet<string> declaredInputs = new HashSet<string>();
-                HashSet<string> declaredOutputs = new HashSet<string>();
 
-                // Check for any name remappings (e.g. ObjectSpacePosition -> Position).
-                // If we find any then declare the appropriate inputs, outputs, and struct fields
-                foreach (var mapping in nameMappings)
+                HashSet<string> declaredInputs = new HashSet<string>();
+                var variableExpressions = new Dictionary<string, string>();
+                // For every potential output, find out if it exists, and if so what its default expression is
+                foreach (var output in postBlock.Inputs)
                 {
-                    BlockOutput inputProp;
-                    BlockInput outputProp;
-                    availableInputs.TryGetValue(mapping.Source, out inputProp);
-                    availableOutputs.TryGetValue(mapping.Destination, out outputProp);
-                    if (inputProp.IsValid && outputProp.IsValid)
+                    // First check if this is a variable remapping (i.e. one input name is getting remapped to a different output name)
+                    if(nameMappingsByOutputName.TryGetValue(output.ReferenceName, out var mapping))
                     {
-                        inputBuilder.AddField(inputProp.Type, inputProp.ReferenceName);
-                        outputBuilder.AddField(outputProp.Type, outputProp.ReferenceName);
-                        declaredInputs.Add(inputProp.ReferenceName);
-                        declaredOutputs.Add(outputProp.ReferenceName);
+                        BlockOutput inputProp;
+                        availableInputs.TryGetValue(mapping.Source, out inputProp);
+                        if (inputProp.IsValid)
+                        {
+                            outputBuilder.AddField(output.Type, output.ReferenceName);
+                            // Add the input if we haven't already declared it
+                            if(!declaredInputs.Contains(inputProp.ReferenceName))
+                            {
+                                inputBuilder.AddField(inputProp.Type, inputProp.ReferenceName);
+                                declaredInputs.Add(inputProp.ReferenceName);
+                            }
+                            variableExpressions[output.ReferenceName] = $"input.{mapping.Source};";
+                        }
                     }
-                }
-                // Also handle setting default values for outputs
-                foreach(var defaultVariableValue in defaultVariableValues)
-                {
-                    BlockInput outputProp;
-                    if(availableOutputs.TryGetValue(defaultVariableValue.Key, out outputProp) && !declaredOutputs.Contains(defaultVariableValue.Key))
+                    // Next see if this is a manually set default value
+                    else if(defaultVariableValues.TryGetValue(output.ReferenceName, out var defaultValue))
                     {
-                        declaredOutputs.Add(defaultVariableValue.Key);
-                        outputBuilder.AddField(outputProp.Type, outputProp.ReferenceName);
+                        variableExpressions[output.ReferenceName] = defaultValue;
+                        outputBuilder.AddField(output.Type, output.ReferenceName);
+                    }
+                    // Finally, check if this has a default value we can extract from a field descriptor
+                    else if (fieldDescriptorsByName.TryGetValue(output.ReferenceName, out var fieldDescriptor))
+                    {
+                        var defaultValueStr = GetDefaultValueString(output.Type, fieldDescriptor);
+                        if (defaultValueStr != null)
+                        {
+                            variableExpressions[output.ReferenceName] = defaultValueStr;
+                            outputBuilder.AddField(output.Type, output.ReferenceName);
+                        }
                     }
                 }
 
@@ -269,24 +283,12 @@ namespace UnityEditor.ShaderFoundry
                 fnBuilder.AddInput(inType, "input");
 
                 fnBuilder.AddLine($"{outType.Name} output;");
-                foreach(var mapping in nameMappings)
+
+                // Declare the expression for every output field
+                foreach(var field in outType.StructFields)
                 {
-                    BlockOutput inputProp;
-                    BlockInput outputProp;
-                    availableInputs.TryGetValue(mapping.Source, out inputProp);
-                    availableOutputs.TryGetValue(mapping.Destination, out outputProp);
-                    // Write a copy line for all matching input/outputs
-                    if(inputProp.IsValid && outputProp.IsValid)
-                    {
-                        fnBuilder.AddLine($"output.{mapping.Destination} = input.{mapping.Source};");
-                    }
-                }
-                foreach(var defaultVariableValue in defaultVariableValues)
-                {
-                    if(availableOutputs.TryGetValue(defaultVariableValue.Key, out var dummy))
-                    {
-                        fnBuilder.AddLine($"output.{defaultVariableValue.Key} = {defaultVariableValue.Value};");
-                    }
+                    if(variableExpressions.TryGetValue(field.Name, out var expression))
+                        fnBuilder.AddLine($"output.{field.Name} = {expression};");
                 }
 
                 fnBuilder.AddLine($"return output;");
@@ -309,7 +311,7 @@ namespace UnityEditor.ShaderFoundry
             nameMappings.Add(new NameOverride { Source = "ObjectSpaceNormal", Destination = "Normal" });
             nameMappings.Add(new NameOverride { Source = "ObjectSpaceTangent", Destination = "Tangent" });
             var defaultVariableValues = new Dictionary<string, string>();
-            var vertexMainBlock = BuildMainBlock(LegacyCustomizationPoints.VertexDescriptionFunctionName, vertexPreBlock, vertexPostBlock, nameMappings, defaultVariableValues);
+            var vertexMainBlock = BuildMainBlock(LegacyCustomizationPoints.VertexDescriptionFunctionName, vertexPreBlock, vertexPostBlock, nameMappings, defaultVariableValues, vertexFields);
         
             var id0 = passBuilder.AddBlock(BuildSimpleBlockDesc(vertexPreBlock), UnityEditor.Rendering.ShaderType.Vertex);
             var id1 = passBuilder.AddBlock(BuildSimpleBlockDesc(vertexMainBlock), UnityEditor.Rendering.ShaderType.Vertex);
@@ -327,17 +329,8 @@ namespace UnityEditor.ShaderFoundry
             nameMappings.Add(new NameOverride { Source = "WorldSpaceNormal", Destination = "NormalWS" });
             nameMappings.Add(new NameOverride { Source = "TangentSpaceNormal", Destination = "NormalTS" });
             // Need to create the default outputs for the fragment output. This isn't currently part of the field descriptors.
-            var defaultVariableValues = new Dictionary<string, string>
-            {
-                { "BaseColor", "float3(0, 0, 0)" },
-                { "Smoothness", "0.5f" },
-                { "Occlusion", "1" },
-                { "Emission", "float3(0, 0, 0)" },
-                { "Metallic", "0" },
-                { "Alpha", "1" },
-                { "AlphaClipThreshold", "0.5f" },
-            };
-            var fragmentMainBlock = BuildMainBlock(LegacyCustomizationPoints.SurfaceDescriptionFunctionName, fragmentPreBlock, fragmentPostBlock, nameMappings, defaultVariableValues);
+            var defaultVariableValues = new Dictionary<string, string>();
+            var fragmentMainBlock = BuildMainBlock(LegacyCustomizationPoints.SurfaceDescriptionFunctionName, fragmentPreBlock, fragmentPostBlock, nameMappings, defaultVariableValues, fragmentFields);
 
             var id0 = passBuilder.AddBlock(BuildSimpleBlockDesc(fragmentPreBlock), UnityEditor.Rendering.ShaderType.Fragment);
             var id1 = passBuilder.AddBlock(BuildSimpleBlockDesc(fragmentMainBlock), UnityEditor.Rendering.ShaderType.Fragment);
@@ -397,6 +390,50 @@ namespace UnityEditor.ShaderFoundry
                 results.Add(builder.Build());
             }
             return results;
+        }
+
+        string GetDefaultValueString(ShaderType fieldType, FieldDescriptor fieldDescriptor)
+        {
+            // A color value might be bound to a different actual shader type, if so we have to only grab the relevant values
+            string GetColorDefaultValueString(ShaderType fieldType, UnityEngine.Color color)
+            {
+                var builder = new ShaderStringBuilder();
+                builder.Append(fieldType.Name);
+                builder.Append("(");
+                for(var i = 0; i < fieldType.VectorDimension; ++i)
+                {
+                    if (i != 0)
+                        builder.Append(", ");
+                    builder.Append(color[i].ToString());
+                }
+                builder.Append(")");
+                return builder.ToString();
+            }
+
+            // It seems like the only way to get at the default value current is to extract it from the control on the block field.
+            if (fieldDescriptor is BlockFieldDescriptor blockField)
+            {
+                switch (blockField.control)
+                {
+                    case FloatControl floatControl:
+                        return floatControl.value.ToString();
+                    case Vector2Control vec2Control:
+                        return vec2Control.value.ToString();
+                    case Vector3Control vec3Control:
+                        return vec3Control.value.ToString();
+                    case Vector4Control vec4Control:
+                        return vec4Control.value.ToString();
+                    case ColorControl colorControl:
+                        return GetColorDefaultValueString(fieldType, colorControl.value);
+                    case ColorRGBAControl colorRGBAControl:
+                        return GetColorDefaultValueString(fieldType, colorRGBAControl.value);
+                    case VertexColorControl vertexColorControl:
+                        return GetColorDefaultValueString(fieldType, vertexColorControl.value);
+                    default:
+                        return null;
+                }
+            }
+            return null;
         }
 
         ShaderType BuildType(string name, IEnumerable<StructField> fields)
