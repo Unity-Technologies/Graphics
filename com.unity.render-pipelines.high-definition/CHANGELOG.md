@@ -4,6 +4,25 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.2] - 2021-11-05
+
+### Added
+- Added minimal picking support for DOTS 1.0 (on parity with Hybrid Renderer V2)
+
+### Fixed
+- Fixed compilation errors when using Elipse, Rectangle, Polygon, Checkerboard, RoundedPolygon, RoundedRectangle in a ray tracing shader graph (case 1377610).
+- Fixed outdated documentation about supported GPUs for ray tracing (case 1375895).
+- Fixed outdated documentation about recursie ray tracing effects support (case 1374904).
+- Fixed Shadow Matte not appearing in ray tracing effects (case 1364005).
+- Fixed Crash issue when adding an area light on its own.
+- Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
+- Fixed light unit conversion after changing mid gray value.
+- Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
+- Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
+
+### Changed
+- Optimizations for the physically based depth of field.
+
 ## [13.1.1] - 2021-10-04
 
 ### Added
@@ -14,7 +33,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added API to edit diffusion profiles and set IES on lights.
 - Added public API to reset path tracing accumulation, and check its status.
 - Added support for SensorSDK's Lidar and camera models in path tracing.
-- Added minimal picking support for DOTS 1.0 (on parity with Hybrid Renderer V2)
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
@@ -53,15 +71,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the point distribution for the diffuse denoiser sometimes not being properly intialized.
 - Fixed the bad blending between the sun and the clouds (case 1373282).
 - Fixed and optimize distance shadowmask fade.
-- Fixed compilation errors when using Elipse, Rectangle, Polygon, Checkerboard, RoundedPolygon, RoundedRectangle in a ray tracing shader graph (case 1377610).
-- Fixed outdated documentation about supported GPUs for ray tracing (case 1375895).
-- Fixed outdated documentation about recursie ray tracing effects support (case 1374904).
-- Fixed Shadow Matte not appearing in ray tracing effects (case 1364005).
-- Fixed Crash issue when adding an area light on its own.
-- Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
-- Fixed light unit conversion after changing mid gray value.
-- Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
-- Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
@@ -88,7 +97,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
-- Optimizations for the physically based depth of field.
 
 ### Fixed
 - Fixed the volume not being assigned on some scene templates.
