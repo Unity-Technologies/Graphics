@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Legacy;
 using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
@@ -11,6 +12,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     sealed class UniversalUnlitSubTarget : UniversalSubTarget, ILegacyTarget
     {
         static readonly GUID kSourceCodeGuid = new GUID("97c3f7dcb477ec842aa878573640313a"); // UniversalUnlitSubTarget.cs
+
+        public override int latestVersion => 1;
 
         public UniversalUnlitSubTarget()
         {
@@ -128,6 +131,25 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             };
 
             return true;
+        }
+
+        internal override void OnAfterParentTargetDeserialized()
+        {
+            Assert.IsNotNull(target);
+
+            if (this.sgVersion < latestVersion)
+            {
+                // Upgrade old incorrect Premultiplied blend (with alpha multiply in shader) into
+                // equivalent Alpha blend mode for backwards compatibility.
+                if (this.sgVersion < 1)
+                {
+                    if (target.alphaMode == AlphaMode.Premultiply)
+                    {
+                        target.alphaMode = AlphaMode.Alpha;
+                    }
+                }
+                ChangeVersion(latestVersion);
+            }
         }
 
         #region SubShader

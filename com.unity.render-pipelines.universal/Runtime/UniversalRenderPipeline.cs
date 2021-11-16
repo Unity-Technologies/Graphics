@@ -154,6 +154,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
             SetSupportedRenderingFeatures();
 
+            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
+
             // In QualitySettings.antiAliasing disabled state uses value 0, where in URP 1
             int qualitySettingsMsaaSampleCount = QualitySettings.antiAliasing > 0 ? QualitySettings.antiAliasing : 1;
             bool msaaSampleCountNeedsUpdate = qualitySettingsMsaaSampleCount != asset.msaaSampleCount;
@@ -237,7 +239,6 @@ namespace UnityEngine.Rendering.Universal
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.lightsUseColorTemperature = true;
-            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             GraphicsSettings.defaultRenderingLayerMask = k_DefaultRenderingLayerMask;
             SetupPerFrameShaderConstants();
 #if ENABLE_VR && ENABLE_XR_MODULE
