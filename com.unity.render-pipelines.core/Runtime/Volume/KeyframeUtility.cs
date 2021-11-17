@@ -75,7 +75,6 @@ namespace UnityEngine.Rendering
             return currKey;
         }
 
-
         /// Fetch a key from the keys list. If index<0, then expand the first key backwards to startTime. If index>=keys.length,
         /// then extend the last key to endTime. Keys must be a valid array with at least one element.
         static private Keyframe FetchKeyFromIndexClampEdge([DisallowNull] Keyframe[] keys, int index, float segmentStartTime, float segmentEndTime)
@@ -165,16 +164,16 @@ namespace UnityEngine.Rendering
         /// in the curve, this method will create a new curve from the union of times between both curves. However, to avoid creating
         /// garbage, this function will always replace the keys of lhsCurve with the final result, and return lhsCurve.
         /// </summary>
-        /// <param name="lhsCurve">The start value. Additionaly, this instance will be reused and returned as the result.</param>
+        /// <param name="lhsAndRetCurve">The start value. Additionaly, this instance will be reused and returned as the result.</param>
         /// <param name="rhsCurve">The end value.</param>
         /// <param name="t">The interpolation factor in range [0,1].</param>
-        static public AnimationCurve InterpAnimationCurve([DisallowNull]  AnimationCurve lhsCurve, [DisallowNull] AnimationCurve rhsCurve, float t)
+        static public void InterpAnimationCurve(ref AnimationCurve lhsAndResultCurve, [DisallowNull] AnimationCurve rhsCurve, float t)
         {
             if (t <= 0.0f || rhsCurve.length == 0)
             {
-                return lhsCurve;
+                // no op. lhsAndResultCurve is already the result
             }
-            else if (t >= 1.0f || lhsCurve.length == 0)
+            else if (t >= 1.0f || lhsAndResultCurve.length == 0)
             {
                 // In this case the obvous solution would be to return the rhsCurve. BUT (!) the lhsCurve and rhsCurve are different. This function is
                 // called by:
@@ -182,31 +181,29 @@ namespace UnityEngine.Rendering
                 //
                 // stateParam (lhsCurve) is a temporary in/out parameter, but toParam (rhsCurve) might point to the original component, so it's unsafe to
                 // change that data. Thus, we need to copy the keys from the rhsCurve to the lhsCurve instead of returning rhsCurve.
-                KeyframeUtility.ResetAnimationCurve(ref lhsCurve);
+                KeyframeUtility.ResetAnimationCurve(ref lhsAndResultCurve);
 
                 for (int i = 0; i < rhsCurve.length; i++)
                 {
-                    lhsCurve.AddKey(rhsCurve.keys[i]);
+                    lhsAndResultCurve.AddKey(rhsCurve.keys[i]);
                 }
-                lhsCurve.postWrapMode = rhsCurve.postWrapMode;
-                lhsCurve.preWrapMode = rhsCurve.preWrapMode;
-
-                return lhsCurve;
+                lhsAndResultCurve.postWrapMode = rhsCurve.postWrapMode;
+                lhsAndResultCurve.preWrapMode = rhsCurve.preWrapMode;
             }
             else
             {
                 // Note: If we reached this code, we are guaranteed that both lhsCruve and rhsCurve are valid with at least 1 key
 
                 // first, figure out the start and end time to include both curves
-                var lhsCurveKeys = lhsCurve.keys;
+                var lhsCurveKeys = lhsAndResultCurve.keys;
                 var rhsCurveKeys = rhsCurve.keys;
                 
                 float startTime = Mathf.Min(lhsCurveKeys[0].time, rhsCurveKeys[0].time);
-                float endTime = Mathf.Max(lhsCurveKeys[lhsCurve.length - 1].time, rhsCurveKeys[rhsCurve.length - 1].time);
+                float endTime = Mathf.Max(lhsCurveKeys[lhsAndResultCurve.length - 1].time, rhsCurveKeys[rhsCurve.length - 1].time);
 
                 // we don't know how many keys the resulting curve will have (because we will compact keys that are at the exact
                 // same time), but in most cases we will need the worst case number of keys. So allocate the worst case.
-                int maxNumKeys = lhsCurve.length + rhsCurve.length;
+                int maxNumKeys = lhsAndResultCurve.length + rhsCurve.length;
                 int currNumKeys = 0;
                 NativeArray<Keyframe> dstKeys = new NativeArray<Keyframe>(maxNumKeys, Allocator.Temp);
 
@@ -283,17 +280,14 @@ namespace UnityEngine.Rendering
                     currNumKeys++;
                 }
 
-                // This code is only called as:
-                //      stateParam.Interp(stateParam, toParam, interpFactor);
-                // So rather than creating a new value and returning it, we can make a temporary copy of lhsCurve.keys, and return the lhsCurve
-                KeyframeUtility.ResetAnimationCurve(ref lhsCurve);
+                // Replace the keys in lhsAndResultCurve with our interpolated curve.
+                KeyframeUtility.ResetAnimationCurve(ref lhsAndResultCurve);
                 for (int i = 0; i < currNumKeys; i++)
                 {
-                    lhsCurve.AddKey(dstKeys[i]);
+                    lhsAndResultCurve.AddKey(dstKeys[i]);
                 }
 
                 dstKeys.Dispose();
-                return lhsCurve;
             }
         }
     }

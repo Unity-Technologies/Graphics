@@ -1654,9 +1654,19 @@ namespace UnityEngine.Rendering
         {
         }
 
+        /// <summary>
+        /// Interpolates between two AnimationCurve values. Note that it will overwrite the values in lhsCurve,
+        /// whereas rhsCurve data will be unchanged. Thus, it is legal to call it as:
+        ///     stateParam.Interp(stateParam, toParam, interpFactor);
+        /// However, it should NOT be called when the lhsCurve parameter needs to be preserved.
+        /// </summary>
+        /// <param name="lhsCurve">The start value.</param>
+        /// <param name="rhsCurve">The end value.</param>
+        /// <param name="t">The interpolation factor in range [0,1].</param>
         public override void Interp(AnimationCurve lhsCurve, AnimationCurve rhsCurve, float t)
         {
-            m_Value = KeyframeUtility.InterpAnimationCurve(lhsCurve, rhsCurve, t);
+            m_Value = lhsCurve;
+            KeyframeUtility.InterpAnimationCurve(ref m_Value, rhsCurve, t);
         }
     }
 }
