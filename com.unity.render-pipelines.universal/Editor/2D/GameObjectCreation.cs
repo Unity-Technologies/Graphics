@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.Universal
     {
         const int k_PixelPerfectCameraGameObjectMenuPriority = 5;
 
-        [MenuItem("GameObject/2D Object/Pixel Perfect Camera", priority = k_PixelPerfectCameraGameObjectMenuPriority)]
+        [MenuItem("GameObject/2D Object/Pixel Perfect Camera (URP)", priority = k_PixelPerfectCameraGameObjectMenuPriority)]
         static void GameObjectCreatePixelPerfectCamera(MenuCommand menuCommand)
         {
             var go = CreateGameObject("Pixel Perfect Camera", menuCommand, new[] { typeof(PixelPerfectCamera) });
