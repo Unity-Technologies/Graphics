@@ -167,6 +167,7 @@ namespace UnityEngine.Rendering
             CoreUtils.Destroy(eventSystem);
         }
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
         void Update()
         {
             DebugManager debugManager = DebugManager.instance;
@@ -202,6 +203,7 @@ namespace UnityEngine.Rendering
 
             m_RuntimeUiWasVisibleLastFrame = debugManager.displayRuntimeUI;
         }
+#endif
 
         static IEnumerator RefreshRuntimeUINextFrame()
         {
