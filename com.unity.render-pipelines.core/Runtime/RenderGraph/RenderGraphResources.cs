@@ -48,6 +48,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         static public void NewFrame(int executionIndex)
         {
+            uint previousValidBit = s_CurrentValidBit;
             // Scramble frame count to avoid collision when wrapping around.
             s_CurrentValidBit = (uint)(((executionIndex >> 16) ^ (executionIndex & 0xffff) * 58546883) << 16);
             // In case the current valid bit is 0, even though perfectly valid, 0 represents an invalid handle, hence we'll
@@ -57,7 +58,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             // resources could be considered valid at frame N+1 (because shared) even though they aren't.
             if (s_CurrentValidBit == 0 || s_CurrentValidBit == s_SharedResourceValidBit)
             {
-                s_CurrentValidBit = 1 << 16;
+                // We need to make sure we don't pick the same value twice.
+                uint value = 1;
+                while (previousValidBit == (value << 16))
+                    value++;
+                s_CurrentValidBit = (value << 16);
             }
         }
     }
