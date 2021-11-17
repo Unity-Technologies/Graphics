@@ -143,25 +143,87 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
     // Initialize our material data (this will alter the bsdfData to suit path tracing, and choose between BSDF or SSS evaluation)
     MaterialData mtlData;
-    float inputSample = GetSample(pathIntersection.pixelCoord, _RaytracingSampleIndex, 0);
-    if (CreateMaterialData(pathIntersection, builtinData, bsdfData, shadingPosition, inputSample, mtlData))
+
+    const int nBounce = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
+
+    float3 inputSample = GetSample(pathIntersection.pixelCoord, _RaytracingSampleIndex, nBounce*3);
+
+
+    float lightValue = 0;
+    float directLighting = 0;
+    float indirectLighting = 0;
+    if (CreateMaterialData(pathIntersection, builtinData, bsdfData, shadingPosition, inputSample.z, mtlData))
     {
+        RayDesc rayDescriptor;
+        rayDescriptor.Origin = shadingPosition + mtlData.bsdfData.geomNormalWS * _RaytracingRayBias;
+        rayDescriptor.TMin = 0.0;
+
         float3 value, direction;
         MaterialResult mtlResult;
-
-        for (uint i = 0; i < _SensorLightCount; i++)
+        if(nBounce < 1)
         {
-            if (SampleBeam(_LightDatasRT[i], beamOrigin, beamDirection, shadingPosition, bsdfData.normalWS, direction, value))
+            for (uint i = 0; i < _SensorLightCount; i++)
             {
-                EvaluateMaterial(mtlData, direction, mtlResult);
+                if (SampleBeam(_LightDatasRT[i], beamOrigin, beamDirection, shadingPosition, bsdfData.normalWS, direction, value))
+                {
+                    EvaluateMaterial(mtlData, direction, mtlResult);
 
-                // value is in radian (w/sr) not in lumen (cd/sr), only on the red channel
-                value.x *= mtlResult.diffValue.x + mtlResult.specValue.x;
-
-                pathIntersection.value.x += value.x;
+                    // value is in radian (w/sr) not in lumen (cd/sr), only on the red channel
+                    lightValue += value.x;
+                    float pdf = mtlResult.diffPdf.x + mtlResult.specPdf.x;
+                    directLighting += value.x * (mtlResult.diffValue.x + mtlResult.specValue.x) / pdf;
+                    //pathIntersection.value.x += mtlResult.diffValue.x * value.x;
+                }
             }
         }
+        else
+        {
+            EvaluateMaterial(mtlData, -WorldRayDirection(), mtlResult);
+            lightValue = pathIntersection.value;
 
+            float pdf = mtlResult.diffPdf.x + mtlResult.specPdf.x;
+            directLighting = lightValue.x * (mtlResult.diffValue.x * mtlResult.specValue.x) / pdf;
+        }
+/*
+#ifdef _SURFACE_TYPE_TRANSPARENT
+        if(SampleMaterial(mtlData, inputSample.xyz, rayDescriptor.Direction, mtlResult))
+        {
+            PathIntersection nextPathIntersection;
+            float value = (mtlResult.diffValue.x + mtlResult.specValue.x) / (mtlResult.diffPdf + mtlResult.specPdf);
+
+            bool isSampleBelow = IsBelow(mtlData, rayDescriptor.Direction);
+
+            float3 offset = _RaytracingRayBias * mtlData.bsdfData.geomNormalWS;
+            rayDescriptor.Origin = shadingPosition + isSampleBelow ? -offset : offset;
+            rayDescriptor.TMax = FLT_INF;
+
+            // Copy path constants across
+          //  nextPathIntersection.pixelCoord = pathIntersection.pixelCoord;
+          //  nextPathIntersection.cone.width = pathIntersection.cone.width;
+
+            // Complete PathIntersection structure for this sample
+            nextPathIntersection.value.x = lightValue.x * value.x;
+            nextPathIntersection.remainingDepth = pathIntersection.remainingDepth - 1;
+            nextPathIntersection.t = rayDescriptor.TMax;
+
+            // Adjust the path max roughness (used for roughness clamping, to reduce fireflies)
+            nextPathIntersection.maxRoughness = AdjustPathRoughness(mtlData, mtlResult, isSampleBelow, pathIntersection.maxRoughness);
+
+            // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
+            //nextPathIntersection.cone.spreadAngle = pathIntersection.cone.spreadAngle + roughnessToSpreadAngle(nextPathIntersection.maxRoughness);
+
+            // Shoot ray for indirect lighting
+            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
+
+            if(directLighting.x < nextPathIntersection.value.x)
+            {
+                pathIntersection.t += nextPathIntersection.t;
+            }
+
+            pathIntersection.value = directLighting + nextPathIntersection.value;
+        }
+#endif
+*/
         ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value);
 
         // Copy the last beam radius and depth to the payload
