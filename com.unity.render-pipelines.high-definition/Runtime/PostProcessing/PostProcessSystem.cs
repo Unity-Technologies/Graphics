@@ -644,7 +644,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     PrepareDoFMipsTarget(scale, camera);
                                 }
 
-                                int passCount = Mathf.CeilToInt((dofParameters.nearMaxBlur + 2f) / 4f);
+                                GetDoFResolutionScale(dofParameters, out float tempScale, out float resScale);
+                                int passCount = GetDoFDilationPassCount(resScale, dofParameters.nearMaxBlur);
                                 RTHandle dilationPingPongRT = null;
                                 if (passCount > 1)
                                 {
@@ -2061,6 +2062,11 @@ namespace UnityEngine.Rendering.HighDefinition
             resolutionScale = (dofParameters.camera.actualHeight / 1080f) * (scale * 2f);
         }
 
+        static int GetDoFDilationPassCount(in float dofScale, in float nearMaxBlur)
+        {
+            return Mathf.CeilToInt((nearMaxBlur * dofScale + 2) / 4f);
+        }
+
         void PrepareDoFMipsTarget(float dofScale, HDCamera camera)
         {
             var mipScale = dofScale;
@@ -2327,7 +2333,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     kernel = dofParameters.dofDilateKernel;
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(targetWidth - 1, targetHeight - 1, 0f, 0f));
 
-                    int passCount = Mathf.CeilToInt((nearMaxBlur + 2f) / 4f);
+                    int passCount = GetDoFDilationPassCount(resolutionScale, nearMaxBlur);
 
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, nearCoC);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, dilatedNearCoC);
