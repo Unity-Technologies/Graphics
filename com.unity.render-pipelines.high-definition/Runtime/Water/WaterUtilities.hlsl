@@ -591,11 +591,14 @@ float VoronoiNoise(float2 coordinate)
     return minDist * minDist;
 }
 
-float EvaluateCaustics(float3 bedPositionAWS)
+float3 EvaluateCaustics(float3 bedPositionAWS)
 {
-    float2 causticsUV = EvaluateCausticsUV(bedPositionAWS);
     float normalizedDepth = saturate((_PatchOffset.y - bedPositionAWS.y - _CausticsPlaneOffset));
-    return  VoronoiNoise(causticsUV) * normalizedDepth * _CausticsIntensity;
+    float2 causticsUV = EvaluateCausticsUV(bedPositionAWS);
+    float voronoiR = VoronoiNoise(causticsUV);
+    float voronoiG = VoronoiNoise(causticsUV + float2(normalizedDepth * 0.25, 0.0));
+    float voronoiB = VoronoiNoise(causticsUV + float2(0.0, normalizedDepth * 0.25));
+    return float3(voronoiR, voronoiG, voronoiB) * normalizedDepth * _CausticsIntensity;
 }
 
 void EvaluateScatteringData(float3 waterPosRWS, float3 waterNormal, float3 lowFrequencyNormals,
@@ -659,7 +662,7 @@ void EvaluateScatteringData(float3 waterPosRWS, float3 waterNormal, float3 lowFr
     float3 cameraColor = LoadCameraColor(distortedWaterNDC * _ScreenSize.xy, 0);
 
     float3 causticPosAWS = GetAbsolutePositionWS(waterPosRWS + refractedView * underWaterDistance);
-    float causticsIntensity = EvaluateCaustics(causticPosAWS);
+    float3 causticsIntensity = EvaluateCaustics(causticPosAWS);
 
     // Evaluate the refraction color (we need to account for the initial absoption (light to underwater))
     scatteringData.refractionColor = cameraColor * (absorptionTint + causticsIntensity) * absorptionTint * GetInverseCurrentExposureMultiplier() * (1.0 - foamIntensity);

@@ -313,7 +313,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static internal Vector4 ComputeBandPatchSizes(float maxPatchSize)
         {
-            float range = maxPatchSize - k_MinPatchSize;
+            float minPatchSize = Mathf.Max(k_MinPatchSize, maxPatchSize / 200.0f);
+            float range = maxPatchSize - minPatchSize;
             float b0 = maxPatchSize;
             float b1 = maxPatchSize - 7.0f / 8.0f * range;
             float b2 = maxPatchSize - 31.0f / 32.0f * range;
