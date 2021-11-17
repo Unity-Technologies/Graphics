@@ -74,7 +74,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modified HDRP to use common FSR logic from SRP core.
 - Optimized FSR by merging the RCAS logic into the FinalPass shader.
 - Integrate a help box to inform users of the potential dependency to directional lights when baking.
-- Added more explicit error messages when trying to use NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
+- Added more explicit error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
 
 ## [13.1.0] - 2021-09-24
 

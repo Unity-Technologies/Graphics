@@ -72,6 +72,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 s.AppendLine("$precision3 {0}($precision2 uv, $precision lod, $precision exposureMultiplier)", GetFunctionName());
                 using (s.BlockScope())
                 {
+                    s.AppendLine(GetRayTracingError());
+
                     if (generationMode.IsPreview())
                     {
                         s.AppendLine("// Sampling the scene color is not supported in the preview");

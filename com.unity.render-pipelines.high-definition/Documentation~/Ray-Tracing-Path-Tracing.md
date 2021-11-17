@@ -121,7 +121,7 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
 ### Unsupported shader graph nodes for path tracing
 
 When building your custom shaders using shader graph, some nodes are incompatible with ray/path tracing. You need either to avoid using them or provide an alternative behavior using the [ray tracing shader node](SGNode-Raytracing-Quality). Here is the list of the incompatible nodes:
-- DDX, DDY, DDXY and NormalFromHeight nodes.
+- DDX, DDY, DDXY, NormalFromHeight and HDSceneColor nodes.
 - All the nodes under Inputs > Geometry (Position, View Direction, Normal, etc.) in View Space mode.
 Furthermore, Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md) are not supported in ray/path tracing.
 
