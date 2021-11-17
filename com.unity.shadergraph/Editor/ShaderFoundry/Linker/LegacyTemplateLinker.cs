@@ -783,7 +783,7 @@ namespace UnityEditor.ShaderFoundry
                     if (visitedProperties.Contains(prop.ReferenceName))
                         continue;
                     visitedProperties.Add(prop.ReferenceName);
-                    prop.DeclarePassProperty(context);
+                    UniformDeclaration.Declare(context, prop);
                 }
 
                 //if (m_Mode == GenerationMode.VFX)

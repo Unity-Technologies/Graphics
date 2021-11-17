@@ -375,24 +375,40 @@ namespace UnityEditor.ShaderFoundry
             var source = match.Source;
             var dest = match;
 
-            if (match.IsProperty)
+            if (match.IsUniform)
             {
                 var propData = dest;
                 var owningVar = subBlockInputInstance.CreateSubField(propData.Type, propData.Name, propData.Attributes);
-                match.CopyPassPassProperty(builder, owningVar);
+                UniformDeclaration.Copy(builder, match, owningVar);
+            }
+            // If the source is another block (i.e. the parent is valid)
+            else if (source != null && source.Parent != null)
+            {
+                builder.AddLine($"{dest.Parent.Name}.{dest.Name} = {source.Parent.Name}.{source.Name};");
             }
             else
+                RecursivelyBuildDefaultValues(builder, match);
+        }
+
+        bool RecursivelyBuildDefaultValues(ShaderFunction.Builder builder, VariableLinkInstance variable)
+        {
+            // If this field has a default value, emit that
+            var defaultValueAtt = DefaultValueAttribute.Find(variable.Attributes);
+            if (defaultValueAtt != null)
             {
-                var defaultValueAtt = DefaultValueAttribute.Find(match.Attributes);
-                if (defaultValueAtt != null)
+                builder.AddLine($"{variable.GetDeclarationString()} = {defaultValueAtt.DefaultValue};");
+                return true;
+            }
+            // Otherwise, recurse into each sub-field to see if it has a default
+            else
+            {
+                bool allHaveDefaults = true;
+                foreach(var subField in variable.Type.StructFields)
                 {
-                    builder.AddLine($"{dest.Parent.Name}.{dest.Name} = {defaultValueAtt.DefaultValue};");
+                    var subFieldVar = variable.CreateSubField(subField.Type, subField.Name, subField.Attributes);
+                    allHaveDefaults &= RecursivelyBuildDefaultValues(builder, subFieldVar);
                 }
-                // If the source is another block (i.e. the parent is valid)
-                else if (source != null && source.Parent != null)
-                {
-                    builder.AddLine($"{dest.Parent.Name}.{dest.Name} = {source.Parent.Name}.{source.Name};");
-                }
+                return allHaveDefaults;
             }
         }
     }

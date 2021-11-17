@@ -253,33 +253,6 @@ namespace UnityEditor.ShaderFoundry
 
     internal static class BlockVariableExtensions
     {
-        internal static void DeclarePassProperty(this BlockProperty prop, UniformDeclarationContext context)
-        {
-            var passProps = PassPropertyInfo.Extract(prop);
-            foreach (var passProp in passProps)
-            {
-                passProp.Declare(context);
-            }
-        }
-
-        internal static void CopyPassPassProperty(this VariableLinkInstance variable, ShaderFunction.Builder builder, VariableLinkInstance owningVariable)
-        {
-            var passProps = PassPropertyInfo.Extract(variable);
-            foreach (var passProp in passProps)
-            {
-                passProp.Copy(builder, owningVariable);
-            }
-        }
-
-        internal static void DeclareMaterialProperty(this BlockProperty prop, ShaderBuilder sb)
-        {
-            var props = MaterialPropertyInfo.Extract(prop);
-            foreach (var matProp in props)
-            {
-                matProp.Declare(sb, prop.ReferenceName);
-            }
-        }
-
         internal static BlockVariable Clone(this BlockVariable variable, ShaderContainer container)
         {
             return variable.Clone(container, variable.ReferenceName, variable.DisplayName);
