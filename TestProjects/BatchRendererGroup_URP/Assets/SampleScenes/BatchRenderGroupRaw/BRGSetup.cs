@@ -87,14 +87,14 @@ public unsafe class BRGSetup : MonoBehaviour
             for (int i = 0; i < itemGridSize; i++)
             {
                 bool visible = true;
-                if ( m_cullTest )
+                if (m_cullTest)
                 {
                     int dist = (r - itemGridSize / 2) * (r - itemGridSize / 2) + (i - itemGridSize / 2) * (i - itemGridSize / 2);
-                    if ((dist >= radiusI) && ( dist <= radiusO))
+                    if ((dist >= radiusI) && (dist <= radiusO))
                         visible = false;
 
                 }
-                if ( visible )
+                if (visible)
                     drawCommands.visibleInstances[n++] = r * itemGridSize + i;
             }
         }
@@ -143,7 +143,7 @@ public unsafe class BRGSetup : MonoBehaviour
         int objectToWorldID = Shader.PropertyToID("unity_ObjectToWorld");
         int matrixPreviousMID = Shader.PropertyToID("unity_MatrixPreviousM");
 
-//        int worldToObjectID = Shader.PropertyToID("unity_WorldToObject");
+        //        int worldToObjectID = Shader.PropertyToID("unity_WorldToObject");
         int colorID = Shader.PropertyToID("_BaseColor");
 
         // Generate a grid of objects...
@@ -186,7 +186,7 @@ public unsafe class BRGSetup : MonoBehaviour
         m_initialized = true;
     }
 
-    void    UpdatePositions(Vector3 pos)
+    void UpdatePositions(Vector3 pos)
     {
         int itemCountOffset = itemGridSize * itemGridSize * 3;      // 3 float4 per matrix
         for (int z = 0; z < itemGridSize; z++)
@@ -205,7 +205,7 @@ public unsafe class BRGSetup : MonoBehaviour
                 // compute the new current frame matrix
                 m_sysmemBuffer[i * 3 + 0] = new Vector4(1, 0, 0, 0);      // hacky float3x4 layout
                 m_sysmemBuffer[i * 3 + 1] = new Vector4(1, 0, 0, 0);
-                m_sysmemBuffer[i * 3 + 2] = new Vector4(1, px + pos.x, pos.y, pz+pos.z);
+                m_sysmemBuffer[i * 3 + 2] = new Vector4(1, px + pos.x, pos.y, pz + pos.z);
 
             }
         }
@@ -217,7 +217,7 @@ public unsafe class BRGSetup : MonoBehaviour
     {
         m_phase += Time.fixedDeltaTime * m_motionSpeed;
 
-        if ( m_motionAmplitude > 0.0f )
+        if (m_motionAmplitude > 0.0f)
         {
             Vector3 pos = new Vector3(0, 0, Mathf.Cos(m_phase) * m_motionAmplitude);
             UpdatePositions(pos + m_center);

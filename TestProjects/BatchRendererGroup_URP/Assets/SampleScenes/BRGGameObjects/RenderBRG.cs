@@ -142,7 +142,8 @@ public unsafe class RenderBRG : MonoBehaviour
     [BurstCompile]
     private struct CullingJob : IJobParallelFor
     {
-        [DeallocateOnJobCompletion][ReadOnly]
+        [DeallocateOnJobCompletion]
+        [ReadOnly]
         public NativeArray<FrustumPlanes.PlanePacket4> planes;
 
         [ReadOnly]
@@ -161,7 +162,7 @@ public unsafe class RenderBRG : MonoBehaviour
             for (int i = start; i < end; i++)
             {
                 ulong bit = FrustumPlanes.Intersect2NoPartial(planes, renderers[i].bounds) == FrustumPlanes.IntersectResult.In ? 1ul : 0ul;
-                visibleBits |= bit << (i-start);
+                visibleBits |= bit << (i - start);
             }
 
             rendererVisibility[index] = visibleBits;

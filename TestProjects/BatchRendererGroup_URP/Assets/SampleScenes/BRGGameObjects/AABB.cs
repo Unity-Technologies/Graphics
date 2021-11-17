@@ -42,13 +42,13 @@ namespace Unity.Mathematics
         public bool Contains(AABB b)
         {
             return Contains(b.Center + float3(-b.Extents.x, -b.Extents.y, -b.Extents.z))
-                && Contains(b.Center + float3(-b.Extents.x, -b.Extents.y,  b.Extents.z))
-                && Contains(b.Center + float3(-b.Extents.x,  b.Extents.y, -b.Extents.z))
-                && Contains(b.Center + float3(-b.Extents.x,  b.Extents.y,  b.Extents.z))
+                && Contains(b.Center + float3(-b.Extents.x, -b.Extents.y, b.Extents.z))
+                && Contains(b.Center + float3(-b.Extents.x, b.Extents.y, -b.Extents.z))
+                && Contains(b.Center + float3(-b.Extents.x, b.Extents.y, b.Extents.z))
                 && Contains(b.Center + float3(b.Extents.x, -b.Extents.y, -b.Extents.z))
-                && Contains(b.Center + float3(b.Extents.x, -b.Extents.y,  b.Extents.z))
-                && Contains(b.Center + float3(b.Extents.x,  b.Extents.y, -b.Extents.z))
-                && Contains(b.Center + float3(b.Extents.x,  b.Extents.y,  b.Extents.z));
+                && Contains(b.Center + float3(b.Extents.x, -b.Extents.y, b.Extents.z))
+                && Contains(b.Center + float3(b.Extents.x, b.Extents.y, -b.Extents.z))
+                && Contains(b.Center + float3(b.Extents.x, b.Extents.y, b.Extents.z));
         }
 
         static float3 RotateExtents(float3 extents, float3 m0, float3 m1, float3 m2)
