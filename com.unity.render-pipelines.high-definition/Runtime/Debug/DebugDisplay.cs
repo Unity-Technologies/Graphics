@@ -291,6 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int terrainTextureEnumIndex;
             internal int colorPickerDebugModeEnumIndex;
             internal int exposureDebugModeEnumIndex;
+            internal int hdrDebugModeEnumIndex;
             internal int msaaSampleDebugModeEnumIndex;
             internal int debugCameraToFreezeEnumIndex;
             internal int volumeComponentEnumIndex;
@@ -483,7 +484,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// <summary>
         /// Returns true if camera visibility is frozen.
         /// </summary>
         /// <returns>True if camera visibility is frozen</returns>
@@ -546,6 +546,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsDebugExposureModeEnabled()
         {
             return data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.None;
+        }
+
+        /// <summary>
+        /// Returns true if any full screen HDR debug display is enabled.
+        /// </summary>
+        /// <returns>True if any full screen exposure debug display is enabled.</returns>
+        public bool IsHDRDebugModeEnabled()
+        {
+            return data.lightingDebugSettings.hdrDebugMode != HDRDebugMode.None;
         }
 
         /// <summary>
@@ -741,11 +750,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the current Exposure Debug Mode.
         /// </summary>
-        /// <param name="value">Desired Probe Volume Debug Mode.</param>
+        /// <param name="value">Desired Exposure Debug Mode.</param>
         internal void SetExposureDebugMode(ExposureDebugMode value)
         {
             data.lightingDebugSettings.exposureDebugMode = value;
         }
+
+        /// <summary>
+        /// Set the current HDR Debug Mode.
+        /// </summary>
+        /// <param name="value">Desired HDR output Debug Mode.</param>
+        internal void SetHDRDebugMode(HDRDebugMode value)
+        {
+            data.lightingDebugSettings.hdrDebugMode = value;
+        }
+
 
         /// <summary>
         /// Set the current Mip Map Debug Mode.
@@ -1156,6 +1175,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip ReflectionProbes = new() { name = "Reflection Probes", tooltip = "Temporarily enables or disables Reflection Probes in your Scene." };
 
             public static readonly NameAndTooltip Exposure = new() { name = "Exposure", tooltip = "Allows the selection of an Exposure debug mode to use." };
+            public static readonly NameAndTooltip HDROutput = new() { name = "HDR", tooltip = "Allows the selection of an HDR debug mode to use." };
+            public static readonly NameAndTooltip HDROutputDebugMode = new() { name = "DebugMode", tooltip = "Use the drop-down to select a debug mode for HDR Output." };
             public static readonly NameAndTooltip ExposureDebugMode = new() { name = "DebugMode", tooltip = "Use the drop-down to select a debug mode to validate the exposure." };
             public static readonly NameAndTooltip ExposureDisplayMaskOnly = new() { name = "Display Mask Only", tooltip = "Display only the metering mask in the picture-in-picture. When disabled, the mask is visible after weighting the scene color instead." };
             public static readonly NameAndTooltip ExposureShowTonemapCurve = new() { name = "Show Tonemap Curve", tooltip = "Overlay the tonemap curve to the histogram debug view." };
@@ -1346,7 +1367,27 @@ namespace UnityEngine.Rendering.HighDefinition
                         setter = value => data.lightingDebugSettings.debugExposure = value
                     });
 
+
                 lighting.children.Add(exposureFoldout);
+
+                var hdrFoldout = new DebugUI.Foldout
+                {
+                    nameAndTooltip = LightingStrings.HDROutput,
+                    children =
+                    {
+                        new DebugUI.EnumField
+                        {
+                            nameAndTooltip = LightingStrings.HDROutputDebugMode,
+                            getter = () => (int)data.lightingDebugSettings.hdrDebugMode,
+                            setter = value => SetHDRDebugMode((HDRDebugMode)value),
+                            autoEnum = typeof(HDRDebugMode), onValueChanged = RefreshLightingDebug,
+                            getIndex = () => data.hdrDebugModeEnumIndex,
+                            setIndex = value => data.hdrDebugModeEnumIndex = value
+                        }
+                    }
+                };
+
+                lighting.children.Add(hdrFoldout);
 
                 lighting.children.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.LightingDebugMode, getter = () => (int)data.lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.lightingDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.lightingDebugModeEnumIndex = value; } });
                 lighting.children.Add(new DebugUI.BitField { nameAndTooltip = LightingStrings.LightHierarchyDebugMode, getter = () => data.lightingDebugSettings.debugLightFilterMode, setter = value => SetDebugLightFilterMode((DebugLightFilterMode)value), enumType = typeof(DebugLightFilterMode), onValueChanged = RefreshLightingDebug, });
@@ -1731,6 +1772,17 @@ namespace UnityEngine.Rendering.HighDefinition
                             };
                         }
 
+                        if (param.GetType() == typeof(DiffusionProfileSettingsParameter))
+                        {
+                            var p = (DiffusionProfileSettingsParameter)param;
+                            return new DebugUI.ObjectListField()
+                            {
+                                displayName = name,
+                                getter = () => p.value,
+                                type = typeof(DiffusionProfileSettings)
+                            };
+                        }
+
                         // For parameters that do not override `ToString`
                         var property = param.GetType().GetProperty("value");
                         var toString = property.PropertyType.GetMethod("ToString", Type.EmptyTypes);
@@ -1781,6 +1833,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var row = new DebugUI.Table.Row()
                     {
                         displayName = "Volume Info",
+                        opened = true, // Open by default for the in-game view
                         children =
                         {
                             new DebugUI.Value()
@@ -1814,14 +1867,20 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         }
                     };
-                    row.opened = true;
+
+                    // Second row, links to volume gameobjects
+                    var row2 = new DebugUI.Table.Row()
+                    {
+                        displayName = "GameObject",
+                        children = { new DebugUI.Value() { getter = () => string.Empty } }
+                    };
 
                     foreach (var volume in volumes)
                     {
                         var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
                         row.children.Add(new DebugUI.Value()
                         {
-                            displayName = volume.name + " (" + profile.name + ")",
+                            displayName = profile.name,
                             getter = () =>
                             {
                                 var scope = volume.isGlobal ? "Global" : "Local";
@@ -1829,10 +1888,20 @@ namespace UnityEngine.Rendering.HighDefinition
                                 return scope + " (" + (weight * 100f) + "%)";
                             }
                         });
+
+                        row2.children.Add(new DebugUI.ObjectField()
+                        {
+                            displayName = profile.name,
+                            getter = () => volume,
+                            type = typeof(DiffusionProfileSettings)
+                        });
                     }
 
-                    row.children.Add(new DebugUI.Value() { displayName = "Default Value", getter = () => "" });
+                    row.children.Add(new DebugUI.Value() { displayName = "Default Value", getter = () => string.Empty });
                     table.children.Add(row);
+
+                    row2.children.Add(new DebugUI.Value() { getter = () => string.Empty });
+                    table.children.Add(row2);
 
                     // Build rows - recursively handles nested parameters
                     var rows = new List<DebugUI.Table.Row>();
@@ -1863,7 +1932,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
                                 if (profile.TryGet(selectedType, out VolumeComponent component) && component.parameters[currentParam].overrideState)
                                     param = component.parameters[currentParam];
-                                row.children.Add(makeWidget(volume.name + " (" + profile.name + ")", param));
+                                row.children.Add(makeWidget(profile.name, param));
                             }
 
                             row.children.Add(makeWidget("Default Value", inst.parameters[currentParam]));
