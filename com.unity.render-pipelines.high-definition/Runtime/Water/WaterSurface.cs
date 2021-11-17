@@ -89,49 +89,194 @@ namespace UnityEngine.Rendering.HighDefinition
         public float waterSmoothness = 0.95f;
         #endregion
 
-        // Refraction parameters
-        public Color transparentColor = new Color(0.00f, 0.45f, 0.65f);
-        public float maxAbsorptionDistance = 5.0f;
+        #region Water Refraction
+        /// <summary>
+        /// Sets the color that is used to simulate the under-water refraction.
+        /// </summary>
+        [Tooltip("Sets the color that is used to simulate the under-water refraction.")]
+        public Color refractionColor = new Color(0.00f, 0.45f, 0.65f);
+
+        /// <summary>
+        /// Sets the maximum distance used to clamp the under water refraction depth.
+        /// </summary>
+        [Tooltip("Sets the maximum distance used to clamp the under water refraction depth.")]
         public float maxRefractionDistance = 1.0f;
 
-        // Scattering parameters
+        /// <summary>
+        /// Sets the maximum distance that the camera can perceive under the water surface.
+        /// </summary>
+        [Tooltip("Sets the maximum distance that the camera can perceive under the water surface.")]
+        public float maxAbsorptionDistance = 5.0f;
+        #endregion
+
+        #region Water Scattering
+        /// <summary>
+        /// Sets the color that is used to simulate the under-water scattering.
+        /// </summary>
+        [Tooltip("Sets the color that is used to simulate the under-water scattering.")]
         public Color scatteringColor = new Color(0.0f, 0.12f, 0.25f);
+
+        /// <summary>
+        /// Sets the multiplier applied to the scattering factor to attenuate the scattering term.
+        /// </summary>
+        [Tooltip("Sets the color that is used to simulate the under-water scattering.")]
         public float scatteringFactor = 0.5f;
+
+        /// <summary>
+        /// Sets the intensity of the height based scattering.
+        /// </summary>
+        [Tooltip("Sets the intensity of the height based scattering.")]
         public float heightScattering = 0.5f;
+
+        /// <summary>
+        /// Sets the intensity of the displacement based scattering.
+        /// </summary>
+        [Tooltip("Sets the intensity of the displacement based scattering.")]
         public float displacementScattering = 0.5f;
+
+        /// <summary>
+        /// Sets the intensity of the direct light scattering on the tip of the waves.
+        /// </summary>
+        [Tooltip("Sets the intensity of the direct light scattering on the tip of the waves.")]
         public float directLightTipScattering = 0.5f;
+
+        /// <summary>
+        /// Sets the intensity of the direct light scattering on the tip of the waves.
+        /// </summary>
+        [Tooltip("Sets the intensity of the direct light scattering on the body of the waves.")]
         public float directLightBodyScattering = 0.5f;
+        #endregion
 
-        // Caustic parameters
+        #region Water Caustics
+        /// <summary>
+        /// Set the intensity of the under-water caustics.
+        /// </summary>
+        [Tooltip("Set the intensity of the under-water caustics.")]
         public float causticsIntensity = 0.5f;
+
+        /// <summary>
+        /// Set the tiling factor of the under-water caustics.
+        /// </summary>
+        [Tooltip("Set the tiling factor of the under-water caustics.")]
         public float causticsTiling = 1.5f;
+
+        /// <summary>
+        /// Set the scrolling speed of the under-water caustics.
+        /// </summary>
+        [Tooltip("Set the scrolling speed of the under-water caustics.")]
         public float causticsSpeed = 0.0f;
+
+        /// <summary>
+        /// Set the vertical plane offset at which the caustics start.
+        /// </summary>
+        [Tooltip("Set the vertical plane offset at which the caustics start.")]
         public float causticsPlaneOffset = 0.0f;
+        #endregion
 
-        // Foam parameters
+        #region Water Foam
+        /// <summary>
+        /// Controls the foam smoothness.
+        /// </summary>
+        [Tooltip("Controls the foam smoothness.")]
         public float surfaceFoamSmoothness = 0.3f;
+
+        /// <summary>
+        /// Controls the foam intensity.
+        /// </summary>
+        [Tooltip("Controls the foam intensity.")]
         public float surfaceFoamIntensity = 0.5f;
+
+        /// <summary>
+        /// Controls the foam amount.
+        /// </summary>
+        [Tooltip("Controls the foam amount.")]
         public float surfaceFoamAmount = 0.5f;
+
+        /// <summary>
+        /// Controls the foam tiling.
+        /// </summary>
+        [Tooltip("Controls the foam tiling.")]
         public float surfaceFoamTiling = 1.0f;
+
+        /// <summary>
+        /// Sets the deep foam amount.
+        /// </summary>
+        [Tooltip("Sets the deep foam amount.")]
         public float deepFoam = 0.3f;
+
+        /// <summary>
+        /// Sets the deep foam color.
+        /// </summary>
+        [Tooltip("Sets the deep foam color.")]
         public Color deepFoamColor = new Color(1.0f, 1.0f, 1.0f);
+
+        /// <summary>
+        /// Set the texture used to attenuate or supress the deep (red channel) or surface (green channel) foam.
+        /// </summary>
+        [Tooltip("Set the texture used to attenuate or supress the deep (red channel) or surface (green channel) foam.")]
         public Texture2D foamMask = null;
+
+        /// <summary>
+        /// Set the extent of the foam mask in meters.
+        /// </summary>
+        [Tooltip("Set the extent of the foam mask in meters.")]
         public Vector2 foamMaskExtent = new Vector2(100.0f, 100.0f);
+
+        /// <summary>
+        /// Set the offset of the foam mask in meters.
+        /// </summary>
+        [Tooltip("Set the offset of the foam mask in meters.")]
         public Vector2 foamMaskOffset = new Vector2(0.0f, 0.0f);
+        #endregion
 
-        // Water Masking
+        #region Water Masking
+        /// <summary>
+        /// Set the texture used to attenuate or supress the lower (red channel) or higher (green channel) water frequencies.
+        /// </summary>
+        [Tooltip("Set the texture used to attenuate or supress the lower (red channel) or higher (green channel) water frequencies.")]
         public Texture2D waterMask = null;
-        public Vector2 waterMaskExtent = new Vector2(100.0f, 100.0f);
-        public Vector2 waterMaskOffset = new Vector2(0.0f, 0.0f);
 
-        // Wind
+        /// <summary>
+        /// Set the extent of the water mask in meters.
+        /// </summary>
+        [Tooltip("Set the extent of the water mask in meters.")]
+        public Vector2 waterMaskExtent = new Vector2(100.0f, 100.0f);
+
+        /// <summary>
+        /// Set the offset of the water mask in meters.
+        /// </summary>
+        [Tooltip("Set the offset of the water mask in meters.")]
+        public Vector2 waterMaskOffset = new Vector2(0.0f, 0.0f);
+        #endregion
+
+        #region Water Masking
+        /// <summary>
+        /// Set the wind orientation in degrees.
+        /// </summary>
+        [Tooltip("Set the wind orientation in degrees.")]
         public float windOrientation = 0.0f;
+
+        /// <summary>
+        /// Controls the wind speed in kilometers per hour.
+        /// </summary>
+        [Tooltip("Controls the wind speed in kilometers per hour.")]
         public float windSpeed = 30.0f;
+
+        /// <summary>
+        /// Controls the proportion in which the wind affects the current of the water.
+        /// </summary>
+        [Tooltip("Controls the proportion in which the wind affects the current of the water.")]
         public float windAffectCurrent = 0.5f;
+
+        /// <summary>
+        /// Controls the foam amount depending on the wind speed.
+        /// </summary>
+        [Tooltip("Controls the foam amount depending on the wind speed.")]
         public AnimationCurve windFoamCurve = new AnimationCurve(new Keyframe(0f, 0.0f), new Keyframe(0.2f, 0.0f), new Keyframe(0.3f, 1.0f), new Keyframe(1.0f, 1.0f));
+        #endregion
 
         // Internal simulation data
-        internal WaterSiumulationResources simulation = null;
+        internal WaterSimulationResources simulation = null;
 
         internal bool CheckResources(CommandBuffer cmd, int bandResolution, int bandCount, ref bool initialAllocation)
         {
@@ -139,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the resources have not been allocated for this water surface, allocate them
             if (simulation == null)
             {
-                simulation = new WaterSiumulationResources();
+                simulation = new WaterSimulationResources();
                 simulation.AllocateSmmulationResources(bandResolution, bandCount);
                 needUpdate = true;
                 initialAllocation = true;

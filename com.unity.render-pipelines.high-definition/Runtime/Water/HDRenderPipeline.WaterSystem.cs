@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Ultra512 = 512
     }
 
-    internal class WaterSiumulationResources
+    internal class WaterSimulationResources
     {
         // Overall time that has passed since Unity has been initialized
         private float m_Time = 0;
@@ -389,7 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._MaxRefractionDistance = Mathf.Min(currentWater.maxAbsorptionDistance, currentWater.maxRefractionDistance);
 
             cb._OutScatteringCoefficient = -Mathf.Log(0.02f) / currentWater.maxAbsorptionDistance;
-            cb._TransparencyColor = new Vector3(Mathf.Min(currentWater.transparentColor.r, 0.99f), Mathf.Min(currentWater.transparentColor.g, 0.99f), Mathf.Min(currentWater.transparentColor.b, 0.99f));
+            cb._TransparencyColor = new Vector3(Mathf.Min(currentWater.refractionColor.r, 0.99f), Mathf.Min(currentWater.refractionColor.g, 0.99f), Mathf.Min(currentWater.refractionColor.b, 0.99f));
 
             cb._ScatteringIntensity = currentWater.scatteringFactor * 0.5f;
             cb._HeightBasedScattering = currentWater.heightScattering;

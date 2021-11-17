@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Refraction parameters
         SerializedProperty m_MaxRefractionDistance;
         SerializedProperty m_MaxAbsorptionDistance;
-        SerializedProperty m_TransparentColor;
+        SerializedProperty m_RefractionColor;
 
         // Scattering parameters
         SerializedProperty m_ScatteringColor;
@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Refraction parameters
             m_MaxAbsorptionDistance = o.Find(x => x.maxAbsorptionDistance);
             m_MaxRefractionDistance = o.Find(x => x.maxRefractionDistance);
-            m_TransparentColor = o.Find(x => x.transparentColor);
+            m_RefractionColor = o.Find(x => x.refractionColor);
 
             // Scattering parameters
             m_ScatteringColor = o.Find(x => x.scatteringColor);
@@ -132,6 +132,21 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Controls the choppiness factor the waves. Higher values may introduce visual artifacts.");
         static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Controls the speed of the water simulation.This allows to slow down the wave's speed or to accelerate it.");
         static public readonly GUIContent k_WaterSmoothness = EditorGUIUtility.TrTextContent("Water Smoothness", "Control the smoothness used to render the water surface.");
+        static public readonly GUIContent k_MaxRefractionDistance = EditorGUIUtility.TrTextContent("Maximum Refraction Distance", "Controls the maximum distance used to clamp the under water refraction depth.");
+        static public readonly GUIContent k_MaxAbsorptionDistance = EditorGUIUtility.TrTextContent("Maximum Absorption Distance", "Controls the maximum distance that the camera can perceive under the water surface.");
+
+        static public readonly GUIContent k_ScatteringFactor = EditorGUIUtility.TrTextContent("Scattering Factor", "Controls the color that is used to simulate the under-water scattering.");
+        static public readonly GUIContent k_HeightScattering = EditorGUIUtility.TrTextContent("Height Scattering", "Controls the intensity of the height based scattering.");
+        static public readonly GUIContent k_DisplacementScattering = EditorGUIUtility.TrTextContent("Displacement Scattering", "Controls the intensity of the displacement based scattering.");
+        static public readonly GUIContent k_DirectLightTipScattering = EditorGUIUtility.TrTextContent("Direct Light Tip Scattering", "Controls the intensity of the direct light scattering on the tip of the waves.");
+        static public readonly GUIContent k_DirectLightBodyScattering = EditorGUIUtility.TrTextContent("Direct Light Body Scattering", "Controls the intensity of the direct light scattering on the tip of the waves.");
+
+        static public readonly GUIContent k_SurfaceFoamSmoothness = EditorGUIUtility.TrTextContent("Surface Foam Smoothness", "Controls the surface foam smoothness.");
+        static public readonly GUIContent k_SurfaceFoamIntensity = EditorGUIUtility.TrTextContent("Surface Foam Intensity", "Controls the surface foam intensity.");
+        static public readonly GUIContent k_SurfaceFoamAmount = EditorGUIUtility.TrTextContent("Surface Foam Amount", "Controls the surface foam amount.");
+
+        static public readonly GUIContent k_WindSpeed = EditorGUIUtility.TrTextContent("Wind Speed", "Controls the wind speed in kilometers per hour.");
+        static public readonly GUIContent k_WindAffectsCurrent = EditorGUIUtility.TrTextContent("Wind Affects current", "Controls the proportion in which the wind affects the current of the water.");
 
         void SanitizeVector4(SerializedProperty property, float minValue, float maxValue)
         {
@@ -218,20 +233,20 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("Refraction", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
-                EditorGUILayout.PropertyField(m_TransparentColor);
-                m_MaxRefractionDistance.floatValue = EditorGUILayout.Slider("Max Refraction Distance", m_MaxRefractionDistance.floatValue, 0.0f, 3.5f);
-                m_MaxAbsorptionDistance.floatValue = EditorGUILayout.Slider("Max Absorption Distance", m_MaxAbsorptionDistance.floatValue, 0.0f, 100.0f);
+                EditorGUILayout.PropertyField(m_RefractionColor);
+                m_MaxRefractionDistance.floatValue = EditorGUILayout.Slider(k_MaxRefractionDistance, m_MaxRefractionDistance.floatValue, 0.0f, 3.5f);
+                m_MaxAbsorptionDistance.floatValue = EditorGUILayout.Slider(k_MaxAbsorptionDistance, m_MaxAbsorptionDistance.floatValue, 0.0f, 100.0f);
             }
 
             EditorGUILayout.LabelField("Scattering", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_ScatteringColor);
-                m_ScatteringFactor.floatValue = EditorGUILayout.Slider("Scattering Factor", m_ScatteringFactor.floatValue, 0.0f, 1.0f);
-                m_HeightScattering.floatValue = EditorGUILayout.Slider("Height Scattering", m_HeightScattering.floatValue, 0.0f, 1.0f);
-                m_DisplacementScattering.floatValue = EditorGUILayout.Slider("Displacement Scattering", m_DisplacementScattering.floatValue, 0.0f, 1.0f);
-                m_DirectLightTipScattering.floatValue = EditorGUILayout.Slider("Direct Light Tip Scattering", m_DirectLightTipScattering.floatValue, 0.0f, 1.0f);
-                m_DirectLightBodyScattering.floatValue = EditorGUILayout.Slider("Direct Light Body Scattering", m_DirectLightBodyScattering.floatValue, 0.0f, 1.0f);
+                m_ScatteringFactor.floatValue = EditorGUILayout.Slider(k_ScatteringFactor, m_ScatteringFactor.floatValue, 0.0f, 1.0f);
+                m_HeightScattering.floatValue = EditorGUILayout.Slider(k_HeightScattering, m_HeightScattering.floatValue, 0.0f, 1.0f);
+                m_DisplacementScattering.floatValue = EditorGUILayout.Slider(k_DisplacementScattering, m_DisplacementScattering.floatValue, 0.0f, 1.0f);
+                m_DirectLightTipScattering.floatValue = EditorGUILayout.Slider(k_DirectLightTipScattering, m_DirectLightTipScattering.floatValue, 0.0f, 1.0f);
+                m_DirectLightBodyScattering.floatValue = EditorGUILayout.Slider(k_DirectLightBodyScattering, m_DirectLightBodyScattering.floatValue, 0.0f, 1.0f);
             }
 
             EditorGUILayout.LabelField("Caustics", EditorStyles.boldLabel);
@@ -262,9 +277,9 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 // Surface foam
-                m_SurfaceFoamSmoothness.floatValue = EditorGUILayout.Slider("Surface Foam Smoothness", m_SurfaceFoamSmoothness.floatValue, 0.0f, 1.0f);
-                m_SurfaceFoamIntensity.floatValue = EditorGUILayout.Slider("Surface Foam Intensity", m_SurfaceFoamIntensity.floatValue, 0.0f, 1.0f);
-                m_SurfaceFoamAmount.floatValue = EditorGUILayout.Slider("Surface Foam Amount", m_SurfaceFoamAmount.floatValue, 0.0f, 1.0f);
+                m_SurfaceFoamSmoothness.floatValue = EditorGUILayout.Slider(k_SurfaceFoamSmoothness, m_SurfaceFoamSmoothness.floatValue, 0.0f, 1.0f);
+                m_SurfaceFoamIntensity.floatValue = EditorGUILayout.Slider(k_SurfaceFoamIntensity, m_SurfaceFoamIntensity.floatValue, 0.0f, 1.0f);
+                m_SurfaceFoamAmount.floatValue = EditorGUILayout.Slider(k_SurfaceFoamAmount, m_SurfaceFoamAmount.floatValue, 0.0f, 1.0f);
                 EditorGUILayout.PropertyField(m_SurfaceFoamTiling);
                 m_SurfaceFoamTiling.floatValue = Mathf.Max(m_SurfaceFoamTiling.floatValue, 0.01f);
 
@@ -289,8 +304,8 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_WindOrientation);
-                m_WindSpeed.floatValue = EditorGUILayout.Slider("Wind Speed", m_WindSpeed.floatValue, 0.0f, 100.0f);
-                m_WindAffectCurrent.floatValue = EditorGUILayout.Slider("Wind Affects Current", m_WindAffectCurrent.floatValue, 0.0f, 1.0f);
+                m_WindSpeed.floatValue = EditorGUILayout.Slider(k_WindSpeed, m_WindSpeed.floatValue, 0.0f, 100.0f);
+                m_WindAffectCurrent.floatValue = EditorGUILayout.Slider(k_WindAffectsCurrent, m_WindAffectCurrent.floatValue, 0.0f, 1.0f);
                 EditorGUILayout.PropertyField(m_WindFoamCurve);
             }
             serializedObject.ApplyModifiedProperties();

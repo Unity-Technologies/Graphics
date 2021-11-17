@@ -694,6 +694,9 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWater, Styles.supportWaterContent);
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWater.boolValue))
             {
+                // If we are on metal, the feature is not supported yet.
+                if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+                    EditorGUILayout.HelpBox(Styles.waterUnsupportedWarning.text, MessageType.Warning, wide: true);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterSimulationResolution, Styles.waterSimulationResolutionContent);
             }
         }
