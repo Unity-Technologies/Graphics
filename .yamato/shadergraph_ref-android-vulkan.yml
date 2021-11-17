@@ -39,7 +39,7 @@ ShaderGraph_ref_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_trunk:
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ -logs
+      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     artifacts:
         logs:
             paths:
@@ -243,7 +243,7 @@ ShaderGraph_ref_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_CUSTOM-REVISI
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ -logs
+      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     artifacts:
         logs:
             paths:

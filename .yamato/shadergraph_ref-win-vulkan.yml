@@ -37,7 +37,7 @@ ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_trunk:
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ -logs
+      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     artifacts:
         logs:
             paths:
@@ -235,7 +235,7 @@ ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ -logs
+      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     artifacts:
         logs:
             paths:
