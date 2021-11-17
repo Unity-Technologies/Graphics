@@ -400,7 +400,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Assign the camera color target early in case it is needed during AddRenderPasses.
             bool isPreviewCamera = cameraData.isPreviewCamera;
-            var createColorTexture = rendererFeatures.Count != 0  && !isPreviewCamera;
+            var createColorTexture = rendererFeatures.Count != 0 && !isPreviewCamera;
 
             // Gather render passe input requirements
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
