@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Converted internal render targets to use `RTHandle` targets instead of `RenderTargetHandle` and `RenderTargetIdentifier`.
 - Set usage of `RenderTargetHandle` and public functions using `RenderTargetIdentifier` as obsolete for future removal.
 - Split RendererFeatures `AddRenderPasses` into two functions with `SetupRenderPasses` so render targets can be used after allocation.
+- The "Add Renderer Feature" menu now supports filtering.
+- Removed the name input for the SSAO and Screen Space Shadows renderer features.
 
 ### Fixed
 - Fixed an issue where 2D global lights with shadows enabled could break light layer batching [case 1376487](https://issuetracker.unity3d.com/issues/2d-urp-upgrading-global-light-sets-shadow-settings-to-enabled)
@@ -71,8 +73,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - URP will no longer render via an intermediate texture unless actively required by a Renderer Feature. See the upgrade guide for compatibility options and how assets are upgraded.
 - MaterialReimporter.ReimportAllMaterials now batches the asset database changes to improve performance.
-- The "Add Renderer Feature" menu now supports filtering.
-- Removed the name input for the SSAO and Screen Space Shadows renderer features.
 
 ### Fixed
 - Fixed post processing with Pixel Perfect camera [case 1363763](https://issuetracker.unity3d.com/product/unity/issues/guid/1363763/)
