@@ -22,7 +22,7 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_memory_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
@@ -61,7 +61,7 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_counters_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
@@ -100,7 +100,7 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_run_build_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
@@ -139,7 +139,7 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_memory_il2cpp_Linear_CUSTOM-REVIS
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
@@ -178,7 +178,7 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_counters_il2cpp_Linear_CUSTOM-REV
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
@@ -217,7 +217,7 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_run_build_il2cpp_Linear_CUSTOM-RE
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*

@@ -46,7 +46,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_tru
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -121,7 +121,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_trun
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -191,7 +191,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -261,7 +261,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_CUS
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -336,7 +336,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_CUST
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -406,7 +406,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_CUSTO
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics

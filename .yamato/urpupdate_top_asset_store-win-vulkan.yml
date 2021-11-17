@@ -30,7 +30,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
@@ -72,7 +72,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
@@ -114,7 +114,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
@@ -156,7 +156,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2

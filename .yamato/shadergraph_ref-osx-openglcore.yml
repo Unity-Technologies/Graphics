@@ -21,8 +21,7 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -39,7 +38,7 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_trunk:
       -  command: ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
          retries: 2
     after:
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ -logs
     artifacts:
         logs:
             paths:
@@ -63,7 +62,7 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -100,8 +99,7 @@ ShaderGraph_ref_OSX_OpenGLCore_playmode_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -140,8 +138,7 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -182,7 +179,7 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_tru
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -219,8 +216,7 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_CUSTOM-REVISION
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -237,7 +233,7 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_CUSTOM-REVISION
       -  command: ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
          retries: 2
     after:
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ -logs
     artifacts:
         logs:
             paths:
@@ -261,7 +257,7 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_CUSTOM-RE
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -298,8 +294,7 @@ ShaderGraph_ref_OSX_OpenGLCore_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -338,8 +333,7 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_CUSTOM-RE
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -380,7 +374,7 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_CUS
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git

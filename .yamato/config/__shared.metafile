@@ -239,7 +239,7 @@ platforms:
     commands:
       [DX11, DX12, Vulkan, '']:
         setup_utr:
-          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+          - command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
             retries: 2
         call_utr:
           - command: |5-
@@ -293,7 +293,7 @@ platforms:
     commands:
       [Metal]:
         setup_utr:
-          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+          - command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
           - chmod +x utr
           - command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -322,7 +322,7 @@ platforms:
           - command: find_instabilities || exit 0
       [OpenGlCore]:
         setup_utr:
-          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+          - command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
           - chmod +x utr
         call_utr: # TODO add git commands when needed
@@ -364,7 +364,7 @@ platforms:
     commands:
       [OpenGlCore, Vulkan]:
         setup_utr:
-          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+          - command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
           - command: chmod +x utr
         set_screen_resolution:
@@ -411,7 +411,7 @@ platforms:
     commands:
       [OpenGLES3, Vulkan]:
         setup_utr:
-          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+          - command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
             retries: 2
         call_utr_hikey:
           - command: |5-
@@ -483,7 +483,7 @@ platforms:
         setup_utr:
           - command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
           - command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple || exit 0
-          - command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
+          - command: set UTR_VERSION=1.0.1-rc1 && git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
             retries: 2
         call_utr:
           - command: |5-
@@ -536,7 +536,7 @@ platforms:
     commands:
       [Metal]:
         setup_utr:
-          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+          - command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
           - command: chmod +x ./utr
         call_utr:

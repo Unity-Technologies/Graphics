@@ -23,7 +23,7 @@ ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-      -  command: set UTR_VERSION=0.14.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -37,12 +37,12 @@ ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ -logs
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph/*"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
@@ -63,24 +63,23 @@ Build_ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-         retries: 2
-      -  command: set UTR_VERSION=0.14.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
-      -  command: unity-downloader-cli -b test-platform/release-0.14.1-rc1 -c editor -c il2cpp  --wait --published-only
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr %CACHE_ARGS% --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=./TestProjects/ShaderGraph --timeout=1200
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph/*"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
               -  "players*/**"
@@ -102,8 +101,7 @@ ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-      -  set UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
@@ -126,7 +124,7 @@ ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph/*"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
@@ -145,10 +143,8 @@ ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-      -  set UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  python --version
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
@@ -187,7 +183,7 @@ Build_ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
@@ -225,8 +221,7 @@ ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-      -  set UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -240,7 +235,7 @@ ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ -logs
     artifacts:
         logs:
             paths:
@@ -266,7 +261,7 @@ Build_ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_CUSTOM-REVISION
         TEST_FILTER: .*
     commands:
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
@@ -304,8 +299,7 @@ ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-      -  set UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
@@ -347,10 +341,8 @@ ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISION
         TEST_FILTER: .*
     commands:
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-      -  set UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  python --version
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
@@ -389,7 +381,7 @@ Build_ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_CUSTOM-RE
         TEST_FILTER: .*
     commands:
       -  command: gsudo NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  command: set UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2

@@ -23,7 +23,7 @@ URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp_Linea
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
       -  command: |5-
@@ -87,7 +87,7 @@ Build_URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
          retries: 2
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
       -  command: |5-
@@ -148,7 +148,7 @@ URP_Performance_LostCrypt_iPhone_Metal_performance_build_editmode_il2cpp_Linear_
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -189,7 +189,7 @@ URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp_Linea
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
       -  command: |5-
@@ -253,7 +253,7 @@ Build_URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
          retries: 2
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
       -  command: |5-
@@ -314,7 +314,7 @@ URP_Performance_LostCrypt_iPhone_Metal_performance_build_editmode_il2cpp_Linear_
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git

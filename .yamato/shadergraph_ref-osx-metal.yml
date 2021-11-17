@@ -21,8 +21,7 @@ ShaderGraph_ref_OSX_Metal_Standalone_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -34,16 +33,15 @@ ShaderGraph_ref_OSX_Metal_Standalone_ref_images_mono_Linear_trunk:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
-      -  |5-
-                  mkdir -p TestProjects/ShaderGraph/test-results/
+      -  mkdir -p TestProjects/ShaderGraph/test-results/
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/ShaderGraph --timeout=1200 --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph
                 exit $UTR_RESULT
     after:
-      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
+      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
     artifacts:
         logs:
             paths:
@@ -65,8 +63,7 @@ ShaderGraph_ref_OSX_Metal_playmode_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -85,8 +82,8 @@ ShaderGraph_ref_OSX_Metal_playmode_ref_images_mono_Linear_trunk:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph
                 exit $UTR_RESULT
     after:
-      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
+      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
     artifacts:
         logs:
             paths:
@@ -108,8 +105,7 @@ ShaderGraph_ref_OSX_Metal_Standalone_cache_ref_images_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -134,8 +130,8 @@ ShaderGraph_ref_OSX_Metal_Standalone_cache_ref_images_mono_Linear_trunk:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph
                 exit $UTR_RESULT
     after:
-      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
+      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
     artifacts:
         logs:
             paths:
@@ -157,8 +153,7 @@ ShaderGraph_ref_OSX_Metal_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -170,16 +165,15 @@ ShaderGraph_ref_OSX_Metal_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
-      -  |5-
-                  mkdir -p TestProjects/ShaderGraph/test-results/
+      -  mkdir -p TestProjects/ShaderGraph/test-results/
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/ShaderGraph --timeout=1200 --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph
                 exit $UTR_RESULT
     after:
-      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
+      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
     artifacts:
         logs:
             paths:
@@ -201,8 +195,7 @@ ShaderGraph_ref_OSX_Metal_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -221,8 +214,8 @@ ShaderGraph_ref_OSX_Metal_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph
                 exit $UTR_RESULT
     after:
-      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
+      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
     artifacts:
         logs:
             paths:
@@ -244,8 +237,7 @@ ShaderGraph_ref_OSX_Metal_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISIO
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  UTR_VERSION=0.14.1-rc1
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: UTR_VERSION=1.0.1-rc1 && curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -270,8 +262,8 @@ ShaderGraph_ref_OSX_Metal_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISIO
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph
                 exit $UTR_RESULT
     after:
-      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
+      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
     artifacts:
         logs:
             paths:

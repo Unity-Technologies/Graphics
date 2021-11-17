@@ -7,17 +7,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--artifacts", help="The relative directory from root artifacts are stored")
     parser.add_argument("--root", help="The project root")
+    parser.add_argument("--logs", help="Print extra logs during execution")
 
     args = parser.parse_args()
 
-    extra_logs = True
+    extra_logs = parser.logs
 
-    print("Working directory of zip_to_artifact: " + getcwd())
-    print("Contents of Graphics dir: ")
-    print(os.listdir(getcwd()))
-    print("\n\nContents of SG base: ")
-    print(os.listdir(path.join(getcwd(), "TestProjects\\ShaderGraph")))
-
+    if extra_logs:
+        print("Working directory of zip_to_artifact: " + getcwd() + "\n\n")
+        print("Contents of Graphics dir: ")
+        print(os.listdir(getcwd()))
 
     # Should live at the execution root
     update_tests_file_path = "UpdateTests.txt"

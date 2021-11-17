@@ -7,8 +7,6 @@ test_platforms:
     commands:
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: set UTR_VERSION=0.14.1-rc1
-    - [OSX_OpenGLCore, OSX_Metal, Linux_OpenGLCore]: UTR_VERSION=0.14.1-rc1
     - [all]: <shared.platform.commands.setup_utr>
     - [OSX_Metal, OSX_OpenGLCore]: <shared.platform.commands.unity_downloader_cli>
     - [OSX_OpenGLCore]: brew install python
@@ -23,21 +21,18 @@ test_platforms:
                     GIT_REVISIONDATE=`cat revdate.tmp`
                     echo %GIT_REVISIONDATE%
                     rm revdate.tmp
-    - [OSX_Metal]: |5-
-                    mkdir -p TestProjects/ShaderGraph/test-results/
-
+    - [OSX_Metal]: mkdir -p TestProjects/ShaderGraph/test-results/
     - [all]: <shared.platform.commands.call_utr>
     after:
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore]: python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
-    - [OSX_Metal]: scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore]: python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ -logs
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
+    - [OSX_Metal]: scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
+
   - type: playmode
     name: playmode_ref_images
     commands:
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: set UTR_VERSION=0.14.1-rc1
-    - [OSX_OpenGLCore, OSX_Metal, Linux_OpenGLCore]: UTR_VERSION=0.14.1-rc1
     - [all]: <shared.platform.commands.setup_utr>
     - [all]: <shared.platform.commands.unity_downloader_cli>
     - [OSX_OpenGLCore]: brew install python
@@ -56,18 +51,16 @@ test_platforms:
     - [all]: <shared.platform.commands.call_utr>
     after:
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore]: python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
-    - [OSX_Metal]: scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
+    - [OSX_Metal]: scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
+
   - type: Standalone
     name: Standalone_cache_ref_images
     commands:
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: set UTR_VERSION=0.14.1-rc1
-    - [OSX_OpenGLCore, OSX_Metal, Linux_OpenGLCore]: UTR_VERSION=0.14.1-rc1
     - [all]: <shared.platform.commands.setup_utr>
     - [OSX_Metal, OSX_OpenGLCore]: <shared.platform.commands.unity_downloader_cli>
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: python --version
     - [OSX_OpenGLCore]: brew install python
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: |5-
@@ -91,8 +84,8 @@ test_platforms:
     after:
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore, Linux_OpenGLCore]: python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
-    - [OSX_Metal]: scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
+    - [OSX_Metal]: scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
 
 platforms:
   - name: Win
