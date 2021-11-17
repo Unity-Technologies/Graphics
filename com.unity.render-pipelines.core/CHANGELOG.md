@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.2] - 2021-11-05
 
+### Added
+- Added function to allocate RTHandles using `RenderTextureDescriptor`.
+- Added `vrUsage` support for RTHandles allocation.
+
 ### Fixed
 - Fixed issue when changing volume profiles at runtime with a script (case 1364256).
 
