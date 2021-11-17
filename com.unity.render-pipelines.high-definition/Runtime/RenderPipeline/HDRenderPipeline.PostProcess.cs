@@ -4279,7 +4279,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var currentGradingHash = ComputeLUTHash();
 
             // The lut we have already is ok.
-            if (currentGradingHash == m_LutHash)
+            if (currentGradingHash == m_LutHash &&
+                !m_Curves.AnyPropertiesIsOverridden()) // Curves content are not hashed, to compute the hash of the curves would probably be more expensive than actually running the LUT pass. So we just check if the project is using anything but the
                 return logLut;
 
             // Else we update the hash and we recompute the LUT.
