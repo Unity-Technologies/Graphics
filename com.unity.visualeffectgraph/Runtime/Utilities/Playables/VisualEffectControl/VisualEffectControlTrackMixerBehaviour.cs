@@ -11,18 +11,39 @@ namespace UnityEngine.VFX
     {
 #if UNITY_EDITOR
         static List<ScrubbingCacheHelper> s_RegisteredControlTrack = new List<ScrubbingCacheHelper>();
+        static List<ScrubbingCacheHelper[]> s_ConflictingControlTrack = new List<ScrubbingCacheHelper[]>();
+
+        private static void UpdateConflictingControlTrack()
+        {
+            //Detect potential issue with multiple track controlling the same vfx with some scrubbing
+            s_ConflictingControlTrack.Clear();
+            foreach (var group in s_RegisteredControlTrack.GroupBy(o => o.GetTarget()))
+            {
+                if (group.Count() > 1 && group.Any(o => o.GetScrubbing()))
+                {
+                    s_ConflictingControlTrack.Add(group.ToArray());
+                }
+            }
+        }
 
         static public void RegisterControlTrack(ScrubbingCacheHelper scrubbingCache)
         {
             s_RegisteredControlTrack.Add(scrubbingCache);
+            UpdateConflictingControlTrack();
         }
 
         static public void UnregisterControlTrack(ScrubbingCacheHelper scrubbingCache)
         {
             s_RegisteredControlTrack.RemoveAll(o => o == scrubbingCache);
+            UpdateConflictingControlTrack();
         }
 
-        static public IEnumerable<ScrubbingCacheHelper> GeActiveControlTracks()
+        static public IEnumerable<ScrubbingCacheHelper[]> GetConflictingControlTrack()
+        {
+            return s_ConflictingControlTrack;
+        }
+
+        static public IEnumerable<ScrubbingCacheHelper> GeActiveControlTrack()
         {
             return s_RegisteredControlTrack;
         }
@@ -76,16 +97,19 @@ namespace UnityEngine.VFX
             double m_LastPlayableTime = double.MinValue;
 
 #if UNITY_EDITOR
+            bool m_Scrubbing;
+            PlayableDirector m_Director;
+
+            public bool GetScrubbing()
+            {
+                return m_Scrubbing;
+            }
+
             public struct MaxScrubbingWarning
             {
                 public float requestedTime;
                 public float fixedTimeStep;
-                public VisualEffect target;
-
-                public bool IsValid()
-                {
-                    return target != null;
-                }
+                public bool valid;
             }
             MaxScrubbingWarning m_LastScrubbingWarning;
             public MaxScrubbingWarning GetCurrentScrubbingWarning()
@@ -93,8 +117,19 @@ namespace UnityEngine.VFX
                 return m_LastScrubbingWarning;
             }
 
+            public VisualEffect GetTarget()
+            {
+                return m_Target;
+            }
+
+            public PlayableDirector GetDirector()
+            {
+                return m_Director;
+            }
+
+            //TODOPAUL: can be cleaned after QA verification
             bool[] m_ClipState;
-            Queue<Debug> m_DebugFrame = new Queue<Debug>(); //TODOPAUL: can be cleaned after QA verification
+            Queue<Debug> m_DebugFrame = new Queue<Debug>();
             public IEnumerable<Debug> GetDebugFrames()
             {
                 return m_DebugFrame;
@@ -207,7 +242,7 @@ namespace UnityEngine.VFX
             public void Update(double playableTime, float deltaTime)
             {
 #if UNITY_EDITOR
-                m_LastScrubbingWarning.target = null;
+                m_LastScrubbingWarning.valid = false;
 #endif
 
                 var paused = deltaTime == 0.0;
@@ -310,7 +345,7 @@ namespace UnityEngine.VFX
                                 {
                                     fixedTimeStep = fixedStep,
                                     requestedTime = (float)(expectedCurrentTime - actualCurrentTime),
-                                    target = m_Target
+                                    valid = true
                                 };
 #endif
                             }
@@ -516,6 +551,9 @@ namespace UnityEngine.VFX
             public void Init(Playable playable, VisualEffect vfx)
             {
                 m_Target = vfx;
+#if UNITY_EDITOR
+                m_Director = playable.GetGraph().GetResolver() as PlayableDirector;
+#endif
                 m_BackupStartSeed = m_Target.startSeed;
                 m_BackupReseedOnPlay = m_Target.resetSeedOnPlay;
 
@@ -611,6 +649,10 @@ namespace UnityEngine.VFX
                     }
                     else
                     {
+#if UNITY_EDITOR
+                        m_Scrubbing = true;
+#endif
+
                         //No need to compute clip information
                         currentsEvents = currentsEvents.OrderBy(o => o.time);
                         currentChunk.events = currentChunk.events.Concat(currentsEvents).ToArray();
@@ -651,6 +693,7 @@ namespace UnityEngine.VFX
         {
             return m_ScrubbingCacheHelper?.GetDebugFrames();
         }
+
 #endif
 
         public override void PrepareFrame(Playable playable, FrameData data)
