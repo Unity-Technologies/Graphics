@@ -41,7 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
         static private void TestAnimationCurveInterp(AnimationCurve lhsCurve, AnimationCurve rhsCurve, float t, float startTime, float endTime, int numSteps, float eps, bool debugPrint)
         {
-            AnimationCurve midCurve = KeyframeUtility.InterpAnimationCurve(lhsCurve, rhsCurve, t);
+            AnimationCurve midCurve = new AnimationCurve(lhsCurve.keys);
+            KeyframeUtility.InterpAnimationCurve(ref midCurve, rhsCurve, t);
 
             for (int i = 0; i <= numSteps; i++)
             {
@@ -68,7 +69,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Test]
         public void RenderInterpolateAnimationCurve()
         {
-
             AnimationCurve testCurve0 = new AnimationCurve();
             testCurve0.AddKey(new Keyframe(0.0f, 3.0f, 2.0f, 2.0f));
             testCurve0.AddKey(new Keyframe(4.0f, 2.0f, -1.0f, -1.0f));
