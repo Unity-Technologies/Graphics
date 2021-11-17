@@ -356,6 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static bool enableNonRenderGraphTests { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-non-rendergraph-tests"); }
         RenderGraph m_RenderGraph = new RenderGraph("HDRPGraph");
         bool        m_EnableRenderGraph = true;
+        public bool RenderGraphEnabled { get { return m_EnableRenderGraph; } }
 
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
@@ -608,7 +609,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // custom-begin:
             // Force non-rendergraph path, until we have refactored all custom rendering code, and probe volumes to be compatible with the RenderGraph path.  
             //
-            // EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
+            //EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
             ProbeVolumeDynamicGI.instance.Allocate(defaultResources);
             EnableRenderGraph(false);
             // custom-end
@@ -2577,6 +2578,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_EnableRenderGraph)
                 {
                     BeginRenderGraph(renderContext, cmd);
+
+                    if (OnRenderGraphBegin != null)
+                        OnRenderGraphBegin(hdCamera, m_RenderGraph);
                 }
 
                 // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
