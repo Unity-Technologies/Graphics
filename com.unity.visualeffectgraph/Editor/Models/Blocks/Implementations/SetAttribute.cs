@@ -2,18 +2,18 @@ using System;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.VFX;
 using System.Globalization;
+
+using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
     class SetAttributeVariantReadWritable : VariantProvider
     {
-        public override sealed IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
+        public sealed override IEnumerable<Variant> ComputeVariants()
         {
             var attributes = VFXAttribute.AllIncludingVariadicReadWritable;
-            var randoms = new[] { RandomMode.Off, RandomMode.PerComponent };
+            var randoms = new[] { RandomMode.Off, RandomMode.Uniform, RandomMode.PerComponent };
             var sources = new[] { SetAttribute.ValueSource.Slot, SetAttribute.ValueSource.Source };
             var compositions = new[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
 
@@ -35,14 +35,19 @@ namespace UnityEditor.VFX.Block
                             if (composition != AttributeCompositionMode.Overwrite && attribute == VFXAttribute.Alive.name)
                                 continue;
 
-                            var currentRandomMode = random;
-                            if (currentRandomMode == RandomMode.PerComponent && attributeRefSize == 1)
-                                currentRandomMode = RandomMode.Uniform;
+                            if (random == RandomMode.PerComponent && attributeRefSize == 1)
+                                continue;
 
-                            yield return new[] {    new KeyValuePair<string, object>("attribute", attribute),
-                                                    new KeyValuePair<string, object>("Random", currentRandomMode),
-                                                    new KeyValuePair<string, object>("Source", source),
-                                                    new KeyValuePair<string, object>("Composition", composition) };
+                            yield return new Variant(
+                                new[]
+                                {
+                                    new KeyValuePair<string, object>("attribute", attribute),
+                                    new KeyValuePair<string, object>("Random", random),
+                                    new KeyValuePair<string, object>("Source", source),
+                                    new KeyValuePair<string, object>("Composition", composition)
+
+                                },
+                                new[] { attribute, VFXBlockUtility.GetNameString(composition) });
                         }
                     }
                 }
@@ -50,7 +55,7 @@ namespace UnityEditor.VFX.Block
         }
     }
 
-    [VFXInfo(category = "Attribute/Set", variantProvider = typeof(SetAttributeVariantReadWritable))]
+    [VFXInfo(category = "Attribute/{0}/Composition/{1}", variantProvider = typeof(SetAttributeVariantReadWritable))]
     class SetAttribute : VFXBlock
     {
         public enum ValueSource

@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
-        [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterOpaques;  // TODO: the new default should be CopyDepthMode.AfterTransparents.
+        [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterTransparents;
         [SerializeField] bool m_AccurateGbufferNormals = false;
         [SerializeField] bool m_ClusteredRendering = false;
         const TileSize k_DefaultTileSize = TileSize._32;

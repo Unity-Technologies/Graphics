@@ -380,8 +380,10 @@ namespace UnityEngine.Rendering.Universal
                 return null;
             }
 
+            DestroyRenderers();
+            var pipeline = new UniversalRenderPipeline(this);
             CreateRenderers();
-            return new UniversalRenderPipeline(this);
+            return pipeline;
         }
 
         void DestroyRenderers()
@@ -422,7 +424,14 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateRenderers()
         {
-            DestroyRenderers();
+            if (m_Renderers != null)
+            {
+                for (int i = 0; i < m_Renderers.Length; ++i)
+                {
+                    if (m_Renderers[i] != null)
+                        Debug.LogError($"Creating renderers but previous instance wasn't properly destroyed: m_Renderers[{i}]");
+                }
+            }
 
             if (m_Renderers == null || m_Renderers.Length != m_RendererDataList.Length)
                 m_Renderers = new ScriptableRenderer[m_RendererDataList.Length];
@@ -510,7 +519,10 @@ namespace UnityEngine.Rendering.Universal
 
             // RendererData list differs from RendererList. Create RendererList.
             if (m_Renderers == null || m_Renderers.Length < m_RendererDataList.Length)
+            {
+                DestroyRenderers();
                 CreateRenderers();
+            }
 
             // This renderer data is outdated or invalid, we recreate the renderer
             // so we construct all render passes with the updated data

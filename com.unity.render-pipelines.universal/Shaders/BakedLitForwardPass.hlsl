@@ -127,6 +127,7 @@ half4 BakedLitForwardPassFragment(Varyings input) : SV_Target
     half alpha = texColor.a * _BaseColor.a;
 
     AlphaDiscard(alpha, _Cutoff);
+    color = AlphaModulate(color, alpha);
 
 #ifdef _DBUFFER
     ApplyDecalToBaseColorAndNormal(input.positionCS, color, inputData.normalWS);

@@ -22,7 +22,7 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 {
     // NOTE: Currently we don't support ray-aligned ribbons in the acceleration structure, so our only H-calculation routines
     // are either stochastic or derived from a tube intersection.
-#if 1
+#if 0
     bsdfData.h = GetHFromTube(-WorldRayDirection(), bsdfData.normalWS, bsdfData.hairStrandDirectionWS);
 #else
     bsdfData.h = -1 + 2 * InterleavedGradientNoise(pathIntersection.pixelCoord, _RaytracingSampleIndex);

@@ -84,9 +84,7 @@ namespace UnityEngine.Rendering.Universal
             if (renderScale != pass.rendererData.normalsRenderTargetScale)
             {
                 if (pass.rendererData.isNormalsRenderTargetValid)
-                {
-                    cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
-                }
+                    cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTargetId);
 
                 pass.rendererData.isNormalsRenderTargetValid = true;
                 pass.rendererData.normalsRenderTargetScale = renderScale;
@@ -102,7 +100,7 @@ namespace UnityEngine.Rendering.Universal
                 descriptor.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
                 descriptor.dimension = TextureDimension.Tex2D;
 
-                cmd.GetTemporaryRT(pass.rendererData.normalsRenderTarget.id, descriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(pass.rendererData.normalsRenderTargetId, descriptor, FilterMode.Bilinear);
             }
         }
 
@@ -142,7 +140,7 @@ namespace UnityEngine.Rendering.Universal
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            cmd.GetTemporaryRT(pass.rendererData.cameraSortingLayerRenderTarget.id, descriptor, FilterMode.Bilinear);
+            cmd.GetTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId, descriptor, FilterMode.Bilinear);
         }
 
         public static void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
@@ -167,9 +165,10 @@ namespace UnityEngine.Rendering.Universal
         {
             pass.rendererData.isNormalsRenderTargetValid = false;
             pass.rendererData.normalsRenderTargetScale = 0.0f;
-            cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
-            cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
-            cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTarget.id);
+            cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTargetId);
+            cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTargetId);
+            if (pass.rendererData.cameraSortingLayerRenderTarget != null)
+                cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId);
         }
 
         public static void DrawPointLight(CommandBuffer cmd, Light2D light, Mesh lightMesh, Material material)
@@ -474,8 +473,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!pass.rendererData.lightBlendStyles[i].isDirty)
                     continue;
 
-                cmd.SetRenderTarget(pass.rendererData.lightBlendStyles[i].renderTargetHandle.Identifier());
-                cmd.ClearRenderTarget(false, true, Color.black);
+                CoreUtils.SetRenderTarget(cmd, pass.rendererData.lightBlendStyles[i].renderTargetHandle, ClearFlag.Color, Color.black);
                 pass.rendererData.lightBlendStyles[i].isDirty = false;
             }
         }
@@ -497,20 +495,16 @@ namespace UnityEngine.Rendering.Universal
 
                 var msaaEnabled = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
                 var storeAction = msaaEnabled ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
+                var clearFlag = pass.rendererData.useDepthStencilBuffer ? ClearFlag.All : ClearFlag.Color;
                 if (depthTarget != BuiltinRenderTextureType.None)
                 {
-                    cmd.SetRenderTarget(
-                        pass.rendererData.normalsRenderTarget.Identifier(),
-                        RenderBufferLoadAction.DontCare,
-                        storeAction,
-                        depthTarget,
-                        RenderBufferLoadAction.Load,
-                        RenderBufferStoreAction.Store);
+                    CoreUtils.SetRenderTarget(cmd,
+                        pass.rendererData.normalsRenderTarget, RenderBufferLoadAction.DontCare, storeAction,
+                        depthTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store,
+                        clearFlag, k_NormalClearColor);
                 }
                 else
-                    cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), RenderBufferLoadAction.DontCare, storeAction);
-
-                cmd.ClearRenderTarget(pass.rendererData.useDepthStencilBuffer, true, k_NormalClearColor);
+                    CoreUtils.SetRenderTarget(cmd, pass.rendererData.normalsRenderTarget, RenderBufferLoadAction.DontCare, storeAction, clearFlag, k_NormalClearColor);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
