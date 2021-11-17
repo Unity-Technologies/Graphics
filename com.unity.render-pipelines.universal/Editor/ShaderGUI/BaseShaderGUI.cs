@@ -13,7 +13,7 @@ using RenderQueue = UnityEngine.Rendering.RenderQueue;
 
 namespace UnityEditor
 {
-    public abstract partial class BaseShaderGUI : ShaderGUI
+    public abstract class BaseShaderGUI : ShaderGUI
     {
         #region EnumsAndClasses
 
@@ -333,6 +333,9 @@ namespace UnityEditor
             if (queueOffsetProp != null)
                 materialEditor.IntSliderShaderProperty(queueOffsetProp, -queueOffsetRange, queueOffsetRange, Styles.queueSlider);
         }
+
+        [Obsolete("DrawAdditionalFoldouts has been deprecated. Use FillAdditionalFoldouts instead, and materialScopesList.RegisterHeaderScope", false)]
+        public virtual void DrawAdditionalFoldouts(Material material) { }
 
         public virtual void FillAdditionalFoldouts(MaterialHeaderScopeList materialScopesList) { }
 

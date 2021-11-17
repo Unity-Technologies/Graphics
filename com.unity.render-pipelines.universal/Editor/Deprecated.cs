@@ -12,12 +12,6 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    public abstract partial class BaseShaderGUI
-    {
-        [Obsolete("DrawAdditionalFoldouts has been deprecated. Use FillAdditionalFoldouts instead, and materialScopesList.RegisterHeaderScope", false)]
-        public virtual void DrawAdditionalFoldouts(Material material) { }
-    }
-
     static partial class EditorUtils
     {
     }
