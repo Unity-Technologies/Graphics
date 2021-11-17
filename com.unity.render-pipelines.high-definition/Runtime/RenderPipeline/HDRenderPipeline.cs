@@ -1113,6 +1113,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 #endif
 
+            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputIsActive();
+
 #if UNITY_2021_1_OR_NEWER
             if (!m_ValidAPI || cameras.Count == 0)
 #else
