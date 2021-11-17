@@ -955,7 +955,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Disable camera jitter. See coment in RestoreNonjitteredMatrices
                         data.hdCamera.UpdateAllViewConstants(false);
-                        data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB);
 
                         UpdateOffscreenRenderingConstants(ref data.globalCB, true, 1.0f);
                         ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
@@ -966,7 +965,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Reenable camera jitter for CustomPostProcessBeforeTAA injection point
                         data.hdCamera.UpdateAllViewConstants(true);
-                        data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB);
 
                         UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1.0f);
                         ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
