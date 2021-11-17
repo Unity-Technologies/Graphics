@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using Object = UnityEngine.Object;
 
@@ -121,12 +122,6 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        string GetHelpURL(Type type)
-        {
-            var attribute = type.GetCustomAttribute<HelpURLAttribute>();
-            return attribute?.URL;
-        }
-
         private void DrawRendererFeature(int index, ref SerializedProperty renderFeatureProperty)
         {
             Object rendererFeatureObjRef = renderFeatureProperty.objectReferenceValue;
@@ -145,7 +140,7 @@ namespace UnityEditor.Rendering.Universal
                 string tooltip;
                 GetTooltip(rendererFeatureObjRef.GetType(), out tooltip);
 
-                var helpURL = GetHelpURL(rendererFeatureObjRef.GetType());
+                var helpURL = DocumentationUtils.TryGetHelpURL(rendererFeatureObjRef.GetType());
 
                 // Get the serialized object for the editor script & update it
                 Editor rendererFeatureEditor = m_Editors[index];

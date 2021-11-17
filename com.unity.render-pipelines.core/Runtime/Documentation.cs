@@ -2,6 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 #if UNITY_EDITOR
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 #endif
@@ -88,6 +89,17 @@ namespace UnityEngine.Rendering
                 .FirstOrDefault();
 
             return helpURLAttribute == null ? string.Empty : $"{helpURLAttribute.URL}#{mask}";
+        }
+
+        /// <summary>
+        /// Obtains the help URL from a type.
+        /// </summary>
+        /// <param name="type">The type decorated with the HelpURL attribute.</param>
+        /// <returns>The full URL or null if the attribute is not present.</returns>
+        public static string TryGetHelpURL(Type type)
+        {
+            var attribute = type.GetCustomAttribute<HelpURLAttribute>(false);
+            return attribute?.URL;
         }
     }
 }
