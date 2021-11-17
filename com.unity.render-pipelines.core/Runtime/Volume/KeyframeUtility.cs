@@ -59,6 +59,24 @@ namespace UnityEngine.Rendering
             return ret;
         }
 
+        /// In an animation curve, the inTangent and outTangent don't match the edge of the curve. For example,
+        /// the first key might have inTangent=3.0f but the actual incoming tangent is 0.0 because the curve is
+        /// clamped outside the time domain. So this helper fetches a key, but zeroes out the inTangent of the first
+        /// key and the outTangent of the last key.
+        static private Keyframe GetKeyfraneAndClampEdge([DisallowNull] Keyframe[] keys, int index)
+        {
+            var currKey = keys[index];
+            if (index == 0)
+            {
+                currKey.inTangent = 0.0f;
+            }
+            if (index == keys.Length - 1)
+            {
+                currKey.outTangent = 0.0f;
+            }
+            return currKey;
+        }
+
 
         /// Fetch a key from the keys list. If index<0, then expand the first key backwards to startTime. If index>=keys.length,
         /// then extend the last key to endTime. Keys must be a valid array with at least one element.
@@ -67,33 +85,27 @@ namespace UnityEngine.Rendering
             float startTime = Mathf.Min(segmentStartTime, keys[0].time);
             float endTime = Mathf.Max(segmentEndTime, keys[keys.Length - 1].time);
 
+            float startValue = keys[0].value;
+            float endValue = keys[keys.Length - 1].value;
+
+            // In practice, we are lerping animcurves for post processing curves that are always clamping at the begining and the end,
+            // so we are not implementing the other wrap modes like Loop, PingPong, etc.
             Keyframe ret;
             if (index < 0)
             {
-                var firstKey = keys[0];
-                Assert.IsTrue(startTime <= firstKey.time);
-
-                float offsetTime = firstKey.time - startTime;
-                float slope = firstKey.inTangent;
-
-                float startValue = firstKey.value - (slope * offsetTime);
-                ret = new Keyframe(startTime, startValue, slope, slope);
+                // when you are at a time either before the curve start time the value is clamped to the start time and the input tangent is ignored.
+                ret = new Keyframe(startTime, startValue, 0.0f, 0.0f);
             }
             else if (index >= keys.Length)
             {
+                // if we are after the end of the curve, there slope is always zero just like before the start of a curve
                 var lastKey = keys[keys.Length - 1];
-                Assert.IsTrue(lastKey.time <= endTime);
-
-                float offsetTime = endTime - lastKey.time;
-                float slope = lastKey.outTangent;
-
-                float endValue = lastKey.value + slope * offsetTime;
-                ret = new Keyframe(endTime, endValue, slope, slope);
+                ret = new Keyframe(endTime, endValue, 0.0f, 0.0f);
             }
             else
             {
                 // only remaining case is that we have a proper index
-                ret = keys[index];
+                ret = GetKeyfraneAndClampEdge(keys,index);
             }
             return ret;
         }
@@ -105,7 +117,7 @@ namespace UnityEngine.Rendering
             // This is the same epsilon used internally
             const float epsilon = 0.0001f;
 
-            float currTime = Mathf.Clamp(lhsKey.time, rhsKey.time, desiredTime);
+            float currTime = Mathf.Clamp(desiredTime, lhsKey.time, rhsKey.time);
 
             // (lhsKey.time <= rhsKey.time) should always be true. But theoretically, if garbage values get passed in, the value would
             // be clamped here to epsilon, and we would still end up with a reasonable value for dx.
@@ -203,8 +215,8 @@ namespace UnityEngine.Rendering
                     var rhsKey = new Keyframe();
                     if (lhsValid && rhsValid)
                     {
-                        lhsKey = lhsCurveKeys[lhsKeyCurr];
-                        rhsKey = rhsCurveKeys[rhsKeyCurr];
+                        lhsKey = GetKeyfraneAndClampEdge(lhsCurveKeys,lhsKeyCurr);
+                        rhsKey = GetKeyfraneAndClampEdge(rhsCurveKeys,rhsKeyCurr);
 
                         if (lhsKey.time == rhsKey.time)
                         {
@@ -234,7 +246,7 @@ namespace UnityEngine.Rendering
                     else if (lhsValid)
                     {
                         // we are still processing lhsKeys, but we are out of rhsKeys, so increment lhs and evaluate rhs
-                        lhsKey = lhsCurveKeys[lhsKeyCurr];
+                        lhsKey = GetKeyfraneAndClampEdge(lhsCurveKeys,lhsKeyCurr);
 
                         // rhs will be evaluated between the last rhs key and the extrapolated rhs key at the end time
                         rhsKey = KeyframeUtility.EvalKeyAtTime(rhsCurveKeys, rhsKeyCurr - 1, rhsKeyCurr, startTime, endTime, lhsKey.time);
@@ -248,7 +260,7 @@ namespace UnityEngine.Rendering
                         Assert.IsTrue(rhsValid);
 
                         // we still have rhsKeys to lerp, but we are out of lhsKeys, to increment rhs and evaluate lhs
-                        rhsKey = rhsCurveKeys[rhsKeyCurr];
+                        rhsKey = GetKeyfraneAndClampEdge(rhsCurveKeys,rhsKeyCurr);
 
                         // lhs will be evaluated between the last lhs key and the extrapolated lhs key at the end time
                         lhsKey = KeyframeUtility.EvalKeyAtTime(lhsCurveKeys, lhsKeyCurr - 1, lhsKeyCurr, startTime, endTime, rhsKey.time);
