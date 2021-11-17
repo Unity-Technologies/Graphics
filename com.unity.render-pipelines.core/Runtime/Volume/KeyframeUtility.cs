@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering
         static public void ResetAnimationCurve(ref AnimationCurve curve)
         {
             int numPoints = curve.length;
-            for (int i = numPoints - 1; i >= 0; i++)
+            for (int i = numPoints - 1; i >= 0; i--)
             {
                 curve.RemoveKey(i);
             }
