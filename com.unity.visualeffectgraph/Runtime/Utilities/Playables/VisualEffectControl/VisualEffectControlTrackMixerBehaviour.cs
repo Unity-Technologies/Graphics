@@ -10,33 +10,42 @@ namespace UnityEngine.VFX
     class VisualEffectControlTrackMixerBehaviour : PlayableBehaviour
     {
 #if UNITY_EDITOR
-        public struct MaxScrubbingWarning
+        static List<ScrubbingCacheHelper> s_RegisteredControlTrack = new List<ScrubbingCacheHelper>();
+        static List<ScrubbingCacheHelper[]> s_ConflictingControlTrack = new List<ScrubbingCacheHelper[]>();
+
+        private static void UpdateConflictingControlTrack()
         {
-            public float requestedTime;
-            public float fixedTimeStep;
-            public VisualEffect target;
+            //Detect potential issue with multiple track controlling the same vfx with some scrubbing
+            s_ConflictingControlTrack.Clear();
+            foreach (var group in s_RegisteredControlTrack.GroupBy(o => o.GetTarget()))
+            {
+                if (group.Count() > 1 && group.Any(o => o.GetScrubbing()))
+                {
+                    s_ConflictingControlTrack.Add(group.ToArray());
+                }
+            }
         }
 
-        static uint s_WarningId = 0u;
-        static List<(uint, MaxScrubbingWarning)> s_RegisteredWarnings = new List<(uint, MaxScrubbingWarning)>();
-        static public uint RegisterScrubbingWarning(MaxScrubbingWarning warning)
+        static public void RegisterControlTrack(ScrubbingCacheHelper scrubbingCache)
         {
-            var currentID = s_WarningId++;
-            if (currentID == uint.MaxValue)
-                currentID = 0u;
-            s_RegisteredWarnings.Add((currentID, warning));
-            return currentID;
+            s_RegisteredControlTrack.Add(scrubbingCache);
+            UpdateConflictingControlTrack();
         }
 
-        static public IEnumerable<MaxScrubbingWarning> GetScrubbingWarnings()
+        static public void UnregisterControlTrack(ScrubbingCacheHelper scrubbingCache)
         {
-            foreach (var registeredWarning in s_RegisteredWarnings)
-                yield return registeredWarning.Item2;
+            s_RegisteredControlTrack.RemoveAll(o => o == scrubbingCache);
+            UpdateConflictingControlTrack();
         }
 
-        static public void UnregisterScrubbingWarning(uint id)
+        static public IEnumerable<ScrubbingCacheHelper[]> GetConflictingControlTrack()
         {
-            s_RegisteredWarnings.RemoveAll(o => o.Item1 == id);
+            return s_ConflictingControlTrack;
+        }
+
+        static public IEnumerable<ScrubbingCacheHelper> GeActiveControlTrack()
+        {
+            return s_RegisteredControlTrack;
         }
 #endif
         public class ScrubbingCacheHelper
@@ -88,9 +97,39 @@ namespace UnityEngine.VFX
             double m_LastPlayableTime = double.MinValue;
 
 #if UNITY_EDITOR
-            uint m_LastErrorID = uint.MaxValue;
+            bool m_Scrubbing;
+            PlayableDirector m_Director;
+
+            public bool GetScrubbing()
+            {
+                return m_Scrubbing;
+            }
+
+            public struct MaxScrubbingWarning
+            {
+                public float requestedTime;
+                public float fixedTimeStep;
+                public bool valid;
+            }
+            MaxScrubbingWarning m_LastScrubbingWarning;
+            public MaxScrubbingWarning GetCurrentScrubbingWarning()
+            {
+                return m_LastScrubbingWarning;
+            }
+
+            public VisualEffect GetTarget()
+            {
+                return m_Target;
+            }
+
+            public PlayableDirector GetDirector()
+            {
+                return m_Director;
+            }
+
+            //TODOPAUL: can be cleaned after QA verification
             bool[] m_ClipState;
-            Queue<Debug> m_DebugFrame = new Queue<Debug>(); //TODOPAUL: can be cleaned after QA verification
+            Queue<Debug> m_DebugFrame = new Queue<Debug>();
             public IEnumerable<Debug> GetDebugFrames()
             {
                 return m_DebugFrame;
@@ -203,11 +242,7 @@ namespace UnityEngine.VFX
             public void Update(double playableTime, float deltaTime)
             {
 #if UNITY_EDITOR
-                if (m_LastErrorID != uint.MaxValue)
-                {
-                    UnregisterScrubbingWarning(m_LastErrorID);
-                    m_LastErrorID = uint.MaxValue;
-                }
+                m_LastScrubbingWarning.valid = false;
 #endif
 
                 var paused = deltaTime == 0.0;
@@ -306,12 +341,12 @@ namespace UnityEngine.VFX
                                 //Choose a bigger time step to reach the actual expected time
                                 fixedStep = (float)((expectedCurrentTime - actualCurrentTime) * (double)VFXManager.maxDeltaTime / (double)s_MaximumScrubbingTime);
 #if UNITY_EDITOR
-                                m_LastErrorID = RegisterScrubbingWarning(new MaxScrubbingWarning()
+                                m_LastScrubbingWarning = new MaxScrubbingWarning()
                                 {
                                     fixedTimeStep = fixedStep,
                                     requestedTime = (float)(expectedCurrentTime - actualCurrentTime),
-                                    target = m_Target
-                                });
+                                    valid = true
+                                };
 #endif
                             }
 
@@ -516,6 +551,9 @@ namespace UnityEngine.VFX
             public void Init(Playable playable, VisualEffect vfx)
             {
                 m_Target = vfx;
+#if UNITY_EDITOR
+                m_Director = playable.GetGraph().GetResolver() as PlayableDirector;
+#endif
                 m_BackupStartSeed = m_Target.startSeed;
                 m_BackupReseedOnPlay = m_Target.resetSeedOnPlay;
 
@@ -611,6 +649,10 @@ namespace UnityEngine.VFX
                     }
                     else
                     {
+#if UNITY_EDITOR
+                        m_Scrubbing = true;
+#endif
+
                         //No need to compute clip information
                         currentsEvents = currentsEvents.OrderBy(o => o.time);
                         currentChunk.events = currentChunk.events.Concat(currentsEvents).ToArray();
@@ -621,13 +663,15 @@ namespace UnityEngine.VFX
                     chunks.Push(currentChunk);
                 }
                 m_Chunks = chunks.Reverse().ToArray();
+#if UNITY_EDITOR
+                RegisterControlTrack(this);
+#endif
             }
 
             public void Release()
             {
 #if UNITY_EDITOR
-                if (m_LastErrorID != uint.MaxValue)
-                    UnregisterScrubbingWarning(m_LastErrorID);
+                UnregisterControlTrack(this);
 #endif
                 RestoreVFXState();
             }
@@ -649,6 +693,7 @@ namespace UnityEngine.VFX
         {
             return m_ScrubbingCacheHelper?.GetDebugFrames();
         }
+
 #endif
 
         public override void PrepareFrame(Playable playable, FrameData data)
