@@ -8,10 +8,6 @@ using System.Reflection;
 using Unity.Collections;
 using UnityEngine.Assertions;
 
-// TODO: Documentation
-// TODO: Unit Test
-// TODO: Garbage collection fix
-
 namespace UnityEngine.Rendering
 {
     /// <summary>
@@ -29,16 +25,20 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class KeyframeUtility
     {
-        static private AnimationCurve AllocAnimationCurveFromPool()
+        /// <summary>
+        /// Helper function to remove all control points for an animation curve. Since animation curves are reused in a pool,
+        /// this function clears existing keys so the curve is ready for reuse.
+        /// </summary>
+        /// <param name="lhsCurve">The start value.</param>
+        /// <param name="rhsCurve">The end value.</param>
+        /// <param name="t">The interpolation factor in range [0,1].</param>
+        static public void ResetAnimationCurve(ref AnimationCurve curve)
         {
-            // TODO
-            return new AnimationCurve();
-        }
-
-        static bool IsAnimationCurveAvailable()
-        {
-            // TODO
-            return true;
+            int numPoints = curve.length;
+            for (int i = numPoints - 1; i >= 0; i++)
+            {
+                curve.RemoveKey(i);
+            }
         }
 
         static private Keyframe LerpSingleKeyframe(Keyframe lhs, Keyframe rhs, float t)
@@ -110,6 +110,7 @@ namespace UnityEngine.Rendering
             return ret;
         }
 
+
         /// Given a desiredTime, interpoloate between two keys to find the value and derivative. This function assumes that lhsKey.time <= desiredTime <= rhsKey.time,
         /// but will return a reasonable float value if that's not the case.
         static private void EvalCurveSegmentAndDeriv(out float dstValue, out float dstDeriv, Keyframe lhsKey, Keyframe rhsKey, float desiredTime)
@@ -160,11 +161,13 @@ namespace UnityEngine.Rendering
             return new Keyframe(currTime, currValue, currDeriv, currDeriv);
         }
 
+
         /// <summary>
         /// Interpolates two AnimationCurves. Since both curves likely have control points at different places
-        /// in the curve, this method will create a new curve from the union of times between both curves.
+        /// in the curve, this method will create a new curve from the union of times between both curves. However, to avoid creating
+        /// garbage, this function will always replace the keys of lhsCurve with the final result, and return lhsCurve.
         /// </summary>
-        /// <param name="lhsCurve">The start value.</param>
+        /// <param name="lhsCurve">The start value. Additionaly, this instance will be reused and returned as the result.</param>
         /// <param name="rhsCurve">The end value.</param>
         /// <param name="t">The interpolation factor in range [0,1].</param>
         static public AnimationCurve InterpAnimationCurve([DisallowNull]  AnimationCurve lhsCurve, [DisallowNull] AnimationCurve rhsCurve, float t)
@@ -175,17 +178,26 @@ namespace UnityEngine.Rendering
             }
             else if (t >= 1.0f || lhsCurve.length == 0)
             {
-                return rhsCurve;
+                // In this case the obvous solution would be to return the rhsCurve. BUT (!) the lhsCurve and rhsCurve are different. This function is
+                // called by:
+                //      stateParam.Interp(stateParam, toParam, interpFactor);
+                //
+                // stateParam (lhsCurve) is a temporary in/out parameter, but toParam (rhsCurve) might point to the original component, so it's unsafe to
+                // change that data. Thus, we need to copy the keys from the rhsCurve to the lhsCurve instead of returning rhsCurve.
+                KeyframeUtility.ResetAnimationCurve(ref lhsCurve);
+
+                for (int i = 0; i < rhsCurve.length; i++)
+                {
+                    lhsCurve.AddKey(rhsCurve.keys[i]);
+                }
+                lhsCurve.postWrapMode = rhsCurve.postWrapMode;
+                lhsCurve.preWrapMode = rhsCurve.preWrapMode;
+
+                return lhsCurve;
             }
             else
             {
                 // Note: If we reached this code, we are guaranteed that both lhsCruve and rhsCurve are valid with at least 1 key
-
-                // Check if we actually have a curve available in the pool. If not, fall back to trivially choosing the closer one.
-                if (!IsAnimationCurveAvailable())
-                {
-                    return t <= 0.5f ? lhsCurve : rhsCurve;
-                }
 
                 // first, figure out the start and end time to include both curves
                 var lhsCurveKeys = lhsCurve.keys;
@@ -273,15 +285,17 @@ namespace UnityEngine.Rendering
                     currNumKeys++;
                 }
 
-                var ret = KeyframeUtility.AllocAnimationCurveFromPool();
-
+                // This code is only called as:
+                //      stateParam.Interp(stateParam, toParam, interpFactor);
+                // So rather than creating a new value and returning it, we can make a temporary copy of lhsCurve.keys, and return the lhsCurve
+                KeyframeUtility.ResetAnimationCurve(ref lhsCurve);
                 for (int i = 0; i < currNumKeys; i++)
                 {
-                    ret.AddKey(dstKeys[i]);
+                    lhsCurve.AddKey(dstKeys[i]);
                 }
 
                 dstKeys.Dispose();
-                return ret;
+                return lhsCurve;
             }
         }
     }
