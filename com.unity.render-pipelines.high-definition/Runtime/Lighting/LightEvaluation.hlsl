@@ -190,7 +190,7 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     // Height fog attenuation.
     {
         // TODO: should probably unify height attenuation somehow...
-        float  cosZenithAngle = L.y;
+        float  cosZenithAngle = max(L.y, 0.001f);
         float  fragmentHeight = posInput.positionWS.y;
         float3 oDepth = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
                                               _HeightFogExponents, cosZenithAngle, fragmentHeight);
