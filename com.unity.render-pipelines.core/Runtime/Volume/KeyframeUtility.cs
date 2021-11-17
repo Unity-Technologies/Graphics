@@ -29,9 +29,7 @@ namespace UnityEngine.Rendering
         /// Helper function to remove all control points for an animation curve. Since animation curves are reused in a pool,
         /// this function clears existing keys so the curve is ready for reuse.
         /// </summary>
-        /// <param name="lhsCurve">The start value.</param>
-        /// <param name="rhsCurve">The end value.</param>
-        /// <param name="t">The interpolation factor in range [0,1].</param>
+        /// <param name="curve">The curve to reset.</param>
         static public void ResetAnimationCurve(ref AnimationCurve curve)
         {
             int numPoints = curve.length;
@@ -63,7 +61,7 @@ namespace UnityEngine.Rendering
         /// the first key might have inTangent=3.0f but the actual incoming tangent is 0.0 because the curve is
         /// clamped outside the time domain. So this helper fetches a key, but zeroes out the inTangent of the first
         /// key and the outTangent of the last key.
-        static private Keyframe GetKeyfraneAndClampEdge([DisallowNull] Keyframe[] keys, int index)
+        static private Keyframe GetKeyframeAndClampEdge([DisallowNull] Keyframe[] keys, int index)
         {
             var currKey = keys[index];
             if (index == 0)
@@ -80,7 +78,7 @@ namespace UnityEngine.Rendering
 
         /// Fetch a key from the keys list. If index<0, then expand the first key backwards to startTime. If index>=keys.length,
         /// then extend the last key to endTime. Keys must be a valid array with at least one element.
-        static private Keyframe FetchKeyFromIndexClamped([DisallowNull] Keyframe[] keys, int index, float segmentStartTime, float segmentEndTime)
+        static private Keyframe FetchKeyFromIndexClampEdge([DisallowNull] Keyframe[] keys, int index, float segmentStartTime, float segmentEndTime)
         {
             float startTime = Mathf.Min(segmentStartTime, keys[0].time);
             float endTime = Mathf.Max(segmentEndTime, keys[keys.Length - 1].time);
@@ -105,7 +103,7 @@ namespace UnityEngine.Rendering
             else
             {
                 // only remaining case is that we have a proper index
-                ret = GetKeyfraneAndClampEdge(keys,index);
+                ret = GetKeyframeAndClampEdge(keys,index);
             }
             return ret;
         }
@@ -151,8 +149,8 @@ namespace UnityEngine.Rendering
         /// at startTime, or beyond the length of the array, in which case it creates a synthetic key at endTime.
         static private Keyframe EvalKeyAtTime([DisallowNull] Keyframe[] keys, int lhsIndex, int rhsIndex, float startTime, float endTime, float currTime)
         {
-            var lhsKey = KeyframeUtility.FetchKeyFromIndexClamped(keys, lhsIndex, startTime, endTime);
-            var rhsKey = KeyframeUtility.FetchKeyFromIndexClamped(keys, rhsIndex, startTime, endTime);
+            var lhsKey = KeyframeUtility.FetchKeyFromIndexClampEdge(keys, lhsIndex, startTime, endTime);
+            var rhsKey = KeyframeUtility.FetchKeyFromIndexClampEdge(keys, rhsIndex, startTime, endTime);
 
             float currValue;
             float currDeriv;
@@ -227,8 +225,8 @@ namespace UnityEngine.Rendering
                     var rhsKey = new Keyframe();
                     if (lhsValid && rhsValid)
                     {
-                        lhsKey = GetKeyfraneAndClampEdge(lhsCurveKeys,lhsKeyCurr);
-                        rhsKey = GetKeyfraneAndClampEdge(rhsCurveKeys,rhsKeyCurr);
+                        lhsKey = GetKeyframeAndClampEdge(lhsCurveKeys,lhsKeyCurr);
+                        rhsKey = GetKeyframeAndClampEdge(rhsCurveKeys,rhsKeyCurr);
 
                         if (lhsKey.time == rhsKey.time)
                         {
@@ -258,7 +256,7 @@ namespace UnityEngine.Rendering
                     else if (lhsValid)
                     {
                         // we are still processing lhsKeys, but we are out of rhsKeys, so increment lhs and evaluate rhs
-                        lhsKey = GetKeyfraneAndClampEdge(lhsCurveKeys,lhsKeyCurr);
+                        lhsKey = GetKeyframeAndClampEdge(lhsCurveKeys,lhsKeyCurr);
 
                         // rhs will be evaluated between the last rhs key and the extrapolated rhs key at the end time
                         rhsKey = KeyframeUtility.EvalKeyAtTime(rhsCurveKeys, rhsKeyCurr - 1, rhsKeyCurr, startTime, endTime, lhsKey.time);
@@ -272,7 +270,7 @@ namespace UnityEngine.Rendering
                         Assert.IsTrue(rhsValid);
 
                         // we still have rhsKeys to lerp, but we are out of lhsKeys, to increment rhs and evaluate lhs
-                        rhsKey = GetKeyfraneAndClampEdge(rhsCurveKeys,rhsKeyCurr);
+                        rhsKey = GetKeyframeAndClampEdge(rhsCurveKeys,rhsKeyCurr);
 
                         // lhs will be evaluated between the last lhs key and the extrapolated lhs key at the end time
                         lhsKey = KeyframeUtility.EvalKeyAtTime(lhsCurveKeys, lhsKeyCurr - 1, lhsKeyCurr, startTime, endTime, rhsKey.time);
