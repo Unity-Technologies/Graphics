@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderFoundry
             {
                 foreach (var prop in propertiesList)
                 {
-                    prop.DeclareMaterialProperty(builder);
+                    MaterialPropertyDeclaration.Declare(builder, prop);
                 }
             }
         }
