@@ -12,8 +12,8 @@ Based on Sahl-Snell's Law, for a medium's given refractive index, there is an an
 |:------------ |:-------------|:-----|:---|:---|
 | Incident      | Input | Vector | None | The normalized vector of what should be refracted to the surface causing the refraction. For example, this could be from a light source to a pixel or the surface, or from the eye to the pixel or surface. |
 | Normal      | Input | Vector | None | The normalized normal of the surface that should cause the refraction. |
-| IOR Input      | Input | Float    | None | The refractive index Source (where the light is coming from). |
-| IOR Medium     | Input | Float    | None | The refractive index Medium (the medium causing the refraction). |
+| IOR Input      | Input | Float    | None | The refractive index Source, or where the light is coming from. |
+| IOR Medium     | Input | Float    | None | The refractive index Medium, or the medium causing the refraction. |
 | Out | Output      |  Vector | None | The refracted vector |
 
 ## Controls
