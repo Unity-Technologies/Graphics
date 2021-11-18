@@ -341,11 +341,16 @@ public unsafe class RenderBRG : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    public static Material LoadPickingMaterial()
-    {
-        Shader shader = Shader.Find("Hidden/HDRP/BRGPicking");
 
-        if (shader == null) return null;
+    static Material LoadMaterialWithHideAndDontSave(string name)
+    {
+        Shader shader = Shader.Find(name);
+
+        if (shader == null)
+        {
+            Debug.LogError("Null");
+            return null;
+        }
 
         Material material = new Material(shader);
 
@@ -355,7 +360,10 @@ public unsafe class RenderBRG : MonoBehaviour
         return material;
     }
 
-    Material m_pickingMaterial;
+    Material m_PickingMaterial;
+    Material m_ErrorMaterial;
+    Material m_LoadingMaterial;
+
 #endif
 
 
@@ -365,8 +373,14 @@ public unsafe class RenderBRG : MonoBehaviour
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
 #if UNITY_EDITOR
-        m_pickingMaterial = LoadPickingMaterial();
-        m_BatchRendererGroup.SetPickingMaterial(m_pickingMaterial);
+        m_PickingMaterial = LoadMaterialWithHideAndDontSave("Hidden/HDRP/BRGPicking");
+        m_BatchRendererGroup.SetPickingMaterial(m_PickingMaterial);
+
+        m_ErrorMaterial = LoadMaterialWithHideAndDontSave("Hidden/HDRP/MaterialError");
+        m_BatchRendererGroup.SetErrorMaterial(m_ErrorMaterial);
+
+        m_LoadingMaterial = LoadMaterialWithHideAndDontSave("HDRP/MaterialLoading");
+        m_BatchRendererGroup.SetLoadingMaterial(m_LoadingMaterial);
 #endif
 
         // Create a batch...
@@ -637,7 +651,9 @@ public unsafe class RenderBRG : MonoBehaviour
             m_drawIndices.Dispose();
 
 #if UNITY_EDITOR
-            DestroyImmediate(m_pickingMaterial);
+            DestroyImmediate(m_PickingMaterial);
+            DestroyImmediate(m_ErrorMaterial);
+            DestroyImmediate(m_LoadingMaterial);
 #endif
         }
     }

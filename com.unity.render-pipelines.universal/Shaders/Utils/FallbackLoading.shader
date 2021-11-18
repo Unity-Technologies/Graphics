@@ -1,4 +1,4 @@
-Shader "Hidden/Universal Render Pipeline/FallbackError"
+Shader "Hidden/Universal Render Pipeline/FallbackLoading"
 {
     SubShader
     {
@@ -12,6 +12,7 @@ Shader "Hidden/Universal Render Pipeline/FallbackError"
             #pragma target 4.5
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma editor_sync_compilation
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
@@ -39,7 +40,7 @@ Shader "Hidden/Universal Render Pipeline/FallbackError"
 
             float4 frag (v2f i) : SV_Target
             {
-                return float4(1,0,1,1);
+                return float4(0,1,1,1);
             }
             ENDHLSL
         }
@@ -54,6 +55,7 @@ Shader "Hidden/Universal Render Pipeline/FallbackError"
             #pragma fragment frag
             #pragma target 2.0
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+            #pragma editor_sync_compilation
             #include "UnityCG.cginc"
 
             struct appdata_t
@@ -79,10 +81,11 @@ Shader "Hidden/Universal Render Pipeline/FallbackError"
 
             fixed4 frag(v2f i) : SV_Target
             {
-                return fixed4(1,0,1,1);
+                return fixed4(0,1,1,1);
             }
             ENDCG
         }
     }
+
     Fallback Off
 }
