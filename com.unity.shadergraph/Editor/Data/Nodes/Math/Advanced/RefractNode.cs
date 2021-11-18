@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         Safe
     };
 
-    [Title("Math", "Advanced", "Refract")]
+    [Title("Math", "Vector")]
     class RefractNode : CodeFunctionNode
     {
         [SerializeField]
@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
         public RefractNode()
         {
             name = "Refract";
-            synonyms = new string[] { "refract", "refract safe", "refract critical angle" };
+            synonyms = new string[] { "refract", "warp", "bend", "distort" };
         }
 
         protected override MethodInfo GetFunctionToConvert()
