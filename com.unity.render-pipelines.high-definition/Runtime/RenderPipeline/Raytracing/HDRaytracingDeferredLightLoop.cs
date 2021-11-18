@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (parameters.rayBinning)
             {
-                BinRays(cmd, parameters, buffers.directionBuffer,  texWidth, texHeight);
+                BinRays(cmd, parameters, buffers.directionBuffer, texWidth, texHeight);
             }
 
             // Inject the global parameters

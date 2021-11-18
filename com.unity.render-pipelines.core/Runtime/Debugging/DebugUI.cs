@@ -17,11 +17,11 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// None.
             /// </summary>
-            None        = 0,
+            None = 0,
             /// <summary>
             /// This widget is Editor only.
             /// </summary>
-            EditorOnly  = 1 << 1,
+            EditorOnly = 1 << 1,
             /// <summary>
             /// This widget is Runtime only.
             /// </summary>

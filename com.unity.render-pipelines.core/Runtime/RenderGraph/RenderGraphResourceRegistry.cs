@@ -33,11 +33,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         class RenderGraphResourcesData
         {
-            public DynamicArray<IRenderGraphResource>   resourceArray = new DynamicArray<IRenderGraphResource>();
-            public int                                  sharedResourcesCount;
-            public IRenderGraphResourcePool             pool;
-            public ResourceCallback                     createResourceCallback;
-            public ResourceCallback                     releaseResourceCallback;
+            public DynamicArray<IRenderGraphResource> resourceArray = new DynamicArray<IRenderGraphResource>();
+            public int sharedResourcesCount;
+            public IRenderGraphResourcePool pool;
+            public ResourceCallback createResourceCallback;
+            public ResourceCallback releaseResourceCallback;
 
             public void Clear(bool onException, int frameIndex)
             {
@@ -80,14 +80,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        RenderGraphResourcesData[]          m_RenderGraphResources = new RenderGraphResourcesData[(int)RenderGraphResourceType.Count];
-        DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
-        RenderGraphDebugParams              m_RenderGraphDebug;
-        RenderGraphLogger                   m_Logger;
-        int                                 m_CurrentFrameIndex;
-        int                                 m_ExecutionCount;
+        RenderGraphResourcesData[] m_RenderGraphResources = new RenderGraphResourcesData[(int)RenderGraphResourceType.Count];
+        DynamicArray<RendererListResource> m_RendererListResources = new DynamicArray<RendererListResource>();
+        RenderGraphDebugParams m_RenderGraphDebug;
+        RenderGraphLogger m_Logger;
+        int m_CurrentFrameIndex;
+        int m_ExecutionCount;
 
-        RTHandle                            m_CurrentBackbuffer;
+        RTHandle m_CurrentBackbuffer;
 
         #region Internal Interface
         internal RTHandle GetTexture(in TextureHandle handle)

@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
             m_Middle.name = "middle";
             inputContainer.parent.Insert(1, m_Middle);
 
-            m_EditButton = new VisualElement() {name = "edit"};
+            m_EditButton = new VisualElement() { name = "edit" };
             m_EditButton.Add(new VisualElement() { name = "icon" });
             m_EditButton.AddManipulator(new Clickable(OnEdit));
             this.AddManipulator(new SuperCollapser());

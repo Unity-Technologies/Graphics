@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.Block
                     if (input.name == "FieldTransform")
                     {
                         yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(input.exp), "InvFieldTransform");
-                        yield return new VFXNamedExpression(VFXOperatorUtility.Max3(new VFXExpressionExtractScaleFromMatrix(input.exp)) , "scalingFactor");
+                        yield return new VFXNamedExpression(VFXOperatorUtility.Max3(new VFXExpressionExtractScaleFromMatrix(input.exp)), "scalingFactor");
                     }
                 }
             }

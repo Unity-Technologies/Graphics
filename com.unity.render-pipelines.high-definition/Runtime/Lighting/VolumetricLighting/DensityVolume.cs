@@ -8,50 +8,50 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial struct DensityVolumeArtistParameters
     {
         /// <summary>Single scattering albedo: [0, 1]. Alpha is ignored.</summary>
-        public Color     albedo;
+        public Color albedo;
         /// <summary>Mean free path, in meters: [1, inf].</summary>
-        public float     meanFreePath; // Should be chromatic - this is an optimization!
+        public float meanFreePath; // Should be chromatic - this is an optimization!
         /// <summary>Anisotropy of the phase function: [-1, 1]. Positive values result in forward scattering, and negative values - in backward scattering.</summary>
         [FormerlySerializedAs("asymmetry")]
-        public float     anisotropy;   // . Not currently available for density volumes
+        public float anisotropy;   // . Not currently available for density volumes
 
         /// <summary>Texture containing density values.</summary>
         public Texture3D volumeMask;
         /// <summary>Scrolling speed of the density texture.</summary>
-        public Vector3   textureScrollingSpeed;
+        public Vector3 textureScrollingSpeed;
         /// <summary>Tiling rate of the density texture.</summary>
-        public Vector3   textureTiling;
+        public Vector3 textureTiling;
 
         /// <summary>Edge fade factor along the positive X, Y and Z axes.</summary>
         [FormerlySerializedAs("m_PositiveFade")]
-        public Vector3   positiveFade;
+        public Vector3 positiveFade;
         /// <summary>Edge fade factor along the negative X, Y and Z axes.</summary>
         [FormerlySerializedAs("m_NegativeFade")]
-        public Vector3   negativeFade;
+        public Vector3 negativeFade;
 
         [SerializeField, FormerlySerializedAs("m_UniformFade")]
-        internal float   m_EditorUniformFade;
+        internal float m_EditorUniformFade;
         [SerializeField]
         internal Vector3 m_EditorPositiveFade;
         [SerializeField]
         internal Vector3 m_EditorNegativeFade;
         [SerializeField, FormerlySerializedAs("advancedFade"), FormerlySerializedAs("m_AdvancedFade")]
-        internal bool    m_EditorAdvancedFade;
+        internal bool m_EditorAdvancedFade;
 
         /// <summary>Dimensions of the volume.</summary>
-        public Vector3   size;
+        public Vector3 size;
         /// <summary>Inverts the fade gradient.</summary>
-        public bool      invertFade;
+        public bool invertFade;
 
         /// <summary>Distance at which density fading starts.</summary>
-        public float     distanceFadeStart;
+        public float distanceFadeStart;
         /// <summary>Distance at which density fading ends.</summary>
-        public float     distanceFadeEnd;
+        public float distanceFadeEnd;
         [SerializeField]
-        internal int     textureIndex;
+        internal int textureIndex;
         /// <summary>Allows translation of the tiling density texture.</summary>
         [SerializeField, FormerlySerializedAs("volumeScrollingAmount")]
-        public Vector3   textureOffset;
+        public Vector3 textureOffset;
 
         /// <summary>Constructor.</summary>
         /// <param name="color">Single scattering albedo.</param>
@@ -59,28 +59,28 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="_anisotropy">Anisotropy.</param>
         public DensityVolumeArtistParameters(Color color, float _meanFreePath, float _anisotropy)
         {
-            albedo                = color;
-            meanFreePath          = _meanFreePath;
-            anisotropy            = _anisotropy;
+            albedo = color;
+            meanFreePath = _meanFreePath;
+            anisotropy = _anisotropy;
 
-            volumeMask            = null;
-            textureIndex          = -1;
+            volumeMask = null;
+            textureIndex = -1;
             textureScrollingSpeed = Vector3.zero;
-            textureTiling         = Vector3.one;
-            textureOffset         = textureScrollingSpeed;
+            textureTiling = Vector3.one;
+            textureOffset = textureScrollingSpeed;
 
-            size                  = Vector3.one;
+            size = Vector3.one;
 
-            positiveFade          = Vector3.zero;
-            negativeFade          = Vector3.zero;
-            invertFade            = false;
+            positiveFade = Vector3.zero;
+            negativeFade = Vector3.zero;
+            invertFade = false;
 
-            distanceFadeStart     = 10000;
-            distanceFadeEnd       = 10000;
+            distanceFadeStart = 10000;
+            distanceFadeEnd = 10000;
 
             m_EditorPositiveFade = Vector3.zero;
             m_EditorNegativeFade = Vector3.zero;
-            m_EditorUniformFade  = 0;
+            m_EditorUniformFade = 0;
             m_EditorAdvancedFade = false;
         }
 
@@ -110,19 +110,19 @@ namespace UnityEngine.Rendering.HighDefinition
             textureOffset = Vector3.zero;
 
             distanceFadeStart = Mathf.Max(0, distanceFadeStart);
-            distanceFadeEnd   = Mathf.Max(distanceFadeStart, distanceFadeEnd);
+            distanceFadeEnd = Mathf.Max(distanceFadeStart, distanceFadeEnd);
         }
 
         internal DensityVolumeEngineData ConvertToEngineData()
         {
             DensityVolumeEngineData data = new DensityVolumeEngineData();
 
-            data.extinction     = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
-            data.scattering     = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector3)(Vector4)albedo);
+            data.extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
+            data.scattering = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector3)(Vector4)albedo);
 
-            data.textureIndex   = textureIndex;
-            data.textureScroll  = textureOffset;
-            data.textureTiling  = textureTiling;
+            data.textureIndex = textureIndex;
+            data.textureScroll = textureOffset;
+            data.textureTiling = textureTiling;
 
             // Clamp to avoid NaNs.
             Vector3 positiveFade = this.positiveFade;
@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float distFadeLen = Mathf.Max(distanceFadeEnd - distanceFadeStart, 0.00001526f);
 
-            data.rcpDistFadeLen         = 1.0f / distFadeLen;
+            data.rcpDistFadeLen = 1.0f / distFadeLen;
             data.endTimesRcpDistFadeLen = distanceFadeEnd * data.rcpDistFadeLen;
 
             return data;

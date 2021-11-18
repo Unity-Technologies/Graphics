@@ -84,66 +84,66 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedScalableSetting lodBias;
         public SerializedScalableSetting maximumLODLevel;
 
-    #pragma warning disable 618 // Type or member is obsolete
+#pragma warning disable 618 // Type or member is obsolete
         [FormerlySerializedAs("enableUltraQualitySSS"), FormerlySerializedAs("increaseSssSampleCount"), Obsolete("For data migration")]
         SerializedProperty m_ObsoleteincreaseSssSampleCount;
-    #pragma warning restore 618
+#pragma warning restore 618
 
         public SerializedRenderPipelineSettings(SerializedProperty root)
         {
             this.root = root;
 
-            supportShadowMask               = root.Find((RenderPipelineSettings s) => s.supportShadowMask);
-            supportSSR                      = root.Find((RenderPipelineSettings s) => s.supportSSR);
-            supportSSRTransparent           = root.Find((RenderPipelineSettings s) => s.supportSSRTransparent);
-            supportSSAO                     = root.Find((RenderPipelineSettings s) => s.supportSSAO);
-            supportSSGI                     = root.Find((RenderPipelineSettings s) => s.supportSSGI);
-            supportSubsurfaceScattering     = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
-            sssSampleBudget                 = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.sssSampleBudget));
-            supportVolumetrics              = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
-            supportLightLayers              = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
-            lightLayerName0                 = root.Find((RenderPipelineSettings s) => s.lightLayerName0);
-            lightLayerName1                 = root.Find((RenderPipelineSettings s) => s.lightLayerName1);
-            lightLayerName2                 = root.Find((RenderPipelineSettings s) => s.lightLayerName2);
-            lightLayerName3                 = root.Find((RenderPipelineSettings s) => s.lightLayerName3);
-            lightLayerName4                 = root.Find((RenderPipelineSettings s) => s.lightLayerName4);
-            lightLayerName5                 = root.Find((RenderPipelineSettings s) => s.lightLayerName5);
-            lightLayerName6                 = root.Find((RenderPipelineSettings s) => s.lightLayerName6);
-            lightLayerName7                 = root.Find((RenderPipelineSettings s) => s.lightLayerName7);
-            colorBufferFormat               = root.Find((RenderPipelineSettings s) => s.colorBufferFormat);
-            customBufferFormat              = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
-            supportCustomPass               = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
-            supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
-            planarReflectionResolution      = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.planarReflectionResolution));
+            supportShadowMask = root.Find((RenderPipelineSettings s) => s.supportShadowMask);
+            supportSSR = root.Find((RenderPipelineSettings s) => s.supportSSR);
+            supportSSRTransparent = root.Find((RenderPipelineSettings s) => s.supportSSRTransparent);
+            supportSSAO = root.Find((RenderPipelineSettings s) => s.supportSSAO);
+            supportSSGI = root.Find((RenderPipelineSettings s) => s.supportSSGI);
+            supportSubsurfaceScattering = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
+            sssSampleBudget = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.sssSampleBudget));
+            supportVolumetrics = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
+            supportLightLayers = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
+            lightLayerName0 = root.Find((RenderPipelineSettings s) => s.lightLayerName0);
+            lightLayerName1 = root.Find((RenderPipelineSettings s) => s.lightLayerName1);
+            lightLayerName2 = root.Find((RenderPipelineSettings s) => s.lightLayerName2);
+            lightLayerName3 = root.Find((RenderPipelineSettings s) => s.lightLayerName3);
+            lightLayerName4 = root.Find((RenderPipelineSettings s) => s.lightLayerName4);
+            lightLayerName5 = root.Find((RenderPipelineSettings s) => s.lightLayerName5);
+            lightLayerName6 = root.Find((RenderPipelineSettings s) => s.lightLayerName6);
+            lightLayerName7 = root.Find((RenderPipelineSettings s) => s.lightLayerName7);
+            colorBufferFormat = root.Find((RenderPipelineSettings s) => s.colorBufferFormat);
+            customBufferFormat = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
+            supportCustomPass = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
+            supportedLitShaderMode = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
+            planarReflectionResolution = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.planarReflectionResolution));
 
-            supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
-            supportDecalLayers              = root.Find((RenderPipelineSettings s) => s.supportDecalLayers);
-            decalLayerName0                 = root.Find((RenderPipelineSettings s) => s.decalLayerName0);
-            decalLayerName1                 = root.Find((RenderPipelineSettings s) => s.decalLayerName1);
-            decalLayerName2                 = root.Find((RenderPipelineSettings s) => s.decalLayerName2);
-            decalLayerName3                 = root.Find((RenderPipelineSettings s) => s.decalLayerName3);
-            decalLayerName4                 = root.Find((RenderPipelineSettings s) => s.decalLayerName4);
-            decalLayerName5                 = root.Find((RenderPipelineSettings s) => s.decalLayerName5);
-            decalLayerName6                 = root.Find((RenderPipelineSettings s) => s.decalLayerName6);
-            decalLayerName7                 = root.Find((RenderPipelineSettings s) => s.decalLayerName7);
-            MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
-            supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
-            supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
-            supportRuntimeAOVAPI            = root.Find((RenderPipelineSettings s) => s.supportRuntimeAOVAPI);
-            supportDitheringCrossFade       = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
-            supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);
-            supportDistortion               = root.Find((RenderPipelineSettings s) => s.supportDistortion);
-            supportTransparentBackface      = root.Find((RenderPipelineSettings s) => s.supportTransparentBackface);
-            supportTransparentDepthPrepass  = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);
+            supportDecals = root.Find((RenderPipelineSettings s) => s.supportDecals);
+            supportDecalLayers = root.Find((RenderPipelineSettings s) => s.supportDecalLayers);
+            decalLayerName0 = root.Find((RenderPipelineSettings s) => s.decalLayerName0);
+            decalLayerName1 = root.Find((RenderPipelineSettings s) => s.decalLayerName1);
+            decalLayerName2 = root.Find((RenderPipelineSettings s) => s.decalLayerName2);
+            decalLayerName3 = root.Find((RenderPipelineSettings s) => s.decalLayerName3);
+            decalLayerName4 = root.Find((RenderPipelineSettings s) => s.decalLayerName4);
+            decalLayerName5 = root.Find((RenderPipelineSettings s) => s.decalLayerName5);
+            decalLayerName6 = root.Find((RenderPipelineSettings s) => s.decalLayerName6);
+            decalLayerName7 = root.Find((RenderPipelineSettings s) => s.decalLayerName7);
+            MSAASampleCount = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
+            supportMotionVectors = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
+            supportRuntimeDebugDisplay = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
+            supportRuntimeAOVAPI = root.Find((RenderPipelineSettings s) => s.supportRuntimeAOVAPI);
+            supportDitheringCrossFade = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
+            supportTerrainHole = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);
+            supportDistortion = root.Find((RenderPipelineSettings s) => s.supportDistortion);
+            supportTransparentBackface = root.Find((RenderPipelineSettings s) => s.supportTransparentBackface);
+            supportTransparentDepthPrepass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);
             supportTransparentDepthPostpass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPostpass);
-            supportProbeVolume              = root.Find((RenderPipelineSettings s) => s.supportProbeVolume);
+            supportProbeVolume = root.Find((RenderPipelineSettings s) => s.supportProbeVolume);
 
-            supportRayTracing               = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
-            supportedRayTracingMode         = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
+            supportRayTracing = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
+            supportedRayTracingMode = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));
-            decalSettings     = new SerializedGlobalDecalSettings(root.Find((RenderPipelineSettings s) => s.decalSettings));
+            decalSettings = new SerializedGlobalDecalSettings(root.Find((RenderPipelineSettings s) => s.decalSettings));
             postProcessSettings = new SerializedGlobalPostProcessSettings(root.Find((RenderPipelineSettings s) => s.postProcessSettings));
             dynamicResolutionSettings = new SerializedDynamicResolutionSettings(root.Find((RenderPipelineSettings s) => s.dynamicResolutionSettings));
             lowresTransparentSettings = new SerializedLowResTransparencySettings(root.Find((RenderPipelineSettings s) => s.lowresTransparentSettings));
@@ -156,9 +156,9 @@ namespace UnityEditor.Rendering.HighDefinition
             maximumLODLevel = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.maximumLODLevel));
             lightingQualitySettings = new SerializedLightingQualitySettings(root.Find((RenderPipelineSettings s) => s.lightingQualitySettings));
 
-        #pragma warning disable 618 // Type or member is obsolete
+#pragma warning disable 618 // Type or member is obsolete
             m_ObsoleteincreaseSssSampleCount = root.Find((RenderPipelineSettings s) => s.m_ObsoleteincreaseSssSampleCount);
-        #pragma warning restore 618
+#pragma warning restore 618
         }
     }
 }

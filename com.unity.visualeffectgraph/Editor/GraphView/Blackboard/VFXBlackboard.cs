@@ -8,7 +8,7 @@ using System.Linq;
 
 using PositionType = UnityEngine.UIElements.Position;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     class VFXBlackboard : Blackboard, IControlledElement<VFXViewController>, IVFXMovable
     {
@@ -362,7 +362,7 @@ namespace  UnityEditor.VFX.UI
 
                 SetDragIndicatorVisible(true);
 
-                m_DragIndicator.style.top =  indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
+                m_DragIndicator.style.top = indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
 
                 DragAndDrop.visualMode = DragAndDropVisualMode.Move;
             }
@@ -621,7 +621,7 @@ namespace  UnityEditor.VFX.UI
                     VFXBlackboardCategory cat = null;
                     if (!m_Categories.TryGetValue(catModel.name, out cat))
                     {
-                        cat = new VFXBlackboardCategory() {title = catModel.name };
+                        cat = new VFXBlackboardCategory() { title = catModel.name };
                         cat.SetSelectable();
                         m_Categories.Add(catModel.name, cat);
                     }

@@ -463,10 +463,10 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly XRPass emptyPass = new XRPass();
 
         internal bool enabled { get => false; }
-        internal void StartSinglePass(CommandBuffer cmd) {}
-        internal void StopSinglePass(CommandBuffer cmd) {}
-        internal void EndCamera(CommandBuffer cmd, CameraData camera) {}
-        internal void RenderOcclusionMesh(CommandBuffer cmd) {}
+        internal void StartSinglePass(CommandBuffer cmd) { }
+        internal void StopSinglePass(CommandBuffer cmd) { }
+        internal void EndCamera(CommandBuffer cmd, CameraData camera) { }
+        internal void RenderOcclusionMesh(CommandBuffer cmd) { }
     }
 }
 #endif

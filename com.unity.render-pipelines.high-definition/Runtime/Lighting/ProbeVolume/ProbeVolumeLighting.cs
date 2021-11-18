@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rcpNegFaceFade = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
             data.endTimesRcpDistFadeLen = 1;
             data.scale = Vector3.zero;
-            data.payloadIndex  = -1;
+            data.payloadIndex = -1;
             data.bias = Vector3.zero;
             data.volumeBlendMode = 0;
             data.octahedralDepthScaleBias = Vector4.zero;
@@ -161,9 +161,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // This can go away if we add a global keyword for using / completely stripping probe volume code per camera.
             CreateProbeVolumeBuffersDefault();
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
-        #endif
+#endif
         }
 
         internal void CreateProbeVolumeBuffersDefault()
@@ -246,11 +246,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 width: s_ProbeVolumeAtlasResolution,
                 height: s_ProbeVolumeAtlasResolution,
                 slices: s_ProbeVolumeAtlasResolution * m_ProbeVolumeAtlasSHRTDepthSliceCount,
-                dimension:         TextureDimension.Tex3D,
-                colorFormat:       k_ProbeVolumeAtlasFormat,
+                dimension: TextureDimension.Tex3D,
+                colorFormat: k_ProbeVolumeAtlasFormat,
                 enableRandomWrite: true,
-                useMipMap:         false,
-                name:              "ProbeVolumeAtlasSH"
+                useMipMap: false,
+                name: "ProbeVolumeAtlasSH"
             );
 
             probeVolumeAtlas = new Texture3DAtlasDynamic(s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution, k_MaxVisibleProbeVolumeCount, m_ProbeVolumeAtlasSHRTHandle);
@@ -311,9 +311,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DestroyProbeVolumeBuffers();
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared -= OnLightingDataCleared;
-        #endif
+#endif
         }
 
         internal void OnLightingDataCleared()

@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering
     public enum ClearFlag
     {
         /// <summary>Don't clear.</summary>
-        None  = 0,
+        None = 0,
         /// <summary>Clear the color buffer.</summary>
         Color = 1,
         /// <summary>Clear the depth buffer.</summary>

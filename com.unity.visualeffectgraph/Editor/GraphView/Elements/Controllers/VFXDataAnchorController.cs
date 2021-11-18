@@ -203,7 +203,7 @@ namespace UnityEditor.VFX.UI
 
             if (slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
             {
-                return new VFXParameter.NodeLinkedSlot() {inputSlot = slotInput, outputSlot = slotOutput};
+                return new VFXParameter.NodeLinkedSlot() { inputSlot = slotInput, outputSlot = slotOutput };
             }
 
             return new VFXParameter.NodeLinkedSlot();
@@ -330,7 +330,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return new object[] {};
+                return new object[] { };
             }
         }
 
@@ -558,7 +558,7 @@ namespace UnityEditor.VFX.UI
 
         public override bool editable
         {
-            get {return true; }
+            get { return true; }
         }
         public override bool expandedSelf
         {
@@ -569,7 +569,7 @@ namespace UnityEditor.VFX.UI
         }
         public override bool expandable
         {
-            get {return false; }
+            get { return false; }
         }
         public override bool HasLink()
         {
@@ -636,7 +636,7 @@ namespace UnityEditor.VFX.UI
             var slotInput = op.GetInputSlot(op.GetNbInputSlots() - 1);
             if (slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
             {
-                return new VFXParameter.NodeLinkedSlot() {inputSlot = slotInput, outputSlot = slotOutput};
+                return new VFXParameter.NodeLinkedSlot() { inputSlot = slotInput, outputSlot = slotOutput };
             }
 
             return new VFXParameter.NodeLinkedSlot();
@@ -655,7 +655,7 @@ namespace UnityEditor.VFX.UI
 
         public override Type portType
         {
-            get {return m_Controller.portType; }
+            get { return m_Controller.portType; }
         }
 
         List<object> stack = new List<object>();
@@ -745,7 +745,7 @@ namespace UnityEditor.VFX.UI
             object result;
             if (m_PropertyCache.TryGetValue(member, out result))
             {
-                if (result is VFXGizmo.IProperty<T> )
+                if (result is VFXGizmo.IProperty<T>)
                     return result as VFXGizmo.IProperty<T>;
                 else
                     return VFXGizmoUtility.NullProperty<T>.defaultProperty;

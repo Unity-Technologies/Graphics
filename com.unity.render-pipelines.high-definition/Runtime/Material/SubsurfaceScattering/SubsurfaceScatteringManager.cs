@@ -15,17 +15,17 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_SSSCopyStencilForSplitLighting;
 
         // List of every diffusion profile data we need
-        Vector4[]                   m_SSSShapeParamsAndMaxScatterDists;
-        Vector4[]                   m_SSSTransmissionTintsAndFresnel0;
-        Vector4[]                   m_SSSDisabledTransmissionTintsAndFresnel0;
-        Vector4[]                   m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps;
-        uint[]                      m_SSSDiffusionProfileHashes;
-        int[]                       m_SSSDiffusionProfileUpdate;
-        DiffusionProfileSettings[]  m_SSSSetDiffusionProfiles;
-        DiffusionProfileSettings    m_SSSDefaultDiffusionProfile;
-        int                         m_SSSActiveDiffusionProfileCount;
-        uint                        m_SSSTexturingModeFlags;        // 1 bit/profile: 0 = PreAndPostScatter, 1 = PostScatter
-        uint                        m_SSSTransmissionFlags;         // 1 bit/profile: 0 = regular, 1 = thin
+        Vector4[] m_SSSShapeParamsAndMaxScatterDists;
+        Vector4[] m_SSSTransmissionTintsAndFresnel0;
+        Vector4[] m_SSSDisabledTransmissionTintsAndFresnel0;
+        Vector4[] m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps;
+        uint[] m_SSSDiffusionProfileHashes;
+        int[] m_SSSDiffusionProfileUpdate;
+        DiffusionProfileSettings[] m_SSSSetDiffusionProfiles;
+        DiffusionProfileSettings m_SSSDefaultDiffusionProfile;
+        int m_SSSActiveDiffusionProfileCount;
+        uint m_SSSTexturingModeFlags;        // 1 bit/profile: 0 = PreAndPostScatter, 1 = PostScatter
+        uint m_SSSTransmissionFlags;         // 1 bit/profile: 0 = regular, 1 = thin
 
         void InitializeSubsurfaceScattering()
         {
@@ -104,19 +104,19 @@ namespace UnityEngine.Rendering.HighDefinition
             if (settings.profile.hash == 0)
                 return;
 
-            m_SSSShapeParamsAndMaxScatterDists[index]               = settings.shapeParamAndMaxScatterDist;
-            m_SSSTransmissionTintsAndFresnel0[index]                = settings.transmissionTintAndFresnel0;
-            m_SSSDisabledTransmissionTintsAndFresnel0[index]        = settings.disabledTransmissionTintAndFresnel0;
+            m_SSSShapeParamsAndMaxScatterDists[index] = settings.shapeParamAndMaxScatterDist;
+            m_SSSTransmissionTintsAndFresnel0[index] = settings.transmissionTintAndFresnel0;
+            m_SSSDisabledTransmissionTintsAndFresnel0[index] = settings.disabledTransmissionTintAndFresnel0;
             m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps[index] = settings.worldScaleAndFilterRadiusAndThicknessRemap;
-            m_SSSDiffusionProfileHashes[index]                      = settings.profile.hash;
+            m_SSSDiffusionProfileHashes[index] = settings.profile.hash;
 
             // Erase previous value (This need to be done here individually as in the SSS editor we edit individual component)
             uint mask = 1u << index;
             m_SSSTexturingModeFlags &= ~mask;
             m_SSSTransmissionFlags &= ~mask;
 
-            m_SSSTexturingModeFlags |= (uint)settings.profile.texturingMode    << index;
-            m_SSSTransmissionFlags  |= (uint)settings.profile.transmissionMode << index;
+            m_SSSTexturingModeFlags |= (uint)settings.profile.texturingMode << index;
+            m_SSSTransmissionFlags |= (uint)settings.profile.transmissionMode << index;
 
             m_SSSSetDiffusionProfiles[index] = settings;
             m_SSSDiffusionProfileUpdate[index] = settings.updateCount;
@@ -161,15 +161,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct SubsurfaceScatteringParameters
         {
-            public ComputeShader    subsurfaceScatteringCS;
-            public int              subsurfaceScatteringCSKernel;
-            public int              sampleBudget;
-            public bool             needTemporaryBuffer;
-            public Material         copyStencilForSplitLighting;
-            public Material         combineLighting;
-            public int              numTilesX;
-            public int              numTilesY;
-            public int              numTilesZ;
+            public ComputeShader subsurfaceScatteringCS;
+            public int subsurfaceScatteringCSKernel;
+            public int sampleBudget;
+            public bool needTemporaryBuffer;
+            public Material copyStencilForSplitLighting;
+            public Material combineLighting;
+            public int numTilesX;
+            public int numTilesY;
+            public int numTilesZ;
         }
 
         struct SubsurfaceScatteringResources

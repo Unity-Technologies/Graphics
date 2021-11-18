@@ -163,7 +163,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "ShadowCaster",
                 useInPreview = false,
 
-                validPixelBlocks  = new BlockFieldDescriptor[]
+                validPixelBlocks = new BlockFieldDescriptor[]
                 {
                     BlockFields.SurfaceDescription.Alpha,
                     BlockFields.SurfaceDescription.AlphaClipThreshold,
@@ -1255,13 +1255,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static class Defines
         {
             // Shadows
-            public static DefineCollection shadowLow = new DefineCollection { {CoreKeywordDescriptors.Shadow, 0} };
-            public static DefineCollection shadowMedium = new DefineCollection { {CoreKeywordDescriptors.Shadow, 1} };
-            public static DefineCollection shadowHigh = new DefineCollection { {CoreKeywordDescriptors.Shadow, 2} };
+            public static DefineCollection shadowLow = new DefineCollection { { CoreKeywordDescriptors.Shadow, 0 } };
+            public static DefineCollection shadowMedium = new DefineCollection { { CoreKeywordDescriptors.Shadow, 1 } };
+            public static DefineCollection shadowHigh = new DefineCollection { { CoreKeywordDescriptors.Shadow, 2 } };
 
             // Raytracing Quality
-            public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0} };
-            public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1} };
+            public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 } };
+            public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1 } };
         }
 
         #endregion

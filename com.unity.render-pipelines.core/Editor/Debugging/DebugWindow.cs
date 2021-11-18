@@ -11,10 +11,10 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    #pragma warning disable 414
+#pragma warning disable 414
 
     [Serializable]
-    sealed class WidgetStateDictionary : SerializedDictionary<string, DebugState> {}
+    sealed class WidgetStateDictionary : SerializedDictionary<string, DebugState> { }
 
     sealed class DebugWindowSettings : ScriptableObject
     {
@@ -580,5 +580,5 @@ namespace UnityEditor.Rendering
         }
     }
 
-    #pragma warning restore 414
+#pragma warning restore 414
 }

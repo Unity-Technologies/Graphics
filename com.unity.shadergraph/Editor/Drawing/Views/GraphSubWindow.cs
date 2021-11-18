@@ -161,7 +161,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         protected float scrollableHeight
         {
-            get { return contentContainer.layout.height -  m_ScrollView.contentViewport.layout.height; }
+            get { return contentContainer.layout.height - m_ScrollView.contentViewport.layout.height; }
         }
 
         void HandleScrollingBehavior(bool scrollable)
@@ -309,7 +309,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         protected void AddStyleSheetFromPath(string styleSheetPath)
         {
-            StyleSheet sheetAsset = Resources.Load<StyleSheet>(styleSheetPath);;
+            StyleSheet sheetAsset = Resources.Load<StyleSheet>(styleSheetPath); ;
 
             if (sheetAsset == null)
             {

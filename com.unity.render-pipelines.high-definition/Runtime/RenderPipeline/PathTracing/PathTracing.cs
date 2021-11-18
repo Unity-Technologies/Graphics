@@ -65,10 +65,10 @@ namespace UnityEngine.Rendering.HighDefinition
         PathTracing m_PathTracingSettings = null;
 
 #if UNITY_EDITOR
-        uint  m_CacheMaxIteration = 0;
+        uint m_CacheMaxIteration = 0;
 #endif // UNITY_EDITOR
         ulong m_CacheAccelSize = 0;
-        uint  m_CacheLightCount = 0;
+        uint m_CacheLightCount = 0;
 
         RTHandle m_RadianceTexture; // stores the per-pixel results of path tracing for this frame
 
@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-//SensorSDK - Begin
+            //SensorSDK - Begin
             hdCamera.isLastIteration = camData.currentIteration == m_SubFrameManager.subFrameCount;
 
             if (Application.isPlaying && hdCamera.isLastIteration && hdCamera.isContinousCaptureEnabled)
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SubFrameManager.SetCameraData(camID, camData);
                 return;
             }
-//SensorSDK - End
+            //SensorSDK - End
 
             // Check camera matrix dirtiness
             if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
@@ -245,30 +245,29 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct PathTracingParameters
         {
-            public RayTracingShader                 pathTracingShader;
-            public CameraData                       cameraData;
-            public BlueNoise.DitheredTextureSet     ditheredTextureSet;
-            public ShaderVariablesRaytracing        shaderVariablesRaytracingCB;
-            public Color                            backgroundColor;
-            public Texture                          skyReflection;
-            public Matrix4x4                        pixelCoordToViewDirWS;
-            public Vector4                          dofParameters;
-            public int                              width, height;
-            public RayTracingAccelerationStructure  accelerationStructure;
-            public HDRaytracingLightCluster         lightCluster;
-
-//SensorSDK - Begin
+            public RayTracingShader pathTracingShader;
+            public CameraData cameraData;
+            public BlueNoise.DitheredTextureSet ditheredTextureSet;
+            public ShaderVariablesRaytracing shaderVariablesRaytracingCB;
+            public Color backgroundColor;
+            public Texture skyReflection;
+            public Matrix4x4 pixelCoordToViewDirWS;
+            public Vector4 dofParameters;
+            public int width, height;
+            public RayTracingAccelerationStructure accelerationStructure;
+            public HDRaytracingLightCluster lightCluster;
+            //SensorSDK - Begin
             public HDCamera hdCamera;
-//SensorSDK - End
+            //SensorSDK - End
         }
 
         PathTracingParameters PreparePathTracingParameters(HDCamera hdCamera)
         {
             PathTracingParameters parameters = new PathTracingParameters();
 
-//SensorSDK - Begin 
+            //SensorSDK - Begin
             parameters.pathTracingShader = hdCamera.pathTracingShaderOverride == null ? m_Asset.renderPipelineRayTracingResources.pathTracing : hdCamera.pathTracingShaderOverride;
-//SensorSDK - End
+            //SensorSDK - End
 
             parameters.cameraData = m_SubFrameManager.GetCameraData(hdCamera.camera.GetInstanceID());
             parameters.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
@@ -288,9 +287,9 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.shaderVariablesRaytracingCB._RaytracingIntensityClamp = m_PathTracingSettings.maximumIntensity.value;
             parameters.shaderVariablesRaytracingCB._RaytracingSampleIndex = (int)parameters.cameraData.currentIteration;
 
-//SensorSDK - Begin
+            //SensorSDK - Begin
             parameters.hdCamera = hdCamera;
-//SensorSDK - End
+            //SensorSDK - End
 
             return parameters;
         }
@@ -323,9 +322,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingMatrixParam(parameters.pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, parameters.pixelCoordToViewDirWS);
             cmd.SetRayTracingVectorParam(parameters.pathTracingShader, HDShaderIDs._PathTracedDoFConstants, parameters.dofParameters);
 
-//SensorSDK - Begin
+            //SensorSDK - Begin
             parameters.hdCamera.PrepareDispatchRays?.Invoke(cmd);
-//SensorSDK - End
+            //SensorSDK - End
 
             // Run the computation
             cmd.DispatchRays(parameters.pathTracingShader, "RayGen", (uint)parameters.width, (uint)parameters.height, 1);

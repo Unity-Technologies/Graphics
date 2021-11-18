@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
 
             string path = AssetDatabase.GUIDToAssetPath(node.functionSource);
-            m_FunctionSource = new ObjectField() { value = AssetDatabase.LoadAssetAtPath<TextAsset>(path), objectType = typeof(TextAsset)};
+            m_FunctionSource = new ObjectField() { value = AssetDatabase.LoadAssetAtPath<TextAsset>(path), objectType = typeof(TextAsset) };
             m_FunctionSource.RegisterValueChangedCallback(s =>
             {
                 long localId;
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
             m_FunctionBody.RegisterCallback<FocusOutEvent>(s =>
             {
-                if (m_FunctionBody.value  == "")
+                if (m_FunctionBody.value == "")
                     m_FunctionBody.value = CustomFunctionNode.defaultFunctionBody;
 
                 if (m_FunctionBody.value != node.functionBody)

@@ -16,12 +16,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static class SliderConfig
         {
-            public const float k_IconSeparator      = 0;
-            public const float k_MarkerWidth        = 2;
-            public const float k_MarkerHeight       = 2;
+            public const float k_IconSeparator = 0;
+            public const float k_MarkerWidth = 2;
+            public const float k_MarkerHeight = 2;
             public const float k_MarkerTooltipScale = 4;
-            public const float k_ThumbTooltipSize   = 10;
-            public const float k_KnobSize           = 10;
+            public const float k_ThumbTooltipSize = 10;
+            public const float k_KnobSize = 10;
         }
 
         protected static class SliderStyles
@@ -109,11 +109,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DoSliderMarker(Rect rect, float position, float value, string tooltip)
         {
-            const float width  = SliderConfig.k_MarkerWidth;
+            const float width = SliderConfig.k_MarkerWidth;
             const float height = SliderConfig.k_MarkerHeight;
 
             var markerRect = rect;
-            markerRect.width  = width;
+            markerRect.width = width;
             markerRect.height = height;
 
             // Vertically align with slider.
@@ -142,10 +142,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // Scale the marker tooltip for easier discovery
             const float markerTooltipRectScale = SliderConfig.k_MarkerTooltipScale;
             var markerTooltipRect = markerRect;
-            markerTooltipRect.width  *= markerTooltipRectScale;
+            markerTooltipRect.width *= markerTooltipRectScale;
             markerTooltipRect.height *= markerTooltipRectScale;
-            markerTooltipRect.x      -= (markerTooltipRect.width  * 0.5f) - 1;
-            markerTooltipRect.y      -= (markerTooltipRect.height * 0.5f) - 1;
+            markerTooltipRect.x -= (markerTooltipRect.width * 0.5f) - 1;
+            markerTooltipRect.y -= (markerTooltipRect.height * 0.5f) - 1;
             EditorGUI.LabelField(markerTooltipRect, GetLightUnitTooltip(tooltip, value, m_Descriptor.unitName));
         }
 
@@ -195,14 +195,14 @@ namespace UnityEditor.Rendering.HighDefinition
             const float halfSize = SliderConfig.k_ThumbTooltipSize * 0.5f;
 
             var thumbMarkerRect = rect;
-            thumbMarkerRect.width  = size;
+            thumbMarkerRect.width = size;
             thumbMarkerRect.height = size;
 
             // Vertically align with slider
             thumbMarkerRect.y += halfSize - 1f;
 
             // Horizontally place tooltip on the wheel,
-            thumbMarkerRect.x  = rect.x + (rect.width - size) * position;
+            thumbMarkerRect.x = rect.x + (rect.width - size) * position;
 
             EditorGUI.LabelField(thumbMarkerRect, GetLightUnitTooltip(tooltip, value, m_Descriptor.unitName));
         }
@@ -306,7 +306,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 Piece piece;
                 piece.domain = new Vector2(x0, x1);
-                piece.range  = new Vector2(y0, y1);
+                piece.range = new Vector2(y0, y1);
 
                 ComputeTransformationParameters(x0, x1, y0, y1, out piece.directM, out piece.directB);
 
@@ -383,7 +383,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class PunctualLightUnitSlider : PiecewiseLightUnitSlider
     {
-        public PunctualLightUnitSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor) {}
+        public PunctualLightUnitSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor) { }
 
         private SerializedHDLight m_Light;
         private Editor m_Editor;
@@ -504,8 +504,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // If for any reason the constraints are changed, then the function must be refit and the new coefficients found.
             // Note that we can't re-use the original PowerSlider instead due to how it forces a text field, which we don't want in this case.
             m_ExponentialConstraints.x = -3935.53965427f;
-            m_ExponentialConstraints.y =  5435.53965427f;
-            m_ExponentialConstraints.z =     1.48240556f;
+            m_ExponentialConstraints.y = 5435.53965427f;
+            m_ExponentialConstraints.z = 1.48240556f;
         }
 
         protected float ValueToSlider(float x) => Mathf.Log((x - m_ExponentialConstraints.x) / m_ExponentialConstraints.y) / m_ExponentialConstraints.z;
@@ -583,9 +583,9 @@ namespace UnityEditor.Rendering.HighDefinition
     internal class LightUnitSliderUIDrawer
     {
         static PiecewiseLightUnitSlider k_DirectionalLightUnitSlider;
-        static PunctualLightUnitSlider  k_PunctualLightUnitSlider;
+        static PunctualLightUnitSlider k_PunctualLightUnitSlider;
         static PiecewiseLightUnitSlider k_ExposureSlider;
-        static TemperatureSlider        k_TemperatureSlider;
+        static TemperatureSlider k_TemperatureSlider;
 
         static LightUnitSliderUIDrawer()
         {

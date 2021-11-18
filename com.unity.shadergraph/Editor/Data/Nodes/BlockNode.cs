@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var newSlot = customSlotDescriptor.createSlot();
                 AddSlot(newSlot);
-                RemoveSlotsNameNotMatching(new int[] {0});
+                RemoveSlotsNameNotMatching(new int[] { 0 });
                 return;
             }
 
@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph
                     AddSlot(new Vector3MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector3Control.value, stageCapability));
                     break;
             }
-            RemoveSlotsNameNotMatching(new int[] {0});
+            RemoveSlotsNameNotMatching(new int[] { 0 });
         }
 
         public override string GetVariableNameForNode()

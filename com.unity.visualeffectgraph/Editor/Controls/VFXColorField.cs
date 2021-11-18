@@ -53,12 +53,14 @@ namespace UnityEditor.VFX.UI
             m_AlphaDisplay.AddManipulator(new Clickable(OnColorClick));
 
 
-            m_HDRLabel = new Label() {
+            m_HDRLabel = new Label()
+            {
                 pickingMode = PickingMode.Ignore,
                 text = "HDR"
             };
 
-            m_IndeterminateLabel = new Label() {
+            m_IndeterminateLabel = new Label()
+            {
                 pickingMode = PickingMode.Ignore,
                 name = "indeterminate",
                 text = VFXControlConstants.indeterminateText
@@ -195,7 +197,7 @@ namespace UnityEditor.VFX.UI
 
         public bool indeterminate
         {
-            get {return m_Indeterminate; }
+            get { return m_Indeterminate; }
             set
             {
                 m_Indeterminate = value;

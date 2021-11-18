@@ -34,10 +34,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialProperty layerCount = null;
 
-        ExpandableBit      m_ExpandableBit;
-        bool[]          m_WithUV = new bool[kMaxLayerCount];
-        Material[]      m_MaterialLayers = new Material[kMaxLayerCount];
-        AssetImporter   m_MaterialImporter;
+        ExpandableBit m_ExpandableBit;
+        bool[] m_WithUV = new bool[kMaxLayerCount];
+        Material[] m_MaterialLayers = new Material[kMaxLayerCount];
+        AssetImporter m_MaterialImporter;
 
         int numLayer
         {
@@ -104,8 +104,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawLayerListGUI()
         {
-            bool    layersChanged = false;
-            var     oldLabelWidth = EditorGUIUtility.labelWidth;
+            bool layersChanged = false;
+            var oldLabelWidth = EditorGUIUtility.labelWidth;
 
             // TODO: does not work with multi-selection
             Material material = materials[0];

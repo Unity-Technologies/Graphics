@@ -111,8 +111,8 @@ namespace UnityEditor.Rendering.HighDefinition
             ).Draw(serialized, owner);
         }
 
-        protected virtual void DrawHandles(TSerialized serialized, Editor owner) {}
-        protected virtual void DrawAdditionalCaptureSettings(TSerialized serialiezed, Editor owner) {}
+        protected virtual void DrawHandles(TSerialized serialized, Editor owner) { }
+        protected virtual void DrawAdditionalCaptureSettings(TSerialized serialiezed, Editor owner) { }
 
         protected void OnSceneGUI()
         {

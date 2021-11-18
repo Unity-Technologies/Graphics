@@ -11,16 +11,16 @@ namespace UnityEditor.VFX
         public enum Features
         {
             None = 0,
-            MotionVector    = 1 << 0,
-            IndirectDraw    = 1 << 1,
-            Culling         = 1 << 2 | IndirectDraw,
-            MultiMesh       = 1 << 3 | Culling,
-            LOD             = 1 << 4 | Culling,
-            Sort            = 1 << 5 | IndirectDraw,
-            FrustumCulling  = 1 << 6 | IndirectDraw,
+            MotionVector = 1 << 0,
+            IndirectDraw = 1 << 1,
+            Culling = 1 << 2 | IndirectDraw,
+            MultiMesh = 1 << 3 | Culling,
+            LOD = 1 << 4 | Culling,
+            Sort = 1 << 5 | IndirectDraw,
+            FrustumCulling = 1 << 6 | IndirectDraw,
         }
 
-        public VFXOutputUpdate() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) {}
+        public VFXOutputUpdate() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) { }
         public override string name => "OutputUpdate";
 
         private VFXAbstractParticleOutput m_Output;

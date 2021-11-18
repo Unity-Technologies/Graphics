@@ -305,9 +305,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.atlasTexture = builder.WriteTexture(renderGraph.CreateTexture(GetShadowMapTextureDesc()));
                     passData.momentAtlasTexture1 = builder.WriteTexture(GetOutputTexture(renderGraph));
                     passData.intermediateSummedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                        { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_IntermediateSummedAreaName, enableRandomWrite = true }));
+                    { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_IntermediateSummedAreaName, enableRandomWrite = true }));
                     passData.summedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                        { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_SummedAreaName, enableRandomWrite = true }));
+                    { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_SummedAreaName, enableRandomWrite = true }));
                 }
                 else
                 {

@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [Flags]
         enum Expandable
         {
-            Terrain     = 1 << 0,
+            Terrain = 1 << 0,
         }
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList

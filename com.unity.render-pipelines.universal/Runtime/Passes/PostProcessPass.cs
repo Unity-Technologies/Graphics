@@ -199,18 +199,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Start by pre-fetching all builtin effect settings we need
             // Some of the color-grading settings are only used in the color grading lut pass
             var stack = VolumeManager.instance.stack;
-            m_DepthOfField        = stack.GetComponent<DepthOfField>();
-            m_MotionBlur          = stack.GetComponent<MotionBlur>();
-            m_PaniniProjection    = stack.GetComponent<PaniniProjection>();
-            m_Bloom               = stack.GetComponent<Bloom>();
-            m_LensDistortion      = stack.GetComponent<LensDistortion>();
+            m_DepthOfField = stack.GetComponent<DepthOfField>();
+            m_MotionBlur = stack.GetComponent<MotionBlur>();
+            m_PaniniProjection = stack.GetComponent<PaniniProjection>();
+            m_Bloom = stack.GetComponent<Bloom>();
+            m_LensDistortion = stack.GetComponent<LensDistortion>();
             m_ChromaticAberration = stack.GetComponent<ChromaticAberration>();
-            m_Vignette            = stack.GetComponent<Vignette>();
-            m_ColorLookup         = stack.GetComponent<ColorLookup>();
-            m_ColorAdjustments    = stack.GetComponent<ColorAdjustments>();
-            m_Tonemapping         = stack.GetComponent<Tonemapping>();
-            m_FilmGrain           = stack.GetComponent<FilmGrain>();
-            m_UseDrawProcedural   = renderingData.cameraData.xr.enabled;
+            m_Vignette = stack.GetComponent<Vignette>();
+            m_ColorLookup = stack.GetComponent<ColorLookup>();
+            m_ColorAdjustments = stack.GetComponent<ColorAdjustments>();
+            m_Tonemapping = stack.GetComponent<Tonemapping>();
+            m_FilmGrain = stack.GetComponent<FilmGrain>();
+            m_UseDrawProcedural = renderingData.cameraData.xr.enabled;
             m_UseFastSRGBLinearConversion = renderingData.postProcessingData.useFastSRGBLinearConversion;
 
             if (m_IsFinalPass)
@@ -544,11 +544,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             switch (cameraData.antialiasingQuality)
             {
-                case AntialiasingQuality.Low: material.EnableKeyword(ShaderKeywordStrings.SmaaLow);
+                case AntialiasingQuality.Low:
+                    material.EnableKeyword(ShaderKeywordStrings.SmaaLow);
                     break;
-                case AntialiasingQuality.Medium: material.EnableKeyword(ShaderKeywordStrings.SmaaMedium);
+                case AntialiasingQuality.Medium:
+                    material.EnableKeyword(ShaderKeywordStrings.SmaaMedium);
                     break;
-                case AntialiasingQuality.High: material.EnableKeyword(ShaderKeywordStrings.SmaaHigh);
+                case AntialiasingQuality.High:
+                    material.EnableKeyword(ShaderKeywordStrings.SmaaHigh);
                     break;
             }
 
@@ -1306,47 +1309,47 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Precomputed shader ids to same some CPU cycles (mostly affects mobile)
         static class ShaderConstants
         {
-            public static readonly int _TempTarget         = Shader.PropertyToID("_TempTarget");
-            public static readonly int _TempTarget2        = Shader.PropertyToID("_TempTarget2");
+            public static readonly int _TempTarget = Shader.PropertyToID("_TempTarget");
+            public static readonly int _TempTarget2 = Shader.PropertyToID("_TempTarget2");
 
-            public static readonly int _StencilRef         = Shader.PropertyToID("_StencilRef");
-            public static readonly int _StencilMask        = Shader.PropertyToID("_StencilMask");
+            public static readonly int _StencilRef = Shader.PropertyToID("_StencilRef");
+            public static readonly int _StencilMask = Shader.PropertyToID("_StencilMask");
 
-            public static readonly int _FullCoCTexture     = Shader.PropertyToID("_FullCoCTexture");
-            public static readonly int _HalfCoCTexture     = Shader.PropertyToID("_HalfCoCTexture");
-            public static readonly int _DofTexture         = Shader.PropertyToID("_DofTexture");
-            public static readonly int _CoCParams          = Shader.PropertyToID("_CoCParams");
-            public static readonly int _BokehKernel        = Shader.PropertyToID("_BokehKernel");
-            public static readonly int _PongTexture        = Shader.PropertyToID("_PongTexture");
-            public static readonly int _PingTexture        = Shader.PropertyToID("_PingTexture");
+            public static readonly int _FullCoCTexture = Shader.PropertyToID("_FullCoCTexture");
+            public static readonly int _HalfCoCTexture = Shader.PropertyToID("_HalfCoCTexture");
+            public static readonly int _DofTexture = Shader.PropertyToID("_DofTexture");
+            public static readonly int _CoCParams = Shader.PropertyToID("_CoCParams");
+            public static readonly int _BokehKernel = Shader.PropertyToID("_BokehKernel");
+            public static readonly int _PongTexture = Shader.PropertyToID("_PongTexture");
+            public static readonly int _PingTexture = Shader.PropertyToID("_PingTexture");
 
-            public static readonly int _Metrics            = Shader.PropertyToID("_Metrics");
-            public static readonly int _AreaTexture        = Shader.PropertyToID("_AreaTexture");
-            public static readonly int _SearchTexture      = Shader.PropertyToID("_SearchTexture");
-            public static readonly int _EdgeTexture        = Shader.PropertyToID("_EdgeTexture");
-            public static readonly int _BlendTexture       = Shader.PropertyToID("_BlendTexture");
+            public static readonly int _Metrics = Shader.PropertyToID("_Metrics");
+            public static readonly int _AreaTexture = Shader.PropertyToID("_AreaTexture");
+            public static readonly int _SearchTexture = Shader.PropertyToID("_SearchTexture");
+            public static readonly int _EdgeTexture = Shader.PropertyToID("_EdgeTexture");
+            public static readonly int _BlendTexture = Shader.PropertyToID("_BlendTexture");
 
-            public static readonly int _ColorTexture       = Shader.PropertyToID("_ColorTexture");
-            public static readonly int _Params             = Shader.PropertyToID("_Params");
-            public static readonly int _SourceTexLowMip    = Shader.PropertyToID("_SourceTexLowMip");
-            public static readonly int _Bloom_Params       = Shader.PropertyToID("_Bloom_Params");
-            public static readonly int _Bloom_RGBM         = Shader.PropertyToID("_Bloom_RGBM");
-            public static readonly int _Bloom_Texture      = Shader.PropertyToID("_Bloom_Texture");
-            public static readonly int _LensDirt_Texture   = Shader.PropertyToID("_LensDirt_Texture");
-            public static readonly int _LensDirt_Params    = Shader.PropertyToID("_LensDirt_Params");
+            public static readonly int _ColorTexture = Shader.PropertyToID("_ColorTexture");
+            public static readonly int _Params = Shader.PropertyToID("_Params");
+            public static readonly int _SourceTexLowMip = Shader.PropertyToID("_SourceTexLowMip");
+            public static readonly int _Bloom_Params = Shader.PropertyToID("_Bloom_Params");
+            public static readonly int _Bloom_RGBM = Shader.PropertyToID("_Bloom_RGBM");
+            public static readonly int _Bloom_Texture = Shader.PropertyToID("_Bloom_Texture");
+            public static readonly int _LensDirt_Texture = Shader.PropertyToID("_LensDirt_Texture");
+            public static readonly int _LensDirt_Params = Shader.PropertyToID("_LensDirt_Params");
             public static readonly int _LensDirt_Intensity = Shader.PropertyToID("_LensDirt_Intensity");
             public static readonly int _Distortion_Params1 = Shader.PropertyToID("_Distortion_Params1");
             public static readonly int _Distortion_Params2 = Shader.PropertyToID("_Distortion_Params2");
-            public static readonly int _Chroma_Params      = Shader.PropertyToID("_Chroma_Params");
-            public static readonly int _Vignette_Params1   = Shader.PropertyToID("_Vignette_Params1");
-            public static readonly int _Vignette_Params2   = Shader.PropertyToID("_Vignette_Params2");
-            public static readonly int _Lut_Params         = Shader.PropertyToID("_Lut_Params");
-            public static readonly int _UserLut_Params     = Shader.PropertyToID("_UserLut_Params");
-            public static readonly int _InternalLut        = Shader.PropertyToID("_InternalLut");
-            public static readonly int _UserLut            = Shader.PropertyToID("_UserLut");
+            public static readonly int _Chroma_Params = Shader.PropertyToID("_Chroma_Params");
+            public static readonly int _Vignette_Params1 = Shader.PropertyToID("_Vignette_Params1");
+            public static readonly int _Vignette_Params2 = Shader.PropertyToID("_Vignette_Params2");
+            public static readonly int _Lut_Params = Shader.PropertyToID("_Lut_Params");
+            public static readonly int _UserLut_Params = Shader.PropertyToID("_UserLut_Params");
+            public static readonly int _InternalLut = Shader.PropertyToID("_InternalLut");
+            public static readonly int _UserLut = Shader.PropertyToID("_UserLut");
             public static readonly int _DownSampleScaleFactor = Shader.PropertyToID("_DownSampleScaleFactor");
 
-            public static readonly int _FullscreenProjMat  = Shader.PropertyToID("_FullscreenProjMat");
+            public static readonly int _FullscreenProjMat = Shader.PropertyToID("_FullscreenProjMat");
 
             public static int[] _BloomMipUp;
             public static int[] _BloomMipDown;

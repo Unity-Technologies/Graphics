@@ -123,7 +123,8 @@ Shader ""Hidden/GraphErrorShader2""
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             var graph = new GraphData
             {
-                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+                messageManager = new MessageManager(),
+                assetGuid = AssetDatabase.AssetPathToGUID(path)
             };
             MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
@@ -299,7 +300,8 @@ Shader ""Hidden/GraphErrorShader2""
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             graph = new GraphData
             {
-                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+                messageManager = new MessageManager(),
+                assetGuid = AssetDatabase.AssetPathToGUID(path)
             };
             MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
@@ -313,7 +315,8 @@ Shader ""Hidden/GraphErrorShader2""
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             GraphData graph = new GraphData
             {
-                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+                messageManager = new MessageManager(),
+                assetGuid = AssetDatabase.AssetPathToGUID(path)
             };
             MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
@@ -528,12 +531,12 @@ Shader ""Hidden/GraphErrorShader2""
             var outputStructName = $"SG_Output_{assetGuid}";
             var evaluationFunctionName = $"SG_Evaluate_{assetGuid}";
 
-            #region Input Struct
+        #region Input Struct
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"struct {inputStructName}{nl}{{{nl}");
 
-            #region Requirements
+        #region Requirements
 
             var portRequirements = new ShaderGraphRequirements[ports.Count];
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
@@ -595,12 +598,12 @@ Shader ""Hidden/GraphErrorShader2""
 
             AddRequirementsSnippet(r => r.requiresTime, $"float3 {ShaderGeneratorNames.TimeParameters}");
 
-            #endregion
+        #endregion
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"}};{nl}{nl}");
 
-            #endregion
+        #endregion
 
             // VFX Code heavily relies on the slotId from the original MasterNodes
             // Since we keep these around for upgrades anyway, for now it is simpler to use them
@@ -621,7 +624,7 @@ Shader ""Hidden/GraphErrorShader2""
                 originialPortIds[i] = originalId;
             }
 
-            #region Output Struct
+        #region Output Struct
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"struct {outputStructName}{nl}{{");
@@ -636,9 +639,9 @@ Shader ""Hidden/GraphErrorShader2""
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"{nl}}};{nl}{nl}");
 
-            #endregion
+        #endregion
 
-            #region Graph Function
+        #region Graph Function
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"{outputStructName} {evaluationFunctionName}({nl}{indent}{inputStructName} IN");
@@ -677,7 +680,7 @@ Shader ""Hidden/GraphErrorShader2""
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"){nl}{{");
 
-            #region Node Code
+        #region Node Code
 
             for (var mappingIndex = 0; mappingIndex < bodySb.mappings.Count; mappingIndex++)
             {
@@ -701,9 +704,9 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 
-            #endregion
+        #endregion
 
-            #region Output Mapping
+        #region Output Mapping
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"{nl}{indent}// VFXMasterNode{nl}{indent}{outputStructName} OUT;{nl}");
@@ -716,13 +719,13 @@ Shader ""Hidden/GraphErrorShader2""
                 codeSnippets.Add($"{indent}OUT.{port.shaderOutputName}_{originialPortIds[portIndex]} = {port.owner.GetSlotValue(port.id, GenerationMode.ForReals, graph.concretePrecision)};{nl}");
             }
 
-            #endregion
+        #endregion
 
             // Function end
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"{indent}return OUT;{nl}}}{nl}");
 
-            #endregion
+        #endregion
 
             result.codeSnippets = codeSnippets.ToArray();
             result.sharedCodeIndices = sharedCodeIndices.ToArray();

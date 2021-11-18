@@ -23,16 +23,16 @@ namespace UnityEngine.Rendering.HighDefinition
             volumes = new List<ProbeVolume>();
             volumesSelected = new List<ProbeVolume>();
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             SubscribeBakingAPI();
-        #endif
+#endif
         }
 
         ~ProbeVolumeManager()
         {
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             UnsubscribeBakingAPI();
-        #endif
+#endif
         }
 
         internal List<ProbeVolume> volumes = null;

@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent maskMapText = new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Metal(R), Ambient Occlusion(G), Opacity(B), Smoothness(A)");
         }
 
-        ExpandableBit  m_ExpandableBit;
+        ExpandableBit m_ExpandableBit;
 
         enum BlendSource
         {
@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
         string[] blendSourceNames = Enum.GetNames(typeof(BlendSource));
 
-        string[] blendSourceNamesNoMap = new string[] { "BaseColorMapAlpha" , "Mask Opacity" };
+        string[] blendSourceNamesNoMap = new string[] { "BaseColorMapAlpha", "Mask Opacity" };
 
         string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
 

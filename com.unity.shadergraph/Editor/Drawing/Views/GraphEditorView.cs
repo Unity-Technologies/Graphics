@@ -375,7 +375,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void CreateMasterPreview()
         {
-            m_MasterPreviewView = new MasterPreviewView(previewManager, m_Graph) {name = "masterPreview"};
+            m_MasterPreviewView = new MasterPreviewView(previewManager, m_Graph) { name = "masterPreview" };
 
             var masterPreviewViewDraggable = new WindowDraggable(null, this);
             m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
@@ -902,14 +902,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else if (node is RedirectNodeData redirectNodeData)
             {
-                var redirectNodeView = new RedirectNodeView {userData = redirectNodeData};
+                var redirectNodeView = new RedirectNodeView { userData = redirectNodeData };
                 m_GraphView.AddElement(redirectNodeView);
                 redirectNodeView.ConnectToData(materialNode, m_EdgeConnectorListener);
                 nodeView = redirectNodeView;
             }
             else
             {
-                var materialNodeView = new MaterialNodeView {userData = materialNode};
+                var materialNodeView = new MaterialNodeView { userData = materialNode };
                 m_GraphView.AddElement(materialNodeView);
                 materialNodeView.Initialize(materialNode, m_PreviewManager, m_EdgeConnectorListener, graphView);
                 m_ColorManager.UpdateNodeView(materialNodeView);

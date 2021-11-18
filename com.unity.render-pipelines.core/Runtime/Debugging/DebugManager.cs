@@ -56,11 +56,11 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Callback called when the runtime UI changed.
         /// </summary>
-        public event Action<bool> onDisplayRuntimeUIChanged = delegate {};
+        public event Action<bool> onDisplayRuntimeUIChanged = delegate { };
         /// <summary>
         /// Callback called when the debug window is dirty.
         /// </summary>
-        public event Action onSetDirty = delegate {};
+        public event Action onSetDirty = delegate { };
 
         event Action resetData;
 

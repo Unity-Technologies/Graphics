@@ -758,7 +758,7 @@ namespace UnityEditor.VFX.UI
         public class VFXContextOnlyVFXNodeProvider : VFXNodeProvider
         {
             public VFXContextOnlyVFXNodeProvider(VFXViewController controller, Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter) :
-                base(controller, onAddBlock, filter, new Type[] { typeof(VFXContext)})
+                base(controller, onAddBlock, filter, new Type[] { typeof(VFXContext) })
             {
             }
 

@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
                 Modified();
             }
         }
-        override protected VFXUI.StickyNoteInfo[] infos {get {return m_UI.stickyNoteInfos; }}
+        override protected VFXUI.StickyNoteInfo[] infos { get { return m_UI.stickyNoteInfos; } }
         public string theme
         {
             get

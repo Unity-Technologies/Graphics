@@ -9,14 +9,16 @@ using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum MixedLightingSetup
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public enum MixedLightingSetup
     {
         None,
         ShadowMask,
         Subtractive,
     };
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct RenderingData
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public struct RenderingData
     {
         public CullingResults cullResults;
         public CameraData cameraData;
@@ -32,7 +34,8 @@ namespace UnityEngine.Rendering.Universal
         public bool postProcessingEnabled;
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct LightData
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public struct LightData
     {
         public int mainLightIndex;
         public int additionalLightsCount;
@@ -42,7 +45,8 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsMixedLighting;
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct CameraData
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public struct CameraData
     {
         // Internal camera data as we are not yet sure how to expose View in stereo context.
         // We might change this API soon.
@@ -193,7 +197,8 @@ namespace UnityEngine.Rendering.Universal
         public bool resolveFinalTarget;
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public struct ShadowData
     {
         public bool supportsMainLightShadows;
         [Obsolete("Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature")]
@@ -513,7 +518,7 @@ namespace UnityEngine.Rendering.Universal
                 desc = camera.targetTexture.descriptor;
                 desc.width = camera.pixelWidth;
                 desc.height = camera.pixelHeight;
-                if (camera.cameraType == CameraType.SceneView  && !isHdrEnabled)
+                if (camera.cameraType == CameraType.SceneView && !isHdrEnabled)
                 {
                     desc.graphicsFormat = renderTextureFormatDefault;
                 }

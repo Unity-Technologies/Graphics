@@ -158,7 +158,6 @@ namespace UnityEditor.VFX
                 if (vfxResource != null)
                 {
                     var graph = vfxResource.GetOrCreateGraph();
-                    graph.OnSaved();
                     vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
                 }
             }
@@ -349,18 +348,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void OnSaved()
-        {
-            try
-            {
-                m_saved = true;
-            }
-            catch (Exception e)
-            {
-                Debug.LogErrorFormat("Save failed : {0}", e);
-            }
-        }
-
         public void SanitizeGraph()
         {
             if (m_GraphSanitized)
@@ -386,7 +373,7 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
+                    Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e, e.StackTrace));
                 }
 
             systemNames.Sync(this);
@@ -470,14 +457,17 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            m_saved = false;
-
-            if (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged)
+            if (cause == VFXModel.InvalidationCause.kStructureChanged
+                || cause == VFXModel.InvalidationCause.kSettingChanged
+                || cause == VFXModel.InvalidationCause.kConnectionChanged)
                 m_SystemNames.Sync(this);
 
             base.OnInvalidate(model, cause);
 
-            if (model is VFXParameter || model is VFXSlot && (model as VFXSlot).owner is VFXParameter)
+            if (model is VFXParameter    //Something changed directly on VFXParameter (e.g. exposed state boolean)
+                || model is VFXSlot && (model as VFXSlot).owner is VFXParameter //Something changed on a slot owned by a VFXParameter (e.g. the default value)
+                || cause == VFXModel.InvalidationCause.kStructureChanged //A VFXParameter could have been removed
+            )
             {
                 BuildParameterInfo();
             }
@@ -875,11 +865,6 @@ namespace UnityEditor.VFX
 
         [NonSerialized]
         public Action<VFXGraph> onRuntimeDataChanged;
-
-        [SerializeField]
-        protected bool m_saved = false;
-
-        public bool saved { get { return m_saved; } }
 
         [SerializeField]
         private List<VisualEffectObject> m_SubgraphDependencies = new List<VisualEffectObject>();

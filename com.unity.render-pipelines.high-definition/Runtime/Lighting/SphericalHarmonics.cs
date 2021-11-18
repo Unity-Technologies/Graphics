@@ -45,42 +45,42 @@ namespace UnityEngine.Rendering.HighDefinition
         };
 
         // These operators are implemented so that SphericalHarmonicsL1 matches API of SphericalHarmonicsL2.
-        public static SphericalHarmonicsL1 operator+(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs) => new SphericalHarmonicsL1()
+        public static SphericalHarmonicsL1 operator +(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs) => new SphericalHarmonicsL1()
         {
             shAr = lhs.shAr + rhs.shAr,
             shAg = lhs.shAg + rhs.shAg,
             shAb = lhs.shAb + rhs.shAb
         };
 
-        public static SphericalHarmonicsL1 operator-(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs) => new SphericalHarmonicsL1()
+        public static SphericalHarmonicsL1 operator -(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs) => new SphericalHarmonicsL1()
         {
             shAr = lhs.shAr - rhs.shAr,
             shAg = lhs.shAg - rhs.shAg,
             shAb = lhs.shAb - rhs.shAb
         };
 
-        public static SphericalHarmonicsL1 operator*(SphericalHarmonicsL1 lhs, float rhs) => new SphericalHarmonicsL1()
+        public static SphericalHarmonicsL1 operator *(SphericalHarmonicsL1 lhs, float rhs) => new SphericalHarmonicsL1()
         {
             shAr = lhs.shAr * rhs,
             shAg = lhs.shAg * rhs,
             shAb = lhs.shAb * rhs
         };
 
-        public static SphericalHarmonicsL1 operator/(SphericalHarmonicsL1 lhs, float rhs) => new SphericalHarmonicsL1()
+        public static SphericalHarmonicsL1 operator /(SphericalHarmonicsL1 lhs, float rhs) => new SphericalHarmonicsL1()
         {
             shAr = lhs.shAr / rhs,
             shAg = lhs.shAg / rhs,
             shAb = lhs.shAb / rhs
         };
 
-        public static bool operator==(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs)
+        public static bool operator ==(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs)
         {
             return lhs.shAr == rhs.shAr
                 && lhs.shAg == rhs.shAg
                 && lhs.shAb == rhs.shAb;
         }
 
-        public static bool operator!=(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs)
+        public static bool operator !=(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs)
         {
             return !(lhs == rhs);
         }

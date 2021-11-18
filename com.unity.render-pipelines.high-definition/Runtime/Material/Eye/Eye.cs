@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Init precomputed textures
         //-----------------------------------------------------------------------------
 
-        public Eye() {}
+        public Eye() { }
 
         // Reuse GGX textures
     }

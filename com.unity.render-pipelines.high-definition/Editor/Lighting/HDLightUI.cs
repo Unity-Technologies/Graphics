@@ -443,12 +443,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new EditorGUI.DisabledScope(!serialized.interactsWithSky.boolValue))
                 {
                     EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(serialized.flareSize,      s_Styles.flareSize);
-                    EditorGUILayout.PropertyField(serialized.flareFalloff,   s_Styles.flareFalloff);
-                    EditorGUILayout.PropertyField(serialized.flareTint,      s_Styles.flareTint);
+                    EditorGUILayout.PropertyField(serialized.flareSize, s_Styles.flareSize);
+                    EditorGUILayout.PropertyField(serialized.flareFalloff, s_Styles.flareFalloff);
+                    EditorGUILayout.PropertyField(serialized.flareTint, s_Styles.flareTint);
                     EditorGUILayout.PropertyField(serialized.surfaceTexture, s_Styles.surfaceTexture);
-                    EditorGUILayout.PropertyField(serialized.surfaceTint,    s_Styles.surfaceTint);
-                    EditorGUILayout.PropertyField(serialized.distance,       s_Styles.distance);
+                    EditorGUILayout.PropertyField(serialized.surfaceTint, s_Styles.surfaceTint);
+                    EditorGUILayout.PropertyField(serialized.distance, s_Styles.distance);
                     EditorGUI.indentLevel--;
                 }
             }
@@ -456,9 +456,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (EditorGUI.EndChangeCheck())
             {
                 // Clamp the value and also affect baked shadows.
-                serialized.flareSize.floatValue                     = Mathf.Clamp(serialized.flareSize.floatValue, 0, 90);
-                serialized.flareFalloff.floatValue                  = Mathf.Max(serialized.flareFalloff.floatValue, 0);
-                serialized.distance.floatValue                      = Mathf.Max(serialized.distance.floatValue, 0);
+                serialized.flareSize.floatValue = Mathf.Clamp(serialized.flareSize.floatValue, 0, 90);
+                serialized.flareFalloff.floatValue = Mathf.Max(serialized.flareFalloff.floatValue, 0);
+                serialized.distance.floatValue = Mathf.Max(serialized.distance.floatValue, 0);
             }
         }
 
@@ -605,7 +605,7 @@ namespace UnityEditor.Rendering.HighDefinition
             labelRect.height += interlineOffset;
 
             //handling of prefab overrides in a parent label
-            GUIContent parentLabel =  s_Styles.lightIntensity;
+            GUIContent parentLabel = s_Styles.lightIntensity;
             parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.lightUnit);
             parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.intensity);
             {
@@ -688,7 +688,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         unitRect.width = k_UnitWidth + .5f;
 
                         EditorGUI.PropertyField(valueRect, serialized.settings.colorTemperature, s_Styles.empty);
-                        EditorGUI.Popup(unitRect, 0, new[] {"Kelvin"});
+                        EditorGUI.Popup(unitRect, 0, new[] { "Kelvin" });
 
                         EditorGUI.indentLevel -= 1;
                     }
@@ -784,7 +784,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                 {
                     SerializedProperty pointTex = serialized.iesPoint;
-                    SerializedProperty spotTex  = serialized.iesSpot;
+                    SerializedProperty spotTex = serialized.iesSpot;
                     if (iesAsset == null)
                     {
                         pointTex.objectReferenceValue = null;
@@ -846,7 +846,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         int oldIndentLevel = EditorGUI.indentLevel;
                         EditorGUI.indentLevel = 0;
-                        GUIStyle wordWrap = new GUIStyle(EditorStyles.miniLabel){ wordWrap = true};
+                        GUIStyle wordWrap = new GUIStyle(EditorStyles.miniLabel) { wordWrap = true };
                         EditorGUILayout.LabelField(s_Styles.cookieTextureTypeError, wordWrap);
                         if (GUILayout.Button("Fix", GUILayout.ExpandHeight(true)))
                         {

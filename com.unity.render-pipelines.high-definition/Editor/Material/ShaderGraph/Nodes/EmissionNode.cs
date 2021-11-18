@@ -43,10 +43,10 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool        m_NormalizeColor;
+        bool m_NormalizeColor;
 
         [ToggleControl("Normalize Color")]
-        ToggleData  normalizeColor
+        ToggleData normalizeColor
         {
             get { return new ToggleData(m_NormalizeColor); }
             set
@@ -67,8 +67,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override bool hasPreview { get { return false; } }
 
-        ColorRGBMaterialSlot    ldrColorSlot;
-        Vector1MaterialSlot     intensitySlot;
+        ColorRGBMaterialSlot ldrColorSlot;
+        Vector1MaterialSlot intensitySlot;
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AddSlot(new Vector1MaterialSlot(kEmissionExposureWeightInputSlotId, kEmissionExpositionWeightInputSlotName, kEmissionExpositionWeightInputSlotName, SlotType.Input, 1));
 
             // Output slot:kEmissionOutputSlotName
-            AddSlot(new ColorRGBMaterialSlot(kEmissionOutputSlotId, kEmissionOutputSlotName, kEmissionOutputSlotName , SlotType.Output, Color.black, ColorMode.HDR));
+            AddSlot(new ColorRGBMaterialSlot(kEmissionOutputSlotId, kEmissionOutputSlotName, kEmissionOutputSlotName, SlotType.Output, Color.black, ColorMode.HDR));
 
             RemoveSlotsNameNotMatching(new[]
             {

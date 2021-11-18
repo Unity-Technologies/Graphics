@@ -19,13 +19,13 @@ namespace UnityEditor.Rendering.HighDefinition
         public enum Features
         {
             /// <summary>Shows the minimal emission fields.</summary>
-            None                = 0,
+            None = 0,
             /// <summary>Shows the enable emission for GI field.</summary>
             EnableEmissionForGI = 1 << 0,
             /// <summary>Shows the multiply with base field.</summary>
-            MultiplyWithBase    = 1 << 1,
+            MultiplyWithBase = 1 << 1,
             /// <summary>Shows all the fields.</summary>
-            All                 = ~0
+            All = ~0
         }
 
         static Func<LightingSettings> GetLightingSettingsOrDefaultsFallback;
@@ -78,8 +78,8 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty albedoAffectEmissive = null;
         const string kAlbedoAffectEmissive = "_AlbedoAffectEmissive";
 
-        ExpandableBit  m_ExpandableBit;
-        Features    m_Features;
+        ExpandableBit m_ExpandableBit;
+        Features m_Features;
 
         /// <summary>
         /// Constructs an EmissionUIBlock based on the parameters.

@@ -5,9 +5,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
     struct RenderGraphLogIndent : IDisposable
     {
-        int                 m_Indentation;
-        RenderGraphLogger   m_Logger;
-        bool                m_Disposed;
+        int m_Indentation;
+        RenderGraphLogger m_Logger;
+        bool m_Disposed;
 
         public RenderGraphLogIndent(RenderGraphLogger logger, int indentation = 1)
         {
@@ -41,8 +41,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
     class RenderGraphLogger
     {
-        StringBuilder   m_Builder = new StringBuilder();
-        int             m_CurrentIndentation;
+        StringBuilder m_Builder = new StringBuilder();
+        int m_CurrentIndentation;
 
         public void Initialize()
         {

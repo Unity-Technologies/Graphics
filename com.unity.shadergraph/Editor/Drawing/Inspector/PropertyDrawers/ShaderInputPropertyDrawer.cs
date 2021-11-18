@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     class ShaderInputPropertyDrawer : IPropertyDrawer
     {
         internal delegate void ChangeExposedFieldCallback(bool newValue);
-        internal delegate  void ChangeDisplayNameCallback(string newValue);
+        internal delegate void ChangeDisplayNameCallback(string newValue);
         internal delegate void ChangeReferenceNameCallback(string newValue);
         internal delegate void ChangeValueCallback(object newValue);
         internal delegate void PreChangeValueCallback(string actionName);
@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         }
 
         GraphData graphData;
-        bool isSubGraph { get; set;  }
+        bool isSubGraph { get; set; }
         ChangeExposedFieldCallback _exposedFieldChangedCallback;
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
@@ -682,7 +682,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         #region VT reorderable list handler
         void HandleVirtualTextureProperty(PropertySheet propertySheet, VirtualTextureShaderProperty virtualTextureProperty)
         {
-            var container = new IMGUIContainer(() => OnVTGUIHandler(virtualTextureProperty)) {name = "ListContainer"};
+            var container = new IMGUIContainer(() => OnVTGUIHandler(virtualTextureProperty)) { name = "ListContainer" };
             AddPropertyRowToSheet(propertySheet, container, "Layers");
 
             m_VTLayer_Name = new TextField();
@@ -1149,7 +1149,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             AddPropertyRowToSheet(propertySheet, field, "Default");
 
-            var container = new IMGUIContainer(() => OnKeywordGUIHandler()) {name = "ListContainer"};
+            var container = new IMGUIContainer(() => OnKeywordGUIHandler()) { name = "ListContainer" };
             AddPropertyRowToSheet(propertySheet, container, "Entries");
             container.SetEnabled(!keyword.isBuiltIn);
         }

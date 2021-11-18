@@ -44,39 +44,39 @@ namespace UnityEngine.Rendering.HighDefinition
     public class BuiltinSkyParameters
     {
         /// <summary>Camera used for rendering.</summary>
-        public HDCamera                 hdCamera;
+        public HDCamera hdCamera;
         /// <summary>Matrix mapping pixel coordinate to view direction.</summary>
-        public Matrix4x4                pixelCoordToViewDirMatrix;
+        public Matrix4x4 pixelCoordToViewDirMatrix;
         /// <summary>World space camera position.</summary>
-        public Vector3                  worldSpaceCameraPos;
+        public Vector3 worldSpaceCameraPos;
         /// <summary>Camera view matrix.</summary>
-        public Matrix4x4                viewMatrix;
+        public Matrix4x4 viewMatrix;
         /// <summary>Screen size: Width, height, inverse width, inverse height.</summary>
-        public Vector4                  screenSize;
+        public Vector4 screenSize;
         /// <summary>Command buffer used for rendering.</summary>
-        public CommandBuffer            commandBuffer;
+        public CommandBuffer commandBuffer;
         /// <summary>Current sun light.</summary>
-        public Light                    sunLight;
+        public Light sunLight;
         /// <summary>Color buffer used for rendering.</summary>
-        public RTHandle                 colorBuffer;
+        public RTHandle colorBuffer;
         /// <summary>Depth buffer used for rendering.</summary>
-        public RTHandle                 depthBuffer;
+        public RTHandle depthBuffer;
         /// <summary>Current frame index.</summary>
-        public int                      frameIndex;
+        public int frameIndex;
         /// <summary>Current sky settings.</summary>
-        public SkySettings              skySettings;
+        public SkySettings skySettings;
         /// <summary>Current debug dsplay settings.</summary>
-        public DebugDisplaySettings     debugSettings;
+        public DebugDisplaySettings debugSettings;
         /// <summary>Null color buffer render target identifier.</summary>
         public static RenderTargetIdentifier nullRT = -1;
     }
 
     struct CachedSkyContext
     {
-        public Type                 type;
-        public SkyRenderingContext  renderingContext;
-        public int                  hash;
-        public int                  refCount;
+        public Type type;
+        public SkyRenderingContext renderingContext;
+        public int hash;
+        public int refCount;
 
         public void Reset()
         {
@@ -99,15 +99,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
     class SkyManager
     {
-        Material                m_StandardSkyboxMaterial; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
-        Material                m_BlitCubemapMaterial;
-        Material                m_OpaqueAtmScatteringMaterial;
+        Material m_StandardSkyboxMaterial; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
+        Material m_BlitCubemapMaterial;
+        Material m_OpaqueAtmScatteringMaterial;
 
-        SphericalHarmonicsL2    m_BlackAmbientProbe = new SphericalHarmonicsL2();
+        SphericalHarmonicsL2 m_BlackAmbientProbe = new SphericalHarmonicsL2();
 
-        bool                    m_UpdateRequired = false;
-        bool                    m_StaticSkyUpdateRequired = false;
-        int                     m_Resolution;
+        bool m_UpdateRequired = false;
+        bool m_StaticSkyUpdateRequired = false;
+        int m_Resolution;
 
         // Sky used for static lighting. It will be used for ambient lighting if Ambient Mode is set to Static (even when realtime GI is enabled)
         // It will also be used for lightmap and light probe baking
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private static List<StaticLightingSky> m_StaticLightingSkies = new List<StaticLightingSky>();
 
         // Only show the procedural sky upgrade message once
-        static bool         logOnce = true;
+        static bool logOnce = true;
 
         // This boolean here is only to track the first frame after a domain reload or creation.
         bool m_RequireWaitForAsyncReadBackRequest = true;
@@ -139,26 +139,26 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         // Shared resources for sky rendering.
-        IBLFilterBSDF[]         m_IBLFilterArray;
-        RTHandle                m_SkyboxBSDFCubemapIntermediate;
-        Vector4                 m_CubemapScreenSize;
-        Matrix4x4[]             m_facePixelCoordToViewDirMatrices = new Matrix4x4[6];
-        Matrix4x4[]             m_CameraRelativeViewMatrices = new Matrix4x4[6];
-        BuiltinSkyParameters    m_BuiltinParameters = new BuiltinSkyParameters();
-        ComputeShader           m_ComputeAmbientProbeCS;
-        readonly int            m_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
-        readonly int            m_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
-        int                     m_ComputeAmbientProbeKernel;
-        CubemapArray            m_BlackCubemapArray;
+        IBLFilterBSDF[] m_IBLFilterArray;
+        RTHandle m_SkyboxBSDFCubemapIntermediate;
+        Vector4 m_CubemapScreenSize;
+        Matrix4x4[] m_facePixelCoordToViewDirMatrices = new Matrix4x4[6];
+        Matrix4x4[] m_CameraRelativeViewMatrices = new Matrix4x4[6];
+        BuiltinSkyParameters m_BuiltinParameters = new BuiltinSkyParameters();
+        ComputeShader m_ComputeAmbientProbeCS;
+        readonly int m_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
+        readonly int m_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
+        int m_ComputeAmbientProbeKernel;
+        CubemapArray m_BlackCubemapArray;
 
         // 2 by default: Static sky + one dynamic. Will grow if needed.
         DynamicArray<CachedSkyContext> m_CachedSkyContexts = new DynamicArray<CachedSkyContext>(2);
 
         public SkyManager()
-        {}
+        { }
 
         ~SkyManager()
-        {}
+        { }
 
         internal static SkySettings GetSkySetting(VolumeStack stack)
         {
@@ -689,15 +689,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RequireWaitForAsyncReadBackRequest = true;
         }
 
-        public void UpdateEnvironment(HDCamera                hdCamera,
+        public void UpdateEnvironment(HDCamera hdCamera,
             ScriptableRenderContext renderContext,
-            SkyUpdateContext        skyContext,
-            Light                   sunLight,
-            bool                    updateRequired,
-            bool                    updateAmbientProbe,
-            bool                    staticSky,
-            SkyAmbientMode          ambientMode,
-            CommandBuffer           cmd)
+            SkyUpdateContext skyContext,
+            Light sunLight,
+            bool updateRequired,
+            bool updateAmbientProbe,
+            bool staticSky,
+            SkyAmbientMode ambientMode,
+            CommandBuffer cmd)
         {
             if (skyContext.IsValid())
             {

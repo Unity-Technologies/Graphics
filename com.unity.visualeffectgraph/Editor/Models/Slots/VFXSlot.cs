@@ -17,9 +17,9 @@ namespace UnityEditor.VFX
             kOutput,
         }
 
-        public Direction direction      { get { return m_Direction; } }
-        public VFXProperty property     { get { return m_Property; } }
-        public override string name     { get { return m_Property.name; } }
+        public Direction direction { get { return m_Direction; } }
+        public VFXProperty property { get { return m_Property; } }
+        public override string name { get { return m_Property.name; } }
 
         private FieldInfo m_FieldInfoCache;
 
@@ -308,9 +308,9 @@ namespace UnityEditor.VFX
 
         public IVFXSlotContainer owner { get { return GetMasterData().m_Owner as IVFXSlotContainer; } }
 
-        public bool IsMasterSlot()          { return m_MasterSlot == this; }
-        public VFXSlot GetMasterSlot()      { return m_MasterSlot; }
-        private MasterData GetMasterData()  { return GetMasterSlot().m_MasterData; }
+        public bool IsMasterSlot() { return m_MasterSlot == this; }
+        public VFXSlot GetMasterSlot() { return m_MasterSlot; }
+        private MasterData GetMasterData() { return GetMasterSlot().m_MasterData; }
 
         // Never call this directly ! Called only by VFXSlotContainerModel
         public void SetOwner(VFXModel owner)
@@ -935,7 +935,8 @@ namespace UnityEditor.VFX
             {
                 var inExpressionPatched = ApplySpaceConversion(startSlot.m_LinkedInExpression, startSlot, startSlot.m_LinkedInSlot);
                 startSlot.m_InExpression = startSlot.ConvertExpression(inExpressionPatched, startSlot.m_LinkedInSlot); // TODO Handle structural modification
-                startSlot.PropagateToChildren(s => {
+                startSlot.PropagateToChildren(s =>
+                {
                     var exp = s.ExpressionToChildren(s.m_InExpression);
                     for (int i = 0; i < s.GetNbChildren(); ++i)
                         s[i].m_InExpression = exp != null ? exp[i] : s.refSlot[i].GetExpression();     // Not sure about that
@@ -964,7 +965,7 @@ namespace UnityEditor.VFX
         {
             if (sourceSlot != null
                 && destSlot.spaceable && sourceSlot.spaceable
-                &&  destSlot.space != sourceSlot.space)
+                && destSlot.space != sourceSlot.space)
             {
                 var destSpaceableType = destSlot.GetSpaceTransformationType();
                 var sourceSpaceableType = sourceSlot.GetSpaceTransformationType();
@@ -1021,7 +1022,8 @@ namespace UnityEditor.VFX
         {
             var masterSlot = GetMasterSlot();
 
-            masterSlot.PropagateToChildren(s => {
+            masterSlot.PropagateToChildren(s =>
+            {
                 if (s.m_ExpressionTreeUpToDate)
                 {
                     s.m_ExpressionTreeUpToDate = false;
@@ -1119,7 +1121,7 @@ namespace UnityEditor.VFX
             return expression;
         }
 
-        protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp)   { return null; }
+        protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp) { return null; }
         protected virtual VFXExpression ExpressionFromChildren(VFXExpression[] exp) { return null; }
 
         public virtual VFXValue DefaultExpression(VFXValue.Mode mode)

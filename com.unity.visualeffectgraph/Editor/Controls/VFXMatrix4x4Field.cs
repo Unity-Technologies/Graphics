@@ -113,7 +113,7 @@ namespace UnityEditor.VFX.UI
 
             for (int i = 0; i < m_FloatFields.GetLength(0); ++i)
             {
-                var line = new VisualElement() {name = "matrixLine"};
+                var line = new VisualElement() { name = "matrixLine" };
                 line.style.flexDirection = FlexDirection.Row;
 
                 for (int j = 0; j < m_FloatFields.GetLength(1); ++j)

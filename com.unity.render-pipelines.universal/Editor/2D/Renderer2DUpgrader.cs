@@ -44,7 +44,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
                 float radius = light.shapeLightParametricRadius;
                 float angle = light.shapeLightParametricAngleOffset;
-                int   sides = light.shapeLightParametricSides;
+                int sides = light.shapeLightParametricSides;
 
                 var angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
                 if (sides < 3)

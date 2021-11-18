@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
         public override bool isDefaultValue => screenSpaceType == ScreenSpaceType.Default;
 
         public ScreenPositionMaterialSlot()
-        {}
+        { }
 
         public ScreenPositionMaterialSlot(int slotId, string displayName, string shaderOutputName, ScreenSpaceType screenSpaceType,
                                           ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)

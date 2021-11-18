@@ -31,18 +31,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public const int kMaxBladeCount = 11;
 
         // Camera body
-        [SerializeField][Min(1f)] int m_Iso = 200;
-        [SerializeField][Min(0f)] float m_ShutterSpeed = 1f / 200f;
+        [SerializeField] [Min(1f)] int m_Iso = 200;
+        [SerializeField] [Min(0f)] float m_ShutterSpeed = 1f / 200f;
 
         // Lens
         // Note: focalLength is already defined in the regular camera component
-        [SerializeField][Range(kMinAperture, kMaxAperture)] float m_Aperture = 16f;
+        [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture = 16f;
 
         // Aperture shape
-        [SerializeField][Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount = 5;
+        [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount = 5;
         [SerializeField] Vector2 m_Curvature = new Vector2(2f, 11f);
-        [SerializeField][Range(0f, 1f)] float m_BarrelClipping = 0.25f;
-        [SerializeField][Range(-1f, 1f)] float m_Anamorphism = 0f;
+        [SerializeField] [Range(0f, 1f)] float m_BarrelClipping = 0.25f;
+        [SerializeField] [Range(-1f, 1f)] float m_Anamorphism = 0f;
 
         /// <summary>
         /// The sensor sensitivity (ISO).

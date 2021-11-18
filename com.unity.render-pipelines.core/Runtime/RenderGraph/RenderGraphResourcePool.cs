@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     abstract class RenderGraphResourcePool<Type> : IRenderGraphResourcePool where Type : class
     {
         // Dictionary tracks resources by hash and stores resources with same hash in a List (list instead of a stack because we need to be able to remove stale allocations, potentially in the middle of the stack).
-        protected  Dictionary<int, List<(Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, List<(Type resource, int frameIndex)>>();
+        protected Dictionary<int, List<(Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, List<(Type resource, int frameIndex)>>();
 
         // This list allows us to determine if all resources were correctly released in the frame.
         // This is useful to warn in case of user error or avoid leaks when a render graph execution errors occurs for example.

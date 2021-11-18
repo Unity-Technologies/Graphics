@@ -282,9 +282,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 var historyDepthBuffer = halfResolution ? hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth1) : hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
                 passData.historyDepthBuffer = historyDepthBuffer != null ? builder.ReadTexture(renderGraph.ImportTexture(historyDepthBuffer)) : renderGraph.defaultResources.blackTextureXR;
                 passData.intermediateBuffer0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Denoiser Intermediate0" });
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Denoiser Intermediate0" });
                 passData.intermediateBuffer1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Denoiser Intermediate1" });
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Denoiser Intermediate1" });
                 passData.inputOutputBuffer0 = builder.ReadWriteTexture(inputOutputBuffer0);
                 passData.inputOutputBuffer1 = builder.ReadWriteTexture(inputOutputBuffer1);
 

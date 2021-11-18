@@ -177,7 +177,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
                     if (first)
                     {
-                        position  = controlPoint.position;
+                        position = controlPoint.position;
                         first = false;
                     }
                     else if (position != controlPoint.position)

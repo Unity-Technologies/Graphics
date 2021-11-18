@@ -476,7 +476,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         p.aperture.floatValue = Mathf.Clamp(float.Parse(newAperture), HDPhysicalCamera.kMinAperture, HDPhysicalCamera.kMaxAperture);
                     }
                     catch
-                    {}
+                    { }
                 }
 
                 EditorGUILayout.EndHorizontal();

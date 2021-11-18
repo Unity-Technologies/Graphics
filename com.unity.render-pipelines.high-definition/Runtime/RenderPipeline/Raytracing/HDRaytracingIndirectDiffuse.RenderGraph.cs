@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthStencilBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "GI Ray Directions" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "GI Ray Directions" }));
 
                 builder.SetRenderFunc(
                     (DirGenRTGIPassData data, RenderGraphContext ctx) =>
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.indirectDiffuseBuffer = builder.ReadTexture(indirectDiffuseBuffer);
                 passData.directionBuffer = builder.ReadTexture(directionBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Reflection Ray Indirect Diffuse" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Reflection Ray Indirect Diffuse" }));
 
                 builder.SetRenderFunc(
                     (UpscaleRTGIPassData data, RenderGraphContext ctx) =>
@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Indirect Diffuse" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Indirect Diffuse" }));
 
                 builder.SetRenderFunc(
                     (TraceQualityRTGIPassData data, RenderGraphContext ctx) =>
@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Evaluate the signal
             QualityRTIndirectDiffuseParameters rtgiQRenderingParameters = PrepareQualityRTIndirectDiffuseParameters(hdCamera, settings);
-            TextureHandle  rtgiResult = QualityRTGI(renderGraph, in rtgiQRenderingParameters, depthPyramid, normalBuffer, rayCountTexture);
+            TextureHandle rtgiResult = QualityRTGI(renderGraph, in rtgiQRenderingParameters, depthPyramid, normalBuffer, rayCountTexture);
 
             // Denoise if required
             rtgiResult = DenoiseRTGI(renderGraph, hdCamera, rtgiResult, depthPyramid, normalBuffer, motionVectors, historyValidationTexture);

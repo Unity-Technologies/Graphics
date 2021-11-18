@@ -12,7 +12,7 @@ using System.Text;
 using UnityEditor.Graphs;
 using UnityEditor.SceneManagement;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     class ValueFilterEnumPropertyRMProvider : SimplePropertyRMProvider<VFXValueFilter>
     {
@@ -22,11 +22,11 @@ namespace  UnityEditor.VFX.UI
             m_NoEnum = noEnum;
         }
 
-        public override IEnumerable<int>  filteredOutEnumerators
+        public override IEnumerable<int> filteredOutEnumerators
         {
             get
             {
-                return m_NoEnum ? new int[] {2 } : null;
+                return m_NoEnum ? new int[] { 2 } : null;
             }
         }
     }

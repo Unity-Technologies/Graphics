@@ -7,17 +7,17 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        class TempPassData {};
+        class TempPassData { };
 
         // Needed only because of custom pass. See comment at ResolveMSAAColor.
         TextureHandle m_NonMSAAColorBuffer;
 
-        void ExecuteWithRenderGraph(RenderRequest           renderRequest,
-            AOVRequestData          aovRequest,
-            List<RTHandle>          aovBuffers,
-            List<RTHandle>          aovCustomPassBuffers,
+        void ExecuteWithRenderGraph(RenderRequest renderRequest,
+            AOVRequestData aovRequest,
+            List<RTHandle> aovBuffers,
+            List<RTHandle> aovCustomPassBuffers,
             ScriptableRenderContext renderContext,
-            CommandBuffer           commandBuffer)
+            CommandBuffer commandBuffer)
         {
             var hdCamera = renderRequest.hdCamera;
             var camera = hdCamera.camera;
@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     case IndirectDiffuseMode.Raytrace:
                         lightingBuffers.ssgiLightingBuffer = RenderRayTracedIndirectDiffuse(m_RenderGraph, hdCamera,
-                            prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer,  historyValidationTexture,
+                            prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture,
                             m_SkyManager.GetSkyReflection(hdCamera), rayCountTexture,
                             m_ShaderVariablesRayTracingCB);
                         break;
@@ -361,8 +361,8 @@ namespace UnityEngine.Rendering.HighDefinition
         class FinalBlitPassData
         {
             public BlitFinalCameraTextureParameters parameters;
-            public TextureHandle                    source;
-            public TextureHandle                    destination;
+            public TextureHandle source;
+            public TextureHandle destination;
         }
 
         void BlitFinalCameraTexture(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle destination, int viewIndex)
@@ -383,12 +383,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class SetFinalTargetPassData
         {
-            public bool             copyDepth;
-            public Material         copyDepthMaterial;
-            public TextureHandle    finalTarget;
-            public Rect             finalViewport;
-            public TextureHandle    depthBuffer;
-            public bool             flipY;
+            public bool copyDepth;
+            public Material copyDepthMaterial;
+            public TextureHandle finalTarget;
+            public Rect finalViewport;
+            public TextureHandle depthBuffer;
+            public bool flipY;
         }
 
         void SetFinalTarget(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle finalTarget)
@@ -442,11 +442,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class CopyXRDepthPassData
         {
-            public Material         copyDepth;
-            public Rect             viewport;
-            public TextureHandle    depthBuffer;
-            public TextureHandle    output;
-            public float            dynamicResolutionScale;
+            public Material copyDepth;
+            public Rect viewport;
+            public TextureHandle depthBuffer;
+            public TextureHandle output;
+            public float dynamicResolutionScale;
         }
 
         void CopyXRDepth(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle output)
@@ -483,41 +483,41 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class ForwardPassData
         {
-            public RendererListHandle   rendererList;
-            public TextureHandle[]      renderTarget = new TextureHandle[RenderGraph.kMaxMRTCount];
-            public int                  renderTargetCount;
-            public TextureHandle        depthBuffer;
-            public ComputeBufferHandle  lightListBuffer;
-            public ComputeBufferHandle  perVoxelOffset;
-            public ComputeBufferHandle  perTileLogBaseTweak;
-            public FrameSettings        frameSettings;
+            public RendererListHandle rendererList;
+            public TextureHandle[] renderTarget = new TextureHandle[RenderGraph.kMaxMRTCount];
+            public int renderTargetCount;
+            public TextureHandle depthBuffer;
+            public ComputeBufferHandle lightListBuffer;
+            public ComputeBufferHandle perVoxelOffset;
+            public ComputeBufferHandle perTileLogBaseTweak;
+            public FrameSettings frameSettings;
         }
 
         class ForwardOpaquePassData : ForwardPassData
         {
-            public DBufferOutput    dbuffer;
-            public LightingBuffers  lightingBuffers;
+            public DBufferOutput dbuffer;
+            public LightingBuffers lightingBuffers;
         }
 
         class ForwardTransparentPassData : ForwardPassData
         {
-            public bool             decalsEnabled;
-            public bool             renderMotionVecForTransparent;
-            public TextureHandle    transparentSSRLighting;
-            public TextureHandle    volumetricLighting;
-            public TextureHandle    depthPyramidTexture;
-            public TextureHandle    normalBuffer;
+            public bool decalsEnabled;
+            public bool renderMotionVecForTransparent;
+            public TextureHandle transparentSSRLighting;
+            public TextureHandle volumetricLighting;
+            public TextureHandle depthPyramidTexture;
+            public TextureHandle normalBuffer;
         }
 
-        void PrepareCommonForwardPassData(RenderGraph                 renderGraph,
-            RenderGraphBuilder          builder,
-            ForwardPassData             data,
-            bool                        opaque,
-            FrameSettings               frameSettings,
-            RendererListDesc            rendererListDesc,
-            in BuildGPULightListOutput  lightLists,
-            TextureHandle               depthBuffer,
-            ShadowResult                shadowResult)
+        void PrepareCommonForwardPassData(RenderGraph renderGraph,
+            RenderGraphBuilder builder,
+            ForwardPassData data,
+            bool opaque,
+            FrameSettings frameSettings,
+            RendererListDesc rendererListDesc,
+            in BuildGPULightListOutput lightLists,
+            TextureHandle depthBuffer,
+            ShadowResult shadowResult)
         {
             bool useFptl = frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque) && opaque;
 
@@ -551,16 +551,16 @@ namespace UnityEngine.Rendering.HighDefinition
         // The RenderForward pass will render the appropriate pass depends on the engine settings. In case of forward only rendering, both "Forward" pass and "ForwardOnly" pass
         // material will be render for both transparent and opaque. In case of deferred, both path are used for transparent but only "ForwardOnly" is use for opaque.
         // (Thus why "Forward" and "ForwardOnly" are exclusive, else they will render two times"
-        void RenderForwardOpaque(RenderGraph                 renderGraph,
-            HDCamera                    hdCamera,
-            TextureHandle               colorBuffer,
-            in LightingBuffers          lightingBuffers,
-            in BuildGPULightListOutput  lightLists,
-            TextureHandle               depthBuffer,
-            TextureHandle               vtFeedbackBuffer,
-            ShadowResult                shadowResult,
-            DBufferOutput               dbuffer,
-            CullingResults              cullResults)
+        void RenderForwardOpaque(RenderGraph renderGraph,
+            HDCamera hdCamera,
+            TextureHandle colorBuffer,
+            in LightingBuffers lightingBuffers,
+            in BuildGPULightListOutput lightLists,
+            TextureHandle depthBuffer,
+            TextureHandle vtFeedbackBuffer,
+            ShadowResult shadowResult,
+            DBufferOutput dbuffer,
+            CullingResults cullResults)
         {
             bool debugDisplay = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled();
 
@@ -615,19 +615,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderForwardTransparent(RenderGraph                 renderGraph,
-            HDCamera                    hdCamera,
-            TextureHandle               colorBuffer,
-            TextureHandle               normalBuffer,
-            in PrepassOutput            prepassOutput,
-            TextureHandle               vtFeedbackBuffer,
-            TextureHandle               volumetricLighting,
-            TextureHandle               ssrLighting,
-            TextureHandle?              colorPyramid,
-            in BuildGPULightListOutput  lightLists,
-            in ShadowResult             shadowResult,
-            CullingResults              cullResults,
-            bool                        preRefractionPass)
+        void RenderForwardTransparent(RenderGraph renderGraph,
+            HDCamera hdCamera,
+            TextureHandle colorBuffer,
+            TextureHandle normalBuffer,
+            in PrepassOutput prepassOutput,
+            TextureHandle vtFeedbackBuffer,
+            TextureHandle volumetricLighting,
+            TextureHandle ssrLighting,
+            TextureHandle? colorPyramid,
+            in BuildGPULightListOutput lightLists,
+            in ShadowResult shadowResult,
+            CullingResults cullResults,
+            bool preRefractionPass)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
                 return;
@@ -680,7 +680,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent
                     // Create a new target here should reuse existing already released one
                     passData.renderTarget[index++] = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, enableMSAA = msaa, name = "Transparency Velocity Dummy" });
+                    { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, enableMSAA = msaa, name = "Transparency Velocity Dummy" });
                 }
                 passData.renderTargetCount = index;
 
@@ -767,11 +767,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderLowResTransparentPassData
         {
-            public ShaderVariablesGlobal    globalCB;
-            public FrameSettings            frameSettings;
-            public RendererListHandle       rendererList;
-            public TextureHandle            lowResBuffer;
-            public TextureHandle            downsampledDepthBuffer;
+            public ShaderVariablesGlobal globalCB;
+            public FrameSettings frameSettings;
+            public RendererListHandle rendererList;
+            public TextureHandle lowResBuffer;
+            public TextureHandle downsampledDepthBuffer;
         }
 
         TextureHandle RenderLowResTransparent(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle downsampledDepth, CullingResults cullingResults)
@@ -787,7 +787,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.downsampledDepthBuffer = builder.UseDepthBuffer(downsampledDepth, DepthAccess.ReadWrite);
                 // We need R16G16B16A16_SFloat as we need a proper alpha channel for compositing.
                 passData.lowResBuffer = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, clearBuffer = true, clearColor = Color.black, name = "Low res transparent" }), 0);
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, clearBuffer = true, clearColor = Color.black, name = "Low res transparent" }), 0);
 
                 builder.SetRenderFunc(
                     (RenderLowResTransparentPassData data, RenderGraphContext context) =>
@@ -795,7 +795,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         UpdateOffscreenRenderingConstants(ref data.globalCB, true, 2u);
                         ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
-                        DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings,  data.rendererList);
+                        DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
 
                         UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1u);
                         ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
@@ -807,10 +807,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class UpsampleTransparentPassData
         {
-            public Material         upsampleMaterial;
-            public TextureHandle    colorBuffer;
-            public TextureHandle    lowResTransparentBuffer;
-            public TextureHandle    downsampledDepthBuffer;
+            public Material upsampleMaterial;
+            public TextureHandle colorBuffer;
+            public TextureHandle lowResTransparentBuffer;
+            public TextureHandle downsampledDepthBuffer;
         }
 
         void UpsampleTransparent(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle lowResTransparentBuffer, TextureHandle downsampledDepthBuffer)
@@ -919,22 +919,22 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle RenderTransparency(RenderGraph                 renderGraph,
-            HDCamera                    hdCamera,
-            TextureHandle               colorBuffer,
-            TextureHandle               normalBuffer,
-            TextureHandle               vtFeedbackBuffer,
-            TextureHandle               currentColorPyramid,
-            TextureHandle               volumetricLighting,
-            TextureHandle               rayCountTexture,
-            Texture                     skyTexture,
-            in BuildGPULightListOutput  lightLists,
-            ref PrepassOutput           prepassOutput,
-            ShadowResult                shadowResult,
-            CullingResults              cullingResults,
-            CullingResults              customPassCullingResults,
-            AOVRequestData              aovRequest,
-            List<RTHandle>              aovCustomPassBuffers)
+        TextureHandle RenderTransparency(RenderGraph renderGraph,
+            HDCamera hdCamera,
+            TextureHandle colorBuffer,
+            TextureHandle normalBuffer,
+            TextureHandle vtFeedbackBuffer,
+            TextureHandle currentColorPyramid,
+            TextureHandle volumetricLighting,
+            TextureHandle rayCountTexture,
+            Texture skyTexture,
+            in BuildGPULightListOutput lightLists,
+            ref PrepassOutput prepassOutput,
+            ShadowResult shadowResult,
+            CullingResults cullingResults,
+            CullingResults customPassCullingResults,
+            AOVRequestData aovRequest,
+            List<RTHandle> aovCustomPassBuffers)
         {
             // Transparent (non recursive) objects that are rendered in front of transparent (recursive) require the recursive rendering to be executed for that pixel.
             // This means our flagging process needs to happen before the transparent depth prepass as we use the depth to discriminate pixels that do not need recursive rendering.
@@ -990,11 +990,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle rendererList;
         }
 
-        void RenderForwardEmissive(RenderGraph     renderGraph,
-            HDCamera        hdCamera,
-            TextureHandle   colorBuffer,
-            TextureHandle   depthStencilBuffer,
-            CullingResults  cullingResults)
+        void RenderForwardEmissive(RenderGraph renderGraph,
+            HDCamera hdCamera,
+            TextureHandle colorBuffer,
+            TextureHandle depthStencilBuffer,
+            CullingResults cullingResults)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects) &&
                 !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
@@ -1022,11 +1022,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // This is use to Display legacy shader with an error shader
         [System.Diagnostics.Conditional("DEVELOPMENT_BUILD"), System.Diagnostics.Conditional("UNITY_EDITOR")]
-        void RenderForwardError(RenderGraph                 renderGraph,
-            HDCamera                    hdCamera,
-            TextureHandle   colorBuffer,
-            TextureHandle   depthStencilBuffer,
-            CullingResults              cullResults)
+        void RenderForwardError(RenderGraph renderGraph,
+            HDCamera hdCamera,
+            TextureHandle colorBuffer,
+            TextureHandle depthStencilBuffer,
+            CullingResults cullResults)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects) &&
                 !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
@@ -1174,16 +1174,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderSkyPassData
         {
-            public VisualEnvironment    visualEnvironment;
-            public Light                sunLight;
-            public HDCamera             hdCamera;
-            public TextureHandle        volumetricLighting;
-            public TextureHandle        colorBuffer;
-            public TextureHandle        depthTexture;
-            public TextureHandle        depthStencilBuffer;
-            public TextureHandle        intermediateBuffer;
+            public VisualEnvironment visualEnvironment;
+            public Light sunLight;
+            public HDCamera hdCamera;
+            public TextureHandle volumetricLighting;
+            public TextureHandle colorBuffer;
+            public TextureHandle depthTexture;
+            public TextureHandle depthStencilBuffer;
+            public TextureHandle intermediateBuffer;
             public DebugDisplaySettings debugDisplaySettings;
-            public SkyManager           skyManager;
+            public SkyManager skyManager;
         }
 
         void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle volumetricLighting, TextureHandle depthStencilBuffer, TextureHandle depthTexture)
@@ -1259,16 +1259,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class AccumulateDistortionPassData
         {
-            public TextureHandle        distortionBuffer;
-            public TextureHandle        depthStencilBuffer;
-            public RendererListHandle   distortionRendererList;
-            public FrameSettings        frameSettings;
+            public TextureHandle distortionBuffer;
+            public TextureHandle depthStencilBuffer;
+            public RendererListHandle distortionRendererList;
+            public FrameSettings frameSettings;
         }
 
-        TextureHandle AccumulateDistortion(RenderGraph     renderGraph,
-            HDCamera        hdCamera,
-            TextureHandle   depthStencilBuffer,
-            CullingResults  cullResults)
+        TextureHandle AccumulateDistortion(RenderGraph renderGraph,
+            HDCamera hdCamera,
+            TextureHandle depthStencilBuffer,
+            CullingResults cullResults)
         {
             using (var builder = renderGraph.AddRenderPass<AccumulateDistortionPassData>("Accumulate Distortion", out var passData, ProfilingSampler.Get(HDProfileId.AccumulateDistortion)))
             {
@@ -1291,21 +1291,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderDistortionPassData
         {
-            public Material         applyDistortionMaterial;
-            public TextureHandle    sourceColorBuffer;
-            public TextureHandle    distortionBuffer;
-            public TextureHandle    colorBuffer;
-            public TextureHandle    depthStencilBuffer;
-            public Vector4          size;
-            public bool             roughDistortion;
+            public Material applyDistortionMaterial;
+            public TextureHandle sourceColorBuffer;
+            public TextureHandle distortionBuffer;
+            public TextureHandle colorBuffer;
+            public TextureHandle depthStencilBuffer;
+            public Vector4 size;
+            public bool roughDistortion;
         }
 
-        void RenderDistortion(RenderGraph     renderGraph,
-            HDCamera        hdCamera,
-            TextureHandle   colorBuffer,
-            TextureHandle   depthStencilBuffer,
-            TextureHandle   colorPyramidBuffer,
-            TextureHandle   distortionBuffer)
+        void RenderDistortion(RenderGraph renderGraph,
+            HDCamera hdCamera,
+            TextureHandle colorBuffer,
+            TextureHandle depthStencilBuffer,
+            TextureHandle colorPyramidBuffer,
+            TextureHandle distortionBuffer)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion))
                 return;
@@ -1366,10 +1366,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class ResolveColorData
         {
-            public TextureHandle    input;
-            public TextureHandle    output;
-            public Material                     resolveMaterial;
-            public int                          passIndex;
+            public TextureHandle input;
+            public TextureHandle output;
+            public Material resolveMaterial;
+            public int passIndex;
         }
 
         TextureHandle ResolveMSAAColor(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle input)
@@ -1527,15 +1527,15 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        bool RenderCustomPass(RenderGraph                 renderGraph,
-            HDCamera                    hdCamera,
-            TextureHandle               colorBuffer,
-            in PrepassOutput            prepassOutput,
-            CullingResults              cullingResults,
-            CullingResults              cameraCullingResults,
-            CustomPassInjectionPoint    injectionPoint,
-            AOVRequestData              aovRequest,
-            List<RTHandle>              aovCustomPassBuffers)
+        bool RenderCustomPass(RenderGraph renderGraph,
+            HDCamera hdCamera,
+            TextureHandle colorBuffer,
+            in PrepassOutput prepassOutput,
+            CullingResults cullingResults,
+            CullingResults cameraCullingResults,
+            CustomPassInjectionPoint injectionPoint,
+            AOVRequestData aovRequest,
+            List<RTHandle> aovCustomPassBuffers)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 return false;

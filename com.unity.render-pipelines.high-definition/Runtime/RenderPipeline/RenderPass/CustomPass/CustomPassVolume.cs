@@ -55,11 +55,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         // The current active custom pass volume is simply the smallest overlapping volume with the trigger transform
-        static HashSet<CustomPassVolume>    m_ActivePassVolumes = new HashSet<CustomPassVolume>();
-        static List<CustomPassVolume>       m_OverlappingPassVolumes = new List<CustomPassVolume>();
+        static HashSet<CustomPassVolume> m_ActivePassVolumes = new HashSet<CustomPassVolume>();
+        static List<CustomPassVolume> m_OverlappingPassVolumes = new List<CustomPassVolume>();
 
-        List<Collider>          m_Colliders = new List<Collider>();
-        List<Collider>          m_OverlappingColliders = new List<Collider>();
+        List<Collider> m_Colliders = new List<Collider>();
+        List<Collider> m_OverlappingColliders = new List<Collider>();
 
         static List<CustomPassInjectionPoint> m_InjectionPoints;
         static List<CustomPassInjectionPoint> injectionPoints
@@ -219,7 +219,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Sort the overlapping volumes by priority order (smaller first, then larger and finally globals)
-            m_OverlappingPassVolumes.Sort((v1, v2) => {
+            m_OverlappingPassVolumes.Sort((v1, v2) =>
+            {
                 float GetVolumeExtent(CustomPassVolume volume)
                 {
                     float extent = 0;
@@ -255,7 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static CullingResults? Cull(ScriptableRenderContext renderContext, HDCamera hdCamera)
         {
-            CullingResults?  result = null;
+            CullingResults? result = null;
 
             // We need to sort the volumes first to know which one will be executed
             // TODO: cache the results per camera in the HDRenderPipeline so it's not executed twice per camera

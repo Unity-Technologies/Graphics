@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 public class TabbedView : VisualElement
 {
-    public new class UxmlFactory : UxmlFactory<TabbedView, UxmlTraits> {}
+    public new class UxmlFactory : UxmlFactory<TabbedView, UxmlTraits> { }
 
     private const string k_styleName = "TabbedView";
     private const string s_UssClassName = "unity-tabbed-view";

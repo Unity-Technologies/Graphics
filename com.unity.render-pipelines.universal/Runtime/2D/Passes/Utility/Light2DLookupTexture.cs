@@ -67,30 +67,30 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return texture;
         }
 
-//#if UNITY_EDITOR
-//        [MenuItem("Light2D Debugging/Write Light Texture")]
-//        static public void WriteLightTexture()
-//        {
-//            var path = EditorUtility.SaveFilePanel("Save texture as PNG", "", "LightLookupTexture.exr", "png");
+        //#if UNITY_EDITOR
+        //        [MenuItem("Light2D Debugging/Write Light Texture")]
+        //        static public void WriteLightTexture()
+        //        {
+        //            var path = EditorUtility.SaveFilePanel("Save texture as PNG", "", "LightLookupTexture.exr", "png");
 
-//            CreatePointLightLookupTexture();
+        //            CreatePointLightLookupTexture();
 
-//            byte[] imgData = s_PointLightLookupTexture.EncodeToEXR(Texture2D.EXRFlags.CompressRLE);
-//            if (imgData != null)
-//                File.WriteAllBytes(path, imgData);
-//        }
+        //            byte[] imgData = s_PointLightLookupTexture.EncodeToEXR(Texture2D.EXRFlags.CompressRLE);
+        //            if (imgData != null)
+        //                File.WriteAllBytes(path, imgData);
+        //        }
 
-//        [MenuItem("Light2D Debugging/Write Falloff Texture")]
-//        static public void WriteCurveTexture()
-//        {
-//            var path = EditorUtility.SaveFilePanel("Save texture as PNG", "", "FalloffLookupTexture.png", "png");
+        //        [MenuItem("Light2D Debugging/Write Falloff Texture")]
+        //        static public void WriteCurveTexture()
+        //        {
+        //            var path = EditorUtility.SaveFilePanel("Save texture as PNG", "", "FalloffLookupTexture.png", "png");
 
-//            CreateFalloffLookupTexture();
+        //            CreateFalloffLookupTexture();
 
-//            byte[] imgData = s_FalloffLookupTexture.EncodeToPNG();
-//            if (imgData != null)
-//                File.WriteAllBytes(path, imgData);
-//        }
-//#endif
+        //            byte[] imgData = s_FalloffLookupTexture.EncodeToPNG();
+        //            if (imgData != null)
+        //                File.WriteAllBytes(path, imgData);
+        //        }
+        //#endif
     }
 }

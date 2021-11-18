@@ -141,7 +141,7 @@ namespace UnityEditor.VFX
                 for (uint i = 0; i < linkedOutCount; ++i)
                 {
                     var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
-                    r.WriteLineFormat("for (uint i{0} = 0; i{0} < {1}_{0}; ++i{0}) {2}_{0}.Append(index);", prefix, VFXAttribute.EventCount.name, eventListOutName);
+                    r.WriteLineFormat("for (uint i = 0; i < {1}_{0}; ++i) {2}_{0}.Append(index);", prefix, VFXAttribute.EventCount.name, eventListOutName);
                 }
             }
             return r;
@@ -217,9 +217,9 @@ namespace UnityEditor.VFX
         {
             return Path.GetFullPath(path)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                #if !UNITY_EDITOR_LINUX
+#if !UNITY_EDITOR_LINUX
                 .ToLowerInvariant()
-                #endif
+#endif
                 ;
         }
 
@@ -286,7 +286,7 @@ namespace UnityEditor.VFX
 
                 if (groups.Count > 3 && !String.IsNullOrEmpty(groups[2].Value))
                 {
-                    var allDefines = groups[3].Value.Split(new char[] {',', ' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
+                    var allDefines = groups[3].Value.Split(new char[] { ',', ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
                     var neededDefines = allDefines.Where(d => d[0] != '!');
                     var forbiddenDefines = allDefines.Except(neededDefines).Select(d => d.Substring(1));
                     if (!neededDefines.All(d => defines.Contains(d)) || forbiddenDefines.Any(d => defines.Contains(d)))
@@ -481,22 +481,27 @@ namespace UnityEditor.VFX
 
                 if (filteredNamedExpression.exp != null)
                 {
-                    additionalInterpolantsDeclaration.WriteDeclaration(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, $"NORMAL{normSemantic++}");
-                    additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", "0");
-                    var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
-                    additionalInterpolantsGeneration.EnterScope();
+                    if (!filteredNamedExpression.exp.Is(VFXExpression.Flags.Constant))
                     {
-                        if (!expressionToNameLocal.ContainsKey(filteredNamedExpression.exp))
+                        additionalInterpolantsDeclaration.WriteDeclaration(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, $"NORMAL{normSemantic++}");
+                        additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", "0");
+                        var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
+                        additionalInterpolantsGeneration.EnterScope();
                         {
-                            additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp, expressionToNameLocal);
+                            if (!expressionToNameLocal.ContainsKey(filteredNamedExpression.exp))
+                            {
+                                additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp, expressionToNameLocal);
+                                additionalInterpolantsGeneration.WriteLine();
+                            }
+                            additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", expressionToNameLocal[filteredNamedExpression.exp]);
                             additionalInterpolantsGeneration.WriteLine();
                         }
-                        additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", expressionToNameLocal[filteredNamedExpression.exp]);
-                        additionalInterpolantsGeneration.WriteLine();
+                        additionalInterpolantsGeneration.ExitScope();
+                        additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, "o." + filteredNamedExpression.name, filteredNamedExpression.name + "__");
+                        additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "i." + filteredNamedExpression.name);
                     }
-                    additionalInterpolantsGeneration.ExitScope();
-                    additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, "o." + filteredNamedExpression.name, filteredNamedExpression.name + "__");
-                    additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "i." + filteredNamedExpression.name);
+                    else
+                        additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, filteredNamedExpression.exp.GetCodeString(null));
                 }
             }
             ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsGeneration}", additionalInterpolantsGeneration.builder);

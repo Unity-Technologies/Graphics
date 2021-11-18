@@ -52,13 +52,13 @@ namespace UnityEngine.Rendering
         }
 
         // Parameters for auto-scaled Render Textures
-        bool                m_HardwareDynamicResRequested = false;
-        bool                m_ScaledRTSupportsMSAA = false;
-        MSAASamples         m_ScaledRTCurrentMSAASamples = MSAASamples.None;
-        HashSet<RTHandle>   m_AutoSizedRTs;
-        RTHandle[]          m_AutoSizedRTsArray; // For fast iteration
-        HashSet<RTHandle>   m_ResizeOnDemandRTs;
-        RTHandleProperties  m_RTHandleProperties;
+        bool m_HardwareDynamicResRequested = false;
+        bool m_ScaledRTSupportsMSAA = false;
+        MSAASamples m_ScaledRTCurrentMSAASamples = MSAASamples.None;
+        HashSet<RTHandle> m_AutoSizedRTs;
+        RTHandle[] m_AutoSizedRTsArray; // For fast iteration
+        HashSet<RTHandle> m_ResizeOnDemandRTs;
+        RTHandleProperties m_RTHandleProperties;
 
         /// <summary>
         /// Current properties of the RTHandle System.

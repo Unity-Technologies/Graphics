@@ -61,10 +61,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderAOPassData
         {
-            public RenderAOParameters   parameters;
-            public TextureHandle        packedData;
-            public TextureHandle        depthPyramid;
-            public TextureHandle        normalBuffer;
+            public RenderAOParameters parameters;
+            public TextureHandle packedData;
+            public TextureHandle depthPyramid;
+            public TextureHandle normalBuffer;
         }
 
         TextureHandle RenderAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle depthPyramid, TextureHandle normalBuffer)
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.parameters = parameters;
                 passData.packedData = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
-                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "AO Packed data" }));
+                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "AO Packed data" }));
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
 
@@ -93,22 +93,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class DenoiseAOPassData
         {
-            public RenderAOParameters   parameters;
-            public TextureHandle        packedData;
-            public TextureHandle        packedDataBlurred;
-            public TextureHandle        currentHistory;
-            public TextureHandle        outputHistory;
-            public TextureHandle        denoiseOutput;
-            public TextureHandle        motionVectors;
+            public RenderAOParameters parameters;
+            public TextureHandle packedData;
+            public TextureHandle packedDataBlurred;
+            public TextureHandle currentHistory;
+            public TextureHandle outputHistory;
+            public TextureHandle denoiseOutput;
+            public TextureHandle motionVectors;
         }
 
-        TextureHandle DenoiseAO(RenderGraph             renderGraph,
-            in RenderAOParameters   parameters,
-            TextureHandle           depthTexture,
-            TextureHandle           motionVectors,
-            TextureHandle           aoPackedData,
-            TextureHandle           currentHistory,
-            TextureHandle           outputHistory)
+        TextureHandle DenoiseAO(RenderGraph renderGraph,
+            in RenderAOParameters parameters,
+            TextureHandle depthTexture,
+            TextureHandle motionVectors,
+            TextureHandle aoPackedData,
+            TextureHandle currentHistory,
+            TextureHandle outputHistory)
         {
             if (!parameters.temporalAccumulation && !parameters.fullResolution)
                 return aoPackedData;
@@ -159,10 +159,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class UpsampleAOPassData
         {
-            public RenderAOParameters   parameters;
-            public TextureHandle        depthTexture;
-            public TextureHandle        input;
-            public TextureHandle        output;
+            public RenderAOParameters parameters;
+            public TextureHandle depthTexture;
+            public TextureHandle input;
+            public TextureHandle output;
         }
 
         TextureHandle UpsampleAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle input, TextureHandle depthTexture)

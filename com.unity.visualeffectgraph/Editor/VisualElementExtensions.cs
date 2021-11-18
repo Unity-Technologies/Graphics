@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.UI
             if (m_ValidateLayoutMethod == null)
                 m_ValidateLayoutMethod = panel.GetType().GetMethod("ValidateLayout", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Public);
 
-            m_ValidateLayoutMethod.Invoke(panel, new object[] {});
+            m_ValidateLayoutMethod.Invoke(panel, new object[] { });
         }
 
         static PropertyInfo m_OwnerPropertyInfo;
@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.UI
                 m_OwnerPropertyInfo = panel.GetType().GetProperty("ownerObject", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Public);
 
 
-            return (GUIView)m_OwnerPropertyInfo.GetValue(panel, new object[] {});
+            return (GUIView)m_OwnerPropertyInfo.GetValue(panel, new object[] { });
         }
 
         public static bool HasFocus(this VisualElement visualElement)

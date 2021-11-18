@@ -775,7 +775,7 @@ namespace UnityEditor.ShaderGraph
                 // Hybrid Renderer V1 requires some magic defines to work, which we enable
                 // if the shader graph has a nonzero amount of DOTS instanced properties.
                 // This can be removed once Hybrid V1 is removed.
-                #if !ENABLE_HYBRID_RENDERER_V2
+#if !ENABLE_HYBRID_RENDERER_V2
                 if (hasDotsProperties)
                 {
                     dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE)  || defined(SHADER_API_GAMECORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
@@ -785,7 +785,7 @@ namespace UnityEditor.ShaderGraph
                     dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_HYBRID_V1_INSTANCING_ENABLED");
                     dotsInstancingOptionsBuilder.AppendLine("#endif");
                 }
-                #endif
+#endif
 
                 if (dotsInstancingOptionsBuilder.length == 0)
                     dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");

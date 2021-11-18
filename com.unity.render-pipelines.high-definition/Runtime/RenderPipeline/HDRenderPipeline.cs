@@ -267,11 +267,11 @@ namespace UnityEngine.Rendering.HighDefinition
         static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
         internal DebugDisplaySettings m_CurrentDebugDisplaySettings;
         // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
-        bool                            m_FullScreenDebugPushed;
-        bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
-        bool                            m_IsDepthBufferCopyValid;
-        RenderTexture                   m_TemporaryTargetForCubemaps;
-        HDCamera                        m_CurrentHDCamera;
+        bool m_FullScreenDebugPushed;
+        bool m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
+        bool m_IsDepthBufferCopyValid;
+        RenderTexture m_TemporaryTargetForCubemaps;
+        HDCamera m_CurrentHDCamera;
 
         private CameraCache<(Transform viewer, HDProbe probe, int face)> m_ProbeCameraCache = new
             CameraCache<(Transform viewer, HDProbe probe, int face)>();
@@ -672,14 +672,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 overridesFog = true,
                 overridesOtherLightingSettings = true,
                 editableMaterialRenderQueue = false
-                    // Enlighten is deprecated in 2019.3 and above
-                , enlighten = false
-                , overridesLODBias = true
-                , overridesMaximumLODLevel = true
-                , terrainDetailUnsupported = true
-                , overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
-                , overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
-                , overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
+                // Enlighten is deprecated in 2019.3 and above
+                ,
+                enlighten = false
+                ,
+                overridesLODBias = true
+                ,
+                overridesMaximumLODLevel = true
+                ,
+                terrainDetailUnsupported = true
+                ,
+                overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
+                ,
+                overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
+                ,
+                overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
+                ,
+                autoAmbientProbeBaking = false
+                ,
+                autoDefaultReflectionProbeBaking = false
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -1084,11 +1095,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct BuildCoarseStencilAndResolveParameters
         {
-            public HDCamera         hdCamera;
-            public ComputeShader    resolveStencilCS;
-            public int              resolveKernel;
-            public bool             resolveIsNecessary;
-            public bool             resolveOnly;
+            public HDCamera hdCamera;
+            public ComputeShader resolveStencilCS;
+            public int resolveKernel;
+            public bool resolveIsNecessary;
+            public bool resolveOnly;
         }
 
         BuildCoarseStencilAndResolveParameters PrepareBuildCoarseStencilParameters(HDCamera hdCamera, bool resolveOnly)
@@ -1433,7 +1444,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         index = renderRequests.Count,
                         cameraSettings = CameraSettings.From(hdCamera),
                         viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get()
-                            // TODO: store DecalCullResult
+                        // TODO: store DecalCullResult
                     };
                     renderRequests.Add(request);
                     // This is a root render request
@@ -1527,7 +1538,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             AddHDProbeRenderRequests(
                                 visibleProbe,
                                 viewerTransform,
-                                new List<(int index, float weight)> {visibility},
+                                new List<(int index, float weight)> { visibility },
                                 HDUtils.GetSceneCullingMaskFromCamera(visibleInRenderRequest.hdCamera.camera),
                                 hdParentCamera,
                                 visibleInRenderRequest.hdCamera.camera.fieldOfView,
@@ -1754,7 +1765,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             index = renderRequests.Count,
                             cameraSettings = cameraSettings[j],
                             viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get()
-                                // TODO: store DecalCullResult
+                            // TODO: store DecalCullResult
                         };
 
                         if (m_SkyManager.HasSetValidAmbientProbe(hdCamera))
@@ -2177,11 +2188,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct BlitFinalCameraTextureParameters
         {
-            public bool                     flip;
-            public int                      srcTexArraySlice;
-            public int                      dstTexArraySlice;
-            public Rect                     viewport;
-            public Material                 blitMaterial;
+            public bool flip;
+            public int srcTexArraySlice;
+            public int dstTexArraySlice;
+            public Rect viewport;
+            public Material blitMaterial;
         }
 
         internal RTHandle GetExposureTexture(HDCamera hdCamera) =>
@@ -2658,12 +2669,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct DepthPrepassParameters
         {
-            public string           passName;
-            public HDProfileId      profilingId;
+            public string passName;
+            public HDProfileId profilingId;
             public RendererListDesc depthDeferredRendererListDesc;
             public RendererListDesc depthForwardRendererListDesc;
-            public bool             hasDepthDeferredPass;
-            public bool             shouldRenderMotionVectorAfterGBuffer;
+            public bool hasDepthDeferredPass;
+            public bool shouldRenderMotionVectorAfterGBuffer;
         }
 
         DepthPrepassParameters PrepareDepthPrepass(CullingResults cull, HDCamera hdCamera)
@@ -2782,15 +2793,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        static void RenderDepthPrepass(ScriptableRenderContext     renderContext,
-            CommandBuffer               cmd,
-            FrameSettings               frameSettings,
-            RenderTargetIdentifier[]    deferredMrt,
-            RenderTargetIdentifier[]    forwardMrt,
-            RTHandle                    depthBuffer,
-            in RendererList             depthDeferredRendererListDesc,
-            in RendererList             depthForwardRendererListDesc,
-            bool                        hasDepthDeferredPass
+        static void RenderDepthPrepass(ScriptableRenderContext renderContext,
+            CommandBuffer cmd,
+            FrameSettings frameSettings,
+            RenderTargetIdentifier[] deferredMrt,
+            RenderTargetIdentifier[] forwardMrt,
+            RTHandle depthBuffer,
+            in RendererList depthDeferredRendererListDesc,
+            in RendererList depthForwardRendererListDesc,
+            bool hasDepthDeferredPass
         )
         {
             if (hasDepthDeferredPass)
@@ -2837,11 +2848,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void DecalNormalPatch(DBufferNormalPatchParameters    parameters,
-            RTHandle[]                      dBuffer,
-            RTHandle                        depthStencilBuffer,
-            RTHandle                        normalBuffer,
-            CommandBuffer                   cmd)
+        static void DecalNormalPatch(DBufferNormalPatchParameters parameters,
+            RTHandle[] dBuffer,
+            RTHandle depthStencilBuffer,
+            RTHandle normalBuffer,
+            CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DBufferNormal)))
             {
@@ -2873,7 +2884,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
-                cb._EnableDecals  = 1;
+                cb._EnableDecals = 1;
                 cb._DecalAtlasResolution = new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight);
             }
             else
@@ -2898,15 +2909,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void RenderDBuffer(in RenderDBufferParameters  parameters,
-            RenderTargetIdentifier[]    mrt,
-            RTHandle[]                  rtHandles,
-            RTHandle                    depthStencilBuffer,
-            RTHandle                    depthTexture,
-            RendererList                meshDecalsRendererList,
-            RTHandle                    decalPrepassBuffer,
-            ScriptableRenderContext     renderContext,
-            CommandBuffer               cmd)
+        static void RenderDBuffer(in RenderDBufferParameters parameters,
+            RenderTargetIdentifier[] mrt,
+            RTHandle[] rtHandles,
+            RTHandle depthStencilBuffer,
+            RTHandle depthTexture,
+            RendererList meshDecalsRendererList,
+            RTHandle decalPrepassBuffer,
+            ScriptableRenderContext renderContext,
+            CommandBuffer cmd)
         {
             // for alpha compositing, color is cleared to 0, alpha to 1
             // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
@@ -3017,14 +3028,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void RenderTransparencyOverdraw(TransparencyOverdrawParameters  parameters,
-            RTHandle                        colorBuffer,
-            RTHandle                        depthBuffer,
-            in RendererList                 transparencyRL,
-            in RendererList                 transparencyAfterPostRL,
-            in RendererList                 transparencyLowResRL,
-            ScriptableRenderContext         renderContext,
-            CommandBuffer                   cmd)
+        static void RenderTransparencyOverdraw(TransparencyOverdrawParameters parameters,
+            RTHandle colorBuffer,
+            RTHandle depthBuffer,
+            in RendererList transparencyRL,
+            in RendererList transparencyAfterPostRL,
+            in RendererList transparencyLowResRL,
+            ScriptableRenderContext renderContext,
+            CommandBuffer cmd)
         {
             CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag: ClearFlag.Color, clearColor: Color.black);
 
@@ -3059,13 +3070,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void RenderFullScreenDebug(FullScreenDebugParameters   parameters,
-            RTHandle                    colorBuffer,
-            RTHandle                    depthBuffer,
-            ComputeBuffer               debugBuffer,
-            in RendererList             rendererList,
-            ScriptableRenderContext     renderContext,
-            CommandBuffer               cmd)
+        static void RenderFullScreenDebug(FullScreenDebugParameters parameters,
+            RTHandle colorBuffer,
+            RTHandle depthBuffer,
+            ComputeBuffer debugBuffer,
+            in RendererList rendererList,
+            ScriptableRenderContext renderContext,
+            CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderFullScreenDebug)))
             {
@@ -3152,14 +3163,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return CreateTransparentRendererListDesc(cullResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting, transparentRange);
         }
 
-        static void RenderForwardRendererList(FrameSettings               frameSettings,
-            RendererList                rendererList,
-            RenderTargetIdentifier[]    renderTarget,
-            RTHandle                    depthBuffer,
-            ComputeBuffer               lightListBuffer,
-            bool                        opaque,
-            ScriptableRenderContext     renderContext,
-            CommandBuffer               cmd)
+        static void RenderForwardRendererList(FrameSettings frameSettings,
+            RendererList rendererList,
+            RenderTargetIdentifier[] renderTarget,
+            RTHandle depthBuffer,
+            ComputeBuffer lightListBuffer,
+            bool opaque,
+            ScriptableRenderContext renderContext,
+            CommandBuffer cmd)
         {
             // Note: SHADOWS_SHADOWMASK keyword is enabled in HDRenderPipeline.cs ConfigureForShadowMask
             bool useFptl = opaque && frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque);
@@ -3178,16 +3189,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct RenderSSRParameters
         {
-            public ComputeShader    ssrCS;
-            public int              tracingKernel;
-            public int              reprojectionKernel;
-            public int              accumulateKernel;
-            public bool             transparentSSR;
-            public bool             usePBRAlgo;
+            public ComputeShader ssrCS;
+            public int tracingKernel;
+            public int reprojectionKernel;
+            public int accumulateKernel;
+            public bool transparentSSR;
+            public bool usePBRAlgo;
 
-            public int              width, height, viewCount;
+            public int width, height, viewCount;
 
-            public ComputeBuffer    offsetBufferData;
+            public ComputeBuffer offsetBufferData;
 
             public ShaderVariablesScreenSpaceReflection cb;
         }
@@ -3237,22 +3248,22 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void RenderSSR(in RenderSSRParameters  parameters,
-            HDCamera                hdCamera,
-            BlueNoise               blueNoise,
-            RTHandle                depthTexture,
-            RTHandle                depthPyramid,
-            RTHandle                normalBuffer,
-            RTHandle                motionVectorsBuffer,
-            RTHandle                SsrHitPointTexture,
-            RTHandle                stencilBuffer,
-            RTHandle                clearCoatMask,
-            RTHandle                previousColorPyramid,
-            RTHandle                ssrAccum,
-            RTHandle                ssrLightingTexture,
-            RTHandle                ssrAccumPrev,
-            ComputeBuffer           coarseStencilBuffer,
-            CommandBuffer           cmd,
+        static void RenderSSR(in RenderSSRParameters parameters,
+            HDCamera hdCamera,
+            BlueNoise blueNoise,
+            RTHandle depthTexture,
+            RTHandle depthPyramid,
+            RTHandle normalBuffer,
+            RTHandle motionVectorsBuffer,
+            RTHandle SsrHitPointTexture,
+            RTHandle stencilBuffer,
+            RTHandle clearCoatMask,
+            RTHandle previousColorPyramid,
+            RTHandle ssrAccum,
+            RTHandle ssrLightingTexture,
+            RTHandle ssrAccumPrev,
+            ComputeBuffer coarseStencilBuffer,
+            CommandBuffer cmd,
             ScriptableRenderContext renderContext)
         {
             var cs = parameters.ssrCS;
@@ -3476,10 +3487,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public DebugOverlay debugOverlay;
 
             // Full screen debug
-            public bool             resolveFullScreenDebug;
-            public Material         debugFullScreenMaterial;
-            public int              depthPyramidMip;
-            public ComputeBuffer    depthPyramidOffsets;
+            public bool resolveFullScreenDebug;
+            public Material debugFullScreenMaterial;
+            public int depthPyramidMip;
+            public ComputeBuffer depthPyramidOffsets;
 
             // Sky
             public Texture skyReflectionTexture;
@@ -3493,11 +3504,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public ProbeVolumeDebugOverlayParameters probeVolumeOverlayParameters;
 
             // Color picker
-            public bool     colorPickerEnabled;
+            public bool colorPickerEnabled;
             public Material colorPickerMaterial;
 
             // Exposure
-            public bool     exposureDebugEnabled;
+            public bool exposureDebugEnabled;
             public Material debugExposureMaterial;
         }
 
@@ -3535,13 +3546,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void ResolveFullScreenDebug(in DebugParameters      parameters,
-            MaterialPropertyBlock   mpb,
-            RTHandle                inputFullScreenDebug,
-            RTHandle                inputDepthPyramid,
-            RTHandle                output,
-            ComputeBuffer           fullscreenBuffer,
-            CommandBuffer           cmd)
+        static void ResolveFullScreenDebug(in DebugParameters parameters,
+            MaterialPropertyBlock mpb,
+            RTHandle inputFullScreenDebug,
+            RTHandle inputDepthPyramid,
+            RTHandle output,
+            ComputeBuffer fullscreenBuffer,
+            CommandBuffer cmd)
         {
             mpb.SetTexture(HDShaderIDs._DebugFullScreenTexture, inputFullScreenDebug);
             mpb.SetTexture(HDShaderIDs._CameraDepthTexture, inputDepthPyramid);
@@ -3566,10 +3577,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.ClearRandomWriteTargets();
         }
 
-        static void ResolveColorPickerDebug(in DebugParameters  parameters,
-            RTHandle            debugColorPickerBuffer,
-            RTHandle            output,
-            CommandBuffer       cmd)
+        static void ResolveColorPickerDebug(in DebugParameters parameters,
+            RTHandle debugColorPickerBuffer,
+            RTHandle output,
+            CommandBuffer cmd)
         {
             ColorPickerDebugSettings colorPickerDebugSettings = parameters.debugDisplaySettings.data.colorPickerDebugSettings;
             FalseColorDebugSettings falseColorDebugSettings = parameters.debugDisplaySettings.data.falseColorDebugSettings;
@@ -3706,13 +3717,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public ShaderVariablesGlobal globalCB;
 
-            public HDCamera         hdCamera;
-            public bool             postProcessIsFinalPass;
-            public bool             flipYInPostProcess;
-            public BlueNoise        blueNoise;
+            public HDCamera hdCamera;
+            public bool postProcessIsFinalPass;
+            public bool flipYInPostProcess;
+            public BlueNoise blueNoise;
 
             // After Postprocess
-            public bool             useDepthBuffer;
+            public bool useDepthBuffer;
             public RendererListDesc opaqueAfterPPDesc;
             public RendererListDesc transparentAfterPPDesc;
         }
@@ -3741,9 +3752,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._OffScreenDownsampleFactor = factor;
         }
 
-        static void RenderAfterPostProcess(PostProcessParameters   parameters,
-            in RendererList         opaqueAfterPostProcessRendererList,
-            in RendererList         transparentAfterPostProcessRendererList,
+        static void RenderAfterPostProcess(PostProcessParameters parameters,
+            in RendererList opaqueAfterPostProcessRendererList,
+            in RendererList transparentAfterPostProcessRendererList,
             ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AfterPostProcessing)))
@@ -3899,10 +3910,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         internal struct OverrideCameraRendering : IDisposable
         {
-            CommandBuffer   cmd;
-            Camera          overrideCamera;
-            HDCamera        overrideHDCamera;
-            float           originalAspect;
+            CommandBuffer cmd;
+            Camera overrideCamera;
+            HDCamera overrideHDCamera;
+            float originalAspect;
 
             /// <summary>
             /// Overrides the current camera, changing all the matrices and view parameters for the new one.

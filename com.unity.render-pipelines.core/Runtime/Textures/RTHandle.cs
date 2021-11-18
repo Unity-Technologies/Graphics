@@ -10,14 +10,14 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class RTHandle
     {
-        internal RTHandleSystem             m_Owner;
-        internal RenderTexture              m_RT;
-        internal Texture                    m_ExternalTexture;
-        internal RenderTargetIdentifier     m_NameID;
-        internal bool                       m_EnableMSAA = false;
-        internal bool                       m_EnableRandomWrite = false;
-        internal bool                       m_EnableHWDynamicScale = false;
-        internal string                     m_Name;
+        internal RTHandleSystem m_Owner;
+        internal RenderTexture m_RT;
+        internal Texture m_ExternalTexture;
+        internal RenderTargetIdentifier m_NameID;
+        internal bool m_EnableMSAA = false;
+        internal bool m_EnableRandomWrite = false;
+        internal bool m_EnableHWDynamicScale = false;
+        internal string m_Name;
 
         /// <summary>
         /// Scale factor applied to the RTHandle reference size.
@@ -28,15 +28,15 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Returns true if the RTHandle uses automatic scaling.
         /// </summary>
-        public bool                         useScaling { get; internal set; }
+        public bool useScaling { get; internal set; }
         /// <summary>
         /// Reference size of the RTHandle System associated with the RTHandle
         /// </summary>
-        public Vector2Int                   referenceSize {get; internal set; }
+        public Vector2Int referenceSize { get; internal set; }
         /// <summary>
         /// Current properties of the RTHandle System
         /// </summary>
-        public RTHandleProperties           rtHandleProperties { get { return m_Owner.rtHandleProperties; } }
+        public RTHandleProperties rtHandleProperties { get { return m_Owner.rtHandleProperties; } }
         /// <summary>
         /// RenderTexture associated with the RTHandle
         /// </summary>
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering
 
         internal void SetRenderTexture(RenderTexture rt)
         {
-            m_RT =  rt;
+            m_RT = rt;
             m_ExternalTexture = null;
             m_NameID = new RenderTargetIdentifier(rt);
         }

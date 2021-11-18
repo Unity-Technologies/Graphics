@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
             out VisualElement propertyColorField,
             int indentLevel = 0)
         {
-            var objectField = new ObjectField { value = fieldToDraw, objectType = typeof(DiffusionProfileSettings)};
+            var objectField = new ObjectField { value = fieldToDraw, objectType = typeof(DiffusionProfileSettings) };
 
             if (valueChangedCallback != null)
             {
@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
-                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
+                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] { newValue }),
                 (DiffusionProfileSettings)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);

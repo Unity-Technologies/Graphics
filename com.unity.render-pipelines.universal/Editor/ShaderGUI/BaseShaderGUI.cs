@@ -184,7 +184,7 @@ namespace UnityEditor
             m_SurfaceInputsFoldout = new SavedBool($"{m_HeaderStateKey}.SurfaceInputsFoldout", true);
             m_AdvancedFoldout = new SavedBool($"{m_HeaderStateKey}.AdvancedFoldout", false);
 
-            foreach (var obj in  materialEditor.targets)
+            foreach (var obj in materialEditor.targets)
                 MaterialChanged((Material)obj);
         }
 
@@ -223,7 +223,7 @@ namespace UnityEditor
 
             if (EditorGUI.EndChangeCheck())
             {
-                foreach (var obj in  materialEditor.targets)
+                foreach (var obj in materialEditor.targets)
                     MaterialChanged((Material)obj);
             }
         }
@@ -299,7 +299,7 @@ namespace UnityEditor
             }
         }
 
-        public virtual void DrawAdditionalFoldouts(Material material) {}
+        public virtual void DrawAdditionalFoldouts(Material material) { }
 
         public virtual void DrawBaseProperties(Material material)
         {

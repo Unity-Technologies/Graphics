@@ -249,19 +249,20 @@ namespace UnityEditor.Rendering
             GetFields(target, fields);
 
             m_Parameters = fields
-                .Select(t => {
-                var name = "";
-                var order = 0;
-                var attr = (DisplayInfoAttribute[])t.Item1.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
-                if (attr.Length != 0)
+                .Select(t =>
                 {
-                    name = attr[0].name;
-                    order = attr[0].order;
-                }
+                    var name = "";
+                    var order = 0;
+                    var attr = (DisplayInfoAttribute[])t.Item1.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
+                    if (attr.Length != 0)
+                    {
+                        name = attr[0].name;
+                        order = attr[0].order;
+                    }
 
-                var parameter = new SerializedDataParameter(t.Item2);
-                return (new GUIContent(name), order, parameter);
-            })
+                    var parameter = new SerializedDataParameter(t.Item2);
+                    return (new GUIContent(name), order, parameter);
+                })
                 .OrderBy(t => t.order)
                 .ToList();
         }

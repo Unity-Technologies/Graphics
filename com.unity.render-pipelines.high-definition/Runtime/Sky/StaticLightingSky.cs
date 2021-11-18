@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int parameterCount = m_SkySettings.parameters.Count;
                 // Copy overridden parameters.
-                for (int i  = 0; i < parameterCount; ++i)
+                for (int i = 0; i < parameterCount; ++i)
                 {
                     if (profileSkyParameters[i].overrideState == true)
                     {

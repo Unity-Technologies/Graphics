@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph
 {
     static class ShaderGeneratorNames
     {
-        private static string[] UV = {"uv0", "uv1", "uv2", "uv3"};
+        private static string[] UV = { "uv0", "uv1", "uv2", "uv3" };
         public static int UVCount = 4;
 
         public const string ScreenPosition = "ScreenPosition";

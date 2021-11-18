@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     struct ShaderStringMapping
     {
         public AbstractMaterialNode node { get; set; }
-//        public List<AbstractMaterialNode> nodes { get; set; }
+        //        public List<AbstractMaterialNode> nodes { get; set; }
         public int startIndex { get; set; }
         public int count { get; set; }
     }

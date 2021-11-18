@@ -7,7 +7,8 @@ using UnityEditorInternal;
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(UniversalRenderPipelineAsset))]
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class UniversalRenderPipelineAssetEditor : Editor
+    [MovedFrom("UnityEditor.Rendering.LWRP")]
+    public class UniversalRenderPipelineAssetEditor : Editor
     {
         internal class Styles
         {
@@ -94,7 +95,7 @@ namespace UnityEditor.Rendering.Universal
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
-            public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
+            public static string[] opaqueDownsamplingOptions = { "None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)" };
         }
 
         SavedBool m_GeneralSettingsFoldout;
@@ -363,7 +364,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginChangeCheck();
 
             const int k_ShadowResolutionTiersCount = 3;
-            var values = new[] { m_AdditionalLightsShadowResolutionTierLowProp, m_AdditionalLightsShadowResolutionTierMediumProp, m_AdditionalLightsShadowResolutionTierHighProp};
+            var values = new[] { m_AdditionalLightsShadowResolutionTierLowProp, m_AdditionalLightsShadowResolutionTierMediumProp, m_AdditionalLightsShadowResolutionTierHighProp };
 
             var num = contentRect.width / (float)k_ShadowResolutionTiersCount;  // space allocated for every field including the label
 

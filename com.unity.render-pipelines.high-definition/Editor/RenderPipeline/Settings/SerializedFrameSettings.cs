@@ -86,21 +86,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedFrameSettings(SerializedProperty rootData, SerializedProperty rootOverrides)
         {
-            m_RootData      = rootData;
+            m_RootData = rootData;
             m_RootOverrides = rootOverrides;
-            m_BitDatas      = rootData.FindPropertyRelative("bitDatas").ToSerializeBitArray128();
-            m_BitOverrides  = rootOverrides?.FindPropertyRelative("mask").ToSerializeBitArray128();  //rootOverride can be null in case of hdrpAsset defaults
+            m_BitDatas = rootData.FindPropertyRelative("bitDatas").ToSerializeBitArray128();
+            m_BitOverrides = rootOverrides?.FindPropertyRelative("mask").ToSerializeBitArray128();  //rootOverride can be null in case of hdrpAsset defaults
 
-            sssQualityMode              = rootData.FindPropertyRelative("sssQualityMode");
-            sssQualityLevel             = rootData.FindPropertyRelative("sssQualityLevel");
-            sssCustomSampleBudget       = rootData.FindPropertyRelative("sssCustomSampleBudget");
-            lodBias                     = rootData.FindPropertyRelative("lodBias");
-            lodBiasMode                 = rootData.FindPropertyRelative("lodBiasMode");
-            lodBiasQualityLevel         = rootData.FindPropertyRelative("lodBiasQualityLevel");
-            maximumLODLevel             = rootData.FindPropertyRelative("maximumLODLevel");
-            maximumLODLevelMode         = rootData.FindPropertyRelative("maximumLODLevelMode");
+            sssQualityMode = rootData.FindPropertyRelative("sssQualityMode");
+            sssQualityLevel = rootData.FindPropertyRelative("sssQualityLevel");
+            sssCustomSampleBudget = rootData.FindPropertyRelative("sssCustomSampleBudget");
+            lodBias = rootData.FindPropertyRelative("lodBias");
+            lodBiasMode = rootData.FindPropertyRelative("lodBiasMode");
+            lodBiasQualityLevel = rootData.FindPropertyRelative("lodBiasQualityLevel");
+            maximumLODLevel = rootData.FindPropertyRelative("maximumLODLevel");
+            maximumLODLevelMode = rootData.FindPropertyRelative("maximumLODLevelMode");
             maximumLODLevelQualityLevel = rootData.FindPropertyRelative("maximumLODLevelQualityLevel");
-            materialQuality             = rootData.Find((FrameSettings s) => s.materialQuality);
+            materialQuality = rootData.Find((FrameSettings s) => s.materialQuality);
         }
 
         public struct TitleDrawingScope : IDisposable

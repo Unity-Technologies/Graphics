@@ -7,7 +7,7 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-    #pragma warning disable 0659
+#pragma warning disable 0659
     abstract class VFXValue : VFXExpression
     {
         public enum Mode

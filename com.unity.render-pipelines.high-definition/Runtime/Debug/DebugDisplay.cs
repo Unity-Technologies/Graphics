@@ -1426,7 +1426,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 list.Add(container);
             }
 
-            list.Add(new DebugUI.BoolField { displayName = "Display Cookie Atlas", getter = () => data.lightingDebugSettings.displayCookieAtlas, setter = value => data.lightingDebugSettings.displayCookieAtlas = value, onValueChanged = RefreshLightingDebug});
+            list.Add(new DebugUI.BoolField { displayName = "Display Cookie Atlas", getter = () => data.lightingDebugSettings.displayCookieAtlas, setter = value => data.lightingDebugSettings.displayCookieAtlas = value, onValueChanged = RefreshLightingDebug });
             if (data.lightingDebugSettings.displayCookieAtlas)
             {
                 list.Add(new DebugUI.Container
@@ -1439,7 +1439,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            list.Add(new DebugUI.BoolField { displayName = "Display Planar Reflection Atlas", getter = () => data.lightingDebugSettings.displayPlanarReflectionProbeAtlas, setter = value => data.lightingDebugSettings.displayPlanarReflectionProbeAtlas = value, onValueChanged = RefreshLightingDebug});
+            list.Add(new DebugUI.BoolField { displayName = "Display Planar Reflection Atlas", getter = () => data.lightingDebugSettings.displayPlanarReflectionProbeAtlas, setter = value => data.lightingDebugSettings.displayPlanarReflectionProbeAtlas = value, onValueChanged = RefreshLightingDebug });
             if (data.lightingDebugSettings.displayPlanarReflectionProbeAtlas)
             {
                 list.Add(new DebugUI.Container
@@ -1452,7 +1452,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});
+            list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f });
 
             m_DebugLightingItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelLighting, true);
@@ -1531,7 +1531,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 hdr = p.hdr,
                                 showAlpha = p.showAlpha,
                                 getter = () => p.value,
-                                setter = _ => {}
+                                setter = _ => { }
                             };
                         }
 
@@ -1542,7 +1542,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 displayName = name,
                                 getter = () => p.value,
-                                setter = _ => {}
+                                setter = _ => { }
                             };
                         }
 
@@ -1560,7 +1560,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             return new DebugUI.Value()
                             {
                                 displayName = name,
-                                getter = () => {
+                                getter = () =>
+                                {
                                     var value = property.GetValue(param);
                                     if (value == null || value.Equals(null))
                                         return "None";
@@ -1574,7 +1575,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         return new DebugUI.Value()
                         {
                             displayName = name,
-                            getter = () => {
+                            getter = () =>
+                            {
                                 var value = property.GetValue(param);
                                 return value == null ? "None" : value.ToString();
                             }
@@ -1628,7 +1630,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         row.children.Add(new DebugUI.Value()
                         {
                             displayName = volume.name + " (" + profile.name + ")",
-                            getter = () => {
+                            getter = () =>
+                            {
                                 var scope = volume.isGlobal ? "Global" : "Local";
                                 var weight = data.volumeDebugSettings.GetVolumeWeight(volume);
                                 return scope + " (" + (weight * 100f) + "%)";
@@ -1773,7 +1776,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             });
 
-            widgetList.Add(new DebugUI.BoolField  { displayName = "False Color Mode", getter = () => data.falseColorDebugSettings.falseColor, setter = value => data.falseColorDebugSettings.falseColor = value, onValueChanged = RefreshRenderingDebug });
+            widgetList.Add(new DebugUI.BoolField { displayName = "False Color Mode", getter = () => data.falseColorDebugSettings.falseColor, setter = value => data.falseColorDebugSettings.falseColor = value, onValueChanged = RefreshRenderingDebug });
             if (data.falseColorDebugSettings.falseColor)
             {
                 widgetList.Add(new DebugUI.Container
@@ -1961,7 +1964,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool DebugHideSky(HDCamera hdCamera)
         {
             return (IsMatcapViewEnabled(hdCamera) ||
-                GetDebugLightingMode() ==  DebugLightingMode.DiffuseLighting ||
+                GetDebugLightingMode() == DebugLightingMode.DiffuseLighting ||
                 GetDebugLightingMode() == DebugLightingMode.SpecularLighting ||
                 GetDebugLightingMode() == DebugLightingMode.DirectDiffuseLighting ||
                 GetDebugLightingMode() == DebugLightingMode.DirectSpecularLighting ||

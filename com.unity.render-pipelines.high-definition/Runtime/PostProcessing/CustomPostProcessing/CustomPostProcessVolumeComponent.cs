@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Setup function, called once before render is called.
         /// </summary>
-        public virtual void Setup() {}
+        public virtual void Setup() { }
 
         /// <summary>
         /// Called every frame for each camera when the post process needs to be rendered.
@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Cleanup function, called when the render pipeline is disposed.
         /// </summary>
-        public virtual void Cleanup() {}
+        public virtual void Cleanup() { }
 
         /// <summary>
         /// Unity calls this method when the object goes out of scope.

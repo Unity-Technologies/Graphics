@@ -42,7 +42,7 @@ namespace UnityEditor.VFX
 
         public VFXCoordinateSpace currentSpace { get; set; }
         public bool spaceLocalByDefault { get; set; }
-        public VisualEffect component {get; set; }
+        public VisualEffect component { get; set; }
 
         public bool PositionGizmo(ref Vector3 position, bool always)
         {
@@ -60,7 +60,7 @@ namespace UnityEditor.VFX
             if (always || Tools.current == Tool.Scale || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
-                scale = Handles.ScaleHandle(scale, position , rotation, Tools.current == Tool.Transform || Tools.current == Tool.None ? HandleUtility.GetHandleSize(position) * 0.75f : HandleUtility.GetHandleSize(position));
+                scale = Handles.ScaleHandle(scale, position, rotation, Tools.current == Tool.Transform || Tools.current == Tool.None ? HandleUtility.GetHandleSize(position) * 0.75f : HandleUtility.GetHandleSize(position));
                 return EditorGUI.EndChangeCheck();
             }
             return false;
@@ -130,7 +130,7 @@ namespace UnityEditor.VFX
                 using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(center) * Matrix4x4.Rotate(rotation)))
                 {
                     EditorGUI.BeginChangeCheck();
-                    Vector3 arcHandlePosition =  Quaternion.AngleAxis(degArc, Vector3.up) * Vector3.forward * radius;
+                    Vector3 arcHandlePosition = Quaternion.AngleAxis(degArc, Vector3.up) * Vector3.forward * radius;
                     arcHandlePosition = Handles.Slider2D(
                         arcHandlePosition,
                         Vector3.up,
@@ -155,7 +155,7 @@ namespace UnityEditor.VFX
 
         static Vector3 m_InitialNormal;
 
-        public bool NormalGizmo(Vector3 position,  ref Vector3 normal , bool always)
+        public bool NormalGizmo(Vector3 position, ref Vector3 normal, bool always)
         {
             if (Event.current.type == EventType.MouseDown)
             {

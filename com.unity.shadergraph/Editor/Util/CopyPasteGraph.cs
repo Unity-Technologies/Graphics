@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<string> m_MetaKeywordIds = new List<string>();
 
-        public CopyPasteGraph() {}
+        public CopyPasteGraph() { }
 
         public CopyPasteGraph(IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<Edge> edges,
                               IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes,

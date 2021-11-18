@@ -64,8 +64,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                fixed(AOVRequest* pThis = &this)
-                return pThis;
+                fixed (AOVRequest* pThis = &this)
+                    return pThis;
             }
         }
 
@@ -193,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="a">The first AOVRequest to compare.</param>
         /// <param name="b">The second AOVRequest to compare.</param>
         /// <returns>True if the two AOV requests have the same settings.</returns>
-        public static bool operator==(AOVRequest a, AOVRequest b)
+        public static bool operator ==(AOVRequest a, AOVRequest b)
         {
             return a.m_DebugFullScreen == b.m_DebugFullScreen &&
                 a.m_LightFilterProperty == b.m_LightFilterProperty &&
@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="a">The first AOVRequest to compare.</param>
         /// <param name="b">The second AOVRequest to compare.</param>
         /// <returns>True if the two AOV requests have not the same settings.</returns>
-        public static bool operator!=(AOVRequest a, AOVRequest b)
+        public static bool operator !=(AOVRequest a, AOVRequest b)
         {
             return !(a == b);
         }

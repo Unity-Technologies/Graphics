@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// history buffers of the HDCamera are used.
     /// </summary>
     /// <typeparam name="K">The type of the key.</typeparam>
-    class CameraCache<K>: IDisposable
+    class CameraCache<K> : IDisposable
     {
         Dictionary<K, (Camera camera, int lastFrame)> m_Cache = new Dictionary<K, (Camera camera, int lastFrame)>();
         K[] cameraKeysCache = new K[0];
