@@ -7,7 +7,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--artifacts", help="The relative directory from root artifacts are stored")
     parser.add_argument("--root", help="The project root")
-    parser.add_argument("--logs", help="Print extra logs during execution")
+    parser.add_argument("--logs", action="store_true", help="Print extra logs during execution")
 
     args = parser.parse_args()
 
