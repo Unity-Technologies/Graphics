@@ -12,7 +12,8 @@ Based on Sahl-Snell's Law, for a medium's given refractive index, there is an an
 |:------------ |:-------------|:-----|:---|:---|
 | Incident      | Input | Vector | None | The normalized vector of what should be refracted to the surface causing the refraction. For example, this could be from a light source to a pixel or the surface, or from the eye to the pixel or surface. |
 | Normal      | Input | Vector | None | The normalized normal of the surface that should cause the refraction. |
-| Eta      | Input | Float    | None | The refractive index ratio, which is defined by the Source Refractive Index (where the light is coming from) divided by the Medium Refractive Index (the medium causing the refraction). For example, the **Eta** for an air source and a glass medium would be 1.0/1/5, while a glass source to an air medium would be 1.5/1.0. |
+| IOR Input      | Input | Float    | None | The refractive index Source (where the light is coming from). |
+| IOR Medium     | Input | Float    | None | The refractive index Medium (the medium causing the refraction). |
 | Out | Output      |  Vector | None | The refracted vector |
 
 ## Controls
@@ -26,17 +27,23 @@ Based on Sahl-Snell's Law, for a medium's given refractive index, there is an an
 The following example code represents one possible outcome of this node.
 
 ```
-void Unity_RefractCriticalAngle(float3 Incident, float3 Normal, float Eta, out float Out)
+void Unity_RefractCriticalAngle(float3 Incident, float3 Normal, float IORInput, float IORMedium, out float Out)
 {
+    $precision internalIORInput = max(IORInput, 1.0);
+    $precision internalIORMedium = max(IORMedium, 1.0);
+    $precision eta = internalIORInput/internalIORMedium;
     $precision cos0 = dot(Incident, Normal);
-    $precision k = 1.0 - Eta*Eta*(1.0 - cos0*cos0);
-    Out = k >= 0.0 ? Eta*Incident - (Eta*cos0 + sqrt(k))*Normal : 0.0;
+    $precision k = 1.0 - eta*eta*(1.0 - cos0*cos0);
+    Out = k >= 0.0 ? eta*Incident - (eta*cos0 + sqrt(k))*Normal : 0.0;
 }
 
-void Unity_RefractSafe(float3 Incident, float3 Normal, float Eta, out float Out)
+void Unity_RefractSafe(float3 Incident, float3 Normal, float IORInput, float IORMedium, out float Out)
 {
+    $precision internalIORInput = max(IORInput, 1.0);
+    $precision internalIORMedium = max(IORMedium, 1.0);
+    $precision eta = internalIORInput/internalIORMedium;
     $precision cos0 = dot(Incident, Normal);
-    $precision k = 1.0 - Eta*Eta*(1.0 - cos0*cos0);
-    Out = Eta*Incident - (Eta*cos0 + sqrt(max(k, 0.0)))*Normal;
+    $precision k = 1.0 - eta*eta*(1.0 - cos0*cos0);
+    Out = eta*Incident - (eta*cos0 + sqrt(max(k, 0.0)))*Normal;
 }
 ```
