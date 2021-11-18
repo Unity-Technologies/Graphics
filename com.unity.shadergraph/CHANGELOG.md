@@ -4,6 +4,11 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.2] - 2021-11-05
+
+### Fixed
+ - Fixed a recent regression in ShaderGraph Screen Position behavior on some platforms in Built-in, Universal and HDRP [1369450]
+
 ## [13.1.1] - 2021-10-04
 
 ### Added
