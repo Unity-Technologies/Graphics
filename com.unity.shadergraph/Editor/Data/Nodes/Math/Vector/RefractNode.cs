@@ -48,14 +48,14 @@ namespace UnityEditor.ShaderGraph
         static string Unity_RefractCriticalAngle(
             [Slot(0, Binding.None, 0, 0, 0, 1)] DynamicDimensionVector Incident,
             [Slot(1, Binding.None, 0, 1, 0, 1)] DynamicDimensionVector Normal,
-            [Slot(2, Binding.None, 1, 0, 0, 0)] Vector1 IORInput,
+            [Slot(2, Binding.None, 1, 0, 0, 0)] Vector1 IORSource,
             [Slot(3, Binding.None, 1, 0, 0, 0)] Vector1 IORMedium,
             [Slot(4, Binding.None)] out DynamicDimensionVector Out)
         {
             return
 @"
 {
-    $precision internalIORInput = max(IORInput, 1.0);
+    $precision internalIORInput = max(IORSource, 1.0);
     $precision internalIORMedium = max(IORMedium, 1.0);
     $precision eta = internalIORInput/internalIORMedium;
     $precision cos0 = dot(Incident, Normal);
@@ -68,14 +68,14 @@ namespace UnityEditor.ShaderGraph
         static string Unity_RefractSafe(
             [Slot(0, Binding.None, 0, 0, 0, 1)] DynamicDimensionVector Incident,
             [Slot(1, Binding.None, 0, 1, 0, 1)] DynamicDimensionVector Normal,
-            [Slot(2, Binding.None, 1, 0, 0, 0)] Vector1 IORInput,
+            [Slot(2, Binding.None, 1, 0, 0, 0)] Vector1 IORSource,
             [Slot(3, Binding.None, 1, 0, 0, 0)] Vector1 IORMedium,
             [Slot(4, Binding.None)] out DynamicDimensionVector Out)
         {
             return
 @"
 {
-    $precision internalIORInput = max(IORInput, 1.0);
+    $precision internalIORInput = max(IORSource, 1.0);
     $precision internalIORMedium = max(IORMedium, 1.0);
     $precision eta = internalIORInput/internalIORMedium;
     $precision cos0 = dot(Incident, Normal);
