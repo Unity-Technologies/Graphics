@@ -1095,14 +1095,25 @@ namespace UnityEngine.Rendering.Universal.Internal
         void SetupBloom(CommandBuffer cmd, RenderTargetIdentifier source, Material uberMaterial)
         {
             // Start at half-res
-            int tw = m_Descriptor.width >> 1;
-            int th = m_Descriptor.height >> 1;
+            int downres = 1;
+            switch (m_Bloom.downscale.value)
+            {
+                case Downscale.Half:
+                    downres = 1;
+                    break;
+                case Downscale.Quarter:
+                    downres = 2;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            int tw = m_Descriptor.width >> downres;
+            int th = m_Descriptor.height >> downres;
 
             // Determine the iteration count
             int maxSize = Mathf.Max(tw, th);
             int iterations = Mathf.FloorToInt(Mathf.Log(maxSize, 2f) - 1);
-            iterations -= m_Bloom.skipIterations.value;
-            int mipCount = Mathf.Clamp(iterations, 1, k_MaxPyramidSize);
+            int mipCount = Mathf.Clamp(iterations, 1, m_Bloom.maxIterations.value);
 
             // Pre-filtering parameters
             float clamp = m_Bloom.clamp.value;
