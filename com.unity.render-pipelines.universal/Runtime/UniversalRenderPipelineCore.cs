@@ -164,10 +164,13 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderer != null)
             {
-                bool renderingToBackBufferTarget = renderer.cameraColorTarget == BuiltinRenderTextureType.CameraTarget;
+#pragma warning disable 0618 // Obsolete usage: Backwards compatibility for custom pipelines that aren't using RTHandles
+                var targetId = renderer.cameraColorTargetHandle?.nameID ?? renderer.cameraDepthTarget;
+#pragma warning restore 0618
+                bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (xr.enabled)
-                    renderingToBackBufferTarget |= renderer.cameraColorTarget == xr.renderTarget && !xr.renderTargetIsRenderTexture;
+                    renderingToBackBufferTarget |= targetId == xr.renderTarget && !xr.renderTargetIsRenderTexture;
 #endif
                 bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
                 return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
@@ -217,6 +220,10 @@ namespace UnityEngine.Rendering.Universal
         /// Final background color in the active color space.
         /// </summary>
         public Color backgroundColor;
+
+        /// Camera at the top of the overlay camera stack
+        /// </summary>
+        public Camera baseCamera;
     }
 
     public struct ShadowData
@@ -551,8 +558,8 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 desc = camera.targetTexture.descriptor;
-                desc.width = camera.pixelWidth;
-                desc.height = camera.pixelHeight;
+                desc.width = (int)((float)camera.pixelWidth * renderScale);
+                desc.height = (int)((float)camera.pixelHeight * renderScale);
                 if (camera.cameraType == CameraType.SceneView && !isHdrEnabled)
                 {
                     desc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);

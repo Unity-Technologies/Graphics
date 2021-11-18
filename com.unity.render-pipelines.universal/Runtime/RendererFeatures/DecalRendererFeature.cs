@@ -149,6 +149,7 @@ namespace UnityEngine.Rendering.Universal
 
     [DisallowMultipleRendererFeature("Decal")]
     [Tooltip("With this Renderer Feature, Unity can project specific Materials (decals) onto other objects in the Scene.")]
+    [URPHelpURL("renderer-feature-decal")]
     internal class DecalRendererFeature : ScriptableRendererFeature
     {
         private static SharedDecalEntityManager sharedDecalEntityManager { get; } = new SharedDecalEntityManager();
@@ -465,27 +466,6 @@ namespace UnityEngine.Rendering.Universal
                     renderer.EnqueuePass(m_GBufferRenderPass);
                     break;
                 case DecalTechnique.DBuffer:
-                    var universalRenderer = renderer as UniversalRenderer;
-                    if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
-                    {
-                        m_CopyDepthPass.Setup(
-                            m_DBufferRenderPass.cameraDepthAttachment,
-                            m_DBufferRenderPass.cameraDepthTexture
-                        );
-
-                        m_CopyDepthPass.AllocateRT = false;
-                    }
-                    else
-                    {
-                        m_CopyDepthPass.Setup(
-                            m_DBufferRenderPass.cameraDepthTexture,
-                            m_DBufferRenderPass.dBufferDepth
-                        );
-
-                        m_CopyDepthPass.CopyToDepth = true;
-                    }
-                    m_CopyDepthPass.MssaSamples = 1;
-
                     renderer.EnqueuePass(m_CopyDepthPass);
                     renderer.EnqueuePass(m_DBufferRenderPass);
                     renderer.EnqueuePass(m_ForwardEmissivePass);
@@ -496,6 +476,33 @@ namespace UnityEngine.Rendering.Universal
         internal override bool SupportsNativeRenderPass()
         {
             return m_Technique == DecalTechnique.GBuffer || m_Technique == DecalTechnique.ScreenSpace;
+        }
+
+        public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
+        {
+            if (m_Technique == DecalTechnique.DBuffer)
+            {
+                var universalRenderer = renderer as UniversalRenderer;
+                if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
+                    m_CopyDepthPass.Setup(
+                        renderer.cameraDepthTargetHandle,
+                        universalRenderer.m_DepthTexture
+                    );
+                else
+                {
+                    m_CopyDepthPass.Setup(
+                        universalRenderer.m_DepthTexture,
+                        m_DBufferRenderPass.dBufferDepth
+                    );
+                    m_CopyDepthPass.CopyToDepth = true;
+                }
+                m_CopyDepthPass.MssaSamples = 1;
+            }
+            else if (m_Technique == DecalTechnique.GBuffer && m_DeferredLights.UseRenderPass)
+            {
+                // Need to call Configure for both of these passes to setup input attachments as first frame otherwise will raise errors
+                m_GBufferRenderPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
+            }
         }
 
         protected override void Dispose(bool disposing)
