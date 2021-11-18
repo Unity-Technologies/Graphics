@@ -112,7 +112,7 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
 - Does not support tessellation.
 - Does not support Tube and Disc-shaped Area Lights.
 - Does not support Translucent Opaque Materials.
-- Does not support several of HDRP's Materials. This includes Eye and Decal.
+- Does not support several of HDRP's Materials. This includes Eye, non-physical Hair and Decal.
 - Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
 - Does not support MSAA.
 - Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
