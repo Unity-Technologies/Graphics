@@ -715,5 +715,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             }
         }
+
+        void OnDestroy()
+        {
+            m_RealtimeTexture.Release();
+            m_RealtimeDepthBuffer.Release();
+        }
     }
 }
