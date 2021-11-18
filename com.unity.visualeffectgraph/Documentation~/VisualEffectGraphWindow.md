@@ -62,7 +62,7 @@ The VFX Control panel displays the controls for the GameObject it is currently a
 
 * Control playback options
 * Trigger Events
-* Debug Modes
+* Use Debug Modes
 * Record the bounds of the visual effect. For more information about bounds recording, see [Visual effect bounds](visual-effect-bounds.md).
 
 It is a floating panel that is independent of the zoom and position of the current Workspace view. The window always displays this panel on top of Nodes in the **Node Workspace**.
