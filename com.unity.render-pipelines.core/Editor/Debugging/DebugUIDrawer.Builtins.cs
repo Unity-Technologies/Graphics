@@ -311,24 +311,26 @@ namespace UnityEditor.Rendering
 
             EditorGUI.BeginChangeCheck();
 
+            var rect = PrepareControlRect();
+
             int index = -1;
             int value = w.GetValue();
+
+            rect = EditorGUI.PrefixLabel(rect, EditorGUIUtility.TrTextContent(widget.displayName, w.tooltip));
+
             if (w.enumNames == null || w.enumValues == null)
             {
-                EditorGUILayout.LabelField("Can't draw an empty enumeration.");
+                EditorGUI.LabelField(rect, "Can't draw an empty enumeration.");
+            }
+            else if (w.enumNames.Length != w.enumValues.Length)
+            {
+                EditorGUI.LabelField(rect, "Invalid data");
             }
             else
             {
-                var rect = PrepareControlRect();
-
                 index = w.currentIndex;
-
-                // Fallback just in case, we may be handling sub/sectionned enums here
-                if (index < 0)
-                    index = 0;
-
-                index = Mathf.Clamp(EditorGUI.IntPopup(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), index, w.enumNames, w.indexes), 0, w.enumValues.Length);
-                value = w.enumValues[index];
+                index = EditorGUI.IntPopup(rect, Mathf.Clamp(index, 0, w.enumNames.Length - 1), w.enumNames, w.indexes);
+                value = w.enumValues[Mathf.Clamp(index, 0, w.enumValues.Length -1)];
             }
 
             if (EditorGUI.EndChangeCheck())
