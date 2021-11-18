@@ -37,6 +37,13 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
+
+    #if _SURFACE_TYPE_TRANSPARENT
+        half surfaceType = 1.0;
+    #else
+        half surfaceType = 0.0;
+    #endif
+
     #if _ALPHATEST_ON
         half alpha = AlphaClip(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
     #elif _SURFACE_TYPE_TRANSPARENT
@@ -58,7 +65,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     // TODO: Mip debug modes would require this, open question how to do this on ShaderGraph.
     //SETUP_DEBUG_TEXTURE_DATA(inputData, input.texCoord1, _MainTex);
 
-    half4 finalColor = UniversalFragmentUnlit(inputData, surfaceDescription.BaseColor, alpha);
+    half4 color = UniversalFragmentUnlit(inputData, surfaceDescription.BaseColor, alpha);
 
-    return finalColor;
+    color.a = OutputAlpha(color.a, surfaceType);
+
+    return color;
 }

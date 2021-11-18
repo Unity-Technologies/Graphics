@@ -188,12 +188,12 @@ void AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
 
 half OutputAlpha(half alpha, half surfaceType = half(0.0))
 {
-    // Opaque materials should always export an alpha value of 1.0 unless alpha-to-coverage is enabled
-    half opaqueAlpha = 1.0;
     #if defined(_ALPHATEST_ON)
-    opaqueAlpha = IsAlphaToMaskEnabled() ? alpha : opaqueAlpha;
+        // Opaque materials should always export an alpha value of 1.0 unless alpha-to-coverage is enabled
+        return IsAlphaToMaskEnabled() ? alpha : 1.0;
+    #else
+        return surfaceType == 1 ? alpha : 1.0;
     #endif
-    return surfaceType == 1 ? alpha : opaqueAlpha;
 }
 
 half3 AlphaModulate(half3 albedo, half alpha)
