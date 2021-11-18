@@ -30,10 +30,10 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Use bicubic sampling instead of bilinear sampling for the upsampling passes. This is slightly more expensive but helps getting smoother visuals.")]
         public BoolParameter highQualityFiltering = new BoolParameter(false);
 
-        [Tooltip("The starting resolution that this effect begins processing.")]
+        [Tooltip("The starting resolution that this effect begins processing."), AdditionalProperty]
         public DownscaleParameter downscale = new DownscaleParameter(Downscale.Half);
 
-        [Tooltip("The maximum number of iterations in the effect processing sequence.")]
+        [Tooltip("The maximum number of iterations in the effect processing sequence."), AdditionalProperty]
         public ClampedIntParameter maxIterations = new ClampedIntParameter(6, 2, 8);
 
         [Header("Lens Dirt")]
