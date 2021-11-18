@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    extra_logs = parser.logs
+    extra_logs = args.logs
 
     if extra_logs:
         print("Working directory of zip_to_artifact: " + getcwd() + "\n\n")
