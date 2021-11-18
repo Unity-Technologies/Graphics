@@ -101,9 +101,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Reset()
         {
-            // We keep around the renderer and the rendering context to avoid useless allocation if they get reused.
+            // We keep around the rendering context to avoid useless allocation if they get reused.
             hash = 0;
             refCount = 0;
+            if (renderingContext != null)
+                renderingContext.Reset();
         }
 
         public void Cleanup()
@@ -957,7 +959,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             RenderSkyToCubemap(skyContext);
 
-                            if (updateAmbientProbe)
+                            if (updateAmbientProbe && !renderingContext.computeAmbientProbeRequested)
                             {
                                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
                                 {
@@ -975,6 +977,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     }
                                     cmd.DispatchCompute(m_ComputeAmbientProbeCS, kernel, 1, 1, 1);
                                     cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
+                                    renderingContext.computeAmbientProbeRequested = true;
                                 }
                             }
 

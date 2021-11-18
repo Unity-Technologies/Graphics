@@ -90,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ShadowResult shadowResult = new ShadowResult();
                 BuildGPULightListOutput gpuLightListOutput = new BuildGPULightListOutput();
                 TextureHandle uiBuffer = m_RenderGraph.defaultResources.blackTextureXR;
+                TextureHandle sunOcclusionTexture = m_RenderGraph.defaultResources.whiteTexture;
 
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
                 {
@@ -179,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderSubsurfaceScattering(m_RenderGraph, hdCamera, colorBuffer, historyValidationTexture, ref lightingBuffers, ref prepassOutput);
 
                     RenderSky(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, prepassOutput.depthBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture);
-                    RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting, maxZMask);
+                    sunOcclusionTexture = RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting, maxZMask);
 
                     // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
                     SendGeometryGraphicsBuffers(m_RenderGraph, prepassOutput.normalBuffer, prepassOutput.depthPyramidTexture, hdCamera);
@@ -267,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                 TextureHandle afterPostProcessBuffer = RenderAfterPostProcessObjects(m_RenderGraph, hdCamera, cullingResults, prepassOutput);
-                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, uiBuffer, afterPostProcessBuffer, cullingResults, hdCamera);
+                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, uiBuffer, afterPostProcessBuffer, sunOcclusionTexture, cullingResults, hdCamera);
 
                 var xyMapping = GenerateDebugHDRxyMapping(m_RenderGraph, hdCamera, postProcessDest);
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
