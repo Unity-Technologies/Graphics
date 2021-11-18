@@ -1,5 +1,5 @@
 ﻿{
-  "name": "Unity_ShaderGraph_HeadlessPreview_Tests",
+  "name": "Unity.ShaderGraph.HeadlessPreview.Tests",
   "rootNamespace": "",
   "references": [
     "Unity.ShaderGraph.Editor",

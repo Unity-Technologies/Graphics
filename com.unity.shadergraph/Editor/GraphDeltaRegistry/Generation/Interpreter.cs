@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Generation
 {
     public static class Interpreter
     {
-
         public static Shader GetShaderForNode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
         {
             void GetBlock(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance surfaceCPDesc)
@@ -27,6 +26,11 @@ namespace UnityEditor.ShaderGraph.Generation
             var builder = new ShaderBuilder();
             SimpleSampleBuilder.Build(new ShaderContainer(), SimpleSampleBuilder.GetTarget(), "Test", GetBlock, builder);
             return ShaderUtil.CreateShaderAsset(builder.ToString());
+        }
+
+		public static Shader GetShaderForGraph(IGraphHandler graph, Registry.Registry registry)
+        {
+            return null;
         }
 
         internal static Block EvaluateGraphAndPopulateDescriptors(INodeReader rootNode, IGraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
