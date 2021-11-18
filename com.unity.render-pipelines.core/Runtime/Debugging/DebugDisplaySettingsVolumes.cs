@@ -199,7 +199,13 @@ namespace UnityEngine.Rendering
                 };
 
                 Type selectedType = data.volumeDebugSettings.selectedComponentType;
-                var stackComponent = data.volumeDebugSettings.selectedCameraVolumeStack.GetComponent(selectedType);
+                if (selectedType == null)
+                    return table;
+
+                var stack = data.volumeDebugSettings.selectedCameraVolumeStack ?? VolumeManager.instance.stack;
+                var stackComponent = stack.GetComponent(selectedType);
+                if (stackComponent == null)
+                    return table;
 
                 var volumes = data.volumeDebugSettings.GetVolumes();
 

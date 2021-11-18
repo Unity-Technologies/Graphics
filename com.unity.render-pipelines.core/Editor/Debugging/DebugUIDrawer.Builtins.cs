@@ -327,7 +327,7 @@ namespace UnityEditor.Rendering
                 if (index < 0)
                     index = 0;
 
-                index = EditorGUI.IntPopup(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), index, w.enumNames, w.indexes);
+                index = Mathf.Clamp(EditorGUI.IntPopup(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), index, w.enumNames, w.indexes), 0, w.enumValues.Length);
                 value = w.enumValues[index];
             }
 
