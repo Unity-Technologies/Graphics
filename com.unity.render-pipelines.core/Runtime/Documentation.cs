@@ -95,11 +95,13 @@ namespace UnityEngine.Rendering
         /// Obtains the help URL from a type.
         /// </summary>
         /// <param name="type">The type decorated with the HelpURL attribute.</param>
-        /// <returns>The full URL or null if the attribute is not present.</returns>
-        public static string TryGetHelpURL(Type type)
+        /// <param name="url">The full URL from the HelpURL attribute. If the attribute is not present, this value is null.</param>
+        /// <returns>Returns true if the attribute is present, and false otherwise.</returns>
+        public static bool TryGetHelpURL(Type type, out string url)
         {
             var attribute = type.GetCustomAttribute<HelpURLAttribute>(false);
-            return attribute?.URL;
+            url = attribute?.URL;
+            return attribute != null;
         }
     }
 }

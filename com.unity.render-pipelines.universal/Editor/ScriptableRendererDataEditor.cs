@@ -140,7 +140,8 @@ namespace UnityEditor.Rendering.Universal
                 string tooltip;
                 GetTooltip(rendererFeatureObjRef.GetType(), out tooltip);
 
-                var helpURL = DocumentationUtils.TryGetHelpURL(rendererFeatureObjRef.GetType());
+                string helpURL;
+                DocumentationUtils.TryGetHelpURL(rendererFeatureObjRef.GetType(), out helpURL);
 
                 // Get the serialized object for the editor script & update it
                 Editor rendererFeatureEditor = m_Editors[index];
