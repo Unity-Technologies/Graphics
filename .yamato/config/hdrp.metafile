@@ -77,6 +77,7 @@ platforms:
         exclude_test_platforms:
           - name: editmode
           - name: editmode_XR
+          - name: playmode
           - name: playmode_XR
           - name: Standalone_XR
     build_configs:
