@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         Safe
     };
 
-    [Title("Math", "Vector")]
+    [Title("Math", "Vector", "Refract")]
     class RefractNode : CodeFunctionNode
     {
         [SerializeField]
@@ -48,15 +48,19 @@ namespace UnityEditor.ShaderGraph
         static string Unity_RefractCriticalAngle(
             [Slot(0, Binding.None, 0, 0, 0, 1)] DynamicDimensionVector Incident,
             [Slot(1, Binding.None, 0, 1, 0, 1)] DynamicDimensionVector Normal,
-            [Slot(2, Binding.None)] Vector1 Eta,
-            [Slot(3, Binding.None)] out DynamicDimensionVector Out)
+            [Slot(2, Binding.None, 1, 0, 0, 0)] Vector1 IORInput,
+            [Slot(3, Binding.None, 1, 0, 0, 0)] Vector1 IORMedium,
+            [Slot(4, Binding.None)] out DynamicDimensionVector Out)
         {
             return
 @"
 {
+    $precision internalIORInput = max(IORInput, 1.0);
+    $precision internalIORMedium = max(IORMedium, 1.0);
+    $precision eta = internalIORInput/internalIORMedium;
     $precision cos0 = dot(Incident, Normal);
-    $precision k = 1.0 - Eta*Eta*(1.0 - cos0*cos0);
-    Out = k >= 0.0 ? Eta*Incident - (Eta*cos0 + sqrt(k))*Normal : 0.0;
+    $precision k = 1.0 - eta*eta*(1.0 - cos0*cos0);
+    Out = k >= 0.0 ? eta*Incident - (eta*cos0 + sqrt(k))*Normal : 0.0;
 }
 ";
         }
@@ -64,17 +68,22 @@ namespace UnityEditor.ShaderGraph
         static string Unity_RefractSafe(
             [Slot(0, Binding.None, 0, 0, 0, 1)] DynamicDimensionVector Incident,
             [Slot(1, Binding.None, 0, 1, 0, 1)] DynamicDimensionVector Normal,
-            [Slot(2, Binding.None)] Vector1 Eta,
-            [Slot(3, Binding.None)] out DynamicDimensionVector Out)
+            [Slot(2, Binding.None, 1, 0, 0, 0)] Vector1 IORInput,
+            [Slot(3, Binding.None, 1, 0, 0, 0)] Vector1 IORMedium,
+            [Slot(4, Binding.None)] out DynamicDimensionVector Out)
         {
             return
 @"
 {
+    $precision internalIORInput = max(IORInput, 1.0);
+    $precision internalIORMedium = max(IORMedium, 1.0);
+    $precision eta = internalIORInput/internalIORMedium;
     $precision cos0 = dot(Incident, Normal);
-    $precision k = 1.0 - Eta*Eta*(1.0 - cos0*cos0);
-    Out = Eta*Incident - (Eta*cos0 + sqrt(max(k, 0.0)))*Normal;
+    $precision k = 1.0 - eta*eta*(1.0 - cos0*cos0);
+    Out = eta*Incident - (eta*cos0 + sqrt(max(k, 0.0)))*Normal;
 }
 ";
         }
     }
 }
+
