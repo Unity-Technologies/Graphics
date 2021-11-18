@@ -155,6 +155,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public float causticsIntensity = 0.5f;
 
         /// <summary>
+        /// Controls the amount of dispersion of the caustics.
+        /// </summary>
+        [Tooltip("Controls the amount of dispersion of the caustics.")]
+        public float causticsDispersionAmount = 0.5f;
+
+        /// <summary>
         /// Set the tiling factor of the under-water caustics.
         /// </summary>
         [Tooltip("Set the tiling factor of the under-water caustics.")]

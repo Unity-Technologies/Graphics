@@ -537,11 +537,6 @@ float GetWaveTipThickness(float normalizedDistanceToMaxWaveHeightPlane, float3 w
     return 1.f - saturate(1 + refractedRay.y - 0.2) * pow(H, 2) / 0.4;
 }
 
-float2 EvaluateCausticsUV(float3 causticPosAWS)
-{
-    return (causticPosAWS.xz) * _CausticsTiling + _CausticsOffset.xy;
-}
-
 float2 Molulo2D(float2 divident, float2 divisor)
 {
     float2 positiveDivident = divident % divisor + divisor;
@@ -586,18 +581,24 @@ float VoronoiNoise(float2 coordinate)
         }
     }
 
-    // Fake fast gamma
-    float minDist = abs(minDistToCell);
-    return minDist * minDist;
+    return minDistToCell * minDistToCell;
+}
+
+float2 EvaluateCausticsUV(float3 causticPosAWS)
+{
+    return (causticPosAWS.xz) * _CausticsTiling + _CausticsOffset.xy;
 }
 
 float3 EvaluateCaustics(float3 bedPositionAWS)
 {
     float normalizedDepth = saturate((_PatchOffset.y - bedPositionAWS.y - _CausticsPlaneOffset));
     float2 causticsUV = EvaluateCausticsUV(bedPositionAWS);
-    float voronoiR = VoronoiNoise(causticsUV);
-    float voronoiG = VoronoiNoise(causticsUV + float2(normalizedDepth * 0.25, 0.0));
-    float voronoiB = VoronoiNoise(causticsUV + float2(0.0, normalizedDepth * 0.25));
+    float colorShiftItensity = normalizedDepth * _DispersionAmount;
+
+    float voronoiR = VoronoiNoise(causticsUV + float2(pow(colorShiftItensity, 0.9) * _CausticsTiling, 0.0));
+    float voronoiG = VoronoiNoise(causticsUV + float2(pow(colorShiftItensity, 1.6) * _CausticsTiling, 0.0));
+    float voronoiB = VoronoiNoise(causticsUV + float2(pow(colorShiftItensity, 2.0) * _CausticsTiling, 0.0));
+
     return float3(voronoiR, voronoiG, voronoiB) * normalizedDepth * _CausticsIntensity;
 }
 

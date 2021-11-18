@@ -384,7 +384,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._TipScatteringWeight = currentWater.directLightTipScattering;
             cb._DeltaTime = currentWater.simulation.deltaTime;
 
-            cb._Refraction = 0.5f;
+            cb._DispersionAmount = currentWater.causticsDispersionAmount * 0.3f;
             cb._RefractionLow = 2.0f;
             cb._MaxAbsorptionDistance = currentWater.maxAbsorptionDistance;
             cb._MaxRefractionDistance = Mathf.Min(currentWater.maxAbsorptionDistance, currentWater.maxRefractionDistance);

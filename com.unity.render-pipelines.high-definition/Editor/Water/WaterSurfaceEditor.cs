@@ -39,6 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Caustic parameters
         SerializedProperty m_CausticsIntensity;
+        SerializedProperty m_CausticsDispersionAmount;
         SerializedProperty m_CausticsTiling;
         SerializedProperty m_CausticsSpeed;
         SerializedProperty m_CausticsPlaneOffset;
@@ -101,6 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Caustic parameters
             m_CausticsIntensity = o.Find(x => x.causticsIntensity);
+            m_CausticsDispersionAmount = o.Find(x => x.causticsDispersionAmount);
             m_CausticsTiling = o.Find(x => x.causticsTiling);
             m_CausticsSpeed = o.Find(x => x.causticsSpeed);
             m_CausticsPlaneOffset = o.Find(x => x.causticsPlaneOffset);
@@ -140,6 +142,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_DisplacementScattering = EditorGUIUtility.TrTextContent("Displacement Scattering", "Controls the intensity of the displacement based scattering.");
         static public readonly GUIContent k_DirectLightTipScattering = EditorGUIUtility.TrTextContent("Direct Light Tip Scattering", "Controls the intensity of the direct light scattering on the tip of the waves.");
         static public readonly GUIContent k_DirectLightBodyScattering = EditorGUIUtility.TrTextContent("Direct Light Body Scattering", "Controls the intensity of the direct light scattering on the tip of the waves.");
+
+        static public readonly GUIContent k_CausticsDispersionAmount = EditorGUIUtility.TrTextContent("Caustics Dispersion Amount", "Controls the amount of dispersion of the caustics.");
 
         static public readonly GUIContent k_SurfaceFoamSmoothness = EditorGUIUtility.TrTextContent("Surface Foam Smoothness", "Controls the surface foam smoothness.");
         static public readonly GUIContent k_SurfaceFoamIntensity = EditorGUIUtility.TrTextContent("Surface Foam Intensity", "Controls the surface foam intensity.");
@@ -254,6 +258,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(m_CausticsIntensity);
                 m_CausticsIntensity.floatValue = Mathf.Max(m_CausticsIntensity.floatValue, 0.0f);
+
+                m_CausticsDispersionAmount.floatValue = EditorGUILayout.Slider(k_CausticsDispersionAmount, m_CausticsDispersionAmount.floatValue, 0.0f, 1.0f);
+
                 EditorGUILayout.PropertyField(m_CausticsTiling);
                 m_CausticsTiling.floatValue = Mathf.Max(m_CausticsTiling.floatValue, 0.001f);
                 EditorGUILayout.PropertyField(m_CausticsSpeed);

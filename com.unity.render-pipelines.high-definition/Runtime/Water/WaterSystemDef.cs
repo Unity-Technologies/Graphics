@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 _ScatteringColorTips;
         public float _FoamSmoothness;
 
-        public float _Refraction;
+        public float _DispersionAmount;
         public float _RefractionLow;
         public float _MaxAbsorptionDistance;
         public float _ScatteringBlur;

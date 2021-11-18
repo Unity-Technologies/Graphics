@@ -31,7 +31,7 @@ CBUFFER_START(ShaderVariablesWater)
     float _WindFoamAttenuation;
     float3 _ScatteringColorTips;
     float _FoamSmoothness;
-    float _Refraction;
+    float _DispersionAmount;
     float _RefractionLow;
     float _MaxAbsorptionDistance;
     float _ScatteringBlur;
