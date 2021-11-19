@@ -173,7 +173,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
 
                 uint unused;
                 bool validUVW = TryToGetPoolUVWAndSubdiv_(apvRes, _DebugPosition, 0, 0, debugUVW, unused);
-                uint3 loc = floor(debugUVW * _PoolDim - 0.5);
+                uint3 loc = (debugUVW * _PoolDim - 0.5);
                 float3 texCoordFloat = debugUVW * _PoolDim - .5f;
                 loc = texCoordFloat;
 

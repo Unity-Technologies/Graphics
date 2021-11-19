@@ -91,7 +91,7 @@ TEXTURE3D(_APVResValidity);
 float GetValidityWeight(APVResources apvRes, int3 sampleLoc)
 {
     float vW = LOAD_TEXTURE3D(apvRes.Validity, sampleLoc).w;
-    return all(_AntiLeakParams == 0) ? 1 : pow(1.0 - vW, 128);
+    return all(_AntiLeakParams == 0) ? 1 : 1-step(0.00000001f, vW);
 }
 
 float GetGeometricWeight(APVResources apvRes, float3 samplePosWS, float3 sampleNormalWS, int3 sampleLoc)
@@ -103,12 +103,6 @@ float GetGeometricWeight(APVResources apvRes, float3 samplePosWS, float3 sampleN
     probePos += 0.0000001; // appease the debugger.
 
     float3 vecToSample = normalize(probePos - samplePosWS);
-
-    // Smooth backface?
-    float ww = (dot(vecToSample, sampleNormalWS) + 1)*0.5;
-    return ww * ww;
-
-
     return max((dot(sampleNormalWS, vecToSample)), 0);
 }
 
@@ -328,7 +322,7 @@ float3 ModifyUVWForLeak(APVResources apvRes, float3 uvw, float3 samplePos, float
     return uvw;
 }
 
-bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv)
+bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, inout float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv)
 {
     uvw = 0;
     // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
@@ -372,6 +366,7 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
         uvw = ModifyUVWForLeak(apvRes, uvw, posWS, normalWS);
 #endif
 
+    posWS = posWSForSample.xyz;
     return hasValidUVW;
 }
 
