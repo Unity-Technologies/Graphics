@@ -29,28 +29,14 @@ namespace UnityEditor.ShaderFoundry
                 {
                     foreach (var prop in properties)
                     {
+                        var decl = prop.Attributes.GetDeclaration();
+                        if (decl == UnityEditor.ShaderGraph.Internal.HLSLDeclaration.DoNotDeclare)
+                            continue;
+
                         if (!propertiesMap.ContainsKey(prop.ReferenceName))
                         {
                             propertiesMap.Add(prop.ReferenceName, prop);
                             propertiesList.Add(prop);
-                        }
-                    }
-                }
-
-                var inputs = block.Inputs;
-                if (inputs != null)
-                {
-                    foreach (var input in inputs)
-                    {
-                        var decl = input.Attributes.GetDeclaration();
-                        if (decl == UnityEditor.ShaderGraph.Internal.HLSLDeclaration.DoNotDeclare)
-                            continue;
-
-                        if (!propertiesMap.ContainsKey(input.ReferenceName))
-                        {
-                            var prop = input.Clone(container);
-                            propertiesList.Add(prop);
-                            propertiesMap.Add(prop.ReferenceName, prop);
                         }
                     }
                 }

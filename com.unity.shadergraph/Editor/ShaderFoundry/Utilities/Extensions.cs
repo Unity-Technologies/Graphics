@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor.ShaderFoundry;
 using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
@@ -248,26 +249,6 @@ namespace UnityEditor.ShaderFoundry
             }
             inputType = outputType = ShaderType.Invalid;
             return false;
-        }
-    }
-
-    internal static class BlockVariableExtensions
-    {
-        internal static BlockVariable Clone(this BlockVariable variable, ShaderContainer container)
-        {
-            return variable.Clone(container, variable.ReferenceName, variable.DisplayName);
-        }
-
-        internal static BlockVariable Clone(this BlockVariable variable, ShaderContainer container, string referenceName, string displayName)
-        {
-            var builder = new BlockVariable.Builder(container);
-            builder.Type = variable.Type;
-            builder.ReferenceName = referenceName;
-            builder.DisplayName = displayName;
-            builder.DefaultExpression = variable.DefaultExpression;
-            foreach (var attribute in variable.Attributes)
-                builder.AddAttribute(attribute);
-            return builder.Build();
         }
     }
 
