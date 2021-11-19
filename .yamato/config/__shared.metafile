@@ -460,7 +460,7 @@ platforms:
     agents_project:
       default:
         type: Unity::mobile::samsung
-        model: s10e-eu
+        model: s21-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
       standalone_build:
