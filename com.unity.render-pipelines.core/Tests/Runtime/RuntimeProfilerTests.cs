@@ -21,10 +21,8 @@ namespace UnityEngine.Rendering.Tests
         [SetUp]
         public void Setup()
         {
-#if UNITY_EDITOR
-            if (!UnityEditor.PlayerSettings.enableFrameTimingStats)
+            if (!FrameTimingManager.IsFeatureEnabled())
                 Assert.Ignore("Frame timing stats are disabled in Player Settings, skipping test.");
-#endif
 
             // HACK #1 - really shouldn't have to do this here, but previous tests are leaking gameobjects
             var objects = GameObject.FindObjectsOfType<GameObject>();
@@ -48,15 +46,13 @@ namespace UnityEngine.Rendering.Tests
         protected IEnumerator Warmup()
         {
             for (int i = 0; i < k_NumWarmupFrames; i++)
-                yield return new WaitForEndOfFrame();
+                yield return null;
 
             m_DebugFrameTiming.Reset();
         }
     }
 
-    // FIXME: Tests are disabled in player builds for now, since there's no API that tells whether frame timing is
-    //        enabled or not. Re-enable if that changes.
-#if UNITY_EDITOR
+    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.LinuxPlayer, RuntimePlatform.LinuxEditor })] // Disabled on Linux (case 1370861)
     class RuntimeProfilerTests : RuntimeProfilerTestBase
     {
         [UnityTest]
@@ -70,7 +66,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 m_DebugFrameTiming.UpdateFrameTiming();
                 camera.Render();
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
 
             Assert.True(
@@ -80,5 +76,4 @@ namespace UnityEngine.Rendering.Tests
                 m_DebugFrameTiming.m_BottleneckHistory.Histogram.PresentLimited > 0);
         }
     }
-#endif
 }
