@@ -662,6 +662,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_DeferredLights.UseRenderPass && (RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent || !useRenderPassEnabled))
                     m_DeferredLights.DisableFramebufferFetchInput();
+                else if (!m_DeferredLights.UseRenderPass && useRenderPassEnabled)
+                    m_DeferredLights.EnableFramebufferFetchInput();
 
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, mainLightShadows, additionalLightShadows);
             }

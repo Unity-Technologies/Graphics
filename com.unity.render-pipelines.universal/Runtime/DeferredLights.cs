@@ -356,6 +356,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             CreateGbufferAttachments();
         }
 
+        internal void EnableFramebufferFetchInput()
+        {
+            this.UseRenderPass = true;
+            // Recreating the gbuffer attachments as well due to GBuffer4 used for RenderPass
+            CreateGbufferAttachments();
+        }
+
         internal void CreateGbufferAttachments()
         {
             int gbufferSliceCount = this.GBufferSliceCount;
