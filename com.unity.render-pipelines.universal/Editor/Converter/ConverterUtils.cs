@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal.Converters
 {
-    public class ConverterHelper
+    public class ConverterUtils
     {
         public enum ConverterFilter
         {
@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             Exclusive
         }
 
-        static List<RenderPipelineConverter> GetConvertersInContainer(RenderPipelineConverterContainer container)
+        internal static List<RenderPipelineConverter> GetConvertersInContainer(RenderPipelineConverterContainer container)
         {
             List<RenderPipelineConverter> listOfConverters = new List<RenderPipelineConverter>();
             var converterList = TypeCache.GetTypesDerivedFrom<RenderPipelineConverter>();
