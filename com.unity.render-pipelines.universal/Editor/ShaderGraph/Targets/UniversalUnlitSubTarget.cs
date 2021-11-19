@@ -319,8 +319,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 public static readonly FieldCollection Unlit = new FieldCollection()
                 {
                     StructFields.Varyings.positionWS,
-                    StructFields.Varyings.normalWS,
-                    StructFields.Varyings.viewDirectionWS,
+                    StructFields.Varyings.normalWS
                 };
 
                 public static readonly FieldCollection DepthNormalsOnly = new FieldCollection()
