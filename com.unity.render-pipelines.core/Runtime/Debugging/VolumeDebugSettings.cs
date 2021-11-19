@@ -154,6 +154,8 @@ namespace UnityEngine.Rendering
         float[] weights = null;
         float ComputeWeight(Volume volume, Vector3 triggerPos)
         {
+            if (volume == null) return 0;
+
             var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
 
             if (!volume.gameObject.activeInHierarchy) return 0;
